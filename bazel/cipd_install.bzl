@@ -185,7 +185,7 @@ cipd_install = repository_rule(
 non-POSIX OS. Optional.""",
         ),
         "postinstall_script_win": attr.string(
-            doc = """Contents of post-install script to execute. Ignored if Bazel is running on
+            doc = """Contents of post-install script to execute. Ignored if Bazel is not running on
 Windows. Optional.""",
         ),
         "quiet": attr.bool(
