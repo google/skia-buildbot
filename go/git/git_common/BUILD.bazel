@@ -7,6 +7,8 @@ go_library(
     data = select({
         "@platforms//os:linux": ["@git_linux//:all_files"],
         "@platforms//os:windows": ["@git_win//:all_files"],
+        # Prevent errors when targeting a platform without a Git CIPD package.
+        "//conditions:default": [],
     }),
     importpath = "go.skia.org/infra/go/git/git_common",
     visibility = ["//visibility:public"],

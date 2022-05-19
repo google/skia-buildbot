@@ -95,8 +95,6 @@ Note that runfile generation is disabled on Windows by default, and must be enab
 
 [1] https://bazel.build/docs/configurable-attributes
 [2] https://bazel.build/reference/command-line-reference#flag--enable_runfiles
-
-
 """
 
 def _fail_if_nonzero_status(exec_result, msg):
@@ -108,8 +106,23 @@ def _fail_if_nonzero_status(exec_result, msg):
             exec_result.stderr,
         ))
 
+def _postinstall_script(repository_ctx, script_name, script_content):
+    repository_ctx.report_progress("Executing postinstall script...")
+    repository_ctx.file(
+        script_name,
+        content = script_content,
+        executable = True,
+    )
+    exec_result = repository_ctx.execute(
+        [repository_ctx.path(script_name)],
+        quiet = repository_ctx.attr.quiet,
+    )
+    _fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
+    repository_ctx.delete(repository_ctx.path(script_name))
+
 def _cipd_install_impl(repository_ctx):
     is_windows = "windows" in repository_ctx.os.name.lower()
+    is_posix = not is_windows  # This is a safe assumption given our fleet of test machines.
 
     # Install the CIPD package.
     cipd_client = Label("@depot_tools//:cipd.bat" if is_windows else "@depot_tools//:cipd")
@@ -142,21 +155,19 @@ filegroup(
 """)
 
     # Optionally run the postinstall script if one was given.
-    if repository_ctx.attr.postinstall_script != "":
-        # The .bat extension is needed under Windows, or the OS won't execute the script.
-        script_name = "postinstall.bat" if is_windows else "postinstall.sh"
-        repository_ctx.report_progress("Executing postinstall script...")
-        repository_ctx.file(
-            script_name,
-            content = repository_ctx.attr.postinstall_script,
-            executable = True,
+    if is_posix and repository_ctx.attr.postinstall_script_posix != "":
+        _postinstall_script(
+            repository_ctx,
+            "postinstall.sh",
+            repository_ctx.attr.postinstall_script_posix,
         )
-        exec_result = repository_ctx.execute(
-            [repository_ctx.path(script_name)],
-            quiet = repository_ctx.attr.quiet,
+    if is_windows and repository_ctx.attr.postinstall_script_win != "":
+        _postinstall_script(
+            repository_ctx,
+            # The .bat extension is needed under Windows, or the OS won't execute the script.
+            "postinstall.bat",
+            repository_ctx.attr.postinstall_script_win,
         )
-        _fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
-        repository_ctx.delete(repository_ctx.path(script_name))
 
 cipd_install = repository_rule(
     implementation = _cipd_install_impl,
@@ -169,8 +180,13 @@ cipd_install = repository_rule(
             doc = """CIPD package version, e.g. "version:2.29.2.chromium.6".""",
             mandatory = True,
         ),
-        "postinstall_script": attr.string(
-            doc = """Contents of an optional script to execute after installing the package.""",
+        "postinstall_script_posix": attr.string(
+            doc = """Contents of post-install script to execute. Ignored if Bazel is running on a
+non-POSIX OS. Optional.""",
+        ),
+        "postinstall_script_win": attr.string(
+            doc = """Contents of post-install script to execute. Ignored if Bazel is running on
+Windows. Optional.""",
         ),
         "quiet": attr.bool(
             default = True,

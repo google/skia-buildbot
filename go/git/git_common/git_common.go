@@ -56,9 +56,9 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 		gitPath := ""
 		if bazel.InBazelTest() {
 			if runtime.GOOS == "windows" {
-				gitPath = filepath.Join(bazel.RunfilesDir(), "external/git_win/bin/git.exe")
+				gitPath = filepath.Join(bazel.RunfilesDir(), "external", "git_win", "bin", "git.exe")
 			} else if runtime.GOOS == "linux" {
-				gitPath = filepath.Join(bazel.RunfilesDir(), "external/git_linux/bin/git")
+				gitPath = filepath.Join(bazel.RunfilesDir(), "external", "git_linux", "bin", "git")
 			} else {
 				return "", 0, 0, skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 			}

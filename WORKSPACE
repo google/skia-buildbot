@@ -424,7 +424,7 @@ load("//bazel:cipd_install.bzl", "cipd_install")
 cipd_install(
     name = "git_linux",
     package = "infra/3pp/tools/git/linux-amd64",
-    postinstall_script = """#!/bin/sh
+    postinstall_script_posix = """#!/bin/sh
 set -e  # Fail immediately if any commands return a non-zero exit status.
 mkdir etc
 bin/git config --system user.name "Bazel Test User"
@@ -437,7 +437,7 @@ bin/git config --system user.email "bazel-test-user@example.com"
 cipd_install(
     name = "git_win",
     package = "infra/3pp/tools/git/windows-amd64",
-    postinstall_script = """
+    postinstall_script_win = """
 bin\\git.exe config --system user.name "Bazel Test User"
 bin\\git.exe config --system user.email "bazel-test-user@example.com"
 """,
