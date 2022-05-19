@@ -136,7 +136,7 @@ export class ARBStatusSk extends ElementSk {
           }}"
                       ?disabled="${!ele.editRights || ele.modeChangePending}"
                       title="${ele.editRights
-            ? 'Change the mode.'
+            ? ele.modeTooltip(Mode[mode as keyof typeof Mode])
             : ele.pleaseLoginMsg}"
                       value="${mode}"
                     >
@@ -853,6 +853,19 @@ export class ARBStatusSk extends ElementSk {
           case Mode.STOPPED:
             return 'turn back on in stopped mode';
         }
+    }
+  }
+
+  private modeTooltip(mode: Mode) {
+    switch (mode) {
+      case Mode.RUNNING:
+        return 'RUNNING is the typical operating mode of the autoroller. It will upload and land CLs as new revisions appear in the Child.';
+      case Mode.DRY_RUN:
+        return 'DRY_RUN is similar to RUNNING but does not land the roll CLs after the commit queue finishes. Instead, the active roll is left open until new revisions appear in the child, at which point the roll is closed and a new one is uploaded.';
+      case Mode.STOPPED:
+        return 'STOPPED prevents the autoroller from uploading any CLs. The roller will continue to update any local checkouts to prevent them from getting too far out of date, and any requested manual rolls will be fulfilled.';
+      case Mode.OFFLINE:
+        return 'OFFLINE is similar to STOPPED, but the roller does not update its checkouts and requests for manual rolls are ignored.';
     }
   }
 
