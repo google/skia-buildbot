@@ -225,3 +225,28 @@ func (g GitDir) ReadDir(ctx context.Context, ref, path string) ([]os.FileInfo, e
 	}
 	return ParseDir(contents)
 }
+
+// GetRemotes returns a mapping of remote repo name to URL.
+func (g GitDir) GetRemotes(ctx context.Context) (map[string]string, error) {
+	output, err := g.Git(ctx, "remote", "-v")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	rv := make(map[string]string, len(lines))
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) != 3 {
+			return nil, skerr.Fmt("Got invalid output from `git remote -v`:\n%s", output)
+		}
+		// First field is the remote name, second is the URL. The third field
+		// indicates whether the URL is used for fetching or pushing. In some
+		// cases the same remote name might use different URLs for fetching and
+		// pushing, in which case the return value will be incorrect.  For our
+		// use cases this implementation is enough, but if that changes we may
+		// need to return a slice of structs containing the remote name and the
+		// fetch and push URLs.
+		rv[fields[0]] = fields[1]
+	}
+	return rv, nil
+}

@@ -15,10 +15,17 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_scheduler/go/specs"
+)
+
+const (
+	bbBucketPublic  = "skia/skia.primary"
+	bbBucketPrivate = "skia-internal/skia.internal"
 )
 
 var (
@@ -32,6 +39,7 @@ var (
 // Command returns a cli.Command instance which represents the "try" command.
 func Command() *cli.Command {
 	yFlag := "y"
+	bucketFlag := "bucket"
 	return &cli.Command{
 		Name:        "try",
 		Usage:       "try [-y] [job name or regex]...",
@@ -42,19 +50,24 @@ func Command() *cli.Command {
 				Value: false,
 				Usage: "Trigger all matching try jobs without asking for confirmation.",
 			},
+			&cli.StringFlag{
+				Name:  bucketFlag,
+				Value: "",
+				Usage: "Override the Buildbucket bucket used to trigger try jobs.",
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			if err := fixupIssue(ctx.Context); err != nil {
 				return err
 			}
-			return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag))
+			return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag), ctx.String(bucketFlag))
 		},
 	}
 }
 
 // try loads the available try jobs, filters by the given request strings, and
 // triggers the try jobs selected by the user.
-func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) error {
+func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, overrideBucket string) error {
 	// Setup.
 	jobs, err := tryjobs.getTryJobs(ctx)
 	if err != nil {
@@ -136,6 +149,9 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) e
 
 	// Trigger the try jobs.
 	for bucket, jobList := range jobsToTrigger {
+		if overrideBucket != "" {
+			bucket = overrideBucket
+		}
 		cmd := []string{"git", "cl", "try", "-B", bucket}
 		for _, job := range jobList {
 			cmd = append(cmd, "-b", job)
@@ -218,10 +234,23 @@ func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string,
 	for name := range tasksCfg.Jobs {
 		jobs = append(jobs, name)
 	}
-	// TODO(borenet): This assumes that the current repo is associated with the
-	// skia.primary bucket. This will work for most repos but it would be better
-	// to look up the correct bucket to use.
+
+	// Attempt to determine whether this is a public or private repo by hitting
+	// the Gitiles URL with an unauthenticated request and seeing if we get a
+	// response.
+	remotes, err := git.GitDir(".").GetRemotes(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	bbBucket := bbBucketPrivate
+	for _, url := range remotes {
+		repo := gitiles.NewRepo(url, httputils.DefaultClientConfig().Client())
+		if _, err := repo.Branches(ctx); err == nil {
+			bbBucket = bbBucketPublic
+			break
+		}
+	}
 	return map[string][]string{
-		"skia/skia.primary": jobs,
+		bbBucket: jobs,
 	}, nil
 }

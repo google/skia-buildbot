@@ -40,7 +40,7 @@ func TestTry(t *testing.T) {
 	check := func(jobs []string, noPrompt bool, input string, expectTriggered []string) {
 		mockCmd.ClearCommands()
 		stdin = strings.NewReader(input)
-		require.NoError(t, try(ctx, jobs, noPrompt))
+		require.NoError(t, try(ctx, jobs, noPrompt, ""))
 		triggeredJobs := []string{}
 		for _, cmd := range mockCmd.Commands() {
 			if len(cmd.Args) > len(tryCmdPrefix) && util.SSliceEqual(cmd.Args[:len(tryCmdPrefix)], tryCmdPrefix) {
