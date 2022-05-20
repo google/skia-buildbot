@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "static_server",
+    dirs = {
+        "/usr/local/bin/static_server": [
+            [
+                "//static_server/go/static_server:static_server",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/static_server/static_server",
+    repository = "skia-public/static_server",
+)

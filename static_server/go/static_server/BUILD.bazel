@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "static_server_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/static_server/go/static_server",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+    ],
+)
+
+go_binary(
+    name = "static_server",
+    embed = [":static_server_lib"],
+    visibility = ["//visibility:public"],
+)
