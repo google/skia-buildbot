@@ -9,7 +9,7 @@ sk_element(
     name = "theme-chooser-sk",
     sass_deps = [
         "//infra-sk:elements-sk_scss",
-        "//infra-sk:themes",
+        "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["theme-chooser-sk.scss"],
     ts_deps = [
@@ -28,8 +28,8 @@ sk_page(
     name = "theme-chooser-sk-demo",
     html_file = "theme-chooser-sk-demo.html",
     sass_deps = [
-        "//infra-sk:themes",
         "//infra-sk:elements-sk_scss",
+        "//infra-sk:themes_sass_lib",
     ],
     scss_entry_point = "theme-chooser-sk-demo.scss",
     sk_element_deps = [

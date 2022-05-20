@@ -10,5 +10,5 @@ sass_library(
     name = "theme_sass_lib",
     srcs = ["theme.scss"],
     visibility = ["//visibility:public"],
-    deps = ["//infra-sk:themes"],
+    deps = ["//infra-sk:themes_sass_lib"],
 )

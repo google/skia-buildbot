@@ -9,7 +9,5 @@ import (
 //
 // This function is called from the Gazelle binary.
 func NewLanguage() gazelle.Language {
-	return &language.Language{
-		TargetDirectories: targetDirectories,
-	}
+	return &language.Language{}
 }

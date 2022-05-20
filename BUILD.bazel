@@ -53,6 +53,8 @@ load("@exec_properties//:constants.bzl", "NETWORK_ON")
 # Without this, Gazelle can take several minutes to complete.
 #
 # gazelle:exclude _bazel_*
+# # The new_element directory has templates which do not compile/run
+# gazelle:exclude new_element*
 
 # gazelle:prefix go.skia.org/infra
 gazelle(

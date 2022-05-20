@@ -24,31 +24,6 @@ import (
 type Language struct {
 	configurer.Configurer
 	resolver.Resolver
-
-	// TargetDirectories is a set of known good directories for which we can currently generate valid
-	// build targets. This Gazelle extension will not generate build targets for any other directories
-	// in the repository.
-	//
-	// The value of this map indicates whether to recurse into the directory.
-	//
-	// If nil, no directories will be ignored.
-	//
-	// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
-	TargetDirectories map[string]bool
-}
-
-// isTargetDirectory returns true if this Gazelle extension should generate or update the BUILD file
-// in the given directory.
-func (l *Language) isTargetDirectory(dir string) bool {
-	if l.TargetDirectories == nil {
-		return true
-	}
-	for targetDir, recursive := range l.TargetDirectories {
-		if dir == targetDir || (recursive && strings.HasPrefix(dir, targetDir+"/")) {
-			return true
-		}
-	}
-	return false
 }
 
 // Kinds implements the language.Language interface.
@@ -162,12 +137,6 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			if util.In(dir, []string{"node_modules", "bower_components"}) {
 				return language.GenerateResult{}
 			}
-		}
-
-		// Limit generation of build targets to a hard-coded list of known good directories.
-		// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
-		if !l.isTargetDirectory(args.Rel) {
-			return language.GenerateResult{}
 		}
 	}
 
@@ -355,7 +324,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			r, i := generateKarmaTestRule(f, args.Dir)
 			rules = append(rules, r)
 			imports = append(imports, i)
-		} else if strings.HasSuffix(f, ".ts") {
+		} else if strings.HasSuffix(f, ".ts") && !strings.HasSuffix(f, ".d.ts") {
 			r, i := generateTSLibraryRule(f, args.Dir)
 			rules = append(rules, r)
 			imports = append(imports, i)
@@ -485,12 +454,12 @@ func generateSkElementRule(name string, srcs *skElementSrcs, dir string) (*rule.
 		sort.Strings(tsSrcs)
 	}
 
-	rule := rule.NewRule("sk_element", name)
-	rule.SetAttr("ts_srcs", tsSrcs)
+	r := rule.NewRule("sk_element", name)
+	r.SetAttr("ts_srcs", tsSrcs)
 	if srcs.scss != "" {
-		rule.SetAttr("sass_srcs", []string{srcs.scss})
+		r.SetAttr("sass_srcs", []string{srcs.scss})
 	}
-	rule.SetAttr("visibility", []string{"//visibility:public"})
+	r.SetAttr("visibility", []string{"//visibility:public"})
 
 	imports := &importsParsedFromRuleSourcesImpl{}
 	for _, tsSrc := range tsSrcs {
@@ -500,16 +469,16 @@ func generateSkElementRule(name string, srcs *skElementSrcs, dir string) (*rule.
 		imports.sassImports = extractImportsFromSassFile(filepath.Join(dir, srcs.scss))
 	}
 
-	return rule, imports
+	return r, imports
 }
 
 // generateSkPageRule generates a sk_page rule for the given sources.
 func generateSkPageRule(srcs *skPageSrcs, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("sk_page", makeRuleNameFromFileName(srcs.html, ""))
-	rule.SetAttr("html_file", srcs.html)
-	rule.SetAttr("ts_entry_point", srcs.ts)
+	r := rule.NewRule("sk_page", makeRuleNameFromFileName(srcs.html, ""))
+	r.SetAttr("html_file", srcs.html)
+	r.SetAttr("ts_entry_point", srcs.ts)
 	if srcs.scss != "" {
-		rule.SetAttr("scss_entry_point", srcs.scss)
+		r.SetAttr("scss_entry_point", srcs.scss)
 	}
 
 	imports := &importsParsedFromRuleSourcesImpl{
@@ -519,53 +488,53 @@ func generateSkPageRule(srcs *skPageSrcs, dir string) (*rule.Rule, common.Import
 		imports.sassImports = extractImportsFromSassFile(filepath.Join(dir, srcs.scss))
 	}
 
-	return rule, imports
+	return r, imports
 }
 
 // generateSkDemoPageServerRule generates a sk_demo_page_server rule for the given sk_page.
 func generateSkDemoPageServerRule(skPage label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("sk_demo_page_server", "demo_page_server")
-	rule.SetAttr("sk_page", skPage.String())
-	return rule, &importsParsedFromRuleSourcesImpl{}
+	r := rule.NewRule("sk_demo_page_server", "demo_page_server")
+	r.SetAttr("sk_page", skPage.String())
+	return r, &importsParsedFromRuleSourcesImpl{}
 }
 
 // generateSassLibraryRule generates a sass_library rule for the given Sass file.
 func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("sass_library", makeRuleNameFromFileName(file, "_sass_lib"))
-	rule.SetAttr("srcs", []string{file})
-	rule.SetAttr("visibility", []string{"//visibility:public"})
-	return rule, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
+	r := rule.NewRule("sass_library", makeRuleNameFromFileName(file, "_sass_lib"))
+	r.SetAttr("srcs", []string{file})
+	r.SetAttr("visibility", []string{"//visibility:public"})
+	return r, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
 }
 
 // generateKarmaTestRule generates a karma_test rule for the given TypeScript file.
 func generateKarmaTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("karma_test", makeRuleNameFromFileName(file, ""))
-	rule.SetAttr("src", file)
-	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+	r := rule.NewRule("karma_test", makeRuleNameFromFileName(file, ""))
+	r.SetAttr("src", file)
+	return r, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
 }
 
 // generateNodeJSTestRule generates a nodejs_test rule for the given TypeScript file.
 func generateNodeJSTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("nodejs_test", makeRuleNameFromFileName(file, ""))
-	rule.SetAttr("src", file)
-	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+	r := rule.NewRule("nodejs_test", makeRuleNameFromFileName(file, ""))
+	r.SetAttr("src", file)
+	return r, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
 }
 
 // generateSkElementPuppeteerTestRule generates a sk_element_puppeteer_test rule for the given
 // TypeScript file and sk_demo_page_server.
 func generateSkElementPuppeteerTestRule(file, dir string, skDemoPageServer label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("sk_element_puppeteer_test", makeRuleNameFromFileName(file, ""))
-	rule.SetAttr("src", file)
-	rule.SetAttr("sk_demo_page_server", skDemoPageServer.String())
-	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+	r := rule.NewRule("sk_element_puppeteer_test", makeRuleNameFromFileName(file, ""))
+	r.SetAttr("src", file)
+	r.SetAttr("sk_demo_page_server", skDemoPageServer.String())
+	return r, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
 }
 
 // generateTSLibraryRule generates a ts_library rule for the given TypeScript file.
 func generateTSLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
-	rule := rule.NewRule("ts_library", makeRuleNameFromFileName(file, "_ts_lib"))
-	rule.SetAttr("srcs", []string{file})
-	rule.SetAttr("visibility", []string{"//visibility:public"})
-	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+	r := rule.NewRule("ts_library", makeRuleNameFromFileName(file, "_ts_lib"))
+	r.SetAttr("srcs", []string{file})
+	r.SetAttr("visibility", []string{"//visibility:public"})
+	return r, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
 }
 
 // makeRuleNameFromFileName returns e.g. "baz_ts_lib" when given "foo/bar/baz.ts" and "_ts_lib".
@@ -744,6 +713,6 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 }
 
 // Fix implements the language.Language interface.
-func (l *Language) Fix(c *config.Config, f *rule.File) {}
+func (l *Language) Fix(*config.Config, *rule.File) {}
 
 var _ language.Language = &Language{}

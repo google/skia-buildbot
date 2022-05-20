@@ -4,5 +4,5 @@ sass_library(
     name = "themes_sass_lib",
     srcs = ["themes.scss"],
     visibility = ["//visibility:public"],
-    deps = ["//infra-sk:themes"],
+    deps = ["//infra-sk:themes_sass_lib"],
 )

@@ -12,7 +12,7 @@ sass_library(
     visibility = ["//visibility:public"],
     deps = [
         "//infra-sk:elements-sk_scss",
-        "//infra-sk:themes",
+        "//infra-sk:themes_sass_lib",
     ],
 )
 

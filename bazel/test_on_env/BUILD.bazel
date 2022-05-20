@@ -10,7 +10,7 @@ test_on_env(
 test_on_env(
     name = "test_on_env_nodejs_test",
     env = "//bazel/test_on_env/examples:env",
-    test = "//bazel/test_on_env/examples/typescript:typescript_test",
+    test = "//bazel/test_on_env/examples/typescript:typescript_nodejs_test",
 )
 
 go_library(

@@ -4,7 +4,7 @@ sk_element(
     name = "skottie-shader-editor-sk",
     sass_deps = [
         "//infra-sk:elements-sk_scss",
-        "//infra-sk:themes",
+        "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["skottie-shader-editor-sk.scss"],
     ts_deps = [

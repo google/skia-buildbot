@@ -4,10 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "frontend",
-    srcs = [
-        "allowlist.go",
-        "extension.go",
-    ],
+    srcs = ["extension.go"],
     importpath = "go.skia.org/infra/bazel/gazelle/frontend",
     visibility = ["//visibility:public"],
     deps = [
