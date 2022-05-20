@@ -36,6 +36,20 @@
           "36250649"
         ]
       }
+    },
+    "chops-dash": {
+      "repo_url": "https://chromium.googlesource.com/infra/infra.git",
+      "git_branch": "main",
+      "package_json_dir": "go/src/infra/appengine/dashboard/frontend",
+      "packages_allow_list": [],
+      "trusted_scopes": [],
+      "monorail_config": {
+        "instance_name": "chromium",
+        "owner": "andrewjc@google.com",
+        "component_def_ids": [
+          "36250649"
+        ]
+      }
     }
   }
 }
