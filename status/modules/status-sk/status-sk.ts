@@ -131,7 +131,7 @@ export class StatusSk extends ElementSk {
               Gold
             </button>
             <collapse-sk>
-              <gold-status-sk></gold-status-sk>
+              <gold-status-sk .repo=${el.repo}></gold-status-sk>
             </collapse-sk>
           </div>
           <div>

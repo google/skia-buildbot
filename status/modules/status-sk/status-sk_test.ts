@@ -38,7 +38,7 @@ describe('status-sk', () => {
     });
     fetchMock.getOnce('path:/loginstatus/', {});
     fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{ alerts: 5 });
-    fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
+    fetchMock.get('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
       corpStatus: [
         { name: 'canvaskit', untriagedCount: 0 },
         { name: 'colorImage', untriagedCount: 0 },
@@ -47,6 +47,11 @@ describe('status-sk', () => {
         { name: 'pathkit', untriagedCount: 0 },
         { name: 'skp', untriagedCount: 0 },
         { name: 'svg', untriagedCount: 27 },
+      ],
+    });
+    fetchMock.getOnce('https://skia-infra-gold.skia.org/json/v2/trstatus', <StatusResponse>{
+      corpStatus: [
+        { name: 'infra', untriagedCount: 23 },
       ],
     });
     fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
