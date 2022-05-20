@@ -401,12 +401,7 @@ exports_files(
         ["**/*"],
         # This prevents "link or target filename contains space" Bazel errors.
         exclude = [
-            "bootstrap-2@3.8.10.chromium.20_bin/python3/lib/python3.8/site-packages/setuptools/command/launcher manifest.xml",
-            "bootstrap-2@3.8.10.chromium.20_bin/python3/lib/python3.8/site-packages/setuptools/script (dev).tmpl",
-            "bootstrap-2@3.8.10.chromium.20_bin/python/lib/python2.7/site-packages/setuptools/command/launcher manifest.xml",
-            "bootstrap-2@3.8.10.chromium.20_bin/python/lib/python2.7/site-packages/setuptools/script (dev).tmpl",
-            "recipes/recipe_modules/gclient/tests/diff_deps.expected/no change, exception.json",
-            "recipes/recipe_modules/gclient/tests/diff_deps.expected/dont have revision yet.json",
+            "**/* *",
         ],
     ),
     visibility = ["//visibility:public"],

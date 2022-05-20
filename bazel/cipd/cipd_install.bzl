@@ -6,7 +6,11 @@ repository.
 Files in the CIPD package can be added as dependencies to other Bazel targets in two ways: either
 individually via a label such as "@my_cipd_pkg//:path/to/file", or by adding
 "@my_cipd_pkg//:all_files" as a dependency, which is a filegroup that includes the entire contents
-of the CIPD package.
+of the CIPD package. The contents of the generated BUILD.bazel file which facilitates this are
+configurable, e.g. multiple smaller packages.
+
+Note: Any files with spaces in their names cannot be used by Bazel and are thus excluded
+from the generated Bazel rules.
 
 If a Bazel target adds a CIPD package as a dependency, its contents will appear under the runfiles
 directory. Example:
@@ -120,6 +124,21 @@ def _postinstall_script(repository_ctx, script_name, script_content):
     _fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
     repository_ctx.delete(repository_ctx.path(script_name))
 
+_DEFAULT_BUILD_FILE_CONTENT = """
+# To add a specific file inside this CIPD package as a dependency, use a label such as
+# @my_cipd_pkg//:path/to/file.
+# The exclude pattern prevents files with spaces in their names from tripping up Bazel.
+exports_files(glob(include=["**/*"], exclude=["**/* *"]))
+
+# Convenience filegroup to add all files in this CIPD package as dependencies.
+filegroup(
+    name = "all_files",
+    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.
+    srcs = glob(include=["**/*"], exclude=["**/* *"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
 def _cipd_install_impl(repository_ctx):
     is_windows = "windows" in repository_ctx.os.name.lower()
     is_posix = not is_windows  # This is a safe assumption given our fleet of test machines.
@@ -141,18 +160,10 @@ def _cipd_install_impl(repository_ctx):
     _fail_if_nonzero_status(exec_result, "Failed to fetch CIPD package.")
 
     # Generate BUILD.bazel file.
-    repository_ctx.file("BUILD.bazel", content = """
-# To add a specific file inside this CIPD package as a dependency, use a label such as
-# @my_cipd_pkg//:path/to/file.
-exports_files(glob(["**/*"]))
-
-# Convenience filegroup to add all files in this CIPD package as dependencies.
-filegroup(
-    name = "all_files",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)
-""")
+    build_file_content = repository_ctx.attr.build_file_content
+    if not build_file_content:
+        build_file_content = _DEFAULT_BUILD_FILE_CONTENT
+    repository_ctx.file("BUILD.bazel", content = build_file_content)
 
     # Optionally run the postinstall script if one was given.
     if is_posix and repository_ctx.attr.postinstall_script_posix != "":
@@ -179,6 +190,10 @@ cipd_install = repository_rule(
         "version": attr.string(
             doc = """CIPD package version, e.g. "version:2.29.2.chromium.6".""",
             mandatory = True,
+        ),
+        "build_file_content": attr.string(
+            doc = """If set, will be used as the content of the BUILD.bazel file. Otherwise, a
+default BUILD.bazel file will be created with an all_files target.""",
         ),
         "postinstall_script_posix": attr.string(
             doc = """Contents of post-install script to execute. Ignored if Bazel is running on a
