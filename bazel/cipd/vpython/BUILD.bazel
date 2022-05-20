@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "vpython",
+    srcs = ["vpython.go"],
+    data = select({
+        "@platforms//os:linux": ["@vpython_linux//:all_files"],
+        "//conditions:default": [],  # Prevent errors on platforms without this CIPD package.
+    }),
+    importpath = "go.skia.org/infra/bazel/cipd/vpython",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)

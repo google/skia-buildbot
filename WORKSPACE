@@ -443,3 +443,10 @@ bin\\git.exe config --system user.email "bazel-test-user@example.com"
 """,
     version = "version:2.29.2.chromium.6",
 )
+
+# https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/
+cipd_install(
+    name = "vpython_linux",
+    package = "infra/tools/luci/vpython/linux-amd64",
+    version = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
+)

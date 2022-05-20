@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/bazel/cipd/vpython"
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
@@ -212,6 +214,13 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
 	// gclient requires the use of vpython3 to bring in needed dependencies.
 	vpythonBinary := "vpython3"
+	if bazel.InBazelTest() {
+		var err error
+		vpythonBinary, err = vpython.FindVPython3()
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to find vpython3 binary from CIPD")
+		}
+	}
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
 	if _, err := exec.RunCwd(ctx, tmp, vpythonBinary, "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)); err != nil {
 		return nil, skerr.Wrapf(err, "Failed 'gclient config'")
