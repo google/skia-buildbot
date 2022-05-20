@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	generatedFileHeaderTmpl = `// This file was generated from %s.  DO NOT EDIT.
+	generatedFileHeaderTmpl = `# This file was generated from %s.  DO NOT EDIT.
 
 `
 )
