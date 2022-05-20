@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/bazel/cipd/cpython3"
 	"go.skia.org/infra/bazel/cipd/git"
 	"go.skia.org/infra/bazel/cipd/vpython"
 )
@@ -18,6 +19,12 @@ func TestFindGit(t *testing.T) {
 
 func TestFindVPython3(t *testing.T) {
 	path, err := vpython.FindVPython3()
+	require.NoError(t, err)
+	assertFileExists(t, path)
+}
+
+func TestFindPython38(t *testing.T) {
+	path, err := cpython3.FindPython38()
 	require.NoError(t, err)
 	assertFileExists(t, path)
 }

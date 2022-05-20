@@ -450,3 +450,10 @@ cipd_install(
     package = "infra/tools/luci/vpython/linux-amd64",
     version = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
 )
+
+# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/
+cipd_install(
+    name = "cpython3_linux",
+    package = "infra/3pp/tools/cpython3/linux-amd64",
+    version = "version:2@3.8.10.chromium.19",
+)

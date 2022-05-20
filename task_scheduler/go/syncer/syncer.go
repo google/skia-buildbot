@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/bazel/cipd/cpython3"
 	"go.skia.org/infra/bazel/cipd/vpython"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
@@ -219,6 +220,14 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		vpythonBinary, err = vpython.FindVPython3()
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to find vpython3 binary from CIPD")
+		}
+		python38Binary, err := cpython3.FindPython38()
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to find python3.8 binary from CIPD")
+		}
+		python38BinaryDir := filepath.Dir(python38Binary)
+		if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", python38BinaryDir, os.Getenv("PATH"))); err != nil {
+			return nil, skerr.Wrapf(err, "failed to update PATH with python3.8 directory")
 		}
 	}
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)

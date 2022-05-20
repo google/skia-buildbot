@@ -224,27 +224,6 @@ container_run_and_commit(
         # Remove the Git distribution included in the base image. We'll install our own from CIPD.
         # The Git CLI is invoked from some tests.
         "apt-get remove git -y",
-
-        # Initialize the CIPD root directory.
-        "mkdir /cipd",
-        "/depot_tools/cipd init /cipd -force",
-
-        # Initialize the CIPD bin directory.
-        "mkdir /cipd/bin",
-        "/depot_tools/cipd init /cipd/bin -force",
-
-        # Initialize the CIPD python3 directory.
-        "mkdir /cipd/bin/cpython3",
-        "/depot_tools/cipd init /cipd/bin/cpython3 -force",
-
-        # Install vpython.
-        "/depot_tools/cipd install infra/3pp/tools/cpython3/linux-amd64 " +
-        "    version:2@3.8.10.chromium.19 -root /cipd/bin/cpython3",
-
-        # Include the CIPD-installed binaries in the PATH. Note that this does not persist after
-        # the container is created. Said binaries are included in the PATH during testing via a
-        # --test_env flag defined in //.bazelrc.
-        "export PATH=$PATH:/cipd:/cipd/bin",
     ],
     # By default, the :rbe_with_toolchains rule refers to the -layer.tar, which is not a valid
     # docker image. By specifying .tar, we use the image itself that was output from the rule.
