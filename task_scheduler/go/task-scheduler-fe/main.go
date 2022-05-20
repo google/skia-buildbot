@@ -430,9 +430,6 @@ func main() {
 	}
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
 
-	// Start up the web server.
-	login.SimpleInitMust(*port, *local)
-
 	go runServer(serverURL, srv)
 
 	// Run indefinitely, responding to HTTP requests.
