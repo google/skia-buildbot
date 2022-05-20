@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "git",
+    srcs = ["git.go"],
+    data = select({
+        "@platforms//os:linux": ["@git_linux//:all_files"],
+        "@platforms//os:windows": ["@git_win//:all_files"],
+        "//conditions:default": [],  # Prevent errors on platforms without this CIPD package.
+    }),
+    importpath = "go.skia.org/infra/bazel/cipd/git",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)

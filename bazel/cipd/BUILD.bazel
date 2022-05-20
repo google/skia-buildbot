@@ -1,0 +1,11 @@
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_test(
+    name = "cipd_test",
+    srcs = ["cipd_test.go"],
+    deps = [
+        "//bazel/cipd/git",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

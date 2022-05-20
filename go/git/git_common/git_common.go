@@ -8,13 +8,12 @@ import (
 	"context"
 	"fmt"
 	osexec "os/exec"
-	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 
+	cipd_git "go.skia.org/infra/bazel/cipd/git"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
@@ -55,18 +54,16 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 	if git == "" {
 		gitPath := ""
 		if bazel.InBazelTest() {
-			if runtime.GOOS == "windows" {
-				gitPath = filepath.Join(bazel.RunfilesDir(), "external", "git_win", "bin", "git.exe")
-			} else if runtime.GOOS == "linux" {
-				gitPath = filepath.Join(bazel.RunfilesDir(), "external", "git_linux", "bin", "git")
-			} else {
-				return "", 0, 0, skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
+			var err error
+			gitPath, err = cipd_git.FindGit()
+			if err != nil {
+				return "", 0, 0, skerr.Wrapf(err, "Failed to find git in CIPD package")
 			}
 		} else {
 			var err error
 			gitPath, err = osexec.LookPath("git")
 			if err != nil {
-				return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
+				return "", 0, 0, skerr.Wrapf(err, "Failed to find git in $PATH")
 			}
 		}
 		maj, min, err := Version(ctx, gitPath)
