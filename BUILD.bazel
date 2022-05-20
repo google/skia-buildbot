@@ -238,8 +238,6 @@ container_run_and_commit(
         "/depot_tools/cipd init /cipd/bin/cpython3 -force",
 
         # Install vpython.
-        "/depot_tools/cipd install infra/tools/luci/vpython-native/linux-amd64 " +
-        "    git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097 -root /cipd/bin",
         "/depot_tools/cipd install infra/3pp/tools/cpython3/linux-amd64 " +
         "    version:2@3.8.10.chromium.19 -root /cipd/bin/cpython3",
 
