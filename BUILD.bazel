@@ -219,13 +219,6 @@ container_run_and_commit(
         "ln -s /usr/bin/clang++-11 /usr/bin/clang++",
         # Make python3 available via the python symlink
         "ln -s /usr/bin/python3 /usr/bin/python",
-
-        # Install depot_tools, necessary to pull binaries via CIPD.
-        "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /depot_tools",
-
-        # Remove the Git distribution included in the base image. We'll install our own from CIPD.
-        # The Git CLI is invoked from some tests.
-        "apt-get remove git -y",
     ],
     # By default, the :rbe_with_toolchains rule refers to the -layer.tar, which is not a valid
     # docker image. By specifying .tar, we use the image itself that was output from the rule.
@@ -359,7 +352,6 @@ language_tool_layer(
     base = ":rbe_with_setup",
     packages = [
         "binutils",
-        "git",  # temporarily needed to install depot_tools
         # Install Chrome and fonts to support major charsets.
         #
         # This is necessary for the karma_test rule to work, which runs web tests on a headless
