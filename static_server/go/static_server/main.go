@@ -19,8 +19,10 @@ import (
 	"time"
 
 	gstorage "cloud.google.com/go/storage"
+
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -99,6 +101,13 @@ func (s *staticGCSServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		gcsFilePath = s.pathToServe + "/" + fileName
 	}
 	s.mutex.RUnlock()
+
+	if strings.HasSuffix(gcsFilePath, ".html") {
+		metrics2.GetCounter("static_server_html_page_requests", map[string]string{
+			"bucket":      s.bucket,
+			"request_uri": r.RequestURI,
+		}).Inc(1)
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
 	defer cancel()
