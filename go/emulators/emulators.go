@@ -20,6 +20,7 @@ import (
 	"strings"
 	"syscall"
 
+	"go.skia.org/infra/bazel/external/google_cloud_sdk"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/netutils"
 	"go.skia.org/infra/go/skerr"
@@ -85,11 +86,20 @@ func getCachedEmulatorInfo(emulator Emulator) emulatorInfo {
 // other. This function returns a new struct every time it's called, so different calls under RBE
 // RBE will return structs with different ports.
 func makeEmulatorInfo(emulator Emulator) emulatorInfo {
+	gcloud := "gcloud"
+	if bazel.InBazelTest() {
+		var err error
+		gcloud, err = google_cloud_sdk.FindGcloud()
+		if err != nil {
+			panic(fmt.Sprintf("Could not find Bazel-downloaded gcloud command: %s", err))
+		}
+	}
+
 	var info emulatorInfo
 	switch emulator {
 	case BigTable:
 		info = emulatorInfo{
-			cmd:    "gcloud beta emulators bigtable start --host-port=localhost:%d --project=test-project",
+			cmd:    fmt.Sprintf("%s beta emulators bigtable start --host-port=localhost:%%d --project=test-project", gcloud),
 			envVar: "BIGTABLE_EMULATOR_HOST",
 			port:   8892,
 		}
@@ -101,19 +111,19 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 		}
 	case Datastore:
 		info = emulatorInfo{
-			cmd:    "gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:%d --project=test-project",
+			cmd:    fmt.Sprintf("%s beta emulators datastore start --no-store-on-disk --host-port=localhost:%%d --project=test-project", gcloud),
 			envVar: "DATASTORE_EMULATOR_HOST",
 			port:   8891,
 		}
 	case Firestore:
 		info = emulatorInfo{
-			cmd:    "gcloud beta emulators firestore start --host-port=localhost:%d",
+			cmd:    fmt.Sprintf("%s beta emulators firestore start --host-port=localhost:%%d", gcloud),
 			envVar: "FIRESTORE_EMULATOR_HOST",
 			port:   8894,
 		}
 	case PubSub:
 		info = emulatorInfo{
-			cmd:    "gcloud beta emulators pubsub start --host-port=localhost:%d --project=test-project",
+			cmd:    fmt.Sprintf("%s beta emulators pubsub start --host-port=localhost:%%d --project=test-project", gcloud),
 			envVar: "PUBSUB_EMULATOR_HOST",
 			port:   8893,
 		}
@@ -243,6 +253,7 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	programAndArgs := strings.Split(programAndArgsStr, " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)

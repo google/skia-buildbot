@@ -189,17 +189,18 @@ container_run_and_commit(
         "apt-get update",
         "apt-get install -y software-properties-common apt-transport-https ca-certificates ca-certificates-java gnupg curl",
         "update-ca-certificates",
+
         # Add repo/keys to install Chrome (needed for Puppeteer)
         "curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -",
         "add-apt-repository 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main'",
 
-        # Add the Google Cloud SDK repository as per the instructions here:
-        # https://cloud.google.com/sdk/docs/install#deb.
-        "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] " +
-        "      https://packages.cloud.google.com/apt cloud-sdk main'" +
-        "      | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list",
-        "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg" +
-        "     | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -",
+        # Add repo/keys to install kubectl, as per the instructions here:
+        # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+        "curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg" +
+        "            https://packages.cloud.google.com/apt/doc/apt-key.gpg",
+        "echo 'deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg]" +
+        "      https://apt.kubernetes.io/ kubernetes-xenial main'" +
+        "     | tee /etc/apt/sources.list.d/kubernetes.list",
         "apt-get update",
     ],
     image = "@google_debian10//image",  # Defined in WORKSPACE
@@ -333,12 +334,10 @@ language_tool_layer(
         # Prevent "error while loading shared libraries: libXss.so.1" in Puppeteer tests.
         # See https://github.com/puppeteer/puppeteer/issues/6192.
         "libxss1",
-        # Install the Google Cloud SDK and emulators.
-        "google-cloud-sdk",
-        "google-cloud-sdk-bigtable-emulator",
-        "google-cloud-sdk-datastore-emulator",
-        "google-cloud-sdk-firestore-emulator",
-        "google-cloud-sdk-pubsub-emulator",
+        # Prevent "error while loading shared libraries: libxshmfence.so.1" in Puppeteer tests.
+        "libxshmfence1",
+        # Prevent "Check failed: xlib_xcb_loader->Load("libX11-xcb.so.1")" in Puppeteer tests.
+        "libx11-xcb1",
         # Applications needed to access test devices in the skia-switchboard cluster.
         "adb",
         "netcat",

@@ -101,14 +101,7 @@ Note that runfile generation is disabled on Windows by default, and must be enab
 [2] https://bazel.build/reference/command-line-reference#flag--enable_runfiles
 """
 
-def _fail_if_nonzero_status(exec_result, msg):
-    if exec_result.return_code != 0:
-        fail("%s\nExit code: %d\nStdout:\n%s\nStderr:\n%s\n" % (
-            msg,
-            exec_result.return_code,
-            exec_result.stdout,
-            exec_result.stderr,
-        ))
+load(":common.bzl", "fail_if_nonzero_status")
 
 def _postinstall_script(repository_ctx, script_name, script_content):
     repository_ctx.report_progress("Executing postinstall script...")
@@ -121,7 +114,7 @@ def _postinstall_script(repository_ctx, script_name, script_content):
         [repository_ctx.path(script_name)],
         quiet = repository_ctx.attr.quiet,
     )
-    _fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
+    fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
     repository_ctx.delete(repository_ctx.path(script_name))
 
 _DEFAULT_BUILD_FILE_CONTENT = """
@@ -157,7 +150,7 @@ def _cipd_install_impl(repository_ctx):
         ],
         quiet = repository_ctx.attr.quiet,
     )
-    _fail_if_nonzero_status(exec_result, "Failed to fetch CIPD package.")
+    fail_if_nonzero_status(exec_result, "Failed to fetch CIPD package.")
 
     # Generate BUILD.bazel file.
     build_file_content = repository_ctx.attr.build_file_content

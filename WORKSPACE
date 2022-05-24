@@ -426,3 +426,11 @@ cipd_install(
     package = "infra/3pp/tools/cpython3/linux-amd64",
     version = "version:2@3.8.10.chromium.19",
 )
+
+#############################################################
+# Google Cloud SDK (needed for the Google Cloud Emulators). #
+#############################################################
+
+load("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk")
+
+google_cloud_sdk(name = "google_cloud_sdk")
