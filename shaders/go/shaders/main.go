@@ -11,17 +11,20 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/scrap/go/client"
+	"go.skia.org/infra/scrap/go/fakeclient"
 	"go.skia.org/infra/scrap/go/scrap"
 )
 
 // flags
 var (
-	scrapExchange = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
+	scrapExchange     = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
+	fakeScrapExchange = flag.Bool("fake_scrapexchange", false, "If set to true, --scrapexchange will be ignored and a fake, in-memory implementation will be used instead.")
 )
 
 // server is the state of the server.
@@ -36,9 +39,24 @@ func new() (baseapp.App, error) {
 	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	scrapClient, err := client.New(*scrapExchange)
-	if err != nil {
-		sklog.Fatalf("Failed to create scrap exchange client: %s", err)
+	var scrapClient scrap.ScrapExchange
+	if *fakeScrapExchange {
+		sklog.Infof("Using fake (in-memory) scrapexchange client")
+		scrapClient = fakeclient.New(map[string]scrap.ScrapBody{
+			"@default": {
+				Type: "sksl",
+				Body: blueNeuronShaderBody,
+				SKSLMetaData: &scrap.SKSLMetaData{
+					ImageURL: "/dist/mandrill.png",
+				},
+			},
+		})
+	} else {
+		var err error
+		scrapClient, err = client.New(*scrapExchange)
+		if err != nil {
+			sklog.Fatalf("Failed to create scrap exchange client: %s", err)
+		}
 	}
 
 	srv := &server{
@@ -130,3 +148,23 @@ func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 func main() {
 	baseapp.Serve(new, []string{"shaders.skia.org"}, baseapp.AllowWASM{}, baseapp.AllowAnyImage{})
 }
+
+// This is the same shader that is the current default on shaders.skia.org (the
+// blue neuron-looking one).
+const blueNeuronShaderBody = `
+// Source: @notargs https://twitter.com/notargs/status/1250468645030858753
+float f(vec3 p) {
+    p.z -= iTime * 10.;
+    float a = p.z * .1;
+    p.xy *= mat2(cos(a), sin(a), -sin(a), cos(a));
+    return .1 - length(cos(p.xy) + sin(p.yz));
+}
+
+half4 main(vec2 fragcoord) {
+    vec3 d = .5 - fragcoord.xy1 / iResolution.y;
+    vec3 p=vec3(0);
+    for (int i = 0; i < 32; i++) {
+      p += f(p) * d;
+    }
+    return ((sin(p) + vec3(2, 5, 9)) / length(p)).xyz1;
+}`

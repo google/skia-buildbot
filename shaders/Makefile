@@ -46,11 +46,11 @@ run-local-instance: build
 
 .PHONY: run-with-custom
 run-with-custom:
-	echo "Using the wasm files in //shaders/wasm_libs/local_build"
+	echo "Using the wasm files in //shaders/wasm_libs/local_build and an in-memory scrapexchange"
 	$(BAZEL) build //shaders/... --shaders_local_canvaskit
 	../_bazel_bin/shaders/go/shaders/shaders_/shaders --local \
 		--resources_dir ../_bazel_bin/shaders/pages/development \
-		--scrapexchange=http://localhost:9000 \
+		--fake_scrapexchange \
 		--port=:8001 \
 		--prom_port=:20001
 

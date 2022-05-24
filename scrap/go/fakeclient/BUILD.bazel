@@ -1,0 +1,25 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "fakeclient",
+    srcs = ["fakeclient.go"],
+    importpath = "go.skia.org/infra/scrap/go/fakeclient",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//scrap/go/scrap",
+    ],
+)
+
+go_test(
+    name = "fakeclient_test",
+    srcs = ["fakeclient_test.go"],
+    embed = [":fakeclient"],
+    deps = [
+        "//go/testutils/unittest",
+        "//scrap/go/scrap",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
