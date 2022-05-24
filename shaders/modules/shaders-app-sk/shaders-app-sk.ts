@@ -619,6 +619,7 @@ export class ShadersAppSk extends ElementSk {
     }
 
     this.surface!.flush();
+    shader.delete();
 
     this.rafID = requestAnimationFrame(() => {
       this.drawFrame();
@@ -656,6 +657,7 @@ export class ShadersAppSk extends ElementSk {
       // Open the debugger in a separate tab, pointing it at our local storage buffer.
       window.open('/debug?local-storage', 'sksl-debug-target');
     }
+    shader.delete();
   }
 
   private async runClick() {

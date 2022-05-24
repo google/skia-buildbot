@@ -468,10 +468,10 @@ export class ShaderNode {
       const uniformsFloat32Array: Float32Array = this.uniformsMallocObj!.toTypedArray() as Float32Array;
 
       // Copy in predefined uniforms values.
-      predefinedUniformsValues.forEach((val, index) => { uniformsFloat32Array[index] = val; });
+      uniformsFloat32Array.set(predefinedUniformsValues);
 
-      // Copy in our local edited uniform values to the right spots.
-      this.currentUserUniformValues.forEach((val, index) => { uniformsFloat32Array[index + this._numPredefinedUniformValues] = val; });
+      // Copy in our local edited uniform values after the predefined uniforms.
+      uniformsFloat32Array.set(this.currentUserUniformValues, this._numPredefinedUniformValues);
 
       // Write in the iImageResolution uniform values.
       const imageResolution = this.findUniform('iImageResolution');
