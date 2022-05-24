@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/golang"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -114,8 +116,12 @@ func getPackageData(ctx context.Context, name string) (map[string]*Package, erro
 
 	// Run "go list" to obtain information about the given package(s).
 	pkgs := map[string]*Package{}
+	goBin, err := golang.FindGo()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	cmd := &exec.Command{
-		Name: "go",
+		Name: goBin,
 		Args: []string{"list", "--json", name},
 		Stdout: newPkgDataWriter(func(pkg *Package) {
 			pkgs[pkg.ImportPath] = pkg

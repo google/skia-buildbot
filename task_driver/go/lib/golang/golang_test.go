@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/golang"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -92,6 +94,16 @@ func executeAndExpectResult(t *testing.T, content test2json.TestContent, expectR
 	defer cleanup()
 
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+		goBin, err := golang.FindGo()
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		goPath := filepath.Dir(goBin)
+		origPath := os.Getenv("PATH")
+		if err := os.Setenv("PATH", fmt.Sprintf("%s%c%s", goPath, os.PathListSeparator, origPath)); err != nil {
+			return skerr.Wrap(err)
+		}
+		defer func() { _ = os.Setenv("PATH", origPath) }()
 		return Test(ctx, d, "./...")
 	})
 

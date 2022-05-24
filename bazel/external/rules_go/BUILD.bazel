@@ -1,0 +1,24 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "rules_go",
+    srcs = ["rules_go.go"],
+    data = ["@go_sdk//:files"],  # Provides access to the "go" binary downloaded by Bazel.
+    importpath = "go.skia.org/infra/bazel/external/rules_go",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "rules_go_test",
+    srcs = ["rules_go_test.go"],
+    embed = [":rules_go"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

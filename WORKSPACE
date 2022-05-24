@@ -66,9 +66,6 @@ go_repositories()
 
 go_rules_dependencies()
 
-# Gazelle fails for toolchain versions < 1.14 with an error like the following:
-#
-#     gazelle: [...]: go: updates to go.mod needed, disabled by -mod=readonly
 go_register_toolchains(version = "1.18")
 
 gazelle_dependencies()
@@ -344,29 +341,6 @@ container_pull(
 ##############################
 # Packages for RBE container #
 ##############################
-
-# The following http_archives are used to download and verify files that will be installed on
-# our RBE container.
-http_archive(
-    name = "go_sdk_external",
-    # We are downloading a tar file of pre-compiled executables, libraries and such that does
-    # NOT have a BUILD file for Bazel to read. As such, we can specify one here using
-    # build_file_content that makes all the contents of the the Golang SDK tar file available
-    # as a target called @go_sdk_external//:extracted_files
-    #
-    # Debugging tip: make an intentional typo in build_file_content and then try to `bazel build`
-    # something that depends on this. The error message will show where the archive is being
-    # downloaded/extracted in your bazel cache, which can help manual inspection.
-    build_file_content = """
-filegroup(
-    name = "extracted_files",
-    srcs = glob(["go/*"], exclude_directories=0),
-    visibility = ["//visibility:public"]
-)""",
-    # From https://golang.org/dl/
-    sha256 = "dab7d9c34361dc21ec237d584590d72500652e7c909bf082758fb63064fca0ef",
-    urls = ["https://golang.org/dl/go1.17.1.linux-amd64.tar.gz"],
-)
 
 http_archive(
     name = "cockroachdb_external",

@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/exec",
+        "//go/golang",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

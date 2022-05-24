@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/golang"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -98,6 +100,12 @@ func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 
 	// Make go modules happy.
 	ctx := context.Background()
-	_, err = exec.RunCwd(ctx, tmpDir, "go", "mod", "init", "fake.com/test2json_test")
+	var goBin string
+	goBin, err = golang.FindGo()
+	if err != nil {
+		err = skerr.Wrap(err)
+		return
+	}
+	_, err = exec.RunCwd(ctx, tmpDir, goBin, "mod", "init", "fake.com/test2json_test")
 	return
 }

@@ -245,7 +245,6 @@ toolchain_container(
     language_layers = [
         ":rbe_with_clang",  # clang is needed to be installed for the Bazel CC toolchain
         ":rbe_with_cockroachdb",
-        ":rbe_with_golang",
         ":rbe_with_installed_packages",
         ":rbe_with_jdk",  # jdk is needed to be installed for the Bazel Java toolchain
     ],
@@ -253,41 +252,6 @@ toolchain_container(
         "manual",
         "no-remote",
     ],
-)
-
-# The pkg_tar command (https://github.com/bazelbuild/rules_pkg/blob/8d542763a3959db79175404758f46c7f3f385fa5/pkg/docs/reference.md#pkg_tar)
-# takes a set of file (e.g. the contents of the Golang SDK folder) and puts them in a tar archive
-# with a given structure (e.g. /usr/local/go). This structure corresponds to where we want to
-# install/extract those files in the final RBE image.
-pkg_tar(
-    name = "go_tar",
-    srcs = ["@go_sdk_external//:extracted_files"],  # Defined in WORKSPACE
-    package_dir = "/usr/local/go/",
-    # The need for a ../ prefix was determined by looking at //_bazel_bin/go_tar.args
-    # and experimentation.
-    strip_prefix = "../go_sdk_external/go/",
-    tags = [
-        "manual",
-        "no-remote",
-    ],
-)
-
-# This language_tool_layer (https://github.com/bazelbuild/rules_docker/tree/1bb136eb4661624eb8ac1e607cdf74369987b46d/docker/toolchain_container#language_tool_layer)
-# despite its name, is not related to Bazel Toolchains (https://docs.bazel.build/versions/main/toolchains.html)
-# It is just a way to organize the settings needed for a specific dependency, i.e. just the things
-# we need to make golang work. It uses the packaged golang files from go_tar.
-language_tool_layer(
-    name = "rbe_with_golang",
-    base = ":rbe_with_setup",
-    env = {
-        "GOPATH": "/opt/go",
-        "PATH": "$$PATH:/usr/local/go/bin",
-    },
-    tags = [
-        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
-        "no-remote",
-    ],
-    tars = [":go_tar"],
 )
 
 # This sets up the cockroachdb executable to be in /usr/local/bin
