@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/bazel/cipd/cpython3"
-	"go.skia.org/infra/bazel/cipd/vpython"
+	"go.skia.org/infra/bazel/external/cipd/cpython3"
+	"go.skia.org/infra/bazel/external/cipd/vpython"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"

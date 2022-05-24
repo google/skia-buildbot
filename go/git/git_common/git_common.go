@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	cipd_git "go.skia.org/infra/bazel/cipd/git"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"

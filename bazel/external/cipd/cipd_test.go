@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/bazel/cipd/cpython3"
-	"go.skia.org/infra/bazel/cipd/git"
-	"go.skia.org/infra/bazel/cipd/vpython"
+	"go.skia.org/infra/bazel/external/cipd/cpython3"
+	"go.skia.org/infra/bazel/external/cipd/git"
+	"go.skia.org/infra/bazel/external/cipd/vpython"
 )
 
 func TestFindGit(t *testing.T) {

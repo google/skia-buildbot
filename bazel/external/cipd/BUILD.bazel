@@ -4,9 +4,9 @@ go_test(
     name = "cipd_test",
     srcs = ["cipd_test.go"],
     deps = [
-        "//bazel/cipd/cpython3",
-        "//bazel/cipd/git",
-        "//bazel/cipd/vpython",
+        "//bazel/external/cipd/cpython3",
+        "//bazel/external/cipd/git",
+        "//bazel/external/cipd/vpython",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

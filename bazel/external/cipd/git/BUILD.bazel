@@ -8,7 +8,7 @@ go_library(
         "@platforms//os:windows": ["@git_win//:all_files"],
         "//conditions:default": [],  # Prevent errors on platforms without this CIPD package.
     }),
-    importpath = "go.skia.org/infra/bazel/cipd/git",
+    importpath = "go.skia.org/infra/bazel/external/cipd/git",
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/go/bazel",

@@ -7,7 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/go/git/git_common",
     visibility = ["//visibility:public"],
     deps = [
-        "//bazel/cipd/git",
+        "//bazel/external/cipd/git",
         "//bazel/go/bazel",
         "//go/exec",
         "//go/metrics2",

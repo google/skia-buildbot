@@ -117,7 +117,7 @@ def _CheckBannedGoAPIs(input_api, output_api):
       r'infra/bots/gen_tasks.go',
       # This doesn't shell out to git; it retrieves the path to the Git binary
       # in the corresponding Bazel-downloaded CIPD packages.
-      r'bazel/cipd/git/git.go',
+      r'bazel/external/cipd/git/git.go',
       # This is the one place where we are allowed to shell out to git; all
       # others should go through here.
       r'go/git/git_common/.*.go',

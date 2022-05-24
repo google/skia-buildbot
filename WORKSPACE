@@ -413,7 +413,7 @@ exports_files(
     shallow_since = "1633455306 +0000",
 )
 
-load("//bazel/cipd:cipd_install.bzl", "cipd_install")
+load("//bazel/external:cipd_install.bzl", "cipd_install")
 
 # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/
 cipd_install(
