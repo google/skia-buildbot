@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,6 +21,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
+
+const myFakePythonExe = "/usr/local/bin/python"
 
 func setupForTest(t *testing.T, h http.HandlerFunc) (string, *http.Client) {
 	client := httputils.DefaultClientConfig().WithoutRetries().With2xxOnly().Client()
@@ -42,7 +45,7 @@ func TestRunBenchMarkScript_ScriptReturnsError_ReturnsError(t *testing.T) {
 	workDir, _ := setupForTest(t, nil)
 	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Exec_Fails")
 
-	err := runBenchMarkScript(ctx, benchmarkScriptArgs, workDir)
+	err := runBenchMarkScript(ctx, myFakePythonExe, benchmarkScriptArgs, workDir)
 	require.Error(t, err)
 }
 
@@ -52,7 +55,7 @@ func TestRunBenchMarkScript_ScriptSucceeds_DoesNotReturnError(t *testing.T) {
 	workDir, _ := setupForTest(t, nil)
 	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Python_Script_Success")
 
-	err := runBenchMarkScript(ctx, benchmarkScriptArgs, workDir)
+	err := runBenchMarkScript(ctx, myFakePythonExe, benchmarkScriptArgs, workDir)
 	require.NoError(t, err)
 }
 
@@ -71,7 +74,7 @@ func Test_FakeExe_Python_Script_Success(t *testing.T) {
 	}
 
 	args := executil.OriginalArgs()
-	require.Contains(t, args, python)
+	require.Contains(t, args, myFakePythonExe)
 	require.Contains(t, args, "--output")
 	os.Exit(0)
 }
@@ -91,11 +94,11 @@ var (
 
 	benchmarkName = "canary"
 
-	benchmarkConfig = benchmark{
-		repoURL:       repoURL,
-		checkoutPaths: directories,
-		scriptName:    "a/b/benchmark.py",
-		flags:         []string{"--githash", "abcdef"},
+	benchmarkConfig = Benchmark{
+		RepoURL:       repoURL,
+		CheckoutPaths: directories,
+		ScriptName:    "a/b/benchmark.py",
+		Flags:         []string{"--githash", "abcdef"},
 	}
 )
 
@@ -170,7 +173,7 @@ func TestRunSingleBenchmark_HappyPath(t *testing.T) {
 	err := os.MkdirAll(filepath.Join(workDir, "git", "canary"), 0755)
 	require.NoError(t, err)
 
-	outputFileName, err := runSingleBenchmark(ctx, benchmarkName, benchmarkConfig, "abcdef", workDir)
+	outputFileName, err := runSingleBenchmark(ctx, myFakePythonExe, benchmarkName, benchmarkConfig, "abcdef", workDir)
 	require.NoError(t, err)
 	require.Contains(t, outputFileName, "canary/results.json")
 
@@ -191,7 +194,7 @@ func Test_FakeExe_Run_Canary_Python_Script_Success(t *testing.T) {
 	}
 
 	args := executil.OriginalArgs()
-	expected := []string{"python3", "a/b/benchmark.py", "--githash", "abcdef", "--githash", "abcdef", "--output", "canary/results.json"}
+	expected := []string{myFakePythonExe, "a/b/benchmark.py", "--githash", "abcdef", "--githash", "abcdef", "--output", "canary/results.json"}
 	for i, endsWith := range expected {
 		require.Contains(t, args[i], endsWith)
 	}
@@ -270,4 +273,33 @@ func TestUploadResultsFile_WriteCloserFailsToWrite_ReturnsError(t *testing.T) {
 
 	err := uploadResultsFile(ctx, gcsClient, benchmarkName, resultsFile)
 	require.Error(t, err)
+}
+
+func TestReadBenchmarksFromFile_NonExistentFile_ReturnsError(t *testing.T) {
+	unittest.MediumTest(t)
+	filename := filepath.Join(t.TempDir(), "file.json")
+	_, err := readBenchMarksFromFile(context.Background(), filename)
+	require.Error(t, err)
+}
+
+const TestFileContents = `{
+    "canary": {
+		"repoURL":       "https://skia.googlesource.com/buildbot",
+		"checkoutPaths": ["comp-ui"],
+		"scriptName":    "comp-ui/benchmark-mock.py",
+		"flags": [
+			"--browser", "mock"
+        ]
+	}
+}`
+
+func TestReadBenchmarksFromFile_ReadCanaryJSON_ReturnsParsedFile(t *testing.T) {
+	unittest.MediumTest(t)
+	filename := filepath.Join(t.TempDir(), "file.json")
+	err := ioutil.WriteFile(filename, []byte(TestFileContents), 0644)
+	require.NoError(t, err)
+	benchmarks, err := readBenchMarksFromFile(context.Background(), filename)
+	require.NoError(t, err)
+	require.Len(t, benchmarks, 1)
+	require.Equal(t, "https://skia.googlesource.com/buildbot", benchmarks["canary"].RepoURL)
 }

@@ -24,9 +24,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -59,8 +61,6 @@ const (
 	// The repo that has commits associated with runs of the cron job.
 	repo = "https://skia.googlesource.com/perf-compui"
 
-	python = "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3"
-
 	benchmarkTimeout = 2 * time.Hour
 )
 
@@ -72,69 +72,69 @@ var (
 	Version = "unsupplied"
 )
 
-// benchmark represents a single benchmark configuration.
-type benchmark struct {
+// Benchmark represents a single Benchmark configuration.
+type Benchmark struct {
 	// The checkout URL of the git repo that contains the scripts to run
-	repoURL string
+	RepoURL string `json:"repoURL"`
 
 	// The directories in the git repo that need to be checked out.
-	checkoutPaths []string
+	CheckoutPaths []string `json:"checkoutPaths"`
 
 	// The full name of the script to run in the git repo relative to the root
 	// of the checkout.
-	scriptName string
+	ScriptName string `json:"scriptName"`
 
 	// Flags to pass to the Python script.
-	flags []string
+	Flags []string `json:"flags"`
 }
 
 // All the various benchmarks we run.
-var benchmarks = map[string]benchmark{
+var benchmarks = map[string]Benchmark{
 	// We always run the canary to validate that the whole pipeline works even
 	// if the "real" benchmark scripts start to fail.
 	"canary": {
-		repoURL:       "https://skia.googlesource.com/buildbot",
-		checkoutPaths: []string{"comp-ui"},
-		scriptName:    "comp-ui/benchmark-mock.py",
-		flags: []string{
+		RepoURL:       "https://skia.googlesource.com/buildbot",
+		CheckoutPaths: []string{"comp-ui"},
+		ScriptName:    "comp-ui/benchmark-mock.py",
+		Flags: []string{
 			"--browser", "mock",
 		},
 	},
 	"chrome-motionmark": {
-		repoURL:       "https://chromium.googlesource.com/chromium/src",
-		checkoutPaths: []string{"tools/browserbench-webdriver"},
-		scriptName:    "tools/browserbench-webdriver/motionmark.py",
-		flags: []string{
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/motionmark.py",
+		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
 		},
 	},
 	"chrome-jetstream": {
-		repoURL:       "https://chromium.googlesource.com/chromium/src",
-		checkoutPaths: []string{"tools/browserbench-webdriver"},
-		scriptName:    "tools/browserbench-webdriver/jetstream.py",
-		flags: []string{
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/jetstream.py",
+		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
 		},
 	},
 	"chrome-speedometer": {
-		repoURL:       "https://chromium.googlesource.com/chromium/src",
-		checkoutPaths: []string{"tools/browserbench-webdriver"},
-		scriptName:    "tools/browserbench-webdriver/speedometer.py",
-		flags: []string{
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
 		},
 	},
 	"safari-speedometer": {
-		repoURL:       "https://chromium.googlesource.com/chromium/src",
-		checkoutPaths: []string{"tools/browserbench-webdriver"},
-		scriptName:    "tools/browserbench-webdriver/speedometer.py",
-		flags: []string{
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		Flags: []string{
 			"--browser", "safari",
 			"--extra-keys", "channel,stable",
 		},
@@ -149,6 +149,9 @@ func main() {
 	}
 
 	local := flagSet.Bool("local", false, "Running locally if true. As opposed to in production.")
+	useDefaultAuth := flagSet.Bool("use-default-auth", false, "Use Google Default Application Credentials if true, otherwise use embedded auth Key.")
+	python := flagSet.String("python-exe", "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3", "Absolute path to the Python exe to use.")
+	benchmarksFile := flagSet.String("benchmarks", "", "If provided, read the configs to test from the provided JSON file.")
 
 	common.InitWithMust(
 		"comp-ui-cron-job",
@@ -159,7 +162,15 @@ func main() {
 
 	ctx := context.Background()
 
-	ts, err := auth.NewTokenSourceFromKeyString(ctx, *local, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	if *benchmarksFile != "" {
+		var err error
+		benchmarks, err = readBenchMarksFromFile(ctx, *benchmarksFile)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+
+	ts, err := auth.NewTokenSourceFromKeyString(ctx, *useDefaultAuth, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -185,7 +196,7 @@ func main() {
 	// git repo.
 	//
 	// Authenticate to Gerrit since the perf-compui repo is private.
-	if !*local {
+	if !*useDefaultAuth {
 		sklog.Info("Configuring git auth.")
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
@@ -199,7 +210,7 @@ func main() {
 	}
 
 	for benchmarkName, config := range benchmarks {
-		outputFilename, err := runSingleBenchmark(ctx, benchmarkName, config, gitHash, workDir)
+		outputFilename, err := runSingleBenchmark(ctx, *python, benchmarkName, config, gitHash, workDir)
 		if err != nil {
 			sklog.Errorf("Failed to run benchmark %q: %s", benchmarkName, err)
 			continue
@@ -211,6 +222,19 @@ func main() {
 		}
 	}
 	sklog.Flush()
+}
+
+func readBenchMarksFromFile(ctx context.Context, filename string) (map[string]Benchmark, error) {
+	sklog.Info("Reading configs from %q", filename)
+	benchmarks = map[string]Benchmark{}
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to read file.")
+	}
+	if err := json.Unmarshal(b, &benchmarks); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse JSON.")
+	}
+	return benchmarks, nil
 }
 
 // getGitHash returns the git hash of the last commit to the perf-compui repo,
@@ -240,8 +264,8 @@ func getGCSClient(ctx context.Context, ts oauth2.TokenSource) (*gcsclient.Storag
 
 }
 
-func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchmark, gitHash string, workDir string) (string, error) {
-	sklog.Infof("runSingleBenchMark - benchmarkName: %q  url: %q  gitHash: %q workDir: %q", benchmarkName, config.scriptName, gitHash, workDir)
+func runSingleBenchmark(ctx context.Context, python string, benchmarkName string, config Benchmark, gitHash string, workDir string) (string, error) {
+	sklog.Infof("runSingleBenchMark - benchmarkName: %q  url: %q  gitHash: %q workDir: %q", benchmarkName, config.ScriptName, gitHash, workDir)
 
 	gitCheckoutDir, err := checkoutPythonScript(ctx, config, workDir, benchmarkName)
 	if err != nil {
@@ -249,7 +273,7 @@ func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchm
 	}
 
 	// Compute the filenames we will use.
-	scriptFilename := filepath.Join(gitCheckoutDir, config.scriptName)
+	scriptFilename := filepath.Join(gitCheckoutDir, config.ScriptName)
 	outputDirectory := filepath.Join(workDir, benchmarkName)
 	outputFilename := filepath.Join(outputDirectory, "results.json")
 
@@ -260,7 +284,7 @@ func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchm
 	}
 
 	// Compute the full set of args to pass to the python script.
-	flags := append([]string{}, config.flags...)
+	flags := append([]string{}, config.Flags...)
 	flags = append(flags, "--githash", gitHash)
 	flags = append(flags, "--output", outputFilename)
 	args := append([]string{scriptFilename}, flags...)
@@ -268,14 +292,14 @@ func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchm
 	sklog.Infof("Running: %q", args)
 
 	// Run the script.
-	err = runBenchMarkScript(ctx, args, workDir)
+	err = runBenchMarkScript(ctx, python, args, workDir)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return outputFilename, nil
 }
 
-func runBenchMarkScript(ctx context.Context, args []string, workDir string) error {
+func runBenchMarkScript(ctx context.Context, python string, args []string, workDir string) error {
 	ctx, cancel := context.WithTimeout(ctx, benchmarkTimeout)
 	defer cancel()
 
@@ -311,9 +335,9 @@ func computeUploadPathFromTime(ctx context.Context) string {
 
 // checkoutPythonScript checks out a sparse checkout of the specified directories
 // into workDir.
-func checkoutPythonScript(ctx context.Context, config benchmark, workDir string, benchmarkName string) (string, error) {
+func checkoutPythonScript(ctx context.Context, config Benchmark, workDir string, benchmarkName string) (string, error) {
 	dest := filepath.Join(workDir, "git", benchmarkName)
-	return dest, newSparseCheckout(ctx, workDir, config.repoURL, dest, config.checkoutPaths)
+	return dest, newSparseCheckout(ctx, workDir, config.RepoURL, dest, config.CheckoutPaths)
 }
 
 // runCmdLogOutput runs a command using executil.CommandContext and logs any output

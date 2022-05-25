@@ -1,0 +1,10 @@
+{
+    "canary": {
+		"repoURL":       "https://skia.googlesource.com/buildbot",
+		"checkoutPaths": ["comp-ui"],
+		"scriptName":    "comp-ui/benchmark-mock.py",
+		"flags": [
+			"--browser", "mock"
+        ]
+	}
+}
