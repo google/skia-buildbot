@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/go/emulators",
     visibility = ["//visibility:public"],
     deps = [
+        "//bazel/external/cockroachdb",
         "//bazel/external/google_cloud_sdk",
         "//bazel/go/bazel",
         "//go/netutils",

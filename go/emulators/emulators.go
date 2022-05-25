@@ -20,6 +20,7 @@ import (
 	"strings"
 	"syscall"
 
+	"go.skia.org/infra/bazel/external/cockroachdb"
 	"go.skia.org/infra/bazel/external/google_cloud_sdk"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/netutils"
@@ -141,6 +142,15 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 }
 
 func computeCockroachDBCmd() string {
+	cockroach := "cockroach"
+	if bazel.InBazelTest() {
+		var err error
+		cockroach, err = cockroachdb.FindCockroach()
+		if err != nil {
+			panic(fmt.Sprintf("Could not find Bazel-downloaded cockroach command: %s", err))
+		}
+	}
+
 	// Read the CockroachDB storage directory from an environment variable, or create a temp dir.
 	cockroachDbStoreDir := os.Getenv("COCKROACHDB_EMULATOR_STORE_DIR")
 	if cockroachDbStoreDir == "" {
@@ -151,7 +161,7 @@ func computeCockroachDBCmd() string {
 		}
 	}
 
-	cmd := fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%d --store=%s", cockroachDbStoreDir)
+	cmd := fmt.Sprintf("%s start-single-node --insecure --listen-addr=localhost:%%d --store=%s", cockroach, cockroachDbStoreDir)
 
 	// Under RBE, we want the web UI to be served on a random TCP port. This minimizes the chance of
 	// parallel tests from interfering with each other.

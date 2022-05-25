@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "cockroachdb",
+    srcs = ["cockroachdb.go"],
+    data = select({
+        "@platforms//os:linux": ["@cockroachdb_linux//:all_files"],
+        "//conditions:default": [],  # Prevent errors on platforms without this package.
+    }),
+    importpath = "go.skia.org/infra/bazel/external/cockroachdb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "cockroachdb_test",
+    srcs = ["cockroachdb_test.go"],
+    embed = [":cockroachdb"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

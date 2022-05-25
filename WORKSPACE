@@ -338,28 +338,6 @@ container_pull(
     repository = "google.com/cloudsdktool/cloud-sdk",
 )
 
-##############################
-# Packages for RBE container #
-##############################
-
-http_archive(
-    name = "cockroachdb_external",
-    # We are downloading a zip file of pre-compiled executables, libraries and such that does
-    # NOT have a BUILD file for Bazel to read. As such, we can specify one here using
-    # build_file_content that makes all the contents of the the Android NDK zip file available
-    # as a target called @android_ndk_external//:extracted_files
-    build_file_content = """
-filegroup(
-    name = "extracted_exe",
-    srcs = ["cockroach-v21.1.9.linux-amd64/cockroach"],
-    visibility = ["//visibility:public"]
-)""",
-    # https://www.cockroachlabs.com/docs/v21.1/install-cockroachdb-linux does not currently
-    # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
-    sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
-    url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
-)
-
 ##################
 # CIPD packages. #
 ##################
@@ -434,3 +412,23 @@ cipd_install(
 load("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk")
 
 google_cloud_sdk(name = "google_cloud_sdk")
+
+##################################################
+# CockroachDB (used as an "emulator" for tests). #
+##################################################
+
+http_archive(
+    name = "cockroachdb_linux",
+    build_file_content = """
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"]
+)
+""",
+    # https://www.cockroachlabs.com/docs/v21.1/install-cockroachdb-linux does not currently
+    # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
+    sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
+    strip_prefix = "cockroach-v21.1.9.linux-amd64",
+    url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
+)

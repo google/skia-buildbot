@@ -1,6 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
@@ -245,7 +244,6 @@ toolchain_container(
     # The order of the layers here does matter, so we put them in alphabetical order.
     language_layers = [
         ":rbe_with_clang",  # clang is needed to be installed for the Bazel CC toolchain
-        ":rbe_with_cockroachdb",
         ":rbe_with_installed_packages",
         ":rbe_with_jdk",  # jdk is needed to be installed for the Bazel Java toolchain
     ],
@@ -253,30 +251,6 @@ toolchain_container(
         "manual",
         "no-remote",
     ],
-)
-
-# This sets up the cockroachdb executable to be in /usr/local/bin
-pkg_tar(
-    name = "cockroachdb_tar",
-    srcs = ["@cockroachdb_external//:extracted_exe"],  # Defined in WORKSPACE
-    package_dir = "/usr/local/bin/",
-    # The need for a ../ prefix was determined by looking at //_bazel_bin/cockroachdb_tar.args
-    # and experimentation.
-    strip_prefix = "../cockroachdb_external/cockroach-v21.1.9.linux-amd64/",
-    tags = [
-        "manual",
-        "no-remote",
-    ],
-)
-
-language_tool_layer(
-    name = "rbe_with_cockroachdb",
-    base = ":rbe_with_setup",
-    tags = [
-        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
-        "no-remote",
-    ],
-    tars = [":cockroachdb_tar"],
 )
 
 # This installs clang-11 (available via buster-backports) and sets the CC environment variable.

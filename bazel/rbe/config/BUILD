@@ -40,7 +40,7 @@ platform(
         "@bazel_tools//tools/cpp:clang",
     ],
     exec_properties = {
-        "container-image": "docker://gcr.io/skia-public/rbe-container-skia-infra@sha256:3fae8728ba79d274bca5a54b9fd54e2e6361166c4ac561dc83837f677feae085",
+        "container-image": "docker://gcr.io/skia-public/rbe-container-skia-infra@sha256:78ff88633082c8c130b3af622ff441f20c41638534d24a22ed76d2b101b04205",
         "OSFamily": "Linux",
     },
     parents = ["@local_config_platform//:host"],

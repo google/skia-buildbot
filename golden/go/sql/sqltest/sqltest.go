@@ -14,6 +14,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/bazel/external/cockroachdb"
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -26,7 +28,15 @@ import (
 // CockroachDB emulator). The returned pool will automatically be closed after the test finishes.
 func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	unittest.RequiresCockroachDB(t)
-	out, err := exec.Command("cockroach", "version").CombinedOutput()
+
+	cockroach := "cockroach"
+	if bazel.InBazelTest() {
+		var err error
+		cockroach, err = cockroachdb.FindCockroach()
+		require.NoError(t, err)
+	}
+
+	out, err := exec.Command(cockroach, "version").CombinedOutput()
 	require.NoError(t, err, "Do you have 'cockroach' on your path? %s", out)
 
 	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
@@ -34,7 +44,7 @@ func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	dbName := "for_tests" + n.String()
 	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
 
-	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+host,
+	out, err = exec.Command(cockroach, "sql", "--insecure", "--host="+host,
 		"--execute=CREATE DATABASE IF NOT EXISTS "+dbName).CombinedOutput()
 	require.NoError(t, err, `creating test database: %s
 If running locally, make sure you set the env var COCKROACHDB_EMULATOR_STORE_DIR and ran:
