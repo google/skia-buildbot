@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"io/fs"
-	"io/ioutil"
-	"os"
+	"errors"
+	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/go/gitiles/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -81,62 +83,85 @@ config {
 
 {{ range $index, $milestone := .Branches.ActiveMilestones }}
   {{ template "roller" map "Name" "skia" "Repo" "https://skia.googlesource.com/skia.git" "Milestone" $milestone }}
-  {{ template "roller" map "Name" "angle" "Repo" "https://chromium.googlesource.com/angle.git" "Milestone" $milestone }}
 {{ end }}
 `
 
-func TestProcess(t *testing.T) {
-	unittest.LargeTest(t)
+var expectedPaths = []string{
+	"skia-public/skia-chromium-m80.cfg",
+	"skia-public/skia-chromium-m81.cfg",
+	"skia-public/skia-chromium-m82.cfg",
+}
 
-	// Setup.
-	ctx := context.Background()
-	tmp, err := ioutil.TempDir("", "autoroll-meta-config-generator-test")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmp))
-	}()
-	srcDir := filepath.Join(tmp, "src")
-	relPath := filepath.Join("skia-public", "test.tmpl")
-	srcFullPath := filepath.Join(srcDir, relPath)
-	relDir, _ := filepath.Split(srcFullPath)
-	dstDir := filepath.Join(tmp, "dst")
-	require.NoError(t, os.MkdirAll(relDir, os.ModePerm))
-	require.NoError(t, os.MkdirAll(dstDir, os.ModePerm))
-	require.NoError(t, ioutil.WriteFile(srcFullPath, []byte(testTemplate), os.ModePerm))
+func checkResults(t *testing.T, expectedPaths []string, results map[string]string) {
+	// Ensure that all expected paths are in the result set.
+	require.Len(t, results, len(expectedPaths))
+	for _, key := range expectedPaths {
+		_, ok := results[key]
+		require.True(t, ok)
+	}
 
-	// Process the meta config.
-	require.NoError(t, process(ctx, relPath, srcDir, dstDir, config_vars.FakeVars()))
-
-	// Check the results.
-	found := []string{}
-	require.NoError(t, fs.WalkDir(os.DirFS(dstDir), ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		found = append(found, path)
-		return nil
-	}))
-	require.Equal(t, found, []string{
-		filepath.Join("skia-public", "angle-chromium-m80.cfg"),
-		filepath.Join("skia-public", "angle-chromium-m81.cfg"),
-		filepath.Join("skia-public", "angle-chromium-m82.cfg"),
-		filepath.Join("skia-public", "skia-chromium-m80.cfg"),
-		filepath.Join("skia-public", "skia-chromium-m81.cfg"),
-		filepath.Join("skia-public", "skia-chromium-m82.cfg"),
-	})
-	for _, path := range found {
-		fullPath := filepath.Join(dstDir, path)
-		configBytes, err := ioutil.ReadFile(fullPath)
-		require.NoError(t, err)
-		// Strip the first line from the config bytes (the header comment).
-		configBytes = []byte(strings.Join(strings.Split(string(configBytes), "\n")[1:], "\n"))
+	// Ensure that the generated configs are parseable.
+	for path, contents := range results {
+		// Strip the first two lines from the config bytes (the header comment).
+		configBytes := []byte(strings.Join(strings.Split(contents, "\n")[2:], "\n"))
 		var cfg config.Config
 		require.NoError(t, prototext.Unmarshal(configBytes, &cfg))
 		require.NoError(t, cfg.Validate())
 		rollerName := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 		require.Equal(t, cfg.RollerName, rollerName)
 	}
+}
+
+func TestProcess(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Setup.
+	ctx := context.Background()
+	relPath := path.Join("skia-public", "templates", "test.tmpl")
+	dstDir := "skia-public"
+
+	// Process the meta config.
+	results, err := process(ctx, relPath, testTemplate, dstDir, config_vars.FakeVars())
+	require.NoError(t, err)
+
+	// Check the results.
+	checkResults(t, expectedPaths, results)
+}
+
+func TestProcessDir(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Setup.
+	ctx := context.Background()
+	srcDir := "skia-public/templates"
+	dstDir := "skia-public"
+	vars := config_vars.FakeVars()
+	mockRepo := &mocks.GitilesRepo{}
+	mockCommit := "abc123"
+	tmplPath := srcDir + "/test.tmpl"
+
+	// Mock the interactions with Gitiles.
+	oldConfigFile := "skia-public/skia-chromium-m79.cfg"
+	mockPaths := append([]string{oldConfigFile}, expectedPaths[:len(expectedPaths)-1]...)
+	mockRepo.On("ListFilesRecursiveAtRef", testutils.AnyContext, dstDir, mockCommit).Return(mockPaths, nil)
+	mockRepo.On("ListFilesRecursiveAtRef", testutils.AnyContext, srcDir, mockCommit).Return([]string{tmplPath}, nil)
+	for _, path := range mockPaths {
+		contents := []byte(fmt.Sprintf(generatedFileHeaderTmpl, tmplPath))
+		mockRepo.On("ReadFileAtRef", testutils.AnyContext, path, mockCommit).Return(contents, nil)
+	}
+	// This config file doesn't exist yet.
+	mockRepo.On("ReadFileAtRef", testutils.AnyContext, expectedPaths[len(expectedPaths)-1], mockCommit).Return(nil, errors.New("does not exist"))
+	mockRepo.On("ReadFileAtRef", testutils.AnyContext, tmplPath, mockCommit).Return([]byte(testTemplate), nil)
+
+	// Compute the results.
+	results, err := processDir(ctx, "skia-public/templates", "skia-public", vars, mockRepo, mockCommit)
+	require.NoError(t, err)
+
+	// We should have deleted the old config file.
+	got, ok := results[oldConfigFile]
+	require.True(t, ok)
+	require.Equal(t, got, "")
+	// Delete the entry from the results; it's empty so it'll fail checkResults.
+	delete(results, oldConfigFile)
+	checkResults(t, expectedPaths, results)
 }
