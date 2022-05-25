@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -12,8 +13,10 @@ go_library(
         "//go/allowed",
         "//go/auth",
         "//go/baseapp",
+        "//go/cleanup",
         "//go/httputils",
         "//go/login",
+        "//go/skerr",
         "//go/sklog",
         "@com_github_gorilla_mux//:mux",
         "@com_github_unrolled_secure//:secure",
@@ -26,4 +29,16 @@ go_binary(
     name = "bugs-central",
     embed = [":bugs-central_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "bugs-central_test",
+    srcs = ["main_test.go"],
+    embed = [":bugs-central_lib"],
+    deps = [
+        "//bugs-central/go/types",
+        "//bugs-central/go/types/mocks",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
 )

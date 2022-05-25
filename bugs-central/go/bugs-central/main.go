@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -27,22 +29,27 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 var (
 	// Flags
-	host        = flag.String("host", "bugs-central.skia.org", "HTTP service host")
-	workdir     = flag.String("workdir", ".", "Directory to use for scratch work.")
-	fsNamespace = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'bugs-central'")
-	fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-
+	host               = flag.String("host", "bugs-central.skia.org", "HTTP service host")
+	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
+	fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'bugs-central'")
+	fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 	authAllowList      = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
+	pollInterval       = flag.Duration("poll_interval", 2*time.Hour, "How often the server will poll the different issue frameworks for open issues.")
 
-	pollInterval = flag.Duration("poll_interval", 2*time.Hour, "How often the server will poll the different issue frameworks for open issues.")
+	// Cache of clients to charts data. Used for displaying charts in the UI.
+	clientsToChartsDataCache = map[string]map[string]*types.IssueCountsData{}
+	// mtx to control access to the above charts data cache.
+	mtxChartsData sync.RWMutex
 )
 
 type ClientConfig struct {
@@ -90,6 +97,14 @@ func New() (baseapp.App, error) {
 		dbClient:     dbClient,
 	}
 	srv.loadTemplates()
+
+	// Populate the charts data cache on startup and then periodically.
+	cleanup.Repeat(*pollInterval, func(ctx context.Context) {
+		if err := srv.populateChartsDataCache(ctx); err != nil {
+			sklog.Errorf("Could not populate the charts data cache: %s", err)
+			return
+		}
+	}, nil)
 
 	return srv, nil
 }
@@ -238,30 +253,20 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
+	c := types.RecognizedClient(req.Client)
+	s := types.IssueSource(req.Source)
+	q := req.Query
+	clientKey := getClientsKey(c, s, q)
+	sklog.Infof("Retrieving charts data request for %s", clientKey)
 
-	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), types.RecognizedClient(req.Client), types.IssueSource(req.Source), req.Query)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	dateToCountsData := map[string]*types.IssueCountsData{}
-	validRunIds, err := srv.dbClient.GetAllRecognizedRunIds(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get valid runIds from DB", http.StatusInternalServerError)
+	// Read chart data from the cache.
+	mtxChartsData.RLock()
+	defer mtxChartsData.RUnlock()
+	dateToCountsData, ok := clientsToChartsDataCache[clientKey]
+	if !ok {
+		errorMsg := fmt.Sprintf("Could not find client key: %s", clientKey)
+		httputils.ReportError(w, errors.New(errorMsg), errorMsg, http.StatusBadRequest)
 		return
-	}
-
-	for _, qd := range qds {
-		if _, ok := validRunIds[qd.RunId]; !ok {
-			// Ignore this query data since runId was not found.
-			continue
-		}
-
-		d := qd.RunId
-		if _, ok := dateToCountsData[d]; !ok {
-			dateToCountsData[d] = &types.IssueCountsData{}
-		}
-		dateToCountsData[d].Merge(qd.CountsData)
 	}
 
 	// Sort the dates in dateToCountsData.
@@ -325,6 +330,87 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
+}
+
+// getDateToCountsData returns counts data for the specified client, source and
+// query.
+func (srv *Server) getDateToCountsData(ctx context.Context, c types.RecognizedClient, s types.IssueSource, q string) (map[string]*types.IssueCountsData, error) {
+	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), c, s, q)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	dateToCountsData := map[string]*types.IssueCountsData{}
+	validRunIds, err := srv.dbClient.GetAllRecognizedRunIds(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get valid runIds from DB")
+	}
+
+	for _, qd := range qds {
+		if _, ok := validRunIds[qd.RunId]; !ok {
+			// Ignore this query data since runId was not found.
+			continue
+		}
+
+		d := qd.RunId
+		if _, ok := dateToCountsData[d]; !ok {
+			dateToCountsData[d] = &types.IssueCountsData{}
+		}
+		dateToCountsData[d].Merge(qd.CountsData)
+	}
+	return dateToCountsData, nil
+}
+
+// populateChartsDataCache populates the charts data cache for
+// all supported clients + sources + queries. Also includes data
+// for empty-client, empty-source, empty-query.
+func (srv *Server) populateChartsDataCache(ctx context.Context) error {
+	mtxChartsData.Lock()
+	defer mtxChartsData.Unlock()
+
+	sklog.Info("Starting populating charts data cache")
+	clientsData, err := srv.dbClient.GetClientsFromDB(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to get clients")
+	}
+	for c, sources := range clientsData {
+		for s, queries := range sources {
+			for q := range queries {
+				// Add data for client + source + query.
+				dateToCountsData, err := srv.getDateToCountsData(ctx, c, s, q)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				clientsToChartsDataCache[getClientsKey(c, s, q)] = dateToCountsData
+			}
+			// Add data for client + source + empty-query.
+			dateToCountsData, err := srv.getDateToCountsData(ctx, c, s, "")
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			clientsToChartsDataCache[getClientsKey(c, s, "")] = dateToCountsData
+		}
+		// Add data for client + empty-source + empty-query.
+		dateToCountsData, err := srv.getDateToCountsData(ctx, c, "", "")
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		clientsToChartsDataCache[getClientsKey(c, "", "")] = dateToCountsData
+	}
+	// Add data for empty-client + empty-source + empty-query.
+	dateToCountsData, err := srv.getDateToCountsData(ctx, "", "", "")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	clientsToChartsDataCache[getClientsKey("", "", "")] = dateToCountsData
+
+	sklog.Info("Done populating charts data cache")
+	return nil
+}
+
+// getClientsKey returns a key that combines the client, source and query.
+func getClientsKey(client types.RecognizedClient, source types.IssueSource, query string) string {
+	return fmt.Sprintf("%s > %s > %s", client, source, query)
 }
 
 func (srv *Server) getIssueCountsHandler(w http.ResponseWriter, r *http.Request) {
