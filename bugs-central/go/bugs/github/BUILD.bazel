@@ -8,7 +8,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bugs-central/go/bugs",
-        "//bugs-central/go/db",
         "//bugs-central/go/types",
         "//go/github",
         "//go/httputils",

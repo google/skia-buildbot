@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/bugs-central/go/bugs",
     visibility = ["//visibility:public"],
     deps = [
-        "//bugs-central/go/db",
         "//bugs-central/go/types",
         "//go/sklog",
     ],

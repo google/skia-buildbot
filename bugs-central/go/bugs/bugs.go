@@ -5,7 +5,6 @@ package bugs
 import (
 	"context"
 
-	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
 )
 
@@ -16,7 +15,7 @@ type BugFramework interface {
 
 	// SearchClientAndPersist queries issues and puts results into the DB and into the
 	// OpenIssues in-memory object.
-	SearchClientAndPersist(ctx context.Context, dbClient *db.FirestoreDB, runId string) error
+	SearchClientAndPersist(ctx context.Context, dbClient types.BugsDB, runId string) error
 
 	// GetIssueLink returns a link to the specified issue ID.
 	GetIssueLink(project, id string) string

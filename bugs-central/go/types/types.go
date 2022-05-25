@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -38,6 +39,44 @@ const (
 	Yearly    = 2 * Biannualy
 	Biennialy = 2 * Yearly
 )
+
+// BugsDB is the interface implemented by all DB clients.
+type BugsDB interface {
+	// GetCountsFromDB returns the latest counts data for the client+source+query combination.
+	// If client is not specified then latest counts data for all clients is returned.
+	// Similarly if source is not specified then latest counts data for all sources for that client are returned.
+	// Similarly if query is not specified then latest counts data for all queries for that client+source are returned.
+	GetCountsFromDB(ctx context.Context, client RecognizedClient, source IssueSource, query string) (*IssueCountsData, error)
+
+	// GetQueryDataFromDB returns a slice of query data for the client+source+query combination.
+	// If client is not specified then query data for all clients is returned.
+	// Similarly if source is not specified then query data for all sources for that client are returned.
+	// Similarly if query is not specified then query data for all queries for that client+source are returned.
+	GetQueryDataFromDB(ctx context.Context, client RecognizedClient, source IssueSource, query string) ([]*QueryData, error)
+
+	// GetClientsFromDB returns a map from clients to sources to queries.
+	GetClientsFromDB(ctx context.Context) (map[RecognizedClient]map[IssueSource]map[string]bool, error)
+
+	// PutInDB puts the specified client+source+query counts data into the DB.
+	PutInDB(ctx context.Context, client RecognizedClient, source IssueSource, query, runId string, countsData *IssueCountsData) error
+
+	// GenerateRunId creates a run ID from the current timestamp.
+	GenerateRunId(ts time.Time) string
+
+	// Returns a map of all recognized run IDs.
+	GetAllRecognizedRunIds(ctx context.Context) (map[string]bool, error)
+
+	// Stores the specified run ID in the DB.
+	StoreRunId(ctx context.Context, runId string) error
+}
+
+// QueryData is the type that will be stored in BugsDB.
+type QueryData struct {
+	Created time.Time `json:"created"`
+	RunId   string    `json:"run_id"`
+
+	CountsData *IssueCountsData
+}
 
 // StatusData is used in the response of the get_client_counts endpoint.
 type StatusData struct {

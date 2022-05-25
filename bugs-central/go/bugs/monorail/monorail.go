@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
-	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
 	monorail_srv "go.skia.org/infra/go/monorail/v3"
 	"go.skia.org/infra/go/skerr"
@@ -200,7 +199,7 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 }
 
 // See documentation for bugs.SearchClientAndPersist interface.
-func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.FirestoreDB, runId string) error {
+func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient types.BugsDB, runId string) error {
 	qc := m.queryConfig
 	issues, countsData, err := m.Search(ctx)
 	if err != nil {

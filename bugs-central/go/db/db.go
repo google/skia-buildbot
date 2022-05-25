@@ -34,16 +34,8 @@ type FirestoreDB struct {
 	mtx sync.RWMutex
 }
 
-// QueryData is the type that will be stored in FirestoreDB.
-type QueryData struct {
-	Created time.Time `json:"created"`
-	RunId   string    `json:"run_id"`
-
-	CountsData *types.IssueCountsData
-}
-
 // New returns an instance of FirestoreDB.
-func New(ctx context.Context, ts oauth2.TokenSource, fsNamespace, fsProjectId string) (*FirestoreDB, error) {
+func New(ctx context.Context, ts oauth2.TokenSource, fsNamespace, fsProjectId string) (types.BugsDB, error) {
 	// Instantiate firestore.
 	fsClient, err := firestore.NewClient(ctx, fsProjectId, "bugs-central", fsNamespace, ts)
 	if err != nil {
@@ -119,7 +111,7 @@ func (f *FirestoreDB) getLatestCountsFromSource(ctx context.Context, sourceDoc *
 
 // getLatestCountsFromQuery returns the latest counts data for the specified client+source+query.
 func (f *FirestoreDB) getLatestCountsFromQuery(ctx context.Context, queryCol *firestore_api.CollectionRef) (*types.IssueCountsData, error) {
-	var qd *QueryData
+	var qd *types.QueryData
 	q := queryCol.OrderBy("Created", firestore_api.Desc).Limit(1)
 	if err := f.client.IterDocs(ctx, "GetFromDB", "", q, defaultAttempts, getSingleTimeout, func(doc *firestore_api.DocumentSnapshot) error {
 		if err := doc.DataTo(&qd); err != nil {
@@ -136,10 +128,7 @@ func (f *FirestoreDB) getLatestCountsFromQuery(ctx context.Context, queryCol *fi
 	return qd.CountsData, nil
 }
 
-// GetCountsFromDB returns the latest counts data for the client+source+query combination.
-// If client is not specified then latest counts data for all clients is returned.
-// Similarly if source is not specified then latest counts data for all sources for that client are returned.
-// Similarly if query is not specified then latest counts data for all queries for that client+source are returned.
+// See GetCountsFromDB documentation in types.BugsDB interface.
 func (f *FirestoreDB) GetCountsFromDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string) (*types.IssueCountsData, error) {
 	f.mtx.RLock()
 	defer f.mtx.RUnlock()
@@ -171,8 +160,8 @@ func (f *FirestoreDB) GetCountsFromDB(ctx context.Context, client types.Recogniz
 }
 
 // getAllQueryData returns query data for all clients.
-func (f *FirestoreDB) getAllQueryData(ctx context.Context) ([]*QueryData, error) {
-	ret := []*QueryData{}
+func (f *FirestoreDB) getAllQueryData(ctx context.Context) ([]*types.QueryData, error) {
+	ret := []*types.QueryData{}
 	clients := f.client.Collections(ctx)
 	for {
 		c, err := clients.Next()
@@ -193,8 +182,8 @@ func (f *FirestoreDB) getAllQueryData(ctx context.Context) ([]*QueryData, error)
 }
 
 // getAllQueryDataFromClient returns query data for all sources of the specified client.
-func (f *FirestoreDB) getAllQueryDataFromClient(ctx context.Context, clientCol *firestore_api.CollectionRef) ([]*QueryData, error) {
-	ret := []*QueryData{}
+func (f *FirestoreDB) getAllQueryDataFromClient(ctx context.Context, clientCol *firestore_api.CollectionRef) ([]*types.QueryData, error) {
+	ret := []*types.QueryData{}
 	sources := clientCol.DocumentRefs(ctx)
 	for {
 		s, err := sources.Next()
@@ -213,8 +202,8 @@ func (f *FirestoreDB) getAllQueryDataFromClient(ctx context.Context, clientCol *
 }
 
 // getAllQueryDataFromSource returns query data for all queries of the specified client+source.
-func (f *FirestoreDB) getAllQueryDataFromSource(ctx context.Context, sourceDoc *firestore_api.DocumentRef) ([]*QueryData, error) {
-	ret := []*QueryData{}
+func (f *FirestoreDB) getAllQueryDataFromSource(ctx context.Context, sourceDoc *firestore_api.DocumentRef) ([]*types.QueryData, error) {
+	ret := []*types.QueryData{}
 	queries := sourceDoc.Collections(ctx)
 	for {
 		q, err := queries.Next()
@@ -233,14 +222,14 @@ func (f *FirestoreDB) getAllQueryDataFromSource(ctx context.Context, sourceDoc *
 }
 
 // getAllQueryDataFromQuery returns query data for the specified client+source+query.
-func (f *FirestoreDB) getAllQueryDataFromQuery(ctx context.Context, queryCol *firestore_api.CollectionRef) ([]*QueryData, error) {
-	ret := []*QueryData{}
+func (f *FirestoreDB) getAllQueryDataFromQuery(ctx context.Context, queryCol *firestore_api.CollectionRef) ([]*types.QueryData, error) {
+	ret := []*types.QueryData{}
 	q := queryCol.OrderBy("Created", firestore_api.Desc)
-	err := f.client.IterDocs(ctx, "GetAllQueryData", "", q, defaultAttempts, getSingleTimeout, func(doc *firestore_api.DocumentSnapshot) error {
+	err := f.client.IterDocs(ctx, "GetAllQueryDataFromQuery", "", q, defaultAttempts, getSingleTimeout, func(doc *firestore_api.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
-		var qd *QueryData
+		var qd *types.QueryData
 		if err := doc.DataTo(&qd); err != nil {
 			return err
 		}
@@ -254,11 +243,8 @@ func (f *FirestoreDB) getAllQueryDataFromQuery(ctx context.Context, queryCol *fi
 
 }
 
-// GetQueryDataFromDB returns a slice of query data for the client+source+query combination.
-// If client is not specified then query data for all clients is returned.
-// Similarly if source is not specified then query data for all sources for that client are returned.
-// Similarly if query is not specified then query data for all queries for that client+source are returned.
-func (f *FirestoreDB) GetQueryDataFromDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string) ([]*QueryData, error) {
+// See GetQueryDataFromDB documentation in types.BugsDB interface.
+func (f *FirestoreDB) GetQueryDataFromDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string) ([]*types.QueryData, error) {
 	f.mtx.RLock()
 	defer f.mtx.RUnlock()
 
@@ -285,7 +271,7 @@ func (f *FirestoreDB) GetQueryDataFromDB(ctx context.Context, client types.Recog
 	return f.getAllQueryDataFromQuery(ctx, queryCol)
 }
 
-// GetClientsFromDB returns a map from clients to sources to queries.
+// See GetClientsFromDB documentation in types.BugsDB interface.
 func (f *FirestoreDB) GetClientsFromDB(ctx context.Context) (map[types.RecognizedClient]map[types.IssueSource]map[string]bool, error) {
 	f.mtx.RLock()
 	defer f.mtx.RUnlock()
@@ -335,7 +321,7 @@ func (f *FirestoreDB) GetClientsFromDB(ctx context.Context) (map[types.Recognize
 	return clientsMap, nil
 }
 
-// PutInDB puts the specified client+source+query counts data into the DB.
+// See PutInDB documentation in types.BugsDB interface.
 func (f *FirestoreDB) PutInDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query, runId string, countsData *types.IssueCountsData) error {
 	if client == "" || source == "" || query == "" {
 		return errors.New("Need client and source and query specified to put in DB")
@@ -344,7 +330,7 @@ func (f *FirestoreDB) PutInDB(ctx context.Context, client types.RecognizedClient
 	f.mtx.Lock()
 	defer f.mtx.Unlock()
 	now := time.Now()
-	qd := &QueryData{
+	qd := &types.QueryData{
 		CountsData: countsData,
 		Created:    now,
 		RunId:      runId,
@@ -367,10 +353,12 @@ type RunId struct {
 	RunId string
 }
 
+// See GenerateRunId documentation in types.BugsDB interface.
 func (f *FirestoreDB) GenerateRunId(ts time.Time) string {
 	return ts.UTC().Format(time.RFC1123)
 }
 
+// See GetAllRecognizedRunIds documentation in types.BugsDB interface.
 func (f *FirestoreDB) GetAllRecognizedRunIds(ctx context.Context) (map[string]bool, error) {
 	runIds := map[string]bool{}
 	runIdDocs := f.client.Collection(runIdsCol).DocumentRefs(ctx)
@@ -386,6 +374,7 @@ func (f *FirestoreDB) GetAllRecognizedRunIds(ctx context.Context) (map[string]bo
 	return runIds, nil
 }
 
+// See StoreRunId documentation in types.BugsDB interface.
 func (f *FirestoreDB) StoreRunId(ctx context.Context, runId string) error {
 	runIdCol := f.client.Collection(runIdsCol)
 	_, err := f.client.Create(ctx, runIdCol.Doc(runId), &RunId{RunId: runId}, defaultAttempts, putSingleTimeout)

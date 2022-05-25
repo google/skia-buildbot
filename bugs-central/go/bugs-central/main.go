@@ -97,7 +97,7 @@ func New() (baseapp.App, error) {
 // Server is the state of the server.
 type Server struct {
 	pollerClient *poller.IssuesPoller
-	dbClient     *db.FirestoreDB
+	dbClient     types.BugsDB
 	templates    *template.Template
 }
 

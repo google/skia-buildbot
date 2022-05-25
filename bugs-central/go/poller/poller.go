@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/bugs-central/go/bugs/github"
 	"go.skia.org/infra/bugs-central/go/bugs/issuetracker"
 	"go.skia.org/infra/bugs-central/go/bugs/monorail"
-	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
@@ -32,12 +31,12 @@ type IssuesPoller struct {
 	pathToGithubToken        string
 	pathToServiceAccountFile string
 
-	dbClient   *db.FirestoreDB
+	dbClient   types.BugsDB
 	openIssues *bugs.OpenIssues
 }
 
 // New returns an instance of IssuesPoller.
-func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile string, dbClient *db.FirestoreDB) (*IssuesPoller, error) {
+func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile string, dbClient types.BugsDB) (*IssuesPoller, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {

@@ -14,7 +14,6 @@ import (
 	"cloud.google.com/go/storage"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
-	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -125,7 +124,7 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 }
 
 // See documentation for bugs.SearchClientAndPersist interface.
-func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient *db.FirestoreDB, runId string) error {
+func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient types.BugsDB, runId string) error {
 	qc := it.queryConfig
 	issues, countsData, err := it.Search(ctx)
 	if err != nil {

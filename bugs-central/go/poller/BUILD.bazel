@@ -10,7 +10,6 @@ go_library(
         "//bugs-central/go/bugs/github",
         "//bugs-central/go/bugs/issuetracker",
         "//bugs-central/go/bugs/monorail",
-        "//bugs-central/go/db",
         "//bugs-central/go/types",
         "//go/baseapp",
         "//go/cleanup",

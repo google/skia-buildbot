@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
-	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
 	github_api "go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
@@ -194,7 +193,7 @@ func (gh *githubFramework) Search(ctx context.Context) ([]*types.Issue, *types.I
 }
 
 // See documentation for bugs.SearchClientAndPersist interface.
-func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient *db.FirestoreDB, runId string) error {
+func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient types.BugsDB, runId string) error {
 	issues, countsData, err := gh.Search(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "error when searching github")
