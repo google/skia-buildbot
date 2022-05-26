@@ -105,7 +105,7 @@ export class BinaryPageSk extends ElementSk {
         .replace('&', '&amp;')
         .replace('<', '&lt;')
         .replace('>', '&gt;');
-      return `<div style="background:#fd9; padding:10px; border-style:solid">
+      return `<div style="background:#0a3055; padding:10px; border-style:solid">
               <span style="font-family:Courier"> ${escapedLabel} <br>
               Size: ${size} </div>`;
     };
