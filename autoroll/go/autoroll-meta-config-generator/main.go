@@ -105,7 +105,7 @@ func main() {
 			liveness.Reset()
 		}
 	})
-	select {}
+	httputils.RunHealthCheckServer(*port)
 }
 
 func tick(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Registry, reviewers []string, repo gitiles.GitilesRepo, ref string, g gerrit.GerritInterface, gerritProject string) error {
