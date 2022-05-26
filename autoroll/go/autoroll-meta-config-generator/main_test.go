@@ -138,16 +138,20 @@ func TestProcessDir(t *testing.T) {
 	vars := config_vars.FakeVars()
 	mockRepo := &mocks.GitilesRepo{}
 	mockCommit := "abc123"
-	tmplPath := srcDir + "/test.tmpl"
+	tmplBaseName := "test.tmpl"
+	tmplPath := srcDir + "/" + tmplBaseName
 
 	// Mock the interactions with Gitiles.
 	oldConfigFile := "skia-public/skia-chromium-m79.cfg"
 	mockPaths := append([]string{oldConfigFile}, expectedPaths[:len(expectedPaths)-1]...)
+	for index := range mockPaths {
+		mockPaths[index] = strings.SplitN(mockPaths[index], "/", 2)[1]
+	}
 	mockRepo.On("ListFilesRecursiveAtRef", testutils.AnyContext, dstDir, mockCommit).Return(mockPaths, nil)
-	mockRepo.On("ListFilesRecursiveAtRef", testutils.AnyContext, srcDir, mockCommit).Return([]string{tmplPath}, nil)
+	mockRepo.On("ListFilesRecursiveAtRef", testutils.AnyContext, srcDir, mockCommit).Return([]string{tmplBaseName}, nil)
 	for _, path := range mockPaths {
 		contents := []byte(fmt.Sprintf(generatedFileHeaderTmpl, tmplPath))
-		mockRepo.On("ReadFileAtRef", testutils.AnyContext, path, mockCommit).Return(contents, nil)
+		mockRepo.On("ReadFileAtRef", testutils.AnyContext, strings.Join([]string{"skia-public", path}, "/"), mockCommit).Return(contents, nil)
 	}
 	// This config file doesn't exist yet.
 	mockRepo.On("ReadFileAtRef", testutils.AnyContext, expectedPaths[len(expectedPaths)-1], mockCommit).Return(nil, errors.New("does not exist"))

@@ -105,6 +105,7 @@ func main() {
 			liveness.Reset()
 		}
 	})
+	select {}
 }
 
 func tick(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Registry, reviewers []string, repo gitiles.GitilesRepo, ref string, g gerrit.GerritInterface, gerritProject string) error {
@@ -147,14 +148,15 @@ func processDir(ctx context.Context, srcRelPath, dstRelPath string, vars *config
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to list files in %s", dstRelPath)
 	}
-	for _, path := range dstPaths {
-		if strings.HasSuffix(path, ".cfg") {
-			contents, err := repo.ReadFileAtRef(ctx, path, commit)
+	for _, cfgPath := range dstPaths {
+		if strings.HasSuffix(cfgPath, ".cfg") {
+			cfgPath = path.Join(dstRelPath, cfgPath)
+			contents, err := repo.ReadFileAtRef(ctx, cfgPath, commit)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "failed to retrieve %q", path)
+				return nil, skerr.Wrapf(err, "failed to retrieve %q", cfgPath)
 			}
 			if strings.HasPrefix(string(contents), generatedFileHeaderPrefix) {
-				changes[path] = ""
+				changes[cfgPath] = ""
 			}
 		}
 	}
@@ -164,15 +166,16 @@ func processDir(ctx context.Context, srcRelPath, dstRelPath string, vars *config
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to list files in %s", srcRelPath)
 	}
-	for _, path := range srcPaths {
-		if strings.HasSuffix(path, ".tmpl") {
-			tmplContents, err := repo.ReadFileAtRef(ctx, path, commit)
+	for _, srcPath := range srcPaths {
+		srcPath := path.Join(srcRelPath, srcPath)
+		if strings.HasSuffix(srcPath, ".tmpl") {
+			tmplContents, err := repo.ReadFileAtRef(ctx, srcPath, commit)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "failed to read %s", path)
+				return nil, skerr.Wrapf(err, "failed to read %s", srcPath)
 			}
-			tmplChanges, err := process(ctx, path, string(tmplContents), dstRelPath, vars)
+			tmplChanges, err := process(ctx, srcPath, string(tmplContents), dstRelPath, vars)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "failed to convert config %s", path)
+				return nil, skerr.Wrapf(err, "failed to convert config %s", srcPath)
 			}
 			for path, newContents := range tmplChanges {
 				// Load the original version of the config file. Only add it to
