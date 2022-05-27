@@ -23,6 +23,7 @@ go_library(
         "//go/sklog",
         "//go/travisci",
         "//go/util",
+        "@com_github_cenkalti_backoff//:backoff",
         "@com_github_google_go_github_v29//github",
     ],
 )

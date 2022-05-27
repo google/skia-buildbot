@@ -408,10 +408,10 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 func (g *GitHub) ReRequestLatestCheckSuite(ref string) error {
 	results, resp, err := g.client.Checks.ListCheckSuitesForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
 	if err != nil {
-		return fmt.Errorf("Failed doing repos.get: %s", err)
+		return fmt.Errorf("Failed doing ListCheckSuitesForRef: %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+		return fmt.Errorf("Unexpected status code %d from ListCheckSuitesForRef.", resp.StatusCode)
 	}
 	if *results.Total == 0 {
 		sklog.Infof("No check suites found to rerequest for %s", ref)
@@ -424,10 +424,10 @@ func (g *GitHub) ReRequestLatestCheckSuite(ref string) error {
 	sklog.Infof("Rerequesting %d with status %d", checkSuiteId, targetCheckSuite.Status)
 	reRequestResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, checkSuiteId)
 	if err != nil {
-		return fmt.Errorf("Failed doing repos.get: %s", err)
+		return fmt.Errorf("Failed doing ReRequestCheckSuite: %s", err)
 	}
 	if reRequestResp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("Unexpected status code %d from repos.get. Expected %d.", reRequestResp.StatusCode, http.StatusCreated)
+		return fmt.Errorf("Unexpected status code %d from ReRequestCheckSuite. Expected %d.", reRequestResp.StatusCode, http.StatusCreated)
 	}
 	return nil
 }

@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	github_api "github.com/google/go-github/v29/github"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -26,6 +28,31 @@ const (
 	// GitHubPRDurationForChecks is the duration after a PR is created that
 	// checks should be looked at.
 	GitHubPRDurationForChecks = time.Minute * 15
+)
+
+var (
+	// Create exponential backoff config to use for Github calls.
+	//
+	// The below example demonstrates what a series of
+	// retries will look like. retry_interval is 10 seconds,
+	// randomization_factor is 0.5, multiplier is 2 and the max_interval is 3
+	// minutes. For 5 tries the sequence will be (values in seconds) and
+	// assuming we go over the max_elapsed_time on the 5th try:
+	//
+	//  attempt#      retry_interval      randomized_interval
+	//  1              10                 [5,   15]
+	//  2              20                 [10,  30]
+	//  3              40                 [20,  60]
+	//  4              60                 [30,  90]
+	//  5             120                 backoff.Stop
+	githubBackOffConfig = &backoff.ExponentialBackOff{
+		InitialInterval:     10 * time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          2,
+		MaxInterval:         3 * time.Minute,
+		MaxElapsedTime:      5 * time.Minute,
+		Clock:               backoff.SystemClock,
+	}
 )
 
 // RollImpl describes the behavior of an autoroll CL.
@@ -347,21 +374,31 @@ type githubRoll struct {
 // API and updates the AutoRollIssue accordingly.
 func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksWaitFor []string) (*github_api.PullRequest, error) {
 
-	// Retrieve the pull request from github.
-	pullRequest, err := g.GetPullRequest(int(a.Issue))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get pull request for %d: %s", a.Issue, err)
+	// Retrieve the pull request from github using exponential backoff.
+	var pullRequest *github_api.PullRequest
+	var err error
+	getPullRequestFunc := func() error {
+		pullRequest, err = g.GetPullRequest(int(a.Issue))
+		return err
+	}
+	if err := backoff.Retry(getPullRequestFunc, githubBackOffConfig); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get pull request for %d", a.Issue)
 	}
 
-	// Get all checks for this pull request and convert to try results.
-	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
-	if err != nil {
-		return nil, err
+	// Get all checks for this pull request using exponential backoff.
+	var checks []*github.Check
+	getChecksFunc := func() error {
+		checks, err = g.GetChecks(pullRequest.Head.GetSHA())
+		return err
+	}
+	if err := backoff.Retry(getChecksFunc, githubBackOffConfig); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get checks for %d", a.Issue)
 	}
 	if a.IsDryRun {
 		// Do not wait for any checks if it is a dry run.
 		checksWaitFor = []string{}
 	}
+	// Convert checks to try results.
 	a.TryResults = autoroll.TryResultsFromGithubChecks(checks, checksWaitFor)
 
 	if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
