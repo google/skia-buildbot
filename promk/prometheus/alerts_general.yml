@@ -186,7 +186,7 @@ groups:
       description: 'QPS to googleapis from {{ $labels.app }} is high. Verify that this is expected.'
 
   - alert: HighFirestoreUsageSustained
-    expr: sum(rate(firestore_ops_count{count="rows", app!~"gold.+"}[24h])) by (app) > 25
+    expr: sum(rate(firestore_ops_count{count="rows", app!~"gold.+", app!~"bugs-central"}[24h])) by (app) > 25
     labels:
       category: infra
       severity: warning
