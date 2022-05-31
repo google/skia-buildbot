@@ -10,7 +10,6 @@ import 'elements-sk/toast-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../patch-sk';
-import '../pageset-selector-sk';
 import '../task-repeater-sk';
 import '../task-priority-sk';
 
@@ -23,7 +22,6 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import { InputSk } from '../input-sk/input-sk';
-import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
 import { PatchSk } from '../patch-sk/patch-sk';
 import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
 import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
@@ -41,6 +39,29 @@ export class MetricsAnalysisSk extends ElementSk {
   private _triggeringTask: boolean = false;
 
   private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
+
+  // Variables that represent UI elements.
+  private metricName!: InputSk;
+
+  private analysisTaskId!: InputSk;
+
+  private customTraces!: ExpandableTextArea;
+
+  private benchmarkArgs!: InputSk;
+
+  private valueColumnName!: InputSk;
+
+  private description!: InputSk;
+
+  private chromiumPatch!: PatchSk;
+
+  private catapultPatch!: PatchSk;
+
+  private repeatAfterDays!: TaskRepeaterSk;
+
+  private taskPriority!: TaskPrioritySk;
+
+  private ccList!: InputSk;
 
   constructor() {
     super(MetricsAnalysisSk.template);
@@ -163,28 +184,38 @@ export class MetricsAnalysisSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
+
+    this.metricName = $$<InputSk>('#metric_name', this)!;
+    this.analysisTaskId = $$<InputSk>('#analysis_task_id', this)!;
+    this.customTraces = $$<ExpandableTextArea>('#custom_traces', this)!;
+    this.benchmarkArgs = $$<InputSk>('#benchmark_args', this)!;
+    this.valueColumnName = $$<InputSk>('#value_column_name', this)!;
+    this.description = $$<InputSk>('#description', this)!;
+    this.chromiumPatch = $$<PatchSk>('#chromium_patch', this)!;
+    this.catapultPatch = $$<PatchSk>('#catapult_patch', this)!;
+    this.repeatAfterDays = $$<TaskRepeaterSk>('#repeat_after_days', this)!;
+    this.taskPriority = $$<TaskPrioritySk>('#task_priority', this)!;
+    this.ccList = $$<InputSk>('#cc_list', this)!;
   }
 
   _toggleAnalysisTaskId(): void {
-    const customTracesInput = $$('#custom_traces', this) as ExpandableTextArea;
-    const taskInput = $$('#analysis_task_id', this) as InputSk;
-    if (customTracesInput.open === taskInput.hidden) {
+    if (this.customTraces.open === this.analysisTaskId.hidden) {
       // This click wasn't toggling the expandable textarea.
       return;
     }
-    taskInput.hidden = customTracesInput.open;
+    this.analysisTaskId.hidden = this.customTraces.open;
     // We assume if someone opens the custom traces window they will be using
     // custom traces, and if they close it, they won't be.
-    if (customTracesInput.open) {
-      taskInput.value = '';
+    if (this.customTraces.open) {
+      this.customTraces.value = '';
     } else {
-      customTracesInput.value = '';
+      this.customTraces.value = '';
     }
     this._render();
   }
 
   _patchChanged(): void {
-    ($$('#description', this)! as InputSk).value = combineClDescriptions(
+    this.description.value = combineClDescriptions(
       $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription),
     );
   }
@@ -193,19 +224,19 @@ export class MetricsAnalysisSk extends ElementSk {
     if (!$('patch-sk', this).every((patch) => (patch as PatchSk).validate())) {
       return;
     }
-    if (!($$('#metric_name', this) as InputSk).value) {
+    if (!this.metricName.value) {
       errorMessage('Please specify a metric name');
-      ($$('#metric_name', this) as InputSk).focus();
+      this.metricName.focus();
       return;
     }
-    if (!($$('#analysis_task_id', this) as InputSk).value && !($$('#custom_traces', this) as InputSk).value) {
+    if (!this.analysisTaskId.value && !this.customTraces.value) {
       errorMessage('Please specify an analysis task id or custom traces');
-      ($$('#analysis_task_id', this) as InputSk).focus();
+      this.analysisTaskId.focus();
       return;
     }
-    if (!($$('#description', this) as InputSk).value) {
+    if (!this.description.value) {
       errorMessage('Please specify a description');
-      ($$('#description', this) as InputSk).focus();
+      this.description.focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
@@ -220,18 +251,18 @@ export class MetricsAnalysisSk extends ElementSk {
   _queueTask(): void {
     this._triggeringTask = true;
     const params = {} as MetricsAnalysisAddTaskVars;
-    params.metric_name = ($$('#metric_name', this) as InputSk).value;
-    params.analysis_task_id = ($$('#analysis_task_id', this) as InputSk).value;
-    params.custom_traces = ($$('#custom_traces', this) as PagesetSelectorSk).customPages;
-    params.benchmark_args = ($$('#benchmark_args', this) as InputSk).value;
-    params.value_column_name = ($$('#value_column_name', this) as InputSk).value;
-    params.desc = ($$('#description', this) as InputSk).value;
-    params.chromium_patch = ($$('#chromium_patch', this) as PatchSk).patch;
-    params.catapult_patch = ($$('#catapult_patch', this) as PatchSk).patch;
-    params.repeat_after_days = ($$('#repeat_after_days', this) as TaskRepeaterSk).frequency;
-    params.task_priority = ($$('#task_priority', this) as TaskPrioritySk).priority;
-    if (($$('#cc_list', this) as InputSk).value) {
-      params.cc_list = ($$('#cc_list', this) as InputSk).value.split(',');
+    params.metric_name = this.metricName.value;
+    params.analysis_task_id = this.analysisTaskId.value;
+    params.custom_traces = this.customTraces.value;
+    params.benchmark_args = this.benchmarkArgs.value;
+    params.value_column_name = this.valueColumnName.value;
+    params.desc = this.description.value;
+    params.chromium_patch = this.chromiumPatch.patch;
+    params.catapult_patch = this.catapultPatch.patch;
+    params.repeat_after_days = this.repeatAfterDays.frequency;
+    params.task_priority = this.taskPriority.priority;
+    if (this.ccList.value) {
+      params.cc_list = this.ccList.value.split(',');
     }
 
     fetch('/_/add_metrics_analysis_task', {
