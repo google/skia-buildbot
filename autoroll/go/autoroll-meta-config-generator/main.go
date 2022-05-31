@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -98,8 +99,10 @@ func main() {
 	}
 
 	liveness := metrics2.NewLiveness(livenessMetric)
+	var ci *gerrit.ChangeInfo
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := tick(ctx, srcDstMap, reg, reviewersList, repo, *ref, g, *gerritProject); err != nil {
+		ci, err = tick(ctx, srcDstMap, reg, reviewersList, repo, *ref, g, *gerritProject, ci)
+		if err != nil {
 			sklog.Error(err)
 		} else {
 			liveness.Reset()
@@ -108,15 +111,30 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func tick(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Registry, reviewers []string, repo gitiles.GitilesRepo, ref string, g gerrit.GerritInterface, gerritProject string) error {
+func tick(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Registry, reviewers []string, repo gitiles.GitilesRepo, ref string, g gerrit.GerritInterface, gerritProject string, oldChange *gerrit.ChangeInfo) (*gerrit.ChangeInfo, error) {
+	// Is the previously-uploaded change still active?
+	if oldChange != nil {
+		updatedChange, err := g.GetChange(ctx, oldChange.Id)
+		if err != nil {
+			return oldChange, skerr.Wrap(err)
+		}
+		// If so, don't upload a new one.
+		if !updatedChange.IsClosed() {
+			return updatedChange, nil
+		}
+	}
+	return maybeUploadCL(ctx, srcDstMap, reg, reviewers, repo, ref, g, gerritProject)
+}
+
+func maybeUploadCL(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Registry, reviewers []string, repo gitiles.GitilesRepo, ref string, g gerrit.GerritInterface, gerritProject string) (*gerrit.ChangeInfo, error) {
 	// Update the config vars.
 	if err := reg.Update(ctx); err != nil {
-		return skerr.Wrapf(err, "failed to update config vars")
+		return nil, skerr.Wrapf(err, "failed to update config vars")
 	}
 	vars := reg.Vars()
 	commit, err := repo.ResolveRef(ctx, ref)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to resolve ref %q", ref)
+		return nil, skerr.Wrapf(err, "failed to resolve ref %q", ref)
 	}
 
 	// Process all of the templates
@@ -124,19 +142,30 @@ func tick(ctx context.Context, srcDstMap map[string]string, reg *config_vars.Reg
 	for src, dst := range srcDstMap {
 		dirChanges, err := processDir(ctx, src, dst, vars, repo, commit)
 		if err != nil {
-			return skerr.Wrapf(err, "failed to process %s", src)
+			return nil, skerr.Wrapf(err, "failed to process %s", src)
 		}
 		for k, v := range dirChanges {
 			changes[k] = v
 		}
 	}
+	if len(changes) == 0 {
+		return nil, nil
+	}
+
+	// Upload a CL.
 	commitMsg := `[autoroll] Update generated config files`
 	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, ref, commitMsg, commit, changes, reviewers)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
+	}
+	labels := map[string]int{
+		gerrit.LabelAutoSubmit: gerrit.LabelAutoSubmitSubmit,
+	}
+	if err := g.SetReview(ctx, ci, "", labels, append(reviewers, rubberstamper.RubberStamperUser), "", nil, "", 0, nil); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	sklog.Infof("Created %s", g.Url(ci.Issue))
-	return nil
+	return ci, nil
 }
 
 // processDir converts a directory of templates into a directory of configs.

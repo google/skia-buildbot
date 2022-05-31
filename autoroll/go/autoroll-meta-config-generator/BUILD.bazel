@@ -12,6 +12,7 @@ go_library(
         "//go/chrome_branch",
         "//go/common",
         "//go/gerrit",
+        "//go/gerrit/rubberstamper",
         "//go/gitiles",
         "//go/httputils",
         "//go/metrics2",
