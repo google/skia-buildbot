@@ -53,6 +53,53 @@ export class ChromiumAnalysisSk extends ElementSk {
 
   private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
 
+  // Variables that represent UI elements.
+  private benchmark!: InputSk;
+
+  private platform!: SelectSk;
+
+  private pageSets!: PagesetSelectorSk;
+
+  private runOnGCE!: SelectSk;
+
+  private matchStdoutTxt!: InputSk;
+
+  private apkGsPath!: InputSk;
+
+  private chromeBuildGsPath!: InputSk;
+
+  private telemetryIsolateHash!: InputSk;
+
+  private runInParallel!: SelectSk;
+
+  private gnArgs!: InputSk;
+
+  private benchmarkArgs!: InputSk;
+
+  private browserArgs!: InputSk;
+
+  private valueColumnName!: InputSk;
+
+  private description!: InputSk;
+
+  private chromiumPatch!: PatchSk;
+
+  private skiaPatch!: PatchSk;
+
+  private v8Patch!: PatchSk;
+
+  private catapultPatch!: PatchSk;
+
+  private chromiumHash!: InputSk;
+
+  private repeatAfterDays!: TaskRepeaterSk;
+
+  private taskPriority!: TaskPrioritySk;
+
+  private ccList!: InputSk;
+
+  private groupName!: InputSk;
+
   constructor() {
     super(ChromiumAnalysisSk.template);
   }
@@ -291,6 +338,32 @@ export class ChromiumAnalysisSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
+
+    // Assign to all member variables that represent UI elements.
+    this.benchmark = $$<InputSk>('#benchmark_name', this)!;
+    this.platform = $$<SelectSk>('#platform_selector', this)!;
+    this.pageSets = $$<PagesetSelectorSk>('#pageset_selector', this)!;
+    this.runOnGCE = $$<SelectSk>('#run_on_gce', this)!;
+    this.matchStdoutTxt = $$<InputSk>('#match_stdout_txt', this)!;
+    this.apkGsPath = $$<InputSk>('#apk_gs_path', this)!;
+    this.chromeBuildGsPath = $$<InputSk>('#chrome_build_gs_path', this)!;
+    this.telemetryIsolateHash = $$<InputSk>('#telemetry_isolate_hash', this)!;
+    this.runInParallel = $$<SelectSk>('#run_in_parallel', this)!;
+    this.gnArgs = $$<InputSk>('#gn_args', this)!;
+    this.benchmarkArgs = $$<InputSk>('#benchmark_args', this)!;
+    this.browserArgs = $$<InputSk>('#browser_args', this)!;
+    this.valueColumnName = $$<InputSk>('#value_column_name', this)!;
+    this.description = $$<InputSk>('#description', this)!;
+    this.chromiumPatch = $$<PatchSk>('#chromium_patch', this)!;
+    this.skiaPatch = $$<PatchSk>('#skia_patch', this)!;
+    this.v8Patch = $$<PatchSk>('#v8_patch', this)!;
+    this.catapultPatch = $$<PatchSk>('#catapult_patch', this)!;
+    this.chromiumHash = $$<InputSk>('#chromium_hash', this)!;
+    this.repeatAfterDays = $$<TaskRepeaterSk>('#repeat_after_days', this)!;
+    this.taskPriority = $$<TaskPrioritySk>('#task_priority', this)!;
+    this.ccList = $$<InputSk>('#cc_list', this)!;
+    this.groupName = $$<InputSk>('#group_name', this)!;
+
     fetchBenchmarksAndPlatforms((json) => {
       this._benchmarksToDocs = json.benchmarks || {};
       this._benchmarks = Object.keys(json.benchmarks || {});
@@ -302,7 +375,7 @@ export class ChromiumAnalysisSk extends ElementSk {
       // Do this after the template is rendered, or else it fails, and don't
       // inline a child 'selected' attribute since it won't rationalize in
       // select-sk until later via the mutationObserver.
-      ($$('#platform_selector', this)! as SelectSk).selection = 1;
+      this.platform.selection = 1;
       // This gets the defaults in a valid state.
       this._platformChanged();
     });
@@ -335,15 +408,13 @@ export class ChromiumAnalysisSk extends ElementSk {
     }
     // We default to use GCE for Linux, require if for Windows, and
     // disallow it for Android.
-    const runOnGCE = $$('#run_on_gce', this)! as SelectSk;
-    (runOnGCE.children[trueIndex] as HTMLElement).hidden = !offerGCETrue;
-    (runOnGCE.children[falseIndex] as HTMLElement).hidden = !offerGCEFalse;
-    runOnGCE.selection = offerGCETrue ? trueIndex : falseIndex;
+    (this.runOnGCE.children[trueIndex] as HTMLElement).hidden = !offerGCETrue;
+    (this.runOnGCE.children[falseIndex] as HTMLElement).hidden = !offerGCEFalse;
+    this.runOnGCE.selection = offerGCETrue ? trueIndex : falseIndex;
 
     // We default to run in parallel, except for Android which disallows it.
-    const runInParallel = $$('#run_in_parallel', this) as SelectSk;
-    (runInParallel.children[trueIndex] as HTMLElement).hidden = !offerParallelTrue;
-    runInParallel.selection = offerParallelTrue ? trueIndex : falseIndex;
+    (this.runInParallel.children[trueIndex] as HTMLElement).hidden = !offerParallelTrue;
+    this.runInParallel.selection = offerParallelTrue ? trueIndex : falseIndex;
 
     this._updatePageSets();
   }
@@ -357,21 +428,20 @@ export class ChromiumAnalysisSk extends ElementSk {
     const pageSetDefault = (platform === 'Android')
       ? 'Mobile10k'
       : '10k';
-    const pagesetSelector = $$('pageset-selector-sk', this) as PagesetSelectorSk;
-    pagesetSelector.hideKeys = unsupportedPS;
-    pagesetSelector.selected = pageSetDefault;
+    this.pageSets.hideKeys = unsupportedPS;
+    this.pageSets.selected = pageSetDefault;
   }
 
   _platform(): string {
-    return this._platforms[+($$('#platform_selector', this) as SelectSk).selection!][0];
+    return this._platforms[+this.platform.selection!][0];
   }
 
   _runInParallel(): boolean {
-    return ($$('#run_in_parallel', this) as SelectSk).selection === 0;
+    return this.runInParallel.selection === 0;
   }
 
   _patchChanged(): void {
-    ($$('#description', this)! as InputSk).value = combineClDescriptions(
+    this.description.value = combineClDescriptions(
       $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription),
     );
   }
@@ -380,21 +450,21 @@ export class ChromiumAnalysisSk extends ElementSk {
     if (!$('patch-sk', this).every((patch) => (patch as PatchSk).validate())) {
       return;
     }
-    if (!($$('#description', this) as InputSk).value) {
+    if (!this.description.value) {
       errorMessage('Please specify a description');
-      ($$('#description', this) as InputSk).focus();
+      this.description.focus();
       return;
     }
-    if (!($$('#benchmark_name', this) as InputSk).value) {
+    if (!this.benchmark.value) {
       errorMessage('Please specify a benchmark');
-      ($$('#benchmark_name', this) as InputSk).focus();
+      this.benchmark.focus();
       return;
     }
     if (missingLiveSitesWithCustomWebpages(
-      ($$('#pageset_selector', this) as PagesetSelectorSk).customPages,
-      ($$('#benchmark_args', this) as InputSk).value,
+      this.pageSets.customPages,
+      this.benchmarkArgs.value,
     )) {
-      ($$('#benchmark_args', this) as InputSk).focus();
+      this.benchmarkArgs.focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
@@ -409,33 +479,33 @@ export class ChromiumAnalysisSk extends ElementSk {
   _queueTask(): void {
     this._triggeringTask = true;
     const params = {} as ChromiumAnalysisAddTaskVars;
-    params.benchmark = ($$('#benchmark_name', this)! as InputSk).value;
-    params.platform = this._platforms[+($$('#platform_selector', this) as SelectSk)!.selection!][0];
-    params.page_sets = ($$('#pageset_selector', this) as PagesetSelectorSk).selected;
-    params.run_on_gce = ($$('#run_on_gce', this) as SelectSk).selection === 0;
-    params.match_stdout_txt = ($$('#match_stdout_txt', this) as InputSk).value;
-    params.apk_gs_path = ($$('#apk_gs_path', this) as InputSk).value;
-    params.chrome_build_gs_path = ($$('#chrome_build_gs_path', this) as InputSk).value;
-    params.telemetry_isolate_hash = ($$('#telemetry_isolate_hash', this) as InputSk).value;
-    params.custom_webpages = ($$('#pageset_selector', this) as PagesetSelectorSk).customPages;
-    params.run_in_parallel = ($$('#run_in_parallel', this) as SelectSk).selection === 0;
-    params.gn_args = ($$('#gn_args', this) as InputSk).value;
-    params.benchmark_args = ($$('#benchmark_args', this) as InputSk).value;
-    params.browser_args = ($$('#browser_args', this) as InputSk).value;
-    params.value_column_name = ($$('#value_column_name', this) as InputSk).value;
-    params.desc = ($$('#description', this) as InputSk).value;
-    params.chromium_patch = ($$('#chromium_patch', this) as PatchSk).patch;
-    params.skia_patch = ($$('#skia_patch', this) as PatchSk).patch;
-    params.v8_patch = ($$('#v8_patch', this) as PatchSk).patch;
-    params.catapult_patch = ($$('#catapult_patch', this) as PatchSk).patch;
-    params.chromium_hash = ($$('#chromium_hash', this) as InputSk).value;
-    params.repeat_after_days = ($$('#repeat_after_days', this) as TaskRepeaterSk).frequency;
-    params.task_priority = ($$('#task_priority', this) as TaskPrioritySk).priority;
-    if (($$('#cc_list', this) as InputSk).value) {
-      params.cc_list = ($$('#cc_list', this) as InputSk).value.split(',');
+    params.benchmark = this.benchmark.value;
+    params.platform = this._platforms[+this.platform!.selection!][0];
+    params.page_sets = this.pageSets.selected;
+    params.run_on_gce = this.runOnGCE.selection === 0;
+    params.match_stdout_txt = this.matchStdoutTxt.value;
+    params.apk_gs_path = this.apkGsPath.value;
+    params.chrome_build_gs_path = this.chromeBuildGsPath.value;
+    params.telemetry_isolate_hash = this.telemetryIsolateHash.value;
+    params.custom_webpages = this.pageSets.customPages;
+    params.run_in_parallel = this.runInParallel.selection === 0;
+    params.gn_args = this.gnArgs.value;
+    params.benchmark_args = this.benchmarkArgs.value;
+    params.browser_args = this.browserArgs.value;
+    params.value_column_name = this.valueColumnName.value;
+    params.desc = this.description.value;
+    params.chromium_patch = this.chromiumPatch.patch;
+    params.skia_patch = this.skiaPatch.patch;
+    params.v8_patch = this.v8Patch.patch;
+    params.catapult_patch = this.catapultPatch.patch;
+    params.chromium_hash = this.chromiumHash.value;
+    params.repeat_after_days = this.repeatAfterDays.frequency;
+    params.task_priority = this.taskPriority.priority;
+    if (this.ccList.value) {
+      params.cc_list = this.ccList.value.split(',');
     }
-    if (($$('#group_name', this) as InputSk).value) {
-      params.group_name = ($$('#group_name', this) as InputSk).value;
+    if (this.groupName.value) {
+      params.group_name = this.groupName.value;
     }
 
     fetch('/_/add_chromium_analysis_task', {
