@@ -80,15 +80,25 @@ const (
 	// this change.
 	LabelCommitQueueSubmit = 2
 
-	// LabelAutoSubmit indicates whether the change should be submitted when it
-	// is approved.
-	LabelAutoSubmit = "Autosubmit"
-	// LabelAutoSubmitNone indicates that the change should not be submitted
-	// when it is approved.
-	LabelAutoSubmitNone = 0
-	// LabelAutoSubmitSubmit indicates that the change should be submitted when
-	// it is approved.
-	LabelAutoSubmitSubmit = 1
+	// LabelAndroidAutoSubmit indicates whether the change should be submitted
+	// when it is approved.  For Android hosts only.
+	LabelAndroidAutoSubmit = "Autosubmit"
+	// LabelAndroidAutoSubmitNone indicates that the change should not be
+	// submitted when it is approved.
+	LabelAndroidAutoSubmitNone = 0
+	// LabelAndroidAutoSubmitSubmit indicates that the change should be
+	// submitted when it is approved.
+	LabelAndroidAutoSubmitSubmit = 1
+
+	// LabelChromiumAutoSubmit indicates whether the change should be submitted
+	// when it is approved.  For Chromium hosts only.
+	LabelChromiumAutoSubmit = "Auto-Submit"
+	// LabelChromiumAutoSubmitNone indicates that the change should not be
+	// submitted when it is approved.
+	LabelChromiumAutoSubmitNone = 0
+	// LabelChromiumAutoSubmitSubmit indicates that the change should be
+	// submitted when it is approved.
+	LabelChromiumAutoSubmitSubmit = 1
 
 	// LabelPresubmitReady indicates whether the presubmit checks should run for
 	// this change.

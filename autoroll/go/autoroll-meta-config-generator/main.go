@@ -159,7 +159,7 @@ func maybeUploadCL(ctx context.Context, srcDstMap map[string]string, reg *config
 		return nil, skerr.Wrap(err)
 	}
 	labels := map[string]int{
-		gerrit.LabelAutoSubmit: gerrit.LabelAutoSubmitSubmit,
+		gerrit.LabelChromiumAutoSubmit: gerrit.LabelChromiumAutoSubmitSubmit,
 	}
 	if err := g.SetReview(ctx, ci, "", labels, append(reviewers, rubberstamper.RubberStamperUser), "", nil, "", 0, nil); err != nil {
 		return nil, skerr.Wrap(err)
