@@ -258,6 +258,7 @@ type ChangeInfo struct {
 	Owner                *Person                `json:"owner"`
 	Status               string                 `json:"status"`
 	Submittable          bool                   `json:"submittable"`
+	Topic                string                 `json:"topic"`
 	WorkInProgress       bool                   `json:"work_in_progress"`
 	CherrypickOfChange   int                    `json:"cherry_pick_of_change"`
 	CherrypickOfPatchSet int                    `json:"cherry_pick_of_patch_set"`
@@ -1077,6 +1078,14 @@ func SearchBranch(branch string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "branch",
 		Value: branch,
+	}
+}
+
+// SearchTopic is a SearchTerm used for filtering by topic.
+func SearchTopic(topic string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "topic",
+		Value: topic,
 	}
 }
 
