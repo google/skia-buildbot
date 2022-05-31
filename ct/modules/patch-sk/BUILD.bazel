@@ -15,6 +15,7 @@ sk_element(
     sk_element_deps = [
         "//ct/modules/input-sk",
         "//infra-sk/modules/expandable-textarea-sk",
+        "//ct/modules/pageset-selector-sk",
     ],
     ts_deps = [
         "//ct/modules/json:index_ts_lib",

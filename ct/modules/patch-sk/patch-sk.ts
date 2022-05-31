@@ -32,6 +32,7 @@ import * as ctfe_utils from '../ctfe_utils';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../input-sk';
 import { CLDataResponse } from '../json';
+import { ExpandableTextArea } from '../pageset-selector-sk/pageset-selector-sk';
 
 export class PatchSk extends ElementSk {
   private _spinner: SpinnerSk | null = null;
@@ -148,6 +149,16 @@ export class PatchSk extends ElementSk {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Expands the text area if it is collapsed.
+   */
+  expandTextArea(): void {
+    const exTextarea = $$('expandable-textarea-sk', this) as ExpandableTextArea;
+    if (!exTextarea.open) {
+      ($$('button', exTextarea) as HTMLElement).click();
+    }
   }
 
   /**

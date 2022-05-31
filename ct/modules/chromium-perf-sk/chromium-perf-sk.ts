@@ -19,6 +19,7 @@ import { define } from 'elements-sk/define';
 import 'elements-sk/select-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
 import { SelectSk } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -28,7 +29,10 @@ import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
 import { PatchSk } from '../patch-sk/patch-sk';
 import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
 import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
-import { ChromiumPerfAddTaskVars } from '../json';
+import {
+  ChromiumPerfAddTaskVars,
+  EditTaskRequest,
+} from '../json';
 import {
   combineClDescriptions,
   missingLiveSitesWithCustomWebpages,
@@ -261,6 +265,14 @@ export class ChromiumPerfSk extends ElementSk {
 
   connectedCallback(): void {
     super.connectedCallback();
+
+    // If template_id is specified then load the template.
+    const params = new URLSearchParams(window.location.search);
+    const template_id = params.get('template_id');
+    if (template_id) {
+      this.handleTemplateID(template_id);
+    }
+
     this._render();
     fetchBenchmarksAndPlatforms((json) => {
       this._benchmarksToDocs = json.benchmarks || {};
@@ -271,6 +283,85 @@ export class ChromiumPerfSk extends ElementSk {
       this._platforms = Object.entries(json.platforms || {});
       this._render();
     });
+  }
+
+  handleTemplateID(template_id: string): void {
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+    const req: EditTaskRequest = { id: +template_id };
+    fetch('/_/edit_chromium_perf_task', { method: 'POST', body: JSON.stringify(req) })
+      .then(jsonOrThrow)
+      .then((json: ChromiumPerfAddTaskVars) => {
+        // Populate all fields from the EditTaskRequest.
+        ($$('#benchmark_name', this) as InputSk).value = json.benchmark;
+        // Find the index of the platform and set it.
+        Object.keys(this._platforms).forEach((i) => {
+          if (this._platforms[+i][0] === json.platform) {
+            ($$('#platform_selector', this) as SelectSk).selection = i;
+          }
+        });
+        // Set the page set and custom webpages if specified.
+        ($$('#pageset_selector', this) as PagesetSelectorSk).selected = json.page_sets;
+        if (json.custom_webpages) {
+          const pagesetSelector = ($$('#pageset_selector', this) as PagesetSelectorSk);
+          pagesetSelector.customPages = json.custom_webpages;
+          pagesetSelector.expandTextArea();
+        }
+
+        ($$('#run_in_parallel', this) as SelectSk).selection = json.run_in_parallel ? 0 : 1;
+        if (json.gn_args) {
+          ($$('#gn_args', this) as InputSk).value = json.gn_args;
+        }
+        ($$('#benchmark_args', this) as InputSk).value = json.benchmark_args;
+        ($$('#browser_args_nopatch', this) as InputSk).value = json.browser_args_nopatch;
+        ($$('#browser_args_withpatch', this) as InputSk).value = json.browser_args_withpatch;
+        ($$('#value_column_name', this) as InputSk).value = json.value_column_name;
+
+        // Patches.
+        if (json.chromium_patch) {
+          const chromiumPatchSk = $$('#chromium_patch', this) as PatchSk;
+          chromiumPatchSk.patch = json.chromium_patch;
+          chromiumPatchSk.expandTextArea();
+        }
+        if (json.skia_patch) {
+          const skiaPatchSk = $$('#skia_patch', this) as PatchSk;
+          skiaPatchSk.patch = json.skia_patch;
+          skiaPatchSk.expandTextArea();
+        }
+        if (json.v8_patch) {
+          const v8PatchSk = $$('#v8_patch', this) as PatchSk;
+          v8PatchSk.patch = json.v8_patch;
+          v8PatchSk.expandTextArea();
+        }
+        if (json.catapult_patch) {
+          const catapultPatchSk = $$('#catapult_patch', this) as PatchSk;
+          catapultPatchSk.patch = json.catapult_patch;
+          catapultPatchSk.expandTextArea();
+        }
+        if (json.chromium_patch_base_build) {
+          const chromiumPatchBaseBuildSk = $$('#chromium_patch_base_build', this) as PatchSk;
+          chromiumPatchBaseBuildSk.patch = json.chromium_patch_base_build;
+          chromiumPatchBaseBuildSk.expandTextArea();
+        }
+
+        ($$('#chromium_hash', this) as InputSk).value = json.chromium_hash;
+        ($$('#repeat_after_days', this) as TaskRepeaterSk).frequency = json.repeat_after_days;
+        ($$('#task_priority', this) as TaskPrioritySk).priority = json.task_priority;
+        if (json.cc_list) {
+          ($$('#cc_list', this) as InputSk).value = json.cc_list.join(',');
+        }
+        ($$('#group_name', this) as InputSk).value = json.group_name;
+        ($$('#description', this) as InputSk).value = json.desc;
+
+        // Focus and then blur the benchmark name so that we go back to the
+        // top of the page.
+        ($$('#benchmark_name', this) as InputSk).querySelector('input')!.focus();
+        ($$('#benchmark_name', this) as InputSk).querySelector('input')!.blur();
+      })
+      .catch(errorMessage)
+      .finally(() => {
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
   }
 
   _refreshBenchmarkDoc(e: CustomEvent): void {

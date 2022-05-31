@@ -10,6 +10,10 @@ export interface RedoTaskRequest {
 	id: number;
 }
 
+export interface EditTaskRequest {
+	id: number;
+}
+
 export interface DeleteTaskRequest {
 	id: number;
 }

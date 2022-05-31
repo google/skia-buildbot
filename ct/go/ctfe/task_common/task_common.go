@@ -580,6 +580,42 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type EditTaskRequest struct {
+	Id int64 `json:"id"`
+}
+
+func EditTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	if !ctfeutil.UserHasEditRights(r) {
+		httputils.ReportError(w, nil, "Please login with google account to edit tasks", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	var req EditTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse edit request", http.StatusInternalServerError)
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = req.Id
+	task, err := prototype.Get(r.Context(), key)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to find requested task", http.StatusInternalServerError)
+		return
+	}
+
+	addTaskVars, err := task.GetPopulatedAddTaskVars()
+	if err != nil {
+		httputils.ReportError(w, err, "Could not GetPopulatedAddTaskVars", http.StatusInternalServerError)
+	}
+
+	if err = json.NewEncoder(w).Encode(addTaskVars); err != nil {
+		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
 type PageSet struct {
 	Key         string `json:"key"`
 	Description string `json:"description"`

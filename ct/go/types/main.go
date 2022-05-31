@@ -29,6 +29,7 @@ func main() {
 	generator.AddMultiple(
 		httputils.ResponsePagination{},
 		task_common.RedoTaskRequest{},
+		task_common.EditTaskRequest{},
 		task_common.DeleteTaskRequest{},
 		task_common.CommonCols{},
 		task_common.GetTasksResponse{},

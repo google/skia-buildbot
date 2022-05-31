@@ -7,6 +7,7 @@ import 'elements-sk/icon/redo-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/icon/mode-edit-icon-sk';
 import 'elements-sk/toast-sk';
 import '../pagination-sk';
 
@@ -98,6 +99,8 @@ export class ChromiumPerfRunsSk extends ElementSk {
         @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
       <redo-icon-sk title="Redo this task" alt=Redo ?hidden=${!task.can_redo}
         @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
+      <mode-edit-icon-sk title="Edit and redo this task" alt=Edit
+        @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
     </td>
     <!-- User col -->
     <td>${task.username}</td>
@@ -388,6 +391,13 @@ export class ChromiumPerfRunsSk extends ElementSk {
     }
   }
 
+  _confirmEditTask(index: number): void {
+    const confirmed = window.confirm('Edit this task?');
+    if (confirmed) {
+      this._editTask(index);
+    }
+  }
+
   _deleteTask(index: number): void {
     const req: DeleteTaskRequest = { id: this._tasks[index].id };
     fetch('/_/delete_chromium_perf_task', { method: 'POST', body: JSON.stringify(req) })
@@ -420,6 +430,10 @@ export class ChromiumPerfRunsSk extends ElementSk {
         this._reload();
       })
       .catch(errorMessage);
+  }
+
+  _editTask(index: number): void {
+    window.location.href = `/chromium_perf/?template_id=${this._tasks[index].id}`;
   }
 
   _resetPagination(): void {

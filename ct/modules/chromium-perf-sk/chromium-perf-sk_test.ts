@@ -176,6 +176,48 @@ describe('chromium-perf-sk', () => {
     expect(taskJson).to.deep.equal(expectation);
   });
 
+  it('loads with a template', async () => {
+    chromiumPerf = await newInstance();
+    const mockAddTaskVars: ChromiumPerfAddTaskVars = {
+      benchmark: 'a benchmark',
+      repeat_runs: '1',
+      platform: 'Android',
+      page_sets: '10k',
+      custom_webpages: 'google.com,youtube.com',
+      run_in_parallel: 'False',
+      gn_args: 'is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1',
+      benchmark_args: '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format',
+      browser_args_nopatch: 'args_nopatch',
+      browser_args_withpatch: 'args_withpatch',
+      value_column_name: 'avg2',
+      desc: 'test description',
+      chromium_patch: 'test chromium patch',
+      benchmark_patch: 'test benchmark patch',
+      blink_patch: '',
+      skia_patch: 'test skia patch',
+      v8_patch: 'test v8 patch',
+      catapult_patch: '',
+      chromium_patch_base_build: '',
+      chromium_hash: 'abc',
+      repeat_after_days: '7',
+      task_priority: '110',
+      run_on_gce: 'false',
+      cc_list: ['superman@krypton.com', 'batman@gotham.com'],
+      group_name: 'testing_group name',
+      ts_added: '20190314202843',
+      username: 'superman@krypton.com',
+    };
+    fetchMock.post('begin:/_/edit_chromium_perf_task', mockAddTaskVars);
+    chromiumPerf.handleTemplateID('123');
+    await fetchMock.flush(true);
+    expect($$('#description', chromiumPerf)).to.have.property('value', 'test description');
+    expect($$('#pageset_selector', chromiumPerf)).to.have.property('selected', '10k');
+    expect($$('#pageset_selector', chromiumPerf)).to.have.property('customPages', 'google.com,youtube.com');
+    expect($$('#repeat_after_days', chromiumPerf)).to.have.property('frequency', '7');
+    expect($$('#task_priority', chromiumPerf)).to.have.property('priority', '110');
+    expect($$('#value_column_name', chromiumPerf)).to.have.property('value', 'avg2');
+  });
+
   it('rejects if too many active tasks', async () => {
     // Report user as having 4 active tasks.
     chromiumPerf = await newInstance(4);

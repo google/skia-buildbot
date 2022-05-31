@@ -22,7 +22,7 @@ import {
   PageSet,
 } from '../json';
 
-interface ExpandableTextArea extends HTMLInputElement {
+export interface ExpandableTextArea extends HTMLInputElement {
   open: boolean;
 }
 
@@ -89,6 +89,11 @@ ${ele.hasAttribute('disable-custom-webpages')
     return exTextarea ? (exTextarea.value || '') : '';
   }
 
+  set customPages(val: string) {
+    const exTextarea = $$('expandable-textarea-sk', this) as ExpandableTextArea;
+    exTextarea.value = val;
+  }
+
   /**
    * @prop {string} selected - Key of selected pageset.
    */
@@ -98,7 +103,7 @@ ${ele.hasAttribute('disable-custom-webpages')
   }
 
   set selected(val: string) {
-  this._selector!.selection = this._pageSets.findIndex((p) => p.key === val);
+    this._selector!.selection = this._pageSets.findIndex((p) => p.key === val);
   }
 
   /**
@@ -113,6 +118,16 @@ ${ele.hasAttribute('disable-custom-webpages')
     this._hideKeys = val;
     this._filterPageSets();
     this._render();
+  }
+
+  /**
+   * Expands the text area if it is collapsed.
+   */
+  expandTextArea(): void {
+    const exTextarea = $$('expandable-textarea-sk', this) as ExpandableTextArea;
+    if (!exTextarea.open) {
+      ($$('button', exTextarea) as HTMLElement).click();
+    }
   }
 
   _filterPageSets(): void {
