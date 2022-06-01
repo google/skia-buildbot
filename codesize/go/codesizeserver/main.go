@@ -9,6 +9,10 @@ import (
 	"text/template"
 	"time"
 
+	"go.skia.org/infra/go/now"
+
+	"go.skia.org/infra/go/fileutil"
+
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
@@ -35,6 +39,11 @@ const (
 	// numMostRecentBinaries is the number of most recent binaries to show on the index page (grouped
 	// by changelist or patchset).
 	numMostRecentBinaries = 20
+
+	// Preload the last 10 days (arbitrarily chosen) worth of data. Past that is probably not
+	// relevant to most developers, and loading too much data can make the server take a long
+	// time to load.
+	daysToPreload = 10
 )
 
 // gcsPubSubEvent is the payload of the PubSub events sent by GCS on file uploads. See
@@ -159,24 +168,27 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 	// This excludes debug files that we occasionally upload to GCS.
 	bloatyOutputFilePattern := regexp.MustCompile(`^[0-9]{4}/[0-9]{2}/[0-9]{2}/.*\.tsv$`)
 
-	// TODO(lovisolo): Consider limiting this, e.g. to the last 3 months.
-	err := s.gcsClient.AllFilesInDirectory(context.Background(), "", func(item *storage.ObjectAttrs) error {
-		if !bloatyOutputFilePattern.MatchString(item.Name) {
+	dirs := fileutil.GetHourlyDirs("", now.Now(ctx).Add(-daysToPreload*24*time.Hour), now.Now(ctx))
+	sklog.Debugf("Preloading data, starting in folder %s", dirs[0])
+	for _, dir := range dirs {
+		err := s.gcsClient.AllFilesInDirectory(ctx, dir, func(item *storage.ObjectAttrs) error {
+			if !bloatyOutputFilePattern.MatchString(item.Name) {
+				return nil
+			}
+			if err := s.store.Index(ctx, item.Name); err != nil {
+				// If this happens often (e.g. because we're hitting a GCS QPS limit) we can do a combination
+				// of limiting our QPS rate and only fetching the most recent files.
+				//
+				// As is, this is probably fine. At worst, the app will crash and Kubernetes will retry
+				// creating the pod, entering a crash loop if we're still over the QPS quota. Exponential
+				// backoff would be a potential mitigation.
+				sklog.Fatalf("Error while preloading %s: %s\n", item.Name, err)
+			}
 			return nil
+		})
+		if err != nil {
+			return skerr.Wrap(err)
 		}
-		if err := s.store.Index(ctx, item.Name); err != nil {
-			// If this happens often (e.g. because we're hitting a GCS QPS limit) we can do a combination
-			// of limiting our QPS rate and only fetching the most recent files.
-			//
-			// As is, this is probably fine. At worst, the app will crash and Kubernetes will retry
-			// creating the pod, entering a crash loop if we're still over the QPS quota. Exponential
-			// backoff would be a potential mitigation.
-			sklog.Fatalf("Error while preloading %s: %s\n", item.Name, err)
-		}
-		return nil
-	})
-	if err != nil {
-		return skerr.Wrap(err)
 	}
 
 	return nil

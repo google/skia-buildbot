@@ -2,6 +2,7 @@ package fileutil
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -11,9 +12,13 @@ import (
 // intended to enumerate the directories that should be polled when ingesting data.
 // startTS and endTS are seconds since the Unix epoch. Both time stamps are inclusive.
 // The generated directories are based on UTC being the locale.
+// If the prefix is empty string, there will be no slash before the year.
 func GetHourlyDirs(prefixDir string, start, end time.Time) []string {
 	if end.Before(start) {
 		return []string{}
+	}
+	if len(prefixDir) != 0 && !strings.HasSuffix(prefixDir, "/") {
+		prefixDir += "/"
 	}
 
 	// The result will be roughly the number of hours in the range.
@@ -33,7 +38,7 @@ func GetHourlyDirs(prefixDir string, start, end time.Time) []string {
 	for currTime.Before(endTime) {
 		year, month, day := currTime.Date()
 		hour := currTime.Hour()
-		ret = append(ret, fmt.Sprintf("%s/%04d/%02d/%02d/%02d", prefixDir, year, month, day, hour))
+		ret = append(ret, fmt.Sprintf("%s%04d/%02d/%02d/%02d", prefixDir, year, month, day, hour))
 		currTime = currTime.Add(time.Hour)
 	}
 	return ret
