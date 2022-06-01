@@ -331,6 +331,10 @@ func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.RedoTaskHandler(&MetricsAnalysisDatastoreTask{}, w, r)
 }
 
+func editTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.EditTaskHandler(&MetricsAnalysisDatastoreTask{}, w, r)
+}
+
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
@@ -343,4 +347,5 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.EDIT_METRICS_ANALYSIS_TASK_POST_URI, editTaskHandler).Methods("POST")
 }

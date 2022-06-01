@@ -43,6 +43,7 @@ const (
 	GET_METRICS_ANALYSIS_TASKS_POST_URI   = "_/get_metrics_analysis_tasks"
 	DELETE_METRICS_ANALYSIS_TASK_POST_URI = "_/delete_metrics_analysis_task"
 	REDO_METRICS_ANALYSIS_TASK_POST_URI   = "_/redo_metrics_analysis_task"
+	EDIT_METRICS_ANALYSIS_TASK_POST_URI   = "_/edit_metrics_analysis_task"
 
 	ADMIN_TASK_URI = "admin_tasks/"
 

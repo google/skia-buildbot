@@ -18,6 +18,7 @@ import { define } from 'elements-sk/define';
 import 'elements-sk/select-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -29,7 +30,10 @@ import {
   combineClDescriptions,
   moreThanThreeActiveTasksChecker,
 } from '../ctfe_utils';
-import { MetricsAnalysisAddTaskVars } from '../json';
+import {
+  MetricsAnalysisAddTaskVars,
+  EditTaskRequest,
+} from '../json';
 
 interface ExpandableTextArea extends InputSk {
   open: boolean;
@@ -196,7 +200,64 @@ export class MetricsAnalysisSk extends ElementSk {
     this.repeatAfterDays = $$<TaskRepeaterSk>('#repeat_after_days', this)!;
     this.taskPriority = $$<TaskPrioritySk>('#task_priority', this)!;
     this.ccList = $$<InputSk>('#cc_list', this)!;
+
+    // If template_id is specified then load the template.
+    const params = new URLSearchParams(window.location.search);
+    const template_id = params.get('template_id');
+    if (template_id) {
+      this.handleTemplateID(template_id);
+    }
   }
+
+  handleTemplateID(template_id: string): void {
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+    const req: EditTaskRequest = { id: +template_id };
+    fetch('/_/edit_metrics_analysis_task', { method: 'POST', body: JSON.stringify(req) })
+      .then(jsonOrThrow)
+      .then((json: MetricsAnalysisAddTaskVars) => {
+        // Populate all fields from the EditTaskRequest.
+        this.metricName.value = json.metric_name;
+        this.analysisTaskId.value = json.analysis_task_id;
+        this.benchmarkArgs.value = json.benchmark_args;
+        this.valueColumnName.value = json.value_column_name;
+        this.description.value = json.desc;
+
+        // If custom webpages are specified then populate the field and expand it.
+        if (json.custom_traces) {
+          this.customTraces.value = json.custom_traces;
+          if (!this.customTraces.open) {
+            ($$('button', this.customTraces) as HTMLElement).click();
+          }
+        }
+
+        // Patches.
+        if (json.chromium_patch) {
+          this.chromiumPatch.patch = json.chromium_patch;
+          this.chromiumPatch.expandTextArea();
+        }
+        if (json.catapult_patch) {
+          this.catapultPatch.patch = json.catapult_patch;
+          this.catapultPatch.expandTextArea();
+        }
+
+        this.repeatAfterDays.frequency = json.repeat_after_days;
+        this.taskPriority.priority = json.task_priority;
+        if (json.cc_list) {
+          this.ccList.value = json.cc_list.join(',');
+        }
+
+        // Focus and then blur the benchmark name so that we go back to the
+        // top of the page.
+        this.metricName.querySelector('input')!.focus();
+        this.metricName.querySelector('input')!.blur();
+      })
+      .catch(errorMessage)
+      .finally(() => {
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
+  }
+
 
   _toggleAnalysisTaskId(): void {
     if (this.customTraces.open === this.analysisTaskId.hidden) {

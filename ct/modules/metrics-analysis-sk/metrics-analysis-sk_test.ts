@@ -167,6 +167,34 @@ describe('metrics-analysis-sk', () => {
     expect(taskJson).to.deep.equal(expectation);
   });
 
+  it('loads with a template', async () => {
+    metricsAnalysis = await newInstance();
+    const mockAddTaskVars: MetricsAnalysisAddTaskVars = {
+      metric_name: 'test metric name',
+      analysis_task_id: 'test task id',
+      custom_traces: 'google.com,youtube.com',
+      benchmark_args: 'test benchmark args',
+      value_column_name: 'avg2',
+      desc: 'test description',
+      chromium_patch: 'test chromium patch',
+      catapult_patch: 'test catapult patch',
+      repeat_after_days: '7',
+      task_priority: '110',
+      cc_list: ['superman@krypton.com', 'batman@gotham.com'],
+      analysis_output_link: 'test',
+      ts_added: '20190314202843',
+      username: 'superman@krypton.com',
+    };
+    fetchMock.post('begin:/_/edit_metrics_analysis_task', mockAddTaskVars);
+    metricsAnalysis.handleTemplateID('123');
+    await fetchMock.flush(true);
+    expect($$('#description', metricsAnalysis)).to.have.property('value', 'test description');
+    expect($$('#analysis_task_id', metricsAnalysis)).to.have.property('value', 'test task id');
+    expect($$('#repeat_after_days', metricsAnalysis)).to.have.property('frequency', '7');
+    expect($$('#task_priority', metricsAnalysis)).to.have.property('priority', '110');
+    expect($$('#value_column_name', metricsAnalysis)).to.have.property('value', 'avg2');
+  });
+
   it('rejects if too many active tasks', async () => {
     // Report user as having 4 active tasks.
     metricsAnalysis = await newInstance(4);
