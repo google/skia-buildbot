@@ -431,6 +431,10 @@ func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.RedoTaskHandler(&ChromiumAnalysisDatastoreTask{}, w, r)
 }
 
+func editTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.EditTaskHandler(&ChromiumAnalysisDatastoreTask{}, w, r)
+}
+
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
@@ -443,4 +447,5 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CHROMIUM_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.EDIT_CHROMIUM_ANALYSIS_TASK_POST_URI, editTaskHandler).Methods("POST")
 }

@@ -19,6 +19,7 @@ import { define } from 'elements-sk/define';
 import 'elements-sk/select-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
 import { SelectSk } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -28,7 +29,10 @@ import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
 import { PatchSk } from '../patch-sk/patch-sk';
 import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
 import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
-import { ChromiumAnalysisAddTaskVars } from '../json';
+import {
+  ChromiumAnalysisAddTaskVars,
+  EditTaskRequest,
+} from '../json';
 import {
   combineClDescriptions,
   missingLiveSitesWithCustomWebpages,
@@ -364,6 +368,14 @@ export class ChromiumAnalysisSk extends ElementSk {
     this.ccList = $$<InputSk>('#cc_list', this)!;
     this.groupName = $$<InputSk>('#group_name', this)!;
 
+
+    // If template_id is specified then load the template.
+    const params = new URLSearchParams(window.location.search);
+    const template_id = params.get('template_id');
+    if (template_id) {
+      this.handleTemplateID(template_id);
+    }
+
     fetchBenchmarksAndPlatforms((json) => {
       this._benchmarksToDocs = json.benchmarks || {};
       this._benchmarks = Object.keys(json.benchmarks || {});
@@ -379,6 +391,79 @@ export class ChromiumAnalysisSk extends ElementSk {
       // This gets the defaults in a valid state.
       this._platformChanged();
     });
+  }
+
+  handleTemplateID(template_id: string): void {
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+    const req: EditTaskRequest = { id: +template_id };
+    fetch('/_/edit_chromium_analysis_task', { method: 'POST', body: JSON.stringify(req) })
+      .then(jsonOrThrow)
+      .then((json: ChromiumAnalysisAddTaskVars) => {
+        // Populate all fields from the EditTaskRequest.
+        this.benchmark.value = json.benchmark;
+        // Find the index of the platform and set it.
+        Object.keys(this._platforms).forEach((i) => {
+          if (this._platforms[+i][0] === json.platform) {
+            this.platform.selection = i;
+          }
+        });
+        // Set the page set and custom webpages if specified.
+        this.pageSets.selected = json.page_sets;
+        if (json.custom_webpages) {
+          this.pageSets.customPages = json.custom_webpages;
+          this.pageSets.expandTextArea();
+        }
+
+        this.runOnGCE.selection = json.run_on_gce ? 0 : 1;
+        this.matchStdoutTxt.value = json.match_stdout_txt;
+        this.apkGsPath.value = json.apk_gs_path;
+        this.chromeBuildGsPath.value = json.chrome_build_gs_path;
+        this.telemetryIsolateHash.value = json.telemetry_isolate_hash;
+        this.runInParallel.selection = json.run_in_parallel ? 0 : 1;
+        if (json.gn_args) {
+          this.gnArgs.value = json.gn_args;
+        }
+        this.benchmarkArgs.value = json.benchmark_args;
+        this.browserArgs.value = json.browser_args;
+        this.valueColumnName.value = json.value_column_name;
+        this.description.value = json.desc;
+
+        // Patches.
+        if (json.chromium_patch) {
+          this.chromiumPatch.patch = json.chromium_patch;
+          this.chromiumPatch.expandTextArea();
+        }
+        if (json.skia_patch) {
+          this.skiaPatch.patch = json.skia_patch;
+          this.skiaPatch.expandTextArea();
+        }
+        if (json.v8_patch) {
+          this.v8Patch.patch = json.v8_patch;
+          this.v8Patch.expandTextArea();
+        }
+        if (json.catapult_patch) {
+          this.catapultPatch.patch = json.catapult_patch;
+          this.catapultPatch.expandTextArea();
+        }
+
+        this.chromiumHash.value = json.chromium_hash;
+        this.repeatAfterDays.frequency = json.repeat_after_days;
+        this.taskPriority.priority = json.task_priority;
+        if (json.cc_list) {
+          this.ccList.value = json.cc_list.join(',');
+        }
+        this.groupName.value = json.group_name;
+
+        // Focus and then blur the benchmark name so that we go back to the
+        // top of the page.
+        this.benchmark.querySelector('input')!.focus();
+        this.benchmark.querySelector('input')!.blur();
+      })
+      .catch(errorMessage)
+      .finally(() => {
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
   }
 
   _refreshBenchmarkDoc(e: CustomEvent): void {

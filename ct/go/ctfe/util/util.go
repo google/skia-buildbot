@@ -35,6 +35,7 @@ const (
 	GET_CHROMIUM_ANALYSIS_TASKS_POST_URI   = "_/get_chromium_analysis_tasks"
 	DELETE_CHROMIUM_ANALYSIS_TASK_POST_URI = "_/delete_chromium_analysis_task"
 	REDO_CHROMIUM_ANALYSIS_TASK_POST_URI   = "_/redo_chromium_analysis_task"
+	EDIT_CHROMIUM_ANALYSIS_TASK_POST_URI   = "_/edit_chromium_analysis_task"
 
 	METRICS_ANALYSIS_URI                  = "metrics_analysis/"
 	METRICS_ANALYSIS_RUNS_URI             = "metrics_analysis_runs/"

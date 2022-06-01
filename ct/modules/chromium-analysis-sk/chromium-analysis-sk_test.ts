@@ -176,6 +176,48 @@ describe('chromium-analysis-sk', () => {
     expect(taskJson).to.deep.equal(expectation);
   });
 
+  it('loads with a template', async () => {
+    chromiumAnalysis = await newInstance();
+    const mockAddTaskVars: ChromiumAnalysisAddTaskVars = {
+      benchmark: 'a benchmark',
+      platform: 'Android',
+      page_sets: '10k',
+      custom_webpages: 'google.com,youtube.com',
+      run_in_parallel: false,
+      gn_args: 'is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1',
+      benchmark_args: '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format',
+      browser_args: 'args_nopatch',
+      value_column_name: 'avg2',
+      desc: 'test description',
+      chromium_patch: 'test chromium patch',
+      benchmark_patch: 'test benchmark patch',
+      skia_patch: 'test skia patch',
+      v8_patch: 'test v8 patch',
+      catapult_patch: '',
+      chromium_hash: 'abc',
+      repeat_after_days: '7',
+      task_priority: '110',
+      run_on_gce: false,
+      cc_list: ['superman@krypton.com', 'batman@gotham.com'],
+      group_name: 'testing_group name',
+      ts_added: '20190314202843',
+      username: 'superman@krypton.com',
+      match_stdout_txt: 'test stdout text',
+      apk_gs_path: 'test apk gs',
+      chrome_build_gs_path: 'test gs path',
+      telemetry_isolate_hash: 'abc',
+    };
+    fetchMock.post('begin:/_/edit_chromium_analysis_task', mockAddTaskVars);
+    chromiumAnalysis.handleTemplateID('123');
+    await fetchMock.flush(true);
+    expect($$('#description', chromiumAnalysis)).to.have.property('value', 'test description');
+    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property('selected', '10k');
+    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property('customPages', 'google.com,youtube.com');
+    expect($$('#repeat_after_days', chromiumAnalysis)).to.have.property('frequency', '7');
+    expect($$('#task_priority', chromiumAnalysis)).to.have.property('priority', '110');
+    expect($$('#value_column_name', chromiumAnalysis)).to.have.property('value', 'avg2');
+  });
+
   it('rejects if too many active tasks', async () => {
     // Report user as having 4 active tasks.
     chromiumAnalysis = await newInstance(4);
