@@ -20,23 +20,11 @@ build --symlink_prefix=_bazel_
 # ends up invalidating the cache. https://github.com/bazelbuild/bazel/issues/13186
 # test  --symlink_prefix=_bazel_
 
-# Also suppress the generation of the bazel-out symlink, which always appears,no
-# matter what you set --symlink_prefix to.
-build --experimental_no_product_name_out_symlink
-
 build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Tags such as no-remote and no-cache have no effect without this. See
 # https://github.com/bazelbuild/bazel/issues/8830.
 build --experimental_allow_tags_propagation
-
-# Prevent the following rules_docker error due to incompatibilities with Bazel 4.0.0:
-#
-#     ~/.cache/bazel/[...]/io_bazel_rules_docker/container/push.bzl:34:28:
-#     invalid escape sequence: \{.
-#
-# We should remove this flag once a new release of rules_docker is available.
-build --incompatible_restrict_string_escapes=false
 
 # Pipe through the host system's *_EMULATOR_HOST environment variables to Bazel tests.
 #
