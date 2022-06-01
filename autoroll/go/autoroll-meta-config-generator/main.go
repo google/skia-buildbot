@@ -207,6 +207,9 @@ func processDir(ctx context.Context, srcRelPath, dstRelPath string, vars *config
 				return nil, skerr.Wrapf(err, "failed to convert config %s", srcPath)
 			}
 			for path, newContents := range tmplChanges {
+				// Un-delete the file.
+				delete(changes, path)
+
 				// Load the original version of the config file. Only add it to
 				// the changes map if it doesn't already exist, or if it exists
 				// with different contents.
