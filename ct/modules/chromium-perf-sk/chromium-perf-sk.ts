@@ -463,9 +463,9 @@ export class ChromiumPerfSk extends ElementSk {
     }
     if (missingLiveSitesWithCustomWebpages(
       this.pageSets.customPages,
-      this.benchmark.value,
+      this.benchmarkArgs.value,
     )) {
-      this.benchmark.focus();
+      this.benchmarkArgs.focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
@@ -528,7 +528,7 @@ export class ChromiumPerfSk extends ElementSk {
     // If "--pageset-repeat" is specified in benchmark args then use that
     // value else use "1".
     const rx = /--pageset-repeat[ =](\d+)/gm;
-    const m = rx.exec(this.benchmark.value);
+    const m = rx.exec(this.benchmarkArgs.value);
     if (m) {
       return m[1];
     }
