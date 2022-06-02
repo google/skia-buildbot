@@ -369,7 +369,7 @@ export class ChromiumPerfSk extends ElementSk {
           this.pageSets.expandTextArea();
         }
 
-        this.runInParallel.selection = json.run_in_parallel ? 0 : 1;
+        this.runInParallel.selection = json.run_in_parallel === 'true' ? 0 : 1;
         if (json.gn_args) {
           this.gnArgs.value = json.gn_args;
         }
