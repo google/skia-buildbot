@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"text/template"
 
@@ -128,6 +130,12 @@ func generateOutputHelper(tmpl *template.Template, strict bool, config map[strin
 		fmt.Println(string(buf.Bytes()))
 		return nil
 	} else {
+		dir, _ := filepath.Split(outFile)
+		if dir != "" {
+			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+				return skerr.Wrapf(err, "failed to create destination directory")
+			}
+		}
 		return skerr.Wrap(ioutil.WriteFile(outFile, buf.Bytes(), 0644))
 	}
 }
