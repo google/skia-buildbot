@@ -7,11 +7,3 @@ gazelle_binary(
     ],
     visibility = ["//visibility:public"],
 )
-
-gazelle_binary(
-    name = "gazelle_cpp",
-    languages = DEFAULT_LANGUAGES + [
-        "//bazel/gazelle/cpp",
-    ],
-    visibility = ["//visibility:public"],
-)

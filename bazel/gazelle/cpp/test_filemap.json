@@ -1,6 +1,0 @@
-{
-  "png.h": "//third_party:libpng",
-  "spirv-tools/libspirv.hpp": "@spirv_tools//:spirv_tools",
-  "third_party/externals/spirv-cross/spirv_hlsl.hpp": "@spirv_cross",
-  "jpeg.h": "@jpeg//:with_special_features"
-}
