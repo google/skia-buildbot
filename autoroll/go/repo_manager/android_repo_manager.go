@@ -389,12 +389,19 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 	if squash {
 		mergeCmds = append(mergeCmds, "--squash")
 	}
-	if _, err := r.childRepo.Git(ctx, mergeCmds...); err != nil {
+	_, mergeErr := r.childRepo.Git(ctx, mergeCmds...)
+
+	// Android does not allow remote dependencies to have submodule directories (b/189557997)
+	// .gitmodules will be removed as part of androidDeleteMergeConflictFiles, so delete the directories here.
+	_, modErr := exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm \" $2) }'")
+	util.LogErr(modErr)
+
+	if mergeErr != nil {
 		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
-			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
+			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, mergeErr)
 		}
 		for _, conflict := range strings.Split(conflictsOutput, "\n") {
 			if conflict == "" {
@@ -414,7 +421,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 			}
 			if !ignoreConflict {
 				util.LogErr(r.abortMerge(ctx))
-				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, err)
+				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, mergeErr)
 			}
 		}
 	}
