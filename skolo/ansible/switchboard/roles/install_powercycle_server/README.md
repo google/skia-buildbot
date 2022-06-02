@@ -34,20 +34,23 @@ required role `load_secret_vars`.
 
 ## Pushing a test/debug binary:
 
-To deploy a test/debug binary to a machine first upload the cipd package via the
+To deploy a test/debug binary to a machine first upload the CIPD package via the
 //skolo Makefile:
 
 ```
 $ cd skolo
-$ make build_powercycle_server_ansible
+$ make build_and_upload_powercycle_server_ansible
 ```
 
-Then visit http://go/cipd/p/skia/internal/powercycle_server_ansible/+/ to find
-the version for that build and pass it to a playbook via --extra-vars.
+The logs from the build_and_upload command will contain the CIPD version for that build.
+Pass that version to the ansible-playbook via --extra-vars. You probably also want
+to only push your new configuration to a single jumphost at first, using the limit.
 
-For example:
+You will run a command like this from //skolo/ansible, as per usual with ansible playbooks.:
 
 ```
-$ ansible-playbook ./switchboard/jumphosts.yml \
+$ ansible-playbook ./switchboard/jumphosts.yml --limit rack2 \
   --extra-vars powercycle_server_ansible_version_override=2021-09-19T15:36:31Z-jcgregorio-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
 ```
+
+You can view the logs as they are streamed to [Cloud Logging](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fpowercycle_server_ansible%22)

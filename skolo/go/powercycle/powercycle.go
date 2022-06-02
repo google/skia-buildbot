@@ -60,6 +60,9 @@ type config struct {
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
 	EdgeSwitch map[controllerName]*EdgeSwitchConfig `json:"edgeswitch"`
+
+	// SynaccessPDU aggregates all PDUs produced by Synaccess (https://www.synaccess-net.com/)
+	SynaccessPDU map[controllerName]*SynaccessConfig `json:"synaccess"`
 }
 
 // multiController allows us to combine multiple Controller implementations into one.
@@ -141,6 +144,24 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool, contro
 	// Add the EdgeSwitch devices.
 	for name, c := range conf.EdgeSwitch {
 		es, err := newEdgeSwitchController(ctx, c, connect)
+		if err != nil {
+			sklog.Errorf("failed to initialize %s", name)
+			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.InError)); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			continue
+		}
+
+		if err := ret.add(es); err != nil {
+			return nil, skerr.Wrapf(err, "incorporating %s", name)
+		}
+		if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.Available)); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+
+	for name, c := range conf.SynaccessPDU {
+		es, err := newSynaccessController(ctx, string(name), c, connect)
 		if err != nil {
 			sklog.Errorf("failed to initialize %s", name)
 			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.InError)); err != nil {

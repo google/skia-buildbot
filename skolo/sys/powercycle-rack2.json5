@@ -1,15 +1,22 @@
 {
-  mpower: {
-    // TODO(kjlubick) Make sure these labels are correct.
-    "rack02-shelf1-mpower1": {
-      address: "192.168.1.242",
-      user: "ubnt",
+  synaccess: {
+    "PDU2-1": {
+      address: "http://192.168.1.17",
       ports: {
-        "skia-e-linux-213": 1,
-        "skia-e-linux-215": 3,
-        "skia-e-linux-216": 4,
-        "skia-e-linux-217": 5,
-        "skia-e-linux-218": 6
+        "skia-e-win-276": 1,
+        "skia-e-win-275": 2,
+        "skia-e-win-274": 3,
+        "skia-e-win-210": 6,
+        "skia-e-win-211": 7,
+        "skia-e-win-212": 8,
+        "skia-e-win-280": 9,
+        "skia-e-win-279": 10,
+        "skia-e-win-278": 11,
+        "skia-e-win-277": 12,
+        "skia-e-win-273": 13,
+        "skia-e-win-272": 14,
+        "skia-e-win-271": 15,
+        "skia-e-win-270": 16,
       }
     }
   }

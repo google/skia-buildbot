@@ -8,11 +8,13 @@ go_library(
         "edgeswitch.go",
         "mpower.go",
         "powercycle.go",
+        "synaccess.go",
     ],
     importpath = "go.skia.org/infra/skolo/go/powercycle",
     visibility = ["//visibility:public"],
     deps = [
         "//go/executil",
+        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//machine/go/machine",

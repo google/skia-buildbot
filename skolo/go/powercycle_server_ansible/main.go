@@ -88,7 +88,7 @@ func main() {
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
 
-	sklog.Info("Building powercycle.Controller from %q", *powercycleConfigFilename)
+	sklog.Infof("Building powercycle.Controller from %q", *powercycleConfigFilename)
 
 	controllerInitCallback, err := buildPowerCycleControllerCallback(httpClient, *machineServerHost)
 	if err != nil {
