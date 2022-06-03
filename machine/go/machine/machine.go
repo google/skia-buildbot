@@ -114,16 +114,16 @@ const (
 	// understands adb.
 	AttachedDeviceAdb AttachedDevice = "adb"
 
-	// AttachedDeviceiOS means an iOS device, or anything else that we talk to
+	// AttachedDeviceIOS means an iOS device, or anything else that we talk to
 	// using idevice* commands.
-	AttachedDeviceiOS AttachedDevice = "ios"
+	AttachedDeviceIOS AttachedDevice = "ios"
 
 	// AttachedDeviceSSH means a ChromeOS device, or any other device we
 	// interact with via SSH.
 	AttachedDeviceSSH AttachedDevice = "ssh"
 )
 
-var AllAttachedDevices = []AttachedDevice{AttachedDeviceNone, AttachedDeviceAdb, AttachedDeviceiOS, AttachedDeviceSSH}
+var AllAttachedDevices = []AttachedDevice{AttachedDeviceNone, AttachedDeviceAdb, AttachedDeviceIOS, AttachedDeviceSSH}
 
 // Annotation represents a timestamped message.
 type Annotation struct {

@@ -296,7 +296,7 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 		startTime:        timePlaceholder,
 		interrogateTimer: noop.Float64SummaryMetric{},
 		description: rpc.FrontendDescription{
-			AttachedDevice: machine.AttachedDeviceiOS,
+			AttachedDevice: machine.AttachedDeviceIOS,
 		},
 	}
 	actual, err := m.interrogate(ctx)

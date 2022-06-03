@@ -192,7 +192,7 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 			sklog.Infof("Successful communication with abd device: %#v", ae)
 			ret.Android = ae
 		}
-	case machine.AttachedDeviceiOS:
+	case machine.AttachedDeviceIOS:
 		var ie machine.IOS
 		if ie, err = m.tryInterrogatingIOSDevice(ctx); err == nil {
 			sklog.Infof("Successful communication with iOS device: %#v", ie)

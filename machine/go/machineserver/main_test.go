@@ -163,7 +163,7 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
 		rpc.SetAttachedDevice{
-			AttachedDevice: machine.AttachedDeviceiOS,
+			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
@@ -198,8 +198,8 @@ func TestMachineSetAttachedDevice_FailOnMissingID(t *testing.T) {
 func TestSetAttachedDevice_UpdatesAttachedDeviceField(t *testing.T) {
 	unittest.SmallTest(t)
 	_, desc, _, _, _ := setupForTest(t)
-	retDesc := setAttachedDevice(machine.AttachedDeviceiOS, desc)
-	require.Equal(t, machine.AttachedDeviceiOS, retDesc.AttachedDevice)
+	retDesc := setAttachedDevice(machine.AttachedDeviceIOS, desc)
+	require.Equal(t, machine.AttachedDeviceIOS, retDesc.AttachedDevice)
 }
 
 func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
@@ -208,7 +208,7 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
 		rpc.SetAttachedDevice{
-			AttachedDevice: machine.AttachedDeviceiOS,
+			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
