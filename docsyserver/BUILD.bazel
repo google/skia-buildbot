@@ -122,6 +122,7 @@ container_push(
     image = ":docsyserver_base_container_commit.tar",
     registry = "gcr.io",
     repository = "skia-public/docsyserver-base",
+    stamp = "@io_bazel_rules_docker//stamp:always",
     tag = "{STABLE_DOCKER_TAG}",
     tags = [
         "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".

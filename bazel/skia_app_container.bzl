@@ -149,7 +149,6 @@ def skia_app_container(
         # We will set the entrypoint back after the container_run_and_commit
         # rule is executed.
         entrypoint = None if (run_commands_root or run_commands_skia) else [entrypoint],
-        stamp = True,
         tars = pkg_tars,
         user = default_user,
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
@@ -202,7 +201,6 @@ def skia_app_container(
             name = rule_name,
             base = image_name,
             entrypoint = [entrypoint],
-            stamp = True,
             user = default_user,
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,
@@ -215,6 +213,7 @@ def skia_app_container(
         image = image_name,
         registry = "gcr.io",
         repository = repository,
+        stamp = "@io_bazel_rules_docker//stamp:always",
         tag = "{STABLE_DOCKER_TAG}",
         tags = [
             "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
