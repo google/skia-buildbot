@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff"
+	github_api "github.com/google/go-github/v29/github"
 	"github.com/google/uuid"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -93,14 +95,21 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 		}
 		// Create a pull request.
 		headBranch := fmt.Sprintf("%s:%s", userName, forkBranchName)
-		pr, err := githubClient.CreatePullRequest(title, upstreamBranch, headBranch, strings.Join(descComment, "\n"))
-		if err != nil {
+		var pr *github_api.PullRequest
+		createPullRequestFunc := func() error {
+			pr, err = githubClient.CreatePullRequest(title, upstreamBranch, headBranch, strings.Join(descComment, "\n"))
+			return skerr.Wrap(err)
+		}
+		if err := backoff.Retry(createPullRequestFunc, codereview.GithubBackOffConfig); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
 		// Add appropriate label to the pull request.
 		if !dryRun {
-			if err := githubClient.AddLabel(pr.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+			addLabelFunc := func() error {
+				return githubClient.AddLabel(pr.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL)
+			}
+			if err := backoff.Retry(addLabelFunc, codereview.GithubBackOffConfig); err != nil {
 				return 0, skerr.Wrap(err)
 			}
 		}

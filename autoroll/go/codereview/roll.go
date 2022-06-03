@@ -45,7 +45,7 @@ var (
 	//  3              40                 [20,  60]
 	//  4              60                 [30,  90]
 	//  5             120                 backoff.Stop
-	githubBackOffConfig = &backoff.ExponentialBackOff{
+	GithubBackOffConfig = &backoff.ExponentialBackOff{
 		InitialInterval:     10 * time.Second,
 		RandomizationFactor: 0.5,
 		Multiplier:          2,
@@ -381,7 +381,7 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 		pullRequest, err = g.GetPullRequest(int(a.Issue))
 		return err
 	}
-	if err := backoff.Retry(getPullRequestFunc, githubBackOffConfig); err != nil {
+	if err := backoff.Retry(getPullRequestFunc, GithubBackOffConfig); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get pull request for %d", a.Issue)
 	}
 
@@ -391,7 +391,7 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 		checks, err = g.GetChecks(pullRequest.Head.GetSHA())
 		return err
 	}
-	if err := backoff.Retry(getChecksFunc, githubBackOffConfig); err != nil {
+	if err := backoff.Retry(getChecksFunc, GithubBackOffConfig); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get checks for %d", a.Issue)
 	}
 	if a.IsDryRun {
