@@ -5,10 +5,10 @@ import { html } from 'lit-html';
 import { load } from '@google-web-components/google-chart/loader';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse } from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
-
 import '@google-web-components/google-chart/';
 
 export class BinaryPageSk extends ElementSk {
@@ -77,7 +77,6 @@ export class BinaryPageSk extends ElementSk {
       binary_name: params.get('binary_name') || '',
       compile_task_name: params.get('compile_task_name') || '',
     };
-
     const [, response] = await Promise.all([
       load({ packages: ['treemap'] }),
       fetch('/rpc/binary/v1', { method: 'POST', body: JSON.stringify(request) })
@@ -100,16 +99,6 @@ export class BinaryPageSk extends ElementSk {
     const data = google.visualization.arrayToDataTable(rows);
     const tree = new google.visualization.TreeMap(this.querySelector('#treemap')!);
 
-    const showTooltip = (row: number, size: string) => {
-      const escapedLabel = data.getValue(row, 0)
-        .replace('&', '&amp;')
-        .replace('<', '&lt;')
-        .replace('>', '&gt;');
-      return `<div style="background:#0a3055; padding:10px; border-style:solid">
-              <span style="font-family:Courier"> ${escapedLabel} <br>
-              Size: ${size} </div>`;
-    };
-
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
     // a type assertion is necessary to keep the TypeScript compiler happy.
@@ -121,7 +110,24 @@ export class BinaryPageSk extends ElementSk {
     await new Promise((resolve) => {
       google.visualization.events.addOneTimeListener(tree, 'ready', resolve);
       tree.draw(data, options);
+      document.addEventListener('theme-chooser-toggle', () => {
+        //if a user toggles the theme to/from darkmode then redraw
+        tree.draw(data, options);
+      });
     });
+
+    // Shows the label of the treemap cell. Returns a string with the HTML to be shown whenever.
+    // the user hovers over a treemap cell.
+    function showTooltip(row: number, size: string) {
+      const escapedLabel = data.getValue(row, 0)
+        .replace('&', '&amp;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;');
+      var backgroundColor = isDarkMode() ? "#0a3055" : "#fd9";
+      return `<div style="background: ${backgroundColor}; padding:10px; border-style:solid">
+              <span style="font-family:Courier"> ${escapedLabel} <br>
+              Size: ${size} </div>`;
+    };
   }
 }
 define('binary-page-sk', BinaryPageSk);

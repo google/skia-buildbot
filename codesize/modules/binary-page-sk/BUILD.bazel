@@ -7,6 +7,7 @@ sk_element(
     sk_element_deps = [
         "//codesize/modules/codesize-scaffold-sk",
         "//infra-sk/modules/human-date-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
