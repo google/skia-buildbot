@@ -393,7 +393,8 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 
 	// Android does not allow remote dependencies to have submodule directories (b/189557997)
 	// .gitmodules will be removed as part of androidDeleteMergeConflictFiles, so delete the directories here.
-	_, modErr := exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm \" $2) }'")
+	modOutput, modErr := exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm \"$1) }'")
+	sklog.Infof("Output of submodule removal cmd: %s", modOutput)
 	util.LogErr(modErr)
 
 	if mergeErr != nil {
