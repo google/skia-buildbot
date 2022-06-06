@@ -9,4 +9,4 @@
 
   roles:
     - disable-gatekeeper
-#    - install_compui
+    - install_compui
