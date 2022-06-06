@@ -8,4 +8,5 @@
   gather_facts: true
 
   roles:
-    - install_compui
+    - disable-gatekeeper
+#    - install_compui

@@ -1,0 +1,15 @@
+- name: Determine Gatekeeper protection status
+  command: spctl --status
+  # spctl also returns the enabled/disabled status as a 1/0 return code, which
+  # is not helpful, so we have to ignore the return code.
+  ignore_errors: true
+  register: gatekeeper_protection
+
+- name: debug
+  debug:
+    msg: 'Current status: {{ gatekeeper_protection.stdout }}'
+
+- name: Disable Gatekeeper protection
+  command: spctl --global-disable
+  when: gatekeeper_protection.stdout != 'assessments disabled'
+  become: true
