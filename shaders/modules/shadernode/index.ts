@@ -481,7 +481,9 @@ export class ShaderNode {
       }
 
       let childShaders = [this.inputImageShader!.shader];
-      childShaders = childShaders.concat(this.children.map((childNode) => childNode.getShader(predefinedUniformsValues)!));
+      // Pass in the same predefinedUniformValues (not the uniforms from the user controls) to
+      // all children. This will allow parents and children to be in sync.
+      childShaders = childShaders.concat(this.children.map((childNode: ShaderNode) => childNode.getShader(predefinedUniformsValues)!));
       return this.effect!.makeShaderWithChildren(uniformsFloat32Array, childShaders);
     }
 

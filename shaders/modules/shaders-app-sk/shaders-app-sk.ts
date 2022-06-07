@@ -82,6 +82,9 @@ const defaultState: State = {
   id: '@default',
 };
 
+// A convenience type that represents HTML Elements which are also UniformControls.
+interface UniformControlElement extends Element, UniformControl {};
+
 // Define a new mode and mime-type for SkSL shaders. We follow the shader naming
 // covention found in CodeMirror.
 CodeMirror.defineMIME('x-shader/x-sksl', {
@@ -541,39 +544,58 @@ export class ShadersAppSk extends ElementSk {
     ));
   }
 
-  /** Populate the uniforms values from the controls. */
-  private getUserUniformValuesFromControls(): number[] {
-    const uniforms: number[] = new Array(this.currentNode!.getUniformFloatCount()).fill(0);
-    $('#uniformControls > *').slice(this.numPredefinedUniformControls).forEach((control) => {
-      (control as unknown as UniformControl).applyUniformValues(uniforms);
-    });
-    return uniforms.slice(this.currentNode?.numPredefinedUniformValues || 0);
-  }
-
+  /** Query the uniforms from the controls defined by the user. These uniforms will be packed into
+   *  the beginning of the uniform buffer and be the same for all shaders. By being the same, this
+   *  will allow a parent shader to be in sync with its children shaders.
+   */
   private getPredefinedUniformValuesFromControls(): number[] {
-    const uniforms: number[] = new Array(this.currentNode!.getUniformFloatCount()).fill(0);
-    $('#uniformControls > *').slice(0, this.numPredefinedUniformControls).forEach((control) => {
-      (control as unknown as UniformControl).applyUniformValues(uniforms);
+    if (!this.currentNode) {
+      return [];
+    }
+    const uniforms: number[] = new Array(this.currentNode.numPredefinedUniformValues).fill(0);
+    $<UniformControlElement>('#uniformControls > *')
+        .slice(0, this.numPredefinedUniformControls) // stop after the predefined controls
+        .forEach((control: UniformControl) => {
+      control.applyUniformValues(uniforms);
     });
     return uniforms;
+  }
+
+  /** Query the uniforms from the controls defined by the user. These uniforms will be packed
+   *  into memory after the predefined uniforms (e.g. time, resolution).
+   */
+  private getUserUniformValuesFromControls(): number[] {
+    if (!this.currentNode) {
+      return [];
+    }
+    // Make a full array because the application of uniform values are implemented to write to
+    // specific indexes and we need those later indexes to exist.
+    const uniforms: number[] = new Array(this.currentNode.getUniformFloatCount()).fill(0);
+    $<UniformControlElement>('#uniformControls > *')
+        .slice(this.numPredefinedUniformControls) // start after the predefined controls
+        .forEach((control: UniformControl) => {
+      control.applyUniformValues(uniforms);
+    });
+    // Slice off the uniform values belonging to indices for the predefined uniforms. These
+    // should all be zero anyway.
+    return uniforms.slice(this.currentNode.numPredefinedUniformValues);
   }
 
   /** Populate the control values from the uniforms. */
   private setUniformValuesToControls(): void {
     const predefinedUniformValues = new Array(this.currentNode!.numPredefinedUniformValues).fill(0);
     const uniforms = predefinedUniformValues.concat(this.currentNode!.currentUserUniformValues);
-    $('#uniformControls > *').forEach((control) => {
-      (control as unknown as UniformControl).restoreUniformValues(uniforms);
+    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
+      control.restoreUniformValues(uniforms);
     });
     this.findAllUniformControlsThatNeedRAF();
   }
 
   private findAllUniformControlsThatNeedRAF(): void {
     this.uniformControlsNeedingRAF = [];
-    $('#uniformControls > *').forEach((control) => {
-      const uniformControl = (control as unknown as UniformControl);
-      if (uniformControl.needsRAF()) {
-        this.uniformControlsNeedingRAF.push(uniformControl);
+    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
+      if (control.needsRAF()) {
+        this.uniformControlsNeedingRAF.push(control);
       }
     });
   }

@@ -259,7 +259,7 @@ container_pull(
     # for reproducible builds. Specifying "head" ends up not working well because of Bazel caching.
     # We should only need to update this if CanvasKit adds new APIs that are depended on by
     # our webapps, and that is not too often.
-    tag = "7b5c0de7ceb1b5238bad735037e48b3726633dc0",
+    tag = "2508d582b5b68029f03b61b7103b3140f95bd071",
 )
 
 # This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
