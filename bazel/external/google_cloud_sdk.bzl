@@ -5,22 +5,32 @@ Note that this rule is not fully hermetic. See the rule's documentation for deta
 
 load(":common.bzl", "fail_if_nonzero_status")
 
-# Taken from https://cloud.google.com/sdk/docs/downloads-versioned-archives on 2022-05-23.
-_GOOGLE_CLOUD_CLI_LINUX_URL = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-linux-x86_64.tar.gz"
-_GOOGLE_CLOUD_CLI_LINUX_SHA256 = "afadfe261e8df24fda780db6fd9be6929df25cf99fd718384eaa7128206349a0"
-
 def _google_cloud_sdk_impl(repository_ctx):
-    is_linux = repository_ctx.os.name.lower().startswith("linux")
+    # On my x86 Mac running macOS 12, there is no "arch" attr, despite the docs at
+    # https://bazel.build/rules/lib/repository_os#arch.
+    arch = getattr(repository_ctx.os, "arch", "amd64")
 
-    if not is_linux:
-        # Support for other operating systems can be added as needed.
-        fail("OS not yet supported: %s." % repository_ctx.os.name)
+    # URLs taken from https://cloud.google.com/sdk/docs/downloads-versioned-archives on 2022-05-23:
+    url = ""
+    hash = ""
+    if repository_ctx.os.name.lower().startswith("linux"):
+        if arch == "amd64":
+            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-linux-x86_64.tar.gz"
+            hash = "afadfe261e8df24fda780db6fd9be6929df25cf99fd718384eaa7128206349a0"
+    elif repository_ctx.os.name == "mac os x":
+        if arch == "amd64":
+            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-darwin-x86_64.tar.gz"
+            hash = "253c315a7d16a91692d24d365791d20b8264c055b5478300ce6a6ff237ef2ef8"
+
+    if not url:
+        # Support for other platforms can be added as needed.
+        fail("OS/arch not yet supported: %s/%s." % (repository_ctx.os.name, arch))
 
     # Download the Google Cloud SDK.
     repository_ctx.download_and_extract(
-        _GOOGLE_CLOUD_CLI_LINUX_URL,
+        url,
         output = "google-cloud-sdk",
-        sha256 = _GOOGLE_CLOUD_CLI_LINUX_SHA256,
+        sha256 = hash,
         stripPrefix = "google-cloud-sdk",
     )
 
