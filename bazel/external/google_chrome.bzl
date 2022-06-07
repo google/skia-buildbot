@@ -32,6 +32,8 @@ dependency on an additional external Bazel repository.
 [5] https://github.com/google/skia/blob/89fea08f6b16a73b3f824e37dbf1039bb08bf91d/bazel/karma_test.bzl#L75
 """
 
+load("//bazel:gcs_mirror.bzl", "gcs_mirror_url")
+
 _DEB_PACKAGES_LINUX_AMD64 = [
     # Google Chrome's debian repository is found at https://dl.google.com/linux/chrome/deb. The URL
     # and SHA256 hash below were taken on 2022-05-25 from the Release[1] file in the repository's
@@ -51,24 +53,6 @@ _DEB_PACKAGES_LINUX_AMD64 = [
     },
 ]
 
-def _compute_gcs_mirror_url(url, sha256):
-    """Returns the GCS URL of a copy of the given file.
-
-    We store a copy of all necessary Debian packages in the skia-world-readable GCS bucket as a
-    backup. This is important because Debian package repositories typically only store the latest
-    versions of their packages. Files in the GCS bucket are named after their SHA256 hash, with the
-    original file extension to preserve compatibility with Starlark functions that require them
-    (e.g. repository_ctx.download_and_extract).
-
-    Args:
-        url: URL of the mirrored file.
-        sha256: SHA256 hash of the mirrored file.
-    Returns: The URL of the file mirrored on GCS.
-    """
-    gcs_mirror_prefix = "https://storage.googleapis.com/skia-world-readable/bazel"
-    extension = url.split(".")[-1]
-    return "%s/%s.%s" % (gcs_mirror_prefix, sha256, extension)
-
 def _google_chrome_impl(repository_ctx):
     is_linux = repository_ctx.os.name.lower().startswith("linux")
 
@@ -80,7 +64,7 @@ def _google_chrome_impl(repository_ctx):
     repository_ctx.report_progress("Downloading and installing .deb packages.")
     for deb in _DEB_PACKAGES_LINUX_AMD64:
         repository_ctx.download_and_extract(
-            url = [deb["url"], _compute_gcs_mirror_url(deb["url"], deb["sha256"])],
+            url = gcs_mirror_url(url = deb["url"], sha256 = deb["sha256"]),
             output = "__tmp__",
             sha256 = deb["sha256"],
         )

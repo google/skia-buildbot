@@ -8,6 +8,7 @@ workspace(
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//bazel:gcs_mirror.bzl", "gcs_mirror_url")
 
 # Read the instructions in //bazel/rbe/README.md before updating this repository.
 #
@@ -32,7 +33,10 @@ http_archive(
     name = "com_github_bazelbuild_buildtools",
     sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
     strip_prefix = "buildtools-4.0.0",
-    url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
+    urls = gcs_mirror_url(
+        sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
+        url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
+    ),
 )
 
 ##############################
@@ -103,7 +107,10 @@ http_archive(
     build_file = "BUILD.googleapis",
     sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
     strip_prefix = "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d",
-    urls = ["https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip"],
+    urls = gcs_mirror_url(
+        sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
+        url = "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip",
+    ),
 )
 
 # Needed by @com_github_bazelbuild_remote_apis for gRPC.
@@ -111,7 +118,10 @@ http_archive(
     name = "com_github_grpc_grpc",
     sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
     strip_prefix = "grpc-93e8830070e9afcbaa992c75817009ee3f4b63a0",  # v1.24.3 with fixes
-    urls = ["https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip"],
+    urls = gcs_mirror_url(
+        sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
+        url = "https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip",
+    ),
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
@@ -125,7 +135,10 @@ grpc_deps()
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = "0fad45a9bda7dc1990c47b002fd64f55041ea751fafc00cd34efb96107675778",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.0/rules_nodejs-5.5.0.tar.gz"],
+    urls = gcs_mirror_url(
+        sha256 = "0fad45a9bda7dc1990c47b002fd64f55041ea751fafc00cd34efb96107675778",
+        url = "https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.0/rules_nodejs-5.5.0.tar.gz",
+    ),
 )
 
 load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
@@ -169,7 +182,10 @@ http_archive(
     name = "io_bazel_rules_sass",
     sha256 = "6cca1c3b77185ad0a421888b90679e345d7b6db7a8c9c905807fe4581ea6839a",
     strip_prefix = "rules_sass-1.49.8",
-    url = "https://github.com/bazelbuild/rules_sass/archive/1.49.8.zip",
+    urls = gcs_mirror_url(
+        sha256 = "6cca1c3b77185ad0a421888b90679e345d7b6db7a8c9c905807fe4581ea6839a",
+        url = "https://github.com/bazelbuild/rules_sass/archive/1.49.8.zip",
+    ),
 )
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_repositories")
@@ -184,7 +200,10 @@ http_archive(
     name = "io_bazel_rules_docker",
     sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
     strip_prefix = "rules_docker-0.24.0",
-    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.24.0/rules_docker-v0.24.0.tar.gz"],
+    urls = gcs_mirror_url(
+        sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
+        url = "https://github.com/bazelbuild/rules_docker/releases/download/v0.24.0/rules_docker-v0.24.0.tar.gz",
+    ),
 )
 
 load(
@@ -430,7 +449,10 @@ filegroup(
     # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
     sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
     strip_prefix = "cockroach-v21.1.9.linux-amd64",
-    url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
+    urls = gcs_mirror_url(
+        sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
+        url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
+    ),
 )
 
 #################################################################################
