@@ -23,15 +23,12 @@
 package compui
 
 import (
-	"archive/zip"
-	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -40,6 +37,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+
+	"go.skia.org/infra/comp-ui/go/compui/download"
+	"go.skia.org/infra/comp-ui/go/compui/urls"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/executil"
@@ -55,12 +55,6 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
-
-type Cleanup func() error
-
-var noopCleanup Cleanup = func() error {
-	return nil
-}
 
 const (
 	// The Google Cloud Storage Bucket to write the results to.
@@ -166,41 +160,66 @@ var defaultBenchmarks = map[string]*Benchmark{
 	},
 }
 
-func Main() {
+// Application used to control how Run() executes.
+type Application struct {
+	local                      bool
+	useDefaultAuth             bool
+	python                     string
+	benchmarksFile             string
+	downloadDrivers            bool
+	chromeDriverFilename       string
+	chromeCanaryDriverFilename string
+	skipUploads                bool
+}
+
+// Flagset constructs a flag.FlagSet for the Application.
+func (f *Application) Flagset() *flag.FlagSet {
 	flagSet := flag.NewFlagSet("", flag.ExitOnError)
 	flagSet.Usage = func() {
 		fmt.Printf("Usage: %s <flags>\n\n", os.Args[0])
 		flagSet.PrintDefaults()
 	}
 
-	local := flagSet.Bool("local", false, "Running locally if true. As opposed to in production.")
-	useDefaultAuth := flagSet.Bool("use-default-auth", false, "Use Google Default Application Credentials if true, otherwise use embedded auth Key.")
-	python := flagSet.String("python-exe", "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3", "Absolute path to the Python exe to use.")
-	benchmarksFile := flagSet.String("benchmarks", "", "If provided, read the configs to test from the provided JSON file.")
-	downloadDrivers := flagSet.Bool("download_drivers", true, "If true then download the Chrome drivers.")
-	chromeDriverFilename := flagSet.String("chrome_driver", "", "If --download_drivers is false then this flag must provide the absolute path to an already downloaded Chrome Selenium driver executable.")
-	chromeCanaryDriverFilename := flagSet.String("chrome_canary_driver", "", "If --download_drivers is false then this flag must provide the absolute path to an already downloaded Chrome Canary Selenium driver executable.")
-	skipUploads := flagSet.Bool("skip_uploads", false, "If true then skip uploading the files.")
+	flagSet.BoolVar(&f.local, "local", false, "Running locally if true. As opposed to in production.")
+	flagSet.BoolVar(&f.useDefaultAuth, "use-default-auth", false, "Use Google Default Application Credentials if true, otherwise use embedded auth Key.")
+	flagSet.StringVar(&f.python, "python-exe", "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3", "Absolute path to the Python exe to use.")
+	flagSet.StringVar(&f.benchmarksFile, "benchmarks", "", "If provided, read the configs to test from the provided JSON file.")
+	flagSet.BoolVar(&f.downloadDrivers, "download_drivers", true, "If true then download the Chrome drivers.")
+	flagSet.StringVar(&f.chromeDriverFilename, "chrome_driver", "", "If --download_drivers is false then this flag must provide the absolute path to an already downloaded Chrome Selenium driver executable.")
+	flagSet.StringVar(&f.chromeCanaryDriverFilename, "chrome_canary_driver", "", "If --download_drivers is false then this flag must provide the absolute path to an already downloaded Chrome Canary Selenium driver executable.")
+	flagSet.BoolVar(&f.skipUploads, "skip_uploads", false, "If true then skip uploading the files.")
+
+	return flagSet
+}
+
+// Main runs the application.
+func Main() {
+	var app Application
 
 	common.InitWithMust(
 		"comp-ui-cron-job",
-		common.CloudLogging(local, "skia-public"),
-		common.FlagSetOpt(flagSet),
+		common.CloudLogging(&app.local, "skia-public"),
+		common.FlagSetOpt(app.Flagset()),
 	)
+	app.Run()
+}
+
+// Run the application with the given flags.
+func (app Application) Run() {
 	sklog.Infof("Version: %s", Version)
 
 	ctx := context.Background()
 
 	benchmarks := defaultBenchmarks
-	if *benchmarksFile != "" {
+	if app.benchmarksFile != "" {
 		var err error
-		benchmarks, err = readBenchMarksFromFile(ctx, *benchmarksFile)
+		benchmarks, err = readBenchMarksFromFile(ctx, app.benchmarksFile)
 		if err != nil {
 			sklog.Fatal(err)
 		}
 	}
 
-	chromeDriver, chromeCanaryDriver, cleanup, err := driverFilenames(*downloadDrivers, *chromeDriverFilename, *chromeCanaryDriverFilename)
+	chromeDriver, chromeCanaryDriver, cleanup, err := driverFilenames(app.downloadDrivers, app.chromeDriverFilename, app.chromeCanaryDriverFilename)
 
 	if err != nil {
 		sklog.Fatal(err)
@@ -208,7 +227,7 @@ func Main() {
 
 	populateBenchmarksWithDrivers(benchmarks, chromeDriver, chromeCanaryDriver)
 
-	ts, err := auth.NewTokenSourceFromKeyString(ctx, *useDefaultAuth, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := auth.NewTokenSourceFromKeyString(ctx, app.useDefaultAuth, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -237,7 +256,7 @@ func Main() {
 	// git repo.
 	//
 	// Authenticate to Gerrit since the perf-compui repo is private.
-	if !*useDefaultAuth {
+	if !app.useDefaultAuth {
 		sklog.Info("Configuring git auth.")
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
@@ -251,12 +270,12 @@ func Main() {
 	}
 
 	for benchmarkName, config := range benchmarks {
-		outputFilename, err := runSingleBenchmark(ctx, *python, benchmarkName, config, gitHash, workDir)
+		outputFilename, err := runSingleBenchmark(ctx, app.python, benchmarkName, config, gitHash, workDir)
 		if err != nil {
 			sklog.Errorf("Failed to run benchmark %q: %s", benchmarkName, err)
 			continue
 		}
-		if *skipUploads {
+		if app.skipUploads {
 			continue
 		}
 		err = uploadResultsFile(ctx, gcsClient, benchmarkName, outputFilename)
@@ -267,7 +286,7 @@ func Main() {
 	sklog.Flush()
 }
 
-func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDriverFilename string) (string, string, Cleanup, error) {
+func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDriverFilename string) (string, string, download.Cleanup, error) {
 	if !downloadDrivers {
 		if chromeDriverFilename == "" {
 			return "", "", nil, fmt.Errorf("Since --download_drivers=false, the --chrome_driver must be supplied.")
@@ -275,7 +294,7 @@ func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDri
 		if chromeCanaryDriverFilename == "" {
 			return "", "", nil, fmt.Errorf("Since --download_drivers=false, the --chrome_canary_driver must be supplied.")
 		}
-		return chromeDriverFilename, chromeCanaryDriverFilename, noopCleanup, nil
+		return chromeDriverFilename, chromeCanaryDriverFilename, download.NoopCleanup, nil
 	}
 	/*
 		We need to download and use the latest vesion of the Selenium Chrome driver for both
@@ -320,17 +339,17 @@ func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDri
 		There's also a Win version, but we ignore that for now.
 	*/
 
-	urls, err := newDownloadURLs(runtime.GOOS, runtime.GOARCH)
+	urls, err := urls.NewDownloadURLs(runtime.GOOS, runtime.GOARCH)
 	if err != nil {
 		return "", "", nil, err
 	}
 	client := httputils.DefaultClientConfig().Client()
-	driverFilename, driverCleanup, err := downloadAndUnzipDriver(client, urls.LatestURL, urls.DriverURL)
+	driverFilename, driverCleanup, err := download.DownloadAndUnzipDriver(client, urls.LatestURL, urls.DriverURL)
 	if err != nil {
 		return "", "", nil, err
 	}
 
-	canaryDriverFilename, canaryDriverCleanup, err := downloadAndUnzipDriver(client, urls.LatestCanaryURL, urls.CanaryDriverURL)
+	canaryDriverFilename, canaryDriverCleanup, err := download.DownloadAndUnzipDriver(client, urls.LatestCanaryURL, urls.CanaryDriverURL)
 	if err != nil {
 		if err := driverCleanup(); err != nil {
 			sklog.Error(err)
@@ -350,138 +369,6 @@ func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDri
 		return nil
 	}
 	return driverFilename, canaryDriverFilename, cleanup, nil
-}
-
-func downloadAndUnzipDriver(client *http.Client, latestURL func() string, driverURL func(version string) string) (string, Cleanup, error) {
-	url := latestURL()
-	version, err := getVersionFromURL(url, client)
-	if err != nil {
-		return "", nil, skerr.Wrapf(err, "Failed to load: %q", url)
-	}
-	url = driverURL(version)
-	body, err := getBodyFromURL(url, client)
-	if err != nil {
-		return "", nil, skerr.Wrapf(err, "Failed to load: %q", url)
-	}
-	tempDir, err := os.MkdirTemp("", "comp-ui-download")
-	if err != nil {
-		return "", nil, err
-	}
-	cleanup := func() error {
-		return os.RemoveAll(tempDir)
-	}
-	ret, err := unzipBodyIntoDirectory(tempDir, body)
-	if err != nil {
-		if err := cleanup(); err != nil {
-			sklog.Error(err)
-		}
-		return "", nil, err
-	}
-
-	return ret, cleanup, nil
-}
-
-const (
-	baseURL       = "https://chromedriver.storage.googleapis.com"
-	baseCanaryURL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots"
-)
-
-// downloadURLs returns various URLs for downloading drivers.
-type downloadURLs struct {
-	// prefix is the os/architecture prefix used in the Canary URLs. Example:
-	// "Mac_Arm".
-	prefix string
-
-	// filename of the driver to download, also incorporates the os/arch, for
-	// example: "chromedriver_linux64.zip".
-	filename string
-}
-
-var downloadURLsLookup = map[string]downloadURLs{
-	"darwin/amd64": {prefix: "Mac", filename: "chromedriver_mac64.zip"},
-	"darwin/arm64": {prefix: "Mac_Arm", filename: "chromedriver_mac64_m1.zip"},
-	"linux/amd64":  {prefix: "Linux_x64", filename: "chromedriver_linux64.zip"},
-}
-
-func newDownloadURLs(os, arch string) (downloadURLs, error) {
-	ret, ok := downloadURLsLookup[fmt.Sprintf("%s/%s", os, arch)]
-	if !ok {
-		return ret, skerr.Fmt("Unavailable combination: %s/%s", os, arch)
-	}
-	return ret, nil
-}
-
-func (d downloadURLs) LatestURL() string {
-	return fmt.Sprintf("%s/%s", baseURL, "LATEST_RELEASE")
-}
-
-func (d downloadURLs) LatestCanaryURL() string {
-	return fmt.Sprintf("%s/%s/LAST_CHANGE", baseCanaryURL, d.prefix)
-}
-
-func (d downloadURLs) DriverURL(version string) string {
-	return fmt.Sprintf("%s/%s/%s", baseURL, version, d.filename)
-}
-
-func (d downloadURLs) CanaryDriverURL(version string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", baseCanaryURL, d.prefix, version, d.filename)
-}
-
-// getVersionFromURL returns the whitespace trimmed string in the body of the
-// given URL.
-func getVersionFromURL(url string, client *http.Client) (string, error) {
-	b, err := getBodyFromURL(url, client)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(b)), nil
-}
-
-// getBodyFromURL returns the bytes of the body at the given URL.
-func getBodyFromURL(url string, client *http.Client) ([]byte, error) {
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Failed to load: %s", resp.Status)
-	}
-	return ioutil.ReadAll(resp.Body)
-}
-
-// Returns the absolute path to the file.
-func unzipBodyIntoDirectory(dir string, body []byte) (string, error) {
-	reader := bytes.NewReader(body)
-	// Open a zip archive for reading.
-	r, err := zip.NewReader(reader, int64(len(body)))
-	if err != nil {
-		return "", err
-	}
-
-	if len(r.File) != 1 {
-		return "", fmt.Errorf("Archives are expected to only have one file, found: %d", len(r.File))
-	}
-
-	f := r.File[0]
-	outputFilename := filepath.Join(dir, filepath.FromSlash(f.Name))
-	rc, err := f.Open()
-	if err != nil {
-		return "", err
-	}
-	defer util.Close(rc)
-	unzippedBody, err := ioutil.ReadAll(rc)
-	if err != nil {
-		return "", err
-	}
-	err = os.MkdirAll(filepath.Dir(outputFilename), 0755)
-	if err != nil {
-		return "", err
-	}
-	if err := os.WriteFile(outputFilename, unzippedBody, 0755); err != nil {
-		return "", err
-	}
-	return outputFilename, nil
 }
 
 func populateBenchmarksWithDrivers(in map[string]*Benchmark, chromeDriverFilename, chromeCanaryDriverFilename string) {

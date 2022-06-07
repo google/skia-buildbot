@@ -1,4 +1,4 @@
-package main
+package compui
 
 import (
 	"bytes"
@@ -22,7 +22,11 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-const myFakePythonExe = "/usr/local/bin/python"
+const (
+	myFakePythonExe             = "/usr/local/bin/python"
+	alternateChromeDriver       = "/tmp/my-chrome-driver"
+	alternateChromeCanaryDriver = "/tmp/my-chrome-canary-driver"
+)
 
 func setupForTest(t *testing.T, h http.HandlerFunc) (string, *http.Client) {
 	client := httputils.DefaultClientConfig().WithoutRetries().With2xxOnly().Client()
@@ -94,7 +98,7 @@ var (
 
 	benchmarkName = "canary"
 
-	benchmarkConfig = Benchmark{
+	benchmarkConfig = &Benchmark{
 		RepoURL:       repoURL,
 		CheckoutPaths: directories,
 		ScriptName:    "a/b/benchmark.py",
@@ -302,4 +306,75 @@ func TestReadBenchmarksFromFile_ReadCanaryJSON_ReturnsParsedFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, benchmarks, 1)
 	require.Equal(t, "https://skia.googlesource.com/buildbot", benchmarks["canary"].RepoURL)
+}
+
+func TestDriverFilenames_DownloadIsFalseButAlternateFilenamesAreNotProvided_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, _, _, err := driverFilenames(false, "", "")
+	require.Error(t, err)
+}
+
+func TestDriverFilenames_DownloadIsFalseAndAlternateFilenamesAreProvided_ReturnsAlternateFilename(t *testing.T) {
+	unittest.SmallTest(t)
+	got1, got2, _, err := driverFilenames(false, alternateChromeDriver, alternateChromeCanaryDriver)
+	require.NoError(t, err)
+	require.Equal(t, got1, alternateChromeDriver)
+	require.Equal(t, got2, alternateChromeCanaryDriver)
+}
+
+func TestPopulateBenchmarksWithDrivers(t *testing.T) {
+	unittest.SmallTest(t)
+	var benchmarks = map[string]*Benchmark{
+		// We always run the canary to validate that the whole pipeline works even
+		// if the "real" benchmark scripts start to fail.
+		"canary": {
+			DriverType: NoDriver,
+			Flags: []string{
+				"--browser", "mock",
+			},
+		},
+		"chrome-stable": {
+			DriverType: ChromeStableDriver,
+			Flags: []string{
+				"--browser", "chrome",
+			},
+		},
+		"chrome-canary": {
+			DriverType: ChromeCanaryDriver,
+			Flags: []string{
+				"--browser", "chrome",
+			},
+		},
+	}
+
+	var expected = map[string]*Benchmark{
+		// We always run the canary to validate that the whole pipeline works even
+		// if the "real" benchmark scripts start to fail.
+		"canary": {
+			DriverType: NoDriver,
+			Flags: []string{
+				"--browser", "mock",
+			},
+		},
+		"chrome-stable": {
+			DriverType: ChromeStableDriver,
+			Flags: []string{
+				"--browser", "chrome",
+				"--executable-path", alternateChromeDriver,
+			},
+		},
+		"chrome-canary": {
+			DriverType: ChromeCanaryDriver,
+			Flags: []string{
+				"--browser", "chrome",
+				"--executable-path", alternateChromeCanaryDriver,
+			},
+		},
+	}
+
+	populateBenchmarksWithDrivers(benchmarks,
+		alternateChromeDriver,
+		alternateChromeCanaryDriver,
+	)
+	require.Equal(t, expected, benchmarks)
 }

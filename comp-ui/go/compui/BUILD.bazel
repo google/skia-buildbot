@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "compui",
+    srcs = ["compui.go"],
+    importpath = "go.skia.org/infra/comp-ui/go/compui",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//comp-ui/go/compui/download",
+        "//comp-ui/go/compui/urls",
+        "//go/auth",
+        "//go/common",
+        "//go/executil",
+        "//go/gcs",
+        "//go/gcs/gcsclient",
+        "//go/git",
+        "//go/gitauth",
+        "//go/httputils",
+        "//go/now",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "compui_test",
+    srcs = ["compui_test.go"],
+    embed = [":compui"],
+    deps = [
+        "//go/executil",
+        "//go/gcs",
+        "//go/gcs/mocks",
+        "//go/httputils",
+        "//go/now",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "urls",
+    srcs = ["urls.go"],
+    importpath = "go.skia.org/infra/comp-ui/go/compui/urls",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "urls_test",
+    srcs = ["urls_test.go"],
+    embed = [":urls"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

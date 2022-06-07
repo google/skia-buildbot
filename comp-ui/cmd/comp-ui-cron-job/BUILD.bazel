@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "comp-ui-cron-job_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/comp-ui/cmd/comp-ui-cron-job",
+    visibility = ["//visibility:private"],
+    deps = ["//comp-ui/go/compui"],
+)
+
+go_binary(
+    name = "comp-ui-cron-job",
+    embed = [":comp-ui-cron-job_lib"],
+    visibility = ["//visibility:public"],
+)

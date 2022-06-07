@@ -1,0 +1,16 @@
+{
+	"chrome-motionmark": {
+		"repoURL": "https://chromium.googlesource.com/chromium/src",
+		"checkoutPaths": [
+			"tools/browserbench-webdriver"
+		],
+		"scriptName": "tools/browserbench-webdriver/motionmark.py",
+		"driverType": "stable",
+		"flags": [
+			"--browser",
+			"chrome",
+			"--extra-keys",
+			"channel,stable"
+		]
+	}
+}

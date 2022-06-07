@@ -28,3 +28,7 @@ build_and_upload_compui: build_compui_ansible
 
 release_compui: build_and_upload_compui
 	../bash/ansible-release.sh comp-ui-cron-job ${VERSION}
+
+run-local-instance:
+	go install ./go/comp-ui-cron-job
+	comp-ui-cron-job --local --python-exe=`which python3` --skip_uploads --use-default-auth --benchmarks=chrome.json

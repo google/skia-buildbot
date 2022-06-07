@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "download",
+    srcs = ["download.go"],
+    importpath = "go.skia.org/infra/comp-ui/go/compui/download",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//comp-ui/go/compui/urls",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "download_test",
+    srcs = ["download_test.go"],
+    embed = [":download"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
