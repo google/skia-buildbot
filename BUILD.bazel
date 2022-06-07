@@ -190,10 +190,6 @@ container_run_and_commit(
         "apt-get install -y software-properties-common apt-transport-https ca-certificates ca-certificates-java gnupg curl",
         "update-ca-certificates",
 
-        # Add repo/keys to install Chrome (needed for Puppeteer)
-        "curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -",
-        "add-apt-repository 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main'",
-
         # Add repo/keys to install kubectl, as per the instructions here:
         # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
         "curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg" +
@@ -285,34 +281,55 @@ language_tool_layer(
     ],
 )
 
-# This installs all the rest of the debian packages we need to run Skia infra tests and other
 # RBE tasks.
 language_tool_layer(
     name = "rbe_with_installed_packages",
     base = ":rbe_with_setup",
     packages = [
         "binutils",
-        # Install Chrome and fonts to support major charsets.
+        # Libraries needed for Chrome and Chromium.
         #
-        # This is necessary for the karma_test rule to work, which runs web tests on a headless
-        # Chrome, and also for the bundled version of Chromium that Puppeteer installs to
-        # render fonts properly.
-        #
-        # Adapted from:
-        # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
-        "google-chrome-stable",
-        "fonts-ipafont-gothic",
-        "fonts-wqy-zenhei",
-        "fonts-thai-tlwg",
-        "fonts-kacst",
-        "fonts-freefont-ttf",
-        # Prevent "error while loading shared libraries: libXss.so.1" in Puppeteer tests.
-        # See https://github.com/puppeteer/puppeteer/issues/6192.
-        "libxss1",
-        # Prevent "error while loading shared libraries: libxshmfence.so.1" in Puppeteer tests.
-        "libxshmfence1",
-        # Prevent "Check failed: xlib_xcb_loader->Load("libX11-xcb.so.1")" in Puppeteer tests.
-        "libx11-xcb1",
+        # We arrived at the below list of libraries by repeatedly running an arbitrary Karma test
+        # on RBE and appending the missing libraries reported by Chrome.
+        "libatk-bridge2.0-0=2.30.0-5",
+        "libatk1.0-0=2.30.0-2",
+        "libatspi2.0-0=2.30.0-7",
+        "libcairo-gobject2=1.16.0-4+deb10u1",
+        "libcairo2=1.16.0-4+deb10u1",
+        "libdatrie1=0.2.12-2",
+        "libdrm2=2.4.97-1",
+        "libepoxy0=1.5.3-0.1",
+        "libfribidi0=1.0.5-3.1+deb10u1",
+        "libgbm1=18.3.6-2+deb10u1",
+        "libgdk-pixbuf2.0-0=2.38.1+dfsg-1",
+        "libgtk-3-0=3.24.5-1",
+        "libpango-1.0-0=1.42.4-8~deb10u1",
+        "libpangocairo-1.0-0=1.42.4-8~deb10u1",
+        "libpangoft2-1.0-0=1.42.4-8~deb10u1",
+        "libpixman-1-0=0.36.0-1",
+        "libthai0=0.1.28-2",
+        "libwayland-client0=1.16.0-1",
+        "libwayland-cursor0=1.16.0-1",
+        "libwayland-egl1=1.16.0-1",
+        "libwayland-server0=1.16.0-1",
+        "libx11-6=2:1.6.7-1+deb10u2",
+        "libx11-xcb1=2:1.6.7-1+deb10u2",
+        "libxau6=1:1.0.8-1+b2",
+        "libxcb-render0=1.13.1-2",
+        "libxcb-shm0=1.13.1-2",
+        "libxcb1=1.13.1-2",
+        "libxcomposite1=1:0.4.4-2",
+        "libxcursor1=1:1.1.15-2",
+        "libxdamage1=1:1.1.4-3+b3",
+        "libxdmcp6=1:1.1.2-3",
+        "libxext6=2:1.3.3-1+b2",
+        "libxfixes3=1:5.0.3-1",
+        "libxi6=2:1.7.9-1",
+        "libxinerama1=2:1.1.4-2",
+        "libxkbcommon0=0.8.2-1",
+        "libxrandr2=2:1.5.1-1",
+        "libxrender1=1:0.9.10-1",
+        "libxshmfence1=1.3-1",
         # Applications needed to access test devices in the skia-switchboard cluster.
         "adb",
         "netcat",

@@ -16,6 +16,16 @@ const jsTestFile = process.argv[startIdx + 2];
 // https://github.com/bazelbuild/rules_nodejs/blob/681c6683dac742f1e375a401c0399ec7783ac8fd/packages/karma/karma_web_test.bzl#L257
 const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running via "bazel run".
 
+// Returns the path to the Bazel runfiles directory.
+//
+// See:
+//  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
+//  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
+const bazelRunfilesDir = () => process.env.RUNFILES_DIR + '/' + process.env.TEST_WORKSPACE;
+
+// Forces Karma to use the Bazel-downloaded Google Chrome browser.
+process.env.CHROME_BIN = bazelRunfilesDir() + '/external/google_chrome/opt/google/chrome/chrome';
+
 module.exports = function(config) {
   config.set({
     plugins: [

@@ -16,6 +16,7 @@ nodejs_test(
 ts_library(
     name = "util_ts_lib",
     srcs = ["util.ts"],
+    data = ["@google_chrome//:all_files"],  # Provides Google Chrome, libraries and fonts.
     visibility = ["//visibility:public"],
     deps = ["@npm//puppeteer"],
 )

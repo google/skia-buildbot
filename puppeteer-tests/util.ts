@@ -78,33 +78,44 @@ export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eve
 };
 
 /**
- * Returns true if running from within a Docker container, or false otherwise.
- */
-export const inDocker = () => fs.existsSync('/.dockerenv');
-
-/**
  * Returns true if running from Bazel (e.g. with "bazel test"), or false otherwise.
  */
 export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
 
 /**
+ * Returns the path to the Bazel runfiles directory.
+ *
+ * See:
+ *  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
+ *  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
+ */
+const bazelRunfilesDir = () => process.env.RUNFILES_DIR! + '/' + process.env.TEST_WORKSPACE!;
+
+/**
  * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
  * This can be handy for debugging.
  */
-export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => puppeteer.launch(
-  // These options are required to run Puppeteer from within a Docker container, as is the case
-  // under Bazel and RBE. See
-  // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
-  //
-  // Flag --no-sandbox is necessary to run Puppeteer tests under Bazel locally (i.e. not on RBE) on
-  // a Swarming bot. If we do not provide said flag, we get the following error:
-  //
-  //     No usable sandbox! Update your kernel or see
-  //     https://chromium.googlesource.com/chromium/src/+/master/docs/linux/suid_sandbox_development.md
-  //     for more information on developing with the SUID sandbox. If you want to live dangerously
-  //     and need an immediate workaround, you can try using --no-sandbox.
-  { args: ['--disable-dev-shm-usage', '--no-sandbox'], headless: !showBrowser },
-);
+export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
+  return puppeteer.launch({
+    // These options are required to run Puppeteer from within a Docker container, as is the case
+    // under Bazel and RBE. See
+    // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
+    //
+    // Flag --no-sandbox is necessary to run Puppeteer tests under Bazel locally (i.e. not on
+    // RBE) on a Swarming bot. If we do not provide said flag, we get the following error:
+    //
+    //     No usable sandbox! Update your kernel or see
+    //     https://chromium.googlesource.com/chromium/src/+/master/docs/linux/suid_sandbox_development.md
+    //     for more information on developing with the SUID sandbox. If you want to live
+    //     dangerously and need an immediate workaround, you can try using --no-sandbox.
+    args: ['--disable-dev-shm-usage', '--no-sandbox'],
+    headless: !showBrowser,
+    env: {
+      ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
+      FONTCONFIG_SYSROOT: bazelRunfilesDir() + '/external/google_chrome',
+    },
+  });
+};
 
 /**
  * Type of the object returned by setUpPuppeteerAndDemoPageServer.

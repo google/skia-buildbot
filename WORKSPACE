@@ -432,3 +432,11 @@ filegroup(
     strip_prefix = "cockroach-v21.1.9.linux-amd64",
     url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
 )
+
+#################################################################################
+# Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
+#################################################################################
+
+load("//bazel/external:google_chrome.bzl", "google_chrome")
+
+google_chrome(name = "google_chrome")
