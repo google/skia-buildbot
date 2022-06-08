@@ -6,15 +6,13 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"text/template"
 	"time"
 
-	"go.skia.org/infra/go/now"
-
-	"go.skia.org/infra/go/fileutil"
-
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
@@ -24,8 +22,10 @@ import (
 	"go.skia.org/infra/codesize/go/codesizeserver/rpc"
 	"go.skia.org/infra/codesize/go/store"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -45,6 +45,15 @@ const (
 	// time to load.
 	daysToPreload = 10
 )
+
+var exponentialBackoffSettings = &backoff.ExponentialBackOff{
+	InitialInterval:     5 * time.Second,
+	RandomizationFactor: 0.5,
+	Multiplier:          2,
+	MaxInterval:         time.Minute,
+	MaxElapsedTime:      5 * time.Minute,
+	Clock:               backoff.SystemClock,
+}
 
 // gcsPubSubEvent is the payload of the PubSub events sent by GCS on file uploads. See
 // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations.
@@ -79,15 +88,21 @@ func new() (baseapp.App, error) {
 	srv.gcsClient = gcsclient.New(storageClient, gcsBucket)
 
 	// Set up Store.
-	store := store.New(func(ctx context.Context, path string) ([]byte, error) {
+	s := store.New(func(ctx context.Context, path string) ([]byte, error) {
 		sklog.Infof("Downloading %s from GCS", path)
-		contents, err := srv.gcsClient.GetFileContents(ctx, path)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+
+		var contents []byte
+		downloadFunc := func() error {
+			contents, err = srv.gcsClient.GetFileContents(ctx, path)
+			return err
 		}
+		if err := backoff.Retry(downloadFunc, exponentialBackoffSettings); err != nil {
+			return nil, skerr.Wrapf(err, "even with exponential backoff, could not download %s", path)
+		}
+
 		return contents, nil
 	})
-	srv.store = store
+	srv.store = s
 
 	// Preload the latest Bloaty outputs.
 	if err := srv.preloadBloatyFiles(ctx); err != nil {
@@ -168,7 +183,8 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 	// This excludes debug files that we occasionally upload to GCS.
 	bloatyOutputFilePattern := regexp.MustCompile(`^[0-9]{4}/[0-9]{2}/[0-9]{2}/.*\.tsv$`)
 
-	dirs := fileutil.GetHourlyDirs("", now.Now(ctx).Add(-daysToPreload*24*time.Hour), now.Now(ctx))
+	n := now.Now(ctx).UTC()
+	dirs := fileutil.GetHourlyDirs("", n.Add(-daysToPreload*24*time.Hour), n)
 	sklog.Debugf("Preloading data, starting in folder %s", dirs[0])
 	for _, dir := range dirs {
 		err := s.gcsClient.AllFilesInDirectory(ctx, dir, func(item *storage.ObjectAttrs) error {
@@ -194,16 +210,20 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 	return nil
 }
 
-// handleFileUploadNotification is called when a new file is uplodaded to the GCS bucket.
+// handleFileUploadNotification is called when a new file is uploaded to the GCS bucket.
 func (s *server) handleFileUploadNotification(ctx context.Context, path string) error {
 	sklog.Infof("Received file upload PubSub message: %s", path)
+	if strings.HasSuffix(path, ".json") {
+		sklog.Infof("Ignoring %s because we index .json files when we see a corresponding .tsv file")
+		return nil
+	}
 	if err := s.store.Index(ctx, path); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
 }
 
-// loadTemplates loads the HTML templaates to serve to the UI.
+// loadTemplates loads the HTML templates to serve to the UI.
 func (s *server) loadTemplates() {
 	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(
 		filepath.Join(*baseapp.ResourcesDir, "*.html"),

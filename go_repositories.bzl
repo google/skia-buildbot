@@ -421,8 +421,8 @@ def go_repositories():
     go_repository(
         name = "com_github_cenkalti_backoff_v4",
         importpath = "github.com/cenkalti/backoff/v4",
-        sum = "h1:JIufpQLbh4DkbQoii76ItQIUFzevQSqOLZca4eamEDs=",
-        version = "v4.0.2",
+        sum = "h1:cFAlzYUlVYDysBEH2T5hyJZMh3+5+WCBvSnK6Q8UtC4=",
+        version = "v4.1.3",
     )
 
     go_repository(

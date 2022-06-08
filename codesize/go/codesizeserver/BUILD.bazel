@@ -17,6 +17,7 @@ go_library(
         "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",
+        "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_gorilla_mux//:mux",
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_pubsub//:pubsub",

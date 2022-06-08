@@ -98,6 +98,7 @@ require (
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bogdanovich/dns_resolver v0.0.0-20170211073258-a8e42bc6a5b6 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cockroachdb/cockroach-go v0.0.0-20190925194419-606b3d062051 // indirect
