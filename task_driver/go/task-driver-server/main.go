@@ -350,7 +350,8 @@ func main() {
 					sklog.Errorf("Failed to handle pubsub message: %s", err)
 				}
 			}); err != nil {
-				sklog.Fatal(err)
+				sklog.Errorf("Failed to receive pubsub messages: %s", err)
+				time.Sleep(time.Second)
 			}
 		}
 	}()

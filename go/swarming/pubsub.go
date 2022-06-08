@@ -59,19 +59,26 @@ func InitPubSub(topicName, subscriberName string, callback func(*PubSubTaskMessa
 		}
 	}
 	go func() {
-		if err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
-			var taskMsg PubSubTaskMessage
-			if err := json.Unmarshal(m.Data, &taskMsg); err != nil {
-				sklog.Errorf("Failed to decode pubsub message body: %s", err)
-				m.Ack() // We'll never be able to handle this message.
+		for {
+			if ctx.Err() != nil {
+				sklog.Errorf("Context has error: %s", ctx.Err())
+				return
 			}
-			if callback(&taskMsg) {
-				m.Ack()
-			} else {
-				m.Nack()
+			if err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+				var taskMsg PubSubTaskMessage
+				if err := json.Unmarshal(m.Data, &taskMsg); err != nil {
+					sklog.Errorf("Failed to decode pubsub message body: %s", err)
+					m.Ack() // We'll never be able to handle this message.
+				}
+				if callback(&taskMsg) {
+					m.Ack()
+				} else {
+					m.Nack()
+				}
+			}); err != nil {
+				sklog.Errorf("Failed to receive pubsub messages: %s", err)
+				time.Sleep(time.Second)
 			}
-		}); err != nil {
-			sklog.Fatalf("Failed to receive pubsub messages: %s", err)
 		}
 	}()
 	return nil

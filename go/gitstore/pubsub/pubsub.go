@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/cleanup"
@@ -130,16 +131,23 @@ func NewSubscriber(ctx context.Context, btConf *bt_gitstore.BTConfig, subscriber
 		}
 	}
 	go func() {
-		if err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
-			select {
-			case <-ctx.Done():
-				sklog.Warning("Received pubsub message but the context has been canceled.")
-				m.Nack()
-			default:
-				callback(m, m.Attributes)
+		for {
+			if ctx.Err() != nil {
+				sklog.Errorf("Context has error: %s", ctx.Err())
+				return
 			}
-		}); err != nil {
-			sklog.Errorf("Pubsub subscription (ID %q) receive failed: %s", sub.ID(), err)
+			if err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+				select {
+				case <-ctx.Done():
+					sklog.Warning("Received pubsub message but the context has been canceled.")
+					m.Nack()
+				default:
+					callback(m, m.Attributes)
+				}
+			}); err != nil {
+				sklog.Errorf("Pubsub subscription (ID %q) receive failed: %s", sub.ID(), err)
+				time.Sleep(time.Second)
+			}
 		}
 	}()
 	return nil
