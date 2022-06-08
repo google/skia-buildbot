@@ -286,7 +286,6 @@ language_tool_layer(
     name = "rbe_with_installed_packages",
     base = ":rbe_with_setup",
     packages = [
-        "binutils",
         # Libraries needed for Chrome and Chromium.
         #
         # We arrived at the below list of libraries by repeatedly running an arbitrary Karma test
@@ -330,10 +329,6 @@ language_tool_layer(
         "libxrandr2=2:1.5.1-1",
         "libxrender1=1:0.9.10-1",
         "libxshmfence1=1.3-1",
-        # Applications needed to access test devices in the skia-switchboard cluster.
-        "adb",
-        "netcat",
-        "kubectl",
         # Python3 is necessary for some tests/scripts
         "python3",
         # zip is necessary for the undeclared outputs of tests running on RBE to show up under
