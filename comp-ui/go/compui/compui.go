@@ -69,14 +69,6 @@ const (
 	benchmarkTimeout = 2 * time.Hour
 )
 
-var (
-	// Key can be changed via -ldflags.
-	Key = "base64 encoded service account key JSON goes here."
-
-	// Version can be changed via -ldflags.
-	Version = "unsupplied"
-)
-
 // DriverType is the type of executable to pass to the script via the
 // --executable-path flag.
 type DriverType string
@@ -193,7 +185,7 @@ func (f *Application) Flagset() *flag.FlagSet {
 }
 
 // Main runs the application.
-func Main() {
+func Main(version, key string) {
 	var app Application
 
 	common.InitWithMust(
@@ -201,12 +193,12 @@ func Main() {
 		common.CloudLogging(&app.local, "skia-public"),
 		common.FlagSetOpt(app.Flagset()),
 	)
-	app.Run()
+	app.Run(version, key)
 }
 
 // Run the application with the given flags.
-func (app Application) Run() {
-	sklog.Infof("Version: %s", Version)
+func (app Application) Run(version, key string) {
+	sklog.Infof("Version: %s", version)
 
 	ctx := context.Background()
 
@@ -227,7 +219,7 @@ func (app Application) Run() {
 
 	populateBenchmarksWithDrivers(benchmarks, chromeDriver, chromeCanaryDriver)
 
-	ts, err := auth.NewTokenSourceFromKeyString(ctx, app.useDefaultAuth, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := auth.NewTokenSourceFromKeyString(ctx, app.useDefaultAuth, key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

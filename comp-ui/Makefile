@@ -21,7 +21,7 @@ build_compui_ansible:
 	go build \
 	 -o ./build/Darwin/arm64/comp-ui-cron-job \
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
-	 ./go/comp-ui-cron-job
+	 ./cmd/comp-ui-cron-job
 
 build_and_upload_compui: build_compui_ansible
 	cipd create -pkg-def=comp-ui-cron-job-cipd.yml --tag version:${VERSION}

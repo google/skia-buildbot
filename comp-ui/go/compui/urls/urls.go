@@ -24,12 +24,15 @@ type DownloadURLs struct {
 	// filename of the driver to download, also incorporates the os/arch, for
 	// example: "chromedriver_linux64.zip".
 	filename string
+
+	// filename in the canary repository.
+	canaryFilename string
 }
 
 var downloadURLsLookup = map[string]DownloadURLs{
-	"darwin/amd64": {prefix: "Mac", filename: "chromedriver_mac64.zip"},
-	"darwin/arm64": {prefix: "Mac_Arm", filename: "chromedriver_mac64_m1.zip"},
-	"linux/amd64":  {prefix: "Linux_x64", filename: "chromedriver_linux64.zip"},
+	"darwin/amd64": {prefix: "Mac", filename: "chromedriver_mac64.zip", canaryFilename: "chromedriver_mac64.zip"},
+	"darwin/arm64": {prefix: "Mac_Arm", filename: "chromedriver_mac64_m1.zip", canaryFilename: "chromedriver_mac64.zip"},
+	"linux/amd64":  {prefix: "Linux_x64", filename: "chromedriver_linux64.zip", canaryFilename: "chromedriver_linux64.zip"},
 }
 
 // NewDownloadURLs returns a DownloadURLs for the given os and arch.
@@ -65,7 +68,7 @@ func (d DownloadURLs) DriverURL(version string) string {
 // CanaryDriverURL returns the URL of a zip file that contains the Canary driver for
 // the given `version`.
 func (d DownloadURLs) CanaryDriverURL(version string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", baseCanaryURL, d.prefix, version, d.filename)
+	return fmt.Sprintf("%s/%s/%s/%s", baseCanaryURL, d.prefix, version, d.canaryFilename)
 }
 
 // GetVersionFromURL returns the whitespace trimmed string in the body of the

@@ -21,14 +21,14 @@ func TestDownloadURLs_UnknownOSOrArch_ReturnsError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestDownloadURLs_ValieOSAndArch_ReturnsValidDownload(t *testing.T) {
+func TestDownloadURLs_ValidOSAndArch_ReturnsValidDownload(t *testing.T) {
 	unittest.SmallTest(t)
 	urls, err := NewDownloadURLs("darwin", "arm64")
 	require.NoError(t, err)
 	require.Equal(t, "https://chromedriver.storage.googleapis.com/LATEST_RELEASE", urls.LatestURL())
 	require.Equal(t, "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/LAST_CHANGE", urls.LatestCanaryURL())
 	require.Equal(t, "https://chromedriver.storage.googleapis.com/some-version-number/chromedriver_mac64_m1.zip", urls.DriverURL("some-version-number"))
-	require.Equal(t, "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/some-version-number/chromedriver_mac64_m1.zip", urls.CanaryDriverURL("some-version-number"))
+	require.Equal(t, "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/some-version-number/chromedriver_mac64.zip", urls.CanaryDriverURL("some-version-number"))
 }
 
 func TestGetVerionFromURL_GoodHTTPResponse_ReturnsVersionNumber(t *testing.T) {
