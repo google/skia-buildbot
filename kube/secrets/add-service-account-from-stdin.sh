@@ -18,5 +18,5 @@ SECRET_NAME=$2
 REL=$(dirname "$0")
 source ${REL}/config.sh
 
-kubectl create secret generic "${SECRET_NAME}" --from-file=key.json=/dev/stdin --dry-run -o yaml \
+kubectl create secret generic "${SECRET_NAME}" --from-file=key.json=/dev/stdin --dry-run=client -o yaml \
 | ${REL}/add-secret-from-stdin.sh ${CLUSTER} ${SECRET_NAME}
