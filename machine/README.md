@@ -57,10 +57,10 @@ See the [Design Doc](http://go/skia-switchboard).
 
 ## How test_machine_monitor keeps machine.Description up to date.
 
-| initiator            | message                        | target        | notes                           |
-| -------------------- | ------------------------------ | ------------- | ------------------------------- |
-| test_machine_monitor | >PubSub([Event][event])        | machineserver | Sends results from interrogate. |
-| test_machine_monitor | <Snapshot([Description][desc]) | DB            |                                 |
+| initiator            | message                      | target        | notes                                         |
+| -------------------- | ---------------------------- | ------------- | --------------------------------------------- |
+| test_machine_monitor | >PubSub([Event][event])      | machineserver | Sends results from interrogate.               |
+| test_machine_monitor | <WebAPI([Description][desc]) | machineserver | GET to `/json/v1/machine/description/{id:.+}` |
 
 [desc]:
   https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Description
@@ -80,5 +80,8 @@ See the [Design Doc](http://go/skia-switchboard).
 - initiator - The entity that starts the action.
 - message - Shows the direction of the data flow, the transport, and the struct
   being moved.
+  - `Set` - A database operation
+  - `WebAPI` - An HTTP Request
+  - `PubSub` - A PubSub message.
 - target - Who the iniator is talking to.
 - Δ is used before a struct if only a part of that struct is being changed.
