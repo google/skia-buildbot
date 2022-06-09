@@ -58,6 +58,9 @@ func init() {
 // GMail is an object used for authenticating to the GMail API server.
 type GMail struct {
 	service *gmail.Service
+
+	// From is the email address of the authenticated account.
+	from string
 }
 
 // Message represents a single email message.
@@ -97,9 +100,13 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &GMail{
+	ret := &GMail{
 		service: service,
-	}, nil
+	}
+	if err := ret.populateFromAddress(); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to determine sending accounts email address.")
+	}
+	return ret, nil
 }
 
 // ClientSecrets is the structure of a client_secrets.json file that contains info on an installed client.
@@ -143,6 +150,17 @@ func NewFromFiles(emailTokenCacheFile, emailClientSecretsFile string) (*GMail, e
 	return NewGMail(clientSecrets.Installed.ClientID, clientSecrets.Installed.ClientSecret, emailTokenCacheFile)
 }
 
+// populateFromAddress fills in a.from with the email address for the
+// authenticated account.
+func (a *GMail) populateFromAddress() error {
+	profile, err := a.service.Users.GetProfile("me").Do()
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to get profile.")
+	}
+	a.from = profile.EmailAddress
+	return nil
+}
+
 // Send an email. Returns the messageId of the sent email.
 func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threadingReference string) (string, error) {
 	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", threadingReference)
@@ -152,13 +170,7 @@ func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threa
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
-	sender := "me"
-	// Get email address to use in the from section.
-	profile, err := a.service.Users.GetProfile(sender).Do()
-	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to get profile for %s", sender)
-	}
-	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, profile.EmailAddress)
+	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, a.from)
 
 	msgBytes := new(bytes.Buffer)
 	if err := emailTemplateParsed.Execute(msgBytes, struct {
@@ -184,7 +196,7 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, b
 	msg.Snippet = subject
 	msg.Raw = base64.URLEncoding.EncodeToString(msgBytes.Bytes())
 
-	m, err := a.service.Users.Messages.Send(sender, &msg).Do()
+	m, err := a.service.Users.Messages.Send(a.from, &msg).Do()
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to send email to %s", to)
 	}

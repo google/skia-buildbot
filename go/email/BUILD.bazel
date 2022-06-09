@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -11,6 +12,18 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@org_golang_google_api//gmail/v1:gmail",
+    ],
+)
+
+go_test(
+    name = "email_test",
+    srcs = ["email_test.go"],
+    embed = [":email"],
+    deps = [
+        "//go/httputils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
         "@org_golang_google_api//gmail/v1:gmail",
     ],
 )
