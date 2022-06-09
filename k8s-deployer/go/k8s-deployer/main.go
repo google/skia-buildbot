@@ -151,7 +151,7 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 		cmd = append(cmd, "--server", k8sServer)
 	}
 	if prune {
-		cmd = append(cmd, "--prune")
+		cmd = append(cmd, "--prune", "--all")
 	}
 	cmd = append(cmd, "-f", ".")
 	output, err := exec.RunCwd(ctx, tmp, cmd...)
