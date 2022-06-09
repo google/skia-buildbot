@@ -98,3 +98,59 @@ func TestGMailSendWithMarkup(t *testing.T) {
 	_, err = gm.SendWithMarkup("Alert Service", []string{"test@example.com"}, subject, "<h1>Something happened</h1>", markup, ref)
 	require.NoError(t, err)
 }
+
+func TestExtractSenderAndSubject_HappyPath(t *testing.T) {
+	unittest.SmallTest(t)
+	sender, subject, err := GetFromAndSubject([]byte(`From: Alerts <alerts@skia.org>
+To: somone@example.org
+Subject: My Stuff`))
+	require.NoError(t, err)
+	require.Equal(t, "alerts@skia.org", sender)
+	require.Equal(t, "My Stuff", subject)
+}
+func TestExtractSenderAndSubject_EmptyInput_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, _, err := GetFromAndSubject([]byte(``))
+	require.Contains(t, err.Error(), "Failed to find a From: line")
+}
+func TestExtractSenderAndSubject_MissingSubject_DefaultSubjectIsReturned(t *testing.T) {
+	unittest.SmallTest(t)
+	sender, subject, err := GetFromAndSubject([]byte(`From: Alerts <alerts@skia.org>
+To: somone@example.org
+`))
+	require.NoError(t, err)
+	require.Equal(t, "alerts@skia.org", sender)
+	require.Equal(t, defaultSubject, subject)
+}
+func TestFormatAsRFC2822_HappyPath(t *testing.T) {
+	unittest.SmallTest(t)
+	body := `<h1>Testing</h1>`
+	ref := "some-reference-id"
+	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
+	require.NoError(t, err)
+	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref)
+	require.NoError(t, err)
+	expected := `From: Alerts <alerts@skia.org>
+To: someone@example.org
+Subject: Your Alert
+Content-Type: text/html; charset=UTF-8
+References: some-reference-id
+In-Reply-To: some-reference-id
+
+<html>
+<body>
+
+<div itemscope itemtype="http://schema.org/EmailMessage">
+  <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
+    <link itemprop="target" href="https://example.com"/>
+    <meta itemprop="name" content="Example"/>
+  </div>
+  <meta itemprop="description" content="Click the link"/>
+</div>
+
+<h1>Testing</h1>
+</body>
+</html>
+`
+	require.Equal(t, expected, actual.String())
+}

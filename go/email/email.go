@@ -2,12 +2,14 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
+	"regexp"
 	"strings"
 	ttemplate "text/template"
 
@@ -109,6 +111,31 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 	return ret, nil
 }
 
+// NewGMailFromKey creates a new GMail instance.
+//
+// keyAsBase64String is a base64 encoded User Credential file, which typically
+// comes from gcloud auth and has these fields:
+//
+//      client_id: ..
+//      client_secret: ..
+//      refresh_token: ...
+//      type: ..
+//
+func NewGMailFromKey(ctx context.Context, local bool, keyAsBase64String string) (*GMail, error) {
+	ts, err := auth.NewTokenSourceFromKeyString(ctx, local, keyAsBase64String, gmail.GmailComposeScope)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "could not authenticate to gmail")
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	service, err := gmail.New(client)
+	if err != nil {
+		return nil, err
+	}
+	return &GMail{
+		service: service,
+	}, nil
+}
+
 // ClientSecrets is the structure of a client_secrets.json file that contains info on an installed client.
 type ClientSecrets struct {
 	Installed ClientConfig `json:"installed"`
@@ -166,14 +193,12 @@ func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threa
 	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", threadingReference)
 }
 
-// SendWithMarkup sends an email with gmail markup. Returns the messageId of the sent email.
-// Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
-// A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
-func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
-	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, a.from)
-
-	msgBytes := new(bytes.Buffer)
-	if err := emailTemplateParsed.Execute(msgBytes, struct {
+// FormatAsRFC2822 returns a *bytes.Buffer that contains the email message
+// formatted in RFC 2822 format.
+func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (*bytes.Buffer, error) {
+	fromWithName := fmt.Sprintf("%s <%s>", fromDisplayName, from)
+	var msgBytes bytes.Buffer
+	if err := emailTemplateParsed.Execute(&msgBytes, struct {
 		From               template.HTML
 		To                 string
 		Subject            string
@@ -188,19 +213,60 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, b
 		Body:               template.HTML(body),
 		Markup:             template.HTML(markup),
 	}); err != nil {
-		return "", skerr.Wrapf(err, "Failed to send email; could not execute template")
+		return nil, skerr.Wrapf(err, "Failed to format email.")
+	}
+	return &msgBytes, nil
+}
+
+// SendWithMarkup sends an email with gmail markup. Returns the messageId of the sent email.
+// Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
+// A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
+func (a *GMail) SendWithMarkup(fromDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
+	msgBytes, err := FormatAsRFC2822(fromDisplayName, a.from, to, subject, body, markup, threadingReference)
+	if err != nil {
+		return "", skerr.Wrap(err)
 	}
 	sklog.Infof("Message to send: %q", msgBytes.String())
+	return a.SendRFC2822Message(subject, msgBytes.Bytes())
+}
+
+// SendRFC2822Message sends the RFC2822 formatted email message in body with the
+// given subject.
+func (a *GMail) SendRFC2822Message(subject string, body []byte) (string, error) {
 	msg := gmail.Message{}
-	msg.SizeEstimate = int64(msgBytes.Len())
+	msg.SizeEstimate = int64(len(body))
 	msg.Snippet = subject
-	msg.Raw = base64.URLEncoding.EncodeToString(msgBytes.Bytes())
+	msg.Raw = base64.URLEncoding.EncodeToString(body)
 
 	m, err := a.service.Users.Messages.Send(a.from, &msg).Do()
 	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to send email to %s", to)
+		return "", skerr.Wrapf(err, "Failed to send email: %s", subject)
 	}
 	return m.Id, nil
+}
+
+var fromRegex = regexp.MustCompile(`(?m)^From:[^<]*<(.*)>`)
+var subjectRegex = regexp.MustCompile(`(?m)^Subject:(.*)$`)
+
+const defaultSubject = "(no subject)"
+
+// GetFromAndSubject return the email address in the From: line, and also
+// the Subject from the RFC2822 formatted body.
+func GetFromAndSubject(body []byte) (string, string, error) {
+	// From: senderDisplayName <sender email>
+	// Subject: subject
+	match := fromRegex.FindSubmatch(body)
+	if match == nil || len(match) < 2 {
+		return "", "", skerr.Fmt("Failed to find a From: line in message.")
+	}
+	from := string(match[1])
+	match = subjectRegex.FindSubmatch(body)
+	subject := defaultSubject
+	if len(match) >= 2 {
+		subject = string(bytes.TrimSpace(match[1]))
+	}
+
+	return from, subject, nil
 }
 
 // GetThreadingReference returns the reference string that can be used to thread emails.
