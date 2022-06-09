@@ -99,9 +99,10 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	contentsMtx := sync.Mutex{}
 	sklog.Infof("Downloading config files at %s", head.Hash)
 	for _, file := range files {
+		file := file // https://golang.org/doc/faq#closures_and_goroutines
 		eg.Go(file, func() error {
 			fullPath := path.Join(configSubdir, file)
-			sklog.Infof("  %s", file)
+			sklog.Infof("  %s", fullPath)
 			fileContents, err := repo.ReadFileAtRef(ctx, fullPath, head.Hash)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to retrieve contents of %s", fullPath)
