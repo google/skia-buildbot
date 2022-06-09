@@ -97,9 +97,11 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	eg := util.NewNamedErrGroup()
 	contents := make(map[string][]byte, len(files))
 	contentsMtx := sync.Mutex{}
+	sklog.Infof("Downloading config files at %s", head.Hash)
 	for _, file := range files {
 		eg.Go(file, func() error {
 			fullPath := path.Join(configSubdir, file)
+			sklog.Infof("  %s", file)
 			fileContents, err := repo.ReadFileAtRef(ctx, fullPath, head.Hash)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to retrieve contents of %s", fullPath)
