@@ -214,7 +214,7 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 func (s *server) handleFileUploadNotification(ctx context.Context, path string) error {
 	sklog.Infof("Received file upload PubSub message: %s", path)
 	if strings.HasSuffix(path, ".json") {
-		sklog.Infof("Ignoring %s because we index .json files when we see a corresponding .tsv file")
+		sklog.Infof("Ignoring %s because we index .json files when we see a corresponding .tsv file", path)
 		return nil
 	}
 	if err := s.store.Index(ctx, path); err != nil {
