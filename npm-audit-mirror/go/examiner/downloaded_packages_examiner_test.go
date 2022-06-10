@@ -98,7 +98,7 @@ func testOneExaminationCycle(t *testing.T, trustedScopes []string, packageCreate
 		}
 		mockDBClient.On("GetFromDB", ctx, projectPackageKey).Return(retDbEntry, nil).Once()
 		if !examinerIssueClosedLessThanThreshold {
-			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs).Return(updatedMonorailIssue, nil).Once()
+			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs, []string{defaultCCUser}).Return(updatedMonorailIssue, nil).Once()
 			mockDBClient.On("PutInDB", ctx, projectPackageKey, updatedIssueName, updated.UTC()).Return(nil).Once()
 		}
 	}

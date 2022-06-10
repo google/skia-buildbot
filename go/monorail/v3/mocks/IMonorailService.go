@@ -74,13 +74,13 @@ func (_m *IMonorailService) GetIssueLink(instance string, id string) string {
 	return r0
 }
 
-// MakeIssue provides a mock function with given fields: instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs
-func (_m *IMonorailService) MakeIssue(instance string, owner string, summary string, description string, status string, priority string, issueType string, labels []string, componentDefIDs []string) (*monorail.MonorailIssue, error) {
-	ret := _m.Called(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs)
+// MakeIssue provides a mock function with given fields: instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers
+func (_m *IMonorailService) MakeIssue(instance string, owner string, summary string, description string, status string, priority string, issueType string, labels []string, componentDefIDs []string, ccUsers []string) (*monorail.MonorailIssue, error) {
+	ret := _m.Called(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers)
 
 	var r0 *monorail.MonorailIssue
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, string, []string, []string) *monorail.MonorailIssue); ok {
-		r0 = rf(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, string, []string, []string, []string) *monorail.MonorailIssue); ok {
+		r0 = rf(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*monorail.MonorailIssue)
@@ -88,8 +88,8 @@ func (_m *IMonorailService) MakeIssue(instance string, owner string, summary str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, string, string, string, string, []string, []string) error); ok {
-		r1 = rf(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs)
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, string, string, []string, []string, []string) error); ok {
+		r1 = rf(instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers)
 	} else {
 		r1 = ret.Error(1)
 	}

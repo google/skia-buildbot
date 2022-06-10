@@ -110,9 +110,10 @@ func TestMakeIssue_Success(t *testing.T) {
 	testIssueTypeValue := "Task"
 	testLabelName := "Test-Label1"
 	testComponentDefID := "2000"
+	testCCUser := "batman@gotham.com"
 
 	// Mock request and response.
-	reqBody := []byte(fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [{"label": "%s"}], "components": [{"component": "projects/%s/componentDefs/%s"}], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, testOwner, testStatus, testSummary, testLabelName, instance, testComponentDefID, testPriorityField, testPriorityValue, testIssueTypeField, testIssueTypeValue, testDescription))
+	reqBody := []byte(fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [{"label": "%s"}], "components": [{"component": "projects/%s/componentDefs/%s"}], "cc_users": [{"user": "users/%s"}], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, testOwner, testStatus, testSummary, testLabelName, instance, testComponentDefID, testCCUser, testPriorityField, testPriorityValue, testIssueTypeField, testIssueTypeValue, testDescription))
 	respBody, err := json.Marshal(&MonorailIssue{
 		Title: testSummary,
 	})
@@ -130,14 +131,14 @@ func TestMakeIssue_Success(t *testing.T) {
 	ms := &MonorailService{
 		HttpClient: httpClient,
 	}
-	issue, err := ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID})
+	issue, err := ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID}, []string{testCCUser})
 	require.NoError(t, err)
 	require.Equal(t, testSummary, issue.Title)
 
 	// Using an unsupported project should return an error for failing to find
 	// it's priority field name and type field name.
 	instance = "unsupported-project-name"
-	issue, err = ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID})
+	issue, err = ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID}, []string{testCCUser})
 	require.Error(t, err)
 	require.Nil(t, issue)
 }

@@ -87,7 +87,7 @@ type IMonorailService interface {
 	GetIssue(issueName string) (*MonorailIssue, error)
 
 	// MakeIssue creates a new monorail issue.
-	MakeIssue(instance, owner, summary, description, status, priority, issueType string, labels, componentDefIDs []string) (*MonorailIssue, error)
+	MakeIssue(instance, owner, summary, description, status, priority, issueType string, labels, componentDefIDs, ccUsers []string) (*MonorailIssue, error)
 
 	// SearchIssuesWithPagination returns monorail issue results by autoamtically
 	// paginating till end of results.
@@ -184,7 +184,7 @@ func (m *MonorailService) GetIssue(issueName string) (*MonorailIssue, error) {
 }
 
 // MakeIssue implements the IMonorailService interface.
-func (m *MonorailService) MakeIssue(instance, owner, summary, description, status, priority, issueType string, labels, componentDefIDs []string) (*MonorailIssue, error) {
+func (m *MonorailService) MakeIssue(instance, owner, summary, description, status, priority, issueType string, labels, componentDefIDs, ccUsers []string) (*MonorailIssue, error) {
 	priorityFieldName, ok := ProjectToPriorityFieldNames[instance]
 	if !ok {
 		return nil, fmt.Errorf("We do not have priority field name information for project %s", instance)
@@ -201,8 +201,12 @@ func (m *MonorailService) MakeIssue(instance, owner, summary, description, statu
 	for _, c := range componentDefIDs {
 		componentsJSON = append(componentsJSON, fmt.Sprintf(`{"component": "projects/%s/componentDefs/%s"}`, instance, c))
 	}
+	ccUsersJSON := []string{}
+	for _, c := range ccUsers {
+		ccUsersJSON = append(ccUsersJSON, fmt.Sprintf(`{"user": "users/%s"}`, c))
+	}
 
-	rpc := fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [%s], "components": [%s], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, owner, status, summary, strings.Join(labelsJSON, ","), strings.Join(componentsJSON, ","), priorityFieldName, priority, typeFieldName, issueType, description)
+	rpc := fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [%s], "components": [%s], "cc_users": [%s], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, owner, status, summary, strings.Join(labelsJSON, ","), strings.Join(componentsJSON, ","), strings.Join(ccUsersJSON, ","), priorityFieldName, priority, typeFieldName, issueType, description)
 	b, err := m.makeJSONCall([]byte(rpc), "Issues", "MakeIssue")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Issues.MakeIssue JSON API call failed")

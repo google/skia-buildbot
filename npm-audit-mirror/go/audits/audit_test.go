@@ -78,7 +78,7 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 		}
 		mockDBClient.On("GetFromDB", testutils.AnyContext, projectName).Return(retDbEntry, nil).Once()
 		if !auditIssueClosedLessThanThreshold {
-			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs).Return(updatedMonorailIssue, nil).Once()
+			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs, []string{defaultCCUser}).Return(updatedMonorailIssue, nil).Once()
 			mockDBClient.On("PutInDB", testutils.AnyContext, projectName, updatedIssueName, updated.UTC()).Return(nil).Once()
 			mockGitilesRepo.On("URL").Return("mock-URL").Once()
 		}

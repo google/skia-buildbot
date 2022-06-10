@@ -31,6 +31,8 @@ const (
 	defaultIssueType     = "Task"
 	defaultIssueStatus   = "Assigned"
 	defaultIssuePriority = "High"
+
+	defaultCCUser = "rmistry@google.com"
 )
 
 // File new audit issues once a quarter.
@@ -198,7 +200,7 @@ func (a *NpmProjectAudit) fileAndPersistAuditIssue(ctx context.Context) error {
 	labels := []string{monorail.RestrictViewGoogleLabelName}
 	labels = append(labels, mc.Labels...)
 
-	newIssue, err := a.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs)
+	newIssue, err := a.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs, []string{defaultCCUser})
 	if err != nil {
 		return skerr.Wrapf(err, "Could not create an audit issue for project %s", a.projectName)
 	}

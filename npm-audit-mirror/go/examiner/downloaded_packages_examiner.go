@@ -29,6 +29,8 @@ const (
 	defaultIssueType     = "Task"
 	defaultIssueStatus   = "Assigned"
 	defaultIssuePriority = "High"
+
+	defaultCCUser = "rmistry@google.com"
 )
 
 // DownloadedPackagesExaminer implements types.DownloadedPackagesExaminer
@@ -227,7 +229,7 @@ func (dpe *DownloadedPackagesExaminer) fileAndPersistExaminerIssue(ctx context.C
 	labels := []string{monorail.RestrictViewGoogleLabelName}
 	labels = append(labels, mc.Labels...)
 
-	newIssue, err := dpe.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs)
+	newIssue, err := dpe.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs, []string{defaultCCUser})
 	if err != nil {
 		return skerr.Wrapf(err, "Could not create an issue for project %s and package %s", projectName, packageName)
 	}
