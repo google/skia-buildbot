@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/npm-audit-mirror/go/checks"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/db"
+	"go.skia.org/infra/npm-audit-mirror/go/examiner"
 	"go.skia.org/infra/npm-audit-mirror/go/mirrors"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 	"golang.org/x/oauth2/google"
@@ -49,6 +50,7 @@ var (
 	authAllowList      = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 	hang               = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 	auditsInterval     = flag.Duration("audits_interval", 2*time.Hour, "How often the server checks for audit issues.")
+	examineInterval    = flag.Duration("examine_interval", 20*time.Hour, "How often the server examines downloaded packages on each mirror.")
 )
 
 // See baseapp.Constructor.
@@ -73,12 +75,6 @@ func New() (baseapp.App, error) {
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeFullControl, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
-	// Instantiate DB.
-	dbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID)
-	if err != nil {
-		sklog.Fatalf("Could not init DB: %s", err)
-	}
 
 	// Get the NPM audit mirror config.
 	cfg, err := config.GetConfig()
@@ -109,7 +105,11 @@ func New() (baseapp.App, error) {
 		}
 
 		// Start the audit for the project.
-		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, *serviceAccountFile, httpClient, dbClient, projectCfg.MonorailConfig)
+		auditDbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID, db.NpmAuditDataCol)
+		if err != nil {
+			sklog.Fatalf("Could not init audit DB: %s", err)
+		}
+		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, *serviceAccountFile, httpClient, auditDbClient, projectCfg.MonorailConfig)
 		if err != nil {
 			sklog.Fatalf("Could not instantiate audit: %s", err)
 		}
@@ -135,6 +135,17 @@ func New() (baseapp.App, error) {
 			sklog.Fatalf("Could not get allowlist with direct dependencies: %s", err)
 		}
 
+		// Start the downloaded packages examiner.
+		examinerDbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID, db.DownloadedPackagesExaminerCol)
+		if err != nil {
+			sklog.Fatalf("Could not init examiner DB: %s", err)
+		}
+		dpe, err := examiner.NewDownloadedPackagesExaminer(ctx, projectCfg.TrustedScopes, httpClient, examinerDbClient, m, projectCfg.MonorailConfig, *serviceAccountFile)
+		if err != nil {
+			sklog.Fatalf("Could not init downloaded packages examiner: %s", err)
+		}
+		dpe.StartExamination(ctx, *examineInterval)
+
 		// Populate project info with all artifacts from above.
 		projectInfo := ProjectInfo{}
 		projectInfo.verdacciPort = unusedPort
@@ -155,7 +166,6 @@ func New() (baseapp.App, error) {
 
 // Server is the state of the server.
 type Server struct {
-	dbClient                *db.FirestoreDB
 	supportedProjectsToInfo map[string]*ProjectInfo
 	httpClient              *http.Client
 }

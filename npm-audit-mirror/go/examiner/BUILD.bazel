@@ -1,0 +1,36 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "examiner",
+    srcs = ["downloaded_packages_examiner.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/examiner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/monorail/v3:monorail",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+    ],
+)
+
+go_test(
+    name = "examiner_test",
+    srcs = ["downloaded_packages_examiner_test.go"],
+    embed = [":examiner"],
+    deps = [
+        "//go/metrics2",
+        "//go/mockhttpclient",
+        "//go/monorail/v3:monorail",
+        "//go/monorail/v3/mocks",
+        "//go/testutils/unittest",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+        "//npm-audit-mirror/go/types/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

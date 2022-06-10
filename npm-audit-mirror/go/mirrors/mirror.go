@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/executil"
@@ -146,6 +147,31 @@ func (m *VerdaccioMirror) IsPackageTarballDownloaded(packageTarballName string) 
 	defer m.downloadedPackageTarballsMtx.RUnlock()
 	_, downloaded := m.downloadedPackageTarballs[packageTarballName]
 	return downloaded
+}
+
+// GetDownloadedPackageNames implements the types.ProjectMirror interface.
+func (m *VerdaccioMirror) GetDownloadedPackageNames() ([]string, error) {
+	downloadedPackageNames := []string{}
+	// Examine the local cache directory.
+	if _, err := os.Stat(m.verdaccioStorageDir); !os.IsNotExist(err) {
+		err = filepath.Walk(m.verdaccioStorageDir, func(path string, f os.FileInfo, err error) error {
+			if !f.IsDir() && filepath.Ext(path) == ".tgz" {
+				// Find the package name with the scope (if any). Do this by trimming the storage dir
+				// prefix and the tarball suffix.
+				// Eg: /tmp/skia-infra/verdaccio/storage/@typescript-eslint/types/types-4.22.0.tgz
+				//     will return "/@typescript-eslint/types/".
+				packageName := strings.TrimSuffix(strings.TrimPrefix(path, m.verdaccioStorageDir), f.Name())
+				// Remove the surrounding "/"s.
+				packageName = strings.Trim(packageName, "/")
+				downloadedPackageNames = append(downloadedPackageNames, packageName)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Could not look for packages in %s", m.verdaccioStorageDir)
+		}
+	}
+	return downloadedPackageNames, nil
 }
 
 // GetTarballsInMirrorStorage returns a map of the packages (including their versions)

@@ -28,7 +28,7 @@ var (
 type NpmChecksManager struct {
 	trustedScopes   []string
 	allowedPackages []*config.PackagesAllowList
-	httpClient      *http.Client // probably not needed.
+	httpClient      *http.Client
 	projectMirror   types.ProjectMirror
 
 	checks []types.Check

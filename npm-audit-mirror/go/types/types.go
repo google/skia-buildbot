@@ -16,6 +16,12 @@ type NpmDB interface {
 	PutInDB(ctx context.Context, key, issueName string, created time.Time) error
 }
 
+// DownloadedPackagesExaminer examines all the downloaded packages of a mirror.
+type DownloadedPackagesExaminer interface {
+	// StartExamination examines all the downloaded packages of a mirror.
+	StartExamination(ctx context.Context, pollInternal time.Duration)
+}
+
 // ChecksManager helps callers perform checks on a particular project.
 type ChecksManager interface {
 	// PerformChecks returns False when a package fails checks and also returns a
@@ -61,6 +67,10 @@ type ProjectMirror interface {
 	// IsPackageTarballDownloaded checks to see whether the specified
 	// tarball has already been downloaded by the mirror.
 	IsPackageTarballDownloaded(packageTarballName string) bool
+
+	// GetDownloadedPackageNames examines the cache of downloaded packages on the
+	// mirror and returns a slice of all package names.
+	GetDownloadedPackageNames() ([]string, error)
 }
 
 // PackageDetails is populated by parsing a packageRequestURL and used in

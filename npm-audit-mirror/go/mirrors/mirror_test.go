@@ -40,6 +40,16 @@ func TestDownloadedPackageTarballs(t *testing.T) {
 	require.True(t, m.IsPackageTarballDownloaded("pkg1.tgz"))
 }
 
+func TestGetDownloadedPackageNames(t *testing.T) {
+	unittest.MediumTest(t)
+	storageDir := testutils.TestDataDir(t)
+
+	m := &VerdaccioMirror{verdaccioStorageDir: storageDir}
+	packages, err := m.GetDownloadedPackageNames()
+	require.NoError(t, err)
+	require.Equal(t, []string{"pkg1", "pkg2"}, packages)
+}
+
 func TestGetTarballsInMirrorStorage(t *testing.T) {
 	unittest.MediumTest(t)
 	storageDir := testutils.TestDataDir(t)

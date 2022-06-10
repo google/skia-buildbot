@@ -18,6 +18,7 @@ go_library(
         "//npm-audit-mirror/go/checks",
         "//npm-audit-mirror/go/config",
         "//npm-audit-mirror/go/db",
+        "//npm-audit-mirror/go/examiner",
         "//npm-audit-mirror/go/mirrors",
         "//npm-audit-mirror/go/types",
         "@com_github_gorilla_mux//:mux",

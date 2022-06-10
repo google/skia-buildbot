@@ -25,7 +25,8 @@ func newDBClientForTesting(ctx context.Context, t sktest.TestingT) *FirestoreDB 
 	c, cleanup := testutils.NewClientForTesting(ctx, t)
 	t.Cleanup(cleanup)
 	return &FirestoreDB{
-		client: c,
+		client:         c,
+		collectionName: NpmAuditDataCol,
 	}
 }
 
