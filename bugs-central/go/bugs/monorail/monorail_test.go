@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -38,11 +37,7 @@ func TestMonorailSearch(t *testing.T) {
 	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/SearchIssues").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	testToken := oauth2.Token{
-		AccessToken: "access-token",
-	}
 	monorailService := &monorail_srv.MonorailService{
-		Token:      &testToken,
 		HttpClient: httpClient,
 	}
 	m := monorail{

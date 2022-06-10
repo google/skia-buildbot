@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
 
 	"go.skia.org/infra/go/httputils"
@@ -99,7 +98,6 @@ type IMonorailService interface {
 
 type MonorailService struct {
 	HttpClient *http.Client
-	Token      *oauth2.Token
 }
 
 func New(ctx context.Context, serviceAccountFilePath string) (*MonorailService, error) {
@@ -109,13 +107,8 @@ func New(ctx context.Context, serviceAccountFilePath string) (*MonorailService, 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "error running idtoken.NewTokenSource")
 	}
-	token, err := ts.Token()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "error running ts.Token")
-	}
 
 	return &MonorailService{
-		Token:      token,
 		HttpClient: httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client(),
 	}, nil
 }
@@ -128,7 +121,6 @@ func (m *MonorailService) makeJSONCall(bodyJSON []byte, service string, method s
 	if err != nil {
 		return nil, fmt.Errorf("http.NewRequest: %v", err)
 	}
-	req.Header.Add("authorization", "Bearer "+m.Token.AccessToken)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 	resp, err := m.HttpClient.Do(req)

@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -36,7 +35,6 @@ func TestGetEmail_Success(t *testing.T) {
 
 	ms := &MonorailService{
 		HttpClient: httpClient,
-		Token:      &oauth2.Token{AccessToken: "test-access-token"},
 	}
 	monorailUser, err := ms.GetEmail(testUserName)
 	require.NoError(t, err)
@@ -63,7 +61,6 @@ func TestSetOwnerAndAddComment_Success(t *testing.T) {
 
 	ms := &MonorailService{
 		HttpClient: httpClient,
-		Token:      &oauth2.Token{AccessToken: "test-access-token"},
 	}
 	err := ms.SetOwnerAndAddComment(testInstance, testOwner, testComment, testId)
 	require.NoError(t, err)
@@ -92,7 +89,6 @@ func TestGetIssue_Success(t *testing.T) {
 
 	ms := &MonorailService{
 		HttpClient: httpClient,
-		Token:      &oauth2.Token{AccessToken: "test-access-token"},
 	}
 	issue, err := ms.GetIssue(testIssueName)
 	require.NoError(t, err)
@@ -133,7 +129,6 @@ func TestMakeIssue_Success(t *testing.T) {
 	// Full E2E run.
 	ms := &MonorailService{
 		HttpClient: httpClient,
-		Token:      &oauth2.Token{AccessToken: "test-access-token"},
 	}
 	issue, err := ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID})
 	require.NoError(t, err)
@@ -168,7 +163,6 @@ func TestSearchIssuesWithPagination_Success(t *testing.T) {
 
 	ms := &MonorailService{
 		HttpClient: httpClient,
-		Token:      &oauth2.Token{AccessToken: "test-access-token"},
 	}
 	issues, err := ms.SearchIssuesWithPagination(testInstance, testQuery)
 	require.NoError(t, err)
