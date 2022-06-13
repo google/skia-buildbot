@@ -54,6 +54,7 @@
       apt:
         pkg:
           - adb
+          - aapt
           - python2.7  # still needed for iOS swarming recipes
 
     # iOS recipes need a /usr/bin/python2.
