@@ -72,11 +72,7 @@ To check metrics from a locally running server or prober, use Prometheus.
 ### Master
 
 The master poller and master scripts require a /b directory containing various
-repos and files. To create and set up this directory, run
-`./tools/setup_local.sh` and follow the instructions at the end. (The
-`setup_local.sh` script assumes you are a Googler running Goobuntu.)
-
-To run the master poller in dry-run mode (not very useful), run
+repos and files. To run the master poller in dry-run mode (not very useful), run
 
 ```
 make poller && poller --local=true \
