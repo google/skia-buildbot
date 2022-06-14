@@ -2,7 +2,6 @@ package email
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -110,31 +109,6 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 		sklog.Errorf("Failed to determine sending accounts email address: %s", err)
 	}
 	return ret, nil
-}
-
-// NewGMailFromKey creates a new GMail instance.
-//
-// keyAsBase64String is a base64 encoded User Credential file, which typically
-// comes from gcloud auth and has these fields:
-//
-//      client_id: ..
-//      client_secret: ..
-//      refresh_token: ...
-//      type: ..
-//
-func NewGMailFromKey(ctx context.Context, local bool, keyAsBase64String string) (*GMail, error) {
-	ts, err := auth.NewTokenSourceFromKeyString(ctx, local, keyAsBase64String, gmail.GmailComposeScope)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "could not authenticate to gmail")
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	service, err := gmail.New(client)
-	if err != nil {
-		return nil, err
-	}
-	return &GMail{
-		service: service,
-	}, nil
 }
 
 // ClientSecrets is the structure of a client_secrets.json file that contains info on an installed client.
@@ -246,28 +220,44 @@ func (a *GMail) SendRFC2822Message(subject string, body []byte) (string, error) 
 	return m.Id, nil
 }
 
-var fromRegex = regexp.MustCompile(`(?m)^From:[^<]*<(.*)>`)
+var fromRegex = regexp.MustCompile(`(?m)^From: (.*)$`)
+var toRegex = regexp.MustCompile(`(?m)^To: (.*)$`)
 var subjectRegex = regexp.MustCompile(`(?m)^Subject:(.*)$`)
+var doubleNewLine = regexp.MustCompile(`\n\n`)
 
 const defaultSubject = "(no subject)"
 
-// GetFromAndSubject return the email address in the From: line, and also
-// the Subject from the RFC2822 formatted body.
-func GetFromAndSubject(body []byte) (string, string, error) {
+// ParseRFC2822Message returns the email address in the From:, To: and Subject:
+// lines, and also returns the body of the message, which is presumed to be an
+// HTML formatted email.
+func ParseRFC2822Message(body []byte) (string, string, string, string, error) {
 	// From: senderDisplayName <sender email>
 	// Subject: subject
 	match := fromRegex.FindSubmatch(body)
 	if match == nil || len(match) < 2 {
-		return "", "", skerr.Fmt("Failed to find a From: line in message.")
+		return "", "", "", "", skerr.Fmt("Failed to find a From: line in message.")
 	}
 	from := string(match[1])
+
 	match = subjectRegex.FindSubmatch(body)
 	subject := defaultSubject
 	if len(match) >= 2 {
 		subject = string(bytes.TrimSpace(match[1]))
 	}
 
-	return from, subject, nil
+	match = toRegex.FindSubmatch(body)
+	if match == nil || len(match) < 2 {
+		return "", "", "", "", skerr.Fmt("Failed to find a To: line in message.")
+	}
+	to := string(match[1])
+
+	parts := doubleNewLine.Split(string(body), 2)
+	if len(parts) != 2 {
+		return "", "", "", "", skerr.Fmt("Failed to find the body of the message.")
+	}
+	messageBody := parts[1]
+
+	return from, to, subject, messageBody, nil
 }
 
 // GetThreadingReference returns the reference string that can be used to thread emails.

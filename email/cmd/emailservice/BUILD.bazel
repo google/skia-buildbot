@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "emailservice_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/email/cmd/emailservice",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//email/go/emailservice",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "emailservice",
+    embed = [":emailservice_lib"],
+    visibility = ["//visibility:public"],
+)

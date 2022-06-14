@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "emailservice",
+    srcs = ["emailservice.go"],
+    importpath = "go.skia.org/infra/email/go/emailservice",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common",
+        "//go/email",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/secret",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_sendgrid_sendgrid_go//:sendgrid-go",
+        "@com_github_sendgrid_sendgrid_go//helpers/mail",
+    ],
+)
+
+go_test(
+    name = "emailservice_test",
+    srcs = ["emailservice_test.go"],
+    embed = [":emailservice"],
+    deps = [
+        "//go/metrics2",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

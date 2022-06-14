@@ -68,9 +68,7 @@ Last-Modified: Wed, 22 Jul 2020 19:15:56 GMT
 Content-Type: text/html
 
 {
-	"error": {
-		"code": 200
-	}
+	"id": "some-email-id"
 }`)
 	return http.ReadResponse(bufio.NewReader(buf), r)
 }
@@ -99,29 +97,41 @@ func TestGMailSendWithMarkup(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestExtractSenderAndSubject_HappyPath(t *testing.T) {
+func TestParseRFC2822Message_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
-	sender, subject, err := GetFromAndSubject([]byte(`From: Alerts <alerts@skia.org>
-To: somone@example.org
-Subject: My Stuff`))
-	require.NoError(t, err)
-	require.Equal(t, "alerts@skia.org", sender)
-	require.Equal(t, "My Stuff", subject)
-}
-func TestExtractSenderAndSubject_EmptyInput_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
-	_, _, err := GetFromAndSubject([]byte(``))
-	require.Contains(t, err.Error(), "Failed to find a From: line")
-}
-func TestExtractSenderAndSubject_MissingSubject_DefaultSubjectIsReturned(t *testing.T) {
-	unittest.SmallTest(t)
-	sender, subject, err := GetFromAndSubject([]byte(`From: Alerts <alerts@skia.org>
-To: somone@example.org
+	from, to, subject, body, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
+To: someone@example.org
+Subject: My Stuff
+
+Hi!
 `))
 	require.NoError(t, err)
-	require.Equal(t, "alerts@skia.org", sender)
-	require.Equal(t, defaultSubject, subject)
+	require.Equal(t, "Alerts <alerts@skia.org>", from)
+	require.Equal(t, "someone@example.org", to)
+	require.Equal(t, "My Stuff", subject)
+	require.Equal(t, "Hi!\n", body)
 }
+
+func TestParseRFC2822Message_EmptyInput_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, _, _, _, err := ParseRFC2822Message([]byte(``))
+	require.Contains(t, err.Error(), "Failed to find a From: line")
+}
+
+func TestParseRFC2822Message_MissingSubject_DefaultSubjectIsReturned(t *testing.T) {
+	unittest.SmallTest(t)
+	from, to, subject, body, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
+To: someone@example.org
+
+Hi!
+`))
+	require.NoError(t, err)
+	require.Equal(t, "Alerts <alerts@skia.org>", from)
+	require.Equal(t, "someone@example.org", to)
+	require.Equal(t, "(no subject)", subject)
+	require.Equal(t, "Hi!\n", body)
+}
+
 func TestFormatAsRFC2822_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`

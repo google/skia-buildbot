@@ -1,0 +1,16 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "emailservice",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//email/cmd/emailservice:emailservice",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/emailservice",
+    repository = "skia-public/emailservice",
+)
