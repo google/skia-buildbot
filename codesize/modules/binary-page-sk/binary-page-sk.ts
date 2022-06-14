@@ -111,7 +111,7 @@ export class BinaryPageSk extends ElementSk {
       google.visualization.events.addOneTimeListener(tree, 'ready', resolve);
       tree.draw(data, options);
       document.addEventListener('theme-chooser-toggle', () => {
-        //if a user toggles the theme to/from darkmode then redraw
+        // if a user toggles the theme to/from darkmode then redraw
         tree.draw(data, options);
       });
     });
@@ -123,11 +123,11 @@ export class BinaryPageSk extends ElementSk {
         .replace('&', '&amp;')
         .replace('<', '&lt;')
         .replace('>', '&gt;');
-      var backgroundColor = isDarkMode() ? "#0a3055" : "#fd9";
+      const backgroundColor = isDarkMode() ? '#0a3055' : '#fd9';
       return `<div style="background: ${backgroundColor}; padding:10px; border-style:solid">
               <span style="font-family:Courier"> ${escapedLabel} <br>
               Size: ${size} </div>`;
-    };
+    }
   }
 }
 define('binary-page-sk', BinaryPageSk);
