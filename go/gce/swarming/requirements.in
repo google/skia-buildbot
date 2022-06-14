@@ -1,0 +1,7 @@
+# These are the unpinned requirements which are turned into the pinned ones in
+# setup-script-linux.sh. See that file for instructions.
+
+coverage
+
+# Needed due to skbug.com/7328:
+psutil

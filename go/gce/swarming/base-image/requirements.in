@@ -1,0 +1,4 @@
+# These are the unpinned requirements which are turned into the pinned ones in setup-script.sh. See
+# that file for instructions.
+
+crcmod
