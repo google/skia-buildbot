@@ -104,9 +104,10 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 	}
 	ret := &GMail{
 		service: service,
+		from:    "me",
 	}
 	if err := ret.populateFromAddress(); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to determine sending accounts email address.")
+		sklog.Errorf("Failed to determine sending accounts email address: %s", err)
 	}
 	return ret, nil
 }
