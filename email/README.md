@@ -25,3 +25,13 @@ Content-Type: text/html; charset=UTF-8
 </body>
 </html>
 ~~~
+
+## Client
+
+The `emailclient.Client` is a replacement for `email.Gmail` that will only
+need minor changes to a `SendWithMarkup()` call. It is almost a drop-in
+replacement for `email.Gmail.SendWithMarkup()`
+with the following changes:
+
+ - The 'from' email address must be supplied.
+ - The function no longer returns a message id.

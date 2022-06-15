@@ -89,8 +89,8 @@ func (a *App) reportSendError(w http.ResponseWriter, err error, msg string) {
 	a.sendFailure.Inc(1)
 }
 
-// Handle incoming POST's of RFC2822 formatted emails, which are then parsed
-// and sent.
+// Handle incoming POST's of RFC2822 formatted emails, which are then parsed and
+// sent.
 func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
 	// Read the entire RFC2822 body.
 	body, err := ioutil.ReadAll(r.Body)
@@ -134,9 +134,10 @@ func (a *App) Run() error {
 	r := mux.NewRouter()
 	r.HandleFunc("/send", a.incomingEmaiHandler).Methods("POST")
 
-	// We must specify that we handle /healthz or it will never flow through to our middleware.
-	// Even though this handler is never actually called (due to the early termination in
-	// httputils.HealthzAndHTTPS), we need to have it added to the routes we handle.
+	// We must specify that we handle /healthz or it will never flow through to
+	// our middleware. Even though this handler is never actually called (due to
+	// the early termination in httputils.HealthzAndHTTPS), we need to have it
+	// added to the routes we handle.
 	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	sklog.Infof("Ready to serve on port %s", a.port)
