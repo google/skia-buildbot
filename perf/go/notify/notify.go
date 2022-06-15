@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"regexp"
 
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -61,6 +62,24 @@ type NoEmail struct{}
 func (n NoEmail) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
 	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q ThreadingReference: %q", from, to, subject, body, threadingReference)
 	return "", nil
+}
+
+// EmailService implements Email using emailservice.
+type EmailService struct {
+	client emailclient.Client
+}
+
+// NewEmailService returns a new EmailService instance.
+func NewEmailService() EmailService {
+	return EmailService{
+		client: emailclient.New(),
+	}
+}
+
+// Send implements Email.
+func (e EmailService) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
+	err := e.client.SendWithMarkup("", from, to, subject, "", body, threadingReference)
+	return "", err
 }
 
 // Notifier sends notifications.

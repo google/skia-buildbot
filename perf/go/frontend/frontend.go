@@ -360,14 +360,10 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
-	if !f.flags.NoEmail {
-		f.emailAuth, err = email.NewFromFiles(f.flags.EmailTokenCacheFile, f.flags.EmailClientSecretFile)
-		if err != nil {
-			sklog.Fatalf("Failed to create email auth: %v", err)
-		}
-		f.notifier = notify.New(f.emailAuth, config.Config.URL)
-	} else {
+	if f.flags.NoEmail {
 		f.notifier = notify.New(notify.NoEmail{}, config.Config.URL)
+	} else {
+		f.notifier = notify.New(notify.NewEmailService(), config.Config.URL)
 	}
 
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
