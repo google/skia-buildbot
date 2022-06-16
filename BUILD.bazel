@@ -187,17 +187,6 @@ container_run_and_commit(
         # Install the add-apt-repository command, and other packages needed to fetch repositories.
         "echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list",
         "apt-get update",
-        "apt-get install -y software-properties-common apt-transport-https ca-certificates ca-certificates-java gnupg curl",
-        "update-ca-certificates",
-
-        # Add repo/keys to install kubectl, as per the instructions here:
-        # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
-        "curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg" +
-        "            https://packages.cloud.google.com/apt/doc/apt-key.gpg",
-        "echo 'deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg]" +
-        "      https://apt.kubernetes.io/ kubernetes-xenial main'" +
-        "     | tee /etc/apt/sources.list.d/kubernetes.list",
-        "apt-get update",
     ],
     image = "@google_debian10//image",  # Defined in WORKSPACE
     tags = [
@@ -284,6 +273,8 @@ language_tool_layer(
     name = "rbe_with_installed_packages",
     base = ":rbe_with_setup",
     packages = [
+        # curl is needed by depot_tools.
+        "curl",
         # Libraries needed for Chrome and Chromium.
         #
         # We arrived at the below list of libraries by repeatedly running an arbitrary Karma test
