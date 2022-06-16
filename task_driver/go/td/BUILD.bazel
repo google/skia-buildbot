@@ -45,6 +45,7 @@ go_test(
     ],
     embed = [":td"],
     deps = [
+        "//bazel/external/rules_python",
         "//go/deepequal/assertdeep",
         "//go/exec",
         "//go/testutils/unittest",

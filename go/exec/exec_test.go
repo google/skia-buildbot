@@ -17,6 +17,7 @@ import (
 
 	expect "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -97,13 +98,14 @@ func TestSquashWriters(t *testing.T) {
 
 func TestBasic(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	prog := fmt.Sprintf("with open(r'%s', 'w') as f: f.write('')", file)
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python3",
+		Name: findPython3(t),
 		Args: []string{"-c", prog},
 	}))
 	_, err = os.Stat(file)
@@ -112,13 +114,14 @@ func TestBasic(t *testing.T) {
 
 func TestEnv(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 
 	err = Run(context.Background(), &Command{
-		Name: "python3",
+		Name: findPython3(t),
 		Args: []string{"-c", `
 import os
 with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
@@ -134,12 +137,13 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestInheritPath(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python3",
+		Name: findPython3(t),
 		Args: []string{"-c", `
 import os
 with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
@@ -156,12 +160,13 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestInheritEnv(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python3",
+		Name: findPython3(t),
 		Args: []string{"-c", `
 import os
 with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
@@ -188,6 +193,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestDir(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir1, err := ioutil.TempDir("", "exec_test1")
 	require.NoError(t, err)
 	defer RemoveAll(dir1)
@@ -195,7 +201,7 @@ func TestDir(t *testing.T) {
 	require.NoError(t, err)
 	defer RemoveAll(dir2)
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: findPython3(t),
 		Args: []string{"-c", "with open('output.txt', 'w') as f: f.write('Hello World!')"},
 		Dir:  dir2,
 	}))
@@ -206,10 +212,11 @@ func TestDir(t *testing.T) {
 
 func TestSimpleIO(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
 	require.NoError(t, Run(context.Background(), &Command{
-		Name:   "python",
+		Name:   findPython3(t),
 		Args:   []string{"-u", "-c", "import sys; sys.stdout.write(sys.stdin.read()[4:])"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
 		Stdout: &output,
@@ -219,12 +226,13 @@ func TestSimpleIO(t *testing.T) {
 
 func TestError(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	output := bytes.Buffer{}
 	err = Run(context.Background(), &Command{
-		Name: "python",
+		Name: findPython3(t),
 		Args: []string{"-u", "-c", `
 import sys
 sys.stderr.write('Error in subprocess!')
@@ -242,12 +250,13 @@ sys.exit(123)
 
 func TestCombinedOutput(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	combined := bytes.Buffer{}
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: findPython3(t),
 		Args: []string{"-u", "-c", `
 import sys
 sys.stdout.write('roses')
@@ -269,9 +278,10 @@ sys.stderr.write('blue')
 // See http://devs.cloudimmunity.com/gotchas-and-common-mistakes-in-go-golang/index.html#nil_in_nil_in_vals
 func TestNilIO(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	inputString := "foo\nbar\nbaz\n"
 	require.NoError(t, Run(context.Background(), &Command{
-		Name:   "python",
+		Name:   findPython3(t),
 		Args:   []string{"-u", "-c", "import sys; sys.stdout.write(sys.stdin.read()[4:])"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
 		Stdout: (*os.File)(nil),
@@ -280,11 +290,12 @@ func TestNilIO(t *testing.T) {
 
 func TestTimeoutNotReached(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: findPython3(t),
 		Args: []string{"-c", `
 import time
 time.sleep(3)
@@ -301,11 +312,12 @@ with open('ran', 'w') as f:
 
 func TestTimeoutExceeded(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	err = Run(context.Background(), &Command{
-		Name: "python",
+		Name: findPython3(t),
 		Args: []string{"-c", `
 import time
 time.sleep(3)
@@ -357,10 +369,11 @@ func TestRunSimple(t *testing.T) {
 
 func TestRunCwd(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
-	output, err := RunCwd(context.Background(), dir, "python3", "-u", "-c", "import os; print(os.getcwd())")
+	output, err := RunCwd(context.Background(), dir, findPython3(t), "-u", "-c", "import os; print(os.getcwd())")
 	require.NoError(t, err)
 	expectPath, err := filepath.EvalSymlinks(dir)
 	require.NoError(t, err)
@@ -404,17 +417,24 @@ func TestCommandCollector(t *testing.T) {
 
 func TestRunCommand(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	ctx := context.Background()
 	// Without a thread-safe io.Writer for Command.CombinedOutput, this test
 	// fails "go test -race" and the output does not consistently match the
 	// expectation.
 	buf := &bytes.Buffer{}
 	output, err := RunCommand(ctx, &Command{
-		Name:   "python3",
+		Name:   findPython3(t),
 		Args:   []string{"-u", "-c", "print('hello world')"},
 		Stdout: buf,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "hello world\n", output)
 	require.Equal(t, output, buf.String())
+}
+
+func findPython3(t *testing.T) string {
+	python3, err := rules_python.FindPython3()
+	require.NoError(t, err)
+	return python3
 }

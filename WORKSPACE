@@ -39,6 +39,30 @@ http_archive(
     ),
 )
 
+#################
+# Python rules. #
+#################
+
+http_archive(
+    name = "rules_python",
+    sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
+    strip_prefix = "rules_python-0.8.1",
+    urls = gcs_mirror_url(
+        sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.1.tar.gz",
+    ),
+)
+
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+# Hermetically downloads Python 3.
+python_register_toolchains(
+    name = "python3_10",
+    # Taken from
+    # https://github.com/bazelbuild/rules_python/blob/63805ab7a65b90c4723ecbe18f2c88da714e5d7a/python/versions.bzl#L94.
+    python_version = "3.10",
+)
+
 ##############################
 # Go rules and dependencies. #
 ##############################

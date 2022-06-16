@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -86,6 +87,7 @@ func TestDefer(t *testing.T) {
 
 func TestExec(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 
 	// Basic tests around executing subprocesses.
 	_ = RunTestSteps(t, false, func(ctx context.Context) error {
@@ -102,13 +104,15 @@ func TestExec(t *testing.T) {
 		require.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
-		out, err := exec.RunCwd(ctx, ".", "python3", "-c", "print('hello world')")
+		python3, err := rules_python.FindPython3()
+		require.NoError(t, err)
+		out, err := exec.RunCwd(ctx, ".", python3, "-c", "print('hello world')")
 		require.NoError(t, err)
 		require.True(t, strings.Contains(out, "hello world"))
 		require.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
-		out, err = exec.RunCwd(ctx, ".", "python3", "-c", "import sys; print('stdout'); print('stderr',file=sys.stderr)")
+		out, err = exec.RunCwd(ctx, ".", python3, "-c", "import sys; print('stdout'); print('stderr',file=sys.stderr)")
 		require.NoError(t, err)
 		require.True(t, strings.Contains(out, "stdout"))
 		require.True(t, strings.Contains(out, "stderr"))

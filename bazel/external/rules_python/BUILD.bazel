@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "rules_python",
+    srcs = ["rules_python.go"],
+    data = select({
+        "@platforms//os:linux": ["@python3_10_x86_64-unknown-linux-gnu//:files"],
+        "//conditions:default": [],  # Prevent errors on platforms without this package.
+    }),
+    importpath = "go.skia.org/infra/bazel/external/rules_python",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "rules_python_test",
+    srcs = ["rules_python_test.go"],
+    embed = [":rules_python"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

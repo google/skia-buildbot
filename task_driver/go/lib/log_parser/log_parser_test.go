@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
@@ -132,6 +133,9 @@ var numberedStepsTokenHandler = RegexpTokenHandler(numberedStepsRe)
 // runPythonScript writes the given Python script to a temporary file and runs
 // a Task Driver which uses log_parser.Run with the given TokenHandler.
 func runPythonScript(t *testing.T, fn TokenHandler, script string) *td.StepReport {
+	python3, err := rules_python.FindPython3()
+	require.NoError(t, err)
+
 	// Write a script to generate steps.
 	tmp := t.TempDir()
 	scriptPath := filepath.Join(tmp, "script.py")
@@ -139,7 +143,7 @@ func runPythonScript(t *testing.T, fn TokenHandler, script string) *td.StepRepor
 
 	// Run the Task Driver.
 	return td.RunTestSteps(t, false, func(ctx context.Context) error {
-		return Run(ctx, ".", []string{"python", "-u", scriptPath}, bufio.ScanLines, fn)
+		return Run(ctx, ".", []string{python3, "-u", scriptPath}, bufio.ScanLines, fn)
 	})
 }
 
@@ -163,6 +167,7 @@ func assertLogMatchesContent(t *testing.T, s *td.StepReport, logName, expect str
 
 func TestLogs(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 
 	// This script writes log output which implies two sub-steps. We expect
 	// the numberedStepsTokenHandler to actually emit these two steps, and

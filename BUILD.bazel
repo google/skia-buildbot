@@ -214,8 +214,6 @@ container_run_and_commit(
         # Bazel looks for clang and clang++, not the versioned binaries. Symlinks make that happen.
         "ln -s /usr/bin/clang-11 /usr/bin/clang",
         "ln -s /usr/bin/clang++-11 /usr/bin/clang++",
-        # Make python3 available via the python symlink
-        "ln -s /usr/bin/python3 /usr/bin/python",
     ],
     # By default, the :rbe_with_toolchains rule refers to the -layer.tar, which is not a valid
     # docker image. By specifying .tar, we use the image itself that was output from the rule.
@@ -329,8 +327,6 @@ language_tool_layer(
         "libxrandr2=2:1.5.1-1",
         "libxrender1=1:0.9.10-1",
         "libxshmfence1=1.3-1",
-        # Python3 is necessary for some tests/scripts
-        "python3",
         # zip is necessary for the undeclared outputs of tests running on RBE to show up under
         # //_bazel_testlogs/path/to/test/test.outputs/outputs.zip. This is the mechanism we use to
         # extract screenshots taken by Puppeteer tests. See b/147694106.

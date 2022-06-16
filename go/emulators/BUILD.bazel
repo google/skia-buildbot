@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//bazel/external/cockroachdb",
         "//bazel/external/google_cloud_sdk",
+        "//bazel/external/rules_python",
         "//bazel/go/bazel",
         "//go/netutils",
         "//go/skerr",

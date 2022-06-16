@@ -19,6 +19,7 @@ go_test(
     srcs = ["log_parser_test.go"],
     embed = [":log_parser"],
     deps = [
+        "//bazel/external/rules_python",
         "//go/testutils",
         "//go/testutils/unittest",
         "//task_driver/go/td",

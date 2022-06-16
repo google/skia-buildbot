@@ -23,6 +23,7 @@ go_test(
     srcs = ["exec_test.go"],
     embed = [":exec"],
     deps = [
+        "//bazel/external/rules_python",
         "//go/sklog",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",

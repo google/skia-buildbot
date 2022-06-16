@@ -16,12 +16,14 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
 
 	"go.skia.org/infra/bazel/external/cockroachdb"
 	"go.skia.org/infra/bazel/external/google_cloud_sdk"
+	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/netutils"
 	"go.skia.org/infra/go/skerr"
@@ -264,6 +266,18 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	if bazel.InBazelTest() {
+		// Add Bazel-downloaded `python3` binary to the PATH. The `gcloud` comand requires this.
+		python3, err := rules_python.FindPython3()
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		python3BinaryDir := filepath.Dir(python3)
+		if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", python3BinaryDir, os.Getenv("PATH"))); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
 
 	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
