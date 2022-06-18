@@ -171,7 +171,10 @@ func ProcessRegressions(ctx context.Context,
 		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert)
 		if err != nil {
 			if iteration == ContinueOnError {
-				sklog.Warning(err)
+				// Don't log if we just didn't get enough data.
+				if err != dfiter.ErrInsufficientData {
+					sklog.Warning(err)
+				}
 				continue
 			}
 			return err

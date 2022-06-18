@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/query",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/alerts",
         "//perf/go/dataframe",
         "//perf/go/git",

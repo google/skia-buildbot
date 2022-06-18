@@ -3,6 +3,7 @@ package dfiter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -10,12 +11,17 @@ import (
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
 )
+
+// ErrInsufficientData is returned by the DataFrameIterator if all the queries
+// compeleted successfully, but there wasn't enough data to continue.
+var ErrInsufficientData = errors.New("insufficient data")
 
 // DataFrameIterator is an iterator that produces DataFrames.
 //
@@ -135,7 +141,8 @@ func NewDataFrameIterator(
 		if regressionStateCallback != nil {
 			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1))
 		}
-		return nil, skerr.Fmt("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1)
+		sklog.Infof("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1)
+		return nil, ErrInsufficientData
 	}
 	return &dataframeSlicer{
 		df:     df,
