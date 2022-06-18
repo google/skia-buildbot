@@ -35,11 +35,13 @@ func main() {
 		sklog.Fatalf("Could not resolve srcdir %s: %s", *srcdir, err)
 	}
 	sklog.Infof("Traversing %s", p)
+	depthOfBuildbotRepoRoot := len(strings.Split(p, string(filepath.Separator)))
 	err = filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && len(strings.Split(path, string(filepath.Separator)))-1 > *depth {
+		depthOfFile := len(strings.Split(path, string(filepath.Separator)))
+		if info.IsDir() && depthOfFile-depthOfBuildbotRepoRoot > *depth {
 			return filepath.SkipDir
 		}
 		if info.Name() == "probersk.json" {

@@ -6,7 +6,7 @@ exports_files([
 ])
 
 skia_app_container(
-    name = "proberk_container",
+    name = "proberk",
     dirs = {
         "/usr/local/bin": [
             [

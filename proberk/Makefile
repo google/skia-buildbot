@@ -2,9 +2,10 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
+	-rm `pwd`/allprobersk.json
 	$(BAZEL) build //proberk/go/...
 	$(BAZEL) run //proberk/go/build_probersk_json:build_probersk_json5 -- \
- 		--dest=allprobersk.json --srcdir `pwd`/..
+ 		--dest=`pwd`/allprobersk.json --srcdir $(realpath $(CURDIR)/..)
 
 .PHONY: validate
 validate: build
@@ -13,16 +14,16 @@ validate: build
 
 .PHONY: release
 release: build
-	$(BAZEL) run //proberk:push_proberk_container
+	$(BAZEL) run //proberk:push_proberk
 
 .PHONY: update-expectations
 update-expectations:
 	curl https://skia.googlesource.com?format=JSON > expectations/gob.json
 
 .PHONY: push
-push: pushk release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout proberk
+push: validate
+	$(BAZEL) run //proberk:pushk_proberk
 
-run-local-instance: build
+run-local-instance: validate
 	$(BAZEL) run //proberk/go/proberk -- \
  		--local --run_every=1s --config=`pwd`/allprobersk.json --expectations_dir=`pwd`/expectations
