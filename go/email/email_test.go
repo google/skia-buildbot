@@ -100,14 +100,14 @@ func TestGMailSendWithMarkup(t *testing.T) {
 func TestParseRFC2822Message_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 	from, to, subject, body, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
-To: someone@example.org
+To:  A Display Name <a@example.com>, B <b@example.org>,,
 Subject: My Stuff
 
 Hi!
 `))
 	require.NoError(t, err)
 	require.Equal(t, "Alerts <alerts@skia.org>", from)
-	require.Equal(t, "someone@example.org", to)
+	require.Equal(t, []string{"A Display Name <a@example.com>", "B <b@example.org>"}, to)
 	require.Equal(t, "My Stuff", subject)
 	require.Equal(t, "Hi!\n", body)
 }
@@ -116,6 +116,17 @@ func TestParseRFC2822Message_EmptyInput_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	_, _, _, _, err := ParseRFC2822Message([]byte(``))
 	require.Contains(t, err.Error(), "Failed to find a From: line")
+}
+
+func TestParseRFC2822Message_EmptyToLine_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, _, _, _, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
+To:  ,,,
+Subject: My Stuff
+
+Hi!
+`))
+	require.Contains(t, err.Error(), "Failed to find any To: addresses")
 }
 
 func TestParseRFC2822Message_MissingSubject_DefaultSubjectIsReturned(t *testing.T) {
@@ -127,7 +138,7 @@ Hi!
 `))
 	require.NoError(t, err)
 	require.Equal(t, "Alerts <alerts@skia.org>", from)
-	require.Equal(t, "someone@example.org", to)
+	require.Equal(t, []string{"someone@example.org"}, to)
 	require.Equal(t, "(no subject)", subject)
 	require.Equal(t, "Hi!\n", body)
 }

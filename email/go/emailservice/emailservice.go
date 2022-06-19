@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -37,7 +38,7 @@ type App struct {
 	secretName string
 
 	sendgridClient *sendgrid.Client
-	sendSucces     metrics2.Counter
+	sendSuccess    metrics2.Counter
 	sendFailure    metrics2.Counter
 }
 
@@ -78,7 +79,7 @@ func New(ctx context.Context) (*App, error) {
 	}
 	sklog.Infof("API Key retrieved.")
 
-	ret.sendSucces = metrics2.GetCounter("emailservice_send_success")
+	ret.sendSuccess = metrics2.GetCounter("emailservice_send_success")
 	ret.sendFailure = metrics2.GetCounter("emailservice_send_failure")
 	ret.sendgridClient = sendgrid.NewSendClient(sendGridAPIKey)
 	return &ret, nil
@@ -89,14 +90,11 @@ func (a *App) reportSendError(w http.ResponseWriter, err error, msg string) {
 	a.sendFailure.Inc(1)
 }
 
-// Handle incoming POST's of RFC2822 formatted emails, which are then parsed and
-// sent.
-func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
-	// Read the entire RFC2822 body.
-	body, err := ioutil.ReadAll(r.Body)
+func convertRFC2822ToSendGrid(r io.Reader) (*mail.SGMailV3, error) {
+	// Parse the entire incoming RFC2822 body.
+	body, err := ioutil.ReadAll(r)
 	if err != nil {
-		a.reportSendError(w, err, "Failed to read body.")
-		return
+		return nil, skerr.Wrapf(err, "Failed to read body.")
 	}
 	bodyAsString := string(body)
 
@@ -104,27 +102,53 @@ func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
 
 	from, to, subject, htmlBody, err := email.ParseRFC2822Message(body)
 	if err != nil {
-		a.reportSendError(w, err, "Failed to parse RFC 2822 body.")
-		return
+		return nil, skerr.Wrapf(err, "Failed to parse RFC 2822 body.")
 	}
 
+	// Parse the From: line.
 	parsedFrom, err := mail.ParseEmail(from)
 	if err != nil {
-		a.reportSendError(w, err, "Failed to parse From: address.")
-		return
+		return nil, skerr.Wrapf(err, "Failed to parse From: address.")
 	}
-	parsedTo, err := mail.ParseEmail(to)
+
+	m := mail.NewV3Mail()
+	m.SetFrom(parsedFrom)
+	m.Subject = subject
+
+	// Parse the To: line.
+	p := mail.NewPersonalization()
+	tos := []*mail.Email{}
+	for _, addr := range to {
+		parsedTo, err := mail.ParseEmail(addr)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to parse To: address.")
+		}
+		tos = append(tos, parsedTo)
+	}
+	p.AddTos(tos...)
+	m.AddPersonalizations(p)
+
+	c := mail.NewContent("text/html", htmlBody)
+	m.AddContent(c)
+	return m, nil
+}
+
+// Handle incoming POST's of RFC2822 formatted emails, which are then parsed and
+// sent.
+func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
+	m, err := convertRFC2822ToSendGrid(r.Body)
 	if err != nil {
-		a.reportSendError(w, err, "Failed to parse To: address.")
+		a.reportSendError(w, err, "Failed to convert RFC2822 body to SendGrid API format")
 		return
 	}
 
-	resp, err := a.sendgridClient.Send(mail.NewSingleEmail(parsedFrom, subject, parsedTo, "", htmlBody))
+	resp, err := a.sendgridClient.Send(m)
 	if err != nil {
 		a.reportSendError(w, err, fmt.Sprintf("Failed to send via API: %q", resp.Body))
 		return
 	}
-	sklog.Infof("Successfully sent from: %q to: %q", from, to)
+	sklog.Infof("Successfully sent from: %q", m.From.Address)
+	a.sendSuccess.Inc(1)
 }
 
 // Run the email service. This function will only return on failure.

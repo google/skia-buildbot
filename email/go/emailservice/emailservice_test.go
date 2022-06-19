@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -41,11 +42,11 @@ In-Reply-To: some-reference-id
 
 func createAppForTest(t *testing.T) *App {
 	ret := &App{
-		sendSucces:  metrics2.GetCounter("emailservice_send_success"),
+		sendSuccess: metrics2.GetCounter("emailservice_send_success"),
 		sendFailure: metrics2.GetCounter("emailservice_send_failure"),
 	}
 	ret.sendFailure.Reset()
-	ret.sendSucces.Reset()
+	ret.sendSuccess.Reset()
 
 	return ret
 }
@@ -58,41 +59,48 @@ func TestAppIncomingEmaiHandler_RequestBodyIsInvalidRFC2822Message_ReturnsHTTPEr
 
 	app.incomingEmaiHandler(w, r)
 	require.Equal(t, http.StatusBadRequest, w.Code)
-	require.Equal(t, "Failed to parse RFC 2822 body.\n", w.Body.String())
+	require.Equal(t, "Failed to convert RFC2822 body to SendGrid API format\n", w.Body.String())
 	require.Equal(t, int64(1), app.sendFailure.Get())
-	require.Equal(t, int64(0), app.sendSucces.Get())
+	require.Equal(t, int64(0), app.sendSuccess.Get())
 }
 
-func TestAppIncomingEmaiHandler_FromLineIsInvalid_ReturnsHTTPError(t *testing.T) {
+func TestConvertRFC2822ToSendGrid_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
-	app := createAppForTest(t)
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("POST", "/send", bytes.NewBufferString(`From: me
-To: you@example.org
+	body := bytes.NewBufferString(`From: Alert Service <alerts@skia.org>
+To: test@example.com, B <b@example.com>
+Subject: An Alert!
+Content-Type: text/html; charset=UTF-8
+References: some-reference-id
+In-Reply-To: some-reference-id
 
-
-`))
-
-	app.incomingEmaiHandler(w, r)
-	require.Equal(t, http.StatusBadRequest, w.Code)
-	require.Equal(t, "Failed to parse From: address.\n", w.Body.String())
-	require.Equal(t, int64(1), app.sendFailure.Get())
-	require.Equal(t, int64(0), app.sendSucces.Get())
+Hi!
+`)
+	m, err := convertRFC2822ToSendGrid(body)
+	require.NoError(t, err)
+	require.Equal(t, "{\"from\":{\"name\":\"Alert Service\",\"email\":\"alerts@skia.org\"},\"subject\":\"An Alert!\",\"personalizations\":[{\"to\":[{\"email\":\"test@example.com\"},{\"name\":\"B\",\"email\":\"b@example.com\"}]}],\"content\":[{\"type\":\"text/html\",\"value\":\"Hi!\\n\"}]}", string(mail.GetRequestBody(m)))
 }
 
-func TestAppIncomingEmaiHandler_ToLineIsInvalid_ReturnsHTTPError(t *testing.T) {
+func TestConvertRFC2822ToSendGrid_ToLineIsInvalid_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
-	app := createAppForTest(t)
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("POST", "/send", bytes.NewBufferString(`From: me@example.org
+	body := bytes.NewBufferString(`From: Alert Service <alerts@skia.org>
 To: you
+Subject: An Alert!
+Content-Type: text/html; charset=UTF-8
 
+Hi!
+`)
+	_, err := convertRFC2822ToSendGrid(body)
+	require.Contains(t, err.Error(), "Failed to parse To: address")
+}
 
-`))
+func TestConvertRFC2822ToSendGrid_FromLineIsInvalid_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	body := bytes.NewBufferString(`From: me
+To: you@example.com
+Subject: An Alert!
 
-	app.incomingEmaiHandler(w, r)
-	require.Equal(t, http.StatusBadRequest, w.Code)
-	require.Equal(t, "Failed to parse To: address.\n", w.Body.String())
-	require.Equal(t, int64(1), app.sendFailure.Get())
-	require.Equal(t, int64(0), app.sendSucces.Get())
+Hi!
+`)
+	_, err := convertRFC2822ToSendGrid(body)
+	require.Contains(t, err.Error(), "Failed to parse From: address")
 }

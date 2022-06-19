@@ -27,6 +27,7 @@ go_test(
     deps = [
         "//go/metrics2",
         "//go/testutils/unittest",
+        "@com_github_sendgrid_sendgrid_go//helpers/mail",
         "@com_github_stretchr_testify//require",
     ],
 )

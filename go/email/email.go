@@ -230,12 +230,13 @@ const defaultSubject = "(no subject)"
 // ParseRFC2822Message returns the email address in the From:, To: and Subject:
 // lines, and also returns the body of the message, which is presumed to be an
 // HTML formatted email.
-func ParseRFC2822Message(body []byte) (string, string, string, string, error) {
+func ParseRFC2822Message(body []byte) (string, []string, string, string, error) {
 	// From: senderDisplayName <sender email>
 	// Subject: subject
+	// To: A Display Name <a@example.com>, B <b@example.org>
 	match := fromRegex.FindSubmatch(body)
 	if match == nil || len(match) < 2 {
-		return "", "", "", "", skerr.Fmt("Failed to find a From: line in message.")
+		return "", nil, "", "", skerr.Fmt("Failed to find a From: line in message.")
 	}
 	from := string(match[1])
 
@@ -247,13 +248,22 @@ func ParseRFC2822Message(body []byte) (string, string, string, string, error) {
 
 	match = toRegex.FindSubmatch(body)
 	if match == nil || len(match) < 2 {
-		return "", "", "", "", skerr.Fmt("Failed to find a To: line in message.")
+		return "", nil, "", "", skerr.Fmt("Failed to find a To: line in message.")
 	}
-	to := string(match[1])
+	to := []string{}
+	for _, addr := range bytes.Split(match[1], []byte(",")) {
+		toAsString := string(bytes.TrimSpace(addr))
+		if toAsString != "" {
+			to = append(to, toAsString)
+		}
+	}
+	if len(to) < 1 {
+		return "", nil, "", "", skerr.Fmt("Failed to find any To: addresses.")
+	}
 
 	parts := doubleNewLine.Split(string(body), 2)
 	if len(parts) != 2 {
-		return "", "", "", "", skerr.Fmt("Failed to find the body of the message.")
+		return "", nil, "", "", skerr.Fmt("Failed to find the body of the message.")
 	}
 	messageBody := parts[1]
 
