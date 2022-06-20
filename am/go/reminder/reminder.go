@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
@@ -53,10 +54,10 @@ type Reminder struct {
 }
 
 type emailTicker struct {
-	t         *time.Timer
-	iStore    *incident.Store
-	sStore    *silence.Store
-	emailAuth *email.GMail
+	t      *time.Timer
+	iStore *incident.Store
+	sStore *silence.Store
+	email  emailclient.Client
 }
 
 // getDailyNextTickDuration returns the duration after which the reminder should be sent.
@@ -147,7 +148,7 @@ func (et emailTicker) remindAlertOwners() error {
 		if err != nil {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
-		if _, err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o}, emailSubject, emailBytes.String(), viewActionMarkup, ""); err != nil {
+		if err := et.email.SendWithMarkup("Alert Manager", "alertserver@skia.org", []string{o}, emailSubject, emailBytes.String(), viewActionMarkup, ""); err != nil {
 			return fmt.Errorf("Could not send email: %s", err)
 		}
 	}
@@ -155,12 +156,13 @@ func (et emailTicker) remindAlertOwners() error {
 	return nil
 }
 
-func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, emailAuth *email.GMail) {
+// StartReminderTicker sends reminders on a periodic basis.
+func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, email emailclient.Client) {
 	et := emailTicker{
-		t:         time.NewTimer(getDailyNextTickDuration(time.Now().UTC(), reminderHourUTC)),
-		iStore:    iStore,
-		sStore:    sStore,
-		emailAuth: emailAuth,
+		t:      time.NewTimer(getDailyNextTickDuration(time.Now().UTC(), reminderHourUTC)),
+		iStore: iStore,
+		sStore: sStore,
+		email:  email,
 	}
 	go func() {
 		for {

@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//am/go/incident",
         "//am/go/silence",
+        "//email/go/emailclient",
         "//go/ds",
         "//go/email",
         "//go/httputils",
