@@ -498,3 +498,14 @@ groups:
     annotations:
       abbr: '{{ $labels.exported_job }}'
       description: 'The SKPs asset creation script in the latest RecreateSKPs bot run failed. Find the failed run and investigate: https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
+
+# Email Service
+  - alert: EmailServiceSendFailure
+    expr: rate(emailservice_send_failure[12h]) > 0
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      abbr: '{{ $labels.exported_job }}'
+      description: 'The email service has failed to send at least one email. Check the logs https://cloudlogging.app.goo.gl/3WAVsUT5sruM86Er8.'
