@@ -2,68 +2,20 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
 	"html"
-	"io"
-	"io/ioutil"
 	"strings"
 
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/email"
-	skutil "go.skia.org/infra/go/util"
 )
 
 const (
-	CT_EMAIL_DISPLAY_NAME = "Cluster Telemetry"
-	GMAIL_CACHED_TOKEN    = "ct_gmail_cached_token"
+	emailDisplayName = "Cluster Telemetry"
+
+	emailFromAddress = "ct@skia.org"
 )
-
-var (
-	emailClientId     string
-	emailClientSecret string
-	emailTokenPath    string
-)
-
-type ClientConfig struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-type Installed struct {
-	Installed ClientConfig `json:"installed"`
-}
-
-func MailInit(emailClientSecretFile, emailTokenCacheFile string) error {
-	var cfg Installed
-	err := skutil.WithReadFile(emailClientSecretFile, func(f io.Reader) error {
-		return json.NewDecoder(f).Decode(&cfg)
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to read client secrets from %q: %s", emailClientSecretFile, err)
-	}
-	// Create a copy of the token cache file since mounted secrets are read-only
-	// and the access token will need to be updated for the oauth2 flow.
-	fout, err := ioutil.TempFile("", "")
-	if err != nil {
-		return fmt.Errorf("Unable to create temp file: %s", err)
-	}
-	err = skutil.WithReadFile(emailTokenCacheFile, func(fin io.Reader) error {
-		_, err := io.Copy(fout, fin)
-		if err != nil {
-			err = fout.Close()
-		}
-		return err
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to write token cache file from %q to %q: %s", emailTokenCacheFile, fout.Name(), err)
-	}
-	emailTokenCacheFile = fout.Name()
-	emailClientId = cfg.Installed.ClientID
-	emailClientSecret = cfg.Installed.ClientSecret
-	emailTokenPath = emailTokenCacheFile
-
-	return nil
-}
 
 // ParseEmails returns an array containing emails from the provided comma
 // separated emails string.
@@ -77,11 +29,8 @@ func ParseEmails(emails string) []string {
 
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
-	gmail, err := email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
-	if err != nil {
-		return fmt.Errorf("Could not initialize gmail object: %s", err)
-	}
-	if _, err := gmail.Send(CT_EMAIL_DISPLAY_NAME, recipients, subject, body, ""); err != nil {
+	email := emailclient.New()
+	if err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, "", ""); err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 
@@ -93,11 +42,8 @@ func SendEmail(recipients []string, subject, body string) error {
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
-	gmail, err := email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
-	if err != nil {
-		return fmt.Errorf("Could not initialize gmail object: %s", err)
-	}
-	if _, err := gmail.SendWithMarkup(CT_EMAIL_DISPLAY_NAME, recipients, subject, body, markup, ""); err != nil {
+	email := emailclient.New()
+	if err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
 		return fmt.Errorf("Could not send email with markup: %s", err)
 	}
 

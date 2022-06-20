@@ -343,13 +343,6 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	if !*local {
-		// Initialize mailing library.
-		if err := ctfeutil.MailInit(*emailClientSecretFile, *emailTokenCacheFile); err != nil {
-			sklog.Fatalf("Could not initialize mailing library: %s", err)
-		}
-	}
-
 	if *local {
 		login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
 	} else {
