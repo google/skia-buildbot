@@ -49,9 +49,6 @@ var (
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
 
 	silenceRecentlyExpiredDuration = flag.Duration("recently_expired_duration", 2*time.Hour, "Incidents with silences that recently expired within this duration are shown with an icon.")
-
-	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile   = flag.String("email_token_cache_file", "", "OAuth token cache file for sending email.")
 )
 
 const (

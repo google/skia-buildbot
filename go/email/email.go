@@ -3,11 +3,8 @@ package email
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
-	"io/ioutil"
 	"regexp"
 	"strings"
 	ttemplate "text/template"
@@ -16,7 +13,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	gmail "google.golang.org/api/gmail/v1"
 )
 
@@ -109,47 +105,6 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 		sklog.Errorf("Failed to determine sending accounts email address: %s", err)
 	}
 	return ret, nil
-}
-
-// ClientSecrets is the structure of a client_secrets.json file that contains info on an installed client.
-type ClientSecrets struct {
-	Installed ClientConfig `json:"installed"`
-}
-
-type ClientConfig struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-
-// NewFromFiles creates a new GMail object authorized from the given files.
-//
-// Creates a copy of the token cache file in /tmp since mounted secrets are read-only.
-func NewFromFiles(emailTokenCacheFile, emailClientSecretsFile string) (*GMail, error) {
-	var clientSecrets ClientSecrets
-	err := util.WithReadFile(emailClientSecretsFile, func(f io.Reader) error {
-		return json.NewDecoder(f).Decode(&clientSecrets)
-	})
-	if err != nil {
-		sklog.Fatalf("Failed to read client secrets from %q: %s", emailClientSecretsFile, err)
-	}
-	// Create a copy of the token cache file since mounted secrets are read-only.
-	fout, err := ioutil.TempFile("", "")
-	if err != nil {
-		sklog.Fatalf("Unable to create temp file %q: %s", fout.Name(), err)
-	}
-	err = util.WithReadFile(emailTokenCacheFile, func(fin io.Reader) error {
-		_, err := io.Copy(fout, fin)
-		if err != nil {
-			err = fout.Close()
-		}
-		return err
-	})
-	if err != nil {
-		sklog.Fatalf("Failed to write token cache file from %q to %q: %s", emailTokenCacheFile, fout.Name(), err)
-	}
-	emailTokenCacheFile = fout.Name()
-
-	return NewGMail(clientSecrets.Installed.ClientID, clientSecrets.Installed.ClientSecret, emailTokenCacheFile)
 }
 
 // populateFromAddress fills in a.from with the email address for the
