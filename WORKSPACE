@@ -10,7 +10,7 @@ workspace(
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//bazel:gcs_mirror.bzl", "gcs_mirror_url")
 
-# Read the instructions in //bazel/rbe/README.md before updating this repository.
+# Read the instructions in //bazel/rbe/generated/README.md before updating this repository.
 #
 # We load bazel-toolchains here, rather than closer where it's first used (RBE container toolchain),
 # because the grpc_deps() macro (invoked below) will pull an old version of bazel-toolchains if it's
@@ -283,15 +283,6 @@ rbe_exec_properties(
 ######################
 # Docker containers. #
 ######################
-
-# Pulls the gcr.io/google/rbe-ubuntu16-04 container, used as the base container for our custom RBE
-# toolchain container.
-container_pull(
-    name = "google_debian10",
-    digest = "sha256:96a0145e8bb84d6886abfb9f6a955d9ab3f8b1876b8f7572273598c86e902983",
-    registry = "gcr.io",
-    repository = "cloud-marketplace/google/debian10",
-)
 
 # Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
 container_pull(
