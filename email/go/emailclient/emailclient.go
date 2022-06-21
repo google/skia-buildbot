@@ -2,10 +2,8 @@
 package emailclient
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -36,20 +34,14 @@ func New() Client {
 //
 // - The 'from' email address must be supplied.
 func (c *Client) SendWithMarkup(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
-	// Generate the Message-ID.
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to generate uuid")
-	}
-	messageID := fmt.Sprintf("<%x@skia.org>", id)
-	msgBytes, err := email.FormatAsRFC2822(fromDisplayName, from, to, subject, body, markup, threadingReference, messageID)
+	msgBytes, err := email.FormatAsRFC2822(fromDisplayName, from, to, subject, body, markup, threadingReference, "")
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to format.")
 	}
 	sklog.Infof("Message to send: %q", msgBytes.String())
-	_, err = c.client.Post(c.emailServiceURL, "message/rfc822", msgBytes)
+	resp, err := c.client.Post(c.emailServiceURL, "message/rfc822", msgBytes)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to send.")
 	}
-	return messageID, nil
+	return resp.Header.Get("X-MESSAGE-ID"), nil
 }

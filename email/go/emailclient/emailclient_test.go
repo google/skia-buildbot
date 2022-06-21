@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,16 +13,13 @@ import (
 
 func TestClientSendWithMarkup_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
-	const startsWith = `From: Alert Manager <alerts@skia.org>
+	const expectedMessageID = "<the-actual-message-id>"
+	const expected = `From: Alert Manager <alerts@skia.org>
 To: someone@example.org
 Subject: Alert!
 Content-Type: text/html; charset=UTF-8
 References: some-thread-reference
 In-Reply-To: some-thread-reference
-Message-ID: <`
-
-	// Skip the beginning of the Message-ID since it is a constantly changing UUID.
-	const endsWith = `@skia.org>
 
 <html>
 <body>
@@ -36,8 +32,8 @@ Message-ID: <`
 		b, err := ioutil.ReadAll(r.Body)
 		require.NoError(t, err)
 		bodyAsString := string(b)
-		require.True(t, strings.HasPrefix(bodyAsString, startsWith))
-		require.True(t, strings.HasSuffix(bodyAsString, endsWith))
+		require.Equal(t, expected, bodyAsString)
+		w.Header().Add("x-message-id", expectedMessageID)
 		w.WriteHeader(http.StatusOK)
 	}))
 	c := New()
@@ -46,7 +42,8 @@ Message-ID: <`
 
 	msgID, err := c.SendWithMarkup("Alert Manager", "alerts@skia.org", []string{"someone@example.org"}, "Alert!", "", "<h2>Hi!</h2>", "some-thread-reference")
 	require.NoError(t, err)
-	require.True(t, strings.HasSuffix(msgID, "@skia.org>"))
+	require.Equal(t, expectedMessageID, msgID)
+
 }
 
 func TestClientSendWithMarkup_HTTPRequestFails_ReturnsError(t *testing.T) {
