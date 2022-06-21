@@ -30,9 +30,10 @@ const (
 To: {{.To}}
 Subject: {{.Subject}}
 Content-Type: text/html; charset=UTF-8
-References: {{.ThreadingReference}}
-In-Reply-To: {{.ThreadingReference}}
-
+{{if .ThreadingReference}}References: {{.ThreadingReference}}
+{{end}}{{if .ThreadingReference}}In-Reply-To: {{.ThreadingReference}}
+{{end}}{{if .MessageID -}}Message-ID: {{.MessageID}}
+{{end}}
 <html>
 <body>
 {{.Markup}}
@@ -58,15 +59,6 @@ type GMail struct {
 
 	// From is the email address of the authenticated account.
 	from string
-}
-
-// Message represents a single email message.
-type Message struct {
-	SenderDisplayName  string
-	To                 []string
-	Subject            string
-	Body               string
-	ThreadingReference string
 }
 
 // GetViewActionMarkup returns a string that contains the required markup.
@@ -125,7 +117,7 @@ func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threa
 
 // FormatAsRFC2822 returns a *bytes.Buffer that contains the email message
 // formatted in RFC 2822 format.
-func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (*bytes.Buffer, error) {
+func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string, messageID string) (*bytes.Buffer, error) {
 	fromWithName := fmt.Sprintf("%s <%s>", fromDisplayName, from)
 	var msgBytes bytes.Buffer
 	if err := emailTemplateParsed.Execute(&msgBytes, struct {
@@ -135,6 +127,7 @@ func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, 
 		ThreadingReference string
 		Body               template.HTML
 		Markup             template.HTML
+		MessageID          string
 	}{
 		From:               template.HTML(fromWithName),
 		To:                 strings.Join(to, ","),
@@ -142,6 +135,7 @@ func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, 
 		ThreadingReference: threadingReference,
 		Body:               template.HTML(body),
 		Markup:             template.HTML(markup),
+		MessageID:          messageID,
 	}); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to format email.")
 	}
@@ -152,7 +146,7 @@ func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, 
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func (a *GMail) SendWithMarkup(fromDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
-	msgBytes, err := FormatAsRFC2822(fromDisplayName, a.from, to, subject, body, markup, threadingReference)
+	msgBytes, err := FormatAsRFC2822(fromDisplayName, a.from, to, subject, body, markup, threadingReference, "")
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -243,9 +237,4 @@ func (a *GMail) GetThreadingReference(messageID string) (string, error) {
 		return "", skerr.Wrapf(err, "Could not find \"Message-Id\" header for Message-Id %s", messageID)
 	}
 	return reference, nil
-}
-
-// SendMessage sends the given Message. Returns the messageId of the sent email.
-func (a *GMail) SendMessage(msg *Message) (string, error) {
-	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body, msg.ThreadingReference)
 }

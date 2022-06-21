@@ -30,7 +30,7 @@ func ParseEmails(emails string) []string {
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
 	email := emailclient.New()
-	if err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, "", ""); err != nil {
+	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, "", ""); err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 
@@ -43,7 +43,7 @@ func SendEmail(recipients []string, subject, body string) error {
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
 	email := emailclient.New()
-	if err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
+	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
 		return fmt.Errorf("Could not send email with markup: %s", err)
 	}
 

@@ -78,8 +78,7 @@ func NewEmailService() EmailService {
 
 // Send implements Email.
 func (e EmailService) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
-	err := e.client.SendWithMarkup("", from, to, subject, "", body, threadingReference)
-	return "", err
+	return e.client.SendWithMarkup("", from, to, subject, "", body, threadingReference)
 }
 
 // Notifier sends notifications.

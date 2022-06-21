@@ -20,8 +20,8 @@ const expectedMessage = `From: Alert Service <alerts@skia.org>
 To: test@example.com
 Subject: An Alert!
 Content-Type: text/html; charset=UTF-8
-References: some-reference-id
-In-Reply-To: some-reference-id
+References: <some-reference-id>
+In-Reply-To: <some-reference-id>
 
 <html>
 <body>
@@ -54,7 +54,7 @@ func (m *myTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	err := json.NewDecoder(r.Body).Decode(&msg)
 	require.NoError(m.t, err)
 	require.Equal(m.t, subject, msg.Snippet)
-	require.Equal(m.t, int64(559), msg.SizeEstimate)
+	require.Equal(m.t, int64(563), msg.SizeEstimate)
 
 	// The actual RFC2822 message is base64 encoded in the .Raw member.
 	b, err := base64.URLEncoding.DecodeString(msg.Raw)
@@ -90,7 +90,7 @@ func TestGMailSendWithMarkup(t *testing.T) {
 	}
 	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
 	require.NoError(t, err)
-	ref := "some-reference-id"
+	ref := "<some-reference-id>"
 
 	// Send email, the validation happens in myTransport.
 	_, err = gm.SendWithMarkup("Alert Service", []string{"test@example.com"}, subject, "<h1>Something happened</h1>", markup, ref)
@@ -146,17 +146,118 @@ Hi!
 func TestFormatAsRFC2822_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`
-	ref := "some-reference-id"
+	ref := "<some-reference-id>"
+	messageID := "<foo-bar-baz@skia.org>"
 	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
 	require.NoError(t, err)
-	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref)
+	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref, messageID)
 	require.NoError(t, err)
 	expected := `From: Alerts <alerts@skia.org>
 To: someone@example.org
 Subject: Your Alert
 Content-Type: text/html; charset=UTF-8
-References: some-reference-id
-In-Reply-To: some-reference-id
+References: <some-reference-id>
+In-Reply-To: <some-reference-id>
+Message-ID: <foo-bar-baz@skia.org>
+
+<html>
+<body>
+
+<div itemscope itemtype="http://schema.org/EmailMessage">
+  <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
+    <link itemprop="target" href="https://example.com"/>
+    <meta itemprop="name" content="Example"/>
+  </div>
+  <meta itemprop="description" content="Click the link"/>
+</div>
+
+<h1>Testing</h1>
+</body>
+</html>
+`
+	require.Equal(t, expected, actual.String())
+}
+
+func TestFormatAsRFC2822_NoThreadID_MessageDoesNotContainInReplyToOrReferencesHeaders(t *testing.T) {
+	unittest.SmallTest(t)
+	body := `<h1>Testing</h1>`
+	ref := ""
+	messageID := "<foo-bar-baz@skia.org>"
+	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
+	require.NoError(t, err)
+	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref, messageID)
+	require.NoError(t, err)
+	expected := `From: Alerts <alerts@skia.org>
+To: someone@example.org
+Subject: Your Alert
+Content-Type: text/html; charset=UTF-8
+Message-ID: <foo-bar-baz@skia.org>
+
+<html>
+<body>
+
+<div itemscope itemtype="http://schema.org/EmailMessage">
+  <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
+    <link itemprop="target" href="https://example.com"/>
+    <meta itemprop="name" content="Example"/>
+  </div>
+  <meta itemprop="description" content="Click the link"/>
+</div>
+
+<h1>Testing</h1>
+</body>
+</html>
+`
+	require.Equal(t, expected, actual.String())
+}
+
+func TestFormatAsRFC2822_NoThreadIDOrMessageID_MessageDoesNotContainInReplyToOrReferenceOrMessageIDHeaders(t *testing.T) {
+	unittest.SmallTest(t)
+	body := `<h1>Testing</h1>`
+	ref := ""
+	messageID := ""
+	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
+	require.NoError(t, err)
+	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref, messageID)
+	require.NoError(t, err)
+	expected := `From: Alerts <alerts@skia.org>
+To: someone@example.org
+Subject: Your Alert
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+
+<div itemscope itemtype="http://schema.org/EmailMessage">
+  <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
+    <link itemprop="target" href="https://example.com"/>
+    <meta itemprop="name" content="Example"/>
+  </div>
+  <meta itemprop="description" content="Click the link"/>
+</div>
+
+<h1>Testing</h1>
+</body>
+</html>
+`
+	require.Equal(t, expected, actual.String())
+}
+
+func TestFormatAsRFC2822_NoMessageID_MessageDoesNotContainMessageIDHeader(t *testing.T) {
+	unittest.SmallTest(t)
+	body := `<h1>Testing</h1>`
+	ref := "<some-reference-id>"
+	messageID := ""
+	markup, err := GetViewActionMarkup("https://example.com", "Example", "Click the link")
+	require.NoError(t, err)
+	actual, err := FormatAsRFC2822("Alerts", "alerts@skia.org", []string{"someone@example.org"}, "Your Alert", body, markup, ref, messageID)
+	require.NoError(t, err)
+	expected := `From: Alerts <alerts@skia.org>
+To: someone@example.org
+Subject: Your Alert
+Content-Type: text/html; charset=UTF-8
+References: <some-reference-id>
+In-Reply-To: <some-reference-id>
 
 <html>
 <body>
