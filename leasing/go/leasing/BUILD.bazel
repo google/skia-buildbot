@@ -12,6 +12,7 @@ go_library(
     importpath = "go.skia.org/infra/leasing/go/leasing",
     visibility = ["//visibility:private"],
     deps = [
+        "//email/go/emailclient",
         "//go/allowed",
         "//go/baseapp",
         "//go/cas",

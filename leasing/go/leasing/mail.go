@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/rotations"
@@ -17,25 +18,21 @@ import (
 const (
 	leasingEmailDisplayName = "Leasing Server"
 
+	leasingEmailAddress = "leasing@skia.org"
+
 	gmailCachedToken = "leasing_gmail_cached_token"
 
 	connectionInstructionsPage = "https://skia.org/dev/testing/swarmingbots#connecting-to-swarming-bots"
 )
 
 var (
-	gmail *email.GMail
+	mail emailclient.Client
 
 	httpClient = httputils.NewTimeoutClient()
 )
 
-func MailInit(emailClientId, emailClientSecret, tokenFile string) error {
-	var err error
-	gmail, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-	if err != nil {
-		return fmt.Errorf("Could not initialize gmail object: %s", err)
-	}
-
-	return nil
+func MailInit() {
+	mail = emailclient.New()
 }
 
 func getRecipients(taskOwner string) []string {
@@ -84,16 +81,7 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 	if err != nil {
 		return "", fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	messageId, err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup, "")
-	if err != nil {
-		return "", fmt.Errorf("Could not send start email: %s", err)
-	}
-	// Get threadingReference so that future emails can thread off it.
-	threadingReference, err := gmail.GetThreadingReference(messageId)
-	if err != nil {
-		return "", fmt.Errorf("Could not get threading data: %s", err)
-	}
-	return threadingReference, nil
+	return mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, "")
 }
 
 func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, threadingReference string) error {
@@ -111,7 +99,7 @@ func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, threa
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if _, err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
 		return fmt.Errorf("Could not send warning email: %s", err)
 	}
 	return nil
@@ -134,7 +122,7 @@ func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarm
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if _, err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
 		return fmt.Errorf("Could not send failure email: %s", err)
 	}
 	return nil
@@ -155,7 +143,7 @@ func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, thr
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if _, err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
 		return fmt.Errorf("Could not send completion email: %s", err)
 	}
 	return nil
@@ -176,7 +164,7 @@ func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, th
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if _, err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
 		return fmt.Errorf("Could not send completion email: %s", err)
 	}
 	return nil

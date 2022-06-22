@@ -122,9 +122,7 @@ func New() (baseapp.App, error) {
 		}
 		*emailTokenCacheFile = fout.Name()
 	}
-	if err := MailInit(cfg.Installed.ClientID, cfg.Installed.ClientSecret, *emailTokenCacheFile); err != nil {
-		sklog.Fatalf("Failed to init mail library: %s", err)
-	}
+	MailInit()
 
 	var allow allowed.Allow
 	if !*baseapp.Local {
