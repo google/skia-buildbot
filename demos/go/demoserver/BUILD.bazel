@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/demos/go/demoserver",
     visibility = ["//visibility:private"],
     deps = [
-        "//demos/go/common",
+        "//demos/go/frontend",
         "//go/auth",
         "//go/common",
         "//go/git",

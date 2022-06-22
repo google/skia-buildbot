@@ -1,4 +1,4 @@
-package common
+package frontend
 
 // Revision represents repo HEAD info for storage as json.
 type Revision struct {

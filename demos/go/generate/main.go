@@ -8,7 +8,7 @@ import (
 
 	"github.com/skia-dev/go2ts"
 
-	"go.skia.org/infra/demos/go/common"
+	"go.skia.org/infra/demos/go/frontend"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -29,5 +29,5 @@ func main() {
 }
 
 func addTypes(generator *go2ts.Go2TS) {
-	generator.Add(common.Metadata{})
+	generator.Add(frontend.Metadata{})
 }

@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/demos/go/generate",
     visibility = ["//visibility:private"],
     deps = [
-        "//demos/go/common",
+        "//demos/go/frontend",
         "//go/sklog",
         "//go/util",
         "@com_github_skia_dev_go2ts//:go2ts",
