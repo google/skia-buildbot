@@ -43,5 +43,5 @@ func (c *Client) SendWithMarkup(fromDisplayName string, from string, to []string
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to send.")
 	}
-	return resp.Header.Get("X-MESSAGE-ID"), nil
+	return resp.Header.Get("X-Message-Id"), nil
 }

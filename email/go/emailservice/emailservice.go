@@ -2,6 +2,7 @@ package emailservice
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -133,6 +134,18 @@ func convertRFC2822ToSendGrid(r io.Reader) (*mail.SGMailV3, error) {
 	return m, nil
 }
 
+// Error is a single error returned in a Response.
+type Error struct {
+	Message string `json:"message"`
+	Field   string `json:"field"`
+	Help    string `json:"help"`
+}
+
+// Response is the JSON format of the body the SendGrid API returns.
+type Response struct {
+	Errors []Error `json:"errors"`
+}
+
 // Handle incoming POST's of RFC2822 formatted emails, which are then parsed and
 // sent.
 func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
@@ -147,6 +160,22 @@ func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
 		a.reportSendError(w, err, fmt.Sprintf("Failed to send via API: %q", resp.Body))
 		return
 	}
+
+	sklog.Infof("Response Body: %q", resp.Body)
+	sklog.Infof("Response Headers: %s", resp.Headers)
+
+	if h, ok := resp.Headers["X-Message-Id"]; ok && len(h) > 0 {
+		w.Header().Set("X-Message-Id", h[0])
+	}
+	var decodedResponse Response
+	if err := json.Unmarshal([]byte(resp.Body), &decodedResponse); err != nil {
+		sklog.Warningf("Failed to decode JSON: %s", err)
+	}
+	if len(decodedResponse.Errors) > 0 {
+		a.reportSendError(w, err, fmt.Sprintf("Failed to send via API: %q", resp.Body))
+		return
+	}
+
 	sklog.Infof("Successfully sent from: %q", m.From.Address)
 	a.sendSuccess.Inc(1)
 }

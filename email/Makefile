@@ -3,7 +3,7 @@ run-local-instance:
 	emailservice --local
 
 send-from-local-instance:
-	curl --data-binary @testdata/email.eml -X POST http://localhost:8000/send
+	curl --include --data-binary @testdata/email.eml -X POST http://localhost:8000/send
 
 .PHONY: release
 release:
