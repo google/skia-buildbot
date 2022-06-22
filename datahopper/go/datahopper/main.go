@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
+	"go.skia.org/infra/datahopper/go/cd_metrics"
 	"go.skia.org/infra/datahopper/go/gcloud_metrics"
 	"go.skia.org/infra/datahopper/go/supported_branches"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
@@ -45,6 +46,7 @@ var (
 	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	dockerImageNames  = common.NewMultiStringFlag("docker_image", nil, "Docker images to watch for Continuous Deployment metrics.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gcloudProjects    = common.NewMultiStringFlag("gcloud_project", nil, "GCloud projects from which to ingest data")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
@@ -207,6 +209,11 @@ func main() {
 
 	// Metrics imported from Google Cloud projects.
 	if err := gcloud_metrics.StartGCloudMetrics(ctx, *gcloudProjects, ts); err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Metrics for the Continuous Deployment pipeline.
+	if err := cd_metrics.Start(ctx, repos, *dockerImageNames, *btProject, *btInstance, ts); err != nil {
 		sklog.Fatal(err)
 	}
 

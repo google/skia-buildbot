@@ -15,18 +15,39 @@
 package gcr
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
 
 const (
-	SERVER = "gcr.io"
+	Server = "gcr.io"
+)
+
+var (
+	// DockerTagRegex is used to parse a Docker image tag as set by our
+	// infrastructure, which uses the following format:
+	//
+	// ${datetime}-${user}-${git_hash:0:7}-${repo_state}
+	//
+	// Where datetime is a UTC timestamp following the format:
+	//
+	// +%Y-%m-%dT%H_%M_%SZ
+	//
+	// User is the username of the person who built the image, git_hash is the
+	// abbreviated Git commit hash at which the image was built, and repo_state
+	// is either "clean" or "dirty", depending on whether there were local
+	// changes to the checkout at the time when the image was built.
+	DockerTagRegex = regexp.MustCompile(`(\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}Z)-(\w+)-([a-f0-9]+)-(\w+)`)
 )
 
 // gcrTokenSource it an oauth2.TokenSource that works with the Google Container Registry API.
@@ -43,23 +64,23 @@ type gcrTokenSource struct {
 
 func (g *gcrTokenSource) Token() (*oauth2.Token, error) {
 	// Use the authorized client to get a gcr.io specific oauth token.
-	resp, err := g.client.Get(fmt.Sprintf("https://%s/v2/token?scope=repository:%s/%s:pull", SERVER, g.projectId, g.imageName))
+	resp, err := g.client.Get(fmt.Sprintf("https://%s/v2/token?scope=repository:%s/%s:pull", Server, g.projectId, g.imageName))
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Got unexpected status: %s", resp.Status)
+		return nil, skerr.Fmt("Got unexpected status: %s", resp.Status)
 	}
 	var res struct {
 		AccessToken  string `json:"token"`
 		ExpiresInSec int    `json:"expires_in"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+		return nil, skerr.Wrapf(err, "Invalid token JSON from metadata: %v", err)
 	}
 	if res.ExpiresInSec == 0 || res.AccessToken == "" {
-		return nil, fmt.Errorf("Incomplete token received from metadata: %#v", res)
+		return nil, skerr.Fmt("Incomplete token received from metadata: %#v", res)
 	}
 	return &oauth2.Token{
 		AccessToken: res.AccessToken,
@@ -97,23 +118,57 @@ func NewClient(tokenSource oauth2.TokenSource, projectId, imageName string) *Cli
 	}
 }
 
+// TagsResponse is the response returned by Tags().
+type TagsResponse struct {
+	Manifest map[string]struct {
+		ImageSizeBytes string   `json:"imageSizeBytes"`
+		LayerID        string   `json:"layerId"`
+		Tags           []string `json:"tag"`
+		TimeCreatedMs  string   `json:"timeCreatedMs"`
+		TimeUploadedMs string   `json:"timeUploadedMs"`
+	} `json:"manifest"`
+	Name string   `json:"name"`
+	Tags []string `json:"tags"`
+}
+
 // Tags returns all of the tags for all versions of the image.
-func (c *Client) Tags() ([]string, error) {
-	// TODO(jcgregorio) Look for link rel=next header to do pagination. https://docs.docker.com/registry/spec/api/#listing-image-tags
-	resp, err := c.client.Get(fmt.Sprintf("https://%s/v2/%s/%s/tags/list", SERVER, c.projectId, c.imageName))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to request tags: %s", err)
+func (c *Client) Tags(ctx context.Context) (*TagsResponse, error) {
+	var rv *TagsResponse
+	const batchSize = 100
+	url := fmt.Sprintf("https://%s/v2/%s/%s/tags/list?n=%d", Server, c.projectId, c.imageName, batchSize)
+	for {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to create HTTP request")
+		}
+		req = req.WithContext(ctx)
+		req.Header.Add("Accept", "*")
+		resp, err := c.client.Do(req)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to request tags")
+		}
+		defer util.Close(resp.Body)
+		if resp.StatusCode != 200 {
+			return nil, skerr.Fmt("Got unexpected response: %s", resp.Status)
+		}
+		response := new(TagsResponse)
+		if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
+			return nil, skerr.Wrapf(err, "could not decode response")
+		}
+		if rv == nil {
+			rv = response
+		} else {
+			rv.Tags = append(rv.Tags, response.Tags...)
+			for k, v := range response.Manifest {
+				rv.Manifest[k] = v
+			}
+		}
+
+		nextUrl, ok := resp.Header["Link"]
+		if !ok {
+			break
+		}
+		url = strings.Split(nextUrl[0], ";")[0]
 	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Got unexpected response: %s", resp.Status)
-	}
-	type Response struct {
-		Tags []string `json:"tags"`
-	}
-	var response Response
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("Could not decode response: %s", err)
-	}
-	return response.Tags, nil
+	return rv, nil
 }

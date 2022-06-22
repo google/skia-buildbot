@@ -174,7 +174,7 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	}
 
 	// The full docker image name and tag of the image we want to deploy.
-	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, containerRegistryProject, imageName, tag), nil
+	return fmt.Sprintf("%s/%s/%s:%s", gcr.Server, containerRegistryProject, imageName, tag), nil
 }
 
 // byClusterFromChanged returns a map from cluster name to the list of modified
@@ -257,7 +257,11 @@ func main() {
 	sklog.Infof("Pushing the following images: %q", imageNames)
 
 	gcrTagProvider := func(imageName string) ([]string, error) {
-		return gcr.NewClient(tokenSource, containerRegistryProject, imageName).Tags()
+		tagsResp, err := gcr.NewClient(tokenSource, containerRegistryProject, imageName).Tags(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return tagsResp.Tags, nil
 	}
 
 	// Search through the yaml files looking for those that use the provided image names.

@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cd_metrics",
+    srcs = ["cd_metrics.go"],
+    importpath = "go.skia.org/infra/datahopper/go/cd_metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/gcr",
+        "//go/git/repograph",
+        "//go/metrics2",
+        "//go/metrics2/events",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

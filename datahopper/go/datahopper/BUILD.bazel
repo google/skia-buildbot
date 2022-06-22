@@ -14,6 +14,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//datahopper/go/bot_metrics",
+        "//datahopper/go/cd_metrics",
         "//datahopper/go/gcloud_metrics",
         "//datahopper/go/supported_branches",
         "//datahopper/go/swarming_metrics",

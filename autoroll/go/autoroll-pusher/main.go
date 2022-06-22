@@ -173,10 +173,11 @@ func getLatestImage(ctx context.Context, image string) (string, error) {
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get token source", image)
 	}
-	imageTags, err := gcr.NewClient(ts, GCR_PROJECT, image).Tags()
+	tagsResp, err := gcr.NewClient(ts, GCR_PROJECT, image).Tags(ctx)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get tags", image)
 	}
+	imageTags := tagsResp.Tags
 	sort.Strings(imageTags)
 	if len(imageTags) == 0 {
 		return "", skerr.Fmt("No image tags returned for %s", image)
