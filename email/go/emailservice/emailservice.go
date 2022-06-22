@@ -143,7 +143,7 @@ type Error struct {
 
 // Response is the JSON format of the body the SendGrid API returns.
 type Response struct {
-	Errors []Error `json:"errors"`
+	Errors []Error `json:"errors,omitempty"`
 }
 
 // Handle incoming POST's of RFC2822 formatted emails, which are then parsed and
@@ -157,7 +157,7 @@ func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := a.sendgridClient.Send(m)
 	if err != nil {
-		a.reportSendError(w, err, fmt.Sprintf("Failed to send via API: %q", resp.Body))
+		a.reportSendError(w, err, "Failed to send via API")
 		return
 	}
 
