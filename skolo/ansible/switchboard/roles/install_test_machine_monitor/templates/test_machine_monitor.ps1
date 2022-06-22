@@ -33,6 +33,10 @@ $Env:SWARMING_BOT_ID = '{{ ansible_facts['hostname'] }}'
 $Env:SWARMING_EXTERNAL_BOT_SETUP = 1
 {% endif %}
 
+# Give network a chance to become ready. test_machine_monitor.exe fails to launch if the network is
+# still offline. The sleep interval was chosen arbitrarily.
+sleep 10
+
 # Launch test_machine_monitor.
 .\test_machine_monitor.exe `
   --config=prod.json `
