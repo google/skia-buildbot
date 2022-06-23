@@ -213,8 +213,10 @@ func main() {
 	}
 
 	// Metrics for the Continuous Deployment pipeline.
-	if err := cd_metrics.Start(ctx, repos, *dockerImageNames, *btProject, *btInstance, ts); err != nil {
-		sklog.Fatal(err)
+	if len(*dockerImageNames) > 0 {
+		if err := cd_metrics.Start(ctx, *dockerImageNames, btConf, ts); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Wait while the above goroutines generate data.

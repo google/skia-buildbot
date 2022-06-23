@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcr"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/skerr"
@@ -43,21 +43,21 @@ var (
 	beginningOfTime = time.Date(2022, time.June, 13, 0, 0, 0, 0, time.UTC)
 
 	timePeriods = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
+
+	repoUrls = []string{infraRepoUrl, k8sConfigRepoUrl}
 )
 
 // cycle performs one cycle of metrics ingestion.
-func cycle(ctx context.Context, imageName string, repos repograph.Map, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) ([]metrics2.Int64Metric, error) {
-	sklog.Infof("Cycle.")
+func cycle(ctx context.Context, imageName string, repos repograph.Map, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, ts oauth2.TokenSource) ([]metrics2.Int64Metric, error) {
+	sklog.Infof("CD metrics for %s", imageName)
 	// Setup.
 	infraRepo := repos[infraRepoUrl]
-	//k8sConfigRepo := repos[k8sConfigRepourl]
-	ts := auth.NewGCloudTokenSource(containerRegistryProject)
 	gcrClient := gcr.NewClient(ts, containerRegistryProject, imageName)
 	resp, err := gcrClient.Tags(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to retrieve Docker image data")
 	}
-	sklog.Infof("Found %d docker images.", len(resp.Manifest))
+	sklog.Infof("  Found %d docker images for %s", len(resp.Manifest), imageName)
 
 	// Create a mapping of shortened hash to commit details for easy retrieval.
 	commits, err := infraRepo.GetCommitsNewerThan(lastFinished.Add(-overlapDuration))
@@ -68,7 +68,7 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 	for _, c := range commits {
 		commitMap[c.Hash[:commitHashLength]] = c
 	}
-	sklog.Infof("Found %d commits since %s.", len(commitMap), lastFinished.Add(-overlapDuration))
+	sklog.Infof("  Found %d commits since %s.", len(commitMap), lastFinished.Add(-overlapDuration))
 
 	// Go through the Docker images we've uploaded and map them to the commits
 	// from which they were built.
@@ -125,6 +125,7 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 			dockerImageTime = ts
 		}
 
+		// Log the commit-to-docker-image latency for this commit.
 		logStr := fmt.Sprintf("%s: %s", commit.Hash[:7], dockerImageTime.Sub(commit.Timestamp))
 		if ok {
 			logStr += fmt.Sprintf(" (%s)", commitToDockerImageDigest[commit])
@@ -229,15 +230,19 @@ func getLastIngestionTs(edb events.EventDB, imageName string) (time.Time, error)
 }
 
 // Start initiates the metrics data generation for Docker images.
-func Start(ctx context.Context, repos repograph.Map, imageNames []string, btProject, btInstance string, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfig, ts oauth2.TokenSource) error {
 	// Set up event metrics.
-	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
+	edb, err := events.NewBTEventDB(ctx, btConf.ProjectID, btConf.InstanceID, ts)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create EventDB")
 	}
 	em, err := events.NewEventMetrics(edb, "cd_pipeline")
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create EventMetrics")
+	}
+	repos, err := bt_gitstore.NewBTGitStoreMap(ctx, repoUrls, btConf)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	// Find the timestamp of the last-ingested commit.
@@ -262,17 +267,20 @@ func Start(ctx context.Context, repos repograph.Map, imageNames []string, btProj
 	lv := metrics2.NewLiveness("last_successful_cd_pipeline_metrics")
 	oldMetrics := []metrics2.Int64Metric{}
 	go util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
-		sklog.Infof("Loop start.")
-		// TODO(borenet): Is this handled elsewhere in Datahopper?
+		sklog.Infof("CD metrics loop start.")
+
+		// These repos aren't shared with the rest of Datahopper, so we need to
+		// update them.
 		if err := repos.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repos: %s", err)
 			return
 		}
+
 		now := time.Now()
 		anyFailed := false
 		newMetrics := []metrics2.Int64Metric{}
 		for _, imageName := range imageNames {
-			m, err := cycle(ctx, imageName, repos, edb, em, lastFinished, now)
+			m, err := cycle(ctx, imageName, repos, edb, em, lastFinished, now, ts)
 			if err != nil {
 				sklog.Errorf("Failed to obtain CD pipeline metrics: %s", err)
 				anyFailed = true
@@ -301,7 +309,7 @@ func Start(ctx context.Context, repos repograph.Map, imageNames []string, btProj
 			}
 
 		}
-		sklog.Infof("Loop end.")
+		sklog.Infof("CD metrics loop end.")
 	})
 	return nil
 }
