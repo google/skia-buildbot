@@ -1,5 +1,11 @@
 package cd_metrics
 
+/*
+	Package cd_metrics ingests data about commits and Docker images to produce
+	metrics, for example the latency between a commit landing and a Docker image
+	being built for it.
+*/
+
 import (
 	"bytes"
 	"context"
@@ -120,14 +126,14 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 	for _, commit := range commits {
 		// Create the event and insert it into the DB.
 		dockerImageTime := time.Now()
-		ts, ok := commitToDockerImageTime[commit]
-		if ok {
+		ts, haveDockerImage := commitToDockerImageTime[commit]
+		if haveDockerImage {
 			dockerImageTime = ts
 		}
 
 		// Log the commit-to-docker-image latency for this commit.
 		logStr := fmt.Sprintf("%s: %s", commit.Hash[:7], dockerImageTime.Sub(commit.Timestamp))
-		if ok {
+		if haveDockerImage {
 			logStr += fmt.Sprintf(" (%s)", commitToDockerImageDigest[commit])
 		}
 		sklog.Info(logStr)
@@ -154,8 +160,13 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 		}
 
 		// Add other metrics.
-		{
-			// Latency between commit landing and docker image built.
+
+		// Latency between commit landing and docker image built. We have the
+		// EventDB to give us aggregate metrics, so we'll just use this gauge
+		// for alerts in the case where the latency for a given commit is too
+		// high. Therefore, we don't need this if we've already built the Docker
+		// image.
+		if !haveDockerImage {
 			tags := map[string]string{
 				"commit": commit.Hash,
 				"image":  imageName,
@@ -265,8 +276,8 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 
 	// Start ingesting data.
 	lv := metrics2.NewLiveness("last_successful_cd_pipeline_metrics")
-	oldMetrics := []metrics2.Int64Metric{}
-	go util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+	go util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
 		sklog.Infof("CD metrics loop start.")
 
 		// These repos aren't shared with the rest of Datahopper, so we need to
@@ -278,39 +289,38 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 
 		now := time.Now()
 		anyFailed := false
-		newMetrics := []metrics2.Int64Metric{}
+		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, imageName := range imageNames {
 			m, err := cycle(ctx, imageName, repos, edb, em, lastFinished, now, ts)
 			if err != nil {
 				sklog.Errorf("Failed to obtain CD pipeline metrics: %s", err)
 				anyFailed = true
 			}
-			newMetrics = append(newMetrics, m...)
+			for _, metric := range m {
+				newMetrics[metric] = struct{}{}
+			}
 		}
 		if !anyFailed {
 			lastFinished = now
 			lv.Reset()
 
 			// Delete any metrics which we haven't generated again.
-			metricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
-			for _, m := range newMetrics {
-				metricsMap[m] = struct{}{}
-			}
-			for _, m := range oldMetrics {
-				if _, ok := metricsMap[m]; !ok {
+			for m := range oldMetrics {
+				if _, ok := newMetrics[m]; !ok {
 					if err := m.Delete(); err != nil {
 						sklog.Warningf("Failed to delete metric: %s", err)
 						// If we failed to delete the metric, add it to the
 						// "new" metrics list, so that we'll carry it over and
 						// try again on the next cycle.
-						newMetrics = append(newMetrics, m)
+						newMetrics[m] = struct{}{}
 					}
 				}
 			}
-
+			oldMetrics = newMetrics
 		}
 		sklog.Infof("CD metrics loop end.")
 	})
+	em.Start(ctx)
 	return nil
 }
 
