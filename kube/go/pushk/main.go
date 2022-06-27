@@ -101,6 +101,7 @@ var (
 	rollback                = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 	runningInK8s            = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
 	doNotOverrideDirtyImage = flag.Bool("do-not-override-dirty-image", false, "If true, then do not push if the latest checkedin image is dirty. Caveat: This only checks the k8s-config repository to determine if image is dirty, it does not check the live running k8s containers.")
+	overrideSHA256Digests   = flag.Bool("override-sha256-digests", false, "If true, then do not change images that reference sha256 digests. These are managed by continuous deployment and should usually be ignored.")
 	useTempCheckout         = flag.Bool("use-temp-checkout", false, "If true, checks out the config repo into a temporary directory and pushes from there.")
 	verbose                 = flag.Bool("verbose", false, "Verbose runtime diagnostics.")
 )
@@ -290,7 +291,7 @@ func main() {
 			sklog.Fatalf("Failed to split imageName: %v", parts)
 		}
 		imageNoTag := parts[0]
-		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s):(.*)$`, imageNoTag))
+		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s)[:@](.*)$`, imageNoTag))
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
@@ -307,6 +308,10 @@ func main() {
 				}
 				if *doNotOverrideDirtyImage && strings.HasSuffix(matches[3], dirtyImageTagSuffix) {
 					sklog.Infof("%s is dirty. Not pushing to it since --do-not-override-dirty-image is set.", matches[3])
+					continue
+				}
+				if !*overrideSHA256Digests && strings.Contains(matches[3], "sha256:") {
+					sklog.Infof("%s refers to an sha256 digest. Not pushing to it since --do-not-override-sha256-digests is set.", matches[3])
 					continue
 				}
 
