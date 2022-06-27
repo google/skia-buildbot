@@ -1,3 +1,5 @@
+include ../make/bazel.mk
+
 run-local-instance:
 	go install ./cmd/...
 	emailservice --local
