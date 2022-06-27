@@ -3,6 +3,7 @@ package emailclient
 
 import (
 	"net/http"
+	"net/mail"
 
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
@@ -34,6 +35,10 @@ func New() Client {
 //
 // - The 'from' email address must be supplied.
 func (c *Client) SendWithMarkup(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
+	to, err := dedupAddresses(to)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Failed to dedup \"to\" addresses: %s", to)
+	}
 	msgBytes, err := email.FormatAsRFC2822(fromDisplayName, from, to, subject, body, markup, threadingReference, "")
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to format.")
@@ -44,4 +49,28 @@ func (c *Client) SendWithMarkup(fromDisplayName string, from string, to []string
 		return "", skerr.Wrapf(err, "Failed to send.")
 	}
 	return resp.Header.Get("X-Message-Id"), nil
+}
+
+// dedupAddresses dedupes RFC 5322 addresses. Without this sendgrid could fail
+// to send the message with: "Each email address in the personalization block
+// should be unique between to, cc, and bcc. We found the first duplicate
+// instance of [xyz] in the personalizations".
+// Note that deduping might or might not preserve the "Name" portion of a
+// parsed address based on the order in which the "to" addresses are processed.
+// Eg: ["name@example.org", "Name<name@example.org"] will dedup to ["name@example.org"]
+// but ["Name<name@example.org>", "name@example.org"] will dedup to ["Name<name@example.org>"]
+func dedupAddresses(to []string) ([]string, error) {
+	deduped := []string{}
+	seen := map[string]bool{}
+	for _, unparsedAddr := range to {
+		parsedAddr, err := mail.ParseAddress(unparsedAddr)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to parse %s", unparsedAddr)
+		}
+		if _, ok := seen[parsedAddr.Address]; !ok {
+			seen[parsedAddr.Address] = true
+			deduped = append(deduped, unparsedAddr)
+		}
+	}
+	return deduped, nil
 }
