@@ -14,3 +14,6 @@ release:
 .PHONY: push
 push:
 	$(BAZEL) run //email:pushk_emailservice
+
+rotate-skia-corp-service-account-key:
+	../kube/secrets/rotate-keys-for-skia-corp-sa.sh skia-public skia-emailservice deployment/emailservice
