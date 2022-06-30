@@ -27,12 +27,9 @@ const (
 	serverWriteTimeout = 5 * time.Minute
 )
 
-type getClientFromKeyType func(ctx context.Context, email, key string) (*email.GMail, error)
-
 // App is the main email service application.
 type App struct {
 	// flags
-	local      bool
 	port       string
 	project    string
 	promPort   string
@@ -46,7 +43,6 @@ type App struct {
 // Flagset constructs a flag.FlagSet for the App.
 func (a *App) Flagset() *flag.FlagSet {
 	fs := flag.NewFlagSet("emailservice", flag.ExitOnError)
-	fs.BoolVar(&a.local, "local", false, "Running locally if true. As opposed to in production.")
 	fs.StringVar(&a.port, "port", ":8000", "HTTP service address (e.g., ':8000')")
 	fs.StringVar(&a.project, "project", "skia-public", "The GCP Project that holds the secret.")
 	fs.StringVar(&a.secretName, "secret-name", "sendgrid-api-key", "The name of the GCP secret that contains the SendGrid API key..")
@@ -61,7 +57,6 @@ func New(ctx context.Context) (*App, error) {
 
 	err := common.InitWith(
 		"email-service",
-		common.CloudLogging(&ret.local, "skia-public"),
 		common.MetricsLoggingOpt(),
 		common.PrometheusOpt(&ret.promPort),
 		common.FlagSetOpt(ret.Flagset()),
