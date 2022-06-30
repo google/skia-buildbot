@@ -60,7 +60,7 @@ ${REL}/apply-secret-to-cluster.sh ${CLUSTER} ${SECRET_NAME}
 
 # List all USER_MANAGED keys, remove the last one in the list (which is the most recent since
 # we sort by validBeforeTime), and then remove each of those keys.
-gcloud iam service-accounts keys list --project=${PROJECT} --iam-account="${EMAIL}" --format=json --filter=keyType=USER_MANAGED --sort-by=validBeforeTime | jq 'del(.[-1])' | jq .[].name | xargs -L 1 gcloud iam service-accounts keys delete --project=${PROJECT} --iam-account=${EMAIL}
+gcloud iam service-accounts keys list --project=${PROJECT} --iam-account="${EMAIL}" --format=json --filter=keyType=USER_MANAGED --sort-by=validBeforeTime | jq '.[:-1]' | jq .[].name | xargs -L 1 gcloud iam service-accounts keys delete --project=${PROJECT} --iam-account=${EMAIL}
 
 # Restart pods to pick up new keys."
 ${REL}/../attach.sh ${CLUSTER} kubectl rollout restart ${RESTART}
