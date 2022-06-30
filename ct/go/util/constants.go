@@ -68,7 +68,6 @@ const (
 
 	// Benchmarks supported by CT.
 	BENCHMARK_RR                       = "rasterize_and_record_micro_ct"
-	BENCHMARK_REPAINT                  = "repaint_ct"
 	BENCHMARK_LOADING                  = "loading.cluster_telemetry"
 	BENCHMARK_SCREENSHOT               = "screenshot_ct"
 	BENCHMARK_RENDERING                = "rendering.cluster_telemetry"
@@ -348,7 +347,6 @@ var (
 	// Frontend constants below.
 	SupportedBenchmarksToDoc = map[string]string{
 		BENCHMARK_RR:                       "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/rasterize_and_record_micro_ct.py",
-		BENCHMARK_REPAINT:                  "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/repaint.py",
 		BENCHMARK_LOADING:                  "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_ct.py",
 		BENCHMARK_USECOUNTER:               "https://docs.google.com/document/d/1FSzJm2L2ow6pZTM_CuyHNJecXuX7Mx3XmBzL4SFHyLA/",
 		BENCHMARK_LEAK_DETECTION:           "https://docs.google.com/document/d/1wUWa7dWUdvr6dLdYHFfMQdnvgzt7lrrvzYfpAK-_6e0/",
