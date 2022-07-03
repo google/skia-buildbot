@@ -11,6 +11,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+// DefaultEmailServiceURL is the address of the service running in the default namespace.
+const DefaultEmailServiceURL = "http://emailservice:8000/send"
+
+// NamespacedEmailServiceURL is the address of the service running in its own namespace.
+const NamespacedEmailServiceURL = "http://emailservice.emailservice.svc.cluster.local:8000/send"
+
 // Client for sending emails to the emailservice.
 type Client struct {
 	emailServiceURL string
@@ -19,8 +25,14 @@ type Client struct {
 
 // New returns a new Client.
 func New() Client {
+	return NewAt(DefaultEmailServiceURL)
+}
+
+// NewAt returns a new Client that points at a specific service URL. Used in cases
+// where the default URL won't work, for example
+func NewAt(url string) Client {
 	return Client{
-		emailServiceURL: "http://emailservice:8000/send",
+		emailServiceURL: url,
 		client:          httputils.DefaultClientConfig().With2xxOnly().Client(),
 	}
 }

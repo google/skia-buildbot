@@ -36,9 +36,8 @@ In-Reply-To: some-thread-reference
 		w.Header().Add("x-message-id", expectedMessageID)
 		w.WriteHeader(http.StatusOK)
 	}))
-	c := New()
+	c := NewAt(s.URL)
 	c.client = httputils.NewFastTimeoutClient()
-	c.emailServiceURL = s.URL
 
 	msgID, err := c.SendWithMarkup("Alert Manager", "alerts@skia.org", []string{"someone@example.org"}, "Alert!", "", "<h2>Hi!</h2>", "some-thread-reference")
 	require.NoError(t, err)
@@ -50,8 +49,7 @@ func TestClientSendWithMarkup_HTTPRequestFails_ReturnsError(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 	}))
-	c := New()
-	c.emailServiceURL = s.URL
+	c := NewAt(s.URL)
 
 	_, err := c.SendWithMarkup("Alert Manager", "alerts@skia.org", []string{"someone@example.org"}, "Alert!", "", "<h2>Hi!</h2>", "some-thread-reference")
 	require.Contains(t, err.Error(), "Failed to send")
@@ -82,9 +80,8 @@ In-Reply-To: some-thread-reference
 		w.Header().Add("x-message-id", expectedMessageID)
 		w.WriteHeader(http.StatusOK)
 	}))
-	c := New()
+	c := NewAt(s.URL)
 	c.client = httputils.NewFastTimeoutClient()
-	c.emailServiceURL = s.URL
 
 	msgID, err := c.SendWithMarkup("Alert Manager", "alerts@skia.org", []string{"someone@example.org", "Someone <someone@example.org>", "<someone@example.org>", "Someone Else <someone-else@example.org>"}, "Alert!", "", "<h2>Hi!</h2>", "some-thread-reference")
 	require.NoError(t, err)
