@@ -32,7 +32,10 @@
     <key>ProcessType</key>
     <string>Interactive</string>
 
-    <key>StartInterval</key>
-    <integer>10800</integer>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>12</integer>
+    </dict>
 </dict>
 </plist>

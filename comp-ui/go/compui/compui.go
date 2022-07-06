@@ -111,6 +111,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 			"--browser", "mock",
 		},
 	},
+	// Chrome Stable
 	"chrome-motionmark": {
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
@@ -141,6 +142,41 @@ var defaultBenchmarks = map[string]*Benchmark{
 			"--extra-keys", "channel,stable",
 		},
 	},
+	// Chrome Canary
+	"chrome-canary-motionmark": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/motionmark.py",
+		DriverType:    ChromeCanaryDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--executable-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
+		},
+	},
+	"chrome-canary-jetstream": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/jetstream.py",
+		DriverType:    ChromeCanaryDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--executable-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
+		},
+	},
+	"chrome-canary-speedometer": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		DriverType:    ChromeCanaryDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--executable-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
+		},
+	},
+	// Safari Stable
 	"safari-speedometer": {
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
@@ -169,6 +205,37 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "safari",
 			"--extra-keys", "channel,stable",
+		},
+	},
+	// Safari Tech Preview
+	"safari-tp-speedometer": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		DriverType:    NoDriver,
+		Flags: []string{
+			"--browser", "stp",
+			"--extra-keys", "channel,tp",
+		},
+	},
+	"safari-tp-motionmark": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/motionmark.py",
+		DriverType:    NoDriver,
+		Flags: []string{
+			"--browser", "stp",
+			"--extra-keys", "channel,tp",
+		},
+	},
+	"safari-tp-jetstream": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/jetstream.py",
+		DriverType:    NoDriver,
+		Flags: []string{
+			"--browser", "stp",
+			"--extra-keys", "channel,tp",
 		},
 	},
 }
