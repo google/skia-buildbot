@@ -23,7 +23,6 @@ import (
 
 // flags
 var (
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	location = flag.String("location", "skia-public", "The name where this prometheus server is running.")
 	period   = flag.Duration("period", 15*time.Second, "How often to query for alerts.")
 	port     = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
@@ -197,7 +196,6 @@ func main() {
 		"alert-to-pubsub",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
-		common.CloudLogging(local, "skia-public"),
 	)
 
 	sklog.Infof("Version: %s", Version)
