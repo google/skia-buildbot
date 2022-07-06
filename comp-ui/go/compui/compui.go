@@ -51,6 +51,7 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
@@ -144,6 +145,26 @@ var defaultBenchmarks = map[string]*Benchmark{
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
 		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		DriverType:    NoDriver,
+		Flags: []string{
+			"--browser", "safari",
+			"--extra-keys", "channel,stable",
+		},
+	},
+	"safari-motionmark": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/motionmark.py",
+		DriverType:    NoDriver,
+		Flags: []string{
+			"--browser", "safari",
+			"--extra-keys", "channel,stable",
+		},
+	},
+	"safari-jetstream": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/jetstream.py",
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "safari",
@@ -415,6 +436,7 @@ func getGCSClient(ctx context.Context, ts oauth2.TokenSource) (*gcsclient.Storag
 }
 
 func runSingleBenchmark(ctx context.Context, python string, benchmarkName string, config *Benchmark, gitHash string, workDir string) (string, error) {
+	defer timer.New(fmt.Sprintf("runSingleBenchmark - %s", benchmarkName)).Stop()
 	sklog.Infof("runSingleBenchMark - benchmarkName: %q  url: %q  gitHash: %q workDir: %q", benchmarkName, config.ScriptName, gitHash, workDir)
 
 	gitCheckoutDir, err := checkoutPythonScript(ctx, config, workDir, benchmarkName)

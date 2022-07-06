@@ -20,6 +20,7 @@ go_library(
         "//go/now",
         "//go/skerr",
         "//go/sklog",
+        "//go/timer",
         "//go/util",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
