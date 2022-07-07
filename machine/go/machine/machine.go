@@ -107,7 +107,8 @@ type AttachedDevice string
 
 const (
 	// AttachedDeviceNone means no device is attached. Used for all non-mobile
-	// test machines, like Windows boxes.
+	// test machines, like Windows boxes, as well as Raspberry Pis that have no
+	// device attached yet.
 	AttachedDeviceNone AttachedDevice = "nodevice"
 
 	// AttachedDeviceAdb means an Android device, or anything else that

@@ -45,7 +45,7 @@ $ make build_and_upload_test_machine_monitor
 ```
 
 Then visit http://go/cipd/p/skia/internal/test_machine_monitor/+/ (or look
-in the logs) to find the version for that build and pass is to this
+in the logs) to find the version for that build and pass it to this
 playbook via --extra-vars.
 
 For example:

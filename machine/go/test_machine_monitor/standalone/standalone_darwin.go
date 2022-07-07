@@ -18,11 +18,11 @@ func OSVersions(ctx context.Context) ([]string, error) {
 	return versionsOfAllPrecisions(platformVersion), nil
 }
 
-// Split a macOS version like 1.2.3 into an array of versions of all precisions, like ["Mac-1",
-// "Mac-1.2", "Mac-1.2.3"].
+// Split a macOS version like 1.2.3 into an array of versions of all precisions, like ["Mac",
+// "Mac-1", "Mac-1.2", "Mac-1.2.3"].
 func versionsOfAllPrecisions(version string) []string {
 	subversions := strings.Split(version, ".")
-	ret := []string{"Mac-" + subversions[0]}
+	ret := []string{"Mac", "Mac-" + subversions[0]}
 	for i, subversion := range subversions[1:] {
 		ret = append(ret, ret[i]+"."+subversion)
 	}
