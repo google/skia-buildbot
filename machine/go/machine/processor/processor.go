@@ -14,7 +14,7 @@ type Processor interface {
 	Process(ctx context.Context, current machine.Description, event machine.Event) machine.Description
 }
 
-// ProcessorFunc is a utility type that allows using a function has a Processor.
+// ProcessorFunc is a utility type that allows using a function as a Processor.
 type ProcessorFunc func(ctx context.Context, current machine.Description, event machine.Event) machine.Description
 
 // Process implements the Processor interface.

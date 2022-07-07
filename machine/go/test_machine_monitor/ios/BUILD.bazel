@@ -7,8 +7,8 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/ios",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/executil",
         "//go/skerr",
+        "//machine/go/common",
         "//machine/go/machine",
     ],
 )

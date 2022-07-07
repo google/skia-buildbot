@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,6 +30,7 @@ import (
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 	"golang.org/x/oauth2/google"
 )
@@ -199,7 +201,13 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 			ret.IOS = ie
 		}
 	case machine.AttachedDeviceNone:
-		sklog.Infof("No attached device expected.")
+		var standaloneEvent machine.Standalone
+		sklog.Infof("No attached device set. Getting dimensions of host...")
+		if standaloneEvent = m.tryInterrogatingStandaloneHost(ctx); err == nil {
+			sklog.Infof("Successful interrogation of host: %#v", standaloneEvent)
+			ret.Standalone = standaloneEvent
+		}
+
 	default:
 		sklog.Error("Unhandled type of machine.AttachedDevice.")
 
@@ -361,8 +369,8 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 }
 
 // tryInterrogatingAndroidDevice attempts to communicate with an Android device using the
-// adb interface. If there is one attached, this function returns true and the information gathered
-// (which can be partially filled out). If there is not a device attached, false is returned.
+// adb interface. If there is one attached, this function returns nil and the information gathered
+// (which can be partially filled out). If there is not a device attached, returns an error.
 func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, error) {
 	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
@@ -402,8 +410,8 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 }
 
 // tryInterrogatingIOSDevice attempts to communicate with an attached iOS device. If there is one,
-// this function returns true and the information gathered (which can be partially filled out). If
-// there is not a device attached, it returns false, and the other return value is undefined. If
+// this function returns nil and the information gathered (which can be partially filled out). If
+// there is not a device attached, it returns an error, and the other return value is undefined. If
 // multiple devices are attached, an arbitrary one is chosen.
 func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, error) {
 	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
@@ -434,6 +442,38 @@ func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, e
 	ret.Battery = battery
 
 	return ret, nil
+}
+
+// tryInterrogatingStandaloneHost gathers information about the test machine itself (rather than an
+// attached device). It returns a Standlone struct which can be partially filled out; anything we
+// didn't manage to fill out will be warned about.
+func (m *Machine) tryInterrogatingStandaloneHost(ctx context.Context) (ret machine.Standalone) {
+	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
+		"machine": m.MachineID,
+		"type":    "standalone",
+	}).Inc(1)
+	sklog.Info("tryInterrogatingStandaloneHost")
+
+	var err error
+
+	// On Mac and Win, Swarming returns the number of cores on the whole machine, so we might differ
+	// in principle (though not in practice) there. On Linux, Swarming returns the number of cores
+	// usable by its process, which lines up perfectly with the NumCPU() semantics.
+	ret.Cores = runtime.NumCPU()
+
+	ret.OSVersions, err = standalone.OSVersions(ctx)
+	if err != nil {
+		sklog.Warningf("Failed to read OS version of host: %s", err)
+	}
+
+	ret.CPUs, err = standalone.CPUs(ctx)
+	if err != nil {
+		sklog.Warningf("Failed to get CPU type of host: %s", err)
+	}
+
+	// TODO(erikrose): ret.GPUs, err = standalone.GPUs(ctx)
+
+	return ret
 }
 
 var (

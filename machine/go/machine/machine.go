@@ -231,7 +231,7 @@ type Host struct {
 	// Version of test_machine_monitor being run.
 	Version string `json:"version"`
 
-	// StartTim is when the test_machine_monitor started running.
+	// StartTime is when the test_machine_monitor started running.
 	StartTime time.Time `json:"start_time"`
 }
 
@@ -250,15 +250,36 @@ type IOS struct {
 	Battery    int    `json:"battery"`     // as integer percent, or BadBatteryLevel
 }
 
+// Standalone represents the Swarming-style dimensions of a test machine that runs tests on itself,
+// not on some attached device.
+//
+// We may merge this into Host later, once we get consistent about dimensions referring to either
+// the host or the attached device. Right now, they're a mix. Having Standalone makes it more
+// obvious, in the processor flow control, which dimension values take precedence.
+type Standalone struct {
+	// Number of CPU cores:
+	Cores int `json:"cores"`
+
+	// Model of CPU, e.g. "arm64-64-Apple_M1" or "x86-64", in various precisions:
+	CPUs []string `json:"cpu"`
+
+	// Model of GPU, e.g. "1002:6821-4.0.20-3.2.8" or "8086:591e", in various precisions:
+	GPUs []string `json:"gpu"`
+
+	// OS version in various previsions, e.g. ["Mac-10", "Mac-10.15", "Mac-10.15.7"]:
+	OSVersions []string `json:"os"`
+}
+
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
-	EventType           EventType `json:"type"`
-	Android             Android   `json:"android"`
-	ChromeOS            ChromeOS  `json:"chromeos"`
-	IOS                 IOS       `json:"ios"`
-	Host                Host      `json:"host"`
-	RunningSwarmingTask bool      `json:"running_swarming_task"`
+	EventType           EventType  `json:"type"`
+	Android             Android    `json:"android"`
+	ChromeOS            ChromeOS   `json:"chromeos"`
+	IOS                 IOS        `json:"ios"`
+	Standalone          Standalone `json:"standalone"`
+	Host                Host       `json:"host"`
+	RunningSwarmingTask bool       `json:"running_swarming_task"`
 
 	// LaunchedSwarming is true if test_machine_monitor launched Swarming.
 	LaunchedSwarming bool `json:"launched_swarming"`

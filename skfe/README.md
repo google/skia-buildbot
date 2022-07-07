@@ -39,7 +39,7 @@ auto-generated:
 
 The `simple.json` and `computed.json` are generated files.
 
-The `enjoy-starter.json` file contains our liveness handling, all redirects, and
+The `envoy-starter.json` file contains our liveness handling, all redirects, and
 complicated routes for services like Gold. It is a hand-written file.
 
 The contents of `simple.json` are generated directly from metadata in

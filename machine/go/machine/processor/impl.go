@@ -115,8 +115,12 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		return processChromeOSEvent(ctx, previous, event)
 	} else if event.IOS.DeviceType != "" {
 		return processIOSEvent(ctx, previous, event)
+	} else if event.Standalone.Cores > 0 {
+		// This happens iff a host is explicitly marked as having no device in the
+		// machineserver UI, not when a device falls off a host accidentally.
+		return processStandaloneEvent(ctx, previous, event)
 	}
-	return processNonDeviceEvent(ctx, previous, event)
+	return processMissingDeviceEvent(ctx, previous, event)
 }
 
 func processAndroidEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
@@ -284,13 +288,12 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 	return ret
 }
 
-// processNonDeviceEvent processes an event from a machine that has no attached device.
-func processNonDeviceEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
-	machineID := event.Host.Name
+// processMissingDeviceEvent processes an event from a machine that expects to have an attached
+// device but cannot communicate with it.
+func processMissingDeviceEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	dimensions := machine.SwarmingDimensions{
-		machine.DimID: []string{machineID},
+		machine.DimID: []string{event.Host.Name},
 	}
-	dimensions[machine.DimID] = []string{machineID}
 	// If this machine previously had a connected device and it's no longer present then
 	// quarantine the machine.
 	//
@@ -308,6 +311,18 @@ func processNonDeviceEvent(ctx context.Context, previous machine.Description, ev
 		ret.Dimensions[k] = values
 	}
 
+	ret = handleGeneralFields(ctx, ret, event)
+	ret = handleRecoveryMode(ctx, previous, ret, false, "")
+	return ret
+}
+
+// processStandaloneEvent processes an event from a machine that is set in the machineserver UI to
+// run tests on its own, without an attached device.
+func processStandaloneEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	ret := previous.Copy()
+	ret.Battery = 0
+	ret.Temperature = nil
+	ret.Dimensions[machine.DimID] = []string{event.Host.Name}
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret

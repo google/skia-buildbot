@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/common",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/executil",
         "//go/skerr",
         "//machine/go/machineserver/config",
         "@com_google_cloud_go_pubsub//:pubsub",
