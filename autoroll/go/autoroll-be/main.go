@@ -24,11 +24,11 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
@@ -48,27 +48,24 @@ import (
 )
 
 const (
-	gmailTokenCacheFile = "google_email_token.data"
-	gsBucketAutoroll    = "skia-autoroll"
+	gsBucketAutoroll = "skia-autoroll"
 
-	secretChatWebhooks      = "autoroll-chat-webhooks"
-	secretGmailClientId     = "autoroll-gmail-clientid"
-	secretGmailClientSecret = "autoroll-gmail-clientsecret"
-	secretGmailCachedToken  = "autoroll-gmail-cached-token"
-	secretProject           = "skia-infra-public"
+	secretChatWebhooks = "autoroll-chat-webhooks"
+	secretProject      = "skia-infra-public"
 )
 
 // flags
 var (
-	configContents    = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
-	configFile        = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port              = flag.String("port", ":8000", "HTTP service port.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	workdir           = flag.String("workdir", ".", "Directory to use for scratch work.")
-	hang              = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	configContents         = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
+	configFile             = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
+	firestoreInstance      = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port                   = flag.String("port", ":8000", "HTTP service port.")
+	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile         = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
+	hang                   = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -85,6 +82,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
+
 	if *hang {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
@@ -147,7 +145,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	var emailer *email.GMail
+	var emailer emailclient.Client
 	var chatBotConfigReader chatbot.ConfigReader
 	var gcsClient gcs.GCSClient
 	rollerName := cfg.RollerName
@@ -166,27 +164,11 @@ func main() {
 		sklog.Infof("Writing persistent data to gs://%s/%s", gsBucketAutoroll, rollerName)
 		gcsClient = gcsclient.New(s, gsBucketAutoroll)
 
-		// Emailing init.
-		emailClientId, err := secretClient.Get(ctx, secretProject, secretGmailClientId, secret.VersionLatest)
-		if err != nil {
-			sklog.Fatal(err)
+		emailServiceAddress := emailclient.DefaultEmailServiceURL
+		if *namespacedEmailService {
+			emailServiceAddress = emailclient.NamespacedEmailServiceURL
 		}
-		emailClientSecret, err := secretClient.Get(ctx, secretProject, secretGmailClientSecret, secret.VersionLatest)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		cachedGMailToken, err := secretClient.Get(ctx, secretProject, secretGmailCachedToken, secret.VersionLatest)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		tokenFile := filepath.Join(os.TempDir(), gmailTokenCacheFile)
-		if err := ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm); err != nil {
-			sklog.Fatalf("Failed to cache token: %s", err)
-		}
-		emailer, err = email.NewGMail(strings.TrimSpace(emailClientId), strings.TrimSpace(emailClientSecret), tokenFile)
-		if err != nil {
-			sklog.Fatal(err)
-		}
+		emailer = emailclient.NewAt(emailServiceAddress)
 
 		chatBotConfigReader = func() string {
 			chatWebhooks, err := secretClient.Get(ctx, secretProject, secretChatWebhooks, secret.VersionLatest)

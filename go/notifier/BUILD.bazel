@@ -11,9 +11,9 @@ go_library(
     importpath = "go.skia.org/infra/go/notifier",
     visibility = ["//visibility:public"],
     deps = [
+        "//email/go/emailclient",
         "//go/chatbot",
         "//go/common",
-        "//go/email",
         "//go/issues",
         "//go/sklog",
         "//go/util",
@@ -30,6 +30,7 @@ go_test(
     ],
     embed = [":notifier"],
     deps = [
+        "//email/go/emailclient",
         "//go/deepequal/assertdeep",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",

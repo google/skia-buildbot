@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
@@ -381,7 +382,7 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
 	rollerImpl.SetNextRollRev("HEAD")
 	rollerImpl.SetCurrentRev("HEAD")
-	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
+	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, emailclient.New(), nil, nil)
 	require.NoError(t, err)
 	sm, err := New(ctx, rollerImpl, n, gcsClient, "test-roller")
 	require.NoError(t, err)
@@ -789,7 +790,7 @@ func TestPersistence(t *testing.T) {
 	defer cleanup()
 
 	check := func() {
-		n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
+		n, err := notifier.New(ctx, "fake", "fake", "fake", nil, emailclient.New(), nil, nil)
 		require.NoError(t, err)
 		sm2, err := New(ctx, r, n, gcsClient, gcsPrefix)
 		require.NoError(t, err)
@@ -865,7 +866,7 @@ func TestNilCurrentRoll(t *testing.T) {
 	states := sm.s.ListStates()
 	require.Equal(t, 19, len(states))
 	stateFile := "test-roller/state_machine"
-	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
+	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, emailclient.New(), nil, nil)
 	require.NoError(t, err)
 
 	for _, state := range states {

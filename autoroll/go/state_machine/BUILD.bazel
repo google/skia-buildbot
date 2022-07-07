@@ -28,6 +28,7 @@ go_test(
         "//autoroll/go/modes",
         "//autoroll/go/notifier",
         "//autoroll/go/revision",
+        "//email/go/emailclient",
         "//go/autoroll",
         "//go/gcs",
         "//go/gcs/mem_gcsclient",

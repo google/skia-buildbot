@@ -87,3 +87,10 @@ In-Reply-To: some-thread-reference
 	require.NoError(t, err)
 	require.Equal(t, expectedMessageID, msgID)
 }
+
+func TestClientValid(t *testing.T) {
+	unittest.SmallTest(t)
+	require.True(t, NewAt(DefaultEmailServiceURL).Valid())
+	require.True(t, NewAt(NamespacedEmailServiceURL).Valid())
+	require.False(t, NewAt("").Valid())
+}

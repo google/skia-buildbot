@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -32,7 +33,7 @@ func TestNotifier(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ctx := context.Background()
-	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, nil, nil, nil)
+	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, emailclient.New(), nil, nil)
 	require.NoError(t, err)
 	t1 := &testNotifier{}
 	n.Router().Add(t1, notifier.FILTER_DEBUG, nil, "")

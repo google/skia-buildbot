@@ -37,6 +37,11 @@ func NewAt(url string) Client {
 	}
 }
 
+// Valid returns true if this is a valid client.
+func (c Client) Valid() bool {
+	return c.emailServiceURL != ""
+}
+
 // SendWithMarkup sends an email with gmail markup. Returns the messageId of the
 // sent email. Documentation about markups supported in gmail are here:
 // https://developers.google.com/gmail/markup/ A go-to action example is here:
@@ -46,7 +51,7 @@ func NewAt(url string) Client {
 // following changes:
 //
 // - The 'from' email address must be supplied.
-func (c *Client) SendWithMarkup(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
+func (c Client) SendWithMarkup(fromDisplayName string, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
 	to, err := dedupAddresses(to)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to dedup \"to\" addresses: %s", to)

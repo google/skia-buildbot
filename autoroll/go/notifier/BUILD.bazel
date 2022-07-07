@@ -8,8 +8,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/config",
+        "//email/go/emailclient",
         "//go/chatbot",
-        "//go/email",
         "//go/notifier",
         "//go/skerr",
         "//go/sklog",
@@ -21,6 +21,7 @@ go_test(
     srcs = ["notifier_test.go"],
     embed = [":notifier"],
     deps = [
+        "//email/go/emailclient",
         "//go/notifier",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",

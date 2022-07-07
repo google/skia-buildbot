@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -81,7 +81,7 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(ctx context.Context, client *http.Client, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
+func (c *Config) Create(ctx context.Context, client *http.Client, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, FILTER_SILENT, nil, "", err
 	}
@@ -158,33 +158,33 @@ func (c *EmailNotifierConfig) Validate() error {
 // emailNotifier is a Notifier implementation which sends email to interested
 // parties.
 type emailNotifier struct {
-	from   string
-	gmail  *email.GMail
-	markup string
-	to     []string
+	from    string
+	emailer emailclient.Client
+	markup  string
+	to      []string
 }
 
 // See documentation for Notifier interface.
 func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) error {
-	if n.gmail == nil {
+	if n.emailer.Valid() {
 		sklog.Warning("No gmail API client; cannot send email!")
 		return nil
 	}
 	// Replace all newlines with <br/> since gmail uses HTML format.
 	body := strings.ReplaceAll(msg.Body, "\n", "<br/>")
 	sklog.Infof("Sending email to %s: %s", strings.Join(n.to, ","), subject)
-	_, err := n.gmail.SendWithMarkup(n.from, n.to, subject, body, n.markup, "")
+	_, err := n.emailer.SendWithMarkup("", n.from, n.to, subject, body, n.markup, "")
 	return err
 }
 
 // EmailNotifier returns a Notifier which sends email to interested parties.
 // Sends the same ViewAction markup with each message.
-func EmailNotifier(emails []string, emailer *email.GMail, markup string) (Notifier, error) {
+func EmailNotifier(emails []string, emailer emailclient.Client, markup string) (Notifier, error) {
 	return &emailNotifier{
-		from:   emailFromAddress,
-		gmail:  emailer,
-		markup: markup,
-		to:     emails,
+		from:    emailFromAddress,
+		emailer: emailer,
+		markup:  markup,
+		to:      emails,
 	}, nil
 }
 
