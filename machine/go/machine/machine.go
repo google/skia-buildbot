@@ -262,13 +262,13 @@ type Standalone struct {
 	Cores int `json:"cores"`
 
 	// Model of CPU, e.g. "arm64-64-Apple_M1" or "x86-64", in various precisions:
-	CPUs []string `json:"cpu"`
+	CPUs []string `json:"cpus"`
 
 	// Model of GPU, e.g. "1002:6821-4.0.20-3.2.8" or "8086:591e", in various precisions:
-	GPUs []string `json:"gpu"`
+	GPUs []string `json:"gpus"`
 
 	// OS version in various previsions, e.g. ["Mac-10", "Mac-10.15", "Mac-10.15.7"]:
-	OSVersions []string `json:"os"`
+	OSVersions []string `json:"os_versions"`
 }
 
 // Event is the information a machine should send via Source when
