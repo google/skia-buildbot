@@ -24,7 +24,7 @@ func versionsOfAllPrecisions(version string) []string {
 	subversions := strings.Split(version, ".")
 	ret := []string{"Mac", "Mac-" + subversions[0]}
 	for i, subversion := range subversions[1:] {
-		ret = append(ret, ret[i]+"."+subversion)
+		ret = append(ret, ret[i+1]+"."+subversion)
 	}
 	return ret
 }
