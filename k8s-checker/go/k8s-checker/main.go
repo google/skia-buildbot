@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"golang.org/x/oauth2/google"
-	"gopkg.in/yaml.v2"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,9 +27,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/k8s-checker/go/k8s_config"
 )
 
 const (
+	appLabel         = "app"
 	dirtyImageSuffix = "-dirty"
 	namespaceDefault = "default"
 
@@ -47,11 +49,6 @@ const (
 	podReadyMetric                  = "pod_ready"
 	podRestartCountMetric           = "pod_restart_count"
 	podRunningMetric                = "pod_running"
-
-	// K8s config kinds.
-	cronjobKind     = "CronJob"
-	deploymentKind  = "Deployment"
-	statefulSetKind = "StatefulSet"
 )
 
 // The format of the image is expected to be:
@@ -242,43 +239,6 @@ func getLiveAppContainersToImages(ctx context.Context, namespace string, clients
 	return liveAppContainersToImages, nil
 }
 
-type ContainersConfig struct {
-	Name  string `yaml:"name"`
-	Image string `yaml:"image"`
-}
-
-type TemplateSpecConfig struct {
-	Containers []ContainersConfig `yaml:"containers"`
-}
-
-type MetadataConfig struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
-	Labels    struct {
-		App string `yaml:"app"`
-	} `yaml:"labels"`
-}
-
-type K8sConfig struct {
-	Kind     string         `yaml:"kind"`
-	Metadata MetadataConfig `yaml:"metadata"`
-	Spec     struct {
-		Schedule    string `yaml:"schedule"`
-		JobTemplate struct {
-			Metadata MetadataConfig `yaml:"metadata"`
-			Spec     struct {
-				Template struct {
-					TemplateSpec TemplateSpecConfig `yaml:"spec"`
-				} `yaml:"template"`
-			} `yaml:"spec"`
-		} `yaml:"jobTemplate"`
-		Template struct {
-			Metadata     MetadataConfig     `yaml:"metadata"`
-			TemplateSpec TemplateSpecConfig `yaml:"spec"`
-		} `yaml:"template"`
-	} `yaml:"spec"`
-}
-
 // performChecks checks for:
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.
@@ -344,103 +304,111 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		yamlDocs := strings.Split(string(yamlContents), "---")
-		for _, yamlDoc := range yamlDocs {
-			var config K8sConfig
-			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {
-				sklog.Fatalf("Error when parsing %s: %s", yamlDoc, err)
+		deployments, statefulSets, cronJobs, err := k8s_config.ParseK8sConfigFile(yamlContents)
+		if err != nil {
+			sklog.Fatalf("Error when parsing %s: %s", filepath.Join(cluster, f), err)
+		}
+		for _, config := range cronJobs {
+			namespace := fixupNamespace(config.Namespace)
+			for _, c := range config.Spec.JobTemplate.Spec.Template.Spec.Containers {
+				// Check if the image in the config is dirty.
+				addMetricForDirtyCommittedImage(f, repo, cluster, namespace, c.Image, newMetrics)
+
+				// Now add a metric for how many days old the committed image is.
+				if err := addMetricForImageAge(c.Name, c.Name, namespace, f, repo, c.Image, newMetrics); err != nil {
+					sklog.Errorf("Could not add image age metric for %s: %s", c.Name, err)
+				}
 			}
-			namespace := fixupNamespace(config.Metadata.Namespace)
+		}
+
+		apps := []string{}
+		namespaces := []string{}
+		containers := []v1.Container{}
+		for _, config := range deployments {
+			apps = append(apps, config.Spec.Template.Labels[appLabel])
+			namespaces = append(namespaces, fixupNamespace(config.Namespace))
+			containers = append(containers, config.Spec.Template.Spec.Containers...)
+		}
+		for _, config := range statefulSets {
+			apps = append(apps, config.Spec.Template.Labels[appLabel])
+			namespaces = append(namespaces, fixupNamespace(config.Namespace))
+			containers = append(containers, config.Spec.Template.Spec.Containers...)
+		}
+		containers = append(containers)
+		for idx, c := range containers {
+			app := apps[idx]
+			namespace := namespaces[idx]
 			liveAppContainerToImages := liveAppContainerToImagesByNamespace[namespace]
 
-			if config.Kind == cronjobKind {
-				for _, c := range config.Spec.JobTemplate.Spec.Template.TemplateSpec.Containers {
-					// Check if the image in the config is dirty.
-					addMetricForDirtyCommittedImage(f, repo, cluster, namespace, c.Image, newMetrics)
+			checkedInAppsToContainers[app] = util.StringSet{}
+			container := c.Name
+			committedImage := c.Image
+			checkedInAppsToContainers[app][c.Name] = true
 
-					// Now add a metric for how many days old the committed image is.
-					if err := addMetricForImageAge(c.Name, c.Name, namespace, f, repo, c.Image, newMetrics); err != nil {
-						sklog.Errorf("Could not add image age metric for %s: %s", c.Name, err)
-					}
+			// Check if the image in the config is dirty.
+			addMetricForDirtyCommittedImage(f, repo, cluster, namespace, committedImage, newMetrics)
+
+			// Create app_running metric.
+			appRunningMetricTags := map[string]string{
+				"app":       app,
+				"yaml":      f,
+				"repo":      repo,
+				"cluster":   cluster,
+				"namespace": fixupNamespace(namespace),
+			}
+			appRunningMetric := metrics2.GetInt64Metric(appRunningMetric, appRunningMetricTags)
+			newMetrics[appRunningMetric] = struct{}{}
+
+			// Check if the image running in k8s matches the checked in image.
+			if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
+				appRunningMetric.Update(1)
+
+				// Create container_running metric.
+				containerRunningMetricTags := map[string]string{
+					"app":       app,
+					"container": container,
+					"yaml":      f,
+					"repo":      repo,
+					"cluster":   cluster,
+					"namespace": fixupNamespace(namespace),
 				}
-				continue
-			} else if config.Kind == statefulSetKind || config.Kind == deploymentKind {
-				app := config.Spec.Template.Metadata.Labels.App
-				checkedInAppsToContainers[app] = util.StringSet{}
-				for _, c := range config.Spec.Template.TemplateSpec.Containers {
-					container := c.Name
-					committedImage := c.Image
-					checkedInAppsToContainers[app][c.Name] = true
+				containerRunningMetric := metrics2.GetInt64Metric(containerRunningMetric, containerRunningMetricTags)
+				newMetrics[containerRunningMetric] = struct{}{}
 
-					// Check if the image in the config is dirty.
-					addMetricForDirtyCommittedImage(f, repo, cluster, namespace, committedImage, newMetrics)
+				if liveImage, ok := liveContainersToImages[container]; ok {
+					containerRunningMetric.Update(1)
 
-					// Create app_running metric.
-					appRunningMetricTags := map[string]string{
-						"app":       app,
-						"yaml":      f,
-						"repo":      repo,
-						"cluster":   cluster,
-						"namespace": fixupNamespace(namespace),
+					dirtyConfigMetricTags := map[string]string{
+						"app":            app,
+						"container":      container,
+						"yaml":           f,
+						"repo":           repo,
+						"cluster":        cluster,
+						"namespace":      fixupNamespace(namespace),
+						"committedImage": committedImage,
+						"liveImage":      liveImage,
 					}
-					appRunningMetric := metrics2.GetInt64Metric(appRunningMetric, appRunningMetricTags)
-					newMetrics[appRunningMetric] = struct{}{}
-
-					// Check if the image running in k8s matches the checked in image.
-					if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
-						appRunningMetric.Update(1)
-
-						// Create container_running metric.
-						containerRunningMetricTags := map[string]string{
-							"app":       app,
-							"container": container,
-							"yaml":      f,
-							"repo":      repo,
-							"cluster":   cluster,
-							"namespace": fixupNamespace(namespace),
-						}
-						containerRunningMetric := metrics2.GetInt64Metric(containerRunningMetric, containerRunningMetricTags)
-						newMetrics[containerRunningMetric] = struct{}{}
-
-						if liveImage, ok := liveContainersToImages[container]; ok {
-							containerRunningMetric.Update(1)
-
-							dirtyConfigMetricTags := map[string]string{
-								"app":            app,
-								"container":      container,
-								"yaml":           f,
-								"repo":           repo,
-								"cluster":        cluster,
-								"namespace":      fixupNamespace(namespace),
-								"committedImage": committedImage,
-								"liveImage":      liveImage,
-							}
-							dirtyConfigMetric := metrics2.GetInt64Metric(dirtyConfigMetric, dirtyConfigMetricTags)
-							newMetrics[dirtyConfigMetric] = struct{}{}
-							if liveImage != committedImage {
-								dirtyConfigMetric.Update(1)
-								sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s", app, container, liveImage, committedImage)
-							} else {
-								// The live image is the same as the committed image.
-								dirtyConfigMetric.Update(0)
-
-								// Now add a metric for how many days old the live/committed image is.
-								if err := addMetricForImageAge(app, container, namespace, f, repo, liveImage, newMetrics); err != nil {
-									sklog.Errorf("Could not add image age metric for %s: %s", container, err)
-								}
-							}
-						} else {
-							sklog.Infof("There is no running container %s for the config file %s", container, f)
-							containerRunningMetric.Update(0)
-						}
+					dirtyConfigMetric := metrics2.GetInt64Metric(dirtyConfigMetric, dirtyConfigMetricTags)
+					newMetrics[dirtyConfigMetric] = struct{}{}
+					if liveImage != committedImage {
+						dirtyConfigMetric.Update(1)
+						sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s", app, container, liveImage, committedImage)
 					} else {
-						sklog.Infof("There is no running app %s for the config file %s", app, f)
-						appRunningMetric.Update(0)
+						// The live image is the same as the committed image.
+						dirtyConfigMetric.Update(0)
+
+						// Now add a metric for how many days old the live/committed image is.
+						if err := addMetricForImageAge(app, container, namespace, f, repo, liveImage, newMetrics); err != nil {
+							sklog.Errorf("Could not add image age metric for %s: %s", container, err)
+						}
 					}
+				} else {
+					sklog.Infof("There is no running container %s for the config file %s", container, f)
+					containerRunningMetric.Update(0)
 				}
 			} else {
-				// We only support CronJob, StatefulSet and Deployment kinds because only they have containers.
-				continue
+				sklog.Infof("There is no running app %s for the config file %s", app, f)
+				appRunningMetric.Update(0)
 			}
 		}
 	}

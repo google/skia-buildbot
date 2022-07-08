@@ -12,28 +12,35 @@ import (
 	"encoding/gob"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/gcr"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/k8s-checker/go/k8s_config"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
+	v1 "k8s.io/api/core/v1"
 )
 
 const (
-	containerRegistryProject = "skia-public"
-	louhiUser                = "louhi"
-	repoStateClean           = "clean"
-	commitHashLength         = 7
-	infraRepoUrl             = "https://skia.googlesource.com/buildbot.git"
-	k8sConfigRepoUrl         = "https://skia.googlesource.com/k8s-config.git"
-	measurementImageLatency  = "cd_image_build_latency_s"
+	containerRegistryProject    = "skia-public"
+	louhiUser                   = "louhi"
+	repoStateClean              = "clean"
+	commitHashLength            = 7
+	infraRepoUrl                = "https://skia.googlesource.com/buildbot.git"
+	k8sConfigRepoUrl            = "https://skia.googlesource.com/k8s-config.git"
+	measurementImageLatency     = "cd_image_build_latency_s"
+	measurementK8sConfigLatency = "cd_k8s_config_latency_s"
 
 	// overlapDuration indicates how long to extend the time range past the time
 	// at which we last finished ingesting data.  This allows us to revisit
@@ -51,10 +58,11 @@ var (
 	timePeriods = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
 
 	repoUrls = []string{infraRepoUrl, k8sConfigRepoUrl}
+	clusters = []string{"skia-infra-corp", "skia-infra-public", "skia-infra-public-dev"}
 )
 
 // cycle performs one cycle of metrics ingestion.
-func cycle(ctx context.Context, imageName string, repos repograph.Map, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, ts oauth2.TokenSource) ([]metrics2.Int64Metric, error) {
+func cycle(ctx context.Context, imageName string, repos repograph.Map, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, ts oauth2.TokenSource, k8sConfigMap map[key]*vcsinfo.LongCommit) ([]metrics2.Int64Metric, error) {
 	sklog.Infof("CD metrics for %s", imageName)
 	// Setup.
 	infraRepo := repos[infraRepoUrl]
@@ -66,7 +74,8 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 	sklog.Infof("  Found %d docker images for %s", len(resp.Manifest), imageName)
 
 	// Create a mapping of shortened hash to commit details for easy retrieval.
-	commits, err := infraRepo.GetCommitsNewerThan(lastFinished.Add(-overlapDuration))
+	timeWindowStart := lastFinished.Add(-overlapDuration)
+	commits, err := infraRepo.GetCommitsNewerThan(timeWindowStart)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to retrieve commits")
 	}
@@ -74,7 +83,7 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 	for _, c := range commits {
 		commitMap[c.Hash[:commitHashLength]] = c
 	}
-	sklog.Infof("  Found %d commits since %s.", len(commitMap), lastFinished.Add(-overlapDuration))
+	sklog.Infof("  Found %d commits since %s.", len(commitMap), timeWindowStart)
 
 	// Go through the Docker images we've uploaded and map them to the commits
 	// from which they were built.
@@ -124,27 +133,28 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 	// commits.
 	newMetrics := make([]metrics2.Int64Metric, 0, len(commits))
 	for _, commit := range commits {
-		// Create the event and insert it into the DB.
-		dockerImageTime := time.Now()
-		ts, haveDockerImage := commitToDockerImageTime[commit]
-		if haveDockerImage {
-			dockerImageTime = ts
+		digest := commitToDockerImageDigest[commit]
+		k8sConfigHash := ""
+		k8sConfigTime := time.Time{}
+		if digest != "" {
+			k := key{
+				imageName: imageName,
+				digest:    digest,
+			}
+			commit, ok := k8sConfigMap[k]
+			if ok {
+				k8sConfigHash = commit.Hash
+				k8sConfigTime = commit.Timestamp
+			}
 		}
-
-		// Log the commit-to-docker-image latency for this commit.
-		logStr := fmt.Sprintf("%s: %s", commit.Hash[:7], dockerImageTime.Sub(commit.Timestamp))
-		if haveDockerImage {
-			logStr += fmt.Sprintf(" (%s)", commitToDockerImageDigest[commit])
-		}
-		sklog.Info(logStr)
 
 		data := Event{
 			CommitHash:        commit.Hash,
 			CommitTime:        commit.Timestamp,
-			DockerImageDigest: commitToDockerImageDigest[commit],
+			DockerImageDigest: digest,
 			DockerImageTime:   commitToDockerImageTime[commit],
-			K8sConfigHash:     "",          // TODO
-			K8sConfigTime:     time.Time{}, // TODO
+			K8sConfigHash:     k8sConfigHash,
+			K8sConfigTime:     k8sConfigTime,
 		}
 		var buf bytes.Buffer
 		if err := gob.NewEncoder(&buf).Encode(&data); err != nil {
@@ -166,13 +176,28 @@ func cycle(ctx context.Context, imageName string, repos repograph.Map, edb event
 		// for alerts in the case where the latency for a given commit is too
 		// high. Therefore, we don't need this if we've already built the Docker
 		// image.
-		if !haveDockerImage {
+		if digest == "" {
 			tags := map[string]string{
 				"commit": commit.Hash,
 				"image":  imageName,
 			}
 			m := metrics2.GetInt64Metric(measurementImageLatency, tags)
-			m.Update(int64(dockerImageTime.Sub(data.CommitTime).Seconds()))
+			m.Update(int64(now.Sub(data.CommitTime).Seconds()))
+			newMetrics = append(newMetrics, m)
+		}
+
+		// Latency between commit landing and k8s-config commit landing with the
+		// new digest. We have the EventDB to give us aggregate metrics, so
+		// we'll just use this gauge for alerts in the case where the latency
+		// for a given commit is too high. Therefore, we don't need this if we
+		// already have a k8sConfigHash.
+		if k8sConfigHash == "" {
+			tags := map[string]string{
+				"commit": commit.Hash,
+				"image":  imageName,
+			}
+			m := metrics2.GetInt64Metric(measurementK8sConfigLatency, tags)
+			m.Update(int64(now.Sub(data.CommitTime).Seconds()))
 			newMetrics = append(newMetrics, m)
 		}
 	}
@@ -192,22 +217,50 @@ type Event struct {
 
 // addAggregateMetrics adds aggregate metrics to the stream.
 func addAggregateMetrics(s *events.EventStream, imageName string, period time.Duration) error {
+	// Docker image build latency.
 	if err := s.AggregateMetric(map[string]string{
 		"image":  imageName,
 		"metric": "image_build_latency",
 	}, period, func(ev []*events.Event) (float64, error) {
 		totalLatency := float64(0)
+		totalEvents := 0
 		for _, e := range ev {
 			var data Event
 			if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&data); err != nil {
 				return 0.0, skerr.Wrap(err)
 			}
-			totalLatency += float64(data.DockerImageTime.Sub(data.CommitTime))
+			if data.DockerImageDigest != "" {
+				totalLatency += float64(data.DockerImageTime.Sub(data.CommitTime))
+				totalEvents++
+			}
 		}
-		return totalLatency / float64(len(ev)), nil
+		return totalLatency / float64(totalEvents), nil
 	}); err != nil {
 		return skerr.Wrap(err)
 	}
+
+	// k8s-config commit with updated Docker image latency.
+	if err := s.AggregateMetric(map[string]string{
+		"image":  imageName,
+		"metric": "k8s_config_latency",
+	}, period, func(ev []*events.Event) (float64, error) {
+		totalLatency := float64(0)
+		totalEvents := 0
+		for _, e := range ev {
+			var data Event
+			if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&data); err != nil {
+				return 0.0, skerr.Wrap(err)
+			}
+			if data.K8sConfigHash != "" {
+				totalLatency += float64(data.K8sConfigTime.Sub(data.CommitTime))
+				totalEvents++
+			}
+		}
+		return totalLatency / float64(totalEvents), nil
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+
 	return nil
 }
 
@@ -240,6 +293,144 @@ func getLastIngestionTs(edb events.EventDB, imageName string) (time.Time, error)
 	}
 }
 
+// updateK8sConfigCache determines which digests of which images were used by
+// which services at each commit in the given time range and updates the cache.
+func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo gitiles.GitilesRepo, timeWindowStart time.Time, oldCache map[string][]*key) (map[string][]*key, error) {
+	defer metrics2.FuncTimer().Stop()
+
+	k8sConfigRepo := repos[k8sConfigRepoUrl]
+	k8sConfigCommits, err := k8sConfigRepo.GetCommitsNewerThan(timeWindowStart)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to retrieve k8s-config commits")
+	}
+
+	sklog.Infof("Loading k8s-config data for %d commits", len(k8sConfigCommits))
+
+	eg, ctx := errgroup.WithContext(ctx)
+	commitsMap := make(map[string]bool, len(k8sConfigCommits))
+	var mtx sync.Mutex
+	newCache := map[string][]*key{}
+	for _, commit := range k8sConfigCommits {
+		commitsMap[commit.Hash] = true
+
+		// If we already have cached data for this commit, use that.
+		if cachedValue, ok := oldCache[commit.Hash]; ok {
+			newCache[commit.Hash] = cachedValue
+			continue
+		}
+
+		newCache[commit.Hash] = []*key{}
+
+		files, err := gitilesRepo.ListFilesRecursiveAtRef(ctx, ".", commit.Hash)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to retrieve files at %s", commit.Hash)
+		}
+		for _, file := range files {
+			inCluster := false
+			for _, cluster := range clusters {
+				if strings.HasPrefix(file, cluster) {
+					inCluster = true
+				}
+			}
+			if !inCluster {
+				continue
+			}
+			if !(strings.HasSuffix(file, ".yml") || strings.HasSuffix(file, ".yaml")) {
+				continue
+			}
+
+			file := file // https://golang.org/doc/faq#closures_and_goroutines
+			eg.Go(func() error {
+				// Read and parse the config file.
+				contents, err := gitilesRepo.ReadFileAtRef(ctx, file, commit.Hash)
+				if err != nil {
+					return skerr.Wrapf(err, "failed to read %s at %s", file, commit.Hash)
+				}
+				deployments, statefulSets, cronJobs, err := k8s_config.ParseK8sConfigFile(contents)
+				if err != nil {
+					return skerr.Wrapf(err, "failed to parse %s", file)
+				}
+
+				// Gather all containers across all deployments, statefulsets,
+				// and cron jobs.
+				containers := []v1.Container{}
+				containers = append(containers)
+				for _, config := range deployments {
+					containers = append(containers, config.Spec.Template.Spec.Containers...)
+				}
+				for _, config := range statefulSets {
+					containers = append(containers, config.Spec.Template.Spec.Containers...)
+				}
+				for _, config := range cronJobs {
+					containers = append(containers, config.Spec.JobTemplate.Spec.Template.Spec.Containers...)
+				}
+
+				// Find the images used by each container.
+				for _, container := range containers {
+					imageSplit := strings.Split(container.Image, "@")
+					if len(imageSplit) != 2 {
+						// Image is probably not specified with sha256 digest;
+						// skip it and move on.
+						continue
+					}
+					imagePathSplit := strings.Split(imageSplit[0], "/")
+
+					// Note: this doesn't take service name into account.
+					// The effect on metrics will be that we'll only care
+					// about the first time a given digest appears in the
+					// k8s-config repo, regardless of which service it's
+					// associated with.  This means we won't be able to
+					// alert if a given service doesn't have its digest
+					// updated for whatever reason.  It's unlikely that this
+					// will be a problem; our CD pipeline is set up to
+					// update all instances of a given image in a single CL,
+					// so if we're unable to update a single service, we'll
+					// likely fail to update all of them, and the alert will
+					// trigger.
+					k := &key{
+						imageName: imagePathSplit[len(imagePathSplit)-1],
+						digest:    imageSplit[1],
+					}
+					mtx.Lock()
+					newCache[commit.Hash] = append(newCache[commit.Hash], k)
+					mtx.Unlock()
+				}
+				return nil
+			})
+		}
+	}
+	sklog.Info("Waiting for goroutines...")
+	if err := eg.Wait(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return newCache, nil
+}
+
+type key struct {
+	imageName string
+	digest    string
+}
+
+func getK8sConfigMapping(ctx context.Context, repos repograph.Map, gitilesRepo gitiles.GitilesRepo, timeWindowStart time.Time, cache map[string][]*key) map[key]*vcsinfo.LongCommit {
+	k8sConfigRepo := repos[k8sConfigRepoUrl]
+
+	// Use the cached data to create the return value, which is in a more
+	// convenient format for metrics.
+	// map[key]<earliest commit using digest>
+	rv := map[key]*vcsinfo.LongCommit{}
+	for commitHash, keys := range cache {
+		commit := k8sConfigRepo.Get(commitHash).LongCommit
+		for _, k := range keys {
+			if prevCommit, ok := rv[*k]; !ok || prevCommit.Timestamp.Before(commit.Timestamp) {
+				rv[*k] = commit
+			}
+		}
+	}
+
+	return rv
+}
+
 // Start initiates the metrics data generation for Docker images.
 func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfig, ts oauth2.TokenSource) error {
 	// Set up event metrics.
@@ -256,12 +447,15 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 		sklog.Fatal(err)
 	}
 
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	k8sConfigGitiles := gitiles.NewRepo(k8sConfigRepoUrl, httpClient)
+
 	// Find the timestamp of the last-ingested commit.
 	lastFinished := time.Now()
 	for _, imageName := range imageNames {
 		s := em.GetEventStream(fmtStream(infraRepoUrl, imageName))
 		for _, p := range timePeriods {
-			if err := addAggregateMetrics(s, infraRepoUrl, p); err != nil {
+			if err := addAggregateMetrics(s, imageName, p); err != nil {
 				return skerr.Wrapf(err, "failed to add metric")
 			}
 		}
@@ -277,6 +471,31 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	// Start ingesting data.
 	lv := metrics2.NewLiveness("last_successful_cd_pipeline_metrics")
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+
+	k8sConfigCache := map[string][]*key{}
+	k8sConfigCacheMtx := sync.RWMutex{}
+
+	// This goroutine updates the k8sConfigCache.
+	go util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
+		sklog.Infof("Updating k8s-config cache.")
+
+		now := time.Now()
+		timeWindowStart := now.Add(-overlapDuration)
+
+		k8sConfigCacheMtx.RLock()
+		newK8sConfigCache, err := updateK8sConfigCache(ctx, repos, k8sConfigGitiles, timeWindowStart, k8sConfigCache)
+		k8sConfigCacheMtx.RUnlock()
+		if err != nil {
+			sklog.Errorf("Failed to update k8s-config cache.")
+		} else {
+			k8sConfigCacheMtx.Lock()
+			k8sConfigCache = newK8sConfigCache
+			k8sConfigCacheMtx.Unlock()
+		}
+		sklog.Infof("Done updating k8s-config cache.")
+	})
+
+	// This goroutine updates metrics.
 	go util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
 		sklog.Infof("CD metrics loop start.")
 
@@ -288,10 +507,15 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 		}
 
 		now := time.Now()
+		timeWindowStart := now.Add(-overlapDuration)
+		k8sConfigCacheMtx.RLock()
+		k8sConfigMap := getK8sConfigMapping(ctx, repos, k8sConfigGitiles, timeWindowStart, k8sConfigCache)
+		k8sConfigCacheMtx.RUnlock()
+
 		anyFailed := false
 		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, imageName := range imageNames {
-			m, err := cycle(ctx, imageName, repos, edb, em, lastFinished, now, ts)
+			m, err := cycle(ctx, imageName, repos, edb, em, lastFinished, now, ts, k8sConfigMap)
 			if err != nil {
 				sklog.Errorf("Failed to obtain CD pipeline metrics: %s", err)
 				anyFailed = true
@@ -328,5 +552,5 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 func fmtStream(repo, imageName string) string {
 	split := strings.Split(repo, "/")
 	repoName := strings.TrimSuffix(split[len(split)-1], ".git")
-	return fmt.Sprintf("cd-commits-%s", repoName)
+	return fmt.Sprintf("cd-commits-%s-%s", repoName, imageName)
 }
