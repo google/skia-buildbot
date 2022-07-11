@@ -386,9 +386,9 @@ func main() {
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
-	_, clientID, clientSecret := login.TryLoadingFromKnownLocations()
-	if clientID == "" || clientSecret == "" {
-		sklog.Fatal("Failed to load OAuth2 configuration.")
+	_, clientID, clientSecret, err := login.TryLoadingFromK8sSecret()
+	if err != nil {
+		sklog.Fatalf("Failed to load OAuth2 configuration: %s", err)
 	}
 	gerritOauthConfig.ClientID = clientID
 	gerritOauthConfig.ClientSecret = clientSecret

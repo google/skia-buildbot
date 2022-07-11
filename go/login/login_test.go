@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/secret"
+	"go.skia.org/infra/go/secret/mocks"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -260,4 +262,22 @@ func TestSessionMiddleware(t *testing.T) {
 			Token:     nil,
 		})
 	})
+}
+
+func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	client := &mocks.Client{}
+	secretValue := `{
+  "salt": "fake-salt",
+  "client_id": "fake-client-id",
+  "client_secret": "fake-client-secret"
+}`
+	client.On("Get", ctx, LoginSecretProject, LoginSecretName, secret.VersionLatest).Return(secretValue, nil)
+	cookieSalt, clientID, clientSecret, err := TryLoadingFromGCPSecret(ctx, client)
+	require.NoError(t, err)
+	require.Equal(t, "fake-salt", cookieSalt)
+	require.Equal(t, "fake-client-id", clientID)
+	require.Equal(t, "fake-client-secret", clientSecret)
 }

@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/allowed",
         "//go/httputils",
+        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
@@ -25,6 +26,8 @@ go_test(
     embed = [":login"],
     deps = [
         "//go/deepequal/assertdeep",
+        "//go/secret",
+        "//go/secret/mocks",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

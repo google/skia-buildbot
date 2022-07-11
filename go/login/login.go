@@ -43,6 +43,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -81,6 +82,12 @@ const (
 
 	// DEFAULT_CLIENT_SECRET_FILE is the default path to the file used for OAuth2 login.
 	DEFAULT_CLIENT_SECRET_FILE = "client_secret.json"
+
+	// LoginSecretProject is the GCP project containing the login secrets.
+	LoginSecretProject = "skia-infra-public"
+
+	// LoginSecretName is the name of the GCP secret for login.
+	LoginSecretName = "login-oauth2-secrets"
 )
 
 var (
@@ -179,33 +186,41 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // Init must be called before any other login methods.
 //
 // The function first tries to load the cookie salt, client id, and client
-// secret from GCE project level metadata. If that fails it looks for a
+// secret from a file provided by Kubernetes secrets. If that fails, it tries to
+// load them from GCP secret manager, and if that also fails it looks for a
 // "client_secret.json" file in the current directory to extract the client id
-// and client secret from. If both of those fail then it returns an error.
+// and client secret from. If all three of those fail then it returns an error.
 //
 // The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
 func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
-	cookieSalt, clientID, clientSecret := TryLoadingFromKnownLocations()
-	if clientID == "" {
-		if clientSecretFile == "" {
-			clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
-		}
-
-		b, err := ioutil.ReadFile(clientSecretFile)
-		if err != nil {
-			return skerr.Fmt("Failed to read from metadata and from %s. Got error: %s", clientSecretFile, err)
-		}
-		config, err := google.ConfigFromJSON(b)
-		if err != nil {
-			return skerr.Fmt("Failed to read from metadata and decode %s. Got error: %s", clientSecretFile, err)
-		}
-		sklog.Infof("Successfully read client secret from %s", clientSecretFile)
-		clientID = config.ClientID
-		clientSecret = config.ClientSecret
+	// Kubernetes secret.
+	cookieSalt, clientID, clientSecret, err1 := TryLoadingFromK8sSecret()
+	if err1 == nil {
+		initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
+		return nil
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
-	return nil
+
+	// GCP secret.
+	ctx := context.TODO()
+	secretClient, err2 := secret.NewClient(ctx)
+	if err2 == nil {
+		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
+		if err2 == nil {
+			initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
+			return nil
+		}
+	} else {
+		err2 = skerr.Wrapf(err2, "failed loading login secrets from GCP secret manager; failed to create client")
+	}
+
+	// Local file.
+	cookieSalt, clientID, clientSecret, err3 := TryLoadingFromFile(clientSecretFile)
+	if err3 == nil {
+		initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
+		return nil
+	}
+	return skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s | %s", clientSecretFile, err1, err2, err3)
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
@@ -837,12 +852,12 @@ type loginInfo struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-// TryLoadingFromKnownLocations tries to load the cookie salt, client id, and
-// client secret from a file in a known location. If it fails then it returns
-// the salt it was passed and the client id and secret are the empty string.
+// TryLoadingFromK8sSecret tries to load the cookie salt, client id, and client
+// secret from a file in a known location which is created from a Kubernetes
+// secret.
 //
 // Returns salt, clientID, clientSecret.
-func TryLoadingFromKnownLocations() (string, string, string) {
+func TryLoadingFromK8sSecret() (string, string, string, error) {
 	cookieSalt := ""
 	clientID := ""
 	clientSecret := ""
@@ -856,13 +871,49 @@ func TryLoadingFromKnownLocations() (string, string, string) {
 		clientSecret = info.ClientSecret
 		return nil
 	})
-
-	if err == nil {
-		sklog.Infof("Successfully loaded login secrets from file %s.", LOGIN_CONFIG_FILE)
-		return cookieSalt, clientID, clientSecret
+	if err != nil {
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", LOGIN_CONFIG_FILE)
 	}
-	sklog.Infof("Failed to load login secrets from file %s. Got error: %s", LOGIN_CONFIG_FILE, err)
-	return DEFAULT_COOKIE_SALT, "", ""
+	sklog.Infof("Successfully loaded login secrets from file %s.", LOGIN_CONFIG_FILE)
+	return cookieSalt, clientID, clientSecret, nil
+}
+
+// TryLoadingFromFile tries to load the client id and client secret from the
+// given file.  If not specified, it tries to load from client_secret.json in
+// the current working directory.
+//
+// Returns DEFAULT_COOKIE_SALT, clientID, clientSecret.
+func TryLoadingFromFile(clientSecretFile string) (string, string, string, error) {
+	if clientSecretFile == "" {
+		clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
+	}
+	b, err := ioutil.ReadFile(clientSecretFile)
+	if err != nil {
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", clientSecretFile)
+	}
+	config, err := google.ConfigFromJSON(b)
+	if err != nil {
+		return "", "", "", skerr.Wrapf(err, "failed decoding login secrets from %s", clientSecretFile)
+	}
+	sklog.Infof("Successfully read client secret from %s", clientSecretFile)
+	return DEFAULT_COOKIE_SALT, config.ClientID, config.ClientSecret, nil
+}
+
+// TryLoadingFromGCPSecret tries to load the cookie salt, client id, and client
+// secret from GCP secrets.  If it fails, it returns the default cookie salt and
+// the client id and secret are the empty string.
+//
+// Returns salt, clientID, clientSecret.
+func TryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, string, string, error) {
+	contents, err := secretClient.Get(ctx, LoginSecretProject, LoginSecretName, secret.VersionLatest)
+	if err != nil {
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", LoginSecretName)
+	}
+	var info loginInfo
+	if err := json.Unmarshal([]byte(contents), &info); err != nil {
+		return "", "", "", skerr.Wrapf(err, "successfully retrieved login secret from GCP secrets but failed to decode it as JSON")
+	}
+	return info.Salt, info.ClientID, info.ClientSecret, nil
 }
 
 // ViaBearerToken tries to load an OAuth 2.0 Bearer token from from the request
