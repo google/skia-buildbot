@@ -174,7 +174,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	//////////////////// OSS-Fuzz - Monorail ////////////////////
 	fuzzQueryConfig := &monorail.MonorailQueryConfig{
 		Instance:              "oss-fuzz",
-		Query:                 "is:open api_triangulation",
+		Query:                 "is:open proj:Skia",
 		Client:                types.OSSFuzzClient,
 		UntriagedStatuses:     []string{"New"},
 		UnassignedIsUntriaged: true,
