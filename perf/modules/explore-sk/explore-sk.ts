@@ -142,6 +142,8 @@ class State {
   pivotRequest: pivot.Request = defaultPivotRequest();
 
   sort: string = '' // Pivot table sort order.
+
+  summary: boolean = false; // Whether to show the zoom/summary area.
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -354,6 +356,13 @@ export class ExploreSk extends ElementSk {
           title='Toggle the presence of the zero line.'>
         </checkbox-sk>
         <checkbox-sk
+          name=summary
+          @change=${ele.summaryChangeHandler}
+          ?checked=${ele.state.summary}
+          label='Summary'
+          title='Toggle the presence of the summary pane.'>
+        </checkbox-sk>
+        <checkbox-sk
           name=dots
           @change=${ele.toggleDotsHandler}
           ?checked=${ele.state.dots}
@@ -397,7 +406,7 @@ export class ExploreSk extends ElementSk {
 
     <div id=spin-overlay>
       <plot-simple-sk
-        summary
+        .summary=${ele.state.summary}
         id=plot
         @trace_selected=${ele.traceSelected}
         @zoom=${ele.plotZoom}
@@ -1015,6 +1024,12 @@ export class ExploreSk extends ElementSk {
     this.state.showZero = (e.target! as HTMLInputElement).checked;
     this._stateHasChanged();
     this.zeroChanged();
+  }
+
+  private summaryChangeHandler(e: MouseEvent) {
+    this.state.summary = (e.target! as HTMLInputElement).checked;
+    this._stateHasChanged();
+    this._render();
   }
 
   private toggleDotsHandler() {
