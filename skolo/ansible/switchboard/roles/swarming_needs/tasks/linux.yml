@@ -132,3 +132,26 @@
       - libfontconfig-dev
       - libglu-dev
       - build-essential
+
+# On boot, the i915 kernal module enables the paranoid performance collection mode by default.
+# To use the VK_INTEL_performance_query extension, this paranoid mode must be disabled.
+# https://www.intel.com/content/www/us/en/developer/articles/technical/enabling-vulkan-vk-intel-performance-query-extension-in-ubuntu.html
+- name: check if /proc/sys/dev/i915/ exists, which means the Intel integrated drivers module is loaded.
+  stat:
+    path: /proc/sys/dev/i915/
+  register: i915_module
+
+- name: Turn off paranoid performance collection mode.
+  become: true
+  when: i915_module.stat.exists
+  copy:
+    src: files/perf_stream_paranoid.conf
+    dest: /etc/sysctl.d/perf_stream_paranoid.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload kernel variables so the above file takes effect.
+  become: true
+  when: i915_module.stat.exists
+  command: service procps force-reload
