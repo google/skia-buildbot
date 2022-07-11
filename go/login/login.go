@@ -194,33 +194,12 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
 func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
-	// Kubernetes secret.
-	cookieSalt, clientID, clientSecret, err1 := TryLoadingFromK8sSecret()
-	if err1 == nil {
-		initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
-		return nil
+	cookieSalt, clientID, clientSecret, err := TryLoadingFromAllSources(context.TODO(), clientSecretFile)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
-
-	// GCP secret.
-	ctx := context.TODO()
-	secretClient, err2 := secret.NewClient(ctx)
-	if err2 == nil {
-		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
-		if err2 == nil {
-			initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
-			return nil
-		}
-	} else {
-		err2 = skerr.Wrapf(err2, "failed loading login secrets from GCP secret manager; failed to create client")
-	}
-
-	// Local file.
-	cookieSalt, clientID, clientSecret, err3 := TryLoadingFromFile(clientSecretFile)
-	if err3 == nil {
-		initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
-		return nil
-	}
-	return skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s | %s", clientSecretFile, err1, err2, err3)
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
+	return nil
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
@@ -850,6 +829,37 @@ type loginInfo struct {
 	Salt         string `json:"salt"`
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+}
+
+// TryLoadingFromAllSources tries to load the cookie salt, client id, anc client
+// secret from Kuberenetes secrets, GCP secrets, and a local file.  Returns an
+// error if all of the above fail.
+//
+// Returns salt, clientID, clientSecret.
+func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (string, string, string, error) {
+	// Kubernetes secret.
+	cookieSalt, clientID, clientSecret, err1 := TryLoadingFromK8sSecret()
+	if err1 == nil {
+		return cookieSalt, clientID, clientSecret, nil
+	}
+
+	// GCP secret.
+	secretClient, err2 := secret.NewClient(ctx)
+	if err2 == nil {
+		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
+		if err2 == nil {
+			return cookieSalt, clientID, clientSecret, nil
+		}
+	} else {
+		err2 = skerr.Wrapf(err2, "failed loading login secrets from GCP secret manager; failed to create client")
+	}
+
+	// Local file.
+	cookieSalt, clientID, clientSecret, err3 := TryLoadingFromFile(clientSecretFile)
+	if err3 == nil {
+		return cookieSalt, clientID, clientSecret, nil
+	}
+	return "", "", "", skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s | %s", clientSecretFile, err1, err2, err3)
 }
 
 // TryLoadingFromK8sSecret tries to load the cookie salt, client id, and client

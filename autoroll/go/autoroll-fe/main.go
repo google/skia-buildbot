@@ -386,7 +386,7 @@ func main() {
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
-	_, clientID, clientSecret, err := login.TryLoadingFromK8sSecret()
+	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")
 	if err != nil {
 		sklog.Fatalf("Failed to load OAuth2 configuration: %s", err)
 	}
