@@ -736,6 +736,7 @@ export class PlotSimpleSk extends ElementSk {
     const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
       entries.forEach((entry) => {
         this.width = entry.contentRect.width;
+        this.height = entry.contentRect.height;
       });
     });
     resizeObserver.observe(this);

@@ -398,8 +398,6 @@ export class ExploreSk extends ElementSk {
     <div id=spin-overlay>
       <plot-simple-sk
         summary
-        width=1200
-        height=400
         id=plot
         @trace_selected=${ele.traceSelected}
         @zoom=${ele.plotZoom}

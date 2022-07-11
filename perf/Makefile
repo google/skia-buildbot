@@ -151,7 +151,7 @@ demo_word-cloud-sk:
 # Run "bazel build //perf/..." after making any frontend changes to pick up the
 # change without restarting the golang server.
 run-local-instance:
-	$(BAZEL) build //perf/go/perfserver:perfserver
+	$(BAZEL) build //perf/...
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
 		--do_clustering=false \
@@ -165,7 +165,7 @@ run-local-instance:
 
 
 run-demo-instance:
-	$(BAZEL) build //perf/go/perfserver:perfserver
+	$(BAZEL) build //perf/...
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo.json \
