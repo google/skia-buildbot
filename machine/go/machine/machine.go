@@ -53,6 +53,7 @@ const (
 	DimChromeOSChannel        = "chromeos_channel"
 	DimChromeOSMilestone      = "chromeos_milestone"
 	DimChromeOSReleaseVersion = "release_version"
+	DimCores                  = "cores"
 
 	BadBatteryLevel = -99
 )

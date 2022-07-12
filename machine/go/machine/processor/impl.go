@@ -323,6 +323,8 @@ func processStandaloneEvent(ctx context.Context, previous machine.Description, e
 	ret.Battery = 0
 	ret.Temperature = nil
 	ret.Dimensions[machine.DimID] = []string{event.Host.Name}
+	ret.Dimensions[machine.DimCores] = []string{strconv.Itoa(event.Standalone.Cores)}
+	ret.Dimensions[machine.DimOS] = event.Standalone.OSVersions
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret

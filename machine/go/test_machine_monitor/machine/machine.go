@@ -209,7 +209,7 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 		}
 
 	default:
-		sklog.Error("Unhandled type of machine.AttachedDevice.")
+		sklog.Errorf("Unhandled type of machine.AttachedDevice: %s", m.description.AttachedDevice)
 
 	}
 
