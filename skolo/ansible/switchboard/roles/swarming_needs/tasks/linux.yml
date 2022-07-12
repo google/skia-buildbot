@@ -155,3 +155,10 @@
   become: true
   when: i915_module.stat.exists
   command: service procps force-reload
+
+- name: Install libllvm13, which is needed by the Iris Xe drivers.
+  when: i915_module.stat.exists
+  become: true
+  apt:
+    pkg:
+      - libllvm13
