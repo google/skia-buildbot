@@ -43,7 +43,7 @@ const (
 	MERGEABLE_STATE_UNKNOWN  = "unknown"  // Mergeablility was not checked yet.
 	MERGEABLE_STATE_UNSTABLE = "unstable" // Failing or pending commit status.
 
-	WAITING_FOR_GREEN_TREE_LABEL = "waiting for tree to go green"
+	AUTOSUBMIT_LABEL = "autosubmit"
 
 	CHECK_STATE_SUCCESS         = "success"
 	CHECK_STATE_CANCELLED       = "cancelled"

@@ -601,7 +601,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	require.EqualError(t, updateIssueFromGitHubPullRequest(a, &github_api.PullRequest{}), "Pull request number 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
-	waitingLabel := github.WAITING_FOR_GREEN_TREE_LABEL
+	waitingLabel := github.AUTOSUBMIT_LABEL
 	pr := &github_api.PullRequest{
 		Number:    intPtr(int(a.Issue)),
 		State:     stringPtr(""),

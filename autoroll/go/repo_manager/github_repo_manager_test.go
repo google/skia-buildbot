@@ -167,7 +167,7 @@ func setupFakeGithub(ctx context.Context, t *testing.T, childCommits []string) (
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
-	patchReqBody := []byte(`{"labels":["waiting for tree to go green"]}
+	patchReqBody := []byte(`{"labels":["autosubmit"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)

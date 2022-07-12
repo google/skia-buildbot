@@ -417,7 +417,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	}
 	doesWaitingForTreeLabelExist := false
 	for _, l := range pullRequest.Labels {
-		if l.GetName() == github.WAITING_FOR_GREEN_TREE_LABEL {
+		if l.GetName() == github.AUTOSUBMIT_LABEL {
 			doesWaitingForTreeLabelExist = true
 			break
 		}
@@ -588,7 +588,7 @@ func (r *githubRoll) RollingTo() *revision.Revision {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		if err := r.g.RemoveLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+		if err := r.g.RemoveLabel(r.pullRequest.GetNumber(), github.AUTOSUBMIT_LABEL); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true
@@ -599,7 +599,7 @@ func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.AUTOSUBMIT_LABEL); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
@@ -613,7 +613,7 @@ func (r *githubRoll) RetryCQ(ctx context.Context) error {
 		if err := r.g.ReRequestLatestCheckSuite(r.pullRequest.Head.GetSHA()); err != nil {
 			return err
 		}
-		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.AUTOSUBMIT_LABEL); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false

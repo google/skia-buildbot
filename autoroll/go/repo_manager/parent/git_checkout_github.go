@@ -107,7 +107,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 		// Add appropriate label to the pull request.
 		if !dryRun {
 			addLabelFunc := func() error {
-				return githubClient.AddLabel(pr.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL)
+				return githubClient.AddLabel(pr.GetNumber(), github.AUTOSUBMIT_LABEL)
 			}
 			if err := backoff.Retry(addLabelFunc, codereview.GithubBackOffConfig); err != nil {
 				return 0, skerr.Wrap(err)
