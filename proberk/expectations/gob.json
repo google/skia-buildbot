@@ -108,6 +108,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/libsdl-org/SDL",
     "mirrored_from_url": "https://github.com/libsdl-org/SDL.git"
   },
+  "external/github.com/linebender/piet-gpu": {
+    "name": "external/github.com/linebender/piet-gpu",
+    "clone_url": "https://skia.googlesource.com/external/github.com/linebender/piet-gpu",
+    "mirrored_from_url": "https://github.com/linebender/piet-gpu.git"
+  },
   "external/github.com/lottie-animation-community/tests": {
     "name": "external/github.com/lottie-animation-community/tests",
     "clone_url": "https://skia.googlesource.com/external/github.com/lottie-animation-community/tests",
