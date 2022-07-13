@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"path/filepath"
 	"regexp"
@@ -280,6 +281,11 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 		}
 		liveAppContainerToImagesByNamespace[namespace] = liveAppContainerToImages
 	}
+	// TODO(borenet): Remove this logging after debugging.
+	b, err := json.MarshalIndent(liveAppContainerToImagesByNamespace, "", "  ")
+	if err == nil {
+		sklog.Infof("Running apps to containers by namespace: %s", string(b))
+	}
 
 	// Read files from the repo using gitiles.
 	fileInfos, err := g.ListDirAtRef(ctx, cluster, git.MainBranch)
@@ -411,6 +417,11 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 				}
 			}
 		}
+	}
+	// TODO(borenet): Remove this logging after debugging.
+	b, err = json.MarshalIndent(checkedInAppsToContainers, "", "  ")
+	if err == nil {
+		sklog.Infof("Checked in apps to containers: %s", string(b))
 	}
 
 	// Find out which apps and containers are live but not found in git repo.
