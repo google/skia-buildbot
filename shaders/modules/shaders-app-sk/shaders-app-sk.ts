@@ -83,7 +83,7 @@ const defaultState: State = {
 };
 
 // A convenience type that represents HTML Elements which are also UniformControls.
-interface UniformControlElement extends Element, UniformControl {};
+interface UniformControlElement extends Element, UniformControl {}
 
 // Define a new mode and mime-type for SkSL shaders. We follow the shader naming
 // covention found in CodeMirror.
@@ -101,6 +101,109 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 
 /** requestAnimationFrame id if requestAnimationFrame is not running. */
 const RAF_NOT_RUNNING = -1;
+
+/**
+ * Each shader example consists of a hash linking it to its corresponding webpages which updates
+ * the codemirror and canvas. The image source is the source of the thumbnail image (a jpeg) and
+ * the alt is the alternative text
+ */
+ interface shaderExample {
+  hash: string;
+  imageName: string;
+}
+/** An array of shader examples. Each image name must correspond to the thumbnail name */
+const exampleShaders: Array<shaderExample> = [
+  {
+    hash: 'de2a4d7d893a7251eb33129ddf9d76ea517901cec960db116a1bbd7832757c1f',
+    imageName: 'blue-neurons',
+  },
+
+  {
+    hash: 'ed72577c437c036447372e4c873462fc1bbfc0cb5e9fb0630ab1c07368a0db48',
+    imageName: 'kaleidoscope',
+  },
+
+  {
+    hash: 'f9be5248170044ea1b69ee78456eec4be98d3e71a6c61fd0138f6018abda2ac3',
+    imageName: 'blue-clouds',
+  },
+
+  {
+    hash: '2bee4488820c3253cd8861e85ce3cab86f482cfddd79cfd240591bf64f7bcc38',
+    imageName: 'fibonacci-sphere',
+  },
+
+  {
+    hash: '7cd08fc6b1b23121529c62e31e00b4bd6b49deba9a3904fd01fda3dc5c590050',
+    imageName: 'mandelbrot',
+  },
+
+  {
+    hash: '23a360c975c3cb195c89ccdf65ec549e279ce8a959643b447e69cb70614a6eca',
+    imageName: 'smoke',
+  },
+
+  {
+    hash: '80c3854680c3e99d71fbe24d86185d5bb20cb047305242f9ecb5aff0f102cf73',
+    imageName: 'snowfall',
+  },
+
+  {
+    hash: 'e0ec9ef204763445036d8a157b1b5c8929829c3e1ee0a265ed984aeddc8929e2',
+    imageName: 'starfield',
+  },
+
+  {
+    hash: 'e3c8c172e50a69196b2f7712c307ae7099931c3addfc21075ef4ab6aeed11f71',
+    imageName: 'switch-color',
+  }];
+
+/**
+ * A collection of thumbnail snippets that redirect to different shader examples when clicked on.
+ * Additional examples can be added in example shaders with corresponding webpage hash and name
+ * which in turn links to its thumbnail.
+ * @returns the gallery template result
+ */
+const exampleShadersGalleryTemplate = () => html`
+    <div class="gallery-container">
+      <div class="thumbnails"></div>
+      <div class="scrollbar">
+        <div class="thumb"></div>
+      </div>
+      <div class="slides">
+        ${generateExampleShadersHTML()}
+      </div>
+    </div>
+  `;
+
+/**
+ * Iterates through example shaders and adds it to an ordered list
+ */
+const generateExampleShadersHTML = () => html`
+  <ol class="slides">
+    ${exampleShaders.map((i) => shaderEntry(i))}
+  </ol>`;
+
+/**
+ * Formats each shader entry attaching the link, image source, and alternative text
+ * @param i the shader example
+ * @returns formated shader exanple entry div
+ */
+const shaderEntry = (i: shaderExample) => html`
+  <li class="thumbnails">
+    <a href=${`https://shaders.skia.org/?id=${i.hash}`}>
+      <div>
+        <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`}>
+      </div>
+    </a>
+  </li>`;
+
+/**
+ * Formats the shader example thumbnail url
+ * @param i a shader example
+ * @returns the corrrect url for a shader example
+ */
+const cdnImage = (i: shaderExample) => `https://storage.googleapis.com/skia-world-readable/example-shaders/${i.imageName}-thumbnail.jpeg`;
 
 export class ShadersAppSk extends ElementSk {
   private width: number = DEFAULT_SIZE;
@@ -299,6 +402,10 @@ export class ShadersAppSk extends ElementSk {
           <a href="/?id=@iMouse">iMouse</a>
           <a href="/?id=@iImage">iImage</a>
         </p>
+        <div class="example-gallery-and-canvas-wrapper">
+          <div>
+            ${exampleShadersGalleryTemplate()}
+          </div>
         <canvas
           id="player"
           width=${ele.width}
@@ -306,6 +413,7 @@ export class ShadersAppSk extends ElementSk {
         >
           Your browser does not support the canvas tag.
         </canvas>
+        </div>
         <div>
           ${ShadersAppSk.displayShaderTree(ele)}
         </div>
@@ -554,10 +662,10 @@ export class ShadersAppSk extends ElementSk {
     }
     const uniforms: number[] = new Array(this.currentNode.numPredefinedUniformValues).fill(0);
     $<UniformControlElement>('#uniformControls > *')
-        .slice(0, this.numPredefinedUniformControls) // stop after the predefined controls
-        .forEach((control: UniformControl) => {
-      control.applyUniformValues(uniforms);
-    });
+      .slice(0, this.numPredefinedUniformControls) // stop after the predefined controls
+      .forEach((control: UniformControl) => {
+        control.applyUniformValues(uniforms);
+      });
     return uniforms;
   }
 
@@ -572,10 +680,10 @@ export class ShadersAppSk extends ElementSk {
     // specific indexes and we need those later indexes to exist.
     const uniforms: number[] = new Array(this.currentNode.getUniformFloatCount()).fill(0);
     $<UniformControlElement>('#uniformControls > *')
-        .slice(this.numPredefinedUniformControls) // start after the predefined controls
-        .forEach((control: UniformControl) => {
-      control.applyUniformValues(uniforms);
-    });
+      .slice(this.numPredefinedUniformControls) // start after the predefined controls
+      .forEach((control: UniformControl) => {
+        control.applyUniformValues(uniforms);
+      });
     // Slice off the uniform values belonging to indices for the predefined uniforms. These
     // should all be zero anyway.
     return uniforms.slice(this.currentNode.numPredefinedUniformValues);
@@ -635,7 +743,7 @@ export class ShadersAppSk extends ElementSk {
       paint.setColor(this.kit.Color4f(1, 0, 0, opacity));
       const size: number = 10 + (phase * 5);
       const ovalFrame = this.kit.XYWHRect(this.traceCoordX - size, this.traceCoordY - size,
-                                          2 * size, 2 * size);
+        2 * size, 2 * size);
       this.canvas!.drawOval(ovalFrame, paint);
       paint.delete();
     }
@@ -663,7 +771,7 @@ export class ShadersAppSk extends ElementSk {
       paint.setShader(traced.shader);
       // Clip to a tight rectangle around the trace coordinate to reduce draw time.
       const tightClip = this.kit.XYWHRect(this.traceCoordX - 2, this.traceCoordY - 2, 5, 5);
-      canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /*doAntiAlias=*/ false);
+      canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /* doAntiAlias= */ false);
       const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
       canvas.drawRect(rect, paint);
       const traceJSON: string = traced.debugTrace.writeTrace();

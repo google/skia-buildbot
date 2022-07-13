@@ -231,4 +231,68 @@
       font-size: 13px;
     }
   }
+  .example-gallery-and-canvas-wrapper {
+    display: flex;
+  }
+  /** Gallery template css */
+  .gallery-container {
+    display: flex;
+    justify-content: center;
+  }
+  .thumbnails {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .thumbnails img {
+    width: 110px;
+    height: 110px;
+    top: 125px;
+    left: 80px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .thumbnails:hover img {
+    opacity: 0.5;
+    -webkit-transition: .3s ease-in-out;
+    transition: .3s ease-in-out;
+  }
+  .scrollbar {
+    width: 1px;
+    height: 512px;
+    background: #ccc;
+    display: block;
+    margin: 0 0 0 8px;
+  }
+  .thumb {
+    width: 1px;
+    position: absolute;
+    height: 0;
+    background: #000;
+  }
+  .slides {
+    list-style: none;
+    margin: 0 16px;
+    display: grid;
+    grid-auto-flow: row;
+    gap: 1rem;
+    width: calc(100px + 1rem);
+    padding: 0 0.25rem;
+    height: 512px;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+  }
+  .slides > div {
+    scroll-snap-align: start;
+  }
+  .slides img {
+    width: 100px;
+    object-fit: contain;
+  }
+  .slides::-webkit-scrollbar {
+    display: none;
+  }
 }
