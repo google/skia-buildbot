@@ -46,6 +46,7 @@
         "0x1cb3",
         "0x2184",
         "0x3e92",
+        "0x3e9b",
         "0x5912",
         "0x6613",
         "0x679e",
@@ -54,6 +55,7 @@
         "0xa2e",
         "0xd26",
         "0xfe9",
+        "0xffff",
         "None",
       ],
       device_string: [ // Set by mobile devices
@@ -77,6 +79,7 @@
         "0x10de",
         "0x1af4",
         "0x8086",
+        "0xffff",
         "None",
       ],
     },
