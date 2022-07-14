@@ -341,11 +341,11 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 			containers = append(containers, config.Spec.Template.Spec.Containers)
 		}
 		for idx, app := range apps {
+			checkedInAppsToContainers[app] = util.StringSet{}
 			for _, c := range containers[idx] {
 				namespace := namespaces[idx]
 				liveAppContainerToImages := liveAppContainerToImagesByNamespace[namespace]
 
-				checkedInAppsToContainers[app] = util.StringSet{}
 				container := c.Name
 				committedImage := c.Image
 				checkedInAppsToContainers[app][c.Name] = true
