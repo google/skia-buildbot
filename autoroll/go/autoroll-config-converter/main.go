@@ -83,6 +83,7 @@ func main() {
 func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	// Read the config file.
 	srcPath := filepath.Join(srcDir, relPath)
+	sklog.Infof("Converting %s", srcPath)
 	cfgBytes, err := ioutil.ReadFile(srcPath)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to read roller config %s", srcPath)
@@ -149,6 +150,7 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
+	sklog.Infof("Wrote %s", dstPath)
 
 	// Run kube-conf-gen to generate the namespace config file. Note that we'll
 	// overwrite this file for every roller in the namespace, but that shouldn't
@@ -159,6 +161,7 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 		if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
 			return skerr.Wrapf(err, "failed to write output")
 		}
+		sklog.Infof("Wrote %s", dstNsPath)
 	}
 
 	return nil
