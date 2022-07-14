@@ -356,10 +356,10 @@ container_pull(
     repository = "node",
 )
 
-# Pulls the node:17-alpine container, needed by jsdoc.
+# Pulls the cloud-builders/kubectl container, needed by apps that use kubectl.
 container_pull(
     name = "kubectl",
-    digest = "sha256:fb1a8540f657d76f980c75e59fa95fa3683f9f7eadeea6fbdff099968bfcadca",
+    digest = "sha256:66fb5ffddfb7d9dc02daf3cdc809d548ea7cbab53bf67ff25f748d8559323796",
     registry = "gcr.io",
     repository = "cloud-builders/kubectl",
 )
