@@ -136,10 +136,44 @@ var defaultBenchmarks = map[string]*Benchmark{
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
 		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
-		DriverType:    ChromeStableDriver,
+		DriverType:    ChromeCanaryDriver,
 		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable",
+		},
+	},
+	// Chrome Canary
+	"chrome-canary-motionmark": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/motionmark.py",
+		DriverType:    ChromeCanaryDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
+		},
+	},
+	"chrome-canary-jetstream": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/jetstream.py",
+		DriverType:    ChromeCanaryDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
+		},
+	},
+	"chrome-canary-speedometer": {
+		RepoURL:       "https://chromium.googlesource.com/chromium/src",
+		CheckoutPaths: []string{"tools/browserbench-webdriver"},
+		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
+		DriverType:    ChromeStableDriver,
+		Flags: []string{
+			"--browser", "chrome",
+			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"--extra-keys", "channel,canary",
 		},
 	},
 	// Safari Stable
