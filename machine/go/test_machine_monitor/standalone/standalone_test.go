@@ -46,6 +46,22 @@ func TestCpusCore_ParsingAndBitWidthAndArchMapping(t *testing.T) {
 		[]string{"arm64", "arm64-64"},
 		"aarch64 should be recognized as arm64 ISA, and an unrecognizable Intel brand string should result in no third element.",
 	)
+	assertCpuDimensions(
+		t,
+		"arm64",
+		"",
+		"",
+		[]string{"arm64", "arm64-64"},
+		"Empty vendor and brand string should result in no third element.",
+	)
+	assertCpuDimensions(
+		t,
+		"arm64",
+		"",
+		"Wackadoo ALU",
+		[]string{"arm64", "arm64-64", "arm64-64-Wackadoo_ALU"},
+		"Empty vendor and full brand string should result in smooshed brand string for third element.",
+	)
 }
 
 func TestCpusCore_UnrecognizedArch_ReturnsError(t *testing.T) {

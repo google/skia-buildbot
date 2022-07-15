@@ -30,14 +30,8 @@ func CPUs(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get Mac CPU architecture")
 	}
-	vendor, err := unix.Sysctl("machdep.cpu.vendor")
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	brandString, err := unix.Sysctl("machdep.cpu.brand_string")
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
+	// It is perfectly normal for these sysctl keys to be missing sometimes:
+	vendor, _ := unix.Sysctl("machdep.cpu.vendor") // Sysctl returns "" on failure.
+	brandString, _ := unix.Sysctl("machdep.cpu.brand_string")
 	return cpusCore(arch, vendor, brandString)
 }
