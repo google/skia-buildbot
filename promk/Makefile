@@ -72,7 +72,7 @@ push_thanos:
 	$(BAZEL) run //kube/go/pushk -- thanos
 
 push_thanos_bounce:
-	$(BAZEL) run //kube/go/pushk -- thanos-bounce
+	$(BAZEL) run //promk:pushk_thanos_bounce_container
 
 .PHONY: update_alerts
 update_alerts: push_config_thanos
