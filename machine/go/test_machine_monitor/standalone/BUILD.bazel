@@ -4,20 +4,23 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "standalone",
     srcs = [
+        "standalone.go",
         "standalone_darwin.go",
         "standalone_linux.go",
         "standalone_windows.go",
     ],
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone",
     visibility = ["//visibility:public"],
-    deps = select({
+    deps = [
+        "//go/skerr",
+    ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [
-            "//go/skerr",
             "@com_github_shirou_gopsutil//host",
+            "@org_golang_x_sys//unix",
         ],
         "@io_bazel_rules_go//go/platform:ios": [
-            "//go/skerr",
             "@com_github_shirou_gopsutil//host",
+            "@org_golang_x_sys//unix",
         ],
         "//conditions:default": [],
     }),
@@ -25,15 +28,13 @@ go_library(
 
 go_test(
     name = "standalone_test",
-    srcs = ["standalone_darwin_test.go"],
+    srcs = [
+        "standalone_darwin_test.go",
+        "standalone_test.go",
+    ],
     embed = [":standalone"],
-    deps = select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "@com_github_stretchr_testify//assert",
-        ],
-        "@io_bazel_rules_go//go/platform:ios": [
-            "@com_github_stretchr_testify//assert",
-        ],
-        "//conditions:default": [],
-    }),
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
 )

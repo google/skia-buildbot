@@ -54,6 +54,7 @@ const (
 	DimChromeOSMilestone      = "chromeos_milestone"
 	DimChromeOSReleaseVersion = "release_version"
 	DimCores                  = "cores"
+	DimCPU                    = "cpu"
 
 	BadBatteryLevel = -99
 )
@@ -262,7 +263,8 @@ type Standalone struct {
 	// Number of CPU cores:
 	Cores int `json:"cores"`
 
-	// Model of CPU, e.g. "arm64-64-Apple_M1" or "x86-64", in various precisions:
+	// Model of CPU, e.g. "arm64-64-Apple_M1" or "x86-64", in various precisions, e.g. "x86",
+	// "x86-64", "x86-64-i7-9750H":
 	CPUs []string `json:"cpus"`
 
 	// Model of GPU, e.g. "1002:6821-4.0.20-3.2.8" or "8086:591e", in various precisions:

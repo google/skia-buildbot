@@ -2,10 +2,10 @@ package standalone
 
 import (
 	"context"
-	"strings"
 
 	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
+	"golang.org/x/sys/unix"
 )
 
 // OSVersions returns the macOS version in all possible precisions. For example, 10.5.7 would yield
@@ -13,27 +13,31 @@ import (
 func OSVersions(ctx context.Context) ([]string, error) {
 	_, _, platformVersion, err := host.PlatformInformation()
 	if err != nil {
-		return []string{}, skerr.Wrapf(err, "Failed to get macOS version.")
+		return nil, skerr.Wrapf(err, "failed to get macOS version")
 	}
-	return versionsOfAllPrecisions(platformVersion), nil
+	return macVersionsOfAllPrecisions(platformVersion), nil
 }
 
-// Split a macOS version like 1.2.3 into an array of versions of all precisions, like ["Mac",
-// "Mac-1", "Mac-1.2", "Mac-1.2.3"].
-func versionsOfAllPrecisions(version string) []string {
-	subversions := strings.Split(version, ".")
-	ret := []string{"Mac", "Mac-" + subversions[0]}
-	for i, subversion := range subversions[1:] {
-		ret = append(ret, ret[i+1]+"."+subversion)
-	}
-	return ret
-}
-
-// CPUs returns the model of CPU on the host, in various precisions, e.g. ["x86", "x86-64",
-// "x86-64-i5-5350U"].
+// CPUs returns a Swarming-style description of the host's CPU, in various precisions, e.g. ["x86",
+// "x86-64", "x86-64-i5-5350U"]. The first (ISA) and second (bit width) will always be returned (if
+// returned error is nil). The third (model number) will be added if we succeed in extracting it.
 //
-// TODO(erikrose): Implement.
+// Swarming goes to special trouble on Linux to return "32" if running a 32-bit userland on a 64-bit
+// kernel, we do not. None of our jobs care about that distinction, nor, I think, do any of our
+// boxes run like that.
 func CPUs(ctx context.Context) ([]string, error) {
-	var ret []string
-	return ret, nil
+	arch, err := host.KernelArch()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get Mac CPU architecture")
+	}
+	vendor, err := unix.Sysctl("machdep.cpu.vendor")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	brandString, err := unix.Sysctl("machdep.cpu.brand_string")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return cpusCore(arch, vendor, brandString)
 }
