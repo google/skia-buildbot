@@ -1,3 +1,66 @@
+/*
+
+//infra-sk/themes.scss is a common theme to be used across all Skia
+infrastructure applications so that we have a consistent look and feel.
+
+This file consists of several different layers of styling that can be opted
+into.
+
+
+# Layer 1
+
+The first layer is a consistent styling of all buttons, select controls, and
+tables, that are applied globally. You get this just by including the
+themes.scss file.
+
+
+# Layer 2
+
+The second layer is applied by adding the `body-sk` class to the <body> element
+of a page. This layer adds a large number of semantic CSS variables, whose names
+come from Material Design, that are to be used for styling elements. For
+example, if you have a panel that should look like a surface then it can be
+styled as:
+
+    my-panel {
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+
+These semantic colors are supplied in two sets, one for light mode and another
+for dark mode. Dark mode is turned on by adding the `darkmode` class to an
+element, which triggers that element and all of its children to move to
+darkmode.
+
+The darkmode/lightmode is usually controlled via the `theme-chooser-sk` control
+which toggles the `darkmode` class on the body element and persists the user's
+choice in local storage.
+
+The `body-sk` class also adds more styling to many common elements such as
+buttons, links, and other elements-sk elements.
+
+# Layer 3
+
+The third layer is applied by adding the `font-sk` class to the body element of
+a page. This layer sets consistent font styling for a page, and adds `--font`
+and `--mono-font` CSS variables.
+
+To see all of the semantic names and their values working, along with and
+example elements in both dark and light mode, run:
+
+    $ ./demopage.sh infra-sk/modules/theme-chooser-sk/
+
+You can use the theme-chooser-sk element on that demo page to toggle between
+dark and light modes.
+
+Most applications should use `app-sk` as their base element, so you can also run
+
+   $ ./demopage.sh infra-sk/modules/app-sk/
+
+to see how these styles apply to title bars and sidebars.
+
+*/
+
 @import '~elements-sk/themes/themes';
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
@@ -263,6 +326,11 @@
     }
   }
 
+  /*
+  This styling makes the `summary` element in a `details` element look like a
+  button. If `button` styles are updated then this styling should also be
+  updated to match.
+  */
   details {
     summary {
       display: inline-block;
@@ -304,9 +372,9 @@
   }
 
   /*
-     The following styles are for scrollbars. There are some non-standard looking
-     styles because it is 2020 and there's still no standard way to style
-     scrollbars on a web page.
+     The following styles are for scrollbars. There are some non-standard
+     looking styles because it is 2020 and there's still no standard way to
+     style scrollbars on a web page.
 
      https://caniuse.com/#feat=css-scrollbar
 
