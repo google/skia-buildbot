@@ -57,6 +57,7 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 20000
+              name: prom
           volumeMounts:
             - name: {{.appName}}-sa
               mountPath: /var/secrets/google

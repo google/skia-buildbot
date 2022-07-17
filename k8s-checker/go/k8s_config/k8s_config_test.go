@@ -60,6 +60,7 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 20000
+              name: prom
           resources:
             requests:
               memory: "48Gi"
@@ -118,6 +119,7 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 20000
+              name: prom
           volumeMounts:
             - name: autoroll-be-chromium-autoroll-sa
               mountPath: /var/secrets/google
