@@ -195,7 +195,7 @@ const isRunning = (machine: FrontendDescription): TemplateResult => (machine.Run
       `
   : html``);
 
-const asList = (arr: string[]) => arr.join(' | ');
+const asList = (arr: string[] | null) => arr === null ? '' : arr.join(' | ');
 
 const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
   if (!machine.LaunchedSwarming) {
@@ -542,7 +542,7 @@ export class MachinesTableSk extends ElementSk {
     (pair) => html`
                   <tr>
                     <td>${pair[0]}</td>
-                    <td>${asList(pair[1]!)}</td>
+                    <td>${asList(pair[1])}</td>
                   </tr>
                 `,
   )}
