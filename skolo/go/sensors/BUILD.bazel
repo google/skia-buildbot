@@ -1,0 +1,34 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sensors",
+    srcs = [
+        "dlpth1c.go",
+        "fake_serial_port.go",
+    ],
+    importpath = "go.skia.org/infra/skolo/go/sensors",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/serial",
+        "//go/skerr",
+        "@com_github_tarm_serial//:serial",
+    ],
+)
+
+go_test(
+    name = "sensors_test",
+    srcs = [
+        "dlpth1c_test.go",
+        "fake_serial_port_test.go",
+    ],
+    embed = [":sensors"],
+    deps = [
+        "//go/serial/mocks",
+        "//go/skerr",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

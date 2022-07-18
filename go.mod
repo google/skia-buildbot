@@ -64,6 +64,7 @@ require (
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.0
+	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/twitchtv/twirp v7.1.0+incompatible
 	github.com/unrolled/secure v1.0.8
