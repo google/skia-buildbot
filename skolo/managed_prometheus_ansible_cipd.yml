@@ -1,0 +1,5 @@
+package: skia/internal/managed_prometheus_ansible
+description: Builds of managed_prometheus_ansible for linux.
+install_mode: copy
+data:
+  - dir: build/

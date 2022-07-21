@@ -7,6 +7,7 @@
     powercycle_server_ansible_version_override: ''
     metadata_server_ansible_version_override: ''
     alert_to_pubsub_ansible_version_override: ''
+    managed_prometheus_ansible_version_override: ''
 
   roles:
     - copy_authorized_keys
@@ -24,3 +25,6 @@
     - role: install_prometheus_and_alert_to_pubsub
       alert_to_pubsub_ansible_version:
         '{{ alert_to_pubsub_ansible_version_override }}'
+    - role: install_managed_prometheus
+      managed_prometheus_ansible_version:
+        '{{ managed_prometheus_ansible_version_override }}'

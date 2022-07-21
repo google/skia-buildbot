@@ -88,3 +88,18 @@ ifeq ("$(wildcard ./build/Linux/x86_64/prometheus-$(PROMETHEUS_VERSION).linux-am
 	wget https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz -O - | tar -xz --directory=./build/Linux/x86_64
 endif
 	-echo Download complete.
+
+build_managed_prometheus_ansible:
+	rm -rf ./build
+	rm -rf ./prometheus
+	git clone https://github.com/GoogleCloudPlatform/prometheus
+	cd prometheus && git checkout v2.35.0-gmp.2
+	cd prometheus && make build
+	mkdir -p ./build/Linux/x86_64/
+	cp ./prometheus/prometheus ./build/Linux/x86_64/
+
+build_and_upload_managed_prometheus_ansible: build_managed_prometheus_ansible
+	cipd create -pkg-def=managed_prometheus_ansible_cipd.yml --tag version:${VERSION}
+
+release_managed_prometheus_ansible: build_and_upload_managed_prometheus_ansible
+	../bash/ansible-release.sh managed_prometheus_ansible ${VERSION}

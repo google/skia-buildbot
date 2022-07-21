@@ -1,0 +1,68 @@
+- name: Load managed_prometheus_ansible executables.
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: managed_prometheus_ansible
+    get_ansible_binaries_version: '{{ managed_prometheus_ansible_version }}'
+
+- name: Copy over service file.
+  become: true
+  template:
+    src: templates/managed_prometheus_ansible.service
+    dest: /etc/systemd/system/managed_prometheus_ansible.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy over executable.
+  become: true
+  copy:
+    src:
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture'] }}/prometheus"
+    dest: /usr/local/bin/managed_prometheus_ansible
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure /etc/prometheus directory exists.
+  become: true
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0755'
+
+- name: Copy over prometheus config file.
+  template:
+    src: templates/prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0644'
+
+- name: Copy over alerts file.
+  copy:
+    src: files/alerts.yml
+    dest: /etc/prometheus/alerts.yml
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0644'
+
+- name: Ensure tsdb directory exists.
+  become: true
+  file:
+    path: /var/lib/managed_prometheus/tsdb
+    state: directory
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0755'
+
+- name: Start systemd servce.
+  become: true
+  systemd:
+    enabled: true
+    state: restarted
+    name: managed_prometheus_ansible
+    daemon_reload: true

@@ -1,0 +1,33 @@
+[Unit]
+Description=managed_prometheus_ansible
+After=syslog.target network.target
+# Prevent systemd from giving up restarting the service if it keeps crashing. This is useful e.g.
+# when power is restored after a power outage, but internet connectivity hasn't been restored yet,
+# causing services that depend on external APIs to repeatedly crash until access to the internet is
+# restored.
+#
+# These settings tell systemd to restart the crashing service every 10 seconds (see RestartSec=
+# below), and to stop trying to restart it if it crashes more than 1000 times (StartLimitBurst=)
+# within an interval of 1 second (StartLimitIntervalSec=), effectively never giving up.
+#
+# Docs:
+# - https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+# - https://www.freedesktop.org/software/systemd/man/systemd.service.html
+StartLimitIntervalSec=1
+StartLimitBurst=1000
+
+[Service]
+Type=simple
+User=chrome-bot
+ExecStart=/usr/local/bin/managed_prometheus_ansible \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/managed_prometheus/data \
+  --storage.tsdb.retention.time=60d \
+  --web.listen-address=:{{ all.prometheus.managed_web_server_port }} \
+  --export.label.project-id=skia-public \
+  --export.label.location=us-central1-a
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
