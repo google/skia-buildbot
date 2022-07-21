@@ -24,7 +24,7 @@ func (s SwarmingDimensions) Copy() SwarmingDimensions {
 }
 
 func (s SwarmingDimensions) getDimensionValueOrEmptyString(key string) string {
-	if values, ok := s[key]; ok {
+	if values, ok := s[key]; ok && len(values) > 0 {
 		return values[len(values)-1]
 	}
 	return ""

@@ -69,6 +69,34 @@ func TestAsMetricsTags_EmptyDimensions_ReturnsEmptyTags(t *testing.T) {
 	assert.Equal(t, emptyTags, SwarmingDimensions{}.AsMetricsTags())
 }
 
+func TestAsMetricsTags_NilSlices_ReturnsEmptyTags(t *testing.T) {
+	unittest.SmallTest(t)
+	emptyTags := map[string]string{
+		DimID:         "",
+		DimOS:         "",
+		DimDeviceType: "",
+	}
+	assert.Equal(t, emptyTags, SwarmingDimensions{
+		DimID:         nil,
+		DimOS:         nil,
+		DimDeviceType: nil,
+	}.AsMetricsTags())
+}
+
+func TestAsMetricsTags_ZeroLengthSlices_ReturnsEmptyTags(t *testing.T) {
+	unittest.SmallTest(t)
+	emptyTags := map[string]string{
+		DimID:         "",
+		DimOS:         "",
+		DimDeviceType: "",
+	}
+	assert.Equal(t, emptyTags, SwarmingDimensions{
+		DimID:         {},
+		DimOS:         {},
+		DimDeviceType: {},
+	}.AsMetricsTags())
+}
+
 func TestAsMetricsTags_MultipleValues_ReturnsTagsWithMostSpecificValues(t *testing.T) {
 	unittest.SmallTest(t)
 	expected := map[string]string{
