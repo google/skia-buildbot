@@ -299,7 +299,7 @@ func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDCl
 		ts, err = luciauth.NewLUCIContextTokenSource(auth.ScopeUserinfoEmail)
 	}
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "Could not get token source. \nTry running 'gcloud auth application-default login'\n")
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	cipdClient, err := cipd.NewClient(httpClient, rootDir, cipd.DefaultServiceURL)
