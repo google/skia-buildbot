@@ -169,7 +169,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
 		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
-		DriverType:    ChromeStableDriver,
+		DriverType:    ChromeCanaryDriver,
 		Flags: []string{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
