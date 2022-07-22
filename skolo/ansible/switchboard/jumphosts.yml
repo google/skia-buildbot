@@ -22,7 +22,7 @@
     - role: install_router_backup
       router_backup_ansible_version:
         '{{ router_backup_ansible_version_override }}'
-    - role: install_prometheus_and_alert_to_pubsub
+    - role: install_alert_to_pubsub
       alert_to_pubsub_ansible_version:
         '{{ alert_to_pubsub_ansible_version_override }}'
     - role: install_managed_prometheus

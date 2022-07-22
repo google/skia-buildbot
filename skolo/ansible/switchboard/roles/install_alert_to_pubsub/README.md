@@ -1,11 +1,10 @@
 # Role Name
 
-`install_prometheus_and_alert_to_pubsub`
+`install_alert_to_pubsub`
 
 ## Description
 
-Builds alert-to-pubsub and deploys it along with Prometheus to each of the
-jumphosts.
+Builds alert-to-pubsub and deploys it to each of the jumphosts.
 
 ## Arguments
 
@@ -23,7 +22,7 @@ PubSub messages to the alert topic.
     - hosts: jumphosts
 
       roles:
-        - install_prometheus_and_alert_to_pubsub
+        - install_alert_to_pubsub
 
 ## Pushing a test/debug binary:
 

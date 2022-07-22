@@ -1,0 +1,35 @@
+- name: Load alert_to_pubsub_ansible executables.
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: alert_to_pubsub_ansible
+    get_ansible_binaries_version: '{{ alert_to_pubsub_ansible_version }}'
+
+- name: Copy over alert_to_pubsub service file.
+  become: true
+  template:
+    src: templates/alert_to_pubsub.service
+    dest: /etc/systemd/system/alert_to_pubsub.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy over alert_to_pubsub_ansible executable.
+  become: true
+  copy:
+    src:
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture']
+      }}/alert_to_pubsub_ansible"
+    dest: /usr/local/bin/alert_to_pubsub_ansible
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: restart_alert_to_pubsub
+  become: true
+  systemd:
+    enabled: true
+    state: restarted
+    name: alert_to_pubsub
+    daemon_reload: true
