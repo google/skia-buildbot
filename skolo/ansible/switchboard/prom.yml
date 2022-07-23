@@ -1,15 +1,18 @@
-# Configures alert-to-pubsub on each jumphost.
+# Configures prometheus and alert-to-pubsub on each jumphost.
 #
-# See the install_managed_prometheus role for how Prometheus is installed.
-#
-# The primary jumphost playbook is jumphosts.yaml.
+# This is just a trimmed down jumphosts.yml file that just does prometheus and
+# alert-to-pubsub. The primary jumphost playbook is jumphosts.yaml.
 - hosts: jumphosts
   user: chrome-bot
   gather_facts: true
   vars:
     alert_to_pubsub_ansible_version_override: ''
+    managed_prometheus_ansible_version_override: ''
 
   roles:
     - role: install_alert_to_pubsub
       alert_to_pubsub_ansible_version:
         '{{ alert_to_pubsub_ansible_version_override }}'
+    - role: install_managed_prometheus
+      managed_prometheus_ansible_version:
+        '{{ managed_prometheus_ansible_version_override }}'
