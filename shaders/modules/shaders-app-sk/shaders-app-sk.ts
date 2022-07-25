@@ -168,7 +168,7 @@ const exampleShadersGalleryTemplate = () => html`
     <div class="gallery-container">
       <div class="thumbnails"></div>
       <div class="scrollbar">
-        <div class="thumb"></div>
+        <div class="scrollbar-thumb"></div>
       </div>
       <div class="slides">
         ${generateExampleShadersHTML()}
@@ -328,6 +328,7 @@ export class ShadersAppSk extends ElementSk {
     return ShadersAppSk.displayShaderTreeImpl(ele, null, ele.rootShaderNode);
   }
 
+  // TODO (anjulij): add this back to example shaders
   private static uniformControls = (ele: ShadersAppSk): TemplateResult[] => {
     const ret: TemplateResult[] = [
       html`<uniform-fps-sk></uniform-fps-sk>`, // Always start with the fps control.
@@ -381,7 +382,7 @@ export class ShadersAppSk extends ElementSk {
   private static template = (ele: ShadersAppSk) => html`
   <app-sk>
     <header>
-      <h2><a href="/">SkSL Shaders</a></h2>
+      <a href="/">SkSL Shaders</a>
       <span>
         <a
           id="githash"
@@ -389,19 +390,11 @@ export class ShadersAppSk extends ElementSk {
         >
           ${SKIA_VERSION.slice(0, 7)}
         </a>
-        <theme-chooser-sk></theme-chooser-sk>
+        <theme-chooser-sk class="theme-chooser"></theme-chooser-sk>
       </span>
     </header>
     <main>
       <div>
-        <p id=examples @click=${ele.fastLoad}>
-        Examples:
-          <a href="/?id=@inputs">Uniforms</a>
-          <a href="/?id=@iResolution">iResolution</a>
-          <a href="/?id=@iTime">iTime</a>
-          <a href="/?id=@iMouse">iMouse</a>
-          <a href="/?id=@iImage">iImage</a>
-        </p>
         <div class="example-gallery-and-canvas-wrapper">
           <div>
             ${exampleShadersGalleryTemplate()}

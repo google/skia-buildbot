@@ -18,6 +18,7 @@
 
   header {
     border-bottom: solid 1px var(--header-font-color);
+    font-size: 1rem;
   }
 
   main {
@@ -30,7 +31,8 @@
       display: block;
       background: var(--surface);
       color: var(--secondary);
-      font-family: monospace;
+      font-family: var(--mono-font);
+      font-size: 1.25rem;
       resize: none;
       font-size: 11px;
       margin: 0 8px 0 0;
@@ -61,22 +63,23 @@
       fill: var(--primary);
 
       span {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: var(--font);
       }
     }
 
+    /* This is the icon for the "add child shader" button */
     add-icon-sk {
-      display: inline-block;
+      display: block;
 
       svg {
-        width: 16px;
-        height: 16px;
+        width: 24px;
+        height: 24px;
       }
     }
 
     #examples {
       margin: 0 8px 8px 0;
-      font-size: 12px;
+      font-size: 1.25rem;
     }
 
     canvas {
@@ -85,13 +88,23 @@
 
     #codeEditor {
       margin: 0 8px 8px 0;
+      font-size: 1.25rem;
     }
 
+    /* Debug, run, and save button */
     #shaderControls {
       margin-left: 0;
 
       .action {
-        margin: 0 8px 8px 0;
+        margin: 8px;
+        border-radius: 8px;
+        padding: 8px 16px 8px 16px;
+        background-color: #4285F4;
+        color:#FFF;
+        text-align: center;
+        font-family: var(--font);
+        font-weight: medium;
+        font-size: 0.875rem;
       }
     }
 
@@ -126,17 +139,19 @@
   }
 
   details#shaderinputs {
+    /* Box containing shader input information */
     display: initial;
     padding: initial;
     list-style: initial;
     box-shadow: initial;
     margin: 0 8px 8px 0;
-    font-size: 11px;
+    font-size: 1rem;
     background: var(--background);
     border: none;
 
     textarea {
-      margin: 0 8px 0 8px;
+      margin: 16px;
+      padding: 8px;
     }
 
     #imageSources {
@@ -161,14 +176,21 @@
       }
     }
 
+    /* Shader input and edit icon label */
     summary {
-      background-color: var(--surface);
-      border-color: var(--on-surface);
-      color: var(--on-surface);
+      margin: 8px;
+      border-radius: 8px;
+      padding: 8px 16px 8px 16px;
+      background-color: #4285F4;
+      color:#FFF;
+      text-align: center;
+      font-family: var(--font);
+      font-weight: medium;
+      font-size: 0.875rem;
     }
 
     summary::-webkit-details-marker {
-      display: initial;
+      display: none;
     }
   }
 
@@ -179,11 +201,10 @@
       list-style: none;
 
       edit-icon-sk {
-        display: inline-block;
-
+        display: block;
         svg {
-          width: 16px;
-          height: 16px;
+          width: 24px;
+          height: 24px;
         }
       }
     }
@@ -213,7 +234,7 @@
     }
 
     button {
-      margin: 0 0 0 4px;
+      margin: 0 0 0 8px;
     }
 
     input[type='url'] {
@@ -227,8 +248,8 @@
     overflow: hidden;
 
     * {
-      font-family: monospace;
-      font-size: 13px;
+      font-family: var(--mono-font);
+      font-size: 1rem;
     }
   }
   .example-gallery-and-canvas-wrapper {
@@ -238,6 +259,7 @@
   .gallery-container {
     display: flex;
     justify-content: center;
+    padding: 16px;
   }
   .thumbnails {
     list-style: none;
@@ -248,9 +270,8 @@
   .thumbnails img {
     width: 110px;
     height: 110px;
-    top: 125px;
+    top: 100px;
     left: 80px;
-    border-radius: 8px;
     cursor: pointer;
   }
   .thumbnails:hover img {
@@ -259,17 +280,14 @@
     transition: .3s ease-in-out;
   }
   .scrollbar {
-    width: 1px;
+    width: 12px;
     height: 512px;
     background: #ccc;
-    display: block;
-    margin: 0 0 0 8px;
+    opacity: 0.5;
   }
   .thumb {
     width: 1px;
     position: absolute;
-    height: 0;
-    background: #000;
   }
   .slides {
     list-style: none;
@@ -290,7 +308,8 @@
   }
   .slides img {
     width: 100px;
-    object-fit: contain;
+    object-fit: fill;
+    border-radius: 8px;
   }
   .slides::-webkit-scrollbar {
     display: none;
