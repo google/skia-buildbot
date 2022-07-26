@@ -36,9 +36,9 @@ import (
 )
 
 var (
-	invalidChar = regexp.MustCompile(`([^a-zA-Z0-9._\-])`)
-	keyRe       = regexp.MustCompile(`^,([a-zA-Z0-9._\-]+=[a-zA-Z0-9._\\-]+,)+$`)
-	paramRe     = regexp.MustCompile(`^[a-zA-Z0-9._\-]+$`)
+	invalidChar = regexp.MustCompile(`([^a-zA-Z0-9\._\-])`)
+	keyRe       = regexp.MustCompile(`^,([a-zA-Z0-9\._\-]+=[a-zA-Z0-9\._\\-]+,)+$`)
+	paramRe     = regexp.MustCompile(`^[a-zA-Z0-9\._\-]+$`)
 
 	QueryWillNeverMatch = errors.New("Query will never match.")
 )
@@ -90,10 +90,8 @@ func ValidateKey(key string) bool {
 		return true
 	}
 	parts = parts[1 : len(parts)-1]
-	if !sort.IsSorted(sort.StringSlice(parts)) {
-		return false
-	}
 	lastName := ""
+	keys := []string{}
 	for _, s := range parts {
 		pair := strings.Split(s, "=")
 		if len(pair) != 2 {
@@ -103,8 +101,9 @@ func ValidateKey(key string) bool {
 			return false
 		}
 		lastName = pair[0]
+		keys = append(keys, pair[0])
 	}
-	return true
+	return sort.IsSorted(sort.StringSlice(keys))
 }
 
 // MakeKey returns a structured key from the given map[string]string, or a
@@ -173,10 +172,8 @@ func ParseKey(key string) (map[string]string, error) {
 		return map[string]string{}, nil
 	}
 	parts = parts[1 : len(parts)-1]
-	if !sort.IsSorted(sort.StringSlice(parts)) {
-		return nil, fmt.Errorf("Key is not valid, params are unsorted: %v", parts)
-	}
 	lastName := ""
+	keys := []string{}
 	for _, s := range parts {
 		pair := strings.Split(s, "=")
 		if len(pair) != 2 {
@@ -187,7 +184,13 @@ func ParseKey(key string) (map[string]string, error) {
 		}
 		ret[pair[0]] = pair[1]
 		lastName = pair[0]
+		keys = append(keys, pair[0])
 	}
+
+	if !sort.IsSorted(sort.StringSlice(keys)) {
+		return nil, fmt.Errorf("Key is not valid, params are unsorted: %v", parts)
+	}
+
 	return ret, nil
 }
 

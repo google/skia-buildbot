@@ -77,6 +77,11 @@ func TestValidateKey(t *testing.T) {
 			valid:  false,
 			reason: "Degenerate case.",
 		},
+		{
+			key:    ",browser=chrome,browser-version=106.0.5196.0,channel=canary,sub-test=date-format-xparb-SP,test=JetStream,type=sub-test,value=score,version=2,",
+			valid:  true,
+			reason: "Only check sort order on the key values, not on key=value, which breaks on this case between 'browser=' and 'browser-'",
+		},
 	}
 	for _, tc := range testCases {
 		if got, want := ValidateKey(tc.key), tc.valid; got != want {
@@ -377,6 +382,21 @@ func TestParseKey(t *testing.T) {
 			parsed:   map[string]string{},
 			hasError: true,
 			reason:   "Empty string",
+		},
+		{
+			key: ",browser=chrome,browser-version=106.0.5196.0,channel=canary,sub-test=date-format-xparb-SP,test=JetStream,type=sub-test,value=score,version=2,",
+			parsed: map[string]string{
+				"browser":         "chrome",
+				"browser-version": "106.0.5196.0",
+				"channel":         "canary",
+				"sub-test":        "date-format-xparb-SP",
+				"test":            "JetStream",
+				"type":            "sub-test",
+				"value":           "score",
+				"version":         "2",
+			},
+			hasError: false,
+			reason:   "Only check sort order on the key values, not on key=value, which breaks on this case between 'browser=' and 'browser-'",
 		},
 	}
 	for _, tc := range testCases {
