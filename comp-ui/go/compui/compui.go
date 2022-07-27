@@ -119,7 +119,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    ChromeStableDriver,
 		Flags: []string{
 			"--browser", "chrome",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,chrome",
 		},
 	},
 	"chrome-jetstream": {
@@ -129,7 +129,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    ChromeStableDriver,
 		Flags: []string{
 			"--browser", "chrome",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,chrome",
 		},
 	},
 	"chrome-speedometer": {
@@ -139,7 +139,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    ChromeStableDriver,
 		Flags: []string{
 			"--browser", "chrome",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,chrome",
 		},
 	},
 	// Chrome Canary
@@ -151,7 +151,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-			"--extra-keys", "channel,canary",
+			"--extra-keys", "channel,canary,browser_type,chrome",
 		},
 	},
 	"chrome-canary-jetstream": {
@@ -162,7 +162,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-			"--extra-keys", "channel,canary",
+			"--extra-keys", "channel,canary,browser_type,chrome",
 		},
 	},
 	"chrome-canary-speedometer": {
@@ -173,7 +173,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-			"--extra-keys", "channel,canary",
+			"--extra-keys", "channel,canary,browser_type,chrome",
 		},
 	},
 	// Safari Stable
@@ -184,7 +184,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "safari",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,safari",
 		},
 	},
 	"safari-motionmark": {
@@ -194,7 +194,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "safari",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,safari",
 		},
 	},
 	"safari-jetstream": {
@@ -204,7 +204,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "safari",
-			"--extra-keys", "channel,stable",
+			"--extra-keys", "channel,stable,browser_type,safari",
 		},
 	},
 	// Safari Tech Preview
@@ -215,7 +215,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "stp",
-			"--extra-keys", "channel,tp",
+			"--extra-keys", "channel,canary,browser_type,safari",
 		},
 	},
 	"safari-tp-motionmark": {
@@ -225,7 +225,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "stp",
-			"--extra-keys", "channel,tp",
+			"--extra-keys", "channel,canary,browser_type,safari",
 		},
 	},
 	"safari-tp-jetstream": {
@@ -235,7 +235,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		DriverType:    NoDriver,
 		Flags: []string{
 			"--browser", "stp",
-			"--extra-keys", "channel,tp",
+			"--extra-keys", "channel,canary,browser_type,safari",
 		},
 	},
 }
