@@ -471,7 +471,10 @@ func (m *Machine) tryInterrogatingStandaloneHost(ctx context.Context) (ret machi
 		sklog.Warningf("Failed to get CPU type of host: %s", err)
 	}
 
-	// TODO(erikrose): ret.GPUs, err = standalone.GPUs(ctx)
+	ret.GPUs, err = standalone.GPUs(ctx)
+	if err != nil {
+		sklog.Warningf("Failed to get GPU type of host: %s", err)
+	}
 
 	return ret
 }

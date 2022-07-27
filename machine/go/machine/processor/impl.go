@@ -326,6 +326,7 @@ func processStandaloneEvent(ctx context.Context, previous machine.Description, e
 	ret.Dimensions[machine.DimCores] = []string{strconv.Itoa(event.Standalone.Cores)}
 	ret.Dimensions[machine.DimOS] = event.Standalone.OSVersions
 	ret.Dimensions[machine.DimCPU] = event.Standalone.CPUs
+	ret.Dimensions[machine.DimGPU] = event.Standalone.GPUs
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret

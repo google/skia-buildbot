@@ -4031,6 +4031,13 @@ def go_repositories():
         version = "v1.3.0",
     )
     go_repository(
+        name = "net_howett_plist",
+        importpath = "howett.net/plist",
+        sum = "h1:7CrbWYbPPO/PyNy38b2EB/+gYbjCe2DXBxgtOOZbSQM=",
+        version = "v1.0.0",
+    )
+
+    go_repository(
         name = "net_starlark_go",
         importpath = "go.starlark.net",
         sum = "h1:+FNtrFTmVw0YZGpBGX56XDee331t6JAXeK2bcyhLOOc=",

@@ -43,7 +43,7 @@ func (s SwarmingDimensions) AsMetricsTags() map[string]string {
 	}
 }
 
-// Well known swarming dimensions.
+// Well-known swarming dimensions:
 const (
 	DimID                     = "id"
 	DimOS                     = "os"
@@ -55,6 +55,7 @@ const (
 	DimChromeOSReleaseVersion = "release_version"
 	DimCores                  = "cores"
 	DimCPU                    = "cpu"
+	DimGPU                    = "gpu"
 
 	BadBatteryLevel = -99
 )

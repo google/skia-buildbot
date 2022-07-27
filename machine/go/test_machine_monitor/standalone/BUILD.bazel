@@ -4,6 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "standalone",
     srcs = [
+        "gputable.go",
         "standalone.go",
         "standalone_darwin.go",
         "standalone_linux.go",
@@ -13,12 +14,17 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@net_howett_plist//:plist",
     ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [
+            "//machine/go/common",
             "@com_github_shirou_gopsutil//host",
             "@org_golang_x_sys//unix",
         ],
         "@io_bazel_rules_go//go/platform:ios": [
+            "//machine/go/common",
             "@com_github_shirou_gopsutil//host",
             "@org_golang_x_sys//unix",
         ],
