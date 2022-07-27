@@ -235,7 +235,7 @@ def skia_app_container(
         "container_push_base_dir=$$(dirname $${container_push_outputs[0]})",
         "container_push_script=$${container_push_base_dir}/push_%s",
         "",
-        "$$container_push_script && $(rootpath //kube/go/pushk) %s",
+        "$$container_push_script && $(rootpath //kube/go/pushk) --use-temp-checkout %s",
     ]) % (name, name, name)
 
     native.genrule(
