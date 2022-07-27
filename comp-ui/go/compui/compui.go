@@ -136,7 +136,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		RepoURL:       "https://chromium.googlesource.com/chromium/src",
 		CheckoutPaths: []string{"tools/browserbench-webdriver"},
 		ScriptName:    "tools/browserbench-webdriver/speedometer.py",
-		DriverType:    ChromeCanaryDriver,
+		DriverType:    ChromeStableDriver,
 		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable",
