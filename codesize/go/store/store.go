@@ -30,8 +30,9 @@ func (c CommitOrPatchset) IsPatchset() bool {
 
 // Binary represents a single binary that has been analyzed with Bloaty.
 type Binary struct {
-	Metadata                common.BloatyOutputMetadata `json:"metadata"`
-	BloatyOutputFileGCSPath string                      `json:"-"`
+	Metadata                        common.BloatyOutputMetadata `json:"metadata"`
+	BloatyOutputFileGCSPath         string                      `json:"-"`
+	BloatySizeDiffOutputFileGCSPath string                      `json:"-"`
 
 	// Timestamp should reflect the "timestamp" field in the JSON metadata.
 	Timestamp time.Time `json:"-"`
@@ -107,11 +108,18 @@ func (s *Store) Index(ctx context.Context, bloatyOutputFileGCSPath string) error
 		return skerr.Wrap(err)
 	}
 
+	// If it exists, the Bloaty size diff output file should be found at this location.
+	bloatySizeDiffOutputFileGCSPath := ""
+	if len(metadata.BloatyDiffArgs) != 0 {
+		bloatySizeDiffOutputFileGCSPath = basePath + ".diff.txt"
+	}
+
 	// Add a new entry to the index.
 	binary := Binary{
-		Metadata:                metadata,
-		BloatyOutputFileGCSPath: bloatyOutputFileGCSPath,
-		Timestamp:               timestamp,
+		Metadata:                        metadata,
+		BloatyOutputFileGCSPath:         bloatyOutputFileGCSPath,
+		BloatySizeDiffOutputFileGCSPath: bloatySizeDiffOutputFileGCSPath,
+		Timestamp:                       timestamp,
 	}
 	commitOrPatchset := CommitOrPatchset{}
 	if metadata.PatchIssue != "" || metadata.PatchSet != "" {
@@ -166,18 +174,28 @@ func (s *Store) GetBinary(commitOrPatchset CommitOrPatchset, binaryName, compile
 
 // GetBloatyOutputFileContents downloads and returns the raw contents of a Bloaty output file.
 func (s *Store) GetBloatyOutputFileContents(ctx context.Context, binary Binary) ([]byte, error) {
+	return s.downloadAndCache(ctx, binary.BloatyOutputFileGCSPath)
+}
+
+// GetBloatySizeDiffOutputFileContents downloads and returns the raw contents of a Bloaty size diff
+// output file.
+func (s *Store) GetBloatySizeDiffOutputFileContents(ctx context.Context, binary Binary) ([]byte, error) {
+	return s.downloadAndCache(ctx, binary.BloatySizeDiffOutputFileGCSPath)
+}
+
+func (s *Store) downloadAndCache(ctx context.Context, path string) ([]byte, error) {
 	// Read the file from the cache.
-	if bytes, ok := s.gcsCache.Get(binary.BloatyOutputFileGCSPath); ok {
+	if bytes, ok := s.gcsCache.Get(path); ok {
 		return bytes.([]byte), nil
 	}
 
 	// Download the file if it wasn't cached.
-	bytes, err := s.downloadFn(ctx, binary.BloatyOutputFileGCSPath)
+	bytes, err := s.downloadFn(ctx, path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Cache the downloaded file and return its contents.
-	s.gcsCache.Add(binary.BloatyOutputFileGCSPath, bytes)
+	s.gcsCache.Add(path, bytes)
 	return bytes, nil
 }

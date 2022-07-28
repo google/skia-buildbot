@@ -16,9 +16,11 @@ export interface BloatyOutputMetadata {
 	task_id: string;
 	task_name: string;
 	compile_task_name: string;
+	compile_task_name_no_patch?: string;
 	binary_name: string;
 	bloaty_cipd_version: string;
 	bloaty_args: string[] | null;
+	bloaty_diff_args?: string[] | null;
 	patch_issue: string;
 	patch_server: string;
 	patch_set: string;
@@ -38,6 +40,19 @@ export interface TreeMapDataTableRow {
 export interface BinaryRPCResponse {
 	metadata: BloatyOutputMetadata;
 	rows: TreeMapDataTableRow[];
+}
+
+export interface BinarySizeDiffRPCRequest {
+	binary_name: string;
+	compile_task_name: string;
+	commit: string;
+	patch_issue: string;
+	patch_set: string;
+}
+
+export interface BinarySizeDiffRPCResponse {
+	metadata: BloatyOutputMetadata;
+	raw_diff: string;
 }
 
 export interface Binary {

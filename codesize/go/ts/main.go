@@ -19,6 +19,8 @@ func main() {
 	generator := go2ts.New()
 	generator.Add(rpc.BinaryRPCRequest{})
 	generator.Add(rpc.BinaryRPCResponse{})
+	generator.Add(rpc.BinarySizeDiffRPCRequest{})
+	generator.Add(rpc.BinarySizeDiffRPCResponse{})
 	generator.Add(rpc.MostRecentBinariesRPCResponse{})
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {

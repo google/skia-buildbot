@@ -136,12 +136,14 @@ func TestStore_IndexThenGetMostRecentBinaries_Success(t *testing.T) {
 						Timestamp:       "2022-02-16T14:34:25Z",
 						CompileTaskName: "Build-Foo",
 						BinaryName:      "dm",
+						BloatyDiffArgs:  []string{"build/dm", "--", "build_nopatch/dm"},
 						PatchIssue:      "509137",
 						PatchSet:        "11",
 						Revision:        "commit3",
 					},
-					BloatyOutputFileGCSPath: "issue9876/patchset3/job1/Build-Foo/dm.tsv",
-					Timestamp:               time.Date(2022, time.February, 16, 14, 34, 25, 0, time.UTC),
+					BloatyOutputFileGCSPath:         "issue9876/patchset3/job1/Build-Foo/dm.tsv",
+					BloatySizeDiffOutputFileGCSPath: "issue9876/patchset3/job1/Build-Foo/dm.diff.txt",
+					Timestamp:                       time.Date(2022, time.February, 16, 14, 34, 25, 0, time.UTC),
 				},
 				{
 					Metadata: common.BloatyOutputMetadata{
@@ -349,6 +351,52 @@ func TestStore_IndexThenGetBloatyOutputFileContents_Success(t *testing.T) {
 	assert.Equal(t, "Fake Bloaty output 6", string(bytes))
 }
 
+func TestStore_GetBloatySizeDiffOutputFileContents_NonExistentBinary_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	store := newStoreForTesting()
+
+	_, err := store.GetBloatySizeDiffOutputFileContents(context.Background(), Binary{
+		BloatySizeDiffOutputFileGCSPath: "no-such-file.diff.txt",
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not found: no-such-file.diff.txt")
+}
+
+func TestStore_GetBloatySizeDiffOutputFileContents_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	store := newStoreForTesting()
+
+	// Store is initially empty.
+	assert.Empty(t, store.GetMostRecentBinaries(10))
+
+	// Index a bunch of binaries.
+	require.NoError(t, store.Index(context.Background(), "commit1/Build-Foo/dm.tsv"))
+	require.NoError(t, store.Index(context.Background(), "commit1/Build-Foo/fm.tsv"))
+	require.NoError(t, store.Index(context.Background(), "commit1/Build-Bar/dm.tsv"))
+	require.NoError(t, store.Index(context.Background(), "commit2/Build-Foo/dm.tsv"))
+	require.NoError(t, store.Index(context.Background(), "issue9876/patchset3/job1/Build-Foo/dm.tsv"))
+	require.NoError(t, store.Index(context.Background(), "issue9876/patchset3/job2/Build-Bar/fm.tsv"))
+
+	// Binary from a tryjob.
+	bytes, err := store.GetBloatySizeDiffOutputFileContents(context.Background(), Binary{
+		Metadata: common.BloatyOutputMetadata{
+			Version:         1,
+			Timestamp:       "2022-02-16T14:34:25Z",
+			CompileTaskName: "Build-Foo",
+			BinaryName:      "dm",
+			BloatyDiffArgs:  []string{"build/dm", "--", "build_nopatch/dm"},
+			PatchIssue:      "509137",
+			PatchSet:        "11",
+			Revision:        "commit3",
+		},
+		BloatyOutputFileGCSPath:         "issue9876/patchset3/job1/Build-Foo/dm.tsv",
+		BloatySizeDiffOutputFileGCSPath: "issue9876/patchset3/job1/Build-Foo/dm.diff.txt",
+		Timestamp:                       time.Date(2022, time.February, 16, 14, 34, 25, 0, time.UTC),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Fake Bloaty diff", string(bytes))
+}
+
 // newStoreForTesting returns a Store that "downloads" files from the fake GCS bucket defined by
 // the fakeGCSBucket map below.
 func newStoreForTesting() Store {
@@ -427,14 +475,20 @@ var fakeGCSBucket = map[string]string{
 			"timestamp": "2022-02-16T14:34:25Z",
 			"compile_task_name": "Build-Foo",
 			"binary_name": "dm",
+			"bloaty_diff_args": [
+				"build/dm",
+				"--",
+				"build_nopatch/dm"
+			],
 			"patch_issue": "509137",
 			"patch_set": "11",
 			"revision": "commit3"
 		}
 	`,
-	"issue9876/patchset3/job1/Build-Foo/dm.tsv": "Fake Bloaty output 5",
+	"issue9876/patchset3/job1/Build-Foo/dm.tsv":      "Fake Bloaty output 5",
+	"issue9876/patchset3/job1/Build-Foo/dm.diff.txt": "Fake Bloaty diff",
 
-	// Same tryjob as previous file, different compile task and binary.
+	// Same tryjob as previous file, different compile task and binary, missing size diff.
 	"issue9876/patchset3/job2/Build-Bar/fm.json": `
 		{
 			"version": 1,

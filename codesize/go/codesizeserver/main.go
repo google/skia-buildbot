@@ -213,8 +213,8 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 // handleFileUploadNotification is called when a new file is uploaded to the GCS bucket.
 func (s *server) handleFileUploadNotification(ctx context.Context, path string) error {
 	sklog.Infof("Received file upload PubSub message: %s", path)
-	if strings.HasSuffix(path, ".json") {
-		sklog.Infof("Ignoring %s because we index .json files when we see a corresponding .tsv file", path)
+	if strings.HasSuffix(path, ".json") || strings.HasSuffix(path, ".diff.txt") {
+		sklog.Infof("Ignoring %s because we index .json and .diff.txt files when we see a corresponding .tsv file", path)
 		return nil
 	}
 	if err := s.store.Index(ctx, path); err != nil {
@@ -290,6 +290,32 @@ func (s *server) binaryRPCHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(res, w)
 }
 
+func (s *server) binarySizeDiffRPCHandler(w http.ResponseWriter, r *http.Request) {
+	req := rpc.BinarySizeDiffRPCRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse request", http.StatusBadRequest)
+		return
+	}
+
+	binary, ok := s.store.GetBinary(req.CommitOrPatchset, req.BinaryName, req.CompileTaskName)
+	if !ok {
+		httputils.ReportError(w, nil, "Binary not found in Store", http.StatusNotFound)
+		return
+	}
+
+	bytes, err := s.store.GetBloatySizeDiffOutputFileContents(r.Context(), binary)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve Bloaty output file", http.StatusInternalServerError)
+		return
+	}
+
+	res := rpc.BinarySizeDiffRPCResponse{
+		Metadata: binary.Metadata,
+		RawDiff:  string(bytes),
+	}
+	sendJSONResponse(res, w)
+}
+
 func (s *server) mostRecentBinariesRPCHandler(w http.ResponseWriter, r *http.Request) {
 	binaries := s.store.GetMostRecentBinaries(numMostRecentBinaries)
 	res := rpc.MostRecentBinariesRPCResponse{
@@ -303,6 +329,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.indexPageHandler).Methods("GET")
 	r.HandleFunc("/binary", s.binaryPageHandler).Methods("GET")
 	r.HandleFunc("/rpc/binary/v1", s.binaryRPCHandler).Methods("POST")
+	r.HandleFunc("/rpc/binary_size_diff/v1", s.binarySizeDiffRPCHandler).Methods("POST")
 	r.HandleFunc("/rpc/most_recent_binaries/v1", s.mostRecentBinariesRPCHandler).Methods("GET")
 }
 

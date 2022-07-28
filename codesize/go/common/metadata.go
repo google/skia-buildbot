@@ -17,10 +17,14 @@ type BloatyOutputMetadata struct {
 	TaskID          string `json:"task_id"`
 	TaskName        string `json:"task_name"`
 	CompileTaskName string `json:"compile_task_name"`
-	BinaryName      string `json:"binary_name"`
+	// CompileTaskNameNoPatch should only be set for tryjobs.
+	CompileTaskNameNoPatch string `json:"compile_task_name_no_patch,omitempty"`
+	BinaryName             string `json:"binary_name"`
 
 	BloatyCipdVersion string   `json:"bloaty_cipd_version"`
 	BloatyArgs        []string `json:"bloaty_args"`
+	// BloatyDiffArgs should only be set for tryjobs.
+	BloatyDiffArgs []string `json:"bloaty_diff_args,omitempty"`
 
 	PatchIssue  string `json:"patch_issue"`
 	PatchServer string `json:"patch_server"`
