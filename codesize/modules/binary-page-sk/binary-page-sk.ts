@@ -102,8 +102,12 @@ export class BinaryPageSk extends ElementSk {
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
     // a type assertion is necessary to keep the TypeScript compiler happy.
+    //TODO (anjulij): add categorical coloring
     const options = {
       generateTooltip: showTooltip,
+      minColor: '#E8DAFF',
+      midColor: '#E8DAFF',
+      maxColor: '#E8DAFF',
     } as google.visualization.TreeMapOptions;
 
     // Draw the tree and wait until the tree finishes drawing.
@@ -123,10 +127,13 @@ export class BinaryPageSk extends ElementSk {
         .replace('&', '&amp;')
         .replace('<', '&lt;')
         .replace('>', '&gt;');
-      const backgroundColor = isDarkMode() ? '#0a3055' : '#fd9';
-      return `<div style="background: ${backgroundColor}; padding:10px; border-style:solid">
-              <span style="font-family:Courier"> ${escapedLabel} <br>
-              Size: ${size} </div>`;
+      const backgroundColor = isDarkMode() ? '#232F34' : '#FFFFFF';
+      return `<div class= "cell-tooltip" style="background: ${backgroundColor};">
+          <span>
+            ${escapedLabel} <br/>
+            Size: ${size} <br/>
+          </span>
+        </div>`;
     }
   }
 }
