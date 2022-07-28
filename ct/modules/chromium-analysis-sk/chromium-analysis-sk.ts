@@ -119,7 +119,7 @@ export class ChromiumAnalysisSk extends ElementSk {
         .options=${el._benchmarks}
         .label=${'Hit <enter> at end if entering custom benchmark'}
         accept-custom-value
-        @value-changed=${el._refreshBenchmarkDoc}
+        @value-changed=${el._benchmarkChanged}
       ></suggest-input-sk>
       <div>
         <a hidden id=benchmark_doc href=#
@@ -466,8 +466,10 @@ export class ChromiumAnalysisSk extends ElementSk {
       });
   }
 
-  _refreshBenchmarkDoc(e: CustomEvent): void {
+  _benchmarkChanged(e: CustomEvent): void {
     const benchmarkName = e.detail.value;
+
+    // Display benchmark documentation if it exists.
     const docElement = $$('#benchmark_doc', this) as HTMLAnchorElement;
     if (benchmarkName && this._benchmarksToDocs[benchmarkName]) {
       docElement.hidden = false;
@@ -475,6 +477,12 @@ export class ChromiumAnalysisSk extends ElementSk {
     } else {
       docElement.hidden = true;
       docElement.href = '#';
+    }
+
+    // generic_trace_ct does not support parallel runs.
+    if (benchmarkName === 'generic_trace_ct') {
+      // runInParallel has ['True', 'False']. Select 'False'.
+      this.runInParallel.selection = 1;
     }
   }
 
