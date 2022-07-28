@@ -1,4 +1,5 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//codesize/pages:all_pages.bzl", "ALL_PAGES")
 
 skia_app_container(
     name = "codesizeserver",
@@ -11,29 +12,15 @@ skia_app_container(
         ],
         "/usr/local/share/codesizeserver/dist": [
             [
-                "//codesize/pages:production/index.css",
+                "//codesize/pages:production/%s.%s" % (page, ext),
                 "0644",
-            ],
-            [
-                "//codesize/pages:production/index.html",
-                "0644",
-            ],
-            [
-                "//codesize/pages:production/index.js",
-                "0644",
-            ],
-            [
-                "//codesize/pages:production/binary.css",
-                "0644",
-            ],
-            [
-                "//codesize/pages:production/binary.html",
-                "0644",
-            ],
-            [
-                "//codesize/pages:production/binary.js",
-                "0644",
-            ],
+            ]
+            for page in ALL_PAGES
+            for ext in [
+                "html",
+                "js",
+                "css",
+            ]
         ],
     },
     entrypoint = "/usr/local/bin/codesizeserver/codesizeserver",

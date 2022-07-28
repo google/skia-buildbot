@@ -24,6 +24,8 @@ export class IndexPageSk extends ElementSk {
       const metadata = binariesFromCommitOrPatchset.binaries[0].metadata;
 
       const isTryJob = metadata.patch_issue || metadata.patch_set;
+      const hasDiff = isTryJob && metadata.bloaty_diff_args;
+
       const commitOrCLAnchorText = isTryJob
         ? `Issue ${metadata.patch_issue}, PS ${metadata.patch_set}`
         : metadata.revision.substring(0, 7);
@@ -55,6 +57,18 @@ export class IndexPageSk extends ElementSk {
         }
         return `/binary?${new URLSearchParams(params).toString()}`;
       };
+
+      // Only available for tryjobs.
+      const hrefForBinaryDiff = (output: Binary) => {
+        const params: Record<string, string> = {
+          binary_name: output.metadata.binary_name,
+          compile_task_name: output.metadata.compile_task_name,
+          patch_issue: output.metadata.patch_issue,
+          patch_set: output.metadata.patch_set,
+        }
+        return `/binary_diff?${new URLSearchParams(params).toString()}`;
+      };
+
       return html`
       <div class="commit-or-cl">
         <p>
@@ -74,6 +88,8 @@ export class IndexPageSk extends ElementSk {
                  class="compile-task">
                 ${output.metadata.compile_task_name}
               </a>
+              ${hasDiff ?
+                html`<a href="${hrefForBinaryDiff(output)}" class="size-diff">Size Diff</a>` : ''}
             </li>
           `)}
         </ul>

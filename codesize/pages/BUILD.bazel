@@ -23,3 +23,15 @@ sk_page(
     ],
     ts_entry_point = "binary.ts",
 )
+
+sk_page(
+    name = "binary_diff",
+    assets_serving_path = "/dist",
+    html_file = "binary_diff.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//codesize/modules/binary-diff-page-sk",
+        "//codesize/modules/codesize-scaffold-sk",
+    ],
+    ts_entry_point = "binary_diff.ts",
+)

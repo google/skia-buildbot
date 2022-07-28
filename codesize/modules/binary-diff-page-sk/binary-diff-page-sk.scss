@@ -1,0 +1,10 @@
+binary-diff-page-sk {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .author-and-timestamp,
+  .compile-task {
+    font-size: .8em;
+  }
+}

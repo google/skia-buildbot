@@ -16,4 +16,4 @@ release:
 	$(BAZEL) run //codesize:push_codesizeserver
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- codesizeserver
+	$(BAZEL) run //codesize:pushk_codesizeserver

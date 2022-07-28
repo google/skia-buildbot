@@ -1,0 +1,54 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "binary-diff-page-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["binary-diff-page-sk.scss"],
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        "//infra-sk/modules/human-date-sk",
+    ],
+    ts_deps = [
+        "//codesize/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "binary-diff-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "binary-diff-page-sk-demo",
+    html_file = "binary-diff-page-sk-demo.html",
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        ":binary-diff-page-sk",
+    ],
+    ts_deps = [
+        "//codesize/modules:rpc_types_ts_lib",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "binary-diff-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "binary-diff-page-sk_puppeteer_test",
+    src = "binary-diff-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//codesize/modules/codesize-scaffold-sk:events_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":binary-diff-page-sk-demo",
+)

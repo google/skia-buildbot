@@ -258,6 +258,10 @@ func (s *server) binaryPageHandler(w http.ResponseWriter, r *http.Request) {
 	s.sendHTMLResponse("binary.html", w, r)
 }
 
+func (s *server) binaryDiffPageHandler(w http.ResponseWriter, r *http.Request) {
+	s.sendHTMLResponse("binary_diff.html", w, r)
+}
+
 func (s *server) binaryRPCHandler(w http.ResponseWriter, r *http.Request) {
 	req := rpc.BinaryRPCRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -328,6 +332,7 @@ func (s *server) mostRecentBinariesRPCHandler(w http.ResponseWriter, r *http.Req
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.indexPageHandler).Methods("GET")
 	r.HandleFunc("/binary", s.binaryPageHandler).Methods("GET")
+	r.HandleFunc("/binary_diff", s.binaryDiffPageHandler).Methods("GET")
 	r.HandleFunc("/rpc/binary/v1", s.binaryRPCHandler).Methods("POST")
 	r.HandleFunc("/rpc/binary_size_diff/v1", s.binarySizeDiffRPCHandler).Methods("POST")
 	r.HandleFunc("/rpc/most_recent_binaries/v1", s.mostRecentBinariesRPCHandler).Methods("GET")
