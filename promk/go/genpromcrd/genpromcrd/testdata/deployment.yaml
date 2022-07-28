@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: skiaperf
+  name: skiaperf
+  annotations:
+    beta.cloud.google.com/backend-config:
+      '{"ports": {"8000":"skia-default-backendconfig"}}'
+    skia.org.domain: perf.skia.org
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: skiaperf
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skiaperf
+spec:
+  selector:
+    matchLabels:
+      app: skiaperf
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: skiaperf
+        appgroup: perf
+      annotations:
+        prometheus.io.scrape: 'true'
+        prometheus.io.port: '20000'
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000 # aka skia
+      serviceAccountName: skia-perf
+      containers:
+        - name: skiaperf
+          image: gcr.io/skia-public/perfserver:2022-07-19T15_23_14Z-jcgregorio-66af958-clean
+          args:
+            - frontend
+            - --port=:7000
+            - --internal_port=:9000
+            - --prom_port=:20000
+            - --commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end}
+            - --email_client_secret_file=/etc/perf-email-secrets/client_secret.json
+            - --email_token_cache_file=/etc/perf-email-secrets/client_token.json
+            - --config_filename=/usr/local/share/skiaperf/configs/cdb-nano.json
+            - --num_continuous_parallel=1
+            - --do_clustering=true
+            - --resources_dir=/usr/local/share/skiaperf/dist
+            - --proxy-login=true
+          ports:
+            - containerPort: 20000
+              name: prom
+            - containerPort: 9000
+            - containerPort: 7000
+          volumeMounts:
+            - name: perf-alertserver-skia-org-secrets
+              mountPath: /etc/perf-email-secrets
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              memory: '2Gi'
+              cpu: '2'
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 7000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 20
+        - name: auth-proxy
+          args:
+            - '--port=:8000'
+            - '--target_port=:7000'
+            - '--prom_port=:10000'
+            - '--passive'
+            - '--allowed_from=google.com'
+          image: gcr.io/skia-public/auth-proxy:2021-06-10T19_45_02Z-jcgregorio-939f73f-clean
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: prom
+              containerPort: 10000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 1
+            periodSeconds: 3
+          volumeMounts:
+            - name: skia-org-legacy-login-secrets
+              mountPath: /etc/skia.org/
+            - name: csrf-salt
+              mountPath: /var/skia/
+          resources:
+            requests:
+              memory: '30Mi'
+              cpu: '200m'
+              ephemeral-storage: '200M'
+      volumes:
+        - name: csrf-salt
+          secret:
+            secretName: csrf-salt
+        - name: skia-org-legacy-login-secrets
+          secret:
+            secretName: skia-org-legacy-login-secrets
+        - name: perf-alertserver-skia-org-secrets
+          secret:
+            secretName: perf-alertserver-skia-org-secrets

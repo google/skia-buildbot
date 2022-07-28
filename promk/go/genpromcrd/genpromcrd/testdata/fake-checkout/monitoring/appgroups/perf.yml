@@ -1,0 +1,11 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: Rules
+metadata:
+  name: perf
+spec:
+  groups:
+    - name: perf
+      interval: 30s
+      rules:
+        - alert: AlwaysFiringAlertToSeeIfAlertsAreWorking
+          expr: vector(1)

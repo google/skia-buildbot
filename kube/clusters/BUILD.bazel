@@ -1,1 +1,11 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
 exports_files(["config.json"])
+
+go_library(
+    name = "clusters",
+    srcs = ["embed.go"],
+    embedsrcs = ["config.json"],
+    importpath = "go.skia.org/infra/kube/clusters",
+    visibility = ["//visibility:public"],
+)

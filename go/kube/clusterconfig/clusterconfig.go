@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/kube/clusters"
 )
 
 // Cluster is detailed info on a particular cluster in a ClusterConfig.
@@ -71,6 +72,16 @@ func New(configFile string) (ClusterConfig, error) {
 		ret.GitDir = overrideDir
 	}
 	return ret, nil
+}
+
+// NewFromEmbeddedConfig returns a new ClusterConfig from the embedded
+// config.json file in //kube/clusters.
+func NewFromEmbeddedConfig() (*ClusterConfig, error) {
+	var ret ClusterConfig
+	if err := json.Unmarshal([]byte(clusters.ClusterConfig), &ret); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to decode embedded cluster config.")
+	}
+	return &ret, nil
 }
 
 // NewWithCheckout returns a ClusterConfig for accessing the config.json file

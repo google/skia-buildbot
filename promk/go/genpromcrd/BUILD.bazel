@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "genpromcrd_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/promk/go/genpromcrd",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//promk/go/genpromcrd/genpromcrd",
+    ],
+)
+
+go_binary(
+    name = "genpromcrd",
+    embed = [":genpromcrd_lib"],
+    visibility = ["//visibility:public"],
+)

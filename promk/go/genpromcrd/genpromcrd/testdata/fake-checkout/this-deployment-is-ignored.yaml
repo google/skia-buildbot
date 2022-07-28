@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skiaperf
+spec:
+  selector:
+    matchLabels:
+      app: skiaperf
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: skiaperf
+        appgroup: A

@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+      appgroup: prometheus
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: 'prometheus'
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        appgroup: prometheus
+      annotations:
+        prometheus.io.scrape: 'true'
+        prometheus.io.port: '9090'
+    spec:
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000 # aka skia
+      serviceAccountName: prometheus
+      automountServiceAccountToken: true
+      containers:
+        - name: prometheus
+          image: docker.io/prom/prometheus@sha256:0a8caa2e9f19907608915db6e62a67383fe44b9876a467b297ee6f64e51dd58a
+          args:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/mnt/prometheus/'
+            - '--web.enable-lifecycle'
+            - '--web.listen-address=:9090'
+            - '--storage.tsdb.max-block-duration=2h'
+            - '--storage.tsdb.min-block-duration=2h'
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume-claim
+              mountPath: /mnt/prometheus/
+          resources:
+            requests:
+              memory: '1Gi'
+              cpu: '2'
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 3
+        - name: thanos-sidecar
+          args:
+            - sidecar
+            - |
+              --objstore.config=type: GCS
+              config:
+                bucket: skia-thanos
+            - --prometheus.url=http://localhost:9090
+            - --tsdb.path=/mnt/prometheus/
+            - --http-address=:9000
+            - --grpc-address=:9001
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          image: gcr.io/skia-public/thanos@sha256:111e964136af948ec387c5d4fbb1d8539366bfa4170485a94e9e0483b881bdb9
+          volumeMounts:
+            - name: prometheus-storage-volume-claim
+              mountPath: /mnt/prometheus/
+          resources:
+            requests:
+              memory: '50Mi'
+              cpu: '10m'
+        - name: configmap-reload
+          args:
+            - '--volume-dir=/etc/prometheus/'
+            - '--webhook-method=POST'
+            - '--webhook-url=http://localhost:9090/-/reload'
+          image: gcr.io/skia-public/configmap-reload@sha256:cfd55ce3c2ccf8f4025088fa7174e58b311ec42c2dd5dc46a5f2227725db1e5a
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+          resources:
+            requests:
+              memory: '30Mi'
+              cpu: '10m'
+          ports: []
+        - name: thanos-bounce
+          image: gcr.io/skia-public/thanos-bounce@sha256:cf269863a4a6cb1406b4910135c35f5bee81cfcb8b3976009e4a5682d513a9b5
+          env:
+            - name: PORT_ON_THANOS_QUERY
+              value: '9006'
+            - name: CLOUDSDK_COMPUTE_ZONE
+              value: us-central1-a
+            - name: CLOUDSDK_CONTAINER_CLUSTER
+              value: skia-public
+            - name: CLOUDSDK_COMPUTE_REGION
+              value: us-central1-a
+            - name: CLOUDSDK_CORE_PROJECT
+              value: skia-public
+          resources:
+            requests:
+              memory: '50Mi'
+              cpu: '10m'
+          ports: []
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            defaultMode: 420
+            name: prometheus-server-conf
+  volumeClaimTemplates:
+    - metadata:
+        name: prometheus-storage-volume-claim
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 1000Gi
