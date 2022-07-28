@@ -227,6 +227,12 @@ type Android struct {
 	Uptime time.Duration `json:"uptime"`
 }
 
+// IsPopulated returns whether the Android subevent record has been filled out, indicating that an
+// Android device is attached.
+func (a *Android) IsPopulated() bool {
+	return a.Uptime > 0
+}
+
 // Host is information about the host machine.
 type Host struct {
 	// Name is the machine id, from SWARMING_BOT_ID environment variable or hostname().
@@ -248,10 +254,22 @@ type ChromeOS struct {
 	Uptime time.Duration `json:"uptime"`
 }
 
+// IsPopulated returns whether the ChromeOS subevent record has been filled out, implying that the
+// machine from which the event originated drives tests on a ChromeOS device.
+func (c *ChromeOS) IsPopulated() bool {
+	return c.Uptime > 0
+}
+
 type IOS struct {
 	OSVersion  string `json:"version"`     // e.g. "13.3.1". "" if it couldn't be detected.
 	DeviceType string `json:"device_type"` // e.g. "iPhone10,1"
 	Battery    int    `json:"battery"`     // as integer percent, or BadBatteryLevel
+}
+
+// IsPopulated returns whether the IOS subevent record has been filled out, implying an attached iOS
+// device.
+func (i *IOS) IsPopulated() bool {
+	return i.DeviceType != ""
 }
 
 // Standalone represents the Swarming-style dimensions of a test machine that runs tests on itself,
@@ -275,8 +293,14 @@ type Standalone struct {
 	OSVersions []string `json:"os_versions"`
 }
 
-// Event is the information a machine should send via Source when
-// its local state has changed.
+// IsPopulated returns whether the Standalone subevent record is filled out, which is the case iff a
+// host is explicitly marked as having no device in the machineserver UI. IsPopulated does not
+// return true when a device merely falls off a host accidentally.
+func (s *Standalone) IsPopulated() bool {
+	return s.Cores > 0
+}
+
+// Event is the information a machine should send via Source when its local state has changed.
 type Event struct {
 	EventType           EventType  `json:"type"`
 	Android             Android    `json:"android"`

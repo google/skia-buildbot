@@ -109,15 +109,13 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		sklog.Errorf("Unknown event type: %q", event.EventType)
 		return previous
 	}
-	if event.Android.Uptime > 0 {
+	if event.Android.IsPopulated() {
 		return processAndroidEvent(ctx, previous, event)
-	} else if event.ChromeOS.Uptime > 0 {
+	} else if event.ChromeOS.IsPopulated() {
 		return processChromeOSEvent(ctx, previous, event)
-	} else if event.IOS.DeviceType != "" {
+	} else if event.IOS.IsPopulated() {
 		return processIOSEvent(ctx, previous, event)
-	} else if event.Standalone.Cores > 0 {
-		// This happens iff a host is explicitly marked as having no device in the
-		// machineserver UI, not when a device falls off a host accidentally.
+	} else if event.Standalone.IsPopulated() {
 		return processStandaloneEvent(ctx, previous, event)
 	}
 	return processMissingDeviceEvent(ctx, previous, event)
