@@ -252,7 +252,7 @@ def _CheckGoFmt(input_api, output_api):
   if not input_api.AffectedSourceFiles(_MakeFileFilter(input_api, ['go'])):
     return []
   return _RunCommandAndCheckGitDiff(
-      input_api, output_api, ['gofmt', '-s', '-w', '.'])
+      input_api, output_api, ['make', 'gofmt'])
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -271,7 +271,7 @@ def CheckChange(input_api, output_api):
   * No JS debugging artifacts.
   * No Buildifier diffs.
   * No Gazelle diffs.
-  * No gmfmt diffs.
+  * No gofmt diffs.
   """
   results = []
 

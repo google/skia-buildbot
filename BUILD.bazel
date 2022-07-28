@@ -188,6 +188,16 @@ genrule(
           "cd .. && rm -rf tmp_task_drivers",
 )
 
+#########
+# gofmt #
+#########
+
+alias(
+    name = "gofmt",
+    actual = "@go_sdk//:bin/gofmt",
+    visibility = ["//visibility:public"],
+)
+
 ###########
 # Mockery #
 ###########

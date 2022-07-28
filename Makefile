@@ -35,6 +35,10 @@ gazelle: update-go-bazel-deps update-go-bazel-files
 buildifier:
 	$(BAZEL) run //:buildifier
 
+.PHONY: gofmt
+gofmt:
+	$(BAZEL) run //:gofmt -- -s -w .
+
 .PHONY: bazel-build
 bazel-build:
 	$(BAZEL) build //...

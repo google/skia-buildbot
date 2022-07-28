@@ -71,12 +71,6 @@ func main() {
 	}
 	failIfNonEmptyGitDiff()
 
-	// Run "go fmt" and fail it there are any diffs.
-	if _, err := golang.Go(ctx, gitDir.Dir(), "fmt", "./..."); err != nil {
-		td.Fatal(ctx, err)
-	}
-	failIfNonEmptyGitDiff()
-
 	// Run "errcheck" and fail if there are any findings.
 	//
 	// For some reason, exec.RunCwd cannot find the errcheck binary without an absolute path, which
@@ -108,6 +102,12 @@ func main() {
 	if _, err := bzl.Do(ctx, "version"); err != nil {
 		td.Fatal(ctx, err)
 	}
+
+	// Run "go fmt" and fail it there are any diffs.
+	if _, err := bzl.Do(ctx, "run", "//:gofmt", "--", "-s", "-w", "."); err != nil {
+		td.Fatal(ctx, err)
+	}
+	failIfNonEmptyGitDiff()
 
 	// Buildifier formats all BUILD.bazel and .bzl files. We enforce formatting by making the tryjob
 	// fail if this step produces any diffs.
