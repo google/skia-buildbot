@@ -103,6 +103,7 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 							},
 							Annotations: map[string]string{
 								"abbr":        "AndroidIngestLiveness",
+								"equation":    "liveness_last_successful_add_s",
 								"description": "There is no data for the Alert: \"AndroidIngestLiveness\"",
 							},
 						},

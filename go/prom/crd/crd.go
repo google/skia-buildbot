@@ -63,6 +63,7 @@ func (r *Rules) AddAbsentRules() {
 				},
 				Annotations: map[string]string{
 					"abbr":        rule.Alert,
+					"equation":    equation,
 					"description": fmt.Sprintf("There is no data for the Alert: %q", rule.Alert),
 				},
 			})
