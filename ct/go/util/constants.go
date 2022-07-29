@@ -139,7 +139,7 @@ const (
 	// Run Chromium Perf
 	ADB_VERSION_TIMEOUT            = 5 * time.Minute
 	ADB_ROOT_TIMEOUT               = 5 * time.Minute
-	CSV_PIVOT_TABLE_MERGER_TIMEOUT = 10 * time.Minute
+	CSV_PIVOT_TABLE_MERGER_TIMEOUT = 30 * time.Minute
 	CSV_MERGER_TIMEOUT             = 1 * time.Hour
 	CSV_COMPARER_TIMEOUT           = 2 * time.Hour
 
