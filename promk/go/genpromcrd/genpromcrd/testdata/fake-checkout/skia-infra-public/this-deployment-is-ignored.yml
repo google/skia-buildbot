@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: another-application
+spec:
+  selector:
+    matchLabels:
+      app: another-application
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: another-application
+        # Since there is no matching /monitoring/appgroup/an-unknown-appgroup.yml file, then
+        # no scraping or alerting can be set up for this deployment.
+        appgroup: an-unknown-appgroup
+      annotations:
+        prometheus.io.scrape: 'true'
+        prometheus.io.port: '20000'

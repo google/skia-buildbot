@@ -12,6 +12,8 @@ func main() {
 	app := genpromcrd.NewApp()
 
 	if err := app.Main(os.Args); err != nil {
-		sklog.Fatal(err)
+		if err != genpromcrd.ErrFlagsParse {
+			sklog.Fatal(err)
+		}
 	}
 }
