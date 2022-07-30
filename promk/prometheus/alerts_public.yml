@@ -67,47 +67,6 @@ groups:
           https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
         '
 
-  # Fiddle
-  - alert: InsufficientFiddlerPods
-    expr: avg_over_time(pods_idle[2m]) < 5
-    for: 15m
-    labels:
-      category: infra
-      severity: warning
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/PROD.md#fiddler_pods'
-
-  - alert: NamedFiddlesFailing
-    expr: named_fiddles_errors_in_examples_run > 0
-    for: 15m
-    labels:
-      category: infra
-      severity: warning
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Some named fiddles are failing to compile or run. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/PROD.md#NamedFiddlesFailing'
-
-  - alert: InvalidNamedFiddles
-    expr: named_fiddles_examples_total_invalid > 0
-    for: 15m
-    labels:
-      category: infra
-      severity: warning
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Some named fiddles are failing to be parsed. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/PROD.md#InvalidNamedFiddles'
-
-  - alert: FiddlerPodCommunicationErrors
-    expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Fiddle is having trouble communicating with fiddler pods.'
-
   # CQ Watcher
   - alert: TooManyCLsInCQ
     expr: cq_watcher_in_flight_waiting_in_cq{app="cq-watcher"} >= 10
