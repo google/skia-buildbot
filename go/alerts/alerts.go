@@ -14,5 +14,5 @@ const (
 	STATE_RESOLVED = "resolved"
 
 	// Where the alert came from, e.g. 'skia-public' or 'skolo'.
-	LOCATION = "location"
+	LOCATION = "skia_location"
 )

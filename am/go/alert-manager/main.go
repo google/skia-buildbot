@@ -127,11 +127,8 @@ func New() (baseapp.App, error) {
 	// Start goroutine to send reminders to active alert owners.
 	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailclient.New())
 
-	locations := []string{"skia-public"}
+	// livenesses gets populated as notifications arrive.
 	livenesses := map[string]metrics2.Liveness{}
-	for _, location := range locations {
-		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
-	}
 
 	// Process all incoming PubSub requests.
 	go func() {
@@ -144,11 +141,12 @@ func New() (baseapp.App, error) {
 					return
 				}
 				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
-					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
+					location := m[alerts.LOCATION]
+					sklog.Infof("healthz received: %q", location)
 					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
 						l.Reset()
 					} else {
-						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
+						livenesses[location] = metrics2.NewLiveness("alert_to_pubsub_alive", map[string]string{alerts.LOCATION: location})
 					}
 				} else {
 					if _, err := srv.incidentStore.AlertArrival(m); err != nil {

@@ -35,13 +35,13 @@ push-am: release-am
 # ALERT-TO-PUBSUB TARGETS
 
 build-atp:
-	$(BAZEL) build go/alert-to-pubsub/...
+	$(BAZEL) build //am:alert-to-pubsub
 
-release-atp: build-atp
-	$(BAZEL) run //am:push_alert_to_pubsub_container
+release-atp:
+	$(BAZEL) run //am:push_alert-to-pubsub
 
-push-atp: release-atp
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout alert-to-pubsub
+push-atp:
+	$(BAZEL) run //am:pushk_alert-to-pubsub
 
 VERSION := $(shell ../bash/release_tag.sh)
 

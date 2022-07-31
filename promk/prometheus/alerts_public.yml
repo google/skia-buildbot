@@ -106,14 +106,14 @@ groups:
 
 # alert-to-pubsub liveness
   - alert: AlertToPubSubLiveness
-    expr: (min(liveness_alive_s{location=~".+"}) by (location)) > 90
+    expr: (min(liveness_alert_to_pubsub_alive_s{skia_location=~".+"}) by (skia_location)) > 90
     labels:
       category: infra
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      abbr: '{{ $labels.location }}'
-      description: 'alert-to-pubsub for {{ $labels.location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/main/am/PROD.md#alert_to_pubsub'
+      abbr: '{{ $labels.skia_location }}'
+      description: 'alert-to-pubsub for {{ $labels.skia_location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/main/am/PROD.md#alert_to_pubsub'
 
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.

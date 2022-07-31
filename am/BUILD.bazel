@@ -39,7 +39,7 @@ skia_app_container(
 )
 
 skia_app_container(
-    name = "alert_to_pubsub_container",
+    name = "alert-to-pubsub",
     dirs = {
         "/usr/local/bin": [
             [
