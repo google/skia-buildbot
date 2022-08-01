@@ -17,48 +17,12 @@ import (
 
 var alertTarget = AlertTarget{
 	AppGroup:  "perf",
-	Namespace: "perfns",
 	Directory: "/some/sub-directory/in/the/git/checkout/",
 }
 
 func TestAlertTarget_TargetFilename_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	require.Equal(t, "/some/sub-directory/in/the/git/checkout/perf_perfns_appgroup_alerts.yml", alertTarget.TargetFilename())
-}
-
-func TestAlertTarget_PodMonitoring_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	expected := `apiVersion: monitoring.googleapis.com/v1
-kind: PodMonitoring
-metadata:
- name: perf-perfns
-spec:
- selector:
-   matchLabels:
-      appgroup: perf
- endpoints:
-   - port: prom
-     interval: 15s
- targetLabels:
-   fromPod:
-     - from: app
-     - from: appgroup
-`
-	got, err := alertTarget.PodMonitoring()
-	require.NoError(t, err)
-	require.Equal(t, expected, got)
-}
-
-func TestNameSpaceOrDefault_NoNamespaceProvided_ReturnsDefault(t *testing.T) {
-	unittest.SmallTest(t)
-
-	require.Equal(t, "default", NamespaceOrDefault(""))
-}
-
-func TestNameSpaceOrDefault_NamespaceProvided_ReturnsGivenNamespace(t *testing.T) {
-	unittest.SmallTest(t)
-
-	require.Equal(t, "foo", NamespaceOrDefault("foo"))
+	require.Equal(t, "/some/sub-directory/in/the/git/checkout/perf_appgroup_alerts.yml", alertTarget.TargetFilename())
 }
 
 func TestGetAlertTargetsFromFilename_ContainsOneDeploymentInDefaultNamespace_Success(t *testing.T) {
@@ -73,7 +37,6 @@ func TestGetAlertTargetsFromFilename_ContainsOneDeploymentInDefaultNamespace_Suc
 	// test the members.
 	for alertTarget := range got {
 		require.Equal(t, "perf", alertTarget.AppGroup)
-		require.Equal(t, "default", alertTarget.Namespace)
 		require.Contains(t, alertTarget.Directory, "/promk/go/genpromcrd/genpromcrd/testdata")
 	}
 }
@@ -90,7 +53,6 @@ func TestGetAlertTargetsFromFilename_ContainsOneStatefulSetInNonDefaultNamespace
 	// test the members.
 	for alertTarget := range got {
 		require.Equal(t, "prometheus", alertTarget.AppGroup)
-		require.Equal(t, "prometheus", alertTarget.Namespace)
 		require.Contains(t, alertTarget.Directory, "/promk/go/genpromcrd/genpromcrd/testdata")
 	}
 }
@@ -159,7 +121,7 @@ func TestAppMain_DryRunOverFakeCheckout_PrintsListOfFilesWritten(t *testing.T) {
 	// We only expect a single file to be written.
 	parts := strings.Split(string(out), "\n")
 	require.Len(t, parts, 2)
-	require.Contains(t, parts[0], "/testdata/fake-checkout/skia-infra-public/perf_mytestnamespace_appgroup_alerts.yml")
+	require.Contains(t, parts[0], "/testdata/fake-checkout/skia-infra-public/perf_appgroup_alerts.yml")
 	require.Equal(t, "", parts[1])
 }
 
@@ -176,7 +138,7 @@ func TestAppMain_RunOverFakeCheckout_CorrectFileContentsAreWritten(t *testing.T)
 			"--directory", tmpDir,
 		}))
 
-	newlyWrittenFilename := filepath.Join(tmpDir, "skia-infra-public/perf_mytestnamespace_appgroup_alerts.yml")
+	newlyWrittenFilename := filepath.Join(tmpDir, "skia-infra-public/perf_appgroup_alerts.yml")
 	require.FileExists(t, newlyWrittenFilename)
 	b, err := ioutil.ReadFile(newlyWrittenFilename)
 	require.NoError(t, err)
@@ -186,7 +148,6 @@ apiVersion: monitoring.googleapis.com/v1
 kind: Rules
 metadata:
   name: perf
-  namespace: mytestnamespace
 spec:
   groups:
   - name: perf
@@ -199,23 +160,6 @@ spec:
   - name: absent-perf
     interval: 30s
     rules: []
-
----
-apiVersion: monitoring.googleapis.com/v1
-kind: PodMonitoring
-metadata:
- name: perf-mytestnamespace
-spec:
- selector:
-   matchLabels:
-      appgroup: perf
- endpoints:
-   - port: prom
-     interval: 15s
- targetLabels:
-   fromPod:
-     - from: app
-     - from: appgroup
 `
 	require.Equal(t, expected, string(b))
 }

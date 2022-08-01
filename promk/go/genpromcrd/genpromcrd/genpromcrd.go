@@ -3,7 +3,6 @@
 package genpromcrd
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"text/template"
 
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/prom/crd"
@@ -29,35 +27,10 @@ import (
 // ErrFlagsParse is returned from Main if we failed to parse flags.
 var ErrFlagsParse = errors.New("Failed to parse flags.")
 
-// podMonitoring is a template for how an appgroup should be scraped by Managed
-// Promenteus.
-const podMonitoring = `apiVersion: monitoring.googleapis.com/v1
-kind: PodMonitoring
-metadata:
- name: {{ .AppGroup }}-{{ .Namespace }}
-spec:
- selector:
-   matchLabels:
-      appgroup: {{ .AppGroup }}
- endpoints:
-   - port: prom
-     interval: 15s
- targetLabels:
-   fromPod:
-     - from: app
-     - from: appgroup
-`
-
-// podMonitoringTemplate is the compiled podMonitoring template.
-var podMonitoringTemplate = template.Must(template.New("podMonitoring").Parse(podMonitoring))
-
 // AlertTarget represents a single appgroup that might need monitoring.
 type AlertTarget struct {
 	// AppGroup is the value of the template.label.appgroup for the pods to be monitored.
 	AppGroup string
-
-	// Namespace the pods are running in.
-	Namespace string
 
 	// Directory where the YAML file was found for this appgroup. The scraping
 	// and alerting file will be writtin back into this directory.
@@ -67,30 +40,12 @@ type AlertTarget struct {
 // TargetFilename is the absolute filename where the pod scraping and alert
 // rules should be written as YAML.
 func (a AlertTarget) TargetFilename() string {
-	return filepath.Join(a.Directory, fmt.Sprintf("%s_%s_appgroup_alerts.yml", a.AppGroup, a.Namespace))
-}
-
-// PodMonitoring is a YAML CRD of how the pods should be scraped.
-func (a AlertTarget) PodMonitoring() (string, error) {
-	var out bytes.Buffer
-	if err := podMonitoringTemplate.Execute(&out, a); err != nil {
-		return "", skerr.Wrapf(err, "Failed to write PodMonitoring for %v", a)
-	}
-	return out.String(), nil
+	return filepath.Join(a.Directory, fmt.Sprintf("%s_appgroup_alerts.yml", a.AppGroup))
 }
 
 // AlertTargets keeps track of multiple found AlertTarget's, de-duplicating
 // AlertTargets that are the same.
 type AlertTargets map[AlertTarget]bool
-
-// NamespaceOrDefault returns "default" if the empty string is passed in as a
-// namespace.
-func NamespaceOrDefault(ns string) string {
-	if ns == "" {
-		return "default"
-	}
-	return ns
-}
 
 // The possible file extensions used for YAML files.
 var yamlFileExtensions = []string{".yaml", ".yml"}
@@ -113,7 +68,6 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
 				ret[AlertTarget{
 					AppGroup:  appgroup,
-					Namespace: NamespaceOrDefault(d.Namespace),
 					Directory: filepath.Dir(filename),
 				}] = true
 			}
@@ -122,7 +76,6 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
 				ret[AlertTarget{
 					AppGroup:  appgroup,
-					Namespace: NamespaceOrDefault(d.Namespace),
 					Directory: filepath.Dir(filename),
 				}] = true
 			}
@@ -216,8 +169,8 @@ func (a *App) flagSet() *flag.FlagSet {
 
 		usage := `
 The genpromcrd cmd runs over all Deployments and StatefulSets and
-writes out Managed Prometheus CRDs for both scraping and alerting.
-For example, given the following file in the git repo that contains
+writes out Managed Prometheus CRDs for alerting. For example,
+given the following file in the git repo that contains
 all the cluster config:
 
 	k8s-config/
@@ -232,14 +185,13 @@ StatefulSets are held under /monitoring/appgroups and the name
 of the file before the '.yml' corresponds to an appgroup label.
 
 Since perf.yaml resides inside a directory associated with a
-cluster, the Deployment there runs in the namespace 'somenamespace',
-and has .template.label.appgroup=perf, a new file will be written to:
+cluster and has .template.label.appgroup=perf, a new file will
+be written to:
 
-   skia-infra-public/perf_somenamespace_appgroup_alerts.yml
+   skia-infra-public/perf_appgroup_alerts.yml
 
 which is a modified version of /monitoring/appgroups/perf.yaml, updated
-to scrape the deployment in the correct namespace, and it will also
-contain 'absent()' alerts for all the alerts defined in 'perf.yml'.
+to contain 'absent()' alerts for all the alerts defined in 'perf.yml'.
 
 The list of directories processed are defined in:
 
@@ -313,24 +265,17 @@ func (a *App) Main(args []string) error {
 		// Add in absent versions of rules.
 		rules.AddAbsentRules()
 
-		// Add Namespace
-		rules.MetaData.Namespace = appGroup.Namespace
-
 		// Write out the CRDs.
 		serializeRules, err := yaml.Marshal(rules)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to marshall new Rules into YAML for %v", appGroup)
-		}
-		serializedPodMonitoring, err := appGroup.PodMonitoring()
-		if err != nil {
-			return skerr.Wrapf(err, "Failed to write new PodMontoring into YAML for %v", appGroup)
 		}
 		if a.dryrun {
 			fmt.Println(appGroup.TargetFilename())
 			continue
 		}
 		err = util.WithWriteFile(appGroup.TargetFilename(), func(w io.Writer) error {
-			_, err := fmt.Fprintf(w, "# File is generated by genpromcrd. DO NOT EDIT.\n%s\n---\n%s", serializeRules, serializedPodMonitoring)
+			_, err := fmt.Fprintf(w, "# File is generated by genpromcrd. DO NOT EDIT.\n%s", serializeRules)
 			return err
 		})
 		if err != nil {
