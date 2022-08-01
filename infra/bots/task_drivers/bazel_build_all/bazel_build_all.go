@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"path"
 
 	"go.skia.org/infra/go/exec"
@@ -71,15 +72,6 @@ func main() {
 	}
 	failIfNonEmptyGitDiff()
 
-	// Run "errcheck" and fail if there are any findings.
-	//
-	// For some reason, exec.RunCwd cannot find the errcheck binary without an absolute path, which
-	// is weird because /mnt/pd0/s/w/ir/gopath/bin is included in $PATH, so we provide an absolute
-	// path to the errcheck binary.
-	if _, err := exec.RunCwd(ctx, path.Join(workDir, "repo"), path.Join(workDir, "gopath", "bin", "errcheck"), "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
-		td.Fatal(ctx, err)
-	}
-
 	// Set up Bazel.
 	var (
 		bzl        *bazel.Bazel
@@ -103,7 +95,12 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// Run "go fmt" and fail it there are any diffs.
+	// Run "errcheck" and fail it there are any findings.
+	if _, err := bzl.Do(ctx, "run", "//:errcheck", fmt.Sprintf("--run_under=cd %s &&", gitDir.Dir()), "--", "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Run "gofmt" and fail it there are any diffs.
 	if _, err := bzl.Do(ctx, "run", "//:gofmt", "--", "-s", "-w", "."); err != nil {
 		td.Fatal(ctx, err)
 	}
