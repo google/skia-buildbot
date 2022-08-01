@@ -1,7 +1,7 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
-    name = "alert_manager_container",
+    name = "alert-manager",
     dirs = {
         "/usr/local/bin": [
             [

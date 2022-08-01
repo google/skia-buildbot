@@ -23,13 +23,13 @@ testjs:
 	$(BAZEL) test modules/...
 
 build-am: generate
-	$(BAZEL) build go/alert-manager/... modules/... pages/...
+	$(BAZEL) build //am:alert-manager
 
 release-am: build-am
-	$(BAZEL) run //am:push_alert_manager_container
+	$(BAZEL) run //am:push_alert-manager
 
 push-am: release-am
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout alert-manager
+	$(BAZEL) run //am:pushk_alert-manager
 
 
 # ALERT-TO-PUBSUB TARGETS
