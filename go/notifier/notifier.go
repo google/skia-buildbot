@@ -166,7 +166,7 @@ type emailNotifier struct {
 
 // See documentation for Notifier interface.
 func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) error {
-	if n.emailer.Valid() {
+	if !n.emailer.Valid() {
 		sklog.Warning("No gmail API client; cannot send email!")
 		return nil
 	}
