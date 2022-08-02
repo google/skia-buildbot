@@ -311,7 +311,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		deployments, statefulSets, cronJobs, err := k8s_config.ParseK8sConfigFile(yamlContents)
+		deployments, statefulSets, cronJobs, daemonSets, err := k8s_config.ParseK8sConfigFile(yamlContents)
 		if err != nil {
 			sklog.Fatalf("Error when parsing %s: %s", filepath.Join(cluster, f), err)
 		}
@@ -337,6 +337,11 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 			containers = append(containers, config.Spec.Template.Spec.Containers)
 		}
 		for _, config := range statefulSets {
+			apps = append(apps, config.Spec.Template.Labels[appLabel])
+			namespaces = append(namespaces, fixupNamespace(config.Namespace))
+			containers = append(containers, config.Spec.Template.Spec.Containers)
+		}
+		for _, config := range daemonSets {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)

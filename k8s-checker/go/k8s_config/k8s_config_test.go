@@ -171,11 +171,12 @@ spec:
 func TestParseK8sConfigFile_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	deployments, statefulSets, cronJobs, err := ParseK8sConfigFile([]byte(k8sConfig))
+	deployments, statefulSets, cronJobs, daemonSets, err := ParseK8sConfigFile([]byte(k8sConfig))
 	require.NoError(t, err)
 	require.Len(t, deployments, 1)
 	require.Len(t, statefulSets, 1)
 	require.Len(t, cronJobs, 1)
+	require.Len(t, daemonSets, 0)
 	require.Equal(t, "gcr.io/skia-public/datahopper:2022-06-24T14_25_21Z-borenet-17bb7f4-clean", deployments[0].Spec.Template.Spec.Containers[0].Image)
 	require.Equal(t, "gcr.io/skia-public/autoroll-be:2022-06-21T13_56_34Z-borenet-33d442f-clean", statefulSets[0].Spec.Template.Spec.Containers[0].Image)
 	require.Equal(t, "gcr.io/skia-public/comp-ui-gitcron:2022-04-08T11_33_16Z-jcgregorio-72d31c9-clean", cronJobs[0].Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image)

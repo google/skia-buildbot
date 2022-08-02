@@ -346,7 +346,7 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				if err != nil {
 					return skerr.Wrapf(err, "failed to read %s at %s", file, commit.Hash)
 				}
-				deployments, statefulSets, cronJobs, err := k8s_config.ParseK8sConfigFile(contents)
+				deployments, statefulSets, cronJobs, daemonSets, err := k8s_config.ParseK8sConfigFile(contents)
 				if err != nil {
 					return skerr.Wrapf(err, "failed to parse %s", file)
 				}
@@ -363,6 +363,9 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				}
 				for _, config := range cronJobs {
 					containers = append(containers, config.Spec.JobTemplate.Spec.Template.Spec.Containers...)
+				}
+				for _, config := range daemonSets {
+					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
 
 				// Find the images used by each container.

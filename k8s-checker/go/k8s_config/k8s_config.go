@@ -14,19 +14,21 @@ const (
 	CronJobKind     = "CronJob"
 	DeploymentKind  = "Deployment"
 	StatefulSetKind = "StatefulSet"
+	DaemonSetKind   = "DaemonSet"
 )
 
 // ParseK8sConfigFile parses the given config file contents and returns the
 // configs it contains.
-func ParseK8sConfigFile(contents []byte) ([]*apps.Deployment, []*apps.StatefulSet, []*batch.CronJob, error) {
+func ParseK8sConfigFile(contents []byte) ([]*apps.Deployment, []*apps.StatefulSet, []*batch.CronJob, []*apps.DaemonSet, error) {
 	yamlDocs := strings.Split(string(contents), "---")
 	deployments := []*apps.Deployment{}
 	statefulSets := []*apps.StatefulSet{}
 	cronJobs := []*batch.CronJob{}
+	daemonSets := []*apps.DaemonSet{}
 	for _, yamlDoc := range yamlDocs {
 		deployment := new(apps.Deployment)
 		if err := yaml.Unmarshal([]byte(yamlDoc), deployment); err != nil {
-			return nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
+			return nil, nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
 		}
 		switch deployment.TypeMeta.Kind {
 		case DeploymentKind:
@@ -34,17 +36,23 @@ func ParseK8sConfigFile(contents []byte) ([]*apps.Deployment, []*apps.StatefulSe
 		case StatefulSetKind:
 			statefulSet := new(apps.StatefulSet)
 			if err := yaml.Unmarshal([]byte(yamlDoc), statefulSet); err != nil {
-				return nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
+				return nil, nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
 			}
 			statefulSets = append(statefulSets, statefulSet)
 		case CronJobKind:
 			cronJob := new(batch.CronJob)
 			if err := yaml.Unmarshal([]byte(yamlDoc), cronJob); err != nil {
-				return nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
+				return nil, nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
 			}
 			cronJobs = append(cronJobs, cronJob)
+		case DaemonSetKind:
+			daemonSet := new(apps.DaemonSet)
+			if err := yaml.Unmarshal([]byte(yamlDoc), daemonSet); err != nil {
+				return nil, nil, nil, nil, skerr.Wrapf(err, "failed to parse config file")
+			}
+			daemonSets = append(daemonSets, daemonSet)
 		}
 
 	}
-	return deployments, statefulSets, cronJobs, nil
+	return deployments, statefulSets, cronJobs, daemonSets, nil
 }
