@@ -37,6 +37,7 @@ const (
 	namespaceDefault = "default"
 
 	// Metric names.
+	ephemeralDiskRequestMetric      = "ephemeral_disk_requested"
 	evictedPodMetric                = "evicted_pod_metric"
 	dirtyCommittedImageMetric       = "dirty_committed_image_metric"
 	dirtyConfigMetric               = "dirty_config_metric"
@@ -352,6 +353,19 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 
 				// Check if the image in the config is dirty.
 				addMetricForDirtyCommittedImage(f, repo, cluster, namespace, committedImage, newMetrics)
+
+				// Check if the config specifies ephemeral disk requests.
+				ephemeralDiskRequestMetricTags := map[string]string{
+					"app":       app,
+					"container": container,
+					"yaml":      f,
+					"repo":      repo,
+					"cluster":   cluster,
+					"namespace": fixupNamespace(namespace),
+				}
+				ephemeralDiskRequestMetric := metrics2.GetInt64Metric(ephemeralDiskRequestMetric, ephemeralDiskRequestMetricTags)
+				newMetrics[ephemeralDiskRequestMetric] = struct{}{}
+				ephemeralDiskRequestMetric.Update(c.Resources.Requests.StorageEphemeral().Value())
 
 				// Create app_running metric.
 				appRunningMetricTags := map[string]string{
