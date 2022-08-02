@@ -1,0 +1,48 @@
+# Install Python 3 so we can do more than issue 'raw' commands.
+#
+# You don't need to run this by hand; mac.yml will run it as necessary.
+- hosts: all_mac
+  gather_facts: false
+
+  pre_tasks:
+    - name: See if our version of Python is already installed.
+      raw: /usr/local/bin/python3 --version
+      register: local_python_version
+      failed_when: false  # Tolerate the binary not being there.
+      changed_when: false
+
+    - name: Install Python 3 and prerequisites.
+      when: local_python_version.stdout_lines[0] != "Python 3.9.6"
+      block:
+        - name: Check for Rosetta.
+          raw: test -e /Library/Apple/usr/libexec/oah/libRosettaRuntime
+          register: rosetta_present
+          failed_when: false
+          changed_when: false
+
+        - name: Check architecture.
+          raw: arch
+          register: cpu_arch
+          changed_when: false
+
+        - name: Install Rosetta on ARM machines if it's absent.
+          # The Python installer package isn't marked as being ARM-native, so it
+          # refuses to run unless Rosetta 2 is around. This is true up to and
+          # including the 3.10.1 universal2 installer.
+          become: true
+          when: rosetta_present.rc != 0 and cpu_arch.stdout_lines[0] == "arm64"
+          raw: softwareupdate --install-rosetta --agree-to-license
+
+        - name: Install Python 3.
+          vars:
+            # Contains universal binaries. Happily runs on macOS 10.9+, despite
+            # name.
+            python_pkg: python-3.9.6-macos11.pkg
+          block:
+            - name: Download Python installer.
+              # Works even if the file is already there:
+              raw: curl -O 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}' --output-dir ~{{ skolo_account }}/Downloads
+
+            - name: Run installer.
+              become: true
+              raw: /usr/sbin/installer -verboseR -package ~{{ skolo_account }}/Downloads/{{ python_pkg }} -target /

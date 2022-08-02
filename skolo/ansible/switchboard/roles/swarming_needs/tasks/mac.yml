@@ -18,34 +18,7 @@
     owner: '{{ skolo_account }}'
     mode: 0755
 
-- name: Install Rosetta on ARM machines if it's absent.
-  # The Python installer package isn't marked as being ARM-native, so it refuses
-  # to run unless Rosetta 2 is around. This is true as of the 3.10.1 universal2
-  # installer.
-  command:
-    cmd: softwareupdate --install-rosetta --agree-to-license
-    creates: /Library/Apple/usr/libexec/oah/libRosettaRuntime
-  when: ansible_facts['machine'] == 'arm64'
-
-- name: Install Python 3.
-  vars:
-    # Contains universal binaries. Happily runs on macOS 10.9+, despite name.
-    python_pkg: python-3.9.6-macos11.pkg
-  block:
-    - name: Download Python installer.
-      # Do this with curl instead of the get_url module because 10.12's Python
-      # has too old a version of TLS to work.
-      command:
-        cmd: curl -O 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}'
-        chdir: ~{{ skolo_account }}/Downloads
-        creates: ~{{ skolo_account }}/Downloads/{{ python_pkg }}
-        warn: false
-
-    - name: Run installer.
-      become: true
-      command:
-        cmd: /usr/sbin/installer -verboseR -package ~{{ skolo_account }}/Downloads/{{ python_pkg }} -target /
-        creates: /usr/local/bin/python3
+# Python 3.9.6 is taken to be already present, since it's installed by prepare-mac-for-ansible.yml.
 
 - name: Install pyobjc.
   block:

@@ -1,3 +1,7 @@
+- name: Ensure Python is around for Ansible to use.
+  # It stopped being included in macOS 13.
+  import_playbook: prepare-mac-for-ansible.yml
+
 - hosts: all_mac
   user: chrome-bot
   gather_facts: true
