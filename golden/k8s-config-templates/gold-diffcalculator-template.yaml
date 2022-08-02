@@ -71,6 +71,7 @@ spec:
             requests:
               memory: "4Gi" # A rough estimate based on real-world needs.
               cpu: "4"       # 4 diff goroutines in diff/worker.go
+              ephemeral-storage: '32M'
           readinessProbe:
             httpGet:
               path: /healthz

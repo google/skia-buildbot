@@ -75,6 +75,7 @@ spec:
             requests:
               memory: "4Gi"
               cpu: 2
+              ephemeral-storage: '32M'
           readinessProbe:
             httpGet:
               path: /healthz

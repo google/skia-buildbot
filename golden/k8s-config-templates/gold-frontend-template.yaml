@@ -69,6 +69,7 @@ spec:
             requests:
               memory: "{{.K8S_MEMORY}}"
               cpu: "{{.K8S_CPU}}"
+              ephemeral-storage: '32M'
           readinessProbe:
             httpGet:
               path: /healthz
