@@ -42,38 +42,3 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'The error rate on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-
-# Louhi continuous deployment pipeline.
-  - alert: CDImageBuildLatency
-    expr: cd_image_build_latency_s > 2*60*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.image }}'
-      description: 'No {{ $labels.image }} Docker image has been built for commit https://skia.googlesource.com/buildbot.git/+/{{ $labels.commit }}
-      Check the associated flow in https://louhi.dev/?projectId=6316342352543744#/home'
-
-  - alert: CDK8sConfigLatency
-    expr: cd_k8s_config_latency_s > 2*60*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.image }}'
-      description: 'No commit has landed to update the {{ $labels.image }} Docker image in the k8s-config repo for commit https://skia.googlesource.com/buildbot.git/+/{{ $labels.commit }}
-      Check the associated flow in https://louhi.dev/?projectId=6316342352543744#/home'
-
-  - alert: LastCDMetricsSuccess
-    expr: liveness_last_successful_cd_pipeline_metrics_s > 30*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'CD metrics ingestion on {{ $labels.app }} has not completed successfully.
-      https://pantheon.corp.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.container_name%3D%22datahopper-internal%22%0AsourceLocation.file%3D%22cd_metrics.go%22%0A?project=google.com:skia-corp'
