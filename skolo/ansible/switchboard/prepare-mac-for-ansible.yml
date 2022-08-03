@@ -41,7 +41,7 @@
           block:
             - name: Download Python installer.
               # Works even if the file is already there:
-              raw: curl -O 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}' --output-dir ~{{ skolo_account }}/Downloads
+              raw: curl 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}' -o ~{{ skolo_account }}/Downloads/{{ python_pkg }}
 
             - name: Run installer.
               become: true
