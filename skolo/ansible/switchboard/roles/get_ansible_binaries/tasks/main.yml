@@ -15,7 +15,6 @@
     'curl --silent --cookie ~/.gitcookies
     https://skia.googlesource.com/a/k8s-config/+/refs/heads/main/ansible-tags/{{
     get_ansible_binaries_application }}/version.txt?format=TEXT | base64 -d'
-  warn: false
 
 - name: Download to the temp dir the specified version of the binaries.
   run_once: true

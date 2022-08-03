@@ -18,5 +18,6 @@
       when: restart and ansible_facts['system']|lower in ['win32nt']
 
     - name: Reboot non-Windows host.
+      become: true
       reboot:
       when: restart and ansible_facts['system']|lower not in ['win32nt']
