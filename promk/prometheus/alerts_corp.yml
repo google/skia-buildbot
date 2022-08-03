@@ -43,39 +43,6 @@ groups:
       description: 'The error rate on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
-# Service account keys checker
-
-  - alert: SAKeysCheckerErrorRate
-    expr: rate(num_log_lines{level="ERROR",app="sa-keys-checker"}[1h]) > 0.001
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'The error rate on {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-
-  - alert: SAKeyExpiringSoon
-    expr: 0 < sa_key_expiration_s{app="sa-keys-checker"} < 30*24*60*60
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.sa }} - {{ $labels.key }}'
-      description: 'The key {{ $labels.key }} of {{ $labels.sa }} in project {{ $labels.project }} is going to expire in less than 30 days.
-      Production Manual: https://skia.googlesource.com/buildbot/%2B/main/sa-keys-checker/PROD.md#sa_key_expiring_soon'
-
-  - alert: SAKeyExpired
-    expr: sa_key_expiration_s{app="sa-keys-checker"} < 0
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.sa }} - {{ $labels.key }}'
-      description: 'The key {{ $labels.key }} of {{ $labels.sa }} in project {{ $labels.project }} has expired.
-      Production Manual: https://skia.googlesource.com/buildbot/%2B/main/sa-keys-checker/PROD.md#sa_key_expired'
 
 # Louhi continuous deployment pipeline.
   - alert: CDImageBuildLatency
