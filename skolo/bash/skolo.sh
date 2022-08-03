@@ -8,6 +8,8 @@ alias skolo_rack1='ssh chrome-bot@100.115.95.143'
 alias skolo_rack2='ssh chrome-bot@100.115.95.133'
 alias skolo_rack3='ssh chrome-bot@100.115.95.134'
 alias skolo_rack4='ssh chrome-bot@100.115.95.135'
+alias skolo_rack6='ssh chrome-bot@100.115.95.136'
+
 alias skolo_rpi='ssh chrome-bot@100.115.95.143'
 alias skolo_rpi2='ssh chrome-bot@100.115.95.135'
 alias skolo_win2='ssh chrome-bot@100.115.95.133'
@@ -20,6 +22,7 @@ alias skolo_rack2_router='google-chrome https://localhost:9001; ssh -L 9001:192.
 alias skolo_rack3_router='google-chrome https://localhost:9002; ssh -L 9002:192.168.1.1:443 rack3'
 alias skolo_rack4_router='google-chrome https://localhost:9003; ssh -L 9003:192.168.1.1:443 rack4'
 alias skolo_rack5_router='google-chrome https://localhost:9004; ssh -L 9004:192.168.1.1:443 rack5'
+alias skolo_rack6_router='google-chrome https://localhost:9005; ssh -L 9005:192.168.1.1:443 rack6'
 
 
 # Shelf ports start at 7000, and the second digit is the rack number, the last number is the shelf.

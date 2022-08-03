@@ -13,6 +13,7 @@ go_library(
         "powercycle-rack3.json5",
         "powercycle-rack4.json5",
         "powercycle-rack5.json5",
+        "powercycle-rack6.json5",
     ],
     importpath = "go.skia.org/infra/skolo/sys",
     visibility = ["//visibility:public"],
