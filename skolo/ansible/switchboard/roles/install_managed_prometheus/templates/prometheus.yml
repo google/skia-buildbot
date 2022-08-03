@@ -18,7 +18,7 @@ rule_files:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['localhost:{{ all.prometheus.managed_web_server_port }}']
         labels:
           job: 'prometheus'
           hostname: 'jumphost'
