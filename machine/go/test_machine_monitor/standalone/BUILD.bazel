@@ -15,7 +15,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//go/util",
+        "//go/util_generics",
         "@net_howett_plist//:plist",
     ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [

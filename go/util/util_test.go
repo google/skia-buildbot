@@ -801,13 +801,3 @@ func TestCopyFile(t *testing.T) {
 	testCopy(0600, []byte("private stuff here"))
 	testCopy(0777, []byte("this is for everyone!"))
 }
-
-func TestGet(t *testing.T) {
-	unittest.SmallTest(t)
-	strings := map[string]int{
-		"one": 1,
-		"two": 2,
-	}
-	assert.Equal(t, 1, Get(strings, "one", 99))           // key present
-	assert.Equal(t, 99, Get(strings, "four billion", 99)) // key absent
-}

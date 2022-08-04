@@ -893,11 +893,3 @@ func IsLocal() bool {
 	// the default is false.
 	return false
 }
-
-// Get looks up an item in a map, returning a fallback value if absent.
-func Get[K comparable, V interface{}](theMap map[K]V, k K, fallback V) V {
-	if item, exists := theMap[k]; exists {
-		return item
-	}
-	return fallback
-}

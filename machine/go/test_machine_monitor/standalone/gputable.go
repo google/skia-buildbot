@@ -4,7 +4,7 @@ package standalone
 import (
 	"strings"
 
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util_generics"
 )
 
 type gpuVendorID string
@@ -113,5 +113,5 @@ func init() {
 // gpuVendorNameToID returns the vendor ID for a given GPU vendor name. If unknown, returns "".
 func gpuVendorNameToID(name string) gpuVendorID {
 	// macOS 10.13 doesn't provide the vendor ID any more, so support reverse lookups on vendor name.
-	return util.Get(vendorNamesToIDs, strings.ToLower(name), "")
+	return util_generics.Get(vendorNamesToIDs, strings.ToLower(name), "")
 }

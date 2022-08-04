@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "util_generics",
+    srcs = ["util_generics.go"],
+    importpath = "go.skia.org/infra/go/util_generics",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "util_generics_test",
+    srcs = ["util_generics_test.go"],
+    embed = [":util_generics"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
