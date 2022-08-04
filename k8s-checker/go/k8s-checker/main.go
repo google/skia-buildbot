@@ -37,20 +37,21 @@ const (
 	namespaceDefault = "default"
 
 	// Metric names.
-	ephemeralDiskRequestMetric      = "ephemeral_disk_requested"
-	evictedPodMetric                = "evicted_pod_metric"
-	dirtyCommittedImageMetric       = "dirty_committed_image_metric"
-	dirtyConfigMetric               = "dirty_config_metric"
-	staleImageMetric                = "stale_image_metric"
 	appRunningMetric                = "app_running_metric"
 	containerRunningMetric          = "container_running_metric"
-	runningAppHasConfigMetric       = "running_app_has_config_metric"
-	runningContainerHasConfigMetric = "running_container_has_config_metric"
+	dirtyCommittedImageMetric       = "dirty_committed_image_metric"
+	dirtyConfigMetric               = "dirty_config_metric"
+	ephemeralDiskRequestMetric      = "ephemeral_disk_requested"
+	evictedPodMetric                = "evicted_pod_metric"
 	livenessMetric                  = "k8s_checker"
 	podMaxReadyTimeMetric           = "pod_max_ready_time_s"
 	podReadyMetric                  = "pod_ready"
 	podRestartCountMetric           = "pod_restart_count"
 	podRunningMetric                = "pod_running"
+	runningAppHasConfigMetric       = "running_app_has_config_metric"
+	runningContainerHasConfigMetric = "running_container_has_config_metric"
+	staleImageMetric                = "stale_image_metric"
+	totalDiskRequestMetric          = "total_disk_requested"
 )
 
 // The format of the image is expected to be:
@@ -331,23 +332,35 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 		apps := []string{}
 		namespaces := []string{}
 		containers := [][]v1.Container{}
+		volumeClaims := [][]v1.PersistentVolumeClaim{}
 		for _, config := range deployments {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
+			volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
 		}
 		for _, config := range statefulSets {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
+			volumeClaims = append(volumeClaims, config.Spec.VolumeClaimTemplates)
 		}
 		for _, config := range daemonSets {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
+			volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
 		}
 		for idx, app := range apps {
+			// Create a simple mapping of volume name to its size.
+			volumeNameToSize := map[string]int64{}
+			for _, vol := range volumeClaims[idx] {
+				volumeNameToSize[vol.Name] = vol.Spec.Resources.Requests.Storage().Value()
+			}
+
 			checkedInAppsToContainers[app] = util.StringSet{}
+
+			// Loop through the containers for this app.
 			for _, c := range containers[idx] {
 				namespace := namespaces[idx]
 				liveAppContainerToImages := liveAppContainerToImagesByNamespace[namespace]
@@ -360,7 +373,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 				addMetricForDirtyCommittedImage(f, repo, cluster, namespace, committedImage, newMetrics)
 
 				// Check if the config specifies ephemeral disk requests.
-				ephemeralDiskRequestMetricTags := map[string]string{
+				diskRequestMetricTags := map[string]string{
 					"app":       app,
 					"container": container,
 					"yaml":      f,
@@ -368,9 +381,19 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 					"cluster":   cluster,
 					"namespace": fixupNamespace(namespace),
 				}
-				ephemeralDiskRequestMetric := metrics2.GetInt64Metric(ephemeralDiskRequestMetric, ephemeralDiskRequestMetricTags)
+				ephemeralDiskRequestMetric := metrics2.GetInt64Metric(ephemeralDiskRequestMetric, diskRequestMetricTags)
 				newMetrics[ephemeralDiskRequestMetric] = struct{}{}
-				ephemeralDiskRequestMetric.Update(c.Resources.Requests.StorageEphemeral().Value())
+				ephemeralDiskRequest := c.Resources.Requests.StorageEphemeral().Value()
+				ephemeralDiskRequestMetric.Update(ephemeralDiskRequest)
+
+				// Find the total requested disk.
+				totalDiskRequest := ephemeralDiskRequest + c.Resources.Requests.Storage().Value()
+				for _, vol := range c.VolumeMounts {
+					totalDiskRequest += volumeNameToSize[vol.Name]
+				}
+				totalDiskRequestMetric := metrics2.GetInt64Metric(totalDiskRequestMetric, diskRequestMetricTags)
+				newMetrics[totalDiskRequestMetric] = struct{}{}
+				totalDiskRequestMetric.Update(totalDiskRequest)
 
 				// Create app_running metric.
 				appRunningMetricTags := map[string]string{
