@@ -64,10 +64,15 @@ func TestWhoami_ReallyPollServer_NotLoggedIn(t *testing.T) {
 	assert.Contains(t, output.String(), `Logged in as ""`)
 }
 
-func httpResponse(body, status string, statusCode int) *http.Response {
-	return &http.Response{
-		Body:       ioutil.NopCloser(strings.NewReader(body)),
-		Status:     status,
-		StatusCode: statusCode,
+// This returns a function that returns a fresh response. Returning a static response works for
+// the first mocked call to this function, but subsequent ones read nothing (because the string
+// reader has already read all its bytes).
+func httpResponse(body, status string, statusCode int) func(string) *http.Response {
+	return func(_ string) *http.Response {
+		return &http.Response{
+			Body:       ioutil.NopCloser(strings.NewReader(body)),
+			Status:     status,
+			StatusCode: statusCode,
+		}
 	}
 }

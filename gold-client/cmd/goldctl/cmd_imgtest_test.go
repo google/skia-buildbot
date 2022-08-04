@@ -63,7 +63,7 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 		Known("11111111111111111111111111111111").Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
-	// and the known hashes (both empty).
+	// (with two images triaged) and the known hashes (one entry).
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
 		gitHash:      "1234567890123456789012345678901234567890",
@@ -101,7 +101,7 @@ func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.
 		Known("11111111111111111111111111111111").Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
-	// and the known hashes (both empty).
+	// (with two images triaged) and the known hashes (one entry).
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
 		commitID:       "92.103234.1.123456",
@@ -193,6 +193,71 @@ func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
 	outStr := output.String()
 	exit.AssertWasCalledWithCode(t, 1, outStr)
 	assert.Contains(t, outStr, `invalid configuration: field "gitHash", "commit_id", or "change_list_id" must be set`)
+}
+
+func TestImgTest_Init_EmptyExpectationsReturned_EmitsWarning(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").
+		Known("11111111111111111111111111111111").Build()
+
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		gitHash:      "1234567890123456789012345678901234567890",
+		corpus:       "my_corpus",
+		instanceID:   "my-instance",
+		keysFile:     keysFile,
+		passFailStep: true,
+		workDir:      workDir,
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+	assert.Contains(t, logs, "warning: got empty expectations when querying https://my-instance-gold.skia.org/json/v2/expectations\n")
+}
+
+func TestImgTest_InitCheck_EmptyExpectationsReturned_ReturnsNonzeroExitCode(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").
+		Known("11111111111111111111111111111111").Build()
+
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		gitHash:      "1234567890123456789012345678901234567890",
+		corpus:       "my_corpus",
+		instanceID:   "my-instance",
+		keysFile:     keysFile,
+		passFailStep: true,
+		workDir:      workDir,
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	output.buf.Reset()
+	runUntilExit(t, func() {
+		env.Check(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 1, logs)
+	assert.Contains(t, logs, "Expectations are empty, despite re-loading them from Gold")
+	assert.Contains(t, logs, `raw expectation response "{}"`)
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitCode(t *testing.T) {

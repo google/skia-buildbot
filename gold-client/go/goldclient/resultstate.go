@@ -137,9 +137,13 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 		if len(jsonBytes) > 200 {
 			infof(ctx, `Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
 		} else {
-			infof(ctx, `Invalid JSON: "%s"`, string(jsonBytes))
+			infof(ctx, `Invalid JSON: %q`, string(jsonBytes))
 		}
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
+	}
+	if len(exp.Expectations) == 0 {
+		errorf(ctx, "warning: got empty expectations when querying %s\n", u)
+		errorf(ctx, "raw expectation response %q\n", string(jsonBytes))
 	}
 
 	r.Expectations = exp.Expectations

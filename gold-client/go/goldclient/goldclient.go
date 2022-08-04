@@ -400,6 +400,9 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 			return false, skerr.Wrapf(err, "writing the expectations to disk")
 		}
 	}
+	if len(c.resultState.Expectations) == 0 {
+		return false, skerr.Fmt("Expectations are empty, despite re-loading them from Gold")
+	}
 
 	// Load the PNG from disk and hash it.
 	imgBytes, imgHash, err := c.loadAndHashImage(imgFileName)
@@ -574,14 +577,14 @@ func createTraceIDV2(keys paramtools.Params) tiling.TraceIDV2 {
 func (c *CloudClient) downloadHashesAndBaselineFromGold(ctx context.Context) error {
 	// What hashes have we seen already (to avoid uploading them again).
 	if err := c.resultState.loadKnownHashes(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	infof(ctx, "Loaded %d known hashes\n", len(c.resultState.KnownHashes))
 
-	// Fetch the baseline (may be empty but should not fail).
+	// Fetch the baseline
 	if err := c.resultState.loadExpectations(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	infof(ctx, "Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
 
