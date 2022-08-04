@@ -7,18 +7,6 @@ groups:
   # - Scraped by annotation: these have a kubernetes_pod_name label
   # - Scraped by config: these have instance and job labels.
   - alert: InstanceDown
-    expr: up{kubernetes_pod_name!=""} == 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'Pod {{ $labels.kubernetes_pod_name }} for app {{ $labels.app }} has been down
-        for more than 5 minutes. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
-
-  - alert: InstanceDown
     expr: up{kubernetes_pod_name=""} == 0
     for: 5m
     labels:
@@ -33,77 +21,6 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
           '
-
-  - alert: PodContainerCreatingTooLong
-    expr: k8s_pod_status{status="ContainerCreating"} > 30 * 60
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.pod }}'
-      description: '{{ $labels.pod }} of container {{ $labels.container }} in project {{ $labels.project }} has been in {{ $labels.status }} state for more than 30 minutes.'
-
-  - alert: PodTerminatingTooLong
-    expr: k8s_pod_status{status="Terminating"} > 30 * 60
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.pod }}'
-      description: '{{ $labels.pod }} of container {{ $labels.container }} in project {{ $labels.project }} has been in {{ $labels.status }} state for more than 30 minutes.'
-
-  - alert: CrashLoop
-    expr: max_over_time(liveness_uptime_s{kubernetes_pod_name!=""}[6m]) < 60 * 3
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'Pod {{ $labels.kubernetes_pod_name }} for app {{ $labels.app }} is crashing on
-        startup. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-  - alert: TooManyGoRoutines
-    expr: go_goroutines{app=~".+"} > 3000
-    for: 2m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Too many Go routines in {{ $labels.kubernetes_pod_name }} for app
-        {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-  - alert: TooManyOpenFDs
-    expr: process_open_fds{app=~".+"} > 30000
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Too many open file handles on {{ $labels.kubernetes_pod_name }} for app
-        {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-  - alert: PersistentVolumeLowSpace
-    expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.persistentvolumeclaim }}'
-      description: '{{ $labels.persistentvolumeclaim }} is more than 90% full.'
-
-  - alert: ContainerVolumeLowSpace
-    expr: (container_fs_usage_bytes/container_fs_limit_bytes) > 0.9
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.device }} on {{ $labels.instance }} in pool {{ $labels.cloud_google_com_gke_nodepool }} is more than 90% full.'
 
   - alert: AutoRollBackendErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"autoroll-be.*"}[1h]) > 0.001
@@ -151,58 +68,7 @@ groups:
       description: '{{ $labels.app }} is failing to upload CLs.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
-  - alert: HighOutgoingQPS
-    expr: sum(rate(http_request_metrics{host!~".*googleapis.*"}[30m])) by (host) > 25
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.host }}'
-      description: 'QPS to {{ $labels.host }} is high. Verify that this is expected.'
-
-  - alert: HighOutgoingQPSByApp
-    expr: sum(rate(http_request_metrics{host!~".*googleapis.*"}[30m])) by (host,app) > 15
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.host }}'
-      description: 'QPS to {{ $labels.host }} from {{ $labels.app }} is high. Verify that this is expected.'
-
-  - alert: HighOutgoingQPSGoogleAPIs
-    expr: sum(rate(http_request_metrics{host=~".*googleapis.*"}[30m])) by (host) > 100
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'QPS to googleapis is high. Verify that this is expected.'
-
-  - alert: HighOutgoingQPSGoogleAPIsByApp
-    expr: sum(rate(http_request_metrics{host=~".*googleapis.*"}[30m])) by (host,app) > 50
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'QPS to googleapis from {{ $labels.app }} is high. Verify that this is expected.'
-
-  - alert: HighFirestoreUsageSustained
-    expr: sum(rate(firestore_ops_count{count="rows", app!~"gold.+", app!~"bugs-central"}[24h])) by (app) > 25
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Firestore usage from {{ $labels.app }} over the last 24h is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-24h&to=now'
-
-  - alert: HighFirestoreUsageBurst
-    expr: sum(rate(firestore_ops_count{count="rows"}[30m])) by (app) > 1000
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Firestore usage from {{ $labels.app }} over the last 30m is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-30m&to=now'
-
+  
   - alert: AutoRollGetReviewersFailed
     expr: autoroll_get_reviewers_success == 0
     for: 2h
@@ -810,19 +676,9 @@ groups:
       abbr: '{{ $labels.appgroup }}'
       description: 'The {{ $labels.database }} SQL database is failing to be backed up https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldsqlbackuperror'
 
-# Git is supposed to be obtained through CIPD.
-  - alert: GitNotFromCIPD
-    expr: git_from_cipd == 0
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is using a version of Git which is not obtained via CIPD.'
-
-# k8s-deployer
-# This is currently only used in the skia-infra-public-dev cluster, but it will
-# eventually be used in more places.
+  # k8s-deployer
+  # This is currently only used in the skia-infra-public-dev cluster, but it will
+  # eventually be used in more places.
   - alert: K8sDeployerLiveness
     expr: liveness_k8s_deployer_s > 10*60
     labels:
@@ -834,14 +690,3 @@ groups:
       description: 'k8s-deployer in {{ $labels.cluster }} has failed to apply changes for more than 10 minutes.
       https://pantheon.corp.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.container_name%3D%22k8s-deployer%22;cursorTimestamp=2022-03-21T17:24:45.250169905Z?project={{ $labels.project }}'
 
-
-# Cron Jobs
-  - alert: CronJobFailed
-    expr: kube_job_failed{condition="true"} > 0
-    labels:
-      category: infra
-      severity: error
-      owner: jcgregorio@google.com
-    annotations:
-      abbr: '{{ $labels.job_name }}'
-      description: 'Job has failed {{ $labels.kubernetes_pod_name }}.'
