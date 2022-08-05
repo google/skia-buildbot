@@ -1,1 +1,16 @@
-{}
+{
+  synaccess: {
+    "PDU1": {
+      address: "http://pdu1"
+      ports: {
+        "router": 1,
+        "switch1": 2,
+        "switch2": 3,
+        "jumphost": 4,
+        "switch3": 5,
+        "switch4": 6,
+        "skia-e-linux-600": 7,
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@
     managed_prometheus_ansible_version_override: ''
 
   roles:
+    - stop_sleeping
     - create_chrome_bot_user
     - copy_authorized_keys
     - copy_service_account_key
