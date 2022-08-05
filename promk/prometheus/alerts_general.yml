@@ -548,6 +548,15 @@ groups:
       abbr: '{{ $labels.exported_app }}'
       description: 'App {{ $labels.exported_app }} is running in the default namespace in cluster {{ $labels.cluster }}.'
 
+  - alert: NoDiskRequestedForContainer
+    expr: total_disk_requested == 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} on cluster {{ $labels.cluster }} requests no disk.  All containers which do not use attached persistent disk should at least request a small amount of ephemeral-storage.  Edit {{ $labels.cluster }}/{{ $labels.yaml }} in k8s-config.'
+
 
 # GitSync.
   - alert: GitSyncStalled
