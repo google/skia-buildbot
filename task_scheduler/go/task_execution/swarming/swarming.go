@@ -329,7 +329,7 @@ func convertTaskResult(res *swarming_api.SwarmingRpcsTaskResult) (*types.TaskRes
 // convertTaskStatus converts a Swarming task state to a types.TaskStatus.
 func convertTaskStatus(state string, failure bool) (types.TaskStatus, error) {
 	switch state {
-	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_CLIENT_ERROR, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
 		return types.TASK_STATUS_MISHAP, nil
 	case swarming.TASK_STATE_PENDING:
 		return types.TASK_STATUS_PENDING, nil

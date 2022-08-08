@@ -996,7 +996,7 @@ func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingCl
 			return "", "", fmt.Errorf("Could not get task %s: %s", taskId, err)
 		}
 		switch swarmingTask.State {
-		case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+		case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_CLIENT_ERROR, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
 			return "", swarmingTask.State, fmt.Errorf("The task %s exited early with state %v", taskId, swarmingTask.State)
 		case swarming.TASK_STATE_PENDING:
 			// The task is in pending state.

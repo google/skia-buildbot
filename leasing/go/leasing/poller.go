@@ -99,6 +99,7 @@ func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t
 	unexpectedStates := []string{
 		swarming.TASK_STATE_BOT_DIED,
 		swarming.TASK_STATE_CANCELED,
+		swarming.TASK_STATE_CLIENT_ERROR,
 		swarming.TASK_STATE_COMPLETED,
 		swarming.TASK_STATE_EXPIRED,
 		swarming.TASK_STATE_NO_RESOURCE,

@@ -198,7 +198,7 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 				failure := false
 				taskCompleted := false
 				switch swarmingTask.State {
-				case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+				case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_CLIENT_ERROR, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
 					sklog.Errorf("The task %s exited early with state %v", swarmingTaskID, swarmingTask.State)
 					taskCompleted = true
 					failure = true
