@@ -220,6 +220,22 @@ annotations:
   prometheus.io.port: '20000'
 ```
 
+- Clusters run with [Cluster
+  Autoscaler](https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-autoscaler),
+  which means that every pod should have the following annotation:
+
+```yaml
+annotations:
+  cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+```
+
+If you need finer grained control over how your pods are started and stopped
+that can be done by defining a
+[PodDisruptionBudget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/).
+CockroachDB defines a PodDisruptionBudget and is a good example of such a
+budget.
+
+
 - Metrics will be available on
   [thanos-query.skia.org](https://thanos-query.skia.org/).
 - The metrics will be labeled `app=<foo>` where `foo` is the first argument to
