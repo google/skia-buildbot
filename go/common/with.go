@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"runtime"
 	"sort"
@@ -199,9 +200,21 @@ func (o *promInitOpt) preinit(appName string) error {
 	return nil
 }
 
+var defaultServeMux http.ServeMux
+
 func (o *promInitOpt) init(appName string) error {
 	// App uptime.
 	_ = metrics2.NewLiveness("uptime", nil)
+
+	// Prometheus client loads "expvar" which automatically registers
+	// "/debug/vars" in the default http handler, which exposes potentially
+	// secret information. Since we can't register a new handler for
+	// "/debug/vars" because that causes the http lib to panic, we need to
+	// replace http.DefaultServeMux with a fresh handler, and since we do this
+	// after init()'s have been called, we won't get the /debug/vars handler.
+	// http://b/241539244
+	http.DefaultServeMux = &defaultServeMux
+	http.HandleFunc("/debug/vars", http.NotFound)
 	return nil
 }
 
