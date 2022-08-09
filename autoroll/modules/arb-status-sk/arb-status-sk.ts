@@ -1130,7 +1130,11 @@ export class ARBStatusSk extends ElementSk {
       url: cl.url,
     })));
     this.recentRolls.sort((a: RecentRoll, b: RecentRoll) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const numRecentRolls = Math.max((status.recentRolls || []).length, 10);
+    if (this.recentRolls.length > numRecentRolls) {
+      this.recentRolls.length = numRecentRolls;
+    }
 
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
