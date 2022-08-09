@@ -727,13 +727,15 @@ export class ARBStatusSk extends ElementSk {
       try {
         startTime = parseDayTime(timeExprSplit[0]);
       } catch (e) {
-        return e;
+        console.error(e);
+        return new Date();
       }
       let endTime;
       try {
         endTime = parseDayTime(timeExprSplit[1]);
       } catch (e) {
-        return e;
+        console.error(e);
+        return new Date();
       }
 
       // Parse the day(s).
@@ -1135,6 +1137,40 @@ export class ARBStatusSk extends ElementSk {
     if (this.recentRolls.length > numRecentRolls) {
       this.recentRolls.length = numRecentRolls;
     }
+
+    // Set the favicon.
+    const link = document.createElement('link');
+    link.id = 'dynamicFavicon';
+    link.rel = 'shortcut icon';
+    link.href = ((lastRoll: AutoRollCL | undefined, mode: Mode) => {
+      if (mode == Mode.STOPPED) {
+        return '/dist/img/favicon-stopped.svg';
+      } else if (!lastRoll) {
+        return '/dist/img/favicon-unknown.svg';
+      }
+      switch (lastRoll.result) {
+        case AutoRollCL_Result.SUCCESS:
+          return '/dist/img/favicon-success.svg';
+        case AutoRollCL_Result.FAILURE:
+          return '/dist/img/favicon-failure.svg';
+        case AutoRollCL_Result.IN_PROGRESS:
+          return '/dist/img/favicon-unknown.svg';
+        case AutoRollCL_Result.DRY_RUN_SUCCESS:
+          return '/dist/img/favicon-success.svg';
+        case AutoRollCL_Result.DRY_RUN_FAILURE:
+          return '/dist/img/favicon-failure.svg';
+        case AutoRollCL_Result.DRY_RUN_IN_PROGRESS:
+          return '/dist/img/favicon-unknown.svg';
+        default:
+          return '/dist/img/favicon-unknown.svg';
+      }
+    })(status.lastRoll, status.mode!.mode);
+    const head = document.getElementsByTagName('head')[0];
+    const oldIcon = document.getElementById(link.id);
+    if (oldIcon) {
+      head.removeChild(oldIcon);
+    }
+    head.appendChild(link);
 
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;

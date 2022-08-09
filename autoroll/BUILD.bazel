@@ -55,6 +55,18 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/usr/local/share/autoroll-fe/dist/img": [
+            [
+                "//autoroll/images:%s" % favicon,
+                "0644",
+            ]
+            for favicon in [
+                "favicon-failure.svg",
+                "favicon-stopped.svg",
+                "favicon-success.svg",
+                "favicon-unknown.svg",
+            ]
+        ],
         "/usr/local/share/autoroll-fe/dist": [
             [
                 "//autoroll/pages:production/%s.%s" % (page, ext),

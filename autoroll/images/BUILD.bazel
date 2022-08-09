@@ -1,0 +1,6 @@
+exports_files([
+    "favicon-failure.svg",
+    "favicon-stopped.svg",
+    "favicon-success.svg",
+    "favicon-unknown.svg",
+])
