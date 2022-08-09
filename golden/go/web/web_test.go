@@ -1182,10 +1182,11 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 	ctx = context.WithValue(ctx, now.ContextKey, time.Date(2020, time.December, 14, 0, 0, 0, 0, time.UTC))
 	wh.startCLCacheProcess(ctx)
 	require.Eventually(t, func() bool {
-		return wh.clSummaryCache.Len() == 2
+		return wh.clSummaryCache.Len() == 3
 	}, 5*time.Second, 100*time.Millisecond)
 	assert.True(t, wh.clSummaryCache.Contains("gerrit_CL_fix_ios"))
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
+	assert.True(t, wh.clSummaryCache.Contains("gerrit_CLmultipledatapoints"))
 }
 
 func TestStatusHandler_Success(t *testing.T) {
@@ -2165,7 +2166,8 @@ func TestGetChangelistsHandler_AllChangelists_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=50", nil)
 	wh.ChangelistsHandler(w, r)
-	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
+	const expectedResponse = `{"changelists":[{"system":"gerrit","id":"CLmultipledatapoints","owner":"userOne@example.com","status":"open","subject":"multiple datapoints","updated":"2020-12-12T14:00:00Z","url":"example.com/CLmultipledatapoints/gerrit"},` +
+		`{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
 		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
 		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"},` +
 		`{"system":"gerrit","id":"CLhaslanded","owner":"userTwo@example.com","status":"landed","subject":"was landed","updated":"2020-05-05T05:05:00Z","url":"example.com/CLhaslanded/gerrit"}],"offset":0,"size":50,"total":2147483647}`
@@ -2196,8 +2198,8 @@ func TestGetChangelistsHandler_RespectsPagination_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=2&offset=1", nil)
 	wh.ChangelistsHandler(w, r)
-	const expectedResponse = `{"changelists":[{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
-		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"}],"offset":1,"size":2,"total":2147483647}`
+	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
+		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"}],"offset":1,"size":2,"total":2147483647}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
@@ -2225,7 +2227,8 @@ func TestGetChangelistsHandler_ActiveChangelists_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?active=true", nil)
 	wh.ChangelistsHandler(w, r)
-	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
+	const expectedResponse = `{"changelists":[{"system":"gerrit","id":"CLmultipledatapoints","owner":"userOne@example.com","status":"open","subject":"multiple datapoints","updated":"2020-12-12T14:00:00Z","url":"example.com/CLmultipledatapoints/gerrit"},` +
+		`{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
 		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"}],"offset":0,"size":20,"total":2147483647}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }

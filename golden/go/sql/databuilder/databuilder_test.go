@@ -1557,6 +1557,14 @@ func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
 		OptionsAll(paramtools.Params{"opt": "opt"}).
 		FromTryjob("tryjob2", "bb", "TRYJOB2", "tryjob2.txt", "2020-12-05T16:30:00Z")
 
+	// The above tryjob ran a second time, generating another datapoint at the same patchset for
+	// the same trace. The test is flaky: it produced a different digest on its second run.
+	ps.DataWithCommonKeys(paramtools.Params{"os": "Mac"}).
+		Digests(digestD).
+		Keys([]paramtools.Params{{"test": "one"}}).
+		OptionsAll(paramtools.Params{"opt": "opt"}).
+		FromTryjob("tryjob2_secondrun", "bb", "TRYJOB2", "tryjob2_secondrun.txt", "2020-12-05T17:00:00Z")
+
 	data := b.Build()
 	assert.Equal(t, []schema.TraceRow{{
 		TraceID:              h(`{"os":"Android","test":"one"}`),
@@ -1589,6 +1597,15 @@ func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
 		OptionsID:    h(`{"opt":"opt"}`),
 		SourceFileID: h("tryjob2.txt"),
 		TryjobID:     "bb_tryjob2",
+	}, {
+		BranchName:   "gerrit_cl1",
+		VersionName:  "gerrit_ps1",
+		TraceID:      h(`{"os":"Mac","test":"one"}`),
+		Digest:       d(t, digestD),
+		GroupingID:   h(`{"test":"one"}`),
+		OptionsID:    h(`{"opt":"opt"}`),
+		SourceFileID: h("tryjob2_secondrun.txt"),
+		TryjobID:     "bb_tryjob2_secondrun",
 	}}, data.SecondaryBranchValues)
 }
 

@@ -191,6 +191,16 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 				dks.DigestBlank, dks.DigestD01Pos_CL,
 			},
 		},
+		{
+			BranchName:           "gerrit_CLmultipledatapoints",
+			GroupingID:           dks.SquareGroupingID,
+			LastUpdated:          ts("2020-12-12T14:00:00Z"),
+			LastCalculated:       beginningOfTime,
+			CalculationLeaseEnds: beginningOfTime,
+			DigestsNotOnPrimary: []types.Digest{
+				dks.DigestC01Pos, dks.DigestC03Unt, dks.DigestC04Unt,
+			},
+		},
 	}, actualWork)
 	assert.Equal(t, fakeNow, g.mostRecentCLScan)
 }
@@ -260,6 +270,16 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 			CalculationLeaseEnds: sentinelTime, // not changed
 			DigestsNotOnPrimary: []types.Digest{
 				dks.DigestBlank, dks.DigestD01Pos_CL,
+			},
+		},
+		{
+			BranchName:           "gerrit_CLmultipledatapoints",
+			GroupingID:           dks.SquareGroupingID,
+			LastUpdated:          ts("2020-12-12T14:00:00Z"),
+			LastCalculated:       beginningOfTime,
+			CalculationLeaseEnds: beginningOfTime,
+			DigestsNotOnPrimary: []types.Digest{
+				dks.DigestC01Pos, dks.DigestC03Unt, dks.DigestC04Unt,
 			},
 		},
 	}, actualWork)

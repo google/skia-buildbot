@@ -67,15 +67,19 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	row = db.QueryRow(ctx, "SELECT count(*) from Changelists")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 4, count)
+	assert.Equal(t, 5, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from Patchsets")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 5, count)
+	assert.Equal(t, 6, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from Tryjobs")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 8, count)
+	assert.Equal(t, 13, count)
+	row = db.QueryRow(ctx, "SELECT count(*) from SecondaryBranchValues")
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 47, count)
 
 	row = db.QueryRow(ctx, "SELECT count(*) from GitCommits")
 	count = 0

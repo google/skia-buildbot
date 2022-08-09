@@ -679,6 +679,252 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
+func TestTryjobSQL_Process_TryjobRerunAtSameCLPS_MultipleDatapointsForTraceAtSamePatchset(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	const qualifiedCL = "gerrit_" + dks.ChangelistIDWithMultipleDatapointsPerTrace
+	const qualifiedPS = "gerrit_" + dks.PatchsetIDWithMultipleDatapointsPerTrace
+	const qualifiedTJ = "buildbucket_" + dks.Tryjob09Windows
+	const qualifiedTJRerun = "buildbucket_" + dks.Tryjob10Windows
+	const squareTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.3","source_type":"corners"}`
+
+	// Load all the tables we write to with one existing row.
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{{
+			ChangelistID:     qualifiedCL,
+			System:           dks.GerritCRS,
+			Status:           schema.StatusOpen,
+			OwnerEmail:       dks.UserOne,
+			Subject:          "multiple datapoints",
+			LastIngestedData: time.Date(2020, time.December, 12, 10, 1, 0, 0, time.UTC), // Should be updated.
+		}},
+		Patchsets: []schema.PatchsetRow{{
+			PatchsetID:    qualifiedPS,
+			System:        dks.GerritCRS,
+			ChangelistID:  qualifiedCL,
+			Order:         1,
+			GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+			CommentedOnCL: true,
+			Created:       time.Date(2020, time.December, 11, 0, 0, 0, 0, time.UTC),
+		}},
+		Tryjobs: []schema.TryjobRow{{
+			TryjobID:         qualifiedTJ,
+			System:           dks.BuildBucketCIS,
+			ChangelistID:     qualifiedCL,
+			PatchsetID:       qualifiedPS,
+			DisplayName:      "Test-Windows10.3-Some",
+			LastIngestedData: time.Date(2020, time.December, 12, 10, 0, 0, 0, time.UTC),
+		}},
+		Groupings: []schema.GroupingRow{{
+			GroupingID: h(squareGrouping),
+			Keys: paramtools.Params{
+				types.CorpusField:     dks.CornersCorpus,
+				types.PrimaryKeyField: dks.SquareTest,
+			},
+		}},
+		Options: []schema.OptionsRow{{
+			OptionsID: h(pngOptions),
+			Keys: map[string]string{
+				"ext": "png",
+			},
+		}},
+		Traces: []schema.TraceRow{{
+			TraceID:    h(squareTraceKeys),
+			Corpus:     dks.CornersCorpus,
+			GroupingID: h(squareGrouping),
+			Keys: map[string]string{
+				types.CorpusField:     dks.CornersCorpus,
+				types.PrimaryKeyField: dks.SquareTest,
+				dks.ColorModeKey:      dks.RGBColorMode,
+				dks.OSKey:             dks.Windows10dot3OS,
+				dks.DeviceKey:         dks.QuadroDevice,
+			},
+			MatchesAnyIgnoreRule: schema.NBFalse,
+		}},
+		SecondaryBranchParams: []schema.SecondaryBranchParamRow{
+			{Key: dks.ColorModeKey, Value: dks.RGBColorMode, BranchName: qualifiedCL, VersionName: qualifiedPS},
+			{Key: dks.DeviceKey, Value: dks.QuadroDevice, BranchName: qualifiedCL, VersionName: qualifiedPS},
+			{Key: types.PrimaryKeyField, Value: dks.SquareTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
+			{Key: dks.OSKey, Value: dks.Windows10dot3OS, BranchName: qualifiedCL, VersionName: qualifiedPS},
+			{Key: types.CorpusField, Value: dks.CornersCorpus, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		},
+		SecondaryBranchValues: []schema.SecondaryBranchValueRow{{
+			BranchName: qualifiedCL, VersionName: qualifiedPS,
+			TraceID:      h(squareTraceKeys),
+			Digest:       d(dks.DigestC03Unt),
+			GroupingID:   h(squareGrouping),
+			OptionsID:    h(pngOptions),
+			SourceFileID: h(dks.Tryjob09FileWindows),
+			TryjobID:     qualifiedTJ,
+		}},
+		SourceFiles: []schema.SourceFileRow{{
+			SourceFileID: h(dks.Tryjob09FileWindows),
+			SourceFile:   dks.Tryjob09FileWindows,
+			LastIngested: time.Date(2020, time.December, 12, 10, 1, 0, 0, time.UTC),
+		}},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	mcrs := &mock_crs.Client{}
+	mcis := &mock_cis.Client{}
+	mcis.On("GetTryJob", testutils.AnyContext, dks.Tryjob10Windows).Return(ci.TryJob{
+		SystemID:    dks.Tryjob10Windows,
+		System:      dks.BuildBucketCIS,
+		DisplayName: "Test-Windows10.3-Some",
+	}, nil)
+
+	// At this point the database has one CL with a single patchset. A tryjob ran and produced a
+	// single datapoint.
+	//
+	// The following file is the result of re-running the same tryjob at the same patchset, which
+	// produces a new datapoint. The digest is different because the test is flaky.
+	src := fakeGCSSourceFromFile(t, "tryjob_rerun.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob10FileWindows)
+	require.NoError(t, err)
+
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
+	assert.Equal(t, []schema.SourceFileRow{{
+		SourceFileID: h(dks.Tryjob09FileWindows),
+		SourceFile:   dks.Tryjob09FileWindows,
+		LastIngested: time.Date(2020, time.December, 12, 10, 1, 0, 0, time.UTC),
+	}, {
+		// New file.
+		SourceFileID: h(dks.Tryjob10FileWindows),
+		SourceFile:   dks.Tryjob10FileWindows,
+		LastIngested: fakeIngestionTime,
+	}}, actualSourceFiles)
+
+	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     qualifiedCL,
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "multiple datapoints",
+		LastIngestedData: fakeIngestionTime, // Updated.
+	}}, actualChangelists)
+
+	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:    qualifiedPS,
+		System:        dks.GerritCRS,
+		ChangelistID:  qualifiedCL,
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+		CommentedOnCL: true,
+		Created:       time.Date(2020, time.December, 11, 0, 0, 0, 0, time.UTC),
+	}}, actualPatchsets)
+
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-Windows10.3-Some",
+		LastIngestedData: time.Date(2020, time.December, 12, 10, 0, 0, 0, time.UTC),
+	}, {
+		// New tryjob.
+		TryjobID:         qualifiedTJRerun,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-Windows10.3-Some",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
+	assert.ElementsMatch(t, []schema.GroupingRow{{
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+		},
+	}}, actualGroupings)
+
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.ElementsMatch(t, []schema.OptionsRow{{
+		OptionsID: h(pngOptions),
+		Keys: map[string]string{
+			"ext": "png",
+		},
+	}}, actualOptions)
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:    h(squareTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot3OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBFalse,
+	}}, actualTraces)
+
+	actualParams := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchParams", &schema.SecondaryBranchParamRow{}).([]schema.SecondaryBranchParamRow)
+	assert.Equal(t, []schema.SecondaryBranchParamRow{
+		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: dks.DeviceKey, Value: dks.QuadroDevice, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, BranchName: qualifiedCL, VersionName: qualifiedPS},
+	}, actualParams)
+
+	actualValues := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchValues", &schema.SecondaryBranchValueRow{}).([]schema.SecondaryBranchValueRow)
+	assert.ElementsMatch(t, []schema.SecondaryBranchValueRow{{
+		BranchName:   qualifiedCL,
+		VersionName:  qualifiedPS,
+		TraceID:      h(squareTraceKeys),
+		Digest:       d(dks.DigestC03Unt),
+		GroupingID:   h(squareGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob09FileWindows),
+		TryjobID:     qualifiedTJ,
+	}, {
+		// New datapoint.
+		BranchName:   qualifiedCL,
+		VersionName:  qualifiedPS,
+		TraceID:      h(squareTraceKeys),
+		Digest:       d(dks.DigestC04Unt),
+		GroupingID:   h(squareGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob10FileWindows),
+		TryjobID:     qualifiedTJRerun,
+	}}, actualValues)
+
+	// We only write to SecondaryBranchExpectations when something is explicitly triaged.
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{}))
+
+	// Unlike the primary branch ingestion, these should be empty
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
+}
+
 func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T) {
 	unittest.LargeTest(t)
 

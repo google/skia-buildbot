@@ -825,9 +825,8 @@ func (r *PatchsetRow) ScanFrom(scan func(...interface{}) error) error {
 }
 
 type TryjobRow struct {
-	// PatchsetID is the fully qualified id of this patchset. "Fully qualified" means it has
-	// the system as a prefix (e.g "buildbucket_1234") which simplifies joining logic and ensures
-	// uniqueness.
+	// TryjobID is the fully qualified id of this tryjob. "Fully qualified" means it has the system
+	// as a prefix (e.g "buildbucket_1234") which simplifies joining logic and ensures uniqueness.
 	TryjobID string `sql:"tryjob_id STRING PRIMARY KEY"`
 	// System is the Continuous Integration System to which this tryjob belongs.
 	System string `sql:"system STRING NOT NULL"`
@@ -886,10 +885,9 @@ type SecondaryBranchValueRow struct {
 	// TryjobID corresponds to the latest tryjob (if any) that produced this data. When/if we
 	// support branches, this may be null, e.g. data coming from chrome_m86.
 	TryjobID string `sql:"tryjob_id string"`
-	// By creating the primary key using the shard and the commit_id, we give some data locality
-	// to data from the same trace, but in different commits w/o overloading a single range (if
-	// commit_id were first) and w/o spreading our data too thin (if trace_id were first).
-	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id)"`
+	// We include source_file_id as part of the primary key in order to support multiple datapoints
+	// per patchset for the same trace. See https://skbug.com/12149.
+	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1085,7 +1083,7 @@ func (r *PrimaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) err
 	return nil
 }
 
-// SecondaryBranchDiffCalculationRow represents a grouping for a CL for which wee need to compute
+// SecondaryBranchDiffCalculationRow represents a grouping for a CL for which we need to compute
 // diffs for using digests from that CL as well as the digests on the primary branch.
 type SecondaryBranchDiffCalculationRow struct {
 	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.

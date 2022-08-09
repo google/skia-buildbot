@@ -31,6 +31,7 @@ import (
 // These are the later of the times of the last ingested data or last triage action for the
 // given CL.
 var changelistTSForIOS = time.Date(2020, time.December, 10, 5, 0, 2, 0, time.UTC)
+var changelistTSWithMultipleDatapointsPerTrace = time.Date(2020, time.December, 12, 14, 0, 0, 0, time.UTC)
 var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 31, 32, 0, time.UTC)
 
 func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
@@ -58,6 +59,32 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 			PatchsetOrder:        3,
 		}},
 		LastUpdated: changelistTSForIOS,
+	}, rv)
+}
+
+func TestNewAndUntriagedSummaryForCL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDWithMultipleDatapointsPerTrace))
+	require.NoError(t, err)
+	assert.Equal(t, NewAndUntriagedSummary{
+		ChangelistID: dks.ChangelistIDWithMultipleDatapointsPerTrace,
+		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+			// Digests DigestC01Pos, DigestC03Unt and DigestC04Unt were produced on the same trace
+			// at this patchset (i.e. multiple datapoints per trace at the same patchset).
+			NewImages:            3,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 2,
+			PatchsetID:           dks.PatchsetIDWithMultipleDatapointsPerTrace,
+			PatchsetOrder:        1,
+		}},
+		LastUpdated: time.Date(2020, time.December, 12, 15, 0, 0, 0, time.UTC),
 	}, rv)
 }
 
@@ -3022,6 +3049,257 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 	}, res)
 }
 
+func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoints(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+		Sort:                    query.SortDescending,
+		IncludeIgnoredTraces:    false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter:                  0,
+		RGBAMaxFilter:                  255,
+		ChangelistID:                   dks.ChangelistIDWithMultipleDatapointsPerTrace,
+		CodeReviewSystemID:             dks.GerritCRS,
+		Patchsets:                      []int64{1}, // dks.PatchsetIDWithMultipleDatapointsPerTrace
+		IncludeDigestsProducedOnMaster: true,
+	})
+	require.NoError(t, err)
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
+	clCommits = append(clCommits, frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    changelistTSWithMultipleDatapointsPerTrace.Unix(),
+		Hash:          dks.ChangelistIDWithMultipleDatapointsPerTrace,
+		Author:        dks.UserOne,
+		Subject:       "multiple datapoints",
+		ChangelistURL: "http://example.com/public/CLmultipledatapoints",
+	})
+
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC01Pos,
+			Test:   dks.SquareTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "cf819763d5a7e8b3955ec65933f121e9",
+					DigestIndices: []int{-1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-12-12T15:00:00Z"),
+			}},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 9.051729, QueryMetric: 9.051729, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{228, 240, 255, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 9.397061, QueryMetric: 9.397061, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{88, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}, {
+			Digest: dks.DigestC03Unt,
+			Test:   dks.SquareTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "cf819763d5a7e8b3955ec65933f121e9",
+					DigestIndices: []int{-1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC03Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 9.051729, QueryMetric: 9.051729, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{228, 240, 255, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 9.397061, QueryMetric: 9.397061, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{88, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}, {
+			Digest: dks.DigestC04Unt,
+			Test:   dks.SquareTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "cf819763d5a7e8b3955ec65933f121e9",
+					DigestIndices: []int{-1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC04Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 7.6872296, QueryMetric: 7.6872296, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{174, 174, 174, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA03Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice},
+						dks.OSKey:             []string{dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 8.92492, QueryMetric: 8.92492, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{169, 189, 189, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    3,
+		Commits: clCommits,
+		BulkTriageData: frontend.TriageRequestData{
+			dks.SquareTest: {
+				dks.DigestC01Pos: expectations.Positive,
+				dks.DigestC03Unt: expectations.Positive,
+				dks.DigestC04Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
 func TestMatchingCLTracesStatement_ValidInputs_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -3533,6 +3811,16 @@ func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 		types.PrimaryKeyField: []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
 		dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot3OS},
 		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
+	}, ps)
+
+	ps, err = s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDWithMultipleDatapointsPerTrace)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:      []string{dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.QuadroDevice},
+		types.PrimaryKeyField: []string{dks.SquareTest},
+		dks.OSKey:             []string{dks.Windows10dot3OS},
+		types.CorpusField:     []string{dks.CornersCorpus},
 	}, ps)
 }
 
@@ -5733,6 +6021,111 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 	}, details)
 }
 
+func TestGetDigestDetails_ValidDigestAndGroupingOnCL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.SquareTest,
+		types.CorpusField:     dks.CornersCorpus,
+	}
+
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
+	clCommits = append(clCommits, frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    changelistTSWithMultipleDatapointsPerTrace.Unix(),
+		Hash:          dks.ChangelistIDWithMultipleDatapointsPerTrace,
+		Author:        dks.UserOne,
+		Subject:       "multiple datapoints",
+		ChangelistURL: "http://example.com/public/CLmultipledatapoints",
+	})
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+
+	// In this CL a tryjob was executed multiple times at the last patchset, generating multiple
+	// datapoints for the same trace at the last patchset. DigestC03Unt was drawn twice: on the
+	// first tryjob run, and on the third tryjob run.
+	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestC03Unt, dks.ChangelistIDWithMultipleDatapointsPerTrace, dks.GerritCRS)
+	require.NoError(t, err)
+	// The results should be the similar to the the details on the primary branch, except the
+	// traces are only shown that actually drew the provided digest for the CL. As such, there will
+	// be an extra data point for the data produced by this CL and the commits slice is one longer
+	// to account for the CL information.
+	assert.Equal(t, frontend.DigestDetails{
+		Result: frontend.SearchResult{
+			Digest: dks.DigestC03Unt,
+			Test:   dks.SquareTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "cf819763d5a7e8b3955ec65933f121e9",
+					DigestIndices: []int{-1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC03Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 9.051729, QueryMetric: 9.051729, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{228, 240, 255, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 9.397061, QueryMetric: 9.397061, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{88, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		},
+		Commits: clCommits,
+	}, details)
+}
+
 func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -5868,6 +6261,57 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
 				dks.OSKey:             []string{dks.IOS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
 				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.SquareTest,
+		types.CorpusField:     dks.CornersCorpus,
+	}
+
+	s := New(db, 100)
+	// In this CL a tryjob was executed multiple times at the last patchset, generating multiple
+	// datapoints for the same trace at the last patchset. DigestC01Pos was drawn on the last two
+	// tryjob runs.
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestA01Pos, dks.ChangelistIDWithMultipleDatapointsPerTrace, dks.GerritCRS)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.SquareTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 9.14646, PixelDiffPercent: 100, NumDiffPixels: 64,
+			MaxRGBADiffs: [4]int{228, 255, 255, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestA01Pos,
+			Status:       expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:             []string{dks.RGBColorMode},
+				types.CorpusField:            []string{dks.CornersCorpus},
+				dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+				dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+				types.PrimaryKeyField:        []string{dks.SquareTest},
+				"ext":                        []string{"png"},
+				"image_matching_algorithm":   []string{"fuzzy"},
+				"fuzzy_max_different_pixels": []string{"2"},
 			},
 		},
 	}, rv)

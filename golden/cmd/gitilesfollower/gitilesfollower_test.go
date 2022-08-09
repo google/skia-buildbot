@@ -620,6 +620,13 @@ func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T
 		OwnerEmail:       dks.UserOne,
 		Subject:          "was abandoned",
 		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLmultipledatapoints",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "multiple datapoints",
+		LastIngestedData: time.Date(2020, time.December, 12, 14, 0, 0, 0, time.UTC),
 	}}, cls)
 
 	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)
@@ -964,6 +971,13 @@ func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "was abandoned",
 		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLmultipledatapoints",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "multiple datapoints",
+		LastIngestedData: time.Date(2020, time.December, 12, 14, 0, 0, 0, time.UTC),
 	}}, cls)
 
 	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)

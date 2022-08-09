@@ -98,6 +98,13 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 
 	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
@@ -129,6 +136,13 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "was abandoned",
 		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLmultipledatapoints",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "multiple datapoints",
+		LastIngestedData: time.Date(2020, time.December, 12, 14, 0, 0, 0, time.UTC),
 	}}, actualChangelists)
 
 	assert.Equal(t, c.lastCheck, afterCLs)
@@ -193,6 +207,13 @@ func TestCommentOnCLs_NoPatchsetsNeedComments_Success(t *testing.T) {
 		ChangelistID:  "gerrit_CLisabandoned",
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
 		CommentedOnCL: true,
 	}}, actualPatchsets)
 }
@@ -268,6 +289,13 @@ func TestCommentOnCLs_OnePatchsetNeedsComment_Success(t *testing.T) {
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+		CommentedOnCL: true,
 	}}, actualPatchsets)
 }
 
@@ -325,6 +353,13 @@ func TestCommentOnCLs_NoCLsInWindow_NothingUpdated(t *testing.T) {
 		ChangelistID:  "gerrit_CLisabandoned",
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
 		CommentedOnCL: false,
 	}}, actualPatchsets)
 }
@@ -390,6 +425,13 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 
 	// The changelists records should not be altered here - that will be taken care of by
@@ -424,6 +466,13 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "was abandoned",
 		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLmultipledatapoints",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "multiple datapoints",
+		LastIngestedData: time.Date(2020, time.December, 12, 14, 0, 0, 0, time.UTC),
 	}}, actualChangelists)
 }
 
@@ -491,6 +540,13 @@ func TestCommentOnCLs_CommentingResultsInError_ErrorLoggedNotReturned(t *testing
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 }
 
@@ -556,6 +612,13 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 		ChangelistID:  "gerrit_CLisabandoned",
 		Order:         1,
 		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSmultipledatapoints",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLmultipledatapoints",
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccccccccccccccc66666",
 		CommentedOnCL: false,
 	}}, actualPatchsets)
 }

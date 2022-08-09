@@ -463,6 +463,46 @@ func RawBuilder() databuilder.TablesBuilder {
 		OptionsAll(paramtools.Params{"ext": "png"}).
 		FromTryjob(Tryjob08Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob08FileWindows, "2020-06-06T06:06:00Z")
 
+	// Add a CL that has multiple datapoints at the same patchset for the same trace. In this CL,
+	// a tryjob was executed multiple times at the same patchset in order to investigate a flaky
+	// test.
+	cl = b.AddChangelist(ChangelistIDWithMultipleDatapointsPerTrace, GerritCRS, UserOne, "multiple datapoints", schema.StatusOpen)
+	ps = cl.AddPatchset(PatchsetIDWithMultipleDatapointsPerTrace, "ccccccccccccccccccccccccccccccccccc66666", 1)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey:     Windows10dot3OS,
+		DeviceKey: QuadroDevice,
+	}).
+		Digests(DigestC03Unt). // This CL/PS makes SquareTest erroneously draw circley things.
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob09Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob09FileWindows, "2020-12-12T10:00:00Z").
+		Digests(DigestC04Unt). // This CL/PS also makes SquareTest flaky.
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob10Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob10FileWindows, "2020-12-12T11:00:00Z").
+		Digests(DigestC03Unt). // The third run produces the same digest as the first run.
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob11Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob11FileWindows, "2020-12-12T12:00:00Z").
+		Digests(DigestC01Pos). // Produces a new digest which we accidentally triaged positive.
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob12Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob12FileWindows, "2020-12-12T13:00:00Z").
+		Digests(DigestC01Pos). // Same digest as previous run.
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob13Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob13FileWindows, "2020-12-12T14:00:00Z")
+	// Accidental triage.
+	cl.AddTriageEvent(UserOne, "2020-12-12T15:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest,
+		}).Positive(DigestC01Pos)
+
 	b.ComputeDiffMetricsFromImages(GetImgDirectory(), "2020-12-12T12:12:12Z")
 	return b
 }
@@ -575,6 +615,9 @@ const (
 	ChangelistIDThatIsAbandoned = "CLisabandoned"
 	PatchsetIDIsAbandoned       = "PSisabandoned"
 
+	ChangelistIDWithMultipleDatapointsPerTrace = "CLmultipledatapoints"
+	PatchsetIDWithMultipleDatapointsPerTrace   = "PSmultipledatapoints"
+
 	Tryjob01IPhoneRGB = "tryjob_01_iphonergb"
 	Tryjob02IPad      = "tryjob_02_ipad"
 	Tryjob03TaimenRGB = "tryjob_03_taimenrgb"
@@ -583,6 +626,11 @@ const (
 	Tryjob06Walleye   = "tryjob_06_walleye"
 	Tryjob07Windows   = "tryjob_07_windows"
 	Tryjob08Windows   = "tryjob_08_windows"
+	Tryjob09Windows   = "tryjob_09_windows"
+	Tryjob10Windows   = "tryjob_10_windows"
+	Tryjob11Windows   = "tryjob_11_windows"
+	Tryjob12Windows   = "tryjob_12_windows"
+	Tryjob13Windows   = "tryjob_13_windows"
 )
 
 const (
@@ -636,6 +684,11 @@ const (
 	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
 	Tryjob07FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/05/05/05/PShaslanded/windows.json"
 	Tryjob08FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/06/06/06/PSisabandoned/windows.json"
+	Tryjob09FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/07/PSmultipledatapoints/windows.json"
+	Tryjob10FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/08/PSmultipledatapoints/windows.json"
+	Tryjob11FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/09/PSmultipledatapoints/windows.json"
+	Tryjob12FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/10/PSmultipledatapoints/windows.json"
+	Tryjob13FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/11/PSmultipledatapoints/windows.json"
 )
 
 const (

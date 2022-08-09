@@ -1,0 +1,27 @@
+{
+  "description": "This file represents data from data kitchen sink's Tryjob10Windows.",
+  "gitHash": "ccccccccccccccccccccccccccccccccccc66666",
+  "key": {
+    "os": "Windows10.3",
+    "device": "QuadroP400",
+    "color mode": "RGB"
+  },
+  "results": [
+    {
+      "key": {
+        "name": "square",
+        "source_type": "corners"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "c04c04c04c04c04c04c04c04c04c04c0"
+    }
+  ],
+  "crs": "gerrit",
+  "change_list_id": "CLmultipledatapoints",
+  "patch_set_id": "PSmultipledatapoints",
+
+  "cis": "buildbucket",
+  "try_job_id": "tryjob_10_windows"
+}
