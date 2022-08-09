@@ -58,6 +58,9 @@ const (
 // "gcr.io/${PROJECT}/${APPNAME}:${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}" (from bash/docker_build.sh).
 var imageRegex = regexp.MustCompile(`^.+:(.+)-.+-.+-.+$`)
 
+// allowedAppsInNamespace maps a namespace to a list of allowed applications in that namespace.
+type allowedAppsInNamespace map[string][]string
+
 func main() {
 	// Flags.
 	dirtyConfigChecksPeriod := flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
@@ -65,10 +68,16 @@ func main() {
 	cluster := flag.String("cluster", "skia-public", "The k8s cluster name.")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	ignoreNamespaces := common.NewMultiStringFlag("ignore_namespace", nil, "Namespaces to ignore.")
+	namespaceAllowFilter := common.NewMultiStringFlag("namespace_allow_filter", nil, "app names to ignore in a namespace. A namespace name, colon, list of comma separated app names. Ex: gmp-system:rule-evaluator,collector")
 
 	common.InitWithMust("k8s_checker", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
 	ctx := context.Background()
+
+	allowedAppsByNamespace, err := parseNamespaceAllowFilterFlag(*namespaceAllowFilter)
+	if err != nil {
+		sklog.Fatal("Failed to parse flag --namespace_allow_filter %s: %s", *namespaceAllowFilter, err)
+	}
 
 	clusterConfig, err := clusterconfig.New(*configFile)
 	if err != nil {
@@ -100,7 +109,7 @@ func main() {
 	liveness := metrics2.NewLiveness(livenessMetric)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(ctx, *dirtyConfigChecksPeriod, func(ctx context.Context) {
-		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, clientset, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics)
+		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, clientset, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics, allowedAppsByNamespace)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
@@ -110,6 +119,22 @@ func main() {
 	})
 
 	select {}
+}
+
+func parseNamespaceAllowFilterFlag(namespaceAllowFilter []string) (allowedAppsInNamespace, error) {
+	ret := allowedAppsInNamespace{}
+
+	for _, filter := range namespaceAllowFilter {
+		parts := strings.SplitN(filter, ":", 2)
+		if len(parts) != 2 {
+			return nil, skerr.Fmt("Missing colon in: %q", filter)
+		}
+		ns := fixupNamespace(parts[0])
+		apps := strings.Split(parts[1], ",")
+		ret[ns] = apps
+	}
+
+	return ret, nil
 }
 
 // fixupNamespace sets the namespace to the default, if necessary.
@@ -255,7 +280,7 @@ func getLiveAppContainersToImages(ctx context.Context, namespace string, clients
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func performChecks(ctx context.Context, cluster, repo string, clientset *kubernetes.Clientset, ignoreNamespaces []string, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+func performChecks(ctx context.Context, cluster, repo string, clientset *kubernetes.Clientset, ignoreNamespaces []string, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, allowedAppsByNamespace allowedAppsInNamespace) (map[metrics2.Int64Metric]struct{}, error) {
 	sklog.Info("---------- New round of checking k8s ----------")
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 
@@ -470,11 +495,12 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 	// Find out which apps and containers are live but not found in git repo.
 	for namespace, liveAppContainerToImages := range liveAppContainerToImagesByNamespace {
 		for liveApp := range liveAppContainerToImages {
+			ns := fixupNamespace(namespace)
 			runningAppHasConfigMetricTags := map[string]string{
 				"app":       liveApp,
 				"repo":      repo,
 				"cluster":   cluster,
-				"namespace": fixupNamespace(namespace),
+				"namespace": ns,
 			}
 			runningAppHasConfigMetric := metrics2.GetInt64Metric(runningAppHasConfigMetric, runningAppHasConfigMetricTags)
 			newMetrics[runningAppHasConfigMetric] = struct{}{}
@@ -487,7 +513,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 						"container": liveContainer,
 						"repo":      repo,
 						"cluster":   cluster,
-						"namespace": fixupNamespace(namespace),
+						"namespace": ns,
 					}
 					runningContainerHasConfigMetric := metrics2.GetInt64Metric(runningContainerHasConfigMetric, runningContainerHasConfigMetricTags)
 					newMetrics[runningContainerHasConfigMetric] = struct{}{}
@@ -498,6 +524,9 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 						runningContainerHasConfigMetric.Update(0)
 					}
 				}
+			} else if util.In(liveApp, allowedAppsByNamespace[ns]) {
+				sklog.Infof("The running app %s is allowed in namespace %s in repo %s", liveApp, ns, repo)
+				runningAppHasConfigMetric.Update(1)
 			} else {
 				sklog.Infof("The running app %s is not checked into %s", liveApp, repo)
 				runningAppHasConfigMetric.Update(0)

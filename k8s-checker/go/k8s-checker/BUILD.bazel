@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -29,4 +30,14 @@ go_binary(
     name = "k8s-checker",
     embed = [":k8s-checker_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "k8s-checker_test",
+    srcs = ["main_test.go"],
+    embed = [":k8s-checker_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
 )
