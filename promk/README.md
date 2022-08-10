@@ -71,5 +71,6 @@ all clusters allowing collection of metrics on the state of objects, in
 particular states you normally can't get from default metrics, such as cronjobs
 that have failed.
 
-To update the version of kube-state-metrics we use the Makefile target
-`release_kube-state-metrics` can be updated to use a different tag.
+To update the version of kube-state-metrics find a later build in the [official
+builds](https://pantheon.corp.google.com/gcr/images/google-containers/global/kube-state-metrics)
+and update all the YAML files in k8s-config.
