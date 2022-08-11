@@ -249,7 +249,15 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription,
 	if !foundRevisionTag && revisionIdTag != "" {
 		rev.InvalidReason = fmt.Sprintf("Package instance has no tag %q", revisionIdTag)
 	}
-	rev.Display = util.Truncate(rev.Id, 12)
+
+	// Set the display string.
+	rev.Display = rev.Id
+	idSplit := strings.SplitN(rev.Display, ":", 2)
+	if len(idSplit) == 2 {
+		// Strip the tag key from the display string.
+		rev.Display = idSplit[1]
+	}
+	rev.Display = util.Truncate(rev.Display, 20)
 
 	// Concatenate the details lines.
 	if len(detailsLines) > 0 {

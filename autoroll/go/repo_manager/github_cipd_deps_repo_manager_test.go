@@ -243,7 +243,7 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	require.Equal(t, githubCipdNotRolled1, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))
 	require.Equal(t, githubCipdNotRolled1, notRolledRevs[0].Id)
-	require.Equal(t, githubCipdNotRolled1[:9]+"...", notRolledRevs[0].Display)
+	require.Equal(t, githubCipdNotRolled1[:17]+"...", notRolledRevs[0].Display)
 }
 
 func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
@@ -341,7 +341,7 @@ func TestGithubCipdDEPSRepoManagerGetRevision(t *testing.T) {
 			Id:          id,
 			Author:      githubCIPDUser,
 			Description: fmt.Sprintf("%s:%s", githubCIPDAssetName, id),
-			Display:     id[:9] + "...",
+			Display:     id[:17] + "...",
 			Timestamp:   time.Time(githubCIPDTs),
 			URL:         fmt.Sprintf("https://chrome-infra-packages.appspot.com/p/%s/+/%s", githubCIPDAssetName, id),
 		}
