@@ -68,7 +68,7 @@ func main() {
 	cluster := flag.String("cluster", "skia-public", "The k8s cluster name.")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	ignoreNamespaces := common.NewMultiStringFlag("ignore_namespace", nil, "Namespaces to ignore.")
-	namespaceAllowFilter := common.NewMultiStringFlag("namespace_allow_filter", nil, "app names to ignore in a namespace. A namespace name, colon, list of comma separated app names. Ex: gmp-system:rule-evaluator,collector")
+	namespaceAllowFilter := common.NewMultiStringFlag("namespace_allow_filter", nil, "app names to ignore in a namespace. A namespace name, colon, list of comma separated app names. Ex: gmp-system:rule-evaluator,gmp-system:collector")
 
 	common.InitWithMust("k8s_checker", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
@@ -78,6 +78,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal("Failed to parse flag --namespace_allow_filter %s: %s", *namespaceAllowFilter, err)
 	}
+	sklog.Infof("allowedAppsByNamespace: %v", allowedAppsByNamespace)
 
 	clusterConfig, err := clusterconfig.New(*configFile)
 	if err != nil {
@@ -130,8 +131,8 @@ func parseNamespaceAllowFilterFlag(namespaceAllowFilter []string) (allowedAppsIn
 			return nil, skerr.Fmt("Missing colon in: %q", filter)
 		}
 		ns := fixupNamespace(parts[0])
-		apps := strings.Split(parts[1], ",")
-		ret[ns] = apps
+		app := parts[1]
+		ret[ns] = append(ret[ns], app)
 	}
 
 	return ret, nil

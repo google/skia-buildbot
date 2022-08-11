@@ -21,8 +21,14 @@ func TestParseNamespaceAllowFilterFlag_MalFormed_ReturnsError(t *testing.T) {
 func TestParseNamespaceAllowFilterFlag_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 	actual, err := parseNamespaceAllowFilterFlag([]string{
-		"gmp-system:rule-evaluator,collector",
-		"kube-system:calico-node,calico-typha,fluentbit,gke-metadata-server,ip-masq-agent,kube-dns",
+		"gmp-system:rule-evaluator",
+		"gmp-system:collector",
+		"kube-system:calico-node",
+		"kube-system:calico-typha",
+		"kube-system:fluentbit",
+		"kube-system:gke-metadata-server",
+		"kube-system:ip-masq-agent",
+		"kube-system:kube-dns",
 	})
 	require.NoError(t, err)
 	expected := allowedAppsInNamespace{
