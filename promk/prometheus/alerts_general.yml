@@ -684,18 +684,3 @@ groups:
     annotations:
       abbr: '{{ $labels.appgroup }}'
       description: 'The {{ $labels.database }} SQL database is failing to be backed up https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldsqlbackuperror'
-
-  # k8s-deployer
-  # This is currently only used in the skia-infra-public-dev cluster, but it will
-  # eventually be used in more places.
-  - alert: K8sDeployerLiveness
-    expr: liveness_k8s_deployer_s > 10*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.cluster }}'
-      description: 'k8s-deployer in {{ $labels.cluster }} has failed to apply changes for more than 10 minutes.
-      https://pantheon.corp.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.container_name%3D%22k8s-deployer%22;cursorTimestamp=2022-03-21T17:24:45.250169905Z?project={{ $labels.project }}'
-
