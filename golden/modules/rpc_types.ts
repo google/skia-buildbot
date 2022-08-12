@@ -109,6 +109,10 @@ export interface StatusResponse {
 	corpStatus: GUICorpusStatus[];
 }
 
+export interface GroupingsResponse {
+	grouping_param_keys_by_corpus: { [key: string]: string[] | null } | null;
+}
+
 export interface TestRollup {
 	test: TestName;
 	num: number;

@@ -52,6 +52,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/trstatus RPC endpoint.
 	generator.AddWithName(frontend.GUIStatus{}, "StatusResponse")
 
+	// Response for the /json/v1/groupings RPC endpoint.
+	generator.Add(frontend.GroupingsResponse{})
+
 	// Response for the /json/v1/byblame RPC endpoint.
 	generator.Add(frontend.ByBlameResponse{})
 

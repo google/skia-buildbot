@@ -526,6 +526,7 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 	}
 
 	add("/json/v2/trstatus", handlers.StatusHandler)
+	add("/json/v1/groupings", handlers.GroupingsHandler)
 	add("/json/v2/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL2)
 	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)
 

@@ -596,3 +596,9 @@ type PositiveDigestsTraceInfo struct {
 	TraceID         string         `json:"trace_id"`
 	PositiveDigests []types.Digest `json:"digests"`
 }
+
+// GroupingsResponse is the response for the /json/v1/groupings RPC.
+type GroupingsResponse struct {
+	// GroupingParamKeysByCorpus contains the param keys that comprise the grouping of each corpus.
+	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
+}

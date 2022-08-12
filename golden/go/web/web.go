@@ -949,6 +949,34 @@ func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, wh.statusCache)
 }
 
+// GroupingsHandler returns a map from corpus name to the list of keys that comprise the corpus
+// grouping.
+func (wh *Handlers) GroupingsHandler(w http.ResponseWriter, r *http.Request) {
+	_, span := trace.StartSpan(r.Context(), "web_GroupingsHandler")
+	defer span.End()
+	// This should be an incredibly cheap call and therefore does not count against any quota.
+	wh.statusCacheMutex.RLock()
+	defer wh.statusCacheMutex.RUnlock()
+
+	res := frontend.GroupingsResponse{
+		GroupingParamKeysByCorpus: map[string][]string{},
+	}
+	for _, cs := range wh.statusCache.CorpStatus {
+		// For now, all corpora are grouped by corpus ("source_type") and test name ("name"), so
+		// the groupings are hardcoded.
+		//
+		// If we ever want to support different groupings, these keys could be read in from the
+		// Gold instance's JSON5 config file.
+		res.GroupingParamKeysByCorpus[cs.Name] = []string{
+			// Sorted lexicographically.
+			types.PrimaryKeyField,
+			types.CorpusField,
+		}
+	}
+
+	sendJSONResponse(w, res)
+}
+
 // ClusterDiffRequest contains the options that the frontend provides to the clusterdiff RPC.
 type ClusterDiffRequest struct {
 	Corpus                  string

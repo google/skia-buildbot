@@ -1219,6 +1219,20 @@ func TestStatusHandler_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
+func TestGroupingsHandler_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{statusCache: frontend.GUIStatus{
+		CorpStatus: []frontend.GUICorpusStatus{{Name: dks.CornersCorpus}, {Name: dks.RoundCorpus}},
+	}}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.GroupingsHandler(w, r)
+	const expectedJSON = `{"grouping_param_keys_by_corpus":{"corners":["name","source_type"],"round":["name","source_type"]}}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
 func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
