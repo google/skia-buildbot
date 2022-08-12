@@ -43,11 +43,18 @@ func addTypes(generator *go2ts.Go2TS) {
 	// We add frontend.SearchResult first because we want to recursively preserve its nil types. If
 	// we don't add frontend.SearchResult explicitly, it will be discovered by go2ts as a field in
 	// frontend.SearchResponse tagged with `go2ts:"ignorenil"`, which recursively ignores all nils.
+	//
+	// The frontend.SearchResponse struct has a frontend.TriageRequestDataV2 field. We want to add
+	// frontend.TriageRequestDataV2 without the "V2" suffix, so we must add
+	// frontend.TriageRequestDataV2 before we add frontend.SearchResponse. This ensures that go2ts
+	// won't discover frontend.TriageRequestDataV2 as a field in frontend.SearchResponse and add it
+	// with the default type name ("TriageRequestDataV2").
 	generator.Add(frontend.SearchResult{})
+	generator.AddWithName(frontend.TriageRequestDataV2{}, "TriageRequestData")
 	generator.AddWithName(frontend.SearchResponse{}, "SearchResponse")
 
-	// Request for the /json/v1/triage RPC endpoint.
-	generator.Add(frontend.TriageRequest{})
+	// Request for the /json/v2/triage RPC endpoint.
+	generator.AddWithName(frontend.TriageRequestV2{}, "TriageRequest")
 
 	// Response for the /json/v1/trstatus RPC endpoint.
 	generator.AddWithName(frontend.GUIStatus{}, "StatusResponse")

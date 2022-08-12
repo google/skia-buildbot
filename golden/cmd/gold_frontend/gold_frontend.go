@@ -495,7 +495,8 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v2/list", handlers.ListTestsHandler, "GET")
 	add("/json/v2/paramset", handlers.ParamsHandler, "GET")
 	add("/json/v2/search", handlers.SearchHandler, "GET")
-	add("/json/v2/triage", handlers.TriageHandler, "POST")
+	add("/json/v2/triage", handlers.TriageHandlerV2, "POST") // TODO(lovisolo): Delete when unused.
+	add("/json/v3/triage", handlers.TriageHandlerV3, "POST")
 	add("/json/v2/triagelog", handlers.TriageLogHandler, "GET")
 	add("/json/v2/triagelog/undo", handlers.TriageUndoHandler, "POST")
 	add("/json/whoami", handlers.Whoami, "GET")

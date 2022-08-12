@@ -92,15 +92,15 @@ type TryJob struct {
 	URL         string    `json:"url"`
 }
 
-// TriageRequestData contains the digests in a TriageRequest and their desired labels.
-type TriageRequestData map[types.TestName]map[types.Digest]expectations.Label
+// TriageRequestDataV2 contains the digests in a TriageRequest and their desired labels.
+type TriageRequestDataV2 map[types.TestName]map[types.Digest]expectations.Label
 
-// TriageRequest is the form of the JSON posted by the frontend when triaging (both single and
+// TriageRequestV2 is the form of the JSON posted by the frontend when triaging (both single and
 // bulk).
-type TriageRequest struct {
+type TriageRequestV2 struct {
 	// TestDigestStatus maps status to test name and digests. The strings are
 	// expectation.Label.String() values
-	TestDigestStatus TriageRequestData `json:"testDigestStatus" go2ts:"ignorenil"`
+	TestDigestStatus TriageRequestDataV2 `json:"testDigestStatus" go2ts:"ignorenil"`
 
 	// ChangelistID is the id of the Changelist for which we want to change the expectations.
 	ChangelistID string `json:"changelist_id"`
@@ -307,7 +307,7 @@ type SearchResponse struct {
 	// an expectations.Label value giving the label of the closest triaged digest to the key digest
 	// or empty string if there is no "closest digest". Note the similarity to the
 	// frontend.TriageRequest type.
-	BulkTriageData TriageRequestData `json:"bulk_triage_data"`
+	BulkTriageData TriageRequestDataV2 `json:"bulk_triage_data"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.

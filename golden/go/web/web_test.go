@@ -1792,7 +1792,7 @@ func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 		},
 	}
 
-	tr := frontend.TriageRequest{
+	tr := frontend.TriageRequestV2{
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
@@ -1847,7 +1847,7 @@ func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.
 		},
 	}
 
-	tr := frontend.TriageRequest{
+	tr := frontend.TriageRequestV2{
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
@@ -1906,7 +1906,7 @@ func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
 		},
 	}
 
-	tr := frontend.TriageRequest{
+	tr := frontend.TriageRequestV2{
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Untriaged,
@@ -1999,7 +1999,7 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 		},
 	}
 
-	tr := frontend.TriageRequest{
+	tr := frontend.TriageRequestV2{
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			dks.CircleTest: {
 				dks.DigestC06Pos_CL: expectations.Negative,

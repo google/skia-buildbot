@@ -769,7 +769,7 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, map[string]string{"added": "true"})
 }
 
-// TriageHandler handles a request to change the triage status of one or more
+// TriageHandlerV2 handles a request to change the triage status of one or more
 // digests of one test.
 //
 // It accepts a POST'd JSON serialization of TriageRequest and updates
@@ -778,8 +778,8 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 //   conditions where users triage the same thing at the same time, the request should include
 //   before and after. Finally, to avoid confusion on CLs, we should fail to apply changes
 //   on closed CLs (skbug.com/12122)
-func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandler", trace.WithSampler(trace.AlwaysSample()))
+func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandlerV2", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -787,7 +787,7 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := frontend.TriageRequest{}
+	req := frontend.TriageRequestV2{}
 	if err := parseJSON(r, &req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
 		return
@@ -802,7 +802,25 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.TriageRequest) error {
+// TriageHandlerV3 is not yet implemented.
+//
+// TODO(lovisolo): Implement.
+func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
+	_, span := trace.StartSpan(r.Context(), "web_TriageHandlerV3", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
+		return
+	}
+
+	if _, err := w.Write([]byte("Not yet implemented.")); err != nil {
+		sklog.Errorf("Failed to write response", err)
+		return
+	}
+}
+
+func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.TriageRequestV2) error {
 	ctx, span := trace.StartSpan(ctx, "triage2")
 	defer span.End()
 	branch := ""
@@ -849,7 +867,7 @@ func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.Tri
 
 // convertToDeltas converts in triage request (a map) into a slice of deltas. These deltas are
 // partially filled out, with only the
-func (wh *Handlers) convertToDeltas(ctx context.Context, req frontend.TriageRequest) ([]schema.ExpectationDeltaRow, error) {
+func (wh *Handlers) convertToDeltas(ctx context.Context, req frontend.TriageRequestV2) ([]schema.ExpectationDeltaRow, error) {
 	rv := make([]schema.ExpectationDeltaRow, 0, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		for d, label := range digests {

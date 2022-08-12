@@ -772,7 +772,7 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    3,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
@@ -1014,7 +1014,7 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 			},
@@ -1254,7 +1254,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 		Offset:  3,
 		Size:    6,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 				dks.DigestA02Pos: expectations.Positive,
@@ -1672,7 +1672,7 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
 				dks.DigestB02Pos: expectations.Positive,
@@ -1795,7 +1795,7 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA08Pos: expectations.Positive,
 			},
@@ -2185,7 +2185,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 		Offset:  0,
 		Size:    4,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA04Unt: expectations.Positive,
 			},
@@ -2684,7 +2684,7 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
@@ -2837,7 +2837,7 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC05Unt: expectations.Positive,
@@ -3040,7 +3040,7 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC06Pos_CL: expectations.Positive,
 				dks.DigestC07Unt_CL: expectations.Positive,
@@ -3290,7 +3290,7 @@ func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoi
 		Offset:  0,
 		Size:    3,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestC01Pos: expectations.Positive,
 				dks.DigestC03Unt: expectations.Positive,
@@ -3601,7 +3601,7 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 			},
@@ -3729,7 +3729,7 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 		Offset:  0,
 		Size:    1,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.SevenTest: {
 				dks.DigestD01Pos_CL: "", // empty string means no closest reference
 			},
@@ -4100,7 +4100,7 @@ func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse)
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
@@ -4352,7 +4352,7 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC05Unt: expectations.Positive,
 			},
@@ -4453,7 +4453,7 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC05Unt: expectations.Positive,
 			},

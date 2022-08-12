@@ -949,9 +949,9 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 			// we don't erroniously fail.
 			return false
 		}
-		tr := frontend.TriageRequest{}
+		tr := frontend.TriageRequestV2{}
 		assert.NoError(t, json.Unmarshal(b, &tr))
-		assert.Equal(t, frontend.TriageRequest{
+		assert.Equal(t, frontend.TriageRequestV2{
 			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 				"ThisIsTheOnlyTest": {
 					newImageHash: expectations.Positive,
@@ -2153,9 +2153,9 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 			// we don't erroniously fail.
 			return false
 		}
-		tr := frontend.TriageRequest{}
+		tr := frontend.TriageRequestV2{}
 		assert.NoError(t, json.Unmarshal(b, &tr))
-		assert.Equal(t, frontend.TriageRequest{
+		assert.Equal(t, frontend.TriageRequestV2{
 			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 				"MyTest": {
 					"deadbeefcafefe771d61bf0ed3d84bc2": expectations.Positive,
@@ -2204,9 +2204,9 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 			// we don't erroniously fail.
 			return false
 		}
-		tr := frontend.TriageRequest{}
+		tr := frontend.TriageRequestV2{}
 		assert.NoError(t, json.Unmarshal(b, &tr))
-		assert.Equal(t, frontend.TriageRequest{
+		assert.Equal(t, frontend.TriageRequestV2{
 			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 				"MyTest": {
 					"deadbeefcafefe771d61bf0ed3d84bc2": expectations.Positive,

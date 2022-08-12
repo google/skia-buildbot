@@ -758,7 +758,7 @@ func (c *CloudClient) Whoami(ctx context.Context) (string, error) {
 // TriageAsPositive fulfills the GoldClient interface.
 func (c *CloudClient) TriageAsPositive(ctx context.Context, testName types.TestName, digest types.Digest, algorithmName string) error {
 	// Build TriageRequest struct and encode it into JSON.
-	triageRequest := &frontend.TriageRequest{
+	triageRequest := &frontend.TriageRequestV2{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]expectations.Label{testName: {digest: expectations.Positive}},
 		CodeReviewSystem:       c.resultState.SharedConfig.CodeReviewSystem,
 		ChangelistID:           c.resultState.SharedConfig.ChangelistID,

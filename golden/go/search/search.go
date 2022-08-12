@@ -1919,7 +1919,7 @@ func (s *Impl) fillInTraceParams(ctx context.Context, tg *frontend.TraceGroup) e
 }
 
 // convertBulkTriageData converts the passed in map into the version usable by the frontend.
-func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (frontend.TriageRequestData, error) {
+func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (frontend.TriageRequestDataV2, error) {
 	ctx, span := trace.StartSpan(ctx, "convertBulkTriageData")
 	defer span.End()
 	rv := map[types.TestName]map[types.Digest]expectations.Label{}
