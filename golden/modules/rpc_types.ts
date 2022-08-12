@@ -131,22 +131,22 @@ export interface ByBlameResponse {
 	data: ByBlameEntry[] | null;
 }
 
-export interface TriageDelta2 {
+export interface TriageDelta {
 	grouping: Params;
 	digest: Digest;
 	label_before: Label;
 	label_after: Label;
 }
 
-export interface TriageLogEntry2 {
+export interface TriageLogEntry {
 	id: string;
 	name: string;
 	ts: number;
-	details: TriageDelta2[];
+	details: TriageDelta[];
 }
 
-export interface TriageLogResponse2 {
-	entries: TriageLogEntry2[];
+export interface TriageLogResponse {
+	entries: TriageLogEntry[];
 	offset: number;
 	size: number;
 	total: number;

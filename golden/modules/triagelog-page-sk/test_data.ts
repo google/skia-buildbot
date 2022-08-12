@@ -1,6 +1,6 @@
-import { TriageLogResponse2 } from '../rpc_types';
+import { TriageLogResponse } from '../rpc_types';
 
-export const firstPageV2: TriageLogResponse2 = {
+export const firstPage: TriageLogResponse = {
   entries: [
     {
       id: 'aaa',
@@ -58,7 +58,7 @@ export const firstPageV2: TriageLogResponse2 = {
   total: 9,
 };
 
-export const secondPageV2: TriageLogResponse2 = {
+export const secondPage: TriageLogResponse = {
   entries: [
     {
       id: 'ddd',

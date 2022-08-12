@@ -1135,13 +1135,13 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	logEntries, total, err := wh.getTriageLog2(ctx, crs, clID, offset, size)
+	logEntries, total, err := wh.getTriageLog(ctx, crs, clID, offset, size)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to retrieve triage logs", http.StatusInternalServerError)
 		return
 	}
 
-	response := frontend.TriageLogResponse2{
+	response := frontend.TriageLogResponse{
 		Entries: logEntries,
 		ResponsePagination: httputils.ResponsePagination{
 			Offset: offset,
@@ -1153,8 +1153,8 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, response)
 }
 
-// getTriageLog2 returns the specified entries and the total count of expectation records.
-func (wh *Handlers) getTriageLog2(ctx context.Context, crs, clid string, offset, size int) ([]frontend.TriageLogEntry2, int, error) {
+// getTriageLog returns the specified entries and the total count of expectation records.
+func (wh *Handlers) getTriageLog(ctx context.Context, crs, clid string, offset, size int) ([]frontend.TriageLogEntry, int, error) {
 	ctx, span := trace.StartSpan(ctx, "getTriageLog2")
 	defer span.End()
 
@@ -1163,7 +1163,7 @@ func (wh *Handlers) getTriageLog2(ctx context.Context, crs, clid string, offset,
 		return nil, 0, skerr.Wrap(err)
 	}
 	if total == 0 {
-		return []frontend.TriageLogEntry2{}, 0, nil // We don't want null in our JSON response.
+		return []frontend.TriageLogEntry{}, 0, nil // We don't want null in our JSON response.
 	}
 
 	// Default to the primary branch, which is associated with branch_name (i.e. CL) as NULL.
@@ -1194,8 +1194,8 @@ ORDER BY triage_time DESC, expectation_record_id, digest
 		return nil, 0, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var currentEntry *frontend.TriageLogEntry2
-	var rv []frontend.TriageLogEntry2
+	var currentEntry *frontend.TriageLogEntry
+	var rv []frontend.TriageLogEntry
 	for rows.Next() {
 		var record schema.ExpectationRecordRow
 		var delta schema.ExpectationDeltaRow
@@ -1205,7 +1205,7 @@ ORDER BY triage_time DESC, expectation_record_id, digest
 			return nil, 0, skerr.Wrap(err)
 		}
 		if currentEntry == nil || currentEntry.ID != record.ExpectationRecordID.String() {
-			rv = append(rv, frontend.TriageLogEntry2{
+			rv = append(rv, frontend.TriageLogEntry{
 				ID:   record.ExpectationRecordID.String(),
 				User: record.UserName,
 				// Multiply by 1000 to convert seconds to milliseconds
@@ -1213,7 +1213,7 @@ ORDER BY triage_time DESC, expectation_record_id, digest
 			})
 			currentEntry = &rv[len(rv)-1]
 		}
-		currentEntry.Details = append(currentEntry.Details, frontend.TriageDelta2{
+		currentEntry.Details = append(currentEntry.Details, frontend.TriageDelta{
 			Grouping:    grouping,
 			Digest:      types.Digest(hex.EncodeToString(delta.Digest)),
 			LabelBefore: delta.LabelBefore.ToExpectation(),

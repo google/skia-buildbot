@@ -3,10 +3,10 @@ import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { delay } from '../demo_util';
-import { triageLogsV2 } from './demo_data';
+import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
-import { TriageLogResponse2 } from '../rpc_types';
+import { TriageLogResponse } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 const fakeRpcDelayMillis = 300;
@@ -21,11 +21,11 @@ fetchMock.get('glob:/json/v2/triagelog*', () => {
   if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.
   }
-  const response: TriageLogResponse2 = {
-    entries: triageLogsV2,
+  const response: TriageLogResponse = {
+    entries: triageLogs,
     offset: 0,
     size: 20,
-    total: triageLogsV2.length,
+    total: triageLogs.length,
   };
   // Fake a 300ms delay.
   return delay(response, fakeRpcDelayMillis);

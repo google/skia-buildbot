@@ -15,7 +15,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../pagination-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
-  TriageDelta2, TriageLogEntry2, TriageLogResponse2,
+  TriageDelta, TriageLogEntry, TriageLogResponse,
 } from '../rpc_types';
 import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-sk';
 
@@ -31,7 +31,7 @@ export class TriagelogPageSk extends ElementSk {
         </tr>
       </thead>
       <tbody>
-        ${el.entriesV2.map((entry: TriageLogEntry2) => TriagelogPageSk.logEntryTemplate2(el, entry))}
+        ${el.entries.map((entry: TriageLogEntry) => TriagelogPageSk.logEntryTemplate(el, entry))}
       </tbody>
     </table>
 
@@ -42,7 +42,7 @@ export class TriagelogPageSk extends ElementSk {
     </pagination-sk>
   `;
 
-  private static logEntryTemplate2 = (el: TriagelogPageSk, entry: TriageLogEntry2) => html`
+  private static logEntryTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr>
       <td class=timestamp>${TriagelogPageSk.toLocalDate(entry.ts)}</td>
       <td class=author>${entry.name}</td>
@@ -55,10 +55,10 @@ export class TriagelogPageSk extends ElementSk {
       </td>
     </tr>
 
-    ${entry.details ? TriagelogPageSk.detailsTemplate2(el, entry) : html``}
+    ${entry.details ? TriagelogPageSk.detailsTemplate(el, entry) : html``}
   `;
 
-  private static detailsTemplate2 = (el: TriagelogPageSk, entry: TriageLogEntry2) => html`
+  private static detailsTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr class=details>
       <td></td>
       <td><strong>Test name</strong></td>
@@ -66,12 +66,12 @@ export class TriagelogPageSk extends ElementSk {
       <td><strong>Label</strong></td>
     </tr>
 
-    ${entry.details?.map((e) => TriagelogPageSk.detailsEntryTemplate2(el, e))}
+    ${entry.details?.map((e) => TriagelogPageSk.detailsEntryTemplate(el, e))}
 
     <tr class="details details-separator"><td colspan="4"></td></tr>
   `;
 
-  private static detailsEntryTemplate2 = (el: TriagelogPageSk, delta: TriageDelta2) => {
+  private static detailsEntryTemplate = (el: TriagelogPageSk, delta: TriageDelta) => {
     let detailHref = `/detail?test=${delta.grouping.name}&digest=${delta.digest}`;
     if (el.changelistID) {
       detailHref += `&changelist_id=${el.changelistID}&crs=${el.crs}`;
@@ -92,7 +92,7 @@ export class TriagelogPageSk extends ElementSk {
     `;
   };
 
-  private entriesV2: TriageLogEntry2[] = []; // Log entries fetched from the server.
+  private entries: TriageLogEntry[] = []; // Log entries fetched from the server.
 
   private pageOffset = 0; // Reflected in the URL.
 
@@ -151,7 +151,7 @@ export class TriagelogPageSk extends ElementSk {
 
   private undoEntry(entryId: string) {
     sendBeginTask(this);
-    this.fetchV2(`/json/v2/triagelog/undo?id=${entryId}`, 'POST')
+    this.fetch(`/json/v2/triagelog/undo?id=${entryId}`, 'POST')
       .then(() => {
         this._render();
         sendEndTask(this);
@@ -167,7 +167,7 @@ export class TriagelogPageSk extends ElementSk {
     if (sendBusyDoneEvents) {
       sendBeginTask(this);
     }
-    return this.fetchV2(url, 'GET')
+    return this.fetch(url, 'GET')
       .then(() => {
         this._render();
         if (sendBusyDoneEvents) {
@@ -177,7 +177,7 @@ export class TriagelogPageSk extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'triagelog'));
   }
 
-  private fetchV2(url: string, method: 'GET' | 'POST'): Promise<void> {
+  private fetch(url: string, method: 'GET' | 'POST'): Promise<void> {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this.fetchController) {
       this.fetchController.abort();
@@ -191,8 +191,8 @@ export class TriagelogPageSk extends ElementSk {
 
     return fetch(url, options)
       .then(jsonOrThrow)
-      .then((response: TriageLogResponse2) => {
-        this.entriesV2 = response.entries || [];
+      .then((response: TriageLogResponse) => {
+        this.entries = response.entries || [];
         this.pageOffset = response.offset || 0;
         this.pageSize = response.size || 0;
         this.totalEntries = response.total || 0;
