@@ -180,31 +180,6 @@ groups:
       description: '{{ $labels.app }} has failed to update overdue_job_specs_s for the last 10 minutes. Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_metrics_liveness Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
 
-# GitSync.
-  - alert: GitSyncStalled
-    expr: liveness_last_successful_git_sync_s > 5*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.repo }}'
-      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncStalled
-      
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
-      '
-
-  - alert: GitSyncErrorRate
-    expr: rate(num_log_lines{level="ERROR",app=~"gitsync.*"}[5m]) > 0.005
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'The error rate for {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncErrorRate'
-
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
     expr: liveness_gold_expired_ignore_rules_monitoring_s > 20*60
