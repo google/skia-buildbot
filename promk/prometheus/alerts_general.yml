@@ -96,37 +96,6 @@ groups:
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       '
 
-# Skia Status
-  - alert: StatusLatency
-    expr: prober{type="latency",probename="skiastatus_json"}/1000 > 10
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.probename }}'
-      description: 'The endpoint for {{ $labels.probename }} took more than 10s to respond. https://skia.googlesource.com/buildbot/%2B/main/status/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
-
-  - alert: StatusIncrementalCacheUpdate
-    expr: liveness_last_successful_incremental_cache_update_s > 5*60
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'IncrementalCache UpdateLoop on {{ $labels.app }} has failed to update data for more than 5 minutes. Playbook: https://skia.googlesource.com/buildbot/%2B/main/status/PROD.md#incremental_cache_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
-
-  - alert: StatusErrorRate
-    expr: rate(num_log_lines{level="ERROR",app=~"status.*"}[2m]) > 0.05
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'The error rate for status on {{ $labels.app }} is too high. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
-
 # Task Scheduler
 
   - alert: TaskSchedulerLiveness
