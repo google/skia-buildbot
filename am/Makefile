@@ -17,8 +17,7 @@ serve:
 run-local-instance-am: build-am
 	# Run "bazel build //am/..." after making any frontend changes
 	# to pick up the change without restarting the golang server.
-	../_bazel_bin/am/go/alert-manager/alert-manager_/alert-manager --local --resources_dir ../_bazel_bin/am/pages/development --namespace=am-localhost-jcgregorio --email_client_secret_file=secrets/client_secret.json --email_token_cache_file=secrets/client_token.json
-
+	../_bazel_bin/am/go/alert-manager/alert-manager_/alert-manager --local --resources_dir ../_bazel_bin/am/pages/development --namespace=am-localhost-jcgregorio
 testjs:
 	$(BAZEL) test modules/...
 

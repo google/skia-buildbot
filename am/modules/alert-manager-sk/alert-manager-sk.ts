@@ -802,7 +802,6 @@ export class AlertManagerSk extends HTMLElement {
       this.make_bot_centric_param_set(this.current_silence!.param_set);
     }
     this.rhs_state = EDIT_SILENCE;
-    this._render();
   }
 
   // Goes through the paramset and leaves only silence keys that are useful
@@ -884,6 +883,7 @@ export class AlertManagerSk extends HTMLElement {
     } else {
       checkSelectedImplFunc();
     }
+    this._render();
   }
 
   private select(incident: Incident): void {
