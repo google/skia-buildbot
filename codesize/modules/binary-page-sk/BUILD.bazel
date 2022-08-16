@@ -20,6 +20,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//fuse.js",
     ],
     ts_srcs = [
         "binary-page-sk.ts",
