@@ -155,9 +155,7 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      description: 'The License scripts in the Skia->Flutter roller have failed.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
-      https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
+      description: 'The License scripts in the Skia->Flutter roller have failed. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
 
 # skia-flutter-autoroll takes a long time to transition because its pre-upload
 # scripts run flutter's license script which can take around 40 minutes.
@@ -169,9 +167,7 @@ groups:
       owner: rmistry@google.com
     annotations:
       abbr: 'skia-flutter-autoroll'
-      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 50 minutes.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
-      '
+      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 50 minutes. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
 # Prober
   - alert: ProbeFailure
@@ -293,39 +289,6 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Low Disk Space on /b for {{ $labels.exported_instance }}. https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-
-# Envoy
-  - alert: EnvoyClusterBindError
-    expr: envoy_cluster_bind_errors > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: error
-    annotations:
-      abbr: '{{ $labels.envoy_cluster_name }}'
-      description: 'Envoy Cluster Bind Error for {{ $labels.envoy_cluster_name
-      }}. https://skia.googlesource.com/buildbot/+doc/main/skfe/PROD.md#cluster_bind_error'
-
-  - alert: EnvoyRuntimeLoadError
-    expr: envoy_runtime_load_error > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: error
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Envoy Runtime Load Error for {{ $labels.app }}. https://skia.googlesource.com/buildbot/%2B/main/skfe/PROD.md#runtime_load_error'
-
-  - alert: EnvoyClusterNotOK
-    expr: envoy_cluster_lb_local_cluster_not_ok > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: error
-    annotations:
-      abbr: '{{ $labels.envoy_cluster_name }}'
-      description: 'Envoy Cluster Not OK for {{ $labels.envoy_cluster_name }}. https://skia.googlesource.com/buildbot/%2B/main/skfe/PROD.md#envoy_cluster_lb_local_cluster_not_ok'
-
 # Docsyserver
   - alert: SkiaDotOrgRefreshFail
     expr: liveness_docsy_docset_refresh_s > 600
@@ -399,14 +362,3 @@ groups:
     annotations:
       abbr: '{{ $labels.exported_job }}'
       description: 'The SKPs asset creation script in the latest RecreateSKPs bot run failed. Find the failed run and investigate: https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
-
-# Email Service
-  - alert: EmailServiceSendFailure
-    expr: rate(emailservice_send_failure[12h]) > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      abbr: '{{ $labels.exported_job }}'
-      description: 'The email service has failed to send at least one email. Check the logs https://cloudlogging.app.goo.gl/3WAVsUT5sruM86Er8.'
