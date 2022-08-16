@@ -31,4 +31,17 @@
       "./bazel-out/k8-fastbuild-ST-4a519fd6d3e4/bin",
     ],
   },
+  "exclude": [
+    // Exclude the //_bazel_* symlinks. This Prevents the following VSCode error:
+    //
+    //     To enable project-wide JavaScript/TypeScript language features, exclude large folders
+    //     with source files that you do not work on.
+    //
+    // The below excludes do not affect the Bazel build because these paths are not visible to
+    // build actions.
+    "./_bazel_bin",
+    "./_bazel_buildbot",
+    "./_bazel_out",
+    "./_bazel_testlogs",
+  ],
 }
