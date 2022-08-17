@@ -3,12 +3,3 @@ groups:
 - name: general
   rules:
 
-# alert-to-pubsub
-  - alert: AlertToPubSub
-    expr: rate(pubsub_send_failure[5m]) > 1/(5*60)
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.project }}'
-      description: 'Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
