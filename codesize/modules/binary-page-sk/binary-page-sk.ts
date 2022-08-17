@@ -7,10 +7,58 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
-import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse } from '../rpc_types';
+import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse, TreeMapDataTableRow } from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
 import '@google-web-components/google-chart/';
 import Fuse from 'fuse.js';
+
+/**
+ * Convert the data we get from the server into a format that can be visualized by the treemap.
+ * It will shorten file names by removing the path, for example "foo/bar/baz.cc" becomes "baz.cc".
+ * Because the name is the key to the row, we also then must shorten usages of those names later
+ * (in the parent column), but cannot shorten the same name more than once (e.g. we have two
+ * files with the same name in different subfolders).
+ */
+export function convertResponseToDataTable(inputRows: TreeMapDataTableRow[]): [string, string, string|number][] {
+  const out: [string, string, string|number][] = [];
+  out.push(['Name', 'Parent', 'Size']);
+
+  const shortNames = new Set<string>();
+  const parentsWhichWereShortened = new Set<string>();
+
+  for (const row of inputRows) {
+    // Shorten the file name, but only if the resulting shortened file name is unique.
+    const shortenedName = shortenName(row.name);
+    const shortenedNameIsUnique = !shortNames.has(shortenedName);
+    if (shortenedNameIsUnique && row.name !== shortenedName) {
+      shortNames.add(shortenedName);
+      parentsWhichWereShortened.add(row.name);
+    }
+    // If the parent was shortened, use the shortened version.
+    // Otherwise, it was a duplicate, so keep the full name.
+    out.push([
+      shortenedNameIsUnique ? shortenedName : row.name,
+      parentsWhichWereShortened.has(row.parent) ? shortenName(row.parent) : row.parent,
+      row.size,
+    ]);
+  }
+  return out;
+}
+
+/**
+ * Shortens a file name path to be just the name by splitting the string that contains '.'
+ * (indicating that it is a file and not a folder or function) on '/' and taking the last element
+ * which should be the file name.
+ */
+export function shortenName(rowName: string): string {
+  if (!rowName) {
+    return '';
+  }
+  if (rowName.includes('.') && rowName.includes('/')) {
+    rowName = rowName.split('/').pop()!;
+  }
+  return rowName;
+}
 
 export class BinaryPageSk extends ElementSk {
   private static template = (el: BinaryPageSk) => {
@@ -149,22 +197,14 @@ export class BinaryPageSk extends ElementSk {
     this.metadata = response.metadata;
     this._render();
 
-    const rows = [
-      ['Name', 'Parent', 'Size'],
-      ...response.rows.map((row) => [
-        row.name,
-        // The RPC represents empty parents as the empty string, but TreeMap expects a null value.
-        row.parent || null,
-        row.size,
-      ]),
-    ];
+    const rows = convertResponseToDataTable(response.rows);
     const data = google.visualization.arrayToDataTable(rows);
     this.tree = new google.visualization.TreeMap(this.querySelector('#treemap')!);
 
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
     // a type assertion is necessary to keep the TypeScript compiler happy.
-    //TODO (anjulij): add categorical coloring
+    // TODO(kjlubick): add categorical coloring
     const treeOptions = {
       generateTooltip: showTooltip,
       minColor: '#E8DAFF',

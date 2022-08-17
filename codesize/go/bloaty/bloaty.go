@@ -193,20 +193,9 @@ func GenTreeMapDataTableRows(items []OutputItem) []TreeMapDataTableRow {
 				parentDirMap[fileOrDir] = parentDir
 			}
 
-			// We add a suffix to paths to eliminate the chances of a path name colliding with a symbol
-			// name. This is important because google.visualization.TreeMap requires node names to be
-			// unique, and a file such as test/foo/bar.cpp would create a node named "test", which could
-			// collide with a symbol named "test" defined in a C++ file.
-			//
-			// Assumptions made:
-			//  - No C++ symbol ends with " (Path)".
-			//  - No C++ symbol is named "ROOT".
 			parent := parentDirMap[fileOrDir]
-			if parent != "ROOT" {
-				parent = parent + " (Path)"
-			}
 			rows = append(rows, TreeMapDataTableRow{
-				Name:   fileOrDir + " (Path)",
+				Name:   fileOrDir,
 				Parent: parent,
 				Size:   0,
 			})
@@ -230,7 +219,7 @@ func GenTreeMapDataTableRows(items []OutputItem) []TreeMapDataTableRow {
 
 		rows = append(rows, TreeMapDataTableRow{
 			Name:   item.Symbol,
-			Parent: item.CompileUnit + " (Path)",
+			Parent: item.CompileUnit,
 			Size:   item.FileSize,
 		})
 	}

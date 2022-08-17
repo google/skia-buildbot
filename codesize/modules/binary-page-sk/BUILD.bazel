@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "binary-page-sk",
@@ -58,4 +58,15 @@ sk_element_puppeteer_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":binary-page-sk-demo",
+)
+
+karma_test(
+    name = "binary-page-sk_test",
+    src = "binary-page-sk_test.ts",
+    deps = [
+        ":binary-page-sk",
+        "//codesize/modules:rpc_types_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
 )
