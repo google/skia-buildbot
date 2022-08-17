@@ -4,361 +4,184 @@
 # skia-corp, then break it out into its own alerts_NNNN.yml file
 # and include it in each prometheus-CLUSTER.yml file that is it running in.
 groups:
-- name: general
-  rules:
+  - name: general
+    rules:
+      # alert-to-pubsub liveness
+      - alert: AlertToPubSubLiveness
+        expr:
+          (min(liveness_alert_to_pubsub_alive_s{skia_location=~".+"}) by
+          (skia_location)) > 90
+        labels:
+          category: infra
+          severity: critical
+          owner: jcgregorio@google.com
+        annotations:
+          abbr: '{{ $labels.skia_location }}'
+          description:
+            'alert-to-pubsub for {{ $labels.skia_location }} has failed to send
+            a healthz PubSub event in 90s.
+            https://skia.googlesource.com/buildbot/%2B/main/am/PROD.md#alert_to_pubsub'
 
-  # This alert belongs in alerts_general.yml, except that skia-corp doesn't have any scrape_configs
-  # for processes with this metric.
-  - alert: CrashLoop
-    expr: max_over_time(liveness_uptime_s{kubernetes_pod_name=""}[6m]) < 60 * 3
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.instance }} of job {{ $labels.job }} is crashing on
-        startup. Logs:
+      # CT
+      # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
+      - alert: CTFEPendingTaskCount
+        expr: num_pending_tasks{app="ctfe"} >= 10
+        for: 5m
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          description:
+            'There are a lot of CTFE pending tasks.
+            https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
 
-          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+      - alert: CTFEPendingTaskNotRunning
+        expr: oldest_pending_task_status{app="ctfe"} >= 2
+        for: 5m
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          description:
+            'A task has been waiting to be executed for a while and it has still
+            not started.
+            https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
 
-          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.pod_name%3D%22{{ $labels.kubernetes_pod_name }}%22"
-        '
+      - alert: FlutterLicenseScriptFailure
+        expr:
+          flutter_license_script_failure{app="autoroll-be-skia-flutter-autoroll"}
+          > 0
+        for: 5m
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          description:
+            'The License scripts in the Skia->Flutter roller have failed.
+            https://console.cloud.google.com/logs/viewer?project={{
+            $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{
+            $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{
+            $labels.app }}
+            https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
 
-  # Docker Pushes Watcher
-  - alert: DockerPushesWatcherLiveness
-    expr: liveness_docker_watcher_pubsub_receive_s > 60 * 60 * 24 * 2
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'Docker pushes watcher has failed to recieve a pubsub event in the last 48 hours.
+      # skia-flutter-autoroll takes a long time to transition because its pre-upload
+      # scripts run flutter's license script which can take around 40 minutes.
+      - alert: AutoRollLastTransition
+        expr:
+          liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"}
+          > 50*60
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          abbr: 'skia-flutter-autoroll'
+          description:
+            'Autoroll on {{ $labels.app }} has failed to transition for more
+            than 50 minutes.
+            https://console.cloud.google.com/logs/viewer?project={{
+            $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{
+            $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{
+            $labels.app }}'
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
-        '
+      # Datahopper
 
-  - alert: DockerPushesWatcherTagFailures
-    expr: docker_watcher_tag_failure > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.image }}'
-      description: 'Docker pushes watcher has failed to successfully add "prod" tag to the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
+      - alert: FirestoreBackupTooOld
+        expr:
+          liveness_last_successful_firestore_backup_s{app="datahopper"}/60/60/24
+          > 7
+        labels:
+          category: infra
+          severity: critical
+          owner: borenet@google.com
+        annotations:
+          description:
+            'The most recent successful Firestore weekly backup was more than 7
+            days ago.
+            https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_weekly_backup'
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
-        '
+      # PubSub
+      - alert: GCloudMetricsLiveness
+        expr: liveness_last_successful_report_gcloud_metrics_s > 600
+        labels:
+          category: infra
+          severity: critical
+          owner: borenet@google.com
+        annotations:
+          abbr: '{{ $labels.app }}'
+          description:
+            'datahopper has failed to successfully ingest metrics from GCloud
+            projects in the last 10 minutes. Check the logs for datahopper and
+            look for errors.'
 
-  - alert: DockerPushesWatcherPushFailures
-    expr: docker_watcher_push_failure > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.image }}'
-      description: 'Docker pushes watcher has failed to successfully pushk the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
+      - alert: PerfIngestionBehind
+        expr:
+          avg_over_time(pubsub_num_undelivered_messages{subscription_id=~"perf-ingestion-.*"}[5m])
+          > 10000
+        labels:
+          category: infra
+          severity: critical
+          owner: jcgregorio@google.com
+        annotations:
+          abbr: '{{ $labels.subscription_id }}'
+          description:
+            'There are too many undelivered pubsub messages for {{
+            $labels.subscription_id }}'
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
-        '
+      - alert: TaskDriverLogIngestionBehind
+        expr:
+          pubsub_oldest_unacked_message_age_s{subscription_id="td_server_log_collector"}
+          > 600
+        labels:
+          category: infra
+          severity: critical
+          owner: borenet@google.com
+        annotations:
+          abbr: '{{ $labels.subscription_id }}'
+          description:
+            'A pubsub message for {{ $labels.subscription_id }} has not been
+            acknowledged in more than 10 minutes.'
 
-  # CQ Watcher
-  - alert: TooManyCLsInCQ
-    expr: cq_watcher_in_flight_waiting_in_cq{app="cq-watcher"} >= 10
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'There are 10 CLs or more waiting in the CQ. Dry run queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D1+status:open and Commit queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D2+status:open Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#too_many_cls'
+      # G3 Canary
+      - alert: G3CanaryInfraFailure
+        expr: g3_canary_infra_failure > 0
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          abbr: '{{ $labels.exported_job }}'
+          description:
+            'The G3 canary is experiencing failures and may need to be
+            restarted.
+            https://skia.googlesource.com/skia/+doc/main/infra/bots/task_drivers/g3_canary/PROD.md#g3_canary_infra_failures'
 
-  - alert: CQTrybotRunningTooLong
-    expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.trybot }}'
-      description: '{{ $labels.trybot }} ran longer than 45 mins on {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#trybot_duration_beyond_threshold'
+      # Recreate SKPs
+      - alert: RecreateSKPsBuildFailure
+        expr: recreate_skps_build_failure > 0
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          abbr: '{{ $labels.exported_job }}'
+          description:
+            'The chromium build in the latest RecreateSKPs bot run failed. Find
+            the failed run and investigate:
+            https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
 
-  - alert: TooManyCQTrybotsForCL
-    expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 100
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'There are more than 100 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#too_many_trybots_triggered'
-
- # datatore backups
-  - alert: BackupNotDone
-    expr: liveness_backup_success_s/60/60/24 > 7
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: skia-public
-      description: 'A backup of Cloud Datastore has not succeeded in the last week. https://skia.googlesource.com/buildbot/%2B/main/ds/PROD.md#backup_not_done'
-
-# alert-to-pubsub liveness
-  - alert: AlertToPubSubLiveness
-    expr: (min(liveness_alert_to_pubsub_alive_s{skia_location=~".+"}) by (skia_location)) > 90
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      abbr: '{{ $labels.skia_location }}'
-      description: 'alert-to-pubsub for {{ $labels.skia_location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/main/am/PROD.md#alert_to_pubsub'
-
-# CT
-# TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
-  - alert: CTFEPendingTaskCount
-    expr: num_pending_tasks{app="ctfe"} >= 10
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
-
-  - alert: CTFEPendingTaskNotRunning
-    expr: oldest_pending_task_status{app="ctfe"} >= 2
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
-
-  - alert: AutoRollLatency
-    expr: prober{type="latency",probename="autoroll"} > 200
-    for: 10m
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      description: 'The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#http_latency'
-
-  - alert: FlutterLicenseScriptFailure
-    expr: flutter_license_script_failure{app="autoroll-be-skia-flutter-autoroll"} > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'The License scripts in the Skia->Flutter roller have failed. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
-
-# skia-flutter-autoroll takes a long time to transition because its pre-upload
-# scripts run flutter's license script which can take around 40 minutes.
-  - alert: AutoRollLastTransition
-    expr: liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"} > 50*60
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: 'skia-flutter-autoroll'
-      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 50 minutes. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
-
-# Prober
-  - alert: ProbeFailure
-    expr: prober{type="failure"} > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.probename }} {{ $labels.url }}'
-      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to respond
-        as expected in at least 5 minutes. See https://github.com/google/skia-buildbot/blob/main/proberk/PROD.md#probefailure
-        and https://github.com/google/skia-buildbot/search?q={{$labels.probename }}+filename%3Aprobersk.json5'
-
-  - alert: ProberLiveness
-    expr: liveness_probes_s > 300
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      description: 'The prober has failed to probe in the last 5 minutes.'
-
-
-# Grafana Backup
-  - alert: GrafanaBackupLiveness
-    expr: liveness_backup_s > 60*60*25
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      description: 'backup-to-gcs has failed to back up the Grafana db in the last 24 hours. Check the logs.'
-
-# Skia Status
-  - alert: StatusLatency
-    expr: avg_over_time(prober{probename="skiastatus_json",type="latency"}[10m])/1024  > 10
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      description: 'The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 10s to respond.'
-
-# Datahopper
-
-  - alert: FirestoreBackupTooOld
-    expr: liveness_last_successful_firestore_backup_s{app="datahopper"}/60/60/24 > 7
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_weekly_backup'
-
-# External machines
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-(e|rpi).+",type="free"} < 1e9
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# Dev RPis.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-d-rpi-.+",type="free"} < 1e8
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# Dev bots except RPis.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-d-[^r].+",type="free"} < 1e9
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# Internal bots except RPis.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-i-[^r].+",type="free"} < 1e9
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# GCE machines (other than bots), root disk.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="root",exported_instance!~"skia-(e|i|d|rpi)-.+",type="free"} < 1e9
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}.  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# GCE bots, /b (aka /mnt/pd0)
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="mnt-pd0", exported_instance=~"skia-e-gce.+",type="free"} < 1e10
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Disk Space on /b for {{ $labels.exported_instance }}. https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# Docsyserver
-  - alert: SkiaDotOrgRefreshFail
-    expr: liveness_docsy_docset_refresh_s > 600
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'docsyserver has failed to successfully refresh in the last 10 minutes. Check the logs for docsyserver and look for errors.'
-
-# PubSub
-  - alert: GCloudMetricsLiveness
-    expr: liveness_last_successful_report_gcloud_metrics_s > 600
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'datahopper has failed to successfully ingest metrics from GCloud projects in the last 10 minutes. Check the logs for datahopper and look for errors.'
-
-  - alert: PerfIngestionBehind
-    expr: avg_over_time(pubsub_num_undelivered_messages{subscription_id=~"perf-ingestion-.*"}[5m]) > 10000
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      abbr: '{{ $labels.subscription_id }}'
-      description: 'There are too many undelivered pubsub messages for {{ $labels.subscription_id }}'
-
-  - alert: TaskDriverLogIngestionBehind
-    expr: pubsub_oldest_unacked_message_age_s{subscription_id="td_server_log_collector"} > 600
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.subscription_id }}'
-      description: 'A pubsub message for {{ $labels.subscription_id }} has not been acknowledged in more than 10 minutes.'
-
-# G3 Canary
-  - alert: G3CanaryInfraFailure
-    expr: g3_canary_infra_failure > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.exported_job }}'
-      description: 'The G3 canary is experiencing failures and may need to be restarted. https://skia.googlesource.com/skia/+doc/main/infra/bots/task_drivers/g3_canary/PROD.md#g3_canary_infra_failures'
-
-# Recreate SKPs
-  - alert: RecreateSKPsBuildFailure
-    expr: recreate_skps_build_failure > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.exported_job }}'
-      description: 'The chromium build in the latest RecreateSKPs bot run failed. Find the failed run and investigate: https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
-
-  - alert: RecreateSKPsCreationFailure
-    expr: recreate_skps_creation_failure > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      abbr: '{{ $labels.exported_job }}'
-      description: 'The SKPs asset creation script in the latest RecreateSKPs bot run failed. Find the failed run and investigate: https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
+      - alert: RecreateSKPsCreationFailure
+        expr: recreate_skps_creation_failure > 0
+        labels:
+          category: infra
+          severity: critical
+          owner: rmistry@google.com
+        annotations:
+          abbr: '{{ $labels.exported_job }}'
+          description:
+            'The SKPs asset creation script in the latest RecreateSKPs bot run
+            failed. Find the failed run and investigate:
+            https://status.skia.org/?filter=Search&repo=skia&search=RecreateSKPs'
