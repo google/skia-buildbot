@@ -46,5 +46,21 @@ describe('binary-page-sk', () => {
 
       await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk_node');
     });
+
+    it('shows some suggestions when the user types in letters', async () => {
+      // https://stackoverflow.com/a/56772379/1447621
+      await testBed.page.focus('.search-bar input');
+      await testBed.page.keyboard.type('s');
+
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk-search_bar');
+    });
+
+    it('jumps to the first result when the user types enter', async () => {
+      await testBed.page.focus('.search-bar input');
+      await testBed.page.keyboard.type('skp');
+      await testBed.page.keyboard.press('Enter');
+
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk-search_bar_enter');
+    });
   });
 });

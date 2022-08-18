@@ -11,6 +11,7 @@ import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse, TreeMapDataT
 import '../../../infra-sk/modules/human-date-sk';
 import '@google-web-components/google-chart/';
 import Fuse from 'fuse.js';
+import { $$ } from 'common-sk/modules/dom';
 
 /**
  * Convert the data we get from the server into a format that can be visualized by the treemap.
@@ -60,6 +61,8 @@ export function shortenName(rowName: string): string {
   return rowName;
 }
 
+const MAX_SEARCH_RESULTS = 10;
+
 export class BinaryPageSk extends ElementSk {
   private static template = (el: BinaryPageSk) => {
     if (el.metadata === null) {
@@ -104,8 +107,10 @@ export class BinaryPageSk extends ElementSk {
 
       <div class="search-bar">
         <input type="search" placeholder="Search for node..." aria-label="Search for node..."
-        autocomplete="on" @input=${el.search} @change=${el.retrieve}>
-        <ol id="searchSuggestions" class="search-match-list">${el.listHTML(el.listOfSearchResults)}
+        autocomplete="on" @input=${el.onSearchInput} @keyup=${el.onSearchKeyUp}>
+        <ol id="searchSuggestions" class="search-match-list" ?hidden=${!el.listOfSearchResults.length}
+            @mouseover=${el.clearDefaultSelected}>
+          ${el.listOfSearchResults.map((result, i) => el.searchResult(result, i))}
         </ol>
       </div>
 
@@ -113,56 +118,72 @@ export class BinaryPageSk extends ElementSk {
     `;
   }
 
-  private tree: google.visualization.TreeMap | null = null;
-  private fuse: Fuse<string[]> | null = null;
-  private selectionIndex: number | null = null;
-  private listOfSearchResults: Fuse.FuseResult<string[]>[] = [];
+  // Returns a <li> with the matching string. If it is the first element, mark it selected to
+  // give an affordance that something is auto selected and the user can hit enter to pick it.
+  private searchResult = (match: Fuse.FuseResult<string>, idx: number): TemplateResult => html`
+<li class=${'search-match-list-item ' + (idx === 0 ? 'selected': '')}
+    @click=${() => this.showElement(match)}>
+  ${match.item}
+</li>
+`;
 
-  /**
-   * Uses Fuse.js to match a users input to a node within the tree. Finds all matches
-   * @param e an event triggered by a user typing in the searchbar
-   */
-  private search(e: Event):void {
+  private tree: google.visualization.TreeMap | null = null;
+  private fuse: Fuse<string> | null = null;
+  private listOfSearchResults: Fuse.FuseResult<string>[] = [];
+
+  // Uses Fuse.js to match a users input to a node within the tree. Returns the top
+  // MAX_SEARCH_RESULTS results.
+  private onSearchInput(e: Event):void {
     if (!this.fuse) {
       return;
     }
     const target = e.target as HTMLInputElement;
-    this.listOfSearchResults = this.fuse.search({fileName: target.value});
-
-    if(this.listOfSearchResults.length === 0) {
-      this.selectionIndex = -1;
-    } else {
-      this.selectionIndex = this.listOfSearchResults[0].refIndex - 1;
-    }
+    this.listOfSearchResults = this.fuse.search(target.value).slice(0, MAX_SEARCH_RESULTS);
     this._render();
   }
 
-  /**
-   * @param results fuse results.
-   * @returns a list of all of the matching node names from the search results.
-   */
-  private listHTML = (results: Fuse.FuseResult<string[]>[]):TemplateResult => {
-    return html `
-      ${results.map((match:Fuse.FuseResult<string[]>) =>
-         html `
-          <li class= "search-match-list-item">
-            ${match.item[0]}
-          </li>
-        `)}
-      `
+  private showElement(match: Fuse.FuseResult<string> | undefined): void {
+    if (match) {
+      // https://developers.google.com/chart/interactive/docs/events#the-select-event
+      // The row number should correspond to the order of which the data was passed into the
+      // treemap upon creation. This is the same order we passed into Fuse, and we can find
+      // that matching index by looking at refIndex.
+      const selectedIdx = match.refIndex;
+      this.tree!.setSelection([{column: null, row: selectedIdx}]);
+    }
+    this.listOfSearchResults = []; // hide other results
+    $$<HTMLInputElement>('.search-bar input', this)!.value = ''; // clear search bar
+    this._render();
   }
 
-  /**
-   * Retrieves the node the user searched for in the searchbar.
-   * Does nothing if the selection index is -1 meaning that the user hasn't entered
-   * a new search entry
-   * @param e when a user presses enter
-   */
-  private retrieve(e: Event): void {
-      if(!this.tree || this.selectionIndex == -1) {
+  // If the user hits enter, change the selected element to the top search result.
+  // Otherwise, make sure the first element is highlighted to indicate this behavior.
+  private onSearchKeyUp(e: Event): void {
+      if (!this.tree) {
         return;
       }
-      this.tree.setSelection([{column: null, row: this.selectionIndex}]);
+      const evt = (e as KeyboardEvent);
+      if (evt.key === 'Enter') {
+        // User hit enter, use the top result.
+        this.showElement(this.listOfSearchResults[0]);
+        return;
+      }
+      // Auto-highlight the first list element again (in case it was cleared via mouse over),
+      // thus resetting the affordance that it is the auto-picked version.
+      if (this.listOfSearchResults.length >= 1) {
+        const firstItem = $$<HTMLLIElement>('#searchSuggestions li:first-child', this);
+        if (firstItem) {
+          firstItem.classList.add('selected');
+        }
+      }
+  }
+
+  // If the user starts typing, then mouses over the list, we clear the default selected option.
+  private clearDefaultSelected(e: Event): void {
+    const defaultSelected = $$<HTMLLIElement>('#searchSuggestions li.selected', this);
+    if (defaultSelected) {
+      defaultSelected.classList.remove('selected');
+    }
   }
 
   private metadata: BloatyOutputMetadata | null = null;
@@ -214,18 +235,14 @@ export class BinaryPageSk extends ElementSk {
 
     const searchOptions = {
       isCaseSensitive: false,
-      //Ignore single character matches
+      // Ignore single character matches
       minMatchCharLength: 1,
-      findAllMatches: true,
-      //At what point does the algorithm gives up (0.0 is a perfect match)
+      // At what point does the algorithm gives up (0.0 is a perfect match)
       threshold: 0.6,
-      limit: 10,
-      keys: [
-        { name: 'fileName', getFn: (rowT:string[]):string => rowT[0]}
-      ]
     };
 
-    this.fuse = new Fuse(rows as unknown as string[][], searchOptions);
+    // Strip off the first row, which is the column headings.
+    this.fuse = new Fuse(rows.slice(1, rows.length).map((row): string => row[0]), searchOptions);
 
     // Draw the tree and wait until the tree finishes drawing.
     await new Promise((resolve) => {

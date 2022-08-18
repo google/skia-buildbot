@@ -18,36 +18,34 @@ binary-page-sk {
     margin:1em;
     max-width: 90%;
     background: var(--background);
+    min-height: 20px;
+    position: relative;
   }
 
-  /* Links inside the navigation bar */
-  .search-bar a {
-    color: grey;
-    text-align: left;
-    text-decoration: none;
+  // /* The search box inside the navigation bar */
+  .search-bar input[type=text] {
     font-size: 1rem;
   }
 
-/* The "active" element to highlight the current node */
-.search-bar a.active {
-  background-color: #2196F3;
-}
+  .search-match-list {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
 
-// /* The search box inside the navigation bar */
-.search-bar input[type=text] {
-  font-size: 1rem;
-}
+    background-color: var(--surface);
+    border: 2px solid var(--on-surface);
+    color: var(--on-surface);
+    list-style-type: none;
+    padding: 5px;
 
-.search-match-list {
-  margin:0em;
-  list-style-type: none;
-  overflow: auto;
-}
-.search-match-list-item:hover {
-  opacity: 0.5;
-  -webkit-transition: .3s ease-in-out;
-  transition: .3s ease-in-out;
-}
+    li.selected {
+      background-color: var(--primary-highlight);
+    }
+    li:hover {
+      background-color: var(--primary-highlight);
+      cursor: pointer;
+    }
+  }
 
   div#treemap {
     margin-top: 10px;
