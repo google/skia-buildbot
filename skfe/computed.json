@@ -1393,6 +1393,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gmp-frontend",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gmp-frontend",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gmp-frontend",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "grafana",
           "endpoints": [
             {
@@ -1594,32 +1620,6 @@
           ]
         },
         "name": "particles",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "prometheus",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "prometheus",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "prometheus",
         "type": "STRICT_DNS"
       },
       {
@@ -2140,58 +2140,6 @@
           ]
         },
         "name": "task-scheduler-fe-staging",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "thanos-query",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "thanos-query",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "thanos-query",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "thanos-rule",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "thanos-rule",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "thanos-rule",
         "type": "STRICT_DNS"
       },
       {
@@ -4215,6 +4163,23 @@
                       ]
                     },
                     {
+                      "domains": "prom2.skia.org",
+                      "name": "prom2.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gmp-frontend",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "grafana2.skia.org",
                       "name": "grafana2.skia.org",
                       "routes": [
@@ -4343,23 +4308,6 @@
                           },
                           "route": {
                             "cluster": "particles",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "prom2.skia.org",
-                      "name": "prom2.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "prometheus",
                             "timeout": {
                               "seconds": 600
                             }
@@ -4700,40 +4648,6 @@
                           },
                           "route": {
                             "cluster": "task-scheduler-fe-staging",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "thanos-query.skia.org",
-                      "name": "thanos-query.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "thanos-query",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "thanos-ruler.skia.org",
-                      "name": "thanos-ruler.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "thanos-rule",
                             "timeout": {
                               "seconds": 600
                             }

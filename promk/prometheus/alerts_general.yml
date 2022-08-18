@@ -1,4 +1,0 @@
-# Alerts we need no matter what is running in the cluster.
-groups:
-- name: general
-  rules:

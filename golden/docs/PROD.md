@@ -22,7 +22,7 @@ Some things to look for:
 
 QPS
 ---
-To investigate the load of Gold's RPCs navigate to https://thanos-query.skia.org and
+To investigate the load of Gold's RPCs navigate to https://prom2.skia.org and
 try doing the search:
 
     rate(gold_rpc_call_counter[1m])

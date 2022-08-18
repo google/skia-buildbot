@@ -1,4 +1,0 @@
-# Alerts for the alert-to-pubsub service.
-groups:
-- name: general
-  rules:

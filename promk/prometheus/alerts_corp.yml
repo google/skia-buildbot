@@ -1,4 +1,0 @@
-# Alerts for things in the skia-corp cluster only.
-groups:
-- name: general
-  rules:

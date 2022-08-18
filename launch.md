@@ -237,7 +237,7 @@ budget.
 
 
 - Metrics will be available on
-  [thanos-query.skia.org](https://thanos-query.skia.org/).
+  [prom2.skia.org](https://prom2.skia.org/).
 - The metrics will be labeled `app=<foo>` where `foo` is the first argument to
   `common.InitWithMust`.
 - If you have secrets (like a service account), bind it to the deployment by
