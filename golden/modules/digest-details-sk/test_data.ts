@@ -1,5 +1,5 @@
 import {
-  Commit, Digest, SearchResult, TestName,
+  Commit, Digest, SearchResult, TestName, GroupingsResponse,
 } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');

@@ -52,6 +52,7 @@ sk_page(
         "//golden/modules:settings_ts_lib",
         "@npm//common-sk",
         "@npm//fetch-mock",
+        "//golden/modules/search-page-sk:demo_data_ts_lib",
     ],
     ts_entry_point = "digest-details-sk-demo.ts",
 )
@@ -88,10 +89,12 @@ karma_test(
         ":digest-details-sk_po_ts_lib",
         ":test_data_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//common-sk",
+        "@npm//elements-sk",
         "@npm//fetch-mock",
     ],
 )

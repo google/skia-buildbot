@@ -38,7 +38,7 @@ import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 import {
-  Commit, Label, RefClosest, SearchResult, SRDiffDigest, TestName, TraceID, TriageRequest,
+  Commit, GroupingsResponse, Label, Params, RefClosest, SearchResult, SRDiffDigest, TestName, TraceID, TriageRequestV3, TriageResponse, TriageResponseStatus,
 } from '../rpc_types';
 import { SearchCriteria, SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
 import { DotsSk } from '../dots-sk/dots-sk';
@@ -265,6 +265,10 @@ export class DigestDetailsSk extends ElementSk {
 
   private _crs = '';
 
+  private _groupings: GroupingsResponse = {
+    grouping_param_keys_by_corpus: {},
+  };
+
   private _commits: Commit[] = [];
 
   // This tracks which ref we are showing on the right. It will default to the closest one, but
@@ -285,6 +289,11 @@ export class DigestDetailsSk extends ElementSk {
     super.connectedCallback();
     this._render();
     dialogPolyfill.registerDialog(this.querySelector('dialog.blamelist_dialog')!);
+  }
+
+  /** GroupingsResponse used to derive the correct grouping to use when triaging. */
+  set groupings(groupings: GroupingsResponse) {
+    this._groupings = groupings;
   }
 
   /**
@@ -414,38 +423,112 @@ export class DigestDetailsSk extends ElementSk {
   }
 
   setTriaged(label: Label): void {
+    // We save the label before the triage action because the search page might change the label
+    // when it handles the "triage" event, see
+    // https://skia.googlesource.com/buildbot/+/6cfe69ae17a74c87224196b6e170dad01bad558a/golden/modules/search-page-sk/search-page-sk.ts#512.
+    const labelBefore = this._details.status;
+
     this.dispatchEvent(
       new CustomEvent<Label>('triage', { bubbles: true, detail: label }),
     );
 
-    const triageRequest: TriageRequest = {
-      testDigestStatus: {
-        [this._details.test]: {
-          [this._details.digest]: label,
+    // Extract corpus.
+    const corpusKey = 'source_type';
+    if (!this._details.paramset[corpusKey]) {
+      errorMessage(`Digest is missing key "${corpusKey}".`);
+      return;
+    }
+    if (this._details.paramset[corpusKey].length !== 1) {
+      errorMessage(
+        `Digest key "${corpusKey}" must have exactly one value;`
+        + `${this._details.paramset[corpusKey].length} values found.`,
+      );
+      return;
+    }
+    const corpus = this._details.paramset[corpusKey][0];
+
+    // Build grouping.
+    const grouping: Params = {};
+    const groupingKeys = this._groupings.grouping_param_keys_by_corpus![corpus];
+    groupingKeys?.forEach((key) => {
+      if (!this._details.paramset[key]) {
+        errorMessage(`Digest is missing key "${key}"`);
+        return;
+      }
+      if (this._details.paramset[key].length !== 1) {
+        errorMessage(
+          `Digest key ${key} must have exactly one value;`
+          + `${this._details.paramset[key].length} values found.`,
+        );
+        return;
+      }
+      grouping[key] = this._details.paramset[key][0];
+    });
+
+    const triageRequest: TriageRequestV3 = {
+      deltas: [
+        {
+          grouping: grouping,
+          digest: this._details.digest,
+          label_before: labelBefore,
+          label_after: label,
         },
-      },
-      changelist_id: this._changeListID,
-      crs: this._crs,
+      ],
+    };
+    if (this._changeListID && this._crs) {
+      triageRequest.changelist_id = this._changeListID;
+      triageRequest.crs = this._crs;
+    }
+
+    const restorePreviousStatusInUI = () => {
+      this.querySelector<TriageSk>('triage-sk')!.value = labelBefore;
+      this._render();
     };
 
     sendBeginTask(this);
-    const url = '/json/v2/triage';
+    const url = '/json/v3/triage';
     fetch(url, {
       method: 'POST',
       body: JSON.stringify(triageRequest),
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then((resp: Response) => {
+    }).then(async (resp: Response) => {
       if (resp.ok) {
-        // Triaging was successful.
-        this._details.status = label;
-        this._details.triage_history!.unshift({
-          user: 'me',
-          ts: new Date(Date.now()).toISOString(),
-        });
-        this._render();
-        sendEndTask(this);
+        const triageResponse = await resp.json() as TriageResponse;
+        if (triageResponse.status === 'ok') {
+          // Triaging was successful.
+          this._details.status = label;
+          this._details.triage_history ||= [];
+          this._details.triage_history!.unshift({
+            user: 'me',
+            ts: new Date(Date.now()).toISOString(),
+          });
+          this._render();
+          sendEndTask(this);
+        } else if (triageResponse.status === 'conflict') {
+          // Triage conflict. We want to set the status of the triage-sk back to what it was to
+          // give a visual indication it did not go through. Additionally, toast error message
+          // should catch the user's attention.
+          console.error('TriageResponse indicates triage conflict:', triageResponse);
+          errorMessage(
+            'Triage conflict: Attempted to triage from '
+            + `${triageResponse.conflict?.actual_label_before} to ${label}, `
+            + 'but the digest\'s current label is '
+            + `${triageResponse.conflict?.expected_label_before}. `
+            + 'It is possible that another user triaged this digest. Try refreshing the page.',
+          );
+          restorePreviousStatusInUI();
+          sendEndTask(this);
+        } else {
+          // Unknown triage status. We want to set the status of the triage-sk back to what it was
+          // to give a visual indication it did not go through. Additionally, toast error message
+          // should catch the user's attention.
+          console.error('Unknown TriageResponse status:', triageResponse);
+          errorMessage(`Unexpected TriageResponse status: ${triageResponse.status}.`, 8000);
+          restorePreviousStatusInUI();
+          sendEndTask(this);
+        }
       } else {
         // Triaging did not work (possibly because the user was not logged in). We want to set
         // the status of the triage-sk back to what it was to give a visual indication it did not
@@ -455,8 +538,7 @@ export class DigestDetailsSk extends ElementSk {
           `Unexpected error triaging: ${resp.status} ${resp.statusText} `
             + '(Are you logged in with the right account?)', 8000,
         );
-        this.querySelector<TriageSk>('triage-sk')!.value = this._details.status;
-        this._render();
+        restorePreviousStatusInUI();
         sendEndTask(this);
       }
     }).catch((e) => {

@@ -41,6 +41,7 @@ sk_page(
         "//golden/modules/digest-details-sk:test_data_ts_lib",
         "//golden/modules/last-commit-sk:demo_data_ts_lib",
         "@npm//fetch-mock",
+        "//golden/modules/search-page-sk:demo_data_ts_lib",
     ],
     ts_entry_point = "cluster-page-sk-demo.ts",
 )
@@ -51,6 +52,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//golden/modules/cluster-digests-sk:cluster-digests-sk_po_ts_lib",
+        "//golden/modules/digest-details-sk:digest-details-sk_po_ts_lib",
         "//golden/modules/search-controls-sk:search-controls-sk_po_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "//infra-sk/modules/paramset-sk:paramset-sk_po_ts_lib",
@@ -78,10 +80,14 @@ karma_test(
         ":cluster-page-sk",
         ":cluster-page-sk_po_ts_lib",
         ":test_data_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
+        "//golden/modules/digest-details-sk:test_data_ts_lib",
+        "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
+        "@npm//common-sk",
         "@npm//fetch-mock",
     ],
 )

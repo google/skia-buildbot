@@ -15,6 +15,7 @@ import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { DetailsPageSk } from './details-page-sk';
 import { DigestDetails } from '../rpc_types';
 import { setQueryString } from '../../../infra-sk/modules/test_util';
+import { groupingsResponse } from '../search-page-sk/demo_data';
 
 testOnlySetSettings({
   title: 'Skia Public',
@@ -36,6 +37,7 @@ interface UrlParams {
   test: string;
 }
 
+fetchMock.get('/json/v1/groupings', groupingsResponse);
 fetchMock.get('glob:/json/v2/details*', (url) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {
     return 500;

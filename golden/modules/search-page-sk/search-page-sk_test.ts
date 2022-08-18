@@ -4,14 +4,16 @@ import { expect } from 'chai';
 import { deepCopy } from 'common-sk/modules/object';
 import { fromObject } from 'common-sk/modules/query';
 import {
-  searchResponse, statusResponse, paramSetResponse, changeListSummaryResponse,
+  searchResponse, statusResponse, paramSetResponse, changeListSummaryResponse, groupingsResponse,
 } from './demo_data';
 import {
   setUpElementUnderTest, eventSequencePromise, eventPromise, setQueryString, expectQueryStringToEqual, noEventPromise,
 } from '../../../infra-sk/modules/test_util';
 import { SearchPageSk, SearchRequest, DEFAULT_SEARCH_RESULTS_LIMIT } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
-import { Label, SearchResponse, TriageRequest } from '../rpc_types';
+import {
+  Label, SearchResponse, TriageRequest, TriageRequestV3, TriageResponse,
+} from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
@@ -106,13 +108,14 @@ describe('search-page-sk', () => {
 
     fetchMock.getOnce('/json/v2/trstatus', () => statusResponse);
     fetchMock.getOnce('/json/v2/paramset', () => paramSetResponse);
+    fetchMock.getOnce('/json/v1/groupings', () => groupingsResponse);
     fetchMock.get(
       `/json/v2/search?${fromObject(opts.expectedInitialSearchRequest as any)}`,
       () => opts.initialSearchResponse,
     );
 
-    // We always wait for at least the three above RPCs.
-    const eventsToWaitFor = ['end-task', 'end-task', 'end-task'];
+    // We always wait for at least the four above RPCs.
+    const eventsToWaitFor = ['end-task', 'end-task', 'end-task', 'end-task'];
 
     // This mocked RPC corresponds to the queryStringWithCL and searchRequestWithCL constants
     // defined above.
@@ -528,6 +531,53 @@ describe('search-page-sk', () => {
       expect(diffDetailsHrefs[1]).to.contain('changelist_id=123456&crs=gerrit');
       expect(diffDetailsHrefs[2]).to.contain('changelist_id=123456&crs=gerrit');
     });
+
+    describe('triaging a single digest', () => {
+      // These test cases exercise the wiring code that passes the groupings returned by the
+      // /json/v1/groupings RPC to the digest-details-sk elements.
+
+      const triageRequest: TriageRequestV3 = {
+        deltas: [
+          {
+            grouping: {
+              source_type: 'infra',
+              name: 'gold_search-controls-sk_right-hand-trace-filter-editor',
+            },
+            digest: 'fbd3de3fff6b852ae0bb6751b9763d27',
+            label_before: 'positive',
+            label_after: 'negative',
+          },
+        ],
+      };
+      const triageResponse: TriageResponse = { status: 'ok' };
+
+      it('can triage at head', async () => {
+        await instantiate();
+        fetchMock.post(
+          { url: '/json/v3/triage', body: triageRequest },
+          { status: 200, body: triageResponse },
+        );
+
+        const digest = await searchPageSkPO.digestDetailsSkPOs.item(0);
+        await digest.triageSkPO.clickButton('negative');
+      });
+
+      it('can triage at a CL', async () => {
+        await instantiate(instantiationOptionsWithCL);
+        const triageRequestForCL: TriageRequestV3 = {
+          ...triageRequest,
+          changelist_id: '123456',
+          crs: 'gerrit',
+        };
+        fetchMock.post(
+          { url: '/json/v3/triage', body: triageRequestForCL },
+          { status: 200, body: triageResponse },
+        );
+
+        const digest = await searchPageSkPO.digestDetailsSkPOs.item(0);
+        await digest.triageSkPO.clickButton('negative');
+      });
+    });
   });
 
   // TODO(lovisolo): Add some sort of indication in the UI when searching by blame.
@@ -799,7 +849,9 @@ describe('search-page-sk', () => {
       });
 
       it('can triage the selected digest with keys "A", "S" and "D"', async () => {
-        fetchMock.post('/json/v2/triage', 200); // We ignore the TriageRequest in this test.
+        // We ignore the TriageRequest in this test.
+        const triageResponse: TriageResponse = { status: 'ok' };
+        fetchMock.post('/json/v3/triage', { status: 200, body: triageResponse });
 
         await instantiate();
 

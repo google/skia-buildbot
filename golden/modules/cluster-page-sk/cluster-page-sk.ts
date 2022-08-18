@@ -22,7 +22,7 @@ import '../digest-details-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import {
-  ClusterDiffLink, ClusterDiffResult, Digest, DigestComparison, DigestDetails, TestName,
+  ClusterDiffLink, ClusterDiffResult, Digest, DigestComparison, DigestDetails, GroupingsResponse, TestName,
 } from '../rpc_types';
 import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from '../cluster-digests-sk/cluster-digests-sk';
 import { ParamSetSkClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
@@ -84,7 +84,8 @@ export class ClusterPageSk extends ElementSk {
       if (ele.digestDetails) {
         return html`
           <digest-details-sk .details=${ele.digestDetails.digest}
-                             .commits=${ele.digestDetails.commits}>
+                             .commits=${ele.digestDetails.commits}
+                             .groupings=${ele.groupings}>
           </digest-details-sk>
         `;
       }
@@ -94,7 +95,8 @@ export class ClusterPageSk extends ElementSk {
       if (ele.diffDetails) {
         return html`
           <digest-details-sk .details=${ele.diffDetails.left}
-                             .right=${ele.diffDetails.right}>
+                             .right=${ele.diffDetails.right}
+                             .groupings=${ele.groupings}>
           </digest-details-sk>`;
       }
       return html`<h2>Loading diff details</h2>`;
@@ -136,6 +138,8 @@ export class ClusterPageSk extends ElementSk {
     mustHaveReferenceImage: false,
     sortOrder: 'descending',
   };
+
+  private groupings: GroupingsResponse | null = null;
 
   private grouping: TestName = '';
 
@@ -188,6 +192,7 @@ export class ClusterPageSk extends ElementSk {
         this.grouping = newState.grouping as string;
         this.changeListID = newState.changeListID as string;
         this.crs = newState.crs as string;
+        this.fetchGroupingsOnce();
         this.fetchClusterData();
         this._render();
       },
@@ -207,6 +212,20 @@ export class ClusterPageSk extends ElementSk {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('keydown', this.keyEventHandler);
+  }
+
+  private async fetchGroupingsOnce() {
+    // Only fetch once. We assume this doesn't change during the page's lifetime.
+    if (this.groupings) return;
+
+    try {
+      sendBeginTask(this);
+      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this._render();
+      sendEndTask(this);
+    } catch (e) {
+      sendFetchError(this, e, 'fetching groupings');
+    }
   }
 
   /**

@@ -12,7 +12,9 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { DigestComparison, LeftDiffInfo, SRDiffDigest } from '../rpc_types';
+import {
+  DigestComparison, GroupingsResponse, LeftDiffInfo, SRDiffDigest,
+} from '../rpc_types';
 
 export class DiffPageSk extends ElementSk {
   private static template = (ele: DiffPageSk) => {
@@ -25,11 +27,14 @@ export class DiffPageSk extends ElementSk {
     return html`
       <digest-details-sk .details=${ele.leftDetails}
                          .right=${ele.rightDetails}
+                         .groupings=${ele.groupings}
                          .changeListID=${ele.changeListID}
                          .crs=${ele.crs}>
       </digest-details-sk>
     `;
   };
+
+  private groupings: GroupingsResponse | null = null;
 
   private grouping = '';
 
@@ -73,7 +78,8 @@ export class DiffPageSk extends ElementSk {
         this.rightDigest = newState.right as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.fetch();
+        this.fetchGroupingsOnce();
+        this.fetchDigestComparison();
         this._render();
       },
     );
@@ -84,7 +90,21 @@ export class DiffPageSk extends ElementSk {
     this._render();
   }
 
-  private fetch() {
+  private async fetchGroupingsOnce() {
+    // Only fetch once. We assume this doesn't change during the page's lifetime.
+    if (this.groupings) return;
+
+    try {
+      sendBeginTask(this);
+      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this._render();
+      sendEndTask(this);
+    } catch (e) {
+      sendFetchError(this, e, 'fetching groupings');
+    }
+  }
+
+  private fetchDigestComparison() {
     // Kill any outstanding requests
     this._fetchController?.abort();
 

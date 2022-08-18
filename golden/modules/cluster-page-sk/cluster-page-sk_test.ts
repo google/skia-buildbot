@@ -3,16 +3,23 @@ import './index';
 import fetchMock from 'fetch-mock';
 
 import { expect } from 'chai';
+import { deepCopy } from 'common-sk/modules/object';
 import {
   eventPromise,
   setQueryString,
   expectQueryStringToEqual,
   setUpElementUnderTest,
+  eventSequencePromise,
 } from '../../../infra-sk/modules/test_util';
 import { clusterDiffJSON, negativeDigest, positiveDigest } from './test_data';
 import { testOnlySetSettings } from '../settings';
 import { ClusterPageSk } from './cluster-page-sk';
 import { ClusterPageSkPO } from './cluster-page-sk_po';
+import {
+  DigestComparison, DigestDetails, TriageRequestV3, TriageResponse,
+} from '../rpc_types';
+import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
+import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('cluster-page-sk', () => {
   const newInstance = setUpElementUnderTest<ClusterPageSk>('cluster-page-sk');
@@ -36,9 +43,10 @@ describe('cluster-page-sk', () => {
       clusterDiffJSON,
     );
     fetchMock.get('/json/v2/paramset', clusterDiffJSON.paramsetsUnion);
+    fetchMock.getOnce('/json/v1/groupings', groupingsResponse);
 
     // Instantiate page; wait for RPCs to complete and for the page to render.
-    const endTask = eventPromise('end-task');
+    const endTask = eventSequencePromise(['end-task', 'end-task', 'end-task']);
     clusterPageSk = newInstance();
     clusterPageSkPO = new ClusterPageSkPO(clusterPageSk);
     await endTask;
@@ -120,5 +128,69 @@ describe('cluster-page-sk', () => {
     });
 
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
+  });
+
+  describe('triaging', async () => {
+    // These tests exercise the wiring that passes the groupings returned by the /json/v1/groupings
+    // RPC to the digest-details-sk element.
+
+    beforeEach(() => {
+      const triageRequest: TriageRequestV3 = {
+        deltas: [
+          {
+            grouping: {
+              source_type: 'infra',
+              name: 'dots-legend-sk_too-many-digests',
+            },
+            digest: '6246b773851984c726cb2e1cb13510c2',
+            label_before: 'positive',
+            label_after: 'negative',
+          },
+        ],
+      };
+
+      const triageResponse: TriageResponse = { status: 'ok' };
+
+      fetchMock.post(
+        { url: '/json/v3/triage', body: triageRequest },
+        { status: 200, body: triageResponse },
+      );
+
+      const digestDetails: DigestDetails = {
+        digest: deepCopy(typicalDetails),
+        commits: deepCopy(twoHundredCommits),
+      };
+      fetchMock.get('glob:/json/v2/details*', digestDetails);
+    });
+
+    it('can triage with one digest selected', async () => {
+      let endTask = eventPromise('end-task');
+      await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
+      await endTask;
+
+      endTask = eventPromise('end-task');
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
+      await endTask;
+    });
+
+    it('can triage with two digests selected', async () => {
+      let endTask = eventPromise('end-task');
+      await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
+      await endTask;
+
+      const digestComparison: DigestComparison = {
+        left: deepCopy(typicalDetails),
+        right: deepCopy(typicalDetails.refDiffs?.pos)!,
+      };
+      fetchMock.get('glob:/json/v2/diff*', digestComparison);
+
+      endTask = eventPromise('end-task');
+      await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
+      await endTask;
+
+      endTask = eventPromise('end-task');
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
+      await endTask;
+    });
   });
 });

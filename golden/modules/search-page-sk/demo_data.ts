@@ -1,5 +1,5 @@
 import {
-  SearchResponse, StatusResponse, ParamSetResponse, ChangelistSummaryResponse,
+  SearchResponse, StatusResponse, ParamSetResponse, ChangelistSummaryResponse, GroupingsResponse,
 } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
@@ -164,6 +164,14 @@ export const paramSetResponse: ParamSetResponse = {
     'perf_word-cloud-sk',
   ],
   source_type: ['infra'],
+};
+
+export const groupingsResponse: GroupingsResponse = {
+  grouping_param_keys_by_corpus: {
+    foo: ['name', 'source_type'],
+    infra: ['name', 'source_type'],
+    bar: ['name', 'source_type'],
+  },
 };
 
 // Taken from https://skia-infra-gold.skia.org/json/changelist/gerrit/31719 on 2020-09-15.

@@ -10,6 +10,7 @@ import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { ClusterPageSk } from './cluster-page-sk';
 import { DigestComparison, DigestDetails, SearchResult } from '../rpc_types';
+import { groupingsResponse } from '../search-page-sk/demo_data';
 
 testOnlySetSettings({
   title: 'Skia Demo',
@@ -36,6 +37,7 @@ const detailsResponse: DigestDetails = {
 };
 fetchMock.get('glob:/json/v2/details*', delay(detailsResponse, fakeRpcDelayMillis));
 fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v1/groupings', groupingsResponse);
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails)) as SearchResult;
 const rightDetails = typicalDetails.refDiffs!.neg!;

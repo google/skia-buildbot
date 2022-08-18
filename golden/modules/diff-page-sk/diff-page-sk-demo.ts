@@ -13,6 +13,7 @@ import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { DiffPageSk } from './diff-page-sk';
 import { setQueryString } from '../../../infra-sk/modules/test_util';
 import { DigestComparison, LeftDiffInfo } from '../rpc_types';
+import { groupingsResponse } from '../search-page-sk/demo_data';
 
 testOnlySetSettings({
   title: 'Skia Public',
@@ -37,6 +38,7 @@ interface UrlParams {
   crs?: string;
 }
 
+fetchMock.getOnce('/json/v1/groupings', groupingsResponse);
 fetchMock.get('glob:/json/v2/diff*', (url) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {
     return delay(500);

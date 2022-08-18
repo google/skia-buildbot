@@ -12,7 +12,9 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { Commit, DigestDetails, SearchResult } from '../rpc_types';
+import {
+  Commit, DigestDetails, GroupingsResponse, SearchResult,
+} from '../rpc_types';
 
 export class DetailsPageSk extends ElementSk {
   private static template = (ele: DetailsPageSk) => {
@@ -29,13 +31,16 @@ export class DetailsPageSk extends ElementSk {
       `;
     }
     return html`
-      <digest-details-sk .commits=${ele.commits}
+      <digest-details-sk .groupings=${ele.groupings}
+                         .commits=${ele.commits}
                          .changeListID=${ele.changeListID}
                          .crs=${ele.crs}
                          .details=${ele.details}>
       </digest-details-sk>
     `;
   };
+
+  private groupings: GroupingsResponse | null = null;
 
   private grouping = '';
 
@@ -75,7 +80,8 @@ export class DetailsPageSk extends ElementSk {
         this.digest = newState.digest as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.fetch();
+        this.fetchGroupingsOnce();
+        this.fetchDigestDetails();
         this._render();
       },
     );
@@ -86,7 +92,21 @@ export class DetailsPageSk extends ElementSk {
     this._render();
   }
 
-  private fetch() {
+  private async fetchGroupingsOnce() {
+    // Only fetch once. We assume this doesn't change during the page's lifetime.
+    if (this.groupings) return;
+
+    try {
+      sendBeginTask(this);
+      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this._render();
+      sendEndTask(this);
+    } catch (e) {
+      sendFetchError(this, e, 'fetching groupings');
+    }
+  }
+
+  private fetchDigestDetails() {
     if (this.fetchController) {
       // Kill any outstanding requests
       this.fetchController.abort();

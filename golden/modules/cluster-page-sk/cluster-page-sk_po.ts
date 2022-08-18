@@ -2,6 +2,7 @@ import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
 import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
 import { ClusterDigestsSkPO } from '../cluster-digests-sk/cluster-digests-sk_po';
+import { DigestDetailsSkPO } from '../digest-details-sk/digest-details-sk_po';
 
 /** A page object for the ClusterPageSk component. */
 export class ClusterPageSkPO extends PageObject {
@@ -15,5 +16,9 @@ export class ClusterPageSkPO extends PageObject {
 
   get paramSetSkPO(): ParamSetSkPO {
     return this.poBySelector('.page-container > paramset-sk', ParamSetSkPO);
+  }
+
+  get digestDetailsSkPO(): DigestDetailsSkPO {
+    return this.poBySelector('.page-container > digest-details-sk', DigestDetailsSkPO);
   }
 }

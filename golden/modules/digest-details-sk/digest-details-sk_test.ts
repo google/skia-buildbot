@@ -2,11 +2,13 @@ import './index';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from 'common-sk/modules/object';
+import { ErrorSkEventDetail } from 'elements-sk/errorMessage';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { twoHundredCommits, typicalDetails } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
-import { Label, TriageRequest } from '../rpc_types';
+import { Label, TriageRequestV3, TriageResponse } from '../rpc_types';
+import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('digest-details-sk', () => {
   const newInstance = setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
@@ -29,6 +31,7 @@ describe('digest-details-sk', () => {
 
   describe('layout with positive and negative references', () => {
     beforeEach(() => {
+      digestDetailsSk.groupings = deepCopy(groupingsResponse);
       digestDetailsSk.details = deepCopy(typicalDetails);
       digestDetailsSk.commits = deepCopy(twoHundredCommits);
     });
@@ -123,27 +126,65 @@ describe('digest-details-sk', () => {
         fetchMock.reset();
       });
 
-      it('POSTs to the v2 RPC endpoint when triage button clicked', async () => {
-        const triageRequest: TriageRequest = {
-          testDigestStatus: {
-            'dots-legend-sk_too-many-digests': {
-              '6246b773851984c726cb2e1cb13510c2': 'negative',
+      const triageRequest: TriageRequestV3 = {
+        deltas: [
+          {
+            grouping: {
+              source_type: 'infra',
+              name: 'dots-legend-sk_too-many-digests',
             },
+            digest: '6246b773851984c726cb2e1cb13510c2',
+            label_before: 'positive',
+            label_after: 'negative',
           },
-          changelist_id: '',
-          crs: '',
-        };
-        fetchMock.post({ url: '/json/v2/triage', body: triageRequest }, 200);
+        ],
+      };
+
+      it('POSTs to the RPC endpoint when triage button clicked', async () => {
+        const triageResponse: TriageResponse = { status: 'ok' };
+        fetchMock.post(
+          { url: '/json/v3/triage', body: triageRequest },
+          { status: 200, body: triageResponse },
+        );
 
         const endPromise = eventPromise('end-task');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         await endPromise;
+      });
+
+      it('shows an error message upon a triage conflict', async () => {
+        const triageResponse: TriageResponse = {
+          status: 'conflict',
+          conflict: {
+            grouping: {
+              source_type: 'infra',
+              name: 'dots-legend-sk_too-many-digests',
+            },
+            digest: '6246b773851984c726cb2e1cb13510c2',
+            expected_label_before: 'untriaged',
+            actual_label_before: 'positive',
+          },
+        };
+        fetchMock.post(
+          { url: '/json/v3/triage', body: triageRequest },
+          { status: 200, body: triageResponse },
+        );
+
+        const errorPromise = eventPromise<CustomEvent<ErrorSkEventDetail>>('error-sk');
+        await digestDetailsSkPO.triageSkPO.clickButton('negative');
+        const detail = await errorPromise;
+        expect(detail.detail.message).to.equal(
+          'Triage conflict: Attempted to triage from positive to negative, but the digest\'s '
+          + 'current label is untriaged. It is possible that another user triaged this digest. '
+          + 'Try refreshing the page.',
+        );
       });
     });
   });
 
   describe('layout with changelist id, positive and negative references', () => {
     beforeEach(() => {
+      digestDetailsSk.groupings = deepCopy(groupingsResponse);
       digestDetailsSk.details = deepCopy(typicalDetails);
       digestDetailsSk.commits = deepCopy(twoHundredCommits);
       digestDetailsSk.changeListID = '12345';
@@ -182,16 +223,26 @@ describe('digest-details-sk', () => {
       });
 
       it('includes changelist id when triaging', async () => {
-        const triageRequest = {
-          testDigestStatus: {
-            'dots-legend-sk_too-many-digests': {
-              '6246b773851984c726cb2e1cb13510c2': 'negative',
+        const triageRequest: TriageRequestV3 = {
+          deltas: [
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'dots-legend-sk_too-many-digests',
+              },
+              digest: '6246b773851984c726cb2e1cb13510c2',
+              label_before: 'positive',
+              label_after: 'negative',
             },
-          },
+          ],
           changelist_id: '12345',
           crs: 'github',
         };
-        fetchMock.post({ url: '/json/v2/triage', body: triageRequest }, 200);
+        const triageResponse: TriageResponse = { status: 'ok' };
+        fetchMock.post(
+          { url: '/json/v3/triage', body: triageRequest },
+          { status: 200, body: triageResponse },
+        );
 
         const endPromise = eventPromise('end-task');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
