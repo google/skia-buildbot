@@ -49,6 +49,7 @@ export class BinaryDiffPageSk extends ElementSk {
   }
 
   private metadata: BloatyOutputMetadata | null = null;
+
   private raw_diff: string | null = null;
 
   constructor() {
@@ -72,8 +73,8 @@ export class BinaryDiffPageSk extends ElementSk {
       compile_task_name: params.get('compile_task_name') || '',
     };
     const response = await fetch('/rpc/binary_size_diff/v1', { method: 'POST', body: JSON.stringify(request) })
-        .then(jsonOrThrow)
-        .then((r: BinarySizeDiffRPCResponse) => r);
+      .then(jsonOrThrow)
+      .then((r: BinarySizeDiffRPCResponse) => r);
 
     this.metadata = response.metadata;
     this.raw_diff = response.raw_diff;

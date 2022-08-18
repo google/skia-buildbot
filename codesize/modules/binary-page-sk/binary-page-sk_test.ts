@@ -6,10 +6,8 @@ import {
 import { TreeMapDataTableRow } from '../rpc_types';
 
 describe('Binary Page Static Methods', () => {
-
   describe('shortenName()', () => {
     it('returns the last segment (the file name)', () => {
-
       const test = (name: string, input: string, expected: string) => {
         const actual = shortenName(input);
         assert.equal(actual, expected, name);
@@ -26,14 +24,14 @@ describe('Binary Page Static Methods', () => {
   describe('convertResponseToDataTable()', () => {
     it('shortens file names', () => {
       const inputs: TreeMapDataTableRow[] = [
-        {"name": "ROOT", "parent": "", "size": 0},
-        {"name": "third_party", "parent": "ROOT", "size": 0},
-        {"name": "third_party/externals", "parent": "third_party", "size": 0},
-        {"name": "third_party/externals/harfbuzz", "parent": "third_party/externals", "size": 0},
-        {"name": "third_party/externals/harfbuzz/src", "parent": "third_party/externals/harfbuzz", "size": 0},
-        {"name": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "parent": "third_party/externals/harfbuzz/src", "size": 0},
-        {"name": "OT::OffsetTo<>::sanitize<>()", "parent": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "size": 11221},
-        {"name": "OT::ArrayOf<>::sanitize<>()", "parent": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "size": 6835},
+        { name: 'ROOT', parent: '', size: 0 },
+        { name: 'third_party', parent: 'ROOT', size: 0 },
+        { name: 'third_party/externals', parent: 'third_party', size: 0 },
+        { name: 'third_party/externals/harfbuzz', parent: 'third_party/externals', size: 0 },
+        { name: 'third_party/externals/harfbuzz/src', parent: 'third_party/externals/harfbuzz', size: 0 },
+        { name: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', parent: 'third_party/externals/harfbuzz/src', size: 0 },
+        { name: 'OT::OffsetTo<>::sanitize<>()', parent: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', size: 11221 },
+        { name: 'OT::ArrayOf<>::sanitize<>()', parent: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', size: 6835 },
       ];
 
       const expectedRows = [
@@ -45,7 +43,7 @@ describe('Binary Page Static Methods', () => {
         ['third_party/externals/harfbuzz/src', 'third_party/externals/harfbuzz', 0],
         ['hb-ot-layout.cc', 'third_party/externals/harfbuzz/src', 0], // This was shortened
         ['OT::OffsetTo<>::sanitize<>()', 'hb-ot-layout.cc', 11221], // As were these usages
-        ['OT::ArrayOf<>::sanitize<>()', 'hb-ot-layout.cc', 6835]
+        ['OT::ArrayOf<>::sanitize<>()', 'hb-ot-layout.cc', 6835],
       ];
       const actualRows = convertResponseToDataTable(inputs);
       assert.sameDeepOrderedMembers(actualRows, expectedRows);
@@ -53,16 +51,16 @@ describe('Binary Page Static Methods', () => {
 
     it('does not shorten file names if there are duplicates', () => {
       const inputs: TreeMapDataTableRow[] = [
-        {"name": "ROOT", "parent": "", "size": 0},
-        {"name": "third_party", "parent": "ROOT", "size": 0},
-        {"name": "third_party/externals", "parent": "third_party", "size": 0},
-        {"name": "third_party/externals/harfbuzz", "parent": "third_party/externals", "size": 0},
-        {"name": "third_party/externals/harfbuzz/src", "parent": "third_party/externals/harfbuzz", "size": 0},
-        {"name": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "parent": "third_party/externals/harfbuzz/src", "size": 0},
-        {"name": "OT::OffsetTo<>::sanitize<>()", "parent": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "size": 11221},
-        {"name": "OT::ArrayOf<>::sanitize<>()", "parent": "third_party/externals/harfbuzz/src/hb-ot-layout.cc", "size": 6835},
-        {"name": "third_party/hb-ot-layout.cc", "parent": "third_party", "size": 117},
-        {"name": "Merbulate()", "parent": "third_party/hb-ot-layout.cc", "size": 65},
+        { name: 'ROOT', parent: '', size: 0 },
+        { name: 'third_party', parent: 'ROOT', size: 0 },
+        { name: 'third_party/externals', parent: 'third_party', size: 0 },
+        { name: 'third_party/externals/harfbuzz', parent: 'third_party/externals', size: 0 },
+        { name: 'third_party/externals/harfbuzz/src', parent: 'third_party/externals/harfbuzz', size: 0 },
+        { name: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', parent: 'third_party/externals/harfbuzz/src', size: 0 },
+        { name: 'OT::OffsetTo<>::sanitize<>()', parent: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', size: 11221 },
+        { name: 'OT::ArrayOf<>::sanitize<>()', parent: 'third_party/externals/harfbuzz/src/hb-ot-layout.cc', size: 6835 },
+        { name: 'third_party/hb-ot-layout.cc', parent: 'third_party', size: 117 },
+        { name: 'Merbulate()', parent: 'third_party/hb-ot-layout.cc', size: 65 },
       ];
 
       const expectedRows = [
@@ -84,5 +82,4 @@ describe('Binary Page Static Methods', () => {
       assert.sameDeepOrderedMembers(actualRows, expectedRows);
     });
   });
-
 });

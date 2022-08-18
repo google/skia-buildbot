@@ -65,7 +65,7 @@ export class IndexPageSk extends ElementSk {
           compile_task_name: output.metadata.compile_task_name,
           patch_issue: output.metadata.patch_issue,
           patch_set: output.metadata.patch_set,
-        }
+        };
         return `/binary_diff?${new URLSearchParams(params).toString()}`;
       };
 
@@ -88,8 +88,7 @@ export class IndexPageSk extends ElementSk {
                  class="compile-task">
                 ${output.metadata.compile_task_name}
               </a>
-              ${hasDiff ?
-                html`<a href="${hrefForBinaryDiff(output)}" class="size-diff">Size Diff</a>` : ''}
+              ${hasDiff ? html`<a href="${hrefForBinaryDiff(output)}" class="size-diff">Size Diff</a>` : ''}
             </li>
           `)}
         </ul>

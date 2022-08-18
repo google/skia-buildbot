@@ -4,14 +4,16 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { load } from '@google-web-components/google-chart/loader';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import Fuse from 'fuse.js';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
-import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse, TreeMapDataTableRow } from '../rpc_types';
+import {
+  BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse, TreeMapDataTableRow,
+} from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
 import '@google-web-components/google-chart/';
-import Fuse from 'fuse.js';
-import { $$ } from 'common-sk/modules/dom';
 
 /**
  * Convert the data we get from the server into a format that can be visualized by the treemap.
@@ -121,19 +123,21 @@ export class BinaryPageSk extends ElementSk {
   // Returns a <li> with the matching string. If it is the first element, mark it selected to
   // give an affordance that something is auto selected and the user can hit enter to pick it.
   private searchResult = (match: Fuse.FuseResult<string>, idx: number): TemplateResult => html`
-<li class=${'search-match-list-item ' + (idx === 0 ? 'selected': '')}
+<li class=${`search-match-list-item ${idx === 0 ? 'selected' : ''}`}
     @click=${() => this.showElement(match)}>
   ${match.item}
 </li>
 `;
 
   private tree: google.visualization.TreeMap | null = null;
+
   private fuse: Fuse<string> | null = null;
+
   private listOfSearchResults: Fuse.FuseResult<string>[] = [];
 
   // Uses Fuse.js to match a users input to a node within the tree. Returns the top
   // MAX_SEARCH_RESULTS results.
-  private onSearchInput(e: Event):void {
+  private onSearchInput(e: Event): void {
     if (!this.fuse) {
       return;
     }
@@ -149,7 +153,7 @@ export class BinaryPageSk extends ElementSk {
       // treemap upon creation. This is the same order we passed into Fuse, and we can find
       // that matching index by looking at refIndex.
       const selectedIdx = match.refIndex;
-      this.tree!.setSelection([{column: null, row: selectedIdx}]);
+      this.tree!.setSelection([{ column: null, row: selectedIdx }]);
     }
     this.listOfSearchResults = []; // hide other results
     $$<HTMLInputElement>('.search-bar input', this)!.value = ''; // clear search bar
@@ -159,23 +163,23 @@ export class BinaryPageSk extends ElementSk {
   // If the user hits enter, change the selected element to the top search result.
   // Otherwise, make sure the first element is highlighted to indicate this behavior.
   private onSearchKeyUp(e: Event): void {
-      if (!this.tree) {
-        return;
+    if (!this.tree) {
+      return;
+    }
+    const evt = (e as KeyboardEvent);
+    if (evt.key === 'Enter') {
+      // User hit enter, use the top result.
+      this.showElement(this.listOfSearchResults[0]);
+      return;
+    }
+    // Auto-highlight the first list element again (in case it was cleared via mouse over),
+    // thus resetting the affordance that it is the auto-picked version.
+    if (this.listOfSearchResults.length >= 1) {
+      const firstItem = $$<HTMLLIElement>('#searchSuggestions li:first-child', this);
+      if (firstItem) {
+        firstItem.classList.add('selected');
       }
-      const evt = (e as KeyboardEvent);
-      if (evt.key === 'Enter') {
-        // User hit enter, use the top result.
-        this.showElement(this.listOfSearchResults[0]);
-        return;
-      }
-      // Auto-highlight the first list element again (in case it was cleared via mouse over),
-      // thus resetting the affordance that it is the auto-picked version.
-      if (this.listOfSearchResults.length >= 1) {
-        const firstItem = $$<HTMLLIElement>('#searchSuggestions li:first-child', this);
-        if (firstItem) {
-          firstItem.classList.add('selected');
-        }
-      }
+    }
   }
 
   // If the user starts typing, then mouses over the list, we clear the default selected option.
@@ -225,12 +229,11 @@ export class BinaryPageSk extends ElementSk {
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
     // a type assertion is necessary to keep the TypeScript compiler happy.
-    // TODO(kjlubick): add categorical coloring
     const treeOptions = {
       generateTooltip: showTooltip,
-      minColor: '#E8DAFF',
-      midColor: '#E8DAFF',
-      maxColor: '#E8DAFF',
+      minColor: '#E8DAFF', // We really wanted to have categorical coloring, but that appears
+      midColor: '#E8DAFF', // infeasible. Setting the fourth column works for leaf nodes, but not
+      maxColor: '#E8DAFF', // parent nodes as one would expect.
     } as google.visualization.TreeMapOptions;
 
     const searchOptions = {
