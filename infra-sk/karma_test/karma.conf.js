@@ -1,3 +1,5 @@
+var os = require('os');
+
 // At this point, process.argv looks something like:
 // [
 //   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/build_bazel_rules_nodejs/internal/node/_node_bin/node',
@@ -88,5 +90,12 @@ module.exports = function(config) {
     //     opened in the browser. Tests are rebuilt automatically when the code changes. Reload the
     //     page manually to see the changes.
     autoWatch: false,
+
+    // Set hostname so that, when running in interactive mode (e.g. "bazel run //path/to:test"),
+    // the test runner prints "Karma vX.Y.Z server started at http://<HOSTNAME>:9876", where
+    // <HOSTNAME> is the actual host's name rather than "localhost". This is useful when running
+    // tests in interactive mode remotely via SSH and one wishes to open the test runner page in a
+    // browser running locally.
+    hostname: os.hostname(),
   });
 };
