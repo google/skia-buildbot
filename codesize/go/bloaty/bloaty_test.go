@@ -41,8 +41,8 @@ func TestParseBloatyOutput_WrongColumns_Error(t *testing.T) {
 
 // sampleBloatyOutput is a valid Bloaty output that exercises the following logic:
 //
-//   - Enforcement of unique symbol names (see the repeated symbols).
-//   - Special handling of third_party paths (see the third_party compile units).
+//  - Enforcement of unique symbol names (see the repeated symbols).
+//  - Special handling of third_party paths (see the third_party compile units).
 var sampleBloatyOutput = `compileunits	symbols	vmsize	filesize
 ../../third_party/externals/harfbuzz/src/hb-ot-font.cc	(anonymous namespace)::TLSCurrentObjects::Get()::objects	0	13
 ../../third_party/externals/harfbuzz/src/hb-subset.cc	[section .debug_info]	0	4213071
@@ -63,12 +63,6 @@ func TestParseBloatyOutput_Success(t *testing.T) {
 			Symbol:            "(anonymous namespace)::TLSCurrentObjects::Get()::objects",
 			VirtualMemorySize: 0,
 			FileSize:          13,
-		},
-		{
-			CompileUnit:       "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Symbol:            "[section .debug_info]",
-			VirtualMemorySize: 0,
-			FileSize:          4213071,
 		},
 		{
 			CompileUnit:       "dm/DMSrcSink.cpp",
@@ -135,16 +129,6 @@ func TestGenTreeMapDataTable_Success(t *testing.T) {
 			Name:   "(anonymous namespace)::TLSCurrentObjects::Get()::objects",
 			Parent: "third_party/externals/harfbuzz/src/hb-ot-font.cc",
 			Size:   13,
-		},
-		{
-			Name:   "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Parent: "third_party/externals/harfbuzz/src",
-			Size:   0,
-		},
-		{
-			Name:   "[section .debug_info]",
-			Parent: "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Size:   4213071,
 		},
 		{
 			Name:   "dm",

@@ -54,7 +54,7 @@ const expectedHeaderLine = "compileunits\tsymbols\tvmsize\tfilesize"
 //
 // The parameter should contain the output of a Bloaty invocation such as the following:
 //
-//	$ bloaty <path/to/binary> -d compileunits,symbols -n 0 --tsv
+//     $ bloaty <path/to/binary> -d compileunits,symbols -n 0 --tsv
 func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 	if strings.TrimSpace(bloatyOutput) == "" {
 		return nil, skerr.Fmt("empty input")
@@ -104,6 +104,12 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 		item.FileSize, err = strconv.Atoi(cols[3])
 		if err != nil {
 			return nil, wrapErrOnLine(err, "could not convert filesize column to integer")
+		}
+
+		// Skip any entry where the compile unit or symbol starts with '['. These tend to be section
+		// metadata and debug information.
+		if strings.HasPrefix(item.CompileUnit, "[") || strings.HasPrefix(item.Symbol, "[") {
+			continue
 		}
 
 		// Strip the leading "../../" from paths.
