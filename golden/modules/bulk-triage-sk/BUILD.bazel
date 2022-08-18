@@ -64,6 +64,7 @@ karma_test(
         ":bulk-triage-sk",
         ":bulk-triage-sk_po_ts_lib",
         ":test_data_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",

@@ -33,25 +33,25 @@ export class BulkTriageSk extends ElementSk {
   private static template = (el: BulkTriageSk) => html`
     <h2>Bulk Triage</h2>
     <p>Assign the status to all images on this page at once.</p>
-    ${el.changeListID ? html`<p class=cl>This affects Changelist ${el.changeListID}.</p>` : ''}
+    ${el._changeListID ? html`<p class=cl>This affects Changelist ${el._changeListID}.</p>` : ''}
     <div class=status>
-      <button class="positive ${el.value === 'positive' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('positive')}
+      <button class="positive ${el._value === 'positive' ? 'selected' : ''}"
+              @click=${() => el.value = 'positive'}
               title="Triage all the left-hand images as positive."  >
         <check-circle-icon-sk></check-circle-icon-sk>
       </button>
-      <button class="negative ${el.value === 'negative' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('negative')}
+      <button class="negative ${el._value === 'negative' ? 'selected' : ''}"
+              @click=${() => el.value = 'negative'}
               title="Triage all the left-hand images as negative.">
         <cancel-icon-sk></cancel-icon-sk>
       </button>
-      <button class="untriaged ${el.value === 'untriaged' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('untriaged')}
+      <button class="untriaged ${el._value === 'untriaged' ? 'selected' : ''}"
+              @click=${() => el.value = 'untriaged'}
               title="Unset the triage status of all left-hand images.">
         <help-icon-sk></help-icon-sk>
       </button>
-      <button class="closest ${el.value === 'closest' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('closest')}
+      <button class="closest ${el._value === 'closest' ? 'selected' : ''}"
+              @click=${() => el.value = 'closest'}
               title="Triage all the left-hand images the same as the closest image.">
         <view-agenda-icon-sk></view-agenda-icon-sk>
       </button>
@@ -64,10 +64,10 @@ export class BulkTriageSk extends ElementSk {
     </div>
 
     <div class=controls>
-      <button @click=${el._cancel} class=cancel>
+      <button @click=${el.cancel} class=cancel>
         Cancel (do nothing)
       </button>
-      <button @click=${el._triage} class="action triage">
+      <button @click=${el.triage} class="action triage">
         Triage ${el._triageAll ? el._allDigestCount : el._pageDigestCount} digests as ${el._value}
       </button>
     </div>
@@ -102,10 +102,6 @@ export class BulkTriageSk extends ElementSk {
    * The label to apply ("positive", "negative", "untriaged"), or "closest" to apply the label of
    * of the closest triaged reference digest in each case.
    */
-  get value(): BulkTriageLabel {
-    return this._value;
-  }
-
   set value(newValue: BulkTriageLabel) {
     if (!['positive', 'negative', 'untriaged', 'closest'].includes(newValue)) {
       throw new RangeError(`Invalid bulk-triage-sk value: "${newValue}".`);
@@ -118,10 +114,6 @@ export class BulkTriageSk extends ElementSk {
    * The ID of the changelist to which these expectations should belong, or the empty string if
    * none.
    */
-  get changeListID(): string {
-    return this._changeListID;
-  }
-
   set changeListID(newValue: string) {
     this._changeListID = newValue;
     this._render();
@@ -131,10 +123,6 @@ export class BulkTriageSk extends ElementSk {
    * The Code Review System (e.g. "gerrit") associated with the provided changelist ID, or the empty
    * string if none.
    */
-  get crs(): string {
-    return this._crs;
-  }
-
   set crs(c: string) {
     this._crs = c;
     this._render();
@@ -185,8 +173,6 @@ export class BulkTriageSk extends ElementSk {
    *
    * The labels will be applied when using the "closest" bulk triage option.
    */
-  get currentPageDigests(): TriageRequestData { return this._pageDigests; }
-
   set currentPageDigests(digests: TriageRequestData) {
     this._pageDigests = digests;
     this._pageDigestCount = BulkTriageSk.countDigests(digests);
@@ -199,8 +185,6 @@ export class BulkTriageSk extends ElementSk {
    *
    * The labels will be applied when using the "closest" bulk triage option.
    */
-  get allDigests(): TriageRequestData { return this._allDigests; }
-
   set allDigests(digests: TriageRequestData) {
     this._allDigests = digests;
     this._allDigestCount = BulkTriageSk.countDigests(digests);
@@ -222,11 +206,7 @@ export class BulkTriageSk extends ElementSk {
     return count;
   }
 
-  private _setDesiredLabel(newValue: BulkTriageLabel) {
-    this.value = newValue;
-  }
-
-  private _cancel() {
+  private cancel() {
     this.dispatchEvent(new CustomEvent('bulk_triage_cancelled', { bubbles: true }));
   }
 
@@ -234,29 +214,29 @@ export class BulkTriageSk extends ElementSk {
    * This creates an object that can be sent to the triage RPC on the Gold server. The labels
    * will be set to match the current value. See frontend.TriageRequest for more.
    */
-  private _getTriageStatuses(): TriageRequestData {
+  private getTriageStatuses(): TriageRequestData {
     let baseDigests = this._pageDigests;
     if (this._triageAll) {
       baseDigests = this._allDigests;
     }
-    if (this.value === 'closest' || !baseDigests) {
+    if (this._value === 'closest' || !baseDigests) {
       return baseDigests || {};
     }
     const copyWithSameValue: TriageRequestData = {};
     for (const testName of Object.keys(baseDigests)) {
       copyWithSameValue[testName] = {};
       for (const digest of Object.keys(baseDigests[testName] || [])) {
-        copyWithSameValue[testName]![digest] = this.value;
+        copyWithSameValue[testName]![digest] = this._value;
       }
     }
     return copyWithSameValue;
   }
 
-  private _triage() {
+  private triage() {
     const triageRequest: TriageRequest = {
-      testDigestStatus: this._getTriageStatuses(),
-      changelist_id: this.changeListID,
-      crs: this.crs,
+      testDigestStatus: this.getTriageStatuses(),
+      changelist_id: this._changeListID,
+      crs: this._crs,
     };
 
     sendBeginTask(this);
