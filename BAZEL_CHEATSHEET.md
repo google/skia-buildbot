@@ -308,8 +308,22 @@ To run a Karma test in the browser during development, use `bazel run` instead:
 ```
 $ bazel run //golden/modules/dots-sk:dots-sk_test
 ...
-Karma v4.4.1 server started at http://0.0.0.0:9876/
+Karma v4.4.1 server started at http://<hostname>:9876/
 ```
+
+##### Watching for changes
+
+As an alternative to `bazel run` when debugging tests in the browser, consider using the
+`karmatest.sh` script found in the repository's root directory. Similarly to the `demopage.sh`
+script mentioned earlier, it watches for changes in the custom element's directory, and relaunches
+the test runner when a file changes. Example usage:
+
+```
+$ ./karmatest.sh golden/modules/digest-details-sk
+```
+
+As with `demopage.sh`, this script depends on the `entr` command, which can be installed on a
+gLinux workstation with `sudo apt-get install entr`.
 
 #### Puppeteer tests (`sk_element_puppeteer_test` rule)
 
