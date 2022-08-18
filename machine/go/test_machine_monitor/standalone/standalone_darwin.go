@@ -6,6 +6,7 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/machine/go/common"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/mac"
 	"golang.org/x/sys/unix"
 )
 
@@ -16,7 +17,7 @@ func OSVersions(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get macOS version")
 	}
-	return macVersionsOfAllPrecisions(platformVersion), nil
+	return mac.VersionsOfAllPrecisions(platformVersion), nil
 }
 
 // CPUs returns a Swarming-style description of the host's CPU, in various precisions, e.g. ["x86",
@@ -34,7 +35,7 @@ func CPUs(ctx context.Context) ([]string, error) {
 	// It is perfectly normal for these sysctl keys to be missing sometimes:
 	vendor, _ := unix.Sysctl("machdep.cpu.vendor") // Sysctl returns "" on failure.
 	brandString, _ := unix.Sysctl("machdep.cpu.brand_string")
-	return macCPUs(arch, vendor, brandString)
+	return mac.CPUs(arch, vendor, brandString)
 }
 
 // GPUs returns Swarming-style descriptions of all the host's GPUs, in various precisions, all
@@ -48,9 +49,9 @@ func GPUs(ctx context.Context) ([]string, error) {
 		return nil, skerr.Wrapf(err, "failed to run System Profiler to get GPU info. Output was '%s'", xml)
 	}
 
-	gpus, err := gpusFromSystemProfilerXML(xml)
+	gpus, err := mac.GPUsFromSystemProfilerXML(xml)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "couldn't get GPUs from System Profiler XML")
 	}
-	return dimensionsFromMacGPUs(gpus), nil
+	return mac.DimensionsFromGPUs(gpus), nil
 }

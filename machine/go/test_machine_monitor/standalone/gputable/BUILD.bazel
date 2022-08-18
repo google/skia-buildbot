@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gputable",
+    srcs = ["gputable.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable",
+    visibility = ["//visibility:public"],
+    deps = ["//go/util_generics"],
+)
+
+go_test(
+    name = "gputable_test",
+    srcs = ["gputable_test.go"],
+    embed = [":gputable"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

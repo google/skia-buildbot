@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "mac",
+    srcs = ["mac.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/mac",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//machine/go/test_machine_monitor/standalone/gputable",
+        "@net_howett_plist//:plist",
+    ],
+)
+
+go_test(
+    name = "mac_test",
+    srcs = ["mac_test.go"],
+    embed = [":mac"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

@@ -1,4 +1,4 @@
-package standalone
+package mac
 
 import (
 	"testing"
@@ -9,13 +9,13 @@ import (
 
 func TestMacVersionsOfAllPrecisions(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, []string{"Mac", "Mac-12"}, macVersionsOfAllPrecisions("12"))
-	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4"}, macVersionsOfAllPrecisions("12.4"))
-	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4", "Mac-12.4.35"}, macVersionsOfAllPrecisions("12.4.35"))
+	assert.Equal(t, []string{"Mac", "Mac-12"}, VersionsOfAllPrecisions("12"))
+	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4"}, VersionsOfAllPrecisions("12.4"))
+	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4", "Mac-12.4.35"}, VersionsOfAllPrecisions("12.4.35"))
 }
 
 func assertCpuDimensions(t *testing.T, arch string, vendor string, brandString string, expected []string, failureMessage string) {
-	dimensions, err := macCPUs(arch, vendor, brandString)
+	dimensions, err := CPUs(arch, vendor, brandString)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, dimensions, failureMessage)
 }
@@ -66,17 +66,12 @@ func TestMacCPUs_ParsingAndBitWidthAndArchMapping(t *testing.T) {
 
 func TestMacCPUs_UnrecognizedArch_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
-	_, err := macCPUs(
+	_, err := CPUs(
 		"kersmoo",
 		"GenuineIntel",
 		"Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz",
 	)
 	assert.Error(t, err, "An unknown CPU architecture should result in an error (and we should add it to the mapping).")
-}
-
-func TestGPUVendorNameToID_CanonicalizesCase(t *testing.T) {
-	unittest.SmallTest(t)
-	assert.Equal(t, gpuVendorNameToID("Nvidia"), gpuVendorID("10de"))
 }
 
 func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
@@ -136,9 +131,9 @@ func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
 	</dict>
 </array>
 </plist>`
-	gpus, err := gpusFromSystemProfilerXML(xml)
+	gpus, err := GPUsFromSystemProfilerXML(xml)
 	assert.NoError(t, err)
-	expected := []macGPU{
+	expected := []GPU{
 		{
 			ID:       "0x3e9b",
 			VendorID: "12345",
@@ -160,7 +155,7 @@ func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
 func TestGPUsFromSystemProfilerXML_BadXML_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	xml := `invalid XML`
-	_, err := gpusFromSystemProfilerXML(xml)
+	_, err := GPUsFromSystemProfilerXML(xml)
 	assert.Error(t, err)
 }
 
@@ -172,7 +167,7 @@ func TestGPUsFromSystemProfilerXML_EmptyOuterArray_ReturnsError(t *testing.T) {
 <array>
 </array>
 </plist>`
-	_, err := gpusFromSystemProfilerXML(xml)
+	_, err := GPUsFromSystemProfilerXML(xml)
 	assert.Error(t, err)
 }
 
@@ -181,7 +176,7 @@ func TestDimensionsFromMacGPUs_EmptyIDYieldsNoDimensions(t *testing.T) {
 	assert.Equal(
 		t,
 		[]string{"none"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "",
 			VendorID: "blah",
 			Vendor:   "blah",
@@ -196,7 +191,7 @@ func TestDimensionsFromMacGPUs_VendorIDAndGPUIDGet0xPrefixRemovedAndGPUVersionGe
 	assert.Equal(
 		t,
 		[]string{"1234", "1234:5678", "1234:5678-9.8.7-6.5.4"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0x5678",
 			VendorID: "0x1234",
 			Vendor:   "blah",
@@ -211,7 +206,7 @@ func TestDimensionsFromMacGPUs_ExtractVendorIDFromVendor(t *testing.T) {
 	assert.Equal(
 		t,
 		[]string{"eeee", "eeee:5678"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0x5678",
 			VendorID: "",
 			Vendor:   "Something (0xeeee)",
@@ -226,7 +221,7 @@ func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromModel(
 	assert.Equal(
 		t,
 		[]string{"10de", "10de:5678"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0x5678",
 			VendorID: "", // must be so
 			Vendor:   "",
@@ -241,7 +236,7 @@ func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromVendor
 	assert.Equal(
 		t,
 		[]string{"10de", "10de:5678"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0x5678",
 			VendorID: "",
 			Vendor:   "sppci_vendor_nvidia",
@@ -256,7 +251,7 @@ func TestDimensionsFromMacGPUs_SetsVendorIDToUnknownIfAllElseFails(t *testing.T)
 	assert.Equal(
 		t,
 		[]string{"UNKNOWN", "UNKNOWN:5678"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0x5678",
 			VendorID: "",
 			Vendor:   "sppci_vendor_noSuchCompany",
@@ -271,7 +266,7 @@ func TestDimensionsFromMacGPUs_YieldsNoDimensionsOnVMWare(t *testing.T) {
 	assert.Equal(
 		t,
 		[]string{"none"},
-		dimensionsFromMacGPUs([]macGPU{{
+		DimensionsFromGPUs([]GPU{{
 			ID:       "0xeeee",
 			VendorID: "0x15ad", // VMWare's vendor ID
 			Vendor:   "",

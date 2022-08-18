@@ -1,5 +1,5 @@
-// A table of GPU vendor information, ported from Swarming's gpu.py
-package standalone
+// Package gputable provides a table of GPU vendor information, ported from Swarming's gpu.py.
+package gputable
 
 import (
 	"strings"
@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/go/util_generics"
 )
 
-type gpuVendorID string
+type VendorID string
 type vendorNameAndDevices struct {
 	// Name is the canonical vendor name.
 	Name string
@@ -16,7 +16,7 @@ type vendorNameAndDevices struct {
 }
 
 // Static lookup tables:
-var vendorMap = map[gpuVendorID]vendorNameAndDevices{
+var vendorMap = map[VendorID]vendorNameAndDevices{
 	"1002": {
 		Name: "AMD",
 		Devices: map[string]string{
@@ -100,18 +100,18 @@ var vendorMap = map[gpuVendorID]vendorNameAndDevices{
 		},
 	},
 }
-var vendorNamesToIDs map[string]gpuVendorID
+var vendorNamesToIDs map[string]VendorID
 
 // init builds the static table of vendor names to vendor IDs.
 func init() {
-	vendorNamesToIDs = make(map[string]gpuVendorID, len(vendorMap))
+	vendorNamesToIDs = make(map[string]VendorID, len(vendorMap))
 	for id, nameAndDevices := range vendorMap {
 		vendorNamesToIDs[strings.ToLower(nameAndDevices.Name)] = id
 	}
 }
 
-// gpuVendorNameToID returns the vendor ID for a given GPU vendor name. If unknown, returns "".
-func gpuVendorNameToID(name string) gpuVendorID {
+// VendorNameToID returns the vendor ID for a given GPU vendor name. If unknown, returns "".
+func VendorNameToID(name string) VendorID {
 	// macOS 10.13 doesn't provide the vendor ID any more, so support reverse lookups on vendor name.
 	return util_generics.Get(vendorNamesToIDs, strings.ToLower(name), "")
 }
