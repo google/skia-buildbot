@@ -99,6 +99,32 @@ export interface TriageRequest {
 	imageMatchingAlgorithm?: string;
 }
 
+export interface TriageDelta {
+	grouping: Params;
+	digest: Digest;
+	label_before: Label;
+	label_after: Label;
+}
+
+export interface TriageRequestV3 {
+	deltas: TriageDelta[];
+	changelist_id?: string;
+	crs?: string;
+	image_matching_algorithm?: string;
+}
+
+export interface TriageConflict {
+	grouping: Params;
+	digest: Digest;
+	expected_label_before: Label;
+	actual_label_before: Label;
+}
+
+export interface TriageResponse {
+	status: TriageResponseStatus;
+	conflict?: TriageConflict;
+}
+
 export interface GUICorpusStatus {
 	name: string;
 	untriagedCount: number;
@@ -129,13 +155,6 @@ export interface ByBlameEntry {
 
 export interface ByBlameResponse {
 	data: ByBlameEntry[] | null;
-}
-
-export interface TriageDelta {
-	grouping: Params;
-	digest: Digest;
-	label_before: Label;
-	label_after: Label;
 }
 
 export interface TriageLogEntry {
@@ -248,3 +267,5 @@ export type RefClosest = "pos" | "neg" | "";
 export type TriageRequestData = { [key: string]: { [key: string]: Label } | null } | null;
 
 export type Params = { [key: string]: string };
+
+export type TriageResponseStatus = "ok" | "conflict";

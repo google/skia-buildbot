@@ -2064,6 +2064,839 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	})
 }
 
+func TestTriage3_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	request := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC03Unt,
+				LabelBefore: expectations.Untriaged,
+				LabelAfter:  expectations.Positive,
+			},
+		},
+	}
+	ctx = now.TimeTravelingContext(fakeNow)
+	tsBeforeTriage := time.Now()
+	res, err := wh.triage3(ctx, user, request)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, res)
+
+	missingRecords, newRecords := sqltest.GetRowChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assert.Empty(t, missingRecords)
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          1,
+	}}, newRecords)
+
+	missingExpectations, newExpectations := sqltest.GetRowChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: missingExpectations[0].ExpectationRecordID, // Randomly generated.
+	}}, missingExpectations)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecords[0].ExpectationRecordID, // Randomly generated.
+	}}, newExpectations)
+
+	assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+
+	missingDeltas, newDeltas := sqltest.GetRowChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+	assert.Empty(t, missingDeltas)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+}
+
+// assertNoChanges asserts that the given table has not changed since instant tsBeforeTriage.
+func assertNoChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, tsBeforeTriage time.Time) {
+	missingRows, newRows := sqltest.GetRowChanges[T](ctx, t, db, table, tsBeforeTriage)
+	assert.Empty(t, missingRows)
+	assert.Empty(t, newRows)
+}
+
+func TestTriage3_SingleDigestOnPrimaryBranch_EmptyLabels_Error(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	test := func(name string, request frontend.TriageRequestV3, expectedError string) {
+		t.Run(name, func(t *testing.T) {
+			tsBeforeTriage := time.Now()
+			_, err := wh.triage3(ctx, user, request)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), expectedError)
+
+			assertNoChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+			assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+		})
+	}
+
+	test("empty LabelBefore",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestBlank,
+					LabelBefore: "",
+					LabelAfter:  expectations.Untriaged,
+				},
+			},
+		},
+		`invalid LabelBefore "" in triage request`)
+
+	test("empty LabelAfter",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestBlank,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  "",
+				},
+			},
+		},
+		`invalid LabelAfter "" in triage request`)
+}
+
+func TestTriage3_SingleDigestOnPrimaryBranch_WrongLabelBefore_TriageConflict(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	test := func(name string, request frontend.TriageRequestV3, expectedResponse frontend.TriageResponse) {
+		t.Run(name, func(t *testing.T) {
+			tsBeforeTriage := time.Now()
+			actualResponse, err := wh.triage3(ctx, user, request)
+			require.NoError(t, err)
+			assert.Equal(t, expectedResponse, actualResponse)
+
+			assertNoChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+			assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+		})
+	}
+
+	test("has an existing expectation",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestC01Pos,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  expectations.Untriaged,
+				},
+			},
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:              dks.DigestC01Pos,
+				ExpectedLabelBefore: expectations.Positive,
+				ActualLabelBefore:   expectations.Negative,
+			},
+		},
+	)
+
+	test("does not have an existing expectation",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestC03Unt,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  expectations.Positive,
+				},
+			},
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:              dks.DigestC03Unt,
+				ExpectedLabelBefore: expectations.Untriaged,
+				ActualLabelBefore:   expectations.Negative,
+			},
+		})
+}
+
+func TestTriage3_SingleDigestOnOpenCL_WrongLabelBefore_TriageConflict(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	test := func(name string, request frontend.TriageRequestV3, expectedResponse frontend.TriageResponse) {
+		t.Run(name, func(t *testing.T) {
+			tsBeforeTriage := time.Now()
+			actualResponse, err := wh.triage3(ctx, user, request)
+			require.NoError(t, err)
+			assert.Equal(t, expectedResponse, actualResponse)
+
+			assertNoChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+			assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+			assertNoChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+		})
+	}
+
+	test("labeled positive in Expectations table, labeled untriaged in SecondaryBranchExpectations table",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.CornersCorpus,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+					Digest:      dks.DigestB01Pos,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  expectations.Positive,
+				},
+			},
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:              dks.DigestB01Pos,
+				ExpectedLabelBefore: expectations.Untriaged,
+				ActualLabelBefore:   expectations.Negative,
+			},
+		})
+
+	test("no entry in Expectations table, labeled positive in SecondaryBranchExpectations table",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestC06Pos_CL,
+					LabelBefore: expectations.Untriaged,
+					LabelAfter:  expectations.Negative,
+				},
+			},
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:              dks.DigestC06Pos_CL,
+				ExpectedLabelBefore: expectations.Positive,
+				ActualLabelBefore:   expectations.Untriaged,
+			},
+		})
+
+	test("labeled positive in Expectations table, no entry in SecondaryBranchExpectations table",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestC01Pos,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  expectations.Untriaged,
+				},
+			},
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:              dks.DigestC01Pos,
+				ExpectedLabelBefore: expectations.Positive,
+				ActualLabelBefore:   expectations.Negative,
+			},
+		})
+
+	test("no entry in neither the Expectations nor the SecondaryBranchExpectations table",
+		frontend.TriageRequestV3{
+			Deltas: []frontend.TriageDelta{
+				{
+					Grouping: paramtools.Params{
+						types.CorpusField:     dks.RoundCorpus,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+					Digest:      dks.DigestC03Unt,
+					LabelBefore: expectations.Negative,
+					LabelAfter:  expectations.Positive,
+				},
+			},
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		},
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:              dks.DigestC03Unt,
+				ExpectedLabelBefore: expectations.Untriaged,
+				ActualLabelBefore:   expectations.Negative,
+			},
+		})
+}
+
+func TestTriage3_SingleDigestOnPrimaryBranch_ImageMatchingAlgorithm_UsesAlgorithmNameAsAuthor(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "not_me@example.com"
+	const algorithmName = "fuzzy"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC03Unt,
+				LabelBefore: expectations.Untriaged,
+				LabelAfter:  expectations.Positive,
+			},
+		},
+		ImageMatchingAlgorithm: algorithmName,
+	}
+	ctx = now.TimeTravelingContext(fakeNow)
+	tsBeforeTriage := time.Now()
+	res, err := wh.triage3(ctx, user, tr)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, res)
+
+	missingRecords, newRecords := sqltest.GetRowChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assert.Empty(t, missingRecords)
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		UserName:            algorithmName,
+		TriageTime:          fakeNow,
+		NumChanges:          1,
+	}}, newRecords)
+
+	missingExpectations, newExpectations := sqltest.GetRowChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: missingExpectations[0].ExpectationRecordID, // Randomly generated.
+	}}, missingExpectations)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecords[0].ExpectationRecordID, // Randomly generated.
+	}}, newExpectations)
+
+	assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+
+	missingDeltas, newDeltas := sqltest.GetRowChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+	assert.Empty(t, missingDeltas)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+}
+
+func TestTriage3_BulkTriageOnPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "bulk_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:      dks.DigestB01Pos,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Untriaged,
+			},
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:      dks.DigestB02Pos,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Negative,
+			},
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC03Unt,
+				LabelBefore: expectations.Untriaged,
+				LabelAfter:  expectations.Positive,
+			},
+		},
+	}
+
+	ctx = now.TimeTravelingContext(fakeNow)
+	tsBeforeTriage := time.Now()
+	res, err := wh.triage3(ctx, user, tr)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, res)
+
+	missingRecords, newRecords := sqltest.GetRowChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assert.Empty(t, missingRecords)
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          3,
+	}}, newRecords)
+
+	missingExpectations, newExpectations := sqltest.GetRowChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: missingExpectations[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB02Pos),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: missingExpectations[1].ExpectationRecordID, // Randomly generated.
+	}, {
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: missingExpectations[2].ExpectationRecordID, // Randomly generated.
+	}}, missingExpectations)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: &newRecords[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB02Pos),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: &newRecords[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecords[0].ExpectationRecordID, // Randomly generated.
+	}}, newExpectations)
+
+	assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+
+	missingDeltas, newDeltas := sqltest.GetRowChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+	assert.Empty(t, missingDeltas)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelUntriaged,
+	}, {
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB02Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}, {
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+}
+
+func TestTriage3_BulkTriageOnPrimaryBranch_OneCorrectAndOneWrongLabelBefore_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "bulk_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:      dks.DigestB01Pos,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Untriaged,
+			},
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:      dks.DigestB02Pos,
+				LabelBefore: expectations.Untriaged, // Wrong label.
+				LabelAfter:  expectations.Negative,
+			},
+		},
+	}
+
+	ctx = now.TimeTravelingContext(fakeNow)
+	tsBeforeTriage := time.Now()
+	res, err := wh.triage3(ctx, user, tr)
+	require.NoError(t, err)
+	assert.Equal(t,
+		frontend.TriageResponse{
+			Status: frontend.TriageResponseStatusConflict,
+			Conflict: frontend.TriageConflict{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:              dks.DigestB02Pos,
+				ExpectedLabelBefore: expectations.Positive,
+				ActualLabelBefore:   expectations.Untriaged,
+			},
+		},
+		res)
+
+	assertNoChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+	assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+	assertNoChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+}
+
+func TestTriage3_BulkTriageOnOpenCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+	expectedBranch := "gerrit_CL_fix_ios"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			// Labeled positive in the Expectations table, labeled untriaged in the
+			// SecondaryBranchExpectations table.
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:      dks.DigestB01Pos,
+				LabelBefore: expectations.Untriaged,
+				LabelAfter:  expectations.Negative,
+			},
+			// Labeled positive in the Expectations table, no entry in the
+			// SecondaryBranchExpectations table.
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC01Pos,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Negative,
+			},
+			// No entry in neither the Expectations nor SecondaryBranchExpectations tables.
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC03Unt,
+				LabelBefore: expectations.Untriaged,
+				LabelAfter:  expectations.Positive,
+			},
+			// No entry in Expectations table, labeled positive in the SecondaryBranchExpectations
+			// table.
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC06Pos_CL,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Negative,
+			},
+		},
+		CodeReviewSystem: dks.GerritCRS,
+		ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+	}
+	ctx = now.TimeTravelingContext(fakeNow)
+	tsBeforeTriage := time.Now()
+	res, err := wh.triage3(ctx, user, tr)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, res)
+
+	missingRecords, newRecords := sqltest.GetRowChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assert.Empty(t, missingRecords)
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		BranchName:          &expectedBranch,
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          4,
+	}}, newRecords)
+
+	assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+
+	missingExpectations, newExpectations := sqltest.GetRowChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+	assert.Equal(t, []schema.SecondaryBranchExpectationRow{{
+		BranchName:          expectedBranch,
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: missingExpectations[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		BranchName:          expectedBranch,
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC06Pos_CL),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: missingExpectations[1].ExpectationRecordID, // Randomly generated.
+	}}, missingExpectations)
+	assert.Equal(t, []schema.SecondaryBranchExpectationRow{{
+		BranchName:          expectedBranch,
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		BranchName:          expectedBranch,
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC01Pos),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		BranchName:          expectedBranch,
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+	}, {
+		BranchName:          expectedBranch,
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC06Pos_CL),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+	}}, newExpectations)
+
+	missingDeltas, newDeltas := sqltest.GetRowChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+	assert.Empty(t, missingDeltas)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.TriangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelNegative,
+	}, {
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC01Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}, {
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: newRecords[0].ExpectationRecordID, // Randomly generated.
+		GroupingID:          dks.CircleGroupingID,
+		Digest:              d(dks.DigestC06Pos_CL),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}}, newDeltas)
+}
+
+func TestTriage3_BulkTriageOnLandedCL_Error(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequestV3{
+		Deltas: []frontend.TriageDelta{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC06Pos_CL,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Negative,
+			},
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:      dks.DigestC01Pos,
+				LabelBefore: expectations.Positive,
+				LabelAfter:  expectations.Negative,
+			},
+		},
+		CodeReviewSystem: dks.GerritCRS,
+		ChangelistID:     dks.ChangelistIDThatHasLanded,
+	}
+	tsBeforeTriage := time.Now()
+	_, err := wh.triage3(ctx, user, tr)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `triaging digests from non-open changelists is not allowed (changelist ID "CLhaslanded", CRS "gerrit", status "landed")`)
+
+	assertNoChanges[schema.ExpectationRecordRow](ctx, t, db, "ExpectationRecords", tsBeforeTriage)
+	assertNoChanges[schema.ExpectationRow](ctx, t, db, "Expectations", tsBeforeTriage)
+	assertNoChanges[schema.SecondaryBranchExpectationRow](ctx, t, db, "SecondaryBranchExpectations", tsBeforeTriage)
+	assertNoChanges[schema.ExpectationDeltaRow](ctx, t, db, "ExpectationDeltas", tsBeforeTriage)
+}
+
 func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 	unittest.LargeTest(t)
 

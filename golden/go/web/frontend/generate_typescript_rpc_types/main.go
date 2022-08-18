@@ -56,6 +56,12 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Request for the /json/v2/triage RPC endpoint.
 	generator.AddWithName(frontend.TriageRequestV2{}, "TriageRequest")
 
+	// Request for the /json/v3/triage RPC endpoint.
+	generator.AddWithName(frontend.TriageRequestV3{}, "TriageRequestV3")
+
+	// Resoibse for the /json/v3/triage RPC endpoint.
+	generator.Add(frontend.TriageResponse{})
+
 	// Response for the /json/v1/trstatus RPC endpoint.
 	generator.AddWithName(frontend.GUIStatus{}, "StatusResponse")
 
@@ -93,4 +99,5 @@ func addTypes(generator *go2ts.Go2TS) {
 
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName([]frontend.RefClosest{frontend.PositiveRef, frontend.NegativeRef, frontend.NoRef}, "RefClosest")
+	generator.AddUnionWithName(frontend.AllTriageResponseStatus, "TriageResponseStatus")
 }

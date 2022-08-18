@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
@@ -195,6 +196,77 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 	}
 	// Return the slice as type interface{}; It can be type asserted to []RowType by the caller.
 	return rv.Interface()
+}
+
+// GetRowChanges compares the rows found in the given table at instant t0 against those found at
+// present time. It returns a slice of rows found in the table at t0 but not at present (aka
+// missing rows), and a slice of rows found in the table at present but not at t0 (aka new rows).
+//
+// The row type may optionally implement the RowsOrder interface to specify an ordering to return
+// the rows in, which can make for easier to debug tests.
+//
+// Usage ideas:
+//  - A test does not make any changes to a table, then asserts that the returned slices are empty.
+//  - A test adds a row, then asserts that the slice with missing rows is empty, and that the slice
+//    with new rows contains the added row.
+//  - A test deletes a row, then asserts that the slice with missing rows contains the deleted row,
+//    and that the slice with new rows is empty.
+//  - A test updates a row, then asserts that the slice with missing rows contains the affected row
+//    prior to the update, and that the slice with new rows contains the affected row after the
+//    update.
+func GetRowChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, t0 time.Time) (missingRows, newRows []T) {
+	getRows := func(statement string) []T {
+		rows, err := db.Query(ctx, statement)
+		require.NoError(t, err)
+		defer rows.Close()
+
+		var rv []T
+		for rows.Next() {
+			var row T
+			require.NoError(t, any(&row).(SQLScanner).ScanFrom(rows.Scan))
+			rv = append(rv, row)
+		}
+		return rv
+	}
+
+	orderByClause := ""
+	var row T
+	if rowsOrder, ok := any(&row).(RowsOrder); ok {
+		orderByClause = rowsOrder.RowsOrderBy()
+	}
+
+	pastRows := getRows(fmt.Sprintf("SELECT * FROM %s AS OF SYSTEM TIME '%s' %s", table, t0.Format("2006-01-02 15:04:05.000000"), orderByClause))
+	currentRows := getRows(fmt.Sprintf("SELECT * FROM %s %s", table, orderByClause))
+
+	// Find all past rows that are not in the set of current rows.
+	for _, pastRow := range pastRows {
+		found := false
+		for _, currentRow := range currentRows {
+			if reflect.DeepEqual(pastRow, currentRow) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missingRows = append(missingRows, pastRow)
+		}
+	}
+
+	// Find all current rows that are not in the set of past rows.
+	for _, currentRow := range currentRows {
+		found := false
+		for _, pastRow := range pastRows {
+			if reflect.DeepEqual(pastRow, currentRow) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			newRows = append(newRows, currentRow)
+		}
+	}
+
+	return missingRows, newRows
 }
 
 // GetExplain returns the query plan for a given statement and arguments.

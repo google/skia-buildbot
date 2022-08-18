@@ -147,6 +147,78 @@ func TestGetAllRows_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
 	}, actualRows)
 }
 
+func TestGetRowChanges_RowsOrderDefined_ReturnsInOrder(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTests(ctx, t)
+	_, err := db.Exec(ctx, testSchema)
+	require.NoError(t, err)
+
+	err = sqltest.BulkInsertDataTables(ctx, db, testTables{
+		TableThree: []tableThreeRow{
+			{ColumnOne: "apricots", ColumnBool: schema.NBNull, ColumnTS: ts("2021-02-01T00:00:00Z")},
+			{ColumnOne: "chorizo", ColumnBool: schema.NBFalse, ColumnTS: ts("2021-04-01T00:00:00Z")},
+			{ColumnOne: "extra cheese", ColumnBool: schema.NBTrue, ColumnTS: ts("2021-03-01T00:00:00Z")},
+		},
+	})
+	require.NoError(t, err)
+
+	t0 := time.Now()
+	_, err = db.Exec(ctx, "INSERT INTO TableThree VALUES ('onions', true, '2021-05-01T00:00:00Z')")
+	require.NoError(t, err)
+	_, err = db.Exec(ctx, "UPDATE TableThree SET column_bool = true WHERE column_one = 'chorizo'")
+	require.NoError(t, err)
+	_, err = db.Exec(ctx, "DELETE FROM TableThree WHERE column_one = 'apricots'")
+	require.NoError(t, err)
+
+	missingRows, newRows := sqltest.GetRowChanges[tableThreeRow](ctx, t, db, "TableThree", t0)
+	assert.Equal(t, []tableThreeRow{
+		{ColumnOne: "chorizo", ColumnBool: schema.NBFalse, ColumnTS: ts("2021-04-01T00:00:00Z")},
+		{ColumnOne: "apricots", ColumnBool: schema.NBNull, ColumnTS: ts("2021-02-01T00:00:00Z")},
+	}, missingRows)
+	assert.Equal(t, []tableThreeRow{
+		{ColumnOne: "onions", ColumnBool: schema.NBTrue, ColumnTS: ts("2021-05-01T00:00:00Z")},
+		{ColumnOne: "chorizo", ColumnBool: schema.NBTrue, ColumnTS: ts("2021-04-01T00:00:00Z")},
+	}, newRows)
+}
+
+func TestGetRowChanges_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTests(ctx, t)
+	_, err := db.Exec(ctx, testSchema)
+	require.NoError(t, err)
+
+	err = sqltest.BulkInsertDataTables(ctx, db, testTables{
+		TableOne: []tableOneRow{
+			{ColumnOne: "apple", ColumnTwo: "banana"},
+			{ColumnOne: "cherry", ColumnTwo: "durian"},
+			{ColumnOne: "elderberry", ColumnTwo: "fig"},
+		},
+	})
+	require.NoError(t, err)
+
+	t0 := time.Now()
+	_, err = db.Exec(ctx, "INSERT INTO TableOne VALUES ('grape', 'hackberry')")
+	require.NoError(t, err)
+	_, err = db.Exec(ctx, "UPDATE TableOne SET column_one = 'apricot' WHERE column_one = 'apple'")
+	require.NoError(t, err)
+	_, err = db.Exec(ctx, "DELETE FROM TableOne WHERE column_one = 'cherry'")
+	require.NoError(t, err)
+
+	missingRows, newRows := sqltest.GetRowChanges[tableOneRow](ctx, t, db, "TableOne", t0)
+	assert.ElementsMatch(t, []tableOneRow{
+		{ColumnOne: "apple", ColumnTwo: "banana"},
+		{ColumnOne: "cherry", ColumnTwo: "durian"},
+	}, missingRows)
+	assert.ElementsMatch(t, []tableOneRow{
+		{ColumnOne: "apricot", ColumnTwo: "banana"},
+		{ColumnOne: "grape", ColumnTwo: "hackberry"},
+	}, newRows)
+}
+
 func ts(s string) time.Time {
 	ct, err := time.Parse(time.RFC3339, s)
 	if err != nil {

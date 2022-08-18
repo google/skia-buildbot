@@ -119,6 +119,61 @@ type TriageRequestV2 struct {
 	ImageMatchingAlgorithm string `json:"imageMatchingAlgorithm,omitempty"`
 }
 
+// TriageRequestV3 is the form of the JSON posted by the frontend when triaging (both single and
+// bulk).
+type TriageRequestV3 struct {
+	// Deltas is the list of triage deltas to apply.
+	//
+	// When triaging from Gold's UI, this will be a slice of length 1 if the user clicks on a
+	// triage button for a specific digest, or of any length for bulk triage operations.
+	Deltas []TriageDelta `json:"deltas" go2ts:"ignorenil"`
+
+	// ChangelistID is the ID of the Changelist for which we want to change the expectations.
+	ChangelistID string `json:"changelist_id,omitempty"`
+
+	// CodeReviewSystem is the ID of the CRS that the ChangelistID belongs. If ChangelistID is set,
+	// CodeReviewSystem should be also.
+	CodeReviewSystem string `json:"crs,omitempty"`
+
+	// ImageMatchingAlgorithm is the name of the non-exact image matching algorithm requesting the
+	// triage (see http://go/gold-non-exact-matching). If set, the algorithm name will be used as
+	// the author of the triage action.
+	//
+	// An empty image matching algorithm indicates this is a manual triage operation, in which case
+	// the username that initiated the triage operation via Gold's UI will be used as the author of
+	// the operation.
+	ImageMatchingAlgorithm string `json:"image_matching_algorithm,omitempty"`
+}
+
+// TriageResponse is the response for the /json/v3/triage RPC.
+type TriageResponse struct {
+	Status   TriageResponseStatus `json:"status"`
+	Conflict TriageConflict       `json:"conflict,omitempty"`
+}
+
+// TriageResponseStatus is the status of a TriageResponse.
+type TriageResponseStatus string
+
+const (
+	TriageResponseStatusOK       = TriageResponseStatus("ok")
+	TriageResponseStatusConflict = TriageResponseStatus("conflict")
+)
+
+// AllTriageResponseStatus is a list of all valid TriageResponseStatus values.
+var AllTriageResponseStatus = []TriageResponseStatus{
+	TriageResponseStatusOK,
+	TriageResponseStatusConflict,
+}
+
+// TriageConflict contains information about a conflicting triage action. A conflict occurs when
+// two or more try to triage the same digest at roughly the same time.
+type TriageConflict struct {
+	Grouping            paramtools.Params  `json:"grouping"`
+	Digest              types.Digest       `json:"digest"`
+	ExpectedLabelBefore expectations.Label `json:"expected_label_before"`
+	ActualLabelBefore   expectations.Label `json:"actual_label_before"`
+}
+
 // TriageDelta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type TriageDelta struct {

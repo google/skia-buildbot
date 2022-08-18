@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -802,24 +803,6 @@ func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// TriageHandlerV3 is not yet implemented.
-//
-// TODO(lovisolo): Implement.
-func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "web_TriageHandlerV3", trace.WithSampler(trace.AlwaysSample()))
-	defer span.End()
-	user := login.LoggedInAs(r)
-	if user == "" {
-		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
-		return
-	}
-
-	if _, err := w.Write([]byte("Not yet implemented.")); err != nil {
-		sklog.Errorf("Failed to write response", err)
-		return
-	}
-}
-
 func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.TriageRequestV2) error {
 	ctx, span := trace.StartSpan(ctx, "triage2")
 	defer span.End()
@@ -954,6 +937,369 @@ func fillPreviousLabel(ctx context.Context, tx pgx.Tx, deltas []schema.Expectati
 		row.LabelBefore = label
 	}
 	return nil
+}
+
+// TriageHandlerV3 handles a request to change the triage status of one or more digests.
+func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandlerV3", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
+		return
+	}
+
+	req := frontend.TriageRequestV3{}
+	if err := parseJSON(r, &req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
+		return
+	}
+	sklog.Infof("Triage v3 request: %#v", req)
+
+	res, err := wh.triage3(ctx, user, req)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not triage", http.StatusInternalServerError)
+		return
+	}
+
+	sendJSONResponse(w, res)
+}
+
+func (wh *Handlers) triage3(ctx context.Context, userID string, req frontend.TriageRequestV3) (frontend.TriageResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "triage3")
+	defer span.End()
+
+	branch := ""
+	if req.ChangelistID != "" && req.CodeReviewSystem != "" {
+		branch = sql.Qualify(req.CodeReviewSystem, req.ChangelistID)
+
+		// We disallow changes on closed CLs to avoid confusion (skbug.com/12122).
+		const statement = "SELECT status FROM Changelists WHERE changelist_id = $1"
+		row := wh.DB.QueryRow(ctx, statement, branch)
+		var cl schema.ChangelistRow
+		if err := row.Scan(&cl.Status); err != nil {
+			return frontend.TriageResponse{}, skerr.Wrapf(err, "querying status of changelist (changelist ID %q, CRS %q)", req.ChangelistID, req.CodeReviewSystem)
+		}
+		if cl.Status != schema.StatusOpen {
+			return frontend.TriageResponse{}, skerr.Fmt("triaging digests from non-open changelists is not allowed (changelist ID %q, CRS %q, status %q)", req.ChangelistID, req.CodeReviewSystem, cl.Status)
+		}
+	}
+
+	// If set, use the image matching algorithm's name as the author of this change.
+	if req.ImageMatchingAlgorithm != "" {
+		userID = req.ImageMatchingAlgorithm
+	}
+
+	deltas, err := convertTriageDeltasToExpectationDeltaRows(req.Deltas)
+	if err != nil {
+		return frontend.TriageResponse{}, skerr.Wrapf(err, "converting TriageDeltas to ExpectationDeltaRows")
+	}
+	if len(deltas) == 0 {
+		return frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, nil
+	}
+
+	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(deltas))))
+
+	err = crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		if err := verifyExpectationDeltaRowsLabelBefore(ctx, tx, deltas, branch); err != nil {
+			// Could be a triageConflictError if any of the LabelBefore fields do not match their
+			// expected value. This error is handled outside of the transaction.
+			return err
+		}
+		newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
+		if err != nil {
+			return err
+		}
+		for i := range deltas {
+			deltas[i].ExpectationRecordID = newRecordID
+		}
+		err = writeDeltas(ctx, tx, deltas)
+		if err != nil {
+			return err
+		}
+		if branch == "" {
+			return applyDeltasToPrimary(ctx, tx, deltas)
+		}
+		return applyDeltasToBranch(ctx, tx, deltas, branch)
+	})
+	if err != nil {
+		// If any of the deltas' LabelBefore do not match the corresponding entries in the
+		// Expectations or SecondaryBranchExpectations tables, we send a meaningful error response
+		// to the frontend so that we can properly report the triage conflict in the UI.
+		var tce *triageConflictError
+		if errors.As(err, &tce) {
+			grouping, err := wh.lookupGrouping(ctx, tce.GroupingID)
+			if err != nil {
+				return frontend.TriageResponse{}, skerr.Wrap(err)
+			}
+			return frontend.TriageResponse{
+				Status: frontend.TriageResponseStatusConflict,
+				Conflict: frontend.TriageConflict{
+					Grouping:            grouping,
+					Digest:              types.Digest(hex.EncodeToString(tce.Digest)),
+					ExpectedLabelBefore: tce.ExpectedLabelBefore.ToExpectation(),
+					ActualLabelBefore:   tce.ActualLabelBefore.ToExpectation(),
+				},
+			}, nil
+		}
+		return frontend.TriageResponse{}, skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(deltas), userID, branch)
+	}
+	return frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, nil
+}
+
+// convertTriageDeltasToExpectationDeltaRows converts frontend.TriageDelta structs to
+// schema.ExpectationDeltaRow structs.
+func convertTriageDeltasToExpectationDeltaRows(deltas []frontend.TriageDelta) ([]schema.ExpectationDeltaRow, error) {
+	rv := make([]schema.ExpectationDeltaRow, 0, len(deltas))
+	for _, delta := range deltas {
+		if !expectations.ValidLabel(delta.LabelBefore) {
+			return nil, skerr.Fmt("invalid LabelBefore %q in triage request", delta.LabelBefore)
+		}
+		if !expectations.ValidLabel(delta.LabelAfter) {
+			return nil, skerr.Fmt("invalid LabelAfter %q in triage request", delta.LabelAfter)
+		}
+		labelBefore := schema.FromExpectationLabel(delta.LabelBefore)
+		labelAfter := schema.FromExpectationLabel(delta.LabelAfter)
+		_, groupingID := sql.SerializeMap(delta.Grouping)
+		digestBytes, err := sql.DigestToBytes(delta.Digest)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, schema.ExpectationDeltaRow{
+			GroupingID:  groupingID,
+			Digest:      digestBytes,
+			LabelBefore: labelBefore,
+			LabelAfter:  labelAfter,
+		})
+	}
+	return rv, nil
+}
+
+// triageConflictError is an error returned by the verifyExpectationDeltaRowsLabelBefore method. It
+// contains the necessary information to construct a meaningful error response to return to the
+// frontend.
+type triageConflictError struct {
+	GroupingID          schema.GroupingID
+	Digest              schema.DigestBytes
+	ExpectedLabelBefore schema.ExpectationLabel
+	ActualLabelBefore   schema.ExpectationLabel
+}
+
+func (e *triageConflictError) Error() string {
+	return fmt.Sprintf("expected LabelBefore for grouping %x and digest %x to be %s, was %s", e.GroupingID, e.Digest, e.ExpectedLabelBefore, e.ActualLabelBefore)
+}
+
+// groupingIDAndDigest is a (grouping ID, digest) pair.
+type groupingIDAndDigest struct {
+	groupingID schema.MD5Hash
+	digest     schema.MD5Hash
+}
+
+// verifyExpectationDeltaRowsLabelBefore verifies that the LabelBefore column of each passed in
+// schema.ExpectationDeltaRow matches the Label column of the corresponding entry in the
+// Expectations or SecondaryBranchExpectations table. If no entry is found, we check that the
+// LabelBefore is untriaged. This function prevents race conditions where multiple Gold users might
+// attempt to triage the same digest.
+//
+// If branchName is empty, we only check against the Expectations table.
+//
+// If branchName is not empty (e.g. when triaging digests from a CL), we first check the
+// SecondaryBranchExpectations table, and if there is no corresponding entry, we check against the
+// Expectations table.
+//
+// If the LabelBefore of a schema.ExpectationDeltaRow does not match the expected label, a
+// triageConflictError is returned.
+func verifyExpectationDeltaRowsLabelBefore(ctx context.Context, tx pgx.Tx, deltaRows []schema.ExpectationDeltaRow, branchName string) error {
+	ctx, span := trace.StartSpan(ctx, "verifyExpectationDeltaRowsLabelBefore")
+	defer span.End()
+
+	// Put the deltaRows in a map keyed by grouping ID and digest for easier querying.
+	deltaRowsMap := map[groupingIDAndDigest]*schema.ExpectationDeltaRow{}
+	for i := range deltaRows {
+		key := groupingIDAndDigest{
+			groupingID: sql.AsMD5Hash(deltaRows[i].GroupingID),
+			digest:     sql.AsMD5Hash(deltaRows[i].Digest),
+		}
+		deltaRowsMap[key] = &deltaRows[i]
+	}
+
+	// Check the deltaRows' LabelBefore columns against the corresponding table.
+	var (
+		verifiedDeltaRows map[groupingIDAndDigest]bool
+		err               error
+	)
+	if branchName == "" {
+		verifiedDeltaRows, err = verifyPrimaryBranchLabelBefore(ctx, tx, deltaRowsMap)
+	} else {
+		verifiedDeltaRows, err = verifySecondaryBranchLabelBefore(ctx, tx, branchName, deltaRowsMap)
+	}
+	if err != nil {
+		return err // Don't wrap - crdbpgx might retry
+	}
+
+	// If any of the deltaRows did not have a matching entry in the Expectations or
+	// SecondaryBranchExpectations tables, check that their LabelBefore columns are set to
+	// "untriaged".
+	for key, deltaRow := range deltaRowsMap {
+		if !verifiedDeltaRows[key] && deltaRow.LabelBefore != schema.LabelUntriaged {
+			return &triageConflictError{
+				GroupingID:          deltaRow.GroupingID,
+				Digest:              deltaRow.Digest,
+				ExpectedLabelBefore: schema.LabelUntriaged,
+				ActualLabelBefore:   deltaRow.LabelBefore,
+			}
+		}
+	}
+
+	return nil
+}
+
+// makeGroupingAndDigestWhereClause builds the part of a "WHERE" clause that filters by grouping ID
+// and digest. It returns the SQL clause and a list of parameter values.
+func makeGroupingAndDigestWhereClause(deltaRows map[groupingIDAndDigest]*schema.ExpectationDeltaRow, startingPlaceholderNum int) (string, []interface{}) {
+	var parts []string
+	args := make([]interface{}, 0, 2*len(deltaRows))
+	placeholderNum := startingPlaceholderNum
+	for _, deltaRow := range deltaRows {
+		parts = append(parts, fmt.Sprintf("(grouping_id = $%d AND digest = $%d)", placeholderNum, placeholderNum+1))
+		args = append(args, deltaRow.GroupingID, deltaRow.Digest)
+		placeholderNum += 2
+	}
+	sort.Strings(parts) // Make the query string deterministic for easier debugging.
+	return strings.Join(parts, " OR "), args
+}
+
+// verifyPrimaryBranchLabelBefore verifies that the LabelBefore of each given ExpectationDeltaRow
+// matches the label of the corresponding row in the Expectations table, if any. If the labels
+// do not match, it returns a triageConflictError.
+//
+// It returns a set with one (grouping ID, digest) pair for each ExpectationDeltaRow it was able to
+// verify, i.e. those with a corresponding row in the Expectations table.
+func verifyPrimaryBranchLabelBefore(ctx context.Context, tx pgx.Tx, deltaRows map[groupingIDAndDigest]*schema.ExpectationDeltaRow) (map[groupingIDAndDigest]bool, error) {
+	whereClause, whereArgs := makeGroupingAndDigestWhereClause(deltaRows, 1)
+	statement := "SELECT grouping_id, digest, label FROM Expectations WHERE " + whereClause
+	rows, err := tx.Query(ctx, statement, whereArgs...)
+	if err != nil {
+		return nil, err // Don't wrap - crdbpgx might retry
+	}
+	defer rows.Close()
+
+	// Check that the LabelBefore of each ExpectationDeltaRow matches the label of the
+	// corresponding row in the Expectations table, if any.
+	verifiedDeltaRows := map[groupingIDAndDigest]bool{}
+	for rows.Next() {
+		var groupingID schema.GroupingID
+		var digest schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
+			return nil, err
+		}
+
+		key := groupingIDAndDigest{
+			groupingID: sql.AsMD5Hash(groupingID),
+			digest:     sql.AsMD5Hash(digest),
+		}
+		deltaRow := deltaRows[key]
+		if deltaRow == nil {
+			sklog.Warningf("Unmatched row with grouping %x and digest %x.", groupingID, digest)
+			continue // Should never happen.
+		}
+
+		if label != deltaRow.LabelBefore {
+			return nil, &triageConflictError{
+				GroupingID:          groupingID,
+				Digest:              digest,
+				ExpectedLabelBefore: label,
+				ActualLabelBefore:   deltaRow.LabelBefore,
+			}
+		}
+		verifiedDeltaRows[key] = true
+	}
+
+	return verifiedDeltaRows, nil
+}
+
+// verifySecondaryBranchLabelBefore verifies that the LabelBefore of each given ExpectationDeltaRow
+// matches the label of the corresponding row in the SecondaryBranchExpectations table. If there is
+// no such row, it does the same against the corresponding row in the Expectations table, if any.
+// If the LabelBefore does not match the label of the corresponding row in either table, it returns
+// a triageConflictError.
+//
+// It returns a set with one (grouping ID, digest) pair for each ExpectationDeltaRow it was able to
+// verify, i.e. those with a corresponding row in the SecondaryBranchExpectations or Expectations
+// table.
+func verifySecondaryBranchLabelBefore(ctx context.Context, tx pgx.Tx, branchName string, deltaRows map[groupingIDAndDigest]*schema.ExpectationDeltaRow) (map[groupingIDAndDigest]bool, error) {
+	// Gather the relevant labels from the Expectations table.
+	primaryBranchLabels := map[groupingIDAndDigest]schema.ExpectationLabel{}
+	whereClause, whereArgs := makeGroupingAndDigestWhereClause(deltaRows, 1)
+	statement := "SELECT grouping_id, digest, label FROM Expectations WHERE " + whereClause
+	rows, err := tx.Query(ctx, statement, whereArgs...)
+	if err != nil {
+		return nil, err // Don't wrap - crdbpgx might retry
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var groupingID schema.GroupingID
+		var digest schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
+			return nil, err
+		}
+		primaryBranchLabels[groupingIDAndDigest{
+			groupingID: sql.AsMD5Hash(groupingID),
+			digest:     sql.AsMD5Hash(digest),
+		}] = label
+	}
+
+	// Gather the relevant labels from the SecondaryBranchExpectations table.
+	secondaryBranchLabels := map[groupingIDAndDigest]schema.ExpectationLabel{}
+	whereClause, whereArgs = makeGroupingAndDigestWhereClause(deltaRows, 2)
+	statement = `
+		SELECT grouping_id,
+		       digest,
+			   label
+		  FROM SecondaryBranchExpectations
+		 WHERE branch_name = $1 AND (` + whereClause + ")"
+	rows, err = tx.Query(ctx, statement, append([]interface{}{branchName}, whereArgs...)...)
+	if err != nil {
+		return nil, err // Don't wrap - crdbpgx might retry
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var groupingID schema.GroupingID
+		var digest schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
+			return nil, err
+		}
+		secondaryBranchLabels[groupingIDAndDigest{
+			groupingID: sql.AsMD5Hash(groupingID),
+			digest:     sql.AsMD5Hash(digest),
+		}] = label
+	}
+
+	// Check that the LabelBefore of each ExpectationDeltaRow matches the label of the
+	// corresponding row in the SecondaryBranchExpectations or Expectations table, if any.
+	verifiedDeltaRows := map[groupingIDAndDigest]bool{}
+	for key, deltaRow := range deltaRows {
+		label, ok := secondaryBranchLabels[key]
+		if !ok {
+			label, ok = primaryBranchLabels[key]
+		}
+		if ok {
+			if label != deltaRow.LabelBefore {
+				return nil, &triageConflictError{
+					GroupingID:          deltaRow.GroupingID,
+					Digest:              deltaRow.Digest,
+					ExpectedLabelBefore: label,
+					ActualLabelBefore:   deltaRow.LabelBefore,
+				}
+			}
+			verifiedDeltaRows[key] = true
+		}
+	}
+
+	return verifiedDeltaRows, nil
 }
 
 // StatusHandler returns information about the most recently ingested data and the triage status
