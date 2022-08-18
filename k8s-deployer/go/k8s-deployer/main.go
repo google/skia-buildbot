@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"time"
 
@@ -30,6 +31,7 @@ const (
 func main() {
 	configRepo := flag.String("config_repo", "https://skia.googlesource.com/k8s-config.git", "Repo containing Kubernetes configurations.")
 	configSubdir := flag.String("config_subdir", "", "Subdirectory within the config repo to apply to this cluster.")
+	configFiles := common.NewMultiStringFlag("config_file", nil, "Individual config files to apply. Supports regex. Incompatible with --prune.")
 	interval := flag.Duration("interval", 10*time.Minute, "How often to re-apply configurations to the cluster")
 	port := flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
@@ -47,6 +49,19 @@ func main() {
 		// Note: this wouldn't be required if we had separate config repos per
 		// cluster.
 		sklog.Fatal("config_subdir is required.")
+	}
+	var configFileRegexes []*regexp.Regexp
+	if len(*configFiles) > 0 {
+		if *prune {
+			sklog.Fatal("--config_file is incompatible with --prune.")
+		}
+		for _, expr := range *configFiles {
+			re, err := regexp.Compile(expr)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			configFileRegexes = append(configFileRegexes, re)
+		}
 	}
 
 	ctx := context.Background()
@@ -68,7 +83,7 @@ func main() {
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, *prune); err != nil {
+		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, configFileRegexes, *prune); err != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", err)
 		} else {
 			liveness.Reset()
@@ -79,7 +94,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, prune bool) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, configFileRegexes []*regexp.Regexp, prune bool) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
@@ -100,6 +115,22 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	sklog.Infof("Downloading config files at %s", head.Hash)
 	for _, file := range files {
 		file := file // https://golang.org/doc/faq#closures_and_goroutines
+
+		// Ensure that the file matches any provided regular expressions.
+		if len(configFileRegexes) > 0 {
+			match := false
+			for _, re := range configFileRegexes {
+				if re.MatchString(file) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				continue
+			}
+		}
+
+		// Download the file contents.
 		eg.Go(file, func() error {
 			fullPath := path.Join(configSubdir, file)
 			sklog.Infof("  %s", fullPath)
