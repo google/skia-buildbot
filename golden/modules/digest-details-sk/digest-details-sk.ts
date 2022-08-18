@@ -38,7 +38,7 @@ import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 import {
-  Commit, Digest, Label, ParamSet, SearchResult, SRDiffDigest, TestName, TraceGroup, TraceID, TriageHistory, TriageRequest,
+  Commit, Label, RefClosest, SearchResult, SRDiffDigest, TestName, TraceID, TriageRequest,
 } from '../rpc_types';
 import { SearchCriteria, SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
 import { DotsSk } from '../dots-sk/dots-sk';
@@ -54,13 +54,13 @@ function toggleButtonMouseover(canToggle: boolean) {
   return 'There are no other reference image types to compare against.';
 }
 
-const validRefs = ['pos', 'neg'];
+const validRefs: RefClosest[] = ['pos', 'neg'];
 
 export class DigestDetailsSk extends ElementSk {
   private static template = (ele: DigestDetailsSk) => html`
     <div class=container>
       <div class=top_bar>
-        <span class=grouping_name>Test: ${ele.grouping}</span>
+        <span class=grouping_name>Test: ${ele._details.test}</span>
         <span class=expand></span>
         <a href=${ele.clusterHref()} target=_blank rel=noopener class=cluster_link>
           <group-work-icon-sk title="Cluster view of this digest and all others for this test.">
@@ -70,7 +70,7 @@ export class DigestDetailsSk extends ElementSk {
 
       <div class=comparison>
         <div class=digest_labels>
-          <span class="digest_label left">Left: ${ele.digest}</span>
+          <span class="digest_label left">Left: ${ele._details.digest}</span>
           <span class=expand></span>
           <span class="digest_label right" ?hidden=${!ele.right}>
             Right: ${ele.right && ele.right.digest}
@@ -84,7 +84,7 @@ export class DigestDetailsSk extends ElementSk {
                 @click=${ele.toggleRightRef}
                 ?disabled=${!ele.canToggle()}
                 class=toggle_ref
-                ?hidden=${ele._overrideRight || !ele.right}
+                ?hidden=${ele.overrideRight || !ele.right}
                 title=${toggleButtonMouseover(ele.canToggle())}>
               Toggle Reference
             </button>
@@ -108,7 +108,7 @@ export class DigestDetailsSk extends ElementSk {
     if (!ele.right) {
       return html`
         <div class=metrics_and_triage>
-          <triage-sk @change=${ele.triageChangeHandler} .value=${ele.status}></triage-sk>
+          <triage-sk @change=${ele.triageChangeHandler} .value=${ele._details.status}></triage-sk>
           ${DigestDetailsSk.triageHistoryTemplate(ele)}
       </div>
       `;
@@ -121,11 +121,11 @@ export class DigestDetailsSk extends ElementSk {
       <div class=metrics_and_triage>
         <div>
           <a href=${diffPageHref(
-      ele.grouping,
-      ele.digest,
+      ele._details.test,
+      ele._details.digest,
       ele.right.digest,
-      ele.changeListID,
-      ele.crs,
+      ele._changeListID,
+      ele._crs,
     )}
              target=_blank rel=noopener class=diffpage_link>
             Diff Details
@@ -148,16 +148,16 @@ export class DigestDetailsSk extends ElementSk {
           <span>Max RGBA:</span>
           <span>[${ele.right.maxRGBADiffs.join(',')}]</span>
         </div>
-        <triage-sk @change=${ele.triageChangeHandler} .value=${ele.status}></triage-sk>
+        <triage-sk @change=${ele.triageChangeHandler} .value=${ele._details.status}></triage-sk>
         ${DigestDetailsSk.triageHistoryTemplate(ele)}
       </div>
     `;
   };
 
   private static triageHistoryTemplate = (ele: DigestDetailsSk) => {
-    if (ele.triageHistory.length === 0) return '';
+    if (!ele._details.triage_history || ele._details.triage_history.length === 0) return '';
 
-    const mostRecent = ele.triageHistory[0];
+    const mostRecent = ele._details.triage_history![0];
     return html`
       <div class=triage-history title="Last triaged on ${mostRecent.ts} by ${mostRecent.user}">
         ${diffDate(mostRecent.ts)} ago by
@@ -170,12 +170,12 @@ export class DigestDetailsSk extends ElementSk {
 
   private static imageComparisonTemplate = (ele: DigestDetailsSk) => {
     const left: ImageComparisonData = {
-      digest: ele.digest,
-      title: truncate(ele.digest, 15),
-      detail: detailHref(ele.grouping, ele.digest, ele.changeListID, ele.crs),
+      digest: ele._details.digest,
+      title: truncate(ele._details.digest, 15),
+      detail: detailHref(ele._details.test, ele._details.digest, ele._changeListID, ele._crs),
     };
     if (!ele.right) {
-      const hasOtherDigests = (ele.traces?.digests?.length || 0) > 1;
+      const hasOtherDigests = (ele._details.traces?.digests?.length || 0) > 1;
       return html`
         <image-compare-sk .left=${left}
                           .isComputingDiffs=${hasOtherDigests}
@@ -187,9 +187,9 @@ export class DigestDetailsSk extends ElementSk {
     const right: ImageComparisonData = {
       digest: ele.right.digest,
       title: ele.right.status === 'positive' ? 'Closest Positive' : 'Closest Negative',
-      detail: detailHref(ele.grouping, ele.right.digest, ele.changeListID, ele.crs),
+      detail: detailHref(ele._details.test, ele.right.digest, ele._changeListID, ele._crs),
     };
-    if (ele._overrideRight) {
+    if (ele.overrideRight) {
       right.title = truncate(ele.right.digest, 15);
     }
 
@@ -202,36 +202,36 @@ export class DigestDetailsSk extends ElementSk {
   };
 
   private static traceInfoTemplate = (ele: DigestDetailsSk) => {
-    if (!ele.traces || !ele.traces.traces || !ele.traces.traces.length) {
+    if (!ele._details.traces || !ele._details.traces.traces || !ele._details.traces.traces.length) {
       return '';
     }
     return html`
       <div class=trace_info>
         <dots-sk
-            .value=${ele.traces}
+            .value=${ele._details.traces}
             .commits=${ele._commits}
             @hover=${ele.hoverOverTrace}
             @mouseleave=${ele.clearTraceHighlights}
             @showblamelist=${ele.showBlamelist}>
         </dots-sk>
         <dots-legend-sk
-            .digests=${ele.traces.digests}
-            .changeListID=${ele.changeListID}
-            .crs=${ele.crs}
-            .test=${ele.grouping}
-            .totalDigests=${ele.traces.total_digests || 0}>
+            .digests=${ele._details.traces.digests}
+            .changeListID=${ele._changeListID}
+            .crs=${ele._crs}
+            .test=${ele._details.test}
+            .totalDigests=${ele._details.traces.total_digests || 0}>
         </dots-legend-sk>
       </div>
     `;
   };
 
   private static paramsetTemplate = (ele: DigestDetailsSk) => {
-    if (!ele.digest || !ele.params) {
+    if (!ele._details.digest || !ele._details.paramset) {
       return ''; // details might not be loaded yet.
     }
 
-    const titles = [truncate(ele.digest, 15)];
-    const paramsets = [ele.params];
+    const titles = [truncate(ele._details.digest, 15)];
+    const paramsets = [ele._details.paramset];
 
     if (ele.right && ele.right.paramset) {
       titles.push(truncate(ele.right.digest, 15));
@@ -241,24 +241,25 @@ export class DigestDetailsSk extends ElementSk {
     return html`
       <paramset-sk .titles=${titles}
                    .paramsets=${paramsets}
-                   .highlight=${ele._highlightedParams}>
+                   .highlight=${ele.highlightedParams}>
       </paramset-sk>
     `;
   };
 
-  private grouping: TestName = '';
-
-  private digest: Digest = '';
-
-  private status: Label = 'untriaged';
-
-  private triageHistory: TriageHistory[] = [];
-
-  private params: ParamSet | null = null;
-
-  private traces: TraceGroup | null = null;
-
-  private refDiffs: { [key: string]: SRDiffDigest | null } = {};
+  private _details: SearchResult = {
+    digest: '',
+    test: '',
+    status: 'untriaged',
+    triage_history: null,
+    paramset: {},
+    traces: {
+      traces: null,
+      digests: null,
+      total_digests: 0,
+    },
+    refDiffs: null,
+    closestRef: '',
+  };
 
   private _changeListID = '';
 
@@ -268,11 +269,11 @@ export class DigestDetailsSk extends ElementSk {
 
   // This tracks which ref we are showing on the right. It will default to the closest one, but
   // can be changed with the toggle.
-  private _rightRef = '';
+  private rightRef: RefClosest = '';
 
-  private _overrideRight: SRDiffDigest | null= null;
+  private overrideRight: SRDiffDigest | null= null;
 
-  private _highlightedParams: { [key: string]: string } = {};
+  private highlightedParams: { [key: string]: string } = {};
 
   private _fullSizeImages = false;
 
@@ -289,37 +290,25 @@ export class DigestDetailsSk extends ElementSk {
   /**
    * An array of the commits in the tile. Used to compute the blamelist for representing traces.
    */
-  get commits(): Commit[] { return this._commits; }
-
   set commits(arr: Commit[]) {
     this._commits = arr;
     this._render();
   }
 
   /** SearchResult from which to pull the digest details to show. */
-  set details(obj: SearchResult) {
-    this.grouping = obj.test || '';
-    this.digest = obj.digest || '';
-    this.traces = obj.traces || {};
-    this.params = obj.paramset;
-    this.refDiffs = obj.refDiffs || {};
-    this._rightRef = obj.closestRef || '';
-    this.status = obj.status || '';
-    this.triageHistory = obj.triage_history || [];
+  set details(details: SearchResult) {
+    this._details = details;
+    this.rightRef = details.closestRef;
     this._render();
   }
 
   /** The changelist id (or empty string if this is the master branch). */
-  get changeListID(): string { return this._changeListID; }
-
   set changeListID(id: string) {
     this._changeListID = id;
     this._render();
   }
 
   /** The Code Review System (e.g. "gerrit") if changeListID is set. */
-  get crs(): string { return this._crs; }
-
   set crs(c: string) {
     this._crs = c;
     this._render();
@@ -327,22 +316,18 @@ export class DigestDetailsSk extends ElementSk {
 
   /** Forces the left image to be compared to the given ref. */
   get right(): SRDiffDigest | null {
-    if (this._overrideRight) {
-      return this._overrideRight;
+    if (this.overrideRight) {
+      return this.overrideRight;
     }
-    return this.refDiffs[this._rightRef] || null;
+    return this._details.refDiffs ? this._details.refDiffs[this.rightRef] : null;
   }
 
   set right(override: SRDiffDigest | null) {
-    this._overrideRight = override;
+    this.overrideRight = override;
     this._render();
   }
 
   /** Whether to show thumbnails or full size images. */
-  get fullSizeImages(): boolean {
-    return this._fullSizeImages;
-  }
-
   set fullSizeImages(val: boolean) {
     this._fullSizeImages = val;
     this._render();
@@ -351,7 +336,7 @@ export class DigestDetailsSk extends ElementSk {
   private canToggle(): boolean {
     let totalRefs = 0;
     for (const ref of validRefs) {
-      if (this.refDiffs[ref]) {
+      if (this._details.refDiffs && this._details.refDiffs[ref]) {
         totalRefs++;
       }
     }
@@ -359,7 +344,7 @@ export class DigestDetailsSk extends ElementSk {
   }
 
   private clearTraceHighlights() {
-    this._highlightedParams = {};
+    this.highlightedParams = {};
     this._render();
   }
 
@@ -368,27 +353,27 @@ export class DigestDetailsSk extends ElementSk {
   }
 
   private clusterHref() {
-    if (!this.grouping || !this.params || !this.params.source_type
-        || this.params.source_type.length === 0) {
+    if (!this._details.test || !this._details.paramset || !this._details.paramset.source_type
+        || this._details.paramset.source_type.length === 0) {
       return '';
     }
 
     const searchCriteria: Partial<SearchCriteria> = {
-      corpus: this.params.source_type[0],
+      corpus: this._details.paramset.source_type[0],
       includePositiveDigests: true,
       includeNegativeDigests: true,
       includeUntriagedDigests: true,
       includeDigestsNotAtHead: true,
     };
     const clusterState: SearchCriteriaHintableObject & {grouping?: TestName} = SearchCriteriaToHintableObject(searchCriteria);
-    clusterState.grouping = this.grouping;
+    clusterState.grouping = this._details.test;
     return `/cluster?${fromObject(clusterState as HintableObject)}`;
   }
 
   private hoverOverTrace(e: CustomEvent<TraceID>) {
     // Find the matching trace in details.traces.
-    const trace = this.traces?.traces?.find((trace) => trace.label === e.detail);
-    this._highlightedParams = trace?.params || {};
+    const trace = this._details.traces?.traces?.find((trace) => trace.label === e.detail);
+    this.highlightedParams = trace?.params || {};
     this._render();
   }
 
@@ -412,13 +397,13 @@ export class DigestDetailsSk extends ElementSk {
     if (!this.canToggle()) {
       return;
     }
-    let idx = validRefs.indexOf(this._rightRef);
-    let newRight = '';
-    while (!this.refDiffs[newRight]) {
+    let idx = validRefs.indexOf(this.rightRef);
+    let newRight: RefClosest = '';
+    while (!this._details.refDiffs![newRight]) {
       idx = (idx + 1) % validRefs.length;
       newRight = validRefs[idx];
     }
-    this._rightRef = newRight;
+    this.rightRef = newRight;
     this._render();
   }
 
@@ -435,16 +420,15 @@ export class DigestDetailsSk extends ElementSk {
 
     const triageRequest: TriageRequest = {
       testDigestStatus: {
-        [this.grouping]: {
-          [this.digest]: label,
+        [this._details.test]: {
+          [this._details.digest]: label,
         },
       },
-      changelist_id: this.changeListID,
-      crs: this.crs,
+      changelist_id: this._changeListID,
+      crs: this._crs,
     };
 
     sendBeginTask(this);
-
     const url = '/json/v2/triage';
     fetch(url, {
       method: 'POST',
@@ -455,8 +439,8 @@ export class DigestDetailsSk extends ElementSk {
     }).then((resp: Response) => {
       if (resp.ok) {
         // Triaging was successful.
-        this.status = label;
-        this.triageHistory.unshift({
+        this._details.status = label;
+        this._details.triage_history!.unshift({
           user: 'me',
           ts: new Date(Date.now()).toISOString(),
         });
@@ -471,7 +455,7 @@ export class DigestDetailsSk extends ElementSk {
           `Unexpected error triaging: ${resp.status} ${resp.statusText} `
             + '(Are you logged in with the right account?)', 8000,
         );
-        this.querySelector<TriageSk>('triage-sk')!.value = this.status;
+        this.querySelector<TriageSk>('triage-sk')!.value = this._details.status;
         this._render();
         sendEndTask(this);
       }

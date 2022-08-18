@@ -1,6 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
+import { deepCopy } from 'common-sk/modules/object';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { twoHundredCommits, typicalDetails } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
@@ -28,8 +29,8 @@ describe('digest-details-sk', () => {
 
   describe('layout with positive and negative references', () => {
     beforeEach(() => {
-      digestDetailsSk.details = typicalDetails;
-      digestDetailsSk.commits = twoHundredCommits;
+      digestDetailsSk.details = deepCopy(typicalDetails);
+      digestDetailsSk.commits = deepCopy(twoHundredCommits);
     });
 
     it('shows the test name', async () => {
@@ -143,8 +144,8 @@ describe('digest-details-sk', () => {
 
   describe('layout with changelist id, positive and negative references', () => {
     beforeEach(() => {
-      digestDetailsSk.details = typicalDetails;
-      digestDetailsSk.commits = twoHundredCommits;
+      digestDetailsSk.details = deepCopy(typicalDetails);
+      digestDetailsSk.commits = deepCopy(twoHundredCommits);
       digestDetailsSk.changeListID = '12345';
       digestDetailsSk.crs = 'github';
     });

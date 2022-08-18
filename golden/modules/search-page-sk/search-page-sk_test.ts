@@ -206,7 +206,7 @@ describe('search-page-sk', () => {
       // We will trigger a search RPC using the pagination-sk element's "next" button. The exact
       // element does not matter as long as a search RPC is triggered.
       fetchMock.get(
-        `/json/v2/search?${fromObject({ ...defaultSearchRequest, offset: 50})}`,
+        `/json/v2/search?${fromObject({ ...defaultSearchRequest, offset: 50 })}`,
         () => searchResponse, // This test does not care about the search response. Any is fine.
       );
 
@@ -413,7 +413,7 @@ describe('search-page-sk', () => {
     });
   });
 
-  const testPaginationSk = (getPaginationSkPO: () => PaginationSkPO) => {
+  const testPaginationSk = (getPaginationSkPO: ()=> PaginationSkPO) => {
     // Returns the current page displayed by both the top and bottom pagination-sk elements as a
     // single pipe-separated string (e.g. "4|4"). This allows us to test that both elements show
     // the same page number.
@@ -421,7 +421,7 @@ describe('search-page-sk', () => {
       const top = await topPaginationSkPO.getCurrentPage();
       const bottom = await bottomPaginationSkPO.getCurrentPage();
       return `${top}|${bottom}`;
-    }
+    };
 
     describe('button "next" with no explicit "limit" URL parameter', () => {
       searchFieldIsBoundToURLAndRPC<string>(
@@ -478,7 +478,7 @@ describe('search-page-sk', () => {
         { ...defaultSearchRequest, limit: 3, offset: 9 },
       );
     });
-  }
+  };
 
   describe('top pagination-sk', () => {
     testPaginationSk(() => topPaginationSkPO);

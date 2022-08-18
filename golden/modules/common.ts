@@ -11,8 +11,8 @@ export function humanReadableQuery(queryStr: string): string {
   return queryStr.split('&').map(decodeURIComponent).join('\n');
 }
 
-let imagePrefix = '/img/images';
-let diffPrefix = '/img/diffs';
+const imagePrefix = '/img/images';
+const diffPrefix = '/img/diffs';
 
 /**
  * Returns a link to the PNG image associated with the given digest.
