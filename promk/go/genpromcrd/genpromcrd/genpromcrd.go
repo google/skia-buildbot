@@ -197,6 +197,26 @@ The list of directories processed are defined in:
 
     //kube/clusters/config.json
 
+The application recognizes the not-in-clusters annotation, which is a
+list of cluster names where this alert is not relevant, and thus no
+absent rule will be applied for that cluster. For example, we don't
+enforce AppRunningInDefaultNamespace in skia-public and skia-corp, so
+this alert will not generate an Absent alert in either of those two
+clusters:
+
+	- alert: AppRunningInDefaultNamespace
+	  expr:
+		pod_running{exported_namespace="default",exported_cluster!=""} > 0
+	  labels:
+		category: infra
+		severity: critical
+	  annotations:
+		not-in-clusters: skia-public, skia-corp
+		abbr: '{{ $labels.exported_app }}'
+		description:
+		  'App {{ $labels.exported_app }} is running in the default
+		  namespace in cluster {{ $labels.cluster }}.'
+
 `
 		fmt.Println(usage)
 	}
@@ -263,7 +283,8 @@ func (a *App) Main(args []string) error {
 		}
 
 		// Add in absent versions of rules.
-		rules.AddAbsentRules()
+		cluster := filepath.Base(appGroup.Directory)
+		rules.AddAbsentRules(cluster)
 
 		// Write out the CRDs.
 		serializeRules, err := yaml.Marshal(rules)

@@ -3,9 +3,12 @@ package crd
 
 import (
 	"fmt"
+	"strings"
 
 	"go.skia.org/infra/go/prom"
 )
+
+const notInClustersAnnotationKey = "not-in-clusters"
 
 // Rules Custom Resource representation.
 //
@@ -44,12 +47,27 @@ type Rule struct {
 	Annotations map[string]string `yaml:"annotations"`
 }
 
+// Skip returns true if the alert should not be applied to the given cluster.
+func (r Rule) Skip(cluster string) bool {
+	if skipString, ok := r.Annotations[notInClustersAnnotationKey]; ok {
+		for _, skipCluster := range strings.Split(skipString, ",") {
+			if cluster == strings.TrimSpace(skipCluster) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // AddAbsentRules adds an `absent()` alert for each Rule, where possible.
-func (r *Rules) AddAbsentRules() {
+func (r *Rules) AddAbsentRules(cluster string) {
 	absentGroups := []Group{}
 	for _, g := range r.Spec.Groups {
 		rules := []Rule{}
 		for _, rule := range g.Rules {
+			if rule.Skip(cluster) {
+				continue
+			}
 			equation, ignore := prom.EquationFromExpr(rule.Expr)
 			if ignore {
 				continue

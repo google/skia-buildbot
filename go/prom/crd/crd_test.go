@@ -69,7 +69,7 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 		},
 	}
 
-	rules.AddAbsentRules()
+	rules.AddAbsentRules("skia-public")
 
 	expected := Rules{
 		Spec: Spec{
@@ -114,4 +114,101 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 	}
 
 	require.Equal(t, expected, rules)
+}
+
+func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
+	unittest.SmallTest(t)
+
+	rules := Rules{
+		Spec: Spec{
+			Groups: []Group{
+				{
+					Name:     "example",
+					Interval: "15s",
+					Rules: []Rule{
+						{
+							Alert: "ThisWillNotGetAnAbsentAlert",
+							Expr:  "go_goroutines",
+							Annotations: map[string]string{
+								notInClustersAnnotationKey: "skia-public",
+							},
+						},
+						{
+							Alert: "AndroidIngestLiveness",
+							Expr:  "liveness_last_successful_add_s > 300",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rules.AddAbsentRules("skia-public")
+
+	expected := Rules{
+		Spec: Spec{
+			Groups: []Group{
+				{
+					Name:     "example",
+					Interval: "15s",
+					Rules: []Rule{
+						{
+							Alert: "ThisWillNotGetAnAbsentAlert",
+							Expr:  "go_goroutines",
+							Annotations: map[string]string{
+								notInClustersAnnotationKey: "skia-public",
+							},
+						},
+						{
+							Alert: "AndroidIngestLiveness",
+							Expr:  "liveness_last_successful_add_s > 300",
+						},
+					},
+				},
+				// A new group should be added.
+				{
+					Name:     "absent-example",
+					Interval: "15s",
+					Rules: []Rule{
+						// But the new group only contains one Alert, the one for AndroidIngestLiveness.
+						{
+							Alert: "Absent",
+							Expr:  "absent(liveness_last_successful_add_s)",
+							Labels: map[string]string{
+								"category": "infra",
+								"severify": "critical",
+							},
+							Annotations: map[string]string{
+								"abbr":        "AndroidIngestLiveness",
+								"equation":    "liveness_last_successful_add_s",
+								"description": "There is no data for the Alert: \"AndroidIngestLiveness\"",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.Equal(t, expected, rules)
+}
+
+func TestRuleSkip_NotInClusterAnnotationPresent_ReturnsTrueForMatchingClusterNames(t *testing.T) {
+	unittest.SmallTest(t)
+	rule := Rule{
+		Annotations: map[string]string{
+			notInClustersAnnotationKey: "skia-public, skia-corp",
+		},
+	}
+
+	require.True(t, rule.Skip("skia-public"))
+	require.True(t, rule.Skip("skia-corp"))
+	require.False(t, rule.Skip("this-is-not-a-matching-cluster-name"))
+}
+
+func TestRuleSkip_NotInClusterAnnotationAbsent_ReturnsFalse(t *testing.T) {
+	unittest.SmallTest(t)
+	rule := Rule{}
+
+	require.False(t, rule.Skip("skia-public"))
 }
