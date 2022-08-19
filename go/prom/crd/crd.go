@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/prom"
 )
 
-const notInClustersAnnotationKey = "not-in-clusters"
+const notInClustersAnnotationKey = "not_in_clusters"
 
 // Rules Custom Resource representation.
 //
