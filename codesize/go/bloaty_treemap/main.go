@@ -34,7 +34,7 @@ func main() {
 	ifErrThenDie(err)
 
 	var jsArrayRows []string
-	for _, row := range bloaty.GenTreeMapDataTableRows(bloatyOutputItems) {
+	for _, row := range bloaty.GenTreeMapDataTableRows(bloatyOutputItems, 200) {
 		name := strings.ReplaceAll(row.Name, "'", "\\'")
 		parent := "null"
 		if row.Parent != "" {

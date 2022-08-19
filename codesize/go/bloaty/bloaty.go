@@ -25,6 +25,7 @@ package bloaty
 import (
 	"fmt"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -95,6 +96,21 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 			Symbol:      cols[1],
 		}
 
+		if item.Symbol == item.CompileUnit {
+			// Bloaty 1.0 would seem to group unknown symbols into a "symbol" with the same
+			// name as the section/compile unit. For example,
+			// [section .rodata]	[section .rodata]	10425940	10425940
+			// Having a CompileUnit and Symbol with the same name causes problems for the treemap
+			// as well as understanding what is going on, so we add a prefix to the symbol
+			item.Symbol = "UNKNOWN " + item.Symbol
+		} else if strings.HasPrefix(item.CompileUnit, "[section") {
+			// Some symbols can be in multiple sections. For example, source code can live in
+			// [section .text], unwind information in [section .eh_frame], and unwind metadata in
+			// [section .eh_frame_hdr]. Thus, we add a suffix for any data in sections, so as not
+			// to have duplicate symbols which makes the treemap sad.
+			item.Symbol += " " + item.CompileUnit
+		}
+
 		var err error
 		item.VirtualMemorySize, err = strconv.Atoi(cols[2])
 		if err != nil {
@@ -106,15 +122,14 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 			return nil, wrapErrOnLine(err, "could not convert filesize column to integer")
 		}
 
-		// Skip any entry where the compile unit or symbol starts with '['. These tend to be section
-		// metadata and debug information.
-		if strings.HasPrefix(item.CompileUnit, "[") || strings.HasPrefix(item.Symbol, "[") {
-			continue
-		}
-
 		// Strip the leading "../../" from paths.
 		for strings.HasPrefix(item.CompileUnit, "../") {
 			item.CompileUnit = strings.TrimPrefix(item.CompileUnit, "../")
+		}
+		// Sometimes bloaty's file paths for third_party include the skia folder and sometimes
+		// they do not. We would prefer all third_party stuff show up seperate from Skia.
+		if strings.HasPrefix(item.CompileUnit, "skia/third_party/") {
+			item.CompileUnit = strings.TrimPrefix(item.CompileUnit, "skia/")
 		}
 
 		// Files in third_party sometimes have absolute paths. Strip those.
@@ -161,7 +176,18 @@ type TreeMapDataTableRow struct {
 //
 // [1] https://developers.google.com/chart/interactive/docs/reference#arraytodatatable
 // [2] https://developers.google.com/chart/interactive/docs/gallery/treemap
-func GenTreeMapDataTableRows(items []OutputItem) []TreeMapDataTableRow {
+func GenTreeMapDataTableRows(items []OutputItem, maxChildren int) []TreeMapDataTableRow {
+	sort.Slice(items, func(i, j int) bool {
+		a, b := items[i], items[j]
+		// Sort in order of ascending compile unit, descending file size, ascending symbol
+		if a.CompileUnit != b.CompileUnit {
+			return a.CompileUnit < b.CompileUnit
+		}
+		if a.FileSize != b.FileSize {
+			return a.FileSize > b.FileSize
+		}
+		return a.Symbol < b.Symbol
+	})
 	rows := []TreeMapDataTableRow{
 		{
 			Name:   "ROOT",
@@ -203,6 +229,8 @@ func GenTreeMapDataTableRows(items []OutputItem) []TreeMapDataTableRow {
 	}
 
 	symbolFreqs := map[string]int{}
+	parentsToChildCounts := map[string]int{}
+	overflowedParentsToSize := map[string]int{}
 
 	for _, item := range items {
 		addCompileUnitOrParentDir(item.CompileUnit)
@@ -217,10 +245,23 @@ func GenTreeMapDataTableRows(items []OutputItem) []TreeMapDataTableRow {
 			item.Symbol = fmt.Sprintf("%s_%d", item.Symbol, freq)
 		}
 
+		if parentsToChildCounts[item.CompileUnit] >= maxChildren {
+			overflowedParentsToSize[item.CompileUnit] += item.FileSize
+		} else {
+			rows = append(rows, TreeMapDataTableRow{
+				Name:   item.Symbol,
+				Parent: item.CompileUnit,
+				Size:   item.FileSize,
+			})
+		}
+		parentsToChildCounts[item.CompileUnit]++
+	}
+
+	for parent, size := range overflowedParentsToSize {
 		rows = append(rows, TreeMapDataTableRow{
-			Name:   item.Symbol,
-			Parent: item.CompileUnit,
-			Size:   item.FileSize,
+			Name:   fmt.Sprintf("remainder (%s)", parent),
+			Parent: parent,
+			Size:   size,
 		})
 	}
 

@@ -44,6 +44,10 @@ const (
 	// relevant to most developers, and loading too much data can make the server take a long
 	// time to load.
 	daysToPreload = 10
+
+	// Some sections (e.g. .text) have a lot of children. This groups them up beyond a certain
+	// point to help the treemap not be too hard to read or slow to render.
+	maxChildrenPerParent = 200
 )
 
 var exponentialBackoffSettings = &backoff.ExponentialBackOff{
@@ -289,7 +293,7 @@ func (s *server) binaryRPCHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := rpc.BinaryRPCResponse{
 		Metadata: binary.Metadata,
-		Rows:     bloaty.GenTreeMapDataTableRows(outputItems),
+		Rows:     bloaty.GenTreeMapDataTableRows(outputItems, maxChildrenPerParent),
 	}
 	sendJSONResponse(res, w)
 }
