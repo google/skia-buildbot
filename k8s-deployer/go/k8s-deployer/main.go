@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -189,6 +190,9 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	if err != nil {
 		return skerr.Wrapf(err, "failed to apply configs: %s", output)
 	}
-	sklog.Infof("Output from kubectl: %s", output)
+	sklog.Info("Output from kubectl")
+	for _, line := range strings.Split(output, "\n") {
+		sklog.Info(line)
+	}
 	return nil
 }
