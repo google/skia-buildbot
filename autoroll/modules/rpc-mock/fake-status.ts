@@ -36,6 +36,7 @@ export function GetFakeStatus(): AutoRollStatus {
     manualRolls: [
       {
         dryRun: false,
+        canary: false,
         id: 'dEj3GAGLfIFn67MirRhC',
         noEmail: false,
         noResolveRevision: false,

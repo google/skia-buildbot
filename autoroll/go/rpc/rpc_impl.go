@@ -648,6 +648,7 @@ func convertManualRollRequest(inp *manual.ManualRollRequest) (*ManualRoll, error
 		Status:            st,
 		Timestamp:         timestamppb.New(inp.Timestamp),
 		Url:               inp.Url,
+		Canary:            inp.Canary,
 		DryRun:            inp.DryRun,
 		NoEmail:           inp.NoEmail,
 		NoResolveRevision: inp.NoResolveRevision,

@@ -262,6 +262,7 @@ export interface ManualRoll {
   dryRun: boolean;
   noEmail: boolean;
   noResolveRevision: boolean;
+  canary: boolean;
 }
 
 interface ManualRollJSON {
@@ -276,6 +277,7 @@ interface ManualRollJSON {
   dry_run?: boolean;
   no_email?: boolean;
   no_resolve_revision?: boolean;
+  canary?: boolean;
 }
 
 const JSONToManualRoll = (m: ManualRollJSON): ManualRoll => {
@@ -291,6 +293,7 @@ const JSONToManualRoll = (m: ManualRollJSON): ManualRoll => {
     dryRun: m.dry_run || false,
     noEmail: m.no_email || false,
     noResolveRevision: m.no_resolve_revision || false,
+    canary: m.canary || false,
   };
 };
 

@@ -722,6 +722,7 @@ func TestConvertManualRollRequest(t *testing.T) {
 		Timestamp:         firestore.FixTimestamp(timeNowFunc()),
 		Url:               "https://999",
 		DryRun:            true,
+		Canary:            true,
 		NoEmail:           true,
 		NoResolveRevision: true,
 	}
@@ -744,6 +745,7 @@ func TestConvertManualRollRequest(t *testing.T) {
 		Timestamp:         timestamppb.New(req.Timestamp),
 		Url:               req.Url,
 		DryRun:            true,
+		Canary:            true,
 		NoEmail:           true,
 		NoResolveRevision: true,
 	}, actual)

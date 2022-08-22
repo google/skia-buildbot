@@ -119,6 +119,7 @@ class FakeAutoRollService implements AutoRollService {
     const rv: ManualRoll = {
       id: id,
       dryRun: false,
+      canary: false,
       noEmail: false,
       noResolveRevision: false,
       rollerId: req.rollerId,

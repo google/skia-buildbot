@@ -275,6 +275,8 @@ message ManualRoll {
   // find the requested revision ID in the Child but should simply use it as
   // provided.
   bool no_resolve_revision = 11;
+  // canary indicates that this manual roll was a canary request.
+  bool canary = 12;
 }
 
 // AutoRollStatus describes the overall status of an autoroller.

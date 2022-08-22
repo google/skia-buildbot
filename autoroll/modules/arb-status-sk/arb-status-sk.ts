@@ -1085,6 +1085,7 @@ export class ARBStatusSk extends ElementSk {
         ) {
           req = {
             dryRun: false,
+            canary: false,
             id: '',
             noEmail: false,
             noResolveRevision: false,
@@ -1128,7 +1129,7 @@ export class ARBStatusSk extends ElementSk {
       timestamp: cl.timestamp!,
       result: this.manualRollResult(cl),
       rollingTo: cl.revision,
-      subject: "Manual roll to " + cl.revision,
+      subject: (cl.canary ? "Canary" : "Manual") + " roll to " + cl.revision,
       url: cl.url,
     })));
     this.recentRolls.sort((a: RecentRoll, b: RecentRoll) =>
