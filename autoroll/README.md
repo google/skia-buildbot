@@ -116,5 +116,4 @@ Therefore, this strategy may require occasional manual intervention.
 For Skia Infra Team Members
 ---------------------------
 
-See [PROD.md] (https://skia.googlesource.com/buildbot/+doc/master/autoroll/PROD.md)
-for information about handling alerts.
+See [PROD.md](./PROD.md) for information about handling alerts.
