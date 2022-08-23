@@ -772,11 +772,41 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    3,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
 				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC04Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -1014,9 +1044,21 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -1254,7 +1296,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 		Offset:  3,
 		Size:    6,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 				dks.DigestA02Pos: expectations.Positive,
@@ -1263,6 +1305,63 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 			}, dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
 				dks.DigestB02Pos: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: false,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA02Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: false,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA03Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: false,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA08Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB02Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: false,
 			},
 		},
 	}, res)
@@ -1672,10 +1771,31 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
 				dks.DigestB02Pos: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB02Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -1795,9 +1915,21 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA08Pos: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA08Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -2185,7 +2317,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 		Offset:  0,
 		Size:    4,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA04Unt: expectations.Positive,
 			},
@@ -2193,6 +2325,45 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				dks.DigestBlank:  expectations.Positive,
 				dks.DigestB03Neg: expectations.Positive,
 				dks.DigestB04Neg: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA04Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestBlank,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB03Neg,
+				LabelBefore:                expectations.Negative,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB04Neg,
+				LabelBefore:                expectations.Negative,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -2482,12 +2653,33 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 		}},
 		Offset: 0,
 		Size:   2,
-		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
+		DeprecatedBulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
 			"draw_a_square": {
 				dks.DigestA05Unt: "positive",
 			},
 			"draw_a_square_but_faster": {
 				dks.DigestA05Unt: "positive",
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: "draw_a_square_but_faster",
+				},
+				Digest:                     dks.DigestA05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: "draw_a_square",
+				},
+				Digest:                     dks.DigestA05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 		Commits: []frontend.Commit{{
@@ -2684,10 +2876,31 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC04Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -2837,10 +3050,31 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -3040,10 +3274,31 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC06Pos_CL: expectations.Positive,
 				dks.DigestC07Unt_CL: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC06Pos_CL,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC07Unt_CL,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -3290,11 +3545,41 @@ func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoi
 		Offset:  0,
 		Size:    3,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestC01Pos: expectations.Positive,
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestC01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestC04Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -3601,12 +3886,33 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 			},
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
+				Digest:                     dks.DigestA01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
+				Digest:                     dks.DigestB01Pos,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -3729,9 +4035,21 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 		Offset:  0,
 		Size:    1,
 		Commits: clCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.SevenTest: {
 				dks.DigestD01Pos_CL: "", // empty string means no closest reference
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.TextCorpus,
+					types.PrimaryKeyField: dks.SevenTest,
+				},
+				Digest:                     dks.DigestD01Pos_CL,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelNone,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -4100,10 +4418,31 @@ func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse)
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC03Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC04Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -4352,9 +4691,21 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)
@@ -4453,9 +4804,21 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: frontend.TriageRequestDataV2{
+		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
 			dks.CircleTest: {
 				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
+				Digest:                     dks.DigestC05Unt,
+				LabelBefore:                expectations.Untriaged,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
 			},
 		},
 	}, res)

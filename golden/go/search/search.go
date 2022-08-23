@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -713,7 +714,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	}
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
-	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests)
+	closestDiffs, allClosestLabels, extendedBulkTriageDeltaInfos, err := s.getClosestDiffs(ctx, traceDigests)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -728,10 +729,14 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		return nil, skerr.Wrap(err)
 	}
 	// Create the mapping that allows us to bulk triage all results (not for just the ones shown).
-	bulkTriageData, err := s.convertBulkTriageData(ctx, allClosestLabels)
+	deprecatedBulkTriageData, err := s.convertDeprecatedBulkTriageData(ctx, allClosestLabels)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if err := s.populateLabelBefore(ctx, extendedBulkTriageDeltaInfos); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Fill in the paramsets of the reference images.
 	for _, sr := range results {
 		for _, srdd := range sr.RefDiffs {
@@ -741,12 +746,18 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		}
 	}
 
+	bulkTriageDeltaInfos := make([]frontend.BulkTriageDeltaInfo, len(extendedBulkTriageDeltaInfos))
+	for i, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
+		bulkTriageDeltaInfos[i] = triageDeltaInfo.BulkTriageDeltaInfo
+	}
+
 	return &frontend.SearchResponse{
-		Results:        results,
-		Offset:         q.Offset,
-		Size:           len(allClosestLabels),
-		BulkTriageData: bulkTriageData,
-		Commits:        commits,
+		Results:                  results,
+		Offset:                   q.Offset,
+		Size:                     len(allClosestLabels),
+		DeprecatedBulkTriageData: deprecatedBulkTriageData,
+		BulkTriageDeltaInfos:     bulkTriageDeltaInfos,
+		Commits:                  commits,
 	}, nil
 }
 
@@ -1141,11 +1152,22 @@ type stageTwoResult struct {
 	closestNegative *frontend.SRDiffDigest
 }
 
+// extendedBulkTriageDeltaInfo extends the frontend.BulkTriageDeltaInfo struct with the information
+// needed to populate the LabelBefore field in a separate SQL query.
+type extendedBulkTriageDeltaInfo struct {
+	frontend.BulkTriageDeltaInfo
+
+	groupingID schema.GroupingID
+	digest     schema.DigestBytes
+}
+
 // getClosestDiffs returns information about the closest triaged digests for each result in the
 // input. We are able to batch the queries by grouping and do so for better performance.
 // While this returns a subset of data as defined by the query, it also returns sufficient
-// information to bulk-triage all of the inputs.
-func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]stageTwoResult, map[groupingDigestKey]expectations.Label, error) {
+// information to bulk-triage all of the inputs. Note that this function does not populate the
+// LabelBefore fields of the returned extendedBulkTriageDeltaInfo structs; these need to be
+// populated by the caller.
+func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]stageTwoResult, map[groupingDigestKey]expectations.Label, []extendedBulkTriageDeltaInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
 	defer span.End()
 	byGrouping := map[schema.MD5Hash][]stageOneResult{}
@@ -1226,11 +1248,12 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 		})
 	}
 	if err := eg.Wait(); err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 
 	q := getQuery(ctx)
-	bulkTriageData := map[groupingDigestKey]expectations.Label{}
+	deprecatedBulkTriageData := map[groupingDigestKey]expectations.Label{}
+	var extendedBulkTriageDeltaInfos []extendedBulkTriageDeltaInfo
 	results := make([]stageTwoResult, 0, len(byDigestAndGrouping))
 	for _, s2 := range byDigestAndGrouping {
 		// Filter out any results without a closest triaged digest (if that option is selected).
@@ -1238,6 +1261,20 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 			continue
 		}
 		key := groupingDigestKey{groupingID: sql.AsMD5Hash(s2.groupingID), digest: sql.AsMD5Hash(s2.leftDigest)}
+		grouping, err := s.expandGrouping(ctx, sql.AsMD5Hash(s2.groupingID))
+		if err != nil {
+			return nil, nil, nil, skerr.Wrap(err)
+		}
+		triageDeltaInfo := extendedBulkTriageDeltaInfo{
+			// We do not populate the LabelBefore field, as that is the caller's responsibility.
+			// However, we will populate the ClosestDiffLabel field if there is a closest digest.
+			BulkTriageDeltaInfo: frontend.BulkTriageDeltaInfo{
+				Grouping: grouping,
+				Digest:   types.Digest(hex.EncodeToString(s2.leftDigest)),
+			},
+			groupingID: s2.groupingID,
+			digest:     s2.leftDigest,
+		}
 		if s2.closestDigest != nil {
 			// Apply RGBA Filter here - if the closest digest isn't within range, we remove it.
 			maxDiff := util.MaxInt(s2.closestDigest.MaxRGBADiffs[:]...)
@@ -1245,17 +1282,27 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 				continue
 			}
 			closestLabel := s2.closestDigest.Status
-			bulkTriageData[key] = closestLabel
+			deprecatedBulkTriageData[key] = closestLabel
+			triageDeltaInfo.ClosestDiffLabel = frontend.ClosestDiffLabel(closestLabel)
 		} else {
 			// Include a blank entry for results that have no other reference images. This allows
 			// us to still bulk triage them and count them towards the total.
-			bulkTriageData[key] = ""
+			//
+			// TODO(lovisolo): Can we delete this after we migrate Gold's frontend to use the new
+			//                 /json/v3/triage RPC or is this used by clients other than Gold?
+			deprecatedBulkTriageData[key] = ""
+			triageDeltaInfo.ClosestDiffLabel = frontend.ClosestDiffLabelNone
 		}
 		results = append(results, s2)
-
+		extendedBulkTriageDeltaInfos = append(extendedBulkTriageDeltaInfos, triageDeltaInfo)
 	}
+	// Sort for determinism.
+	sort.Slice(extendedBulkTriageDeltaInfos, func(i, j int) bool {
+		groupIDComparison := bytes.Compare(extendedBulkTriageDeltaInfos[i].groupingID, extendedBulkTriageDeltaInfos[j].groupingID)
+		return groupIDComparison < 0 || (groupIDComparison == 0 && extendedBulkTriageDeltaInfos[i].Digest < extendedBulkTriageDeltaInfos[j].Digest)
+	})
 	if q.Offset >= len(results) {
-		return nil, bulkTriageData, nil
+		return nil, deprecatedBulkTriageData, extendedBulkTriageDeltaInfos, nil
 	}
 	sortAsc := q.Sort == query.SortAscending
 	sort.Slice(results, func(i, j int) bool {
@@ -1281,10 +1328,16 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 	})
 
 	if q.Limit <= 0 {
-		return results, bulkTriageData, nil
+		for i := range extendedBulkTriageDeltaInfos {
+			extendedBulkTriageDeltaInfos[i].InCurrentSearchResultsPage = true
+		}
+		return results, deprecatedBulkTriageData, extendedBulkTriageDeltaInfos, nil
 	}
 	end := util.MinInt(len(results), q.Offset+q.Limit)
-	return results[q.Offset:end], bulkTriageData, nil
+	for i := q.Offset; i < end; i++ {
+		extendedBulkTriageDeltaInfos[i].InCurrentSearchResultsPage = true
+	}
+	return results[q.Offset:end], deprecatedBulkTriageData, extendedBulkTriageDeltaInfos, nil
 }
 
 // getDiffsForGrouping returns the closest positive and negative diffs for the provided digests
@@ -1918,9 +1971,13 @@ func (s *Impl) fillInTraceParams(ctx context.Context, tg *frontend.TraceGroup) e
 	return nil
 }
 
-// convertBulkTriageData converts the passed in map into the version usable by the frontend.
-func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (frontend.TriageRequestDataV2, error) {
-	ctx, span := trace.StartSpan(ctx, "convertBulkTriageData")
+// convertDeprecatedBulkTriageData converts the passed in map into the version usable by the
+// frontend.
+//
+// TODO(lovisolo): Can this be deleted after we migrate Gold's frontend to use the new
+//                 /json/v3/triage RPC?
+func (s *Impl) convertDeprecatedBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (frontend.TriageRequestDataV2, error) {
+	ctx, span := trace.StartSpan(ctx, "convertDeprecatedBulkTriageData")
 	defer span.End()
 	rv := map[types.TestName]map[types.Digest]expectations.Label{}
 	for key, label := range data {
@@ -1937,6 +1994,151 @@ func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDiges
 		}
 	}
 	return rv, nil
+}
+
+// makeGroupingAndDigestWhereClause builds the part of a "WHERE" clause that filters by grouping ID
+// and digest. It returns the SQL clause and a list of parameter values.
+func makeGroupingAndDigestWhereClause(triageDeltaInfos []extendedBulkTriageDeltaInfo, startingPlaceholderNum int) (string, []interface{}) {
+	var parts []string
+	args := make([]interface{}, 0, 2*len(triageDeltaInfos))
+	placeholderNum := startingPlaceholderNum
+	for _, bulkTriageDeltaInfo := range triageDeltaInfos {
+		parts = append(parts, fmt.Sprintf("(grouping_id = $%d AND digest = $%d)", placeholderNum, placeholderNum+1))
+		args = append(args, bulkTriageDeltaInfo.groupingID, bulkTriageDeltaInfo.digest)
+		placeholderNum += 2
+	}
+	sort.Strings(parts) // Make the query string deterministic for easier debugging.
+	return strings.Join(parts, " OR "), args
+}
+
+// findPrimaryBranchLabels returns the primary branch labels for the digests corresponding to the
+// passed in extendedBulkTriageDeltaInfo structs.
+func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
+	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+	whereClause, whereArgs := makeGroupingAndDigestWhereClause(triageDeltaInfos, 1)
+	statement := "SELECT grouping_id, digest, label FROM Expectations WHERE " + whereClause
+	rows, err := s.db.Query(ctx, statement, whereArgs...)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var groupingID schema.GroupingID
+		var digest schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		labels[groupingDigestKey{
+			groupingID: sql.AsMD5Hash(groupingID),
+			digest:     sql.AsMD5Hash(digest),
+		}] = label
+	}
+	return labels, nil
+}
+
+// findSecondaryBranchLabels returns the primary branch labels for the digests corresponding to the
+// passed in extendedBulkTriageDeltaInfo structs.
+func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
+	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+	whereClause, whereArgs := makeGroupingAndDigestWhereClause(triageDeltaInfos, 2)
+	statement := `
+		SELECT grouping_id,
+		       digest,
+			   label
+		  FROM SecondaryBranchExpectations
+		 WHERE branch_name = $1 AND (` + whereClause + ")"
+	rows, err := s.db.Query(ctx, statement, append([]interface{}{getQualifiedCL(ctx)}, whereArgs...)...)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var groupingID schema.GroupingID
+		var digest schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		labels[groupingDigestKey{
+			groupingID: sql.AsMD5Hash(groupingID),
+			digest:     sql.AsMD5Hash(digest),
+		}] = label
+	}
+	return labels, nil
+}
+
+// populateLabelBefore populates the LabelBefore field of each passed in
+// extendedBulkTriageDeltaInfo with expectations for the primary branch.
+//
+// It mirrors the verifyPrimaryBranchLabelBefore function in web.go
+// (https://skia.googlesource.com/buildbot/+/refs/heads/main/golden/go/web/web.go#1178).
+func (s *Impl) populateLabelBefore(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	// Gather the relevant labels from the Expectations table.
+	primaryBranchLabels, err := s.findPrimaryBranchLabels(ctx, triageDeltaInfos)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Place extendedBulkTriageDeltaInfos in a map for faster querying.
+	byKey := map[groupingDigestKey]*extendedBulkTriageDeltaInfo{}
+	for i := range triageDeltaInfos {
+		byKey[groupingDigestKey{
+			groupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
+			digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
+		}] = &triageDeltaInfos[i]
+	}
+
+	for key, triageDeltaInfo := range byKey {
+		label, ok := primaryBranchLabels[key]
+		if !ok {
+			label = schema.LabelUntriaged
+		}
+		triageDeltaInfo.LabelBefore = label.ToExpectation()
+	}
+
+	return nil
+}
+
+// populateLabelBeforeForCL populates the LabelBefore field of each passed in
+// extendedBulkTriageDeltaInfo with expectations for a CL.
+//
+// It mirrors the verifySecondaryBranchLabelBefore function in web.go
+// (https://skia.googlesource.com/buildbot/+/refs/heads/main/golden/go/web/web.go#1231).
+func (s *Impl) populateLabelBeforeForCL(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	// Gather the relevant labels from the Expectations table.
+	primaryBranchLabels, err := s.findPrimaryBranchLabels(ctx, triageDeltaInfos)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Gather the relevant labels from the SecondaryBranchExpectations table.
+	secondaryBranchLabels, err := s.findSecondaryBranchLabels(ctx, triageDeltaInfos)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Place extendedBulkTriageDeltaInfos in a map for faster querying.
+	byKey := map[groupingDigestKey]*extendedBulkTriageDeltaInfo{}
+	for i := range triageDeltaInfos {
+		byKey[groupingDigestKey{
+			groupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
+			digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
+		}] = &triageDeltaInfos[i]
+	}
+
+	for key, triageDeltaInfo := range byKey {
+		label, ok := secondaryBranchLabels[key]
+		if !ok {
+			label, ok = primaryBranchLabels[key]
+		}
+		if !ok {
+			label = schema.LabelUntriaged
+		}
+		triageDeltaInfo.LabelBefore = label.ToExpectation()
+	}
+
+	return nil
 }
 
 // expandGrouping returns the params associated with the grouping id. It will use the cache - if
@@ -2033,7 +2235,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 	// Lookup the closest diffs on the primary branch to the given digests. This returns a subset
 	// according to the limit and offset in the query.
 	// TODO(kjlubick) perhaps we want to include the digests produced by this CL/PS as well?
-	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests)
+	closestDiffs, allClosestLabels, extendedBulkTriageDeltaInfos, err := s.getClosestDiffs(ctx, traceDigests)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2048,10 +2250,14 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 		return nil, skerr.Wrap(err)
 	}
 	// Create the mapping that allows us to bulk triage all results (not for just the ones shown).
-	bulkTriageData, err := s.convertBulkTriageData(ctx, allClosestLabels)
+	deprecatedBulkTriageData, err := s.convertDeprecatedBulkTriageData(ctx, allClosestLabels)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if err := s.populateLabelBeforeForCL(ctx, extendedBulkTriageDeltaInfos); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Fill in the paramsets of the reference images.
 	for _, sr := range results {
 		for _, srdd := range sr.RefDiffs {
@@ -2061,12 +2267,18 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 		}
 	}
 
+	bulkTriageDeltaInfos := make([]frontend.BulkTriageDeltaInfo, len(extendedBulkTriageDeltaInfos))
+	for i, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
+		bulkTriageDeltaInfos[i] = triageDeltaInfo.BulkTriageDeltaInfo
+	}
+
 	return &frontend.SearchResponse{
-		Results:        results,
-		Offset:         getQuery(ctx).Offset,
-		Size:           len(allClosestLabels),
-		BulkTriageData: bulkTriageData,
-		Commits:        commits,
+		Results:                  results,
+		Offset:                   getQuery(ctx).Offset,
+		Size:                     len(allClosestLabels),
+		DeprecatedBulkTriageData: deprecatedBulkTriageData,
+		BulkTriageDeltaInfos:     bulkTriageDeltaInfos,
+		Commits:                  commits,
 	}, nil
 }
 
@@ -3344,7 +3556,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
-	stageTwoResults, _, err := s.getClosestDiffs(ctx, stageOneResults)
+	stageTwoResults, _, _, err := s.getClosestDiffs(ctx, stageOneResults)
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}

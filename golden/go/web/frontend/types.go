@@ -358,11 +358,18 @@ type SearchResponse struct {
 	// Size is the total number of Digests that match the current query.
 	Size    int      `json:"size"`
 	Commits []Commit `json:"commits"`
-	// BulkTriageData contains *all* digests that match the query as keys. The value for each key is
-	// an expectations.Label value giving the label of the closest triaged digest to the key digest
-	// or empty string if there is no "closest digest". Note the similarity to the
+	// DeprecatedBulkTriageData contains *all* digests that match the query as keys. The value for
+	// each key is an expectations.Label value giving the label of the closest triaged digest to
+	// the key digest or empty string if there is no "closest digest". Note the similarity to the
 	// frontend.TriageRequest type.
-	BulkTriageData TriageRequestDataV2 `json:"bulk_triage_data"`
+	//
+	// TODO(lovisolo): Can this be deleted after we migrate Gold's frontend to the new
+	//                 /json/v3/triage RPC, or is it used by other clients?
+	DeprecatedBulkTriageData TriageRequestDataV2 `json:"bulk_triage_data"`
+	// BulkTriageDeltaInfos contains an entry for each digest that matches the query. Each item
+	// contains the information necessary to create a TriageDelta that can be used in a bulk triage
+	// operation.
+	BulkTriageDeltaInfos []BulkTriageDeltaInfo `json:"bulk_triage_delta_infos" go2ts:"ignorenil"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.
@@ -443,6 +450,36 @@ type SRDiffDigest struct {
 	// TODO(kjlubick) make use of these instead of the combined ParamSet.
 	TracesKeys    paramtools.ParamSet `json:"-"`
 	TracesOptions paramtools.ParamSet `json:"-"`
+}
+
+// BulkTriageDeltaInfo contains the information necessary to create a TriageDelta for a single
+// digest that can be used in a bulk triage operation.
+type BulkTriageDeltaInfo struct {
+	Grouping                   paramtools.Params  `json:"grouping"`
+	Digest                     types.Digest       `json:"digest"`
+	LabelBefore                expectations.Label `json:"label_before"`
+	ClosestDiffLabel           ClosestDiffLabel   `json:"closest_diff_label"`
+	InCurrentSearchResultsPage bool               `json:"in_current_search_results_page"`
+}
+
+// ClosestDiffLabel is the label that a digest should be assigned when bulk-triaging by closest
+// diff.
+type ClosestDiffLabel string
+
+const (
+	// ClosestDiffLabelNone means there is no closest diff for a digest.
+	ClosestDiffLabelNone      = ClosestDiffLabel("none")
+	ClosestDiffLabelUntriaged = ClosestDiffLabel(expectations.Untriaged)
+	ClosestDiffLabelPositive  = ClosestDiffLabel(expectations.Positive)
+	ClosestDiffLabelNegative  = ClosestDiffLabel(expectations.Negative)
+)
+
+// AllClosestDiffLabels is the list of all possible ClosetDiffLabel values.
+var AllClosestDiffLabels = []ClosestDiffLabel{
+	ClosestDiffLabelNone,
+	ClosestDiffLabelUntriaged,
+	ClosestDiffLabelPositive,
+	ClosestDiffLabelNegative,
 }
 
 // DigestDetails contains details about a digest.

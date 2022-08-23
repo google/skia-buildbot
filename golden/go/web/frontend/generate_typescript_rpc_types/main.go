@@ -100,4 +100,5 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName([]frontend.RefClosest{frontend.PositiveRef, frontend.NegativeRef, frontend.NoRef}, "RefClosest")
 	generator.AddUnionWithName(frontend.AllTriageResponseStatus, "TriageResponseStatus")
+	generator.AddUnionWithName(frontend.AllClosestDiffLabels, "ClosestDiffLabel")
 }

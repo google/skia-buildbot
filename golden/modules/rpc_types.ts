@@ -84,12 +84,21 @@ export interface Commit {
 	cl_url: string;
 }
 
+export interface BulkTriageDeltaInfo {
+	grouping: Params;
+	digest: Digest;
+	label_before: Label;
+	closest_diff_label: ClosestDiffLabel;
+	in_current_search_results_page: boolean;
+}
+
 export interface SearchResponse {
 	digests: (SearchResult | null)[] | null;
 	offset: number;
 	size: number;
 	commits: Commit[] | null;
 	bulk_triage_data: TriageRequestData;
+	bulk_triage_delta_infos: BulkTriageDeltaInfo[];
 }
 
 export interface TriageRequest {
@@ -267,5 +276,7 @@ export type RefClosest = "pos" | "neg" | "";
 export type TriageRequestData = { [key: string]: { [key: string]: Label } | null } | null;
 
 export type Params = { [key: string]: string };
+
+export type ClosestDiffLabel = "none" | "untriaged" | "positive" | "negative";
 
 export type TriageResponseStatus = "ok" | "conflict";
