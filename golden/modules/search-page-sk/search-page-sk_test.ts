@@ -12,7 +12,7 @@ import {
 import { SearchPageSk, SearchRequest, DEFAULT_SEARCH_RESULTS_LIMIT } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
 import {
-  Label, SearchResponse, TriageRequest, TriageRequestV3, TriageResponse,
+  Label, SearchResponse, TriageRequestV3, TriageResponse,
 } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
@@ -638,7 +638,7 @@ describe('search-page-sk', () => {
       });
 
       it('closes when the "Triage ..." button is clicked', async () => {
-        fetchMock.post('/json/v2/triage', 200); // We ignore the TriageRequest in this test.
+        fetchMock.post('/json/v3/triage', 200); // We ignore the TriageRequest in this test.
 
         await instantiate();
         await searchPageSkPO.clickBulkTriageBtn();
@@ -666,22 +666,40 @@ describe('search-page-sk', () => {
 
     describe('RPCs', () => {
       describe('search results from current page only', () => {
-        const expectedTriageRequest: TriageRequest = {
-          testDigestStatus: {
-            'gold_search-controls-sk_right-hand-trace-filter-editor': {
-              fbd3de3fff6b852ae0bb6751b9763d27: 'positive',
+        const expectedTriageRequest: TriageRequestV3 = {
+          deltas: [
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_search-controls-sk_right-hand-trace-filter-editor',
+              },
+              digest: 'fbd3de3fff6b852ae0bb6751b9763d27',
+              label_before: 'positive',
+              label_after: 'positive',
             },
-            'perf_alert-config-sk': {
-              '2fa58aa430e9c815755624ca6cca4a72': 'positive',
-              ed4a8cf9ea9fbb57bf1f302537e07572: 'positive',
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'perf_alert-config-sk',
+              },
+              digest: '2fa58aa430e9c815755624ca6cca4a72',
+              label_before: 'negative',
+              label_after: 'positive',
             },
-          },
-          changelist_id: '',
-          crs: '',
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'perf_alert-config-sk',
+              },
+              digest: 'ed4a8cf9ea9fbb57bf1f302537e07572',
+              label_before: 'untriaged',
+              label_after: 'positive',
+            },
+          ],
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v2/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v3/triage', 200, { body: expectedTriageRequest });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -690,7 +708,7 @@ describe('search-page-sk', () => {
         });
 
         it('can bulk-triage with a CL', async () => {
-          fetchMock.post('/json/v2/triage', 200, {
+          fetchMock.post('/json/v3/triage', 200, {
             body: {
               ...expectedTriageRequest,
               changelist_id: '123456',
@@ -706,30 +724,94 @@ describe('search-page-sk', () => {
       });
 
       describe('all search results', () => {
-        const expectedTriageRequest: TriageRequest = {
-          testDigestStatus: {
-            'gold_details-page-sk': {
-              '29f31f703510c2091840b5cf2b032f56': 'positive',
-              '7c0a393e57f14b5372ec1590b79bed0f': 'positive',
-              '971fe90fa07ebc2c7d0c1a109a0f697c': 'positive',
-              e49c92a2cff48531810cc5e863fad0ee: 'positive',
+        const expectedTriageRequest: TriageRequestV3 = {
+          deltas: [
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_details-page-sk',
+              },
+              digest: '29f31f703510c2091840b5cf2b032f56',
+              label_before: 'positive',
+              label_after: 'positive',
             },
-            'gold_search-controls-sk_right-hand-trace-filter-editor': {
-              '5d8c80eda80e015d633a4125ab0232dc': 'positive',
-              d20f37006e436fe17f50ecf49ff2bdb5: 'positive',
-              fbd3de3fff6b852ae0bb6751b9763d27: 'positive',
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_details-page-sk',
+              },
+              digest: '7c0a393e57f14b5372ec1590b79bed0f',
+              label_before: 'positive',
+              label_after: 'positive',
             },
-            'perf_alert-config-sk': {
-              '2fa58aa430e9c815755624ca6cca4a72': 'positive',
-              ed4a8cf9ea9fbb57bf1f302537e07572: 'positive',
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_details-page-sk',
+              },
+              digest: '971fe90fa07ebc2c7d0c1a109a0f697c',
+              label_before: 'positive',
+              label_after: 'positive',
             },
-          },
-          changelist_id: '',
-          crs: '',
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_details-page-sk',
+              },
+              digest: 'e49c92a2cff48531810cc5e863fad0ee',
+              label_before: 'positive',
+              label_after: 'positive',
+            },
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_search-controls-sk_right-hand-trace-filter-editor',
+              },
+              digest: '5d8c80eda80e015d633a4125ab0232dc',
+              label_before: 'positive',
+              label_after: 'positive',
+            },
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_search-controls-sk_right-hand-trace-filter-editor',
+              },
+              digest: 'd20f37006e436fe17f50ecf49ff2bdb5',
+              label_before: 'positive',
+              label_after: 'positive',
+            },
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'gold_search-controls-sk_right-hand-trace-filter-editor',
+              },
+              digest: 'fbd3de3fff6b852ae0bb6751b9763d27',
+              label_before: 'positive',
+              label_after: 'positive',
+            },
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'perf_alert-config-sk',
+              },
+              digest: '2fa58aa430e9c815755624ca6cca4a72',
+              label_before: 'negative',
+              label_after: 'positive',
+            },
+            {
+              grouping: {
+                source_type: 'infra',
+                name: 'perf_alert-config-sk',
+              },
+              digest: 'ed4a8cf9ea9fbb57bf1f302537e07572',
+              label_before: 'untriaged',
+              label_after: 'positive',
+            },
+          ],
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v2/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v3/triage', 200, { body: expectedTriageRequest });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -739,7 +821,7 @@ describe('search-page-sk', () => {
         });
 
         it('can bulk-triage with a CL', async () => {
-          fetchMock.post('/json/v2/triage', 200, {
+          fetchMock.post('/json/v3/triage', 200, {
             body: {
               ...expectedTriageRequest,
               changelist_id: '123456',

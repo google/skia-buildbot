@@ -1,29 +1,74 @@
-import { Label, TriageRequestData } from '../rpc_types';
+import { BulkTriageDeltaInfo } from '../rpc_types';
 
-export const examplePageData: TriageRequestData = {
-  alpha_test: {
-    aaaaaaaaaaaaaaaaaaaaaaaaaaa: 'positive',
-    bbbbbbbbbbbbbbbbbbbbbbbbbbb: 'negative',
+export const bulkTriageDeltaInfos: BulkTriageDeltaInfo[] = [
+  {
+    grouping: {
+      name: 'alpha_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    label_before: 'positive',
+    closest_diff_label: 'positive',
+    in_current_search_results_page: true,
   },
-
-  beta_test: {
-    ccccccccccccccccccccccccccc: 'positive',
+  {
+    grouping: {
+      name: 'alpha_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    label_before: 'negative',
+    closest_diff_label: 'negative',
+    in_current_search_results_page: true,
   },
-};
-
-export const exampleAllData: TriageRequestData = {
-  alpha_test: {
-    aaaaaaaaaaaaaaaaaaaaaaaaaaa: 'positive',
-    bbbbbbbbbbbbbbbbbbbbbbbbbbb: 'negative',
-    ddddddddddddddddddddddddddd: 'positive',
+  {
+    grouping: {
+      name: 'alpha_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'dddddddddddddddddddddddddddddddd',
+    label_before: 'untriaged',
+    closest_diff_label: 'positive',
+    in_current_search_results_page: false,
   },
-
-  beta_test: {
-    ccccccccccccccccccccccccccc: 'positive',
-    ddddddddddddddddddddddddddd: 'negative',
+  {
+    grouping: {
+      name: 'alpha_test',
+      source_type: 'plant_corpus',
+    },
+    digest: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    label_before: 'untriaged',
+    closest_diff_label: 'negative',
+    in_current_search_results_page: false,
   },
-
-  gamma_test: {
-    eeeeeeeeeeeeeeeeeeeeeeeeeee: '' as Label, // pretend this has no closest reference image.
+  {
+    grouping: {
+      name: 'beta_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'cccccccccccccccccccccccccccccccc',
+    label_before: 'untriaged',
+    closest_diff_label: 'positive',
+    in_current_search_results_page: true,
   },
-};
+  {
+    grouping: {
+      name: 'beta_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'dddddddddddddddddddddddddddddddd',
+    label_before: 'untriaged',
+    closest_diff_label: 'negative',
+    in_current_search_results_page: false,
+  },
+  {
+    grouping: {
+      name: 'gamma_test',
+      source_type: 'animal_corpus',
+    },
+    digest: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    label_before: 'positive',
+    closest_diff_label: 'none',
+    in_current_search_results_page: false,
+  },
+];

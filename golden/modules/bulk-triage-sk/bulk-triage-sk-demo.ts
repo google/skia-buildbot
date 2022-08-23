@@ -1,8 +1,10 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { examplePageData, exampleAllData } from './test_data';
+import { deepCopy } from 'common-sk/modules/object';
+import { bulkTriageDeltaInfos } from './test_data';
 import { BulkTriageSk } from './bulk-triage-sk';
+import { TriageResponse } from '../rpc_types';
 
 const handleTriaged = () => {
   const log = $$<HTMLPreElement>('#event_log')!;
@@ -15,19 +17,21 @@ const handleCancelled = () => {
 };
 
 const ele = new BulkTriageSk();
-ele.currentPageDigests = examplePageData;
-ele.allDigests = exampleAllData;
+ele.bulkTriageDeltaInfos = deepCopy(bulkTriageDeltaInfos);
 ele.addEventListener('bulk_triage_invoked', handleTriaged);
 ele.addEventListener('bulk_triage_cancelled', handleCancelled);
 $$('#default')!.appendChild(ele);
 
 const eleCL = new BulkTriageSk();
-eleCL.currentPageDigests = examplePageData;
-eleCL.allDigests = exampleAllData;
+eleCL.bulkTriageDeltaInfos = deepCopy(bulkTriageDeltaInfos);
 eleCL.changeListID = '1234567';
 eleCL.crs = 'github';
 eleCL.addEventListener('bulk_triage_invoked', handleTriaged);
-ele.addEventListener('bulk_triage_cancelled', handleCancelled);
+eleCL.addEventListener('bulk_triage_cancelled', handleCancelled);
 $$('#changelist')!.appendChild(eleCL);
 
-fetchMock.post('/json/v1/triage', 200);
+const response: TriageResponse = { status: 'ok' };
+fetchMock.post({ url: '/json/v3/triage' }, {
+  status: 200,
+  body: response,
+});

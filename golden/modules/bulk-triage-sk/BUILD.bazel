@@ -29,6 +29,7 @@ sk_page(
         ":test_data_ts_lib",
         "@npm//common-sk",
         "@npm//fetch-mock",
+        "//golden/modules:rpc_types_ts_lib",
     ],
     ts_entry_point = "bulk-triage-sk-demo.ts",
 )

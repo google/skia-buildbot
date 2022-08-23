@@ -4,8 +4,10 @@ import { expect } from 'chai';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { BulkTriageLabel, BulkTriageSk } from './bulk-triage-sk';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
-import { examplePageData, exampleAllData } from './test_data';
-import { Label, TriageRequest, TriageRequestData } from '../rpc_types';
+import { bulkTriageDeltaInfos } from './test_data';
+import {
+  Label, TriageDelta, TriageRequestV3, TriageResponse,
+} from '../rpc_types';
 
 describe('bulk-triage-sk', () => {
   const newInstance = setUpElementUnderTest<BulkTriageSk>('bulk-triage-sk');
@@ -15,8 +17,7 @@ describe('bulk-triage-sk', () => {
 
   beforeEach(() => {
     bulkTriageSk = newInstance();
-    bulkTriageSk.currentPageDigests = examplePageData;
-    bulkTriageSk.allDigests = exampleAllData;
+    bulkTriageSk.bulkTriageDeltaInfos = bulkTriageDeltaInfos;
     bulkTriageSkPO = new BulkTriageSkPO(bulkTriageSk);
   });
 
@@ -41,7 +42,7 @@ describe('bulk-triage-sk', () => {
   });
 
   it('shows the correct total digest count', async () => {
-    expect(await bulkTriageSkPO.getTriageAllCheckboxLabel()).to.equal('Triage all 6 digests');
+    expect(await bulkTriageSkPO.getTriageAllCheckboxLabel()).to.equal('Triage all 7 digests');
   });
 
   describe('triage button label', () => {
@@ -74,22 +75,22 @@ describe('bulk-triage-sk', () => {
 
       it('shows number of digests to triage as untriaged', async () => {
         await bulkTriageSkPO.clickUntriagedBtn();
-        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 6 digests as untriaged');
+        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 7 digests as untriaged');
       });
 
       it('shows number of digests to triage as positive', async () => {
         await bulkTriageSkPO.clickPositiveBtn();
-        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 6 digests as positive');
+        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 7 digests as positive');
       });
 
       it('shows number of digests to triage as negative', async () => {
         await bulkTriageSkPO.clickNegativeBtn();
-        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 6 digests as negative');
+        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 7 digests as negative');
       });
 
       it('shows number of digests to triage as closest', async () => {
         await bulkTriageSkPO.clickClosestBtn();
-        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 6 digests as closest');
+        expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 7 digests as closest');
       });
     });
   });
@@ -101,37 +102,116 @@ describe('bulk-triage-sk', () => {
   });
 
   describe('RPC requests', () => {
-    const makeTriageRequestDataForCurrentPageDigests = (label: BulkTriageLabel): TriageRequestData => ({
-      alpha_test: {
-        aaaaaaaaaaaaaaaaaaaaaaaaaaa: label === 'closest' ? 'positive' : label,
-        bbbbbbbbbbbbbbbbbbbbbbbbbbb: label === 'closest' ? 'negative' : label,
+    const makeTriageRequestDataForCurrentPageDigests = (label: BulkTriageLabel): TriageDelta[] => [
+      {
+        grouping: {
+          name: 'alpha_test',
+          source_type: 'animal_corpus',
+        },
+        digest: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        label_before: 'positive',
+        label_after: label === 'closest' ? 'positive' : label,
       },
-      beta_test: {
-        ccccccccccccccccccccccccccc: label === 'closest' ? 'positive' : label,
+      {
+        grouping: {
+          name: 'alpha_test',
+          source_type: 'animal_corpus',
+        },
+        digest: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        label_before: 'negative',
+        label_after: label === 'closest' ? 'negative' : label,
       },
-    });
+      {
+        grouping: {
+          name: 'beta_test',
+          source_type: 'animal_corpus',
+        },
+        digest: 'cccccccccccccccccccccccccccccccc',
+        label_before: 'untriaged',
+        label_after: label === 'closest' ? 'positive' : label,
+      },
+    ];
 
-    const makeTriageRequestDataForAllDigests = (label: BulkTriageLabel): TriageRequestData => ({
-      alpha_test: {
-        aaaaaaaaaaaaaaaaaaaaaaaaaaa: label === 'closest' ? 'positive' : label,
-        bbbbbbbbbbbbbbbbbbbbbbbbbbb: label === 'closest' ? 'negative' : label,
-        ddddddddddddddddddddddddddd: label === 'closest' ? 'positive' : label,
-      },
-      beta_test: {
-        ccccccccccccccccccccccccccc: label === 'closest' ? 'positive' : label,
-        ddddddddddddddddddddddddddd: label === 'closest' ? 'negative' : label,
-      },
-      gamma_test: {
-        eeeeeeeeeeeeeeeeeeeeeeeeeee: label === 'closest' ? '' as Label : label,
-      },
-    });
+    const makeTriageRequestDataForAllDigests = (label: BulkTriageLabel): TriageDelta[] => {
+      const triageDeltas: TriageDelta[] = [
+        {
+          grouping: {
+            name: 'alpha_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          label_before: 'positive',
+          label_after: label === 'closest' ? 'positive' : label,
+        },
+        {
+          grouping: {
+            name: 'alpha_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          label_before: 'negative',
+          label_after: label === 'closest' ? 'negative' : label,
+        },
+        {
+          grouping: {
+            name: 'alpha_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'dddddddddddddddddddddddddddddddd',
+          label_before: 'untriaged',
+          label_after: label === 'closest' ? 'positive' : label,
+        },
+        {
+          grouping: {
+            name: 'alpha_test',
+            source_type: 'plant_corpus',
+          },
+          digest: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          label_before: 'untriaged',
+          label_after: label === 'closest' ? 'negative' : label,
+        },
+        {
+          grouping: {
+            name: 'beta_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'cccccccccccccccccccccccccccccccc',
+          label_before: 'untriaged',
+          label_after: label === 'closest' ? 'positive' : label,
+        },
+        {
+          grouping: {
+            name: 'beta_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'dddddddddddddddddddddddddddddddd',
+          label_before: 'untriaged',
+          label_after: label === 'closest' ? 'negative' : label,
+        },
+      ];
+      if (label !== 'closest') {
+        // This one does not have a closest diff.
+        triageDeltas.push({
+          grouping: {
+            name: 'gamma_test',
+            source_type: 'animal_corpus',
+          },
+          digest: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          label_before: 'positive',
+          label_after: label,
+        });
+      }
+      return triageDeltas;
+    };
 
-    const test = async (expectedRequest: TriageRequest) => {
+    const test = async (expectedRequest: TriageRequestV3) => {
+      const response: TriageResponse = { status: 'ok' };
       fetchMock.post({
-        url: '/json/v2/triage',
+        url: '/json/v3/triage',
         body: expectedRequest,
       }, {
         status: 200,
+        body: response,
       });
 
       const finishedPromise = eventPromise('bulk_triage_finished');
@@ -146,10 +226,8 @@ describe('bulk-triage-sk', () => {
 
     describe('current page digests', () => {
       describe('at head', () => {
-        const makeTriageRequest = (label: BulkTriageLabel) => ({
-          testDigestStatus: makeTriageRequestDataForCurrentPageDigests(label),
-          changelist_id: '',
-          crs: '',
+        const makeTriageRequest = (label: BulkTriageLabel): TriageRequestV3 => ({
+          deltas: makeTriageRequestDataForCurrentPageDigests(label),
         });
 
         it('triages as untriaged', async () => {
@@ -174,8 +252,8 @@ describe('bulk-triage-sk', () => {
       });
 
       describe('at CL', () => {
-        const makeTriageRequest = (label: BulkTriageLabel) => ({
-          testDigestStatus: makeTriageRequestDataForCurrentPageDigests(label),
+        const makeTriageRequest = (label: BulkTriageLabel): TriageRequestV3 => ({
+          deltas: makeTriageRequestDataForCurrentPageDigests(label),
           changelist_id: 'someCL',
           crs: 'gerrit',
         });
@@ -213,10 +291,8 @@ describe('bulk-triage-sk', () => {
       });
 
       describe('at head', () => {
-        const makeTriageRequest = (label: BulkTriageLabel) => ({
-          testDigestStatus: makeTriageRequestDataForAllDigests(label),
-          changelist_id: '',
-          crs: '',
+        const makeTriageRequest = (label: BulkTriageLabel): TriageRequestV3 => ({
+          deltas: makeTriageRequestDataForAllDigests(label),
         });
 
         it('triages as untriaged', async () => {
@@ -241,8 +317,8 @@ describe('bulk-triage-sk', () => {
       });
 
       describe('at CL', () => {
-        const makeTriageRequest = (label: BulkTriageLabel) => ({
-          testDigestStatus: makeTriageRequestDataForAllDigests(label),
+        const makeTriageRequest = (label: BulkTriageLabel): TriageRequestV3 => ({
+          deltas: makeTriageRequestDataForAllDigests(label),
           changelist_id: 'someCL',
           crs: 'gerrit',
         });

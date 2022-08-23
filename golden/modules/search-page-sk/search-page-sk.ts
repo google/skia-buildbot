@@ -28,7 +28,6 @@ import {
   SearchResponse,
   SearchResult,
   StatusResponse,
-  TriageRequestData,
 } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
@@ -131,8 +130,7 @@ export class SearchPageSk extends ElementSk {
     ${SearchPageSk.paginationTemplate(el, 'bottom')}
 
     <dialog class="bulk-triage">
-      <bulk-triage-sk .currentPageDigests=${el.getCurrentPageDigestsTriageRequestData()}
-                      .allDigests=${el.searchResponse?.bulk_triage_data || {}}
+      <bulk-triage-sk .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos || []}
                       .crs=${el.crs || ''}
                       .changeListID=${el.changelistId || ''}
                       @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
@@ -471,38 +469,6 @@ export class SearchPageSk extends ElementSk {
     } catch (e) {
       sendFetchError(this, e, 'fetching the available digest parameters');
     }
-  }
-
-  private getCurrentPageDigestsTriageRequestData(): TriageRequestData {
-    const triageRequestData: TriageRequestData = {};
-
-    if (!this.searchResponse?.digests) {
-      return triageRequestData;
-    }
-
-    for (const result of this.searchResponse.digests) {
-      if (!result) {
-        continue;
-      }
-      let byTest = triageRequestData[result.test];
-      if (!byTest) {
-        byTest = {};
-        triageRequestData[result.test] = byTest;
-      }
-      let valueToSet: Label | '' = '';
-      if (result.closestRef === 'pos') {
-        valueToSet = 'positive';
-      } else if (result.closestRef === 'neg') {
-        valueToSet = 'negative';
-      }
-      // Note: We cast this potentially empty string as a Label due to the legacy behaviors
-      // documented here:
-      // https://github.com/google/skia-buildbot/blob/6dd58fac8d1eac7bbf4e737110605dcdf1b20a56/golden/modules/bulk-triage-sk/bulk-triage-sk.ts#L134
-      // TODO(lovisolo): Clean this up after the legacy search-page-sk is removed.
-      byTest[result.digest] = valueToSet as Label;
-    }
-
-    return triageRequestData;
   }
 
   private onSearchControlsChange(event: CustomEvent<SearchCriteria>): void {
