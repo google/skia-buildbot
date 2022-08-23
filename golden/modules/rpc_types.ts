@@ -97,7 +97,6 @@ export interface SearchResponse {
 	offset: number;
 	size: number;
 	commits: Commit[] | null;
-	bulk_triage_data: TriageRequestData;
 	bulk_triage_delta_infos: BulkTriageDeltaInfo[];
 }
 

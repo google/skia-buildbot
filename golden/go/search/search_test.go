@@ -772,13 +772,6 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    3,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC03Unt: expectations.Positive,
-				dks.DigestC04Unt: expectations.Positive,
-				dks.DigestC05Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -1044,11 +1037,6 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC03Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -1296,17 +1284,6 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 		Offset:  3,
 		Size:    6,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SquareTest: {
-				dks.DigestA01Pos: expectations.Positive,
-				dks.DigestA02Pos: expectations.Positive,
-				dks.DigestA03Pos: expectations.Positive,
-				dks.DigestA08Pos: expectations.Positive,
-			}, dks.TriangleTest: {
-				dks.DigestB01Pos: expectations.Positive,
-				dks.DigestB02Pos: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -1771,12 +1748,6 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.TriangleTest: {
-				dks.DigestB01Pos: expectations.Positive,
-				dks.DigestB02Pos: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -1915,11 +1886,6 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SquareTest: {
-				dks.DigestA08Pos: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -2317,16 +2283,6 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 		Offset:  0,
 		Size:    4,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SquareTest: {
-				dks.DigestA04Unt: expectations.Positive,
-			},
-			dks.TriangleTest: {
-				dks.DigestBlank:  expectations.Positive,
-				dks.DigestB03Neg: expectations.Positive,
-				dks.DigestB04Neg: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -2653,14 +2609,6 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 		}},
 		Offset: 0,
 		Size:   2,
-		DeprecatedBulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
-			"draw_a_square": {
-				dks.DigestA05Unt: "positive",
-			},
-			"draw_a_square_but_faster": {
-				dks.DigestA05Unt: "positive",
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -2876,12 +2824,6 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC03Unt: expectations.Positive,
-				dks.DigestC04Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -3050,12 +2992,6 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC03Unt: expectations.Positive,
-				dks.DigestC05Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -3274,12 +3210,6 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC06Pos_CL: expectations.Positive,
-				dks.DigestC07Unt_CL: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -3545,13 +3475,6 @@ func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoi
 		Offset:  0,
 		Size:    3,
 		Commits: clCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SquareTest: {
-				dks.DigestC01Pos: expectations.Positive,
-				dks.DigestC03Unt: expectations.Positive,
-				dks.DigestC04Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -3886,14 +3809,6 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SquareTest: {
-				dks.DigestA01Pos: expectations.Positive,
-			},
-			dks.TriangleTest: {
-				dks.DigestB01Pos: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -4035,11 +3950,6 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 		Offset:  0,
 		Size:    1,
 		Commits: clCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.SevenTest: {
-				dks.DigestD01Pos_CL: "", // empty string means no closest reference
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -4418,12 +4328,6 @@ func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse)
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC03Unt: expectations.Positive,
-				dks.DigestC04Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -4691,11 +4595,6 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC05Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{
@@ -4804,11 +4703,6 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		DeprecatedBulkTriageData: frontend.TriageRequestDataV2{
-			dks.CircleTest: {
-				dks.DigestC05Unt: expectations.Positive,
-			},
-		},
 		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
 			{
 				Grouping: paramtools.Params{

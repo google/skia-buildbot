@@ -1816,23 +1816,6 @@ export const searchResponse: SearchResponse = {
     message: '[autoroll] Fixes',
     cl_url: '',
   }],
-  bulk_triage_data: {
-    'gold_details-page-sk': {
-      '29f31f703510c2091840b5cf2b032f56': 'positive',
-      '7c0a393e57f14b5372ec1590b79bed0f': 'positive',
-      '971fe90fa07ebc2c7d0c1a109a0f697c': 'positive',
-      e49c92a2cff48531810cc5e863fad0ee: 'positive',
-    },
-    'gold_search-controls-sk_right-hand-trace-filter-editor': {
-      '5d8c80eda80e015d633a4125ab0232dc': 'positive',
-      d20f37006e436fe17f50ecf49ff2bdb5: 'positive',
-      fbd3de3fff6b852ae0bb6751b9763d27: 'positive',
-    },
-    'perf_alert-config-sk': {
-      '2fa58aa430e9c815755624ca6cca4a72': 'negative',
-      ed4a8cf9ea9fbb57bf1f302537e07572: 'untriaged',
-    },
-  },
   bulk_triage_delta_infos: [
     {
       grouping: {

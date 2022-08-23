@@ -358,14 +358,6 @@ type SearchResponse struct {
 	// Size is the total number of Digests that match the current query.
 	Size    int      `json:"size"`
 	Commits []Commit `json:"commits"`
-	// DeprecatedBulkTriageData contains *all* digests that match the query as keys. The value for
-	// each key is an expectations.Label value giving the label of the closest triaged digest to
-	// the key digest or empty string if there is no "closest digest". Note the similarity to the
-	// frontend.TriageRequest type.
-	//
-	// TODO(lovisolo): Can this be deleted after we migrate Gold's frontend to the new
-	//                 /json/v3/triage RPC, or is it used by other clients?
-	DeprecatedBulkTriageData TriageRequestDataV2 `json:"bulk_triage_data"`
 	// BulkTriageDeltaInfos contains an entry for each digest that matches the query. Each item
 	// contains the information necessary to create a TriageDelta that can be used in a bulk triage
 	// operation.
