@@ -11,7 +11,7 @@ import (
 
 // Smoke-test CPUs(). The interesting (and hopefully thus the error-prone) parts of it have been
 // factored out so they can be tested on any CI platform, but this covers the platform-specific
-// straight line through.
+// straight line through, determined by the platform the tests are running on.
 func TestCPUs_Smoke(t *testing.T) {
 	unittest.MediumTest(t)
 	cpus, err := CPUs(context.Background())

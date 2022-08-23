@@ -6,6 +6,7 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/machine/go/common"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/mac"
 	"golang.org/x/sys/unix"
 )
@@ -20,13 +21,7 @@ func OSVersions(ctx context.Context) ([]string, error) {
 	return mac.VersionsOfAllPrecisions(platformVersion), nil
 }
 
-// CPUs returns a Swarming-style description of the host's CPU, in various precisions, e.g. ["x86",
-// "x86-64", "x86-64-i5-5350U"]. The first (ISA) and second (bit width) will always be returned (if
-// returned error is nil). The third (model number) will be added if we succeed in extracting it.
-//
-// Swarming goes to special trouble on Linux to return "32" if running a 32-bit userland on a 64-bit
-// kernel, we do not. None of our jobs care about that distinction, nor, I think, do any of our
-// boxes run like that.
+// CPUs returns a Swarming-style description of the host's CPU, in various precisions.
 func CPUs(ctx context.Context) ([]string, error) {
 	arch, err := host.KernelArch()
 	if err != nil {
@@ -35,7 +30,7 @@ func CPUs(ctx context.Context) ([]string, error) {
 	// It is perfectly normal for these sysctl keys to be missing sometimes:
 	vendor, _ := unix.Sysctl("machdep.cpu.vendor") // Sysctl returns "" on failure.
 	brandString, _ := unix.Sysctl("machdep.cpu.brand_string")
-	return mac.CPUs(arch, vendor, brandString)
+	return crossplatform.CPUs(arch, vendor, brandString)
 }
 
 // GPUs returns Swarming-style descriptions of all the host's GPUs, in various precisions, all

@@ -801,3 +801,11 @@ func TestCopyFile(t *testing.T) {
 	testCopy(0600, []byte("private stuff here"))
 	testCopy(0777, []byte("this is for everyone!"))
 }
+
+func TestFirstNonEmpty(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, "", FirstNonEmpty())
+	assert.Equal(t, "", FirstNonEmpty(""))
+	assert.Equal(t, "a", FirstNonEmpty("a", "b"))
+	assert.Equal(t, "c", FirstNonEmpty("", "", "c"))
+}

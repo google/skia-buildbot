@@ -11,9 +11,16 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone",
     visibility = ["//visibility:public"],
     deps = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "//go/skerr",
+            "//machine/go/test_machine_monitor/standalone/crossplatform",
+            "//machine/go/test_machine_monitor/standalone/linux",
+            "@com_github_shirou_gopsutil//host",
+        ],
         "@io_bazel_rules_go//go/platform:darwin": [
             "//go/skerr",
             "//machine/go/common",
+            "//machine/go/test_machine_monitor/standalone/crossplatform",
             "//machine/go/test_machine_monitor/standalone/mac",
             "@com_github_shirou_gopsutil//host",
             "@org_golang_x_sys//unix",
@@ -21,9 +28,16 @@ go_library(
         "@io_bazel_rules_go//go/platform:ios": [
             "//go/skerr",
             "//machine/go/common",
+            "//machine/go/test_machine_monitor/standalone/crossplatform",
             "//machine/go/test_machine_monitor/standalone/mac",
             "@com_github_shirou_gopsutil//host",
             "@org_golang_x_sys//unix",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "//go/skerr",
+            "//machine/go/test_machine_monitor/standalone/crossplatform",
+            "//machine/go/test_machine_monitor/standalone/linux",
+            "@com_github_shirou_gopsutil//host",
         ],
         "//conditions:default": [],
     }),
@@ -31,17 +45,10 @@ go_library(
 
 go_test(
     name = "standalone_test",
-    srcs = ["standalone_darwin_test.go"],
+    srcs = ["standalone_test.go"],
     embed = [":standalone"],
-    deps = select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "//go/testutils/unittest",
-            "@com_github_stretchr_testify//assert",
-        ],
-        "@io_bazel_rules_go//go/platform:ios": [
-            "//go/testutils/unittest",
-            "@com_github_stretchr_testify//assert",
-        ],
-        "//conditions:default": [],
-    }),
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
 )

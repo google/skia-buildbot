@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "linux",
+    srcs = ["linux.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/linux",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "linux_test",
+    srcs = ["linux_test.go"],
+    embed = [":linux"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

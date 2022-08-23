@@ -893,3 +893,16 @@ func IsLocal() bool {
 	// the default is false.
 	return false
 }
+
+// FirstNonEmpty returns the first of its args that is not "". It is useful when a certain value
+// would be preferred if present but others are available as fallbacks. If all of its args are "",
+// returns "".
+func FirstNonEmpty(args ...string) string {
+	a := ""
+	for _, a = range args {
+		if a != "" {
+			return a
+		}
+	}
+	return a
+}
