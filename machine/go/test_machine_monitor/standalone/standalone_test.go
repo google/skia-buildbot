@@ -23,3 +23,10 @@ func TestCPUs_Smoke(t *testing.T) {
 		assert.Fail(t, "CPUs()' bit-width return value should probably say 64 bits. It's unlikely the machine running this test is anything but 64 bits.")
 	}
 }
+
+func TestOSVersions_Smoke(t *testing.T) {
+	unittest.MediumTest(t)
+	versions, err := OSVersions(context.Background())
+	assert.NoError(t, err)
+	assert.GreaterOrEqual(t, len(versions), 2, "OSVersions() should return at least PlatformName and PlatformName-SomeVersion.")
+}

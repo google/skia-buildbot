@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/util",
+        "//machine/go/test_machine_monitor/standalone/crossplatform",
     ],
 )
 

@@ -83,3 +83,18 @@ func CPUs(arch string, vendor string, brandString string) ([]string, error) {
 
 	return ret, nil
 }
+
+// VersionsOfAllPrecisions splits a version like 1.2.3 into an array of versions of all precisions
+// and prepends a constant prefix, resulting in a string slice like {"Mac", "Mac-1", "Mac-1.2",
+// "Mac-1.2.3"}. If version is empty, return only the prefix, like {"Mac"}.
+func VersionsOfAllPrecisions(prefix, version string) []string {
+	ret := []string{prefix}
+	subversions := strings.Split(version, ".")
+	if version != "" {
+		ret = append(ret, prefix+"-"+subversions[0])
+	}
+	for i, subversion := range subversions[1:] {
+		ret = append(ret, ret[i+1]+"."+subversion)
+	}
+	return ret
+}

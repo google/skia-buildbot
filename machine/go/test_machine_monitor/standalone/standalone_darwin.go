@@ -18,7 +18,7 @@ func OSVersions(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get macOS version")
 	}
-	return mac.VersionsOfAllPrecisions(platformVersion), nil
+	return crossplatform.VersionsOfAllPrecisions("Mac", platformVersion), nil
 }
 
 // CPUs returns a Swarming-style description of the host's CPU, in various precisions.

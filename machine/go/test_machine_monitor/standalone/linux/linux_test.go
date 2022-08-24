@@ -49,3 +49,8 @@ Hardware       : Toaster (Flattened Device Tree)
 	assert.Equal(t, "N/A", vendor)
 	assert.Equal(t, "Toaster", brandString)
 }
+
+func TestOSVersions_CapitalizesPlatform(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, []string{"Linux", "Greeb", "Greeb-4", "Greeb-4.3"}, OSVersions("greeb", "4.3"))
+}

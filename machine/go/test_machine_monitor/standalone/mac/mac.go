@@ -14,17 +14,6 @@ import (
 	"howett.net/plist"
 )
 
-// VersionsOfAllPrecisions splits a macOS version like 1.2.3 into an array of versions of all
-// precisions, like ["Mac", "Mac-1", "Mac-1.2", "Mac-1.2.3"].
-func VersionsOfAllPrecisions(version string) []string {
-	subversions := strings.Split(version, ".")
-	ret := []string{"Mac", "Mac-" + subversions[0]}
-	for i, subversion := range subversions[1:] {
-		ret = append(ret, ret[i+1]+"."+subversion)
-	}
-	return ret
-}
-
 type GPU struct {
 	// Any string field missing from the plist ends up "".
 	ID       string `plist:"spdisplays_device-id"`

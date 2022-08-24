@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
 )
 
 // VendorAndBrand returns the vendor and brand string of the first encountered CPU in the provided
@@ -65,4 +66,13 @@ func VendorAndBrand(cpuInfo io.Reader) (vendor, brandString string, err error) {
 		vendor = util.FirstNonEmpty(modelName, processor, "N/A")
 	}
 	return vendor, brandString, nil
+}
+
+func OSVersions(platform, version string) []string {
+	ret := []string{"Linux"}
+	if platform != "" {
+		platform = strings.ToUpper(platform[0:1]) + platform[1:]
+		ret = append(ret, crossplatform.VersionsOfAllPrecisions(platform, version)...)
+	}
+	return ret
 }

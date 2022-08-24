@@ -7,13 +7,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestMacVersionsOfAllPrecisions(t *testing.T) {
-	unittest.SmallTest(t)
-	assert.Equal(t, []string{"Mac", "Mac-12"}, VersionsOfAllPrecisions("12"))
-	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4"}, VersionsOfAllPrecisions("12.4"))
-	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4", "Mac-12.4.35"}, VersionsOfAllPrecisions("12.4.35"))
-}
-
 func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 	// This is pared down to the used fields plus one or two more at each level to make sure unused

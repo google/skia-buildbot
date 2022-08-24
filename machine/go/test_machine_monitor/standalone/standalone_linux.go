@@ -11,8 +11,11 @@ import (
 )
 
 func OSVersions(ctx context.Context) ([]string, error) {
-	var ret []string
-	return ret, nil
+	platform, _, version, err := host.PlatformInformationWithContext(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get Linux version")
+	}
+	return linux.OSVersions(platform, version), nil
 }
 
 // CPUs returns a Swarming-style description of the host's CPU, in various precisions.
