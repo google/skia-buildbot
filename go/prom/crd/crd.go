@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/prom"
 )
 
-const notInClustersAnnotationKey = "no_absent_alerts_in_clusters"
+const onlyInClustersAnnotationKey = "absent_alerts_only_in_clusters"
 
 // Rules Custom Resource representation.
 //
@@ -47,13 +47,18 @@ type Rule struct {
 	Annotations map[string]string `yaml:"annotations"`
 }
 
-// Skip returns true if the alert should not be applied to the given cluster.
-func (r Rule) Skip(cluster string) bool {
-	if skipString, ok := r.Annotations[notInClustersAnnotationKey]; ok {
-		for _, skipCluster := range strings.Split(skipString, ",") {
-			if cluster == strings.TrimSpace(skipCluster) {
-				return true
-			}
+// Include returns true if the alert should be applied to the given cluster.
+func (r Rule) Include(cluster string) bool {
+	includeString, ok := r.Annotations[onlyInClustersAnnotationKey]
+	// If the onlyInClustersAnnotationKey is empty, or not set, then it means to
+	// include the AbsentAlert is all clusters where the app is running.
+	if !ok {
+		return true
+	}
+
+	for _, includeCluster := range strings.Split(includeString, ",") {
+		if cluster == strings.TrimSpace(includeCluster) {
+			return true
 		}
 	}
 	return false
@@ -65,7 +70,7 @@ func (r *Rules) AddAbsentRules(cluster string) {
 	for _, g := range r.Spec.Groups {
 		rules := []Rule{}
 		for _, rule := range g.Rules {
-			if rule.Skip(cluster) {
+			if !rule.Include(cluster) {
 				continue
 			}
 			equation, ignore := prom.EquationFromExpr(rule.Expr)

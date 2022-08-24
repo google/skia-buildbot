@@ -116,7 +116,7 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 	require.Equal(t, expected, rules)
 }
 
-func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
+func TestRules_AddAbsentRules_AlertsOnlyAppearInIncludedClusters(t *testing.T) {
 	unittest.SmallTest(t)
 
 	rules := Rules{
@@ -127,10 +127,10 @@ func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
 					Interval: "15s",
 					Rules: []Rule{
 						{
-							Alert: "ThisWillNotGetAnAbsentAlert",
+							Alert: "ThisWillNotGetAnAbsentAlertOutSideOfSkiaPublic",
 							Expr:  "go_goroutines",
 							Annotations: map[string]string{
-								notInClustersAnnotationKey: "skia-public",
+								onlyInClustersAnnotationKey: "skia-public",
 							},
 						},
 						{
@@ -143,7 +143,7 @@ func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
 		},
 	}
 
-	rules.AddAbsentRules("skia-public")
+	rules.AddAbsentRules("skia-corp")
 
 	expected := Rules{
 		Spec: Spec{
@@ -153,10 +153,10 @@ func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
 					Interval: "15s",
 					Rules: []Rule{
 						{
-							Alert: "ThisWillNotGetAnAbsentAlert",
+							Alert: "ThisWillNotGetAnAbsentAlertOutSideOfSkiaPublic",
 							Expr:  "go_goroutines",
 							Annotations: map[string]string{
-								notInClustersAnnotationKey: "skia-public",
+								onlyInClustersAnnotationKey: "skia-public",
 							},
 						},
 						{
@@ -193,22 +193,22 @@ func TestRules_AddAbsentRules_AlertInSkippedClusterIsSkipped(t *testing.T) {
 	require.Equal(t, expected, rules)
 }
 
-func TestRuleSkip_NotInClusterAnnotationPresent_ReturnsTrueForMatchingClusterNames(t *testing.T) {
+func TestRuleSkip_OnlyInClusterAnnotationPresent_ReturnsTrueForMatchingClusterNames(t *testing.T) {
 	unittest.SmallTest(t)
 	rule := Rule{
 		Annotations: map[string]string{
-			notInClustersAnnotationKey: "skia-public, skia-corp",
+			onlyInClustersAnnotationKey: "skia-public, skia-corp",
 		},
 	}
 
-	require.True(t, rule.Skip("skia-public"))
-	require.True(t, rule.Skip("skia-corp"))
-	require.False(t, rule.Skip("this-is-not-a-matching-cluster-name"))
+	require.True(t, rule.Include("skia-public"))
+	require.True(t, rule.Include("skia-corp"))
+	require.False(t, rule.Include("this-is-not-a-matching-cluster-name"))
 }
 
-func TestRuleSkip_NotInClusterAnnotationAbsent_ReturnsFalse(t *testing.T) {
+func TestRuleSkip_OnlyInClusterAnnotationAbsent_ReturnsTrue(t *testing.T) {
 	unittest.SmallTest(t)
 	rule := Rule{}
 
-	require.False(t, rule.Skip("skia-public"))
+	require.True(t, rule.Include("skia-public"))
 }
