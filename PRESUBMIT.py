@@ -118,6 +118,10 @@ def _CheckBannedGoAPIs(input_api, output_api):
       # This doesn't shell out to git; it retrieves the path to the Git binary
       # in the corresponding Bazel-downloaded CIPD packages.
       r'bazel/external/cipd/git/git.go',
+      # Our presubmits invoke git directly because git is a necessary
+      # executable for all devs, and we do not want our presubmit code to
+      # depend on the code it is checking.
+      r'cmd/presubmit/.*',
       # This is the one place where we are allowed to shell out to git; all
       # others should go through here.
       r'go/git/git_common/.*.go',

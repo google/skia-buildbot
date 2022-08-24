@@ -60,6 +60,7 @@ var (
 	// Directories with these paths, relative to the checkout root, are
 	// skipped when searching for tests.
 	noCrawlRelPaths = []string{
+		"cmd",
 		"common",
 	}
 
