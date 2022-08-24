@@ -50,6 +50,16 @@ Hardware       : Toaster (Flattened Device Tree)
 	assert.Equal(t, "Toaster", brandString)
 }
 
+func TestVendorAndBrand_ReturnsBrandStringWhenVendorIDIsFound(t *testing.T) {
+	unittest.SmallTest(t)
+	vendor, brandString, err := VendorAndBrand(strings.NewReader(`vendor_id       : GenuineIntel
+model name      : Intel(R) Pentium(R) CPU  N3700  @ 1.60GHz
+`))
+	require.NoError(t, err)
+	assert.Equal(t, "GenuineIntel", vendor)
+	assert.Equal(t, "Intel(R) Pentium(R) CPU  N3700  @ 1.60GHz", brandString)
+}
+
 func TestOSVersions_CapitalizesPlatform(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t, []string{"Linux", "Greeb", "Greeb-4", "Greeb-4.3"}, OSVersions("greeb", "4.3"))

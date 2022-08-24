@@ -57,6 +57,7 @@ func VendorAndBrand(cpuInfo io.Reader) (vendor, brandString string, err error) {
 	// Use logic pilfered from Swarming to come up with final answers.
 	if vendorID != "" {
 		vendor = vendorID
+		brandString = modelName
 	} else if strings.Contains(isa, "mips") {
 		brandString = cpuModel
 	} else {
