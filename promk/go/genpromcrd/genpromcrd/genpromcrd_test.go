@@ -155,7 +155,6 @@ spec:
     rules:
     - alert: AlwaysFiringAlertToSeeIfAlertsAreWorking
       expr: vector(1)
-      for: ""
       labels: {}
       annotations: {}
   - name: absent-perf
@@ -173,4 +172,12 @@ func TestAppMain_UnknownFlagPassedIn_ReturnsError(t *testing.T) {
 			"path/to/exe/goes/here",
 			"--unknown-flag",
 		}))
+}
+
+func TestReadRulesFromFile_FileDoesNotExist_ReturnsOsErrNotExistError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tmpDir := t.TempDir()
+	_, err := readRulesFromFile(filepath.Join(tmpDir, "this-file-does-not-exist.yaml"))
+	require.Equal(t, err, os.ErrNotExist)
 }

@@ -46,7 +46,7 @@ type Group struct {
 type Rule struct {
 	Alert       string            `yaml:"alert"`
 	Expr        string            `yaml:"expr"`
-	For         string            `yaml:"for"`
+	For         string            `yaml:"for,omitempty"`
 	Labels      map[string]string `yaml:"labels"`
 	Annotations map[string]string `yaml:"annotations"`
 }

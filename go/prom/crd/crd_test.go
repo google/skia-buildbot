@@ -20,7 +20,6 @@ spec:
     rules:
     - alert: AndroidIngestFailures
       expr: rate(process_failures[1h]) > 0.01
-      for: 10m
       labels:
         category: infra
       annotations:

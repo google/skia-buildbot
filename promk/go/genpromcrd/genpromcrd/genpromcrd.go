@@ -224,14 +224,18 @@ clusters:
 	return ret
 }
 
-// findRulesForAppGroup returns a parsed crd.Rules for the given appgroup if one
-// exists, otherwise it returns an error.
-func (a *App) findRulesForAppGroup(appgroup string) (*crd.Rules, error) {
-	filename := filepath.Join(a.directory, "monitoring", "appgroups", appgroup+".yml")
+// readRulesFromFile reads a ClusterRules file. Returns os.ErrNotExist if
+// the file does not exist.
+func readRulesFromFile(filename string) (*crd.Rules, error) {
 	var out crd.Rules
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		return nil, os.ErrNotExist
+	}
 
 	err := util.WithReadFile(filename, func(f io.Reader) error {
-		if err := yaml.NewDecoder(f).Decode(&out); err != nil {
+		dec := yaml.NewDecoder(f)
+		dec.SetStrict(true)
+		if err := dec.Decode(&out); err != nil {
 			return skerr.Wrapf(err, "Failed to read rules file: %q", filename)
 		}
 		return nil
@@ -240,6 +244,14 @@ func (a *App) findRulesForAppGroup(appgroup string) (*crd.Rules, error) {
 		return nil, skerr.Wrapf(err, "Failed to open %q: %s", filename, err)
 	}
 	return &out, nil
+}
+
+// findRulesForAppGroup returns a parsed crd.Rules for the given appgroup if one
+// exists, otherwise it returns an error. Returns os.ErrNotExist if
+// the file does not exist.
+func (a *App) findRulesForAppGroup(appgroup string) (*crd.Rules, error) {
+	filename := filepath.Join(a.directory, "monitoring", "appgroups", appgroup+".yml")
+	return readRulesFromFile(filename)
 }
 
 // Main is the application main entry point.
@@ -276,10 +288,12 @@ func (a *App) Main(args []string) error {
 		// Open and parse as Rules if it exists.
 		rules, err := a.findRulesForAppGroup(appGroup.AppGroup)
 		if err != nil {
-			// Just information because we expect that not all pods will use
-			// genpromcrd for controlling scraping and alerting.
-			sklog.Infof("Failed to find appgroup: %s", err)
-			continue
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			// We need to fail for any other error besides the file being
+			// missing.
+			return skerr.Wrap(err)
 		}
 
 		// Add in absent versions of rules.
