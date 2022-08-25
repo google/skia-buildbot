@@ -139,6 +139,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	sklog.Infof("Current user: %s; HOME=%s", user.Name, user.HomeDir)
 
 	secretClient, err := secret.NewClient(ctx)
 	if err != nil {
@@ -204,9 +205,11 @@ func main() {
 	// The rollers use the gitcookie created by gitauth package.
 	if !*local {
 		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
+		sklog.Infof("Successfully initiated git authenticator")
 	}
 
 	if cfg.GetGerrit() != nil {

@@ -98,6 +98,12 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
 			}
 		}
+		// Read back gitconfig.
+		out, err := exec.RunSimple(context.TODO(), "git config --list --show-origin")
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read git config: %s: %s", err, out)
+		}
+		sklog.Infof("Created git configuration:\n%s", out)
 	}
 	g := &GitAuth{
 		tokenSource: tokenSource,
@@ -117,7 +123,7 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 			time.Sleep(refresh_in)
 			refresh_in, err = g.updateCookie()
 			if err != nil {
-				sklog.Errorf("Failed to get initial git cookie: %s", err)
+				sklog.Errorf("Failed to update git cookie: %s", err)
 			}
 		}
 	}()
