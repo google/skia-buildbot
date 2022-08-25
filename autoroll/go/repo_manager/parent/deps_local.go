@@ -53,6 +53,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
+	depotToolsEnv = append(depotToolsEnv, "GIT_TRACE=1")
 	for i, envVar := range depotToolsEnv {
 		split := strings.SplitN(envVar, "=", 2)
 		if len(split) == 2 && split[0] == "PATH" {
