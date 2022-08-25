@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -350,7 +351,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 				addMetricForDirtyCommittedImage(f, repo, cluster, namespace, c.Image, newMetrics)
 
 				// Now add a metric for how many days old the committed image is.
-				if err := addMetricForImageAge(c.Name, c.Name, namespace, f, repo, c.Image, newMetrics); err != nil {
+				if err := addMetricForImageAge(ctx, c.Name, c.Name, namespace, f, repo, c.Image, newMetrics); err != nil {
 					sklog.Errorf("Could not add image age metric for %s: %s", c.Name, err)
 				}
 			}
@@ -472,7 +473,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 							dirtyConfigMetric.Update(0)
 
 							// Now add a metric for how many days old the live/committed image is.
-							if err := addMetricForImageAge(app, container, namespace, f, repo, liveImage, newMetrics); err != nil {
+							if err := addMetricForImageAge(ctx, app, container, namespace, f, repo, liveImage, newMetrics); err != nil {
 								sklog.Errorf("Could not add image age metric for %s: %s", container, err)
 							}
 						}
@@ -573,25 +574,33 @@ func addMetricForDirtyCommittedImage(yaml, repo, cluster, namespace, committedIm
 
 // addMetricForImageAge creates a metric for how old the specified image is, and adds it to the
 // metrics map.
-func addMetricForImageAge(app, container, namespace, yaml, repo, image string, metrics map[metrics2.Int64Metric]struct{}) error {
+func addMetricForImageAge(ctx context.Context, app, container, namespace, yaml, repo, image string, metrics map[metrics2.Int64Metric]struct{}) error {
 	m := imageRegex.FindStringSubmatch(image)
+
+	// Default to 0 days old for images with sha256 image names, which are built
+	// and deployed via CI/CD and thus are always fresh.
+	var numDaysOldImage int64 = 0
+
 	if len(m) == 2 {
 		t, err := time.Parse(time.RFC3339, strings.ReplaceAll(m[1], "_", ":"))
 		if err != nil {
 			return skerr.Wrapf(err, "parsing time %s from image %s", m[1], image)
 		}
-		staleImageMetricTags := map[string]string{
-			"app":       app,
-			"container": container,
-			"yaml":      yaml,
-			"repo":      repo,
-			"liveImage": image,
-			"namespace": fixupNamespace(namespace),
-		}
-		staleImageMetric := metrics2.GetInt64Metric(staleImageMetric, staleImageMetricTags)
-		metrics[staleImageMetric] = struct{}{}
-		numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
-		staleImageMetric.Update(numDaysOldImage)
+
+		numDaysOldImage = int64(now.Now(ctx).UTC().Sub(t).Hours() / 24)
 	}
+
+	staleImageMetricTags := map[string]string{
+		"app":       app,
+		"container": container,
+		"yaml":      yaml,
+		"repo":      repo,
+		"liveImage": image,
+		"namespace": fixupNamespace(namespace),
+	}
+	staleImageMetric := metrics2.GetInt64Metric(staleImageMetric, staleImageMetricTags)
+	metrics[staleImageMetric] = struct{}{}
+	staleImageMetric.Update(numDaysOldImage)
+
 	return nil
 }
