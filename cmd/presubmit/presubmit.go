@@ -48,6 +48,9 @@ func main() {
 	ok = ok && checkTODOHasOwner(ctx, changedFiles)
 	ok = ok && checkForStrayWhitespace(ctx, changedFiles)
 	ok = ok && checkHasNoTabs(ctx, changedFiles)
+	ok = ok && checkBannedGoAPIs(ctx, changedFiles)
+	ok = ok && checkJSDebugging(ctx, changedFiles)
+	ok = ok && checkNonASCII(ctx, changedFiles)
 
 	if ok {
 		os.Exit(0)
@@ -317,6 +320,126 @@ func checkHasNoTabs(ctx context.Context, files []fileWithChanges) bool {
 			if strings.Contains(line.contents, "\t") {
 				logf(ctx, "%s:%d Tab character not allowed\n", f.fileName, line.num)
 				ok = false
+			}
+		}
+	}
+	return ok
+}
+
+type bannedGoAPI struct {
+	regex      *regexp.Regexp
+	suggestion string
+	exceptions []*regexp.Regexp
+}
+
+// checkBannedGoAPIs goes through all touched lines in go files and returns false if any of them
+// have APIs that we wish not to use. It logs suggested replacements in that case.
+func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
+	bannedAPIs := []bannedGoAPI{
+		{regex: regexp.MustCompile(`reflect\.DeepEqual`), suggestion: "DeepEqual in go.skia.org/infra/go/testutils"},
+		{regex: regexp.MustCompile(`github\.com/golang/glog`), suggestion: "go.skia.org/infra/go/sklog"},
+		{regex: regexp.MustCompile(`github\.com/skia-dev/glog`), suggestion: "go.skia.org/infra/go/sklog"},
+		{regex: regexp.MustCompile(`http\.Get`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
+		{regex: regexp.MustCompile(`http\.Head`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
+		{regex: regexp.MustCompile(`http\.Post`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
+		{regex: regexp.MustCompile(`http\.PostForm`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
+		{regex: regexp.MustCompile(`os\.Interrupt`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`signal\.Notify`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`syscall\.SIGINT`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`syscall\.SIGTERM`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`syncmap\.Map`), suggestion: "sync.Map, added in go 1.9"},
+		{regex: regexp.MustCompile(`assert\s+"github\.com/stretchr/testify/require"`), suggestion: `non-aliased import; this can be confused with package "github.com/stretchr/testify/assert"`},
+		{
+			regex:      regexp.MustCompile(`"git"`),
+			suggestion: `Executable in go.skia.org/infra/go/git`,
+			exceptions: []*regexp.Regexp{
+				// These don't actually shell out to git; the tests look for "git" in the
+				// command line and mock stdout accordingly.
+				regexp.MustCompile(`autoroll/go/repo_manager/.*_test.go`),
+				// This doesn't shell out to git; it's referring to a CIPD package with
+				// the same name.
+				regexp.MustCompile(`infra/bots/gen_tasks.go`),
+				// This doesn't shell out to git; it retrieves the path to the Git binary
+				// in the corresponding Bazel-downloaded CIPD packages.
+				regexp.MustCompile(`bazel/external/cipd/git/git.go`),
+				// Our presubmits invoke git directly because git is a necessary
+				// executable for all devs, and we do not want our presubmit code to
+				// depend on the code it is checking.
+				regexp.MustCompile(`cmd/presubmit/.*`),
+				// This is the one place where we are allowed to shell out to git; all
+				// others should go through here.
+				regexp.MustCompile(`go/git/git_common/.*.go`),
+			},
+		},
+	}
+	ok := true
+	for _, f := range files {
+		if filepath.Ext(f.fileName) != ".go" {
+			continue
+		}
+		if f.fileName == "cmd/presubmit/presubmit_test.go" {
+			// We don't want our own test cases to trigger any of these.
+			continue
+		}
+		for _, line := range f.touchedLines {
+		bannedAPILoop:
+			for _, bannedAPI := range bannedAPIs {
+				for _, exception := range bannedAPI.exceptions {
+					if exception.MatchString(f.fileName) {
+						continue bannedAPILoop
+					}
+				}
+				if match := bannedAPI.regex.FindStringSubmatch(line.contents); len(match) > 0 {
+					logf(ctx, "%s:%d Instead of %s, please use %s\n", f.fileName, line.num, match[0], bannedAPI.suggestion)
+					ok = false
+				}
+			}
+		}
+	}
+	return ok
+}
+
+// checkJSDebugging goes through all touched lines and returns false if any TS or JS files contain
+// refinements of debugging that we don't want to check in.
+func checkJSDebugging(ctx context.Context, files []fileWithChanges) bool {
+	debuggingCalls := []string{"debugger;", "it.only(", "describe.only("}
+	targetFileExts := []string{".ts", ".js"}
+	ok := true
+	for _, f := range files {
+		if !contains(targetFileExts, filepath.Ext(f.fileName)) {
+			continue
+		}
+		for _, line := range f.touchedLines {
+			for _, call := range debuggingCalls {
+				if strings.Contains(line.contents, call) {
+					logf(ctx, "%s:%d debugging code found (%s)\n", f.fileName, line.num, call)
+					ok = false
+				}
+			}
+		}
+	}
+	return ok
+}
+
+// checkNonASCII goes through all touched lines and returns false if any of them contain non-ASCII
+// characters (except for file formats that support things like UTF-8).
+func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
+	// This list can grow if other file extensions are OK with non-ascii (UTF-8) characters
+	ignoreFileExts := []string{".go"}
+	ok := true
+	for _, f := range files {
+		if contains(ignoreFileExts, filepath.Ext(f.fileName)) {
+			continue
+		}
+		for _, line := range f.touchedLines {
+			// https://stackoverflow.com/a/53069799/1447621
+			for i := 0; i < len(line.contents); i++ {
+				if line.contents[i] > '\u007F' { // unicode.MaxASCII
+					// Report both line number and (1-indexed) byte offset
+					logf(ctx, "%s:%d:%d Non ASCII character found\n", f.fileName, line.num, i+1)
+					ok = false
+					break
+				}
 			}
 		}
 	}

@@ -216,8 +216,17 @@ index 7f7612c28..aa1d04715 100644
 	})
 }
 
-func TestCheckLongLines_NoLongLines_ReturnsTrue(t *testing.T) {
-	input := []fileWithChanges{
+func TestCheckLongLines(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkLongLines(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("short lines ok", []fileWithChanges{
 		{
 			fileName: "file1.txt",
 			touchedLines: []lineOfCode{{
@@ -228,15 +237,26 @@ func TestCheckLongLines_NoLongLines_ReturnsTrue(t *testing.T) {
 				num:      282,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkLongLines(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
+	}, true, "")
 
-func TestCheckLongLines_LongLines_ReturnsFalseAndLogsLines(t *testing.T) {
-	input := []fileWithChanges{
+	test("Skipped files ok", []fileWithChanges{
+		{
+			fileName: "file1.go",
+			touchedLines: []lineOfCode{{
+				contents: `go files can have any length 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`,
+				num:      2,
+			}},
+		},
+		{
+			fileName: "package-lock.json",
+			touchedLines: []lineOfCode{{
+				contents: `and a few specific files 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`,
+				num:      7,
+			}},
+		},
+	}, true, "")
+
+	test("long lines are bad", []fileWithChanges{
 		{
 			fileName: "file1.txt",
 			touchedLines: []lineOfCode{{
@@ -260,41 +280,23 @@ func TestCheckLongLines_LongLines_ReturnsFalseAndLogsLines(t *testing.T) {
 				num:      459,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkLongLines(ctx, input)
-	assert.False(t, ok)
-	assert.Equal(t, `file1.txt:281 Line too long (130/100)
+	}, false, `file1.txt:281 Line too long (130/100)
 file2.md:456 Line too long (120/100)
 file2.md:459 Line too long (125/100)
-`, logs.String())
+`)
 }
 
-func TestCheckLongLines_LongLines_SkippedFilesIgnored(t *testing.T) {
-	input := []fileWithChanges{
-		{
-			fileName: "file1.go",
-			touchedLines: []lineOfCode{{
-				contents: `go files can have any length 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`,
-				num:      2,
-			}},
-		},
-		{
-			fileName: "package-lock.json",
-			touchedLines: []lineOfCode{{
-				contents: `and a few specific files 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`,
-				num:      7,
-			}},
-		},
+func TestCheckTODOHasOwner(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkTODOHasOwner(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
 	}
-	ctx, logs := captureLogs()
-	ok := checkLongLines(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
 
-func TestCheckTODOHasOwner_ProperTODOs_ReturnsTrue(t *testing.T) {
-	input := []fileWithChanges{
+	test("TODO with owner or bug is fine", []fileWithChanges{
 		{
 			fileName: "file1.go",
 			touchedLines: []lineOfCode{{
@@ -309,15 +311,9 @@ func TestCheckTODOHasOwner_ProperTODOs_ReturnsTrue(t *testing.T) {
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkTODOHasOwner(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
+	}, true, "")
 
-func TestCheckTODOHasOwner_LackingTODOs_ReturnsFalseAndLogsLines(t *testing.T) {
-	input := []fileWithChanges{
+	test("TODO without owner or bug is bad", []fileWithChanges{
 		{
 			fileName: "file1.go",
 			touchedLines: []lineOfCode{{
@@ -338,42 +334,41 @@ func TestCheckTODOHasOwner_LackingTODOs_ReturnsFalseAndLogsLines(t *testing.T) {
 				num:      8,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkTODOHasOwner(ctx, input)
-	assert.False(t, ok)
-	assert.Equal(t, `file1.go:2 TODO without owner or bug
+	}, false, `file1.go:2 TODO without owner or bug
 file1.go:3 TODO without owner or bug
 README.md:7 TODO without owner or bug
 README.md:8 TODO without owner or bug
-`, logs.String())
+`)
 }
 
-func TestCheckForStrayWhitespace_NoTrailingSpaces_ReturnsTrue(t *testing.T) {
-	input := []fileWithChanges{
+func TestCheckForStrayWhitespace(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkForStrayWhitespace(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("leading spaces and tabs are fine", []fileWithChanges{
 		{
 			fileName: "file1.go",
 			touchedLines: []lineOfCode{{
-				contents: `// Everything    is fine`,
+				contents: "\t// Everything    is fine",
 				num:      2,
 			}},
 		},
 		{
 			fileName: "README.md",
 			touchedLines: []lineOfCode{{
-				contents: `        Totally fine.`,
+				contents: "      Totally fine.",
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkForStrayWhitespace(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
+	}, true, "")
 
-func TestCheckForStrayWhitespace_TrailingSpacesOrTabs_ReturnsFalseAndLogsLines(t *testing.T) {
-	input := []fileWithChanges{
+	test("trailing space or tabs is bad", []fileWithChanges{
 		{
 			fileName: "file1.go",
 			touchedLines: []lineOfCode{{
@@ -392,18 +387,23 @@ func TestCheckForStrayWhitespace_TrailingSpacesOrTabs_ReturnsFalseAndLogsLines(t
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkForStrayWhitespace(ctx, input)
-	assert.False(t, ok)
-	assert.Equal(t, `file1.go:2 Trailing whitespace
+	}, false, `file1.go:2 Trailing whitespace
 file1.go:3 Trailing whitespace
 README.md:7 Trailing whitespace
-`, logs.String())
+`)
 }
 
-func TestCheckHasNoTabs_NoTabsInContent_ReturnsTrue(t *testing.T) {
-	input := []fileWithChanges{
+func TestCheckHasNoTabs(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkHasNoTabs(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("no tabs means no problem", []fileWithChanges{
 		{
 			fileName: "file.py",
 			touchedLines: []lineOfCode{{
@@ -421,15 +421,9 @@ func TestCheckHasNoTabs_NoTabsInContent_ReturnsTrue(t *testing.T) {
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkHasNoTabs(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
+	}, true, "")
 
-func TestCheckHasNoTabs_TabsInMakefilesOrGo_ReturnsTrue(t *testing.T) {
-	input := []fileWithChanges{
+	test("Tabs ok in go or Makefiles", []fileWithChanges{
 		{
 			fileName: "file.go",
 			touchedLines: []lineOfCode{{
@@ -444,15 +438,9 @@ func TestCheckHasNoTabs_TabsInMakefilesOrGo_ReturnsTrue(t *testing.T) {
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkHasNoTabs(ctx, input)
-	assert.True(t, ok)
-	assert.Empty(t, logs.String())
-}
+	}, true, "")
 
-func TestCheckHasNoTabs_TabsInOtherFiles_ReturnsFalseAndLogsLines(t *testing.T) {
-	input := []fileWithChanges{
+	test("Tabs not ok in 'normal' files", []fileWithChanges{
 		{
 			fileName: "file.py",
 			touchedLines: []lineOfCode{{
@@ -470,14 +458,206 @@ func TestCheckHasNoTabs_TabsInOtherFiles_ReturnsFalseAndLogsLines(t *testing.T) 
 				num:      7,
 			}},
 		},
-	}
-	ctx, logs := captureLogs()
-	ok := checkHasNoTabs(ctx, input)
-	assert.False(t, ok)
-	assert.Equal(t, `file.py:2 Tab character not allowed
+	}, false, `file.py:2 Tab character not allowed
 file.py:5 Tab character not allowed
 foo/bar/README.md:7 Tab character not allowed
-`, logs.String())
+`)
+}
+
+func TestCheckBannedGoAPIs(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkBannedGoAPIs(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("go files with ok APIs", []fileWithChanges{
+		{
+			fileName: "file.go",
+			touchedLines: []lineOfCode{{
+				contents: "foo := httputils.NewTimeoutClient()",
+				num:      2,
+			}, {
+				contents: "fmt.Println(foo)",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("Non-go files with bad APIs", []fileWithChanges{
+		{
+			fileName: "file.txt",
+			touchedLines: []lineOfCode{{
+				contents: "reflect.DeepEqual()",
+				num:      2,
+			}, {
+				contents: "os.Interrupt()",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("Go files with bad APIs", []fileWithChanges{
+		{
+			fileName: "file.go",
+			touchedLines: []lineOfCode{{
+				contents: "reflect.DeepEqual()",
+				num:      2,
+			}, {
+				contents: "os.Interrupt()",
+				num:      3,
+			}},
+		},
+		{
+			fileName: "other.go",
+			touchedLines: []lineOfCode{{
+				contents: `exec.CommandContext(ctx, "git", "diff")`,
+				num:      14,
+			}},
+		},
+	}, false, `file.go:2 Instead of reflect.DeepEqual, please use DeepEqual in go.skia.org/infra/go/testutils
+file.go:3 Instead of os.Interrupt, please use AtExit in go.skia.org/go/cleanup
+other.go:14 Instead of "git", please use Executable in go.skia.org/infra/go/git
+`)
+}
+
+func TestCheckJSDebugging(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkJSDebugging(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("normal js and ts code ok", []fileWithChanges{
+		{
+			fileName: "file.js",
+			touchedLines: []lineOfCode{{
+				contents: "console.log('hello world')",
+				num:      2,
+			}, {
+				contents: "it('runs a unit test', () => {",
+				num:      3,
+			}},
+		},
+		{
+			fileName: "file.ts",
+			touchedLines: []lineOfCode{{
+				contents: "console.log('hello world')",
+				num:      2,
+			}, {
+				contents: "it('runs a unit test', () => {",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("Non-js files with debug lines ok", []fileWithChanges{
+		{
+			fileName: "file.txt",
+			touchedLines: []lineOfCode{{
+				contents: "debugger;",
+				num:      2,
+			}, {
+				contents: "it.only() is how you can make...",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("ts or js files with debug lines are bad", []fileWithChanges{
+		{
+			fileName: "file.js",
+			touchedLines: []lineOfCode{{
+				contents: "console.log('hello world')",
+				num:      2,
+			}, {
+				contents: "debugger;",
+				num:      3,
+			}},
+		},
+		{
+			fileName: "file.ts",
+			touchedLines: []lineOfCode{{
+				contents: "describe.only('something to test', () => {",
+				num:      4,
+			}, {
+				contents: "it.only('runs a unit test', () => {",
+				num:      5,
+			}},
+		},
+	}, false, `file.js:3 debugging code found (debugger;)
+file.ts:4 debugging code found (describe.only()
+file.ts:5 debugging code found (it.only()
+`)
+}
+
+func TestCheckNonASCII(t *testing.T) {
+	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, logs := captureLogs()
+			ok := checkNonASCII(ctx, input)
+			assert.Equal(t, expectedReturn, ok)
+			assert.Equal(t, expectedLogs, logs.String())
+		})
+	}
+
+	test("ASCII text ok everywhere", []fileWithChanges{
+		{
+			fileName: "file.css",
+			touchedLines: []lineOfCode{{
+				contents: "normal everyday text",
+				num:      2,
+			}, {
+				contents: "Symbols *$&@(!",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("go files with ASCII ok", []fileWithChanges{
+		{
+			fileName: "file.go",
+			touchedLines: []lineOfCode{{
+				contents: "⛄",
+				num:      2,
+			}, {
+				contents: "UTF-8 allowed: ✔️",
+				num:      3,
+			}},
+		},
+	}, true, "")
+
+	test("other files with non-ascii are not ok", []fileWithChanges{
+		{
+			fileName: "file.py",
+			touchedLines: []lineOfCode{{
+				contents: "⛄⛄⛄⛄",
+				num:      2,
+			}},
+		},
+		{
+			fileName: "file.css",
+			touchedLines: []lineOfCode{{
+				contents: "This line is ok",
+				num:      4,
+			}, {
+				contents: "✔✔✔",
+				num:      5,
+			}, {
+				contents: "snowman: ⛄",
+				num:      5,
+			}},
+		},
+	}, false, `file.py:2:1 Non ASCII character found
+file.css:5:1 Non ASCII character found
+file.css:5:10 Non ASCII character found
+`)
 }
 
 // captureLogs returns a context and a buffer, with the latter being added to the former such that
