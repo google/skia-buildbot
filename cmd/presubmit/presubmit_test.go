@@ -293,6 +293,193 @@ func TestCheckLongLines_LongLines_SkippedFilesIgnored(t *testing.T) {
 	assert.Empty(t, logs.String())
 }
 
+func TestCheckTODOHasOwner_ProperTODOs_ReturnsTrue(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file1.go",
+			touchedLines: []lineOfCode{{
+				contents: `TODO(name)`,
+				num:      2,
+			}},
+		},
+		{
+			fileName: "README.md",
+			touchedLines: []lineOfCode{{
+				contents: `TODO(skbug.com/13690)`,
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkTODOHasOwner(ctx, input)
+	assert.True(t, ok)
+	assert.Empty(t, logs.String())
+}
+
+func TestCheckTODOHasOwner_LackingTODOs_ReturnsFalseAndLogsLines(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file1.go",
+			touchedLines: []lineOfCode{{
+				contents: `TODO whoops`,
+				num:      2,
+			}, {
+				contents: `TODO should keep going`,
+				num:      3,
+			}},
+		},
+		{
+			fileName: "README.md",
+			touchedLines: []lineOfCode{{
+				contents: `TODO (space before paren not ok)`,
+				num:      7,
+			}, {
+				contents: `# Trailing TODO`,
+				num:      8,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkTODOHasOwner(ctx, input)
+	assert.False(t, ok)
+	assert.Equal(t, `file1.go:2 TODO without owner or bug
+file1.go:3 TODO without owner or bug
+README.md:7 TODO without owner or bug
+README.md:8 TODO without owner or bug
+`, logs.String())
+}
+
+func TestCheckForStrayWhitespace_NoTrailingSpaces_ReturnsTrue(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file1.go",
+			touchedLines: []lineOfCode{{
+				contents: `// Everything    is fine`,
+				num:      2,
+			}},
+		},
+		{
+			fileName: "README.md",
+			touchedLines: []lineOfCode{{
+				contents: `        Totally fine.`,
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkForStrayWhitespace(ctx, input)
+	assert.True(t, ok)
+	assert.Empty(t, logs.String())
+}
+
+func TestCheckForStrayWhitespace_TrailingSpacesOrTabs_ReturnsFalseAndLogsLines(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file1.go",
+			touchedLines: []lineOfCode{{
+				contents: "Trailing spaces     ",
+				num:      2,
+			}, {
+				contents: "Trailing tab\t",
+				num:      3,
+			}},
+		},
+		{
+			fileName: "README.md",
+			touchedLines: []lineOfCode{{
+				// all spaces
+				contents: "     ",
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkForStrayWhitespace(ctx, input)
+	assert.False(t, ok)
+	assert.Equal(t, `file1.go:2 Trailing whitespace
+file1.go:3 Trailing whitespace
+README.md:7 Trailing whitespace
+`, logs.String())
+}
+
+func TestCheckHasNoTabs_NoTabsInContent_ReturnsTrue(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file.py",
+			touchedLines: []lineOfCode{{
+				contents: `  # leading spaces ok for Python`,
+				num:      2,
+			}, {
+				contents: `print('\t escaped tabs ok also')`,
+				num:      4,
+			}},
+		},
+		{
+			fileName: "README.txt",
+			touchedLines: []lineOfCode{{
+				contents: `  And text files`,
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkHasNoTabs(ctx, input)
+	assert.True(t, ok)
+	assert.Empty(t, logs.String())
+}
+
+func TestCheckHasNoTabs_TabsInMakefilesOrGo_ReturnsTrue(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file.go",
+			touchedLines: []lineOfCode{{
+				contents: "\t\t// leading tabs are fine",
+				num:      2,
+			}},
+		},
+		{
+			fileName: "foo/bar/Makefile",
+			touchedLines: []lineOfCode{{
+				contents: "\tAlso ok",
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkHasNoTabs(ctx, input)
+	assert.True(t, ok)
+	assert.Empty(t, logs.String())
+}
+
+func TestCheckHasNoTabs_TabsInOtherFiles_ReturnsFalseAndLogsLines(t *testing.T) {
+	input := []fileWithChanges{
+		{
+			fileName: "file.py",
+			touchedLines: []lineOfCode{{
+				contents: "\t# leading tabs no good",
+				num:      2,
+			}, {
+				contents: "Middle tabs\t\tno good either",
+				num:      5,
+			}},
+		},
+		{
+			fileName: "foo/bar/README.md",
+			touchedLines: []lineOfCode{{
+				contents: "\tNot ok in markdown",
+				num:      7,
+			}},
+		},
+	}
+	ctx, logs := captureLogs()
+	ok := checkHasNoTabs(ctx, input)
+	assert.False(t, ok)
+	assert.Equal(t, `file.py:2 Tab character not allowed
+file.py:5 Tab character not allowed
+foo/bar/README.md:7 Tab character not allowed
+`, logs.String())
+}
+
 // captureLogs returns a context and a buffer, with the latter being added to the former such that
 // all calls to logf will write into the buffer instead of, for example, stdout.
 func captureLogs() (context.Context, *bytes.Buffer) {

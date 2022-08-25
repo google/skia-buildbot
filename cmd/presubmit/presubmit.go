@@ -45,6 +45,9 @@ func main() {
 		logf(ctx, "Deleted files:\n%s\n", deletedFiles)
 	}
 	ok := checkLongLines(ctx, changedFiles)
+	ok = ok && checkTODOHasOwner(ctx, changedFiles)
+	ok = ok && checkForStrayWhitespace(ctx, changedFiles)
+	ok = ok && checkHasNoTabs(ctx, changedFiles)
 
 	if ok {
 		os.Exit(0)
@@ -229,6 +232,7 @@ func parseGitDiff(diffOutput string) ([]fileWithChanges, []string) {
 
 // checkLongLines looks through all touched lines and returns false if any of them (not covered by
 // exceptions) have lines longer than 100 lines, an arbitrary measurement.
+// Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#488
 func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 	const maxLineLength = 100
 	ignoreFileExts := []string{".go", ".html", ".py"}
@@ -244,6 +248,74 @@ func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 		for _, line := range f.touchedLines {
 			if len(line.contents) > maxLineLength {
 				logf(ctx, "%s:%d Line too long (%d/%d)\n", f.fileName, line.num, len(line.contents), maxLineLength)
+				ok = false
+			}
+		}
+	}
+	return ok
+}
+
+var todoWithoutOwner = regexp.MustCompile(`TODO[^(]`)
+
+// checkTODOHasOwner looks through all touched lines and returns false if any of them (not covered
+// by exceptions) have a TODO without an owner or a bug.
+// Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#464
+func checkTODOHasOwner(ctx context.Context, files []fileWithChanges) bool {
+	ignoreFiles := []string{
+		// These files have TODO in their function names and test data.
+		"cmd/presubmit/presubmit.go", "cmd/presubmit/presubmit_test.go",
+	}
+	ok := true
+	for _, f := range files {
+		if contains(ignoreFiles, f.fileName) {
+			continue
+		}
+		for _, line := range f.touchedLines {
+			if todoWithoutOwner.MatchString(line.contents) || strings.HasSuffix(line.contents, "TODO") {
+				logf(ctx, "%s:%d TODO without owner or bug\n", f.fileName, line.num)
+				ok = false
+			}
+		}
+	}
+	return ok
+}
+
+var trailingWhitespace = regexp.MustCompile(`\s+$`)
+
+// checkForStrayWhitespace goes through all touched lines and returns false if any of them end with
+// a whitespace character (e.g. tabs, spaces). newlines should have been stripped out of
+// the content of a line earlier.
+// Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#476
+func checkForStrayWhitespace(ctx context.Context, files []fileWithChanges) bool {
+	ok := true
+	for _, f := range files {
+		for _, line := range f.touchedLines {
+			if trailingWhitespace.MatchString(line.contents) {
+				logf(ctx, "%s:%d Trailing whitespace\n", f.fileName, line.num)
+				ok = false
+			}
+		}
+	}
+	return ok
+}
+
+// checkHasNoTabs goes through all touched lines and returns false if any of them (barring
+// exceptions for Golang and Makefiles) have tabs anywhere.
+// Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#441
+func checkHasNoTabs(ctx context.Context, files []fileWithChanges) bool {
+	ignoreFileExts := []string{".go", ".mk"}
+	ignoreFiles := []string{"Makefile"}
+	ok := true
+	for _, f := range files {
+		if contains(ignoreFiles, f.fileName) || contains(ignoreFiles, filepath.Base(f.fileName)) {
+			continue
+		}
+		if contains(ignoreFileExts, filepath.Ext(f.fileName)) {
+			continue
+		}
+		for _, line := range f.touchedLines {
+			if strings.Contains(line.contents, "\t") {
+				logf(ctx, "%s:%d Tab character not allowed\n", f.fileName, line.num)
 				ok = false
 			}
 		}
