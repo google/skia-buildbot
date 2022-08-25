@@ -450,7 +450,8 @@ func LoggingRequestResponse(h http.Handler) http.Handler {
 				http.Error(w, "Error Handing request", http.StatusInternalServerError)
 			}
 		}()
-		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()
+
+		defer timer.NewWithMetric(fmt.Sprintf("Request: %s Latency:", r.URL.Path), metrics2.GetFloat64Metric("httputils_latency", map[string]string{"url": r.URL.Path})).Stop()
 		h.ServeHTTP(w, r)
 	}
 
