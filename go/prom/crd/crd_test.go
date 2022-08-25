@@ -20,12 +20,14 @@ spec:
     rules:
     - alert: AndroidIngestFailures
       expr: rate(process_failures[1h]) > 0.01
+      for: 10m
       labels:
         category: infra
       annotations:
         description: Error rate for processing buildids is too high. See ...
     - alert: AndroidIngestLiveness
       expr: liveness_last_successful_add_s > 300
+      for: 15m
       labels:
         category: infra
       annotations:
@@ -97,6 +99,7 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 						{
 							Alert: "Absent",
 							Expr:  "absent(liveness_last_successful_add_s)",
+							For:   absentAlertForDuration,
 							Labels: map[string]string{
 								"category": "infra",
 								"severify": "critical",
@@ -174,6 +177,7 @@ func TestRules_AddAbsentRules_AlertsOnlyAppearInIncludedClusters(t *testing.T) {
 						{
 							Alert: "Absent",
 							Expr:  "absent(liveness_last_successful_add_s)",
+							For:   absentAlertForDuration,
 							Labels: map[string]string{
 								"category": "infra",
 								"severify": "critical",

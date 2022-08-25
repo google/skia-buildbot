@@ -155,6 +155,7 @@ spec:
     rules:
     - alert: AlwaysFiringAlertToSeeIfAlertsAreWorking
       expr: vector(1)
+      for: ""
       labels: {}
       annotations: {}
   - name: absent-perf

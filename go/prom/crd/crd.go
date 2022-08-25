@@ -8,7 +8,10 @@ import (
 	"go.skia.org/infra/go/prom"
 )
 
-const onlyInClustersAnnotationKey = "absent_alerts_only_in_clusters"
+const (
+	onlyInClustersAnnotationKey = "absent_alerts_only_in_clusters"
+	absentAlertForDuration      = "5m"
+)
 
 // Rules Custom Resource representation.
 //
@@ -43,6 +46,7 @@ type Group struct {
 type Rule struct {
 	Alert       string            `yaml:"alert"`
 	Expr        string            `yaml:"expr"`
+	For         string            `yaml:"for"`
 	Labels      map[string]string `yaml:"labels"`
 	Annotations map[string]string `yaml:"annotations"`
 }
@@ -80,6 +84,7 @@ func (r *Rules) AddAbsentRules(cluster string) {
 			rules = append(rules, Rule{
 				Alert: "Absent",
 				Expr:  fmt.Sprintf("absent(%s)", equation),
+				For:   absentAlertForDuration,
 				Labels: map[string]string{
 					"category": "infra",
 					"severify": "critical",
