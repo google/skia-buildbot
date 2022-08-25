@@ -70,7 +70,6 @@ func newProxy(target *url.URL, authProvider auth.Auth) *proxy {
 }
 
 func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("Requesting: %s", r.RequestURI)
 	email := p.authProvider.LoggedInAs(r)
 	r.Header.Del(webAuthHeaderName)
 	r.Header.Add(webAuthHeaderName, email)
