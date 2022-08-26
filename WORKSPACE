@@ -7,7 +7,7 @@ workspace(
     },
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("//bazel:gcs_mirror.bzl", "gcs_mirror_url")
 
 # Read the instructions in //bazel/rbe/generated/README.md before updating this repository.
@@ -477,3 +477,43 @@ filegroup(
 load("//bazel/external:google_chrome.bzl", "google_chrome")
 
 google_chrome(name = "google_chrome")
+
+#################################################################################
+# Buildifier (prebuilt)                                                         #
+#################################################################################
+
+http_file(
+    name = "buildifier_linux_amd64",
+    downloaded_file_path = "buildifier",
+    executable = True,
+    sha256 = "52bf6b102cb4f88464e197caac06d69793fa2b05f5ad50a7e7bf6fbd656648a3",
+    urls = gcs_mirror_url(
+        ext = "",
+        sha256 = "52bf6b102cb4f88464e197caac06d69793fa2b05f5ad50a7e7bf6fbd656648a3",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-linux-amd64",
+    ),
+)
+
+http_file(
+    name = "buildifier_macos_arm64",
+    downloaded_file_path = "buildifier",
+    executable = True,
+    sha256 = "745feb5ea96cb6ff39a76b2821c57591fd70b528325562486d47b5d08900e2e4",
+    urls = gcs_mirror_url(
+        ext = "",
+        sha256 = "745feb5ea96cb6ff39a76b2821c57591fd70b528325562486d47b5d08900e2e4",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-darwin-arm64",
+    ),
+)
+
+http_file(
+    name = "buildifier_macos_amd64",
+    downloaded_file_path = "buildifier",
+    executable = True,
+    sha256 = "c9378d9f4293fc38ec54a08fbc74e7a9d28914dae6891334401e59f38f6e65dc",
+    urls = gcs_mirror_url(
+        ext = "",
+        sha256 = "c9378d9f4293fc38ec54a08fbc74e7a9d28914dae6891334401e59f38f6e65dc",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-darwin-amd64",
+    ),
+)

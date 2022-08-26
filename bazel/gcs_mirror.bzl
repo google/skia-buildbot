@@ -9,7 +9,7 @@ _SUPPORTED_SUFFIXES = [".tar.gz", ".tgz", ".tar.xz", ".deb", ".zip"]
 
 _GCS_MIRROR_PREFIX = "https://storage.googleapis.com/skia-world-readable/bazel"
 
-def gcs_mirror_url(url, sha256):
+def gcs_mirror_url(url, sha256, ext = None):
     """Takes the URL of an external resource and computes its GCS mirror URL.
 
     We store backup copies of external resources in the skia-world-readable GCS bucket. This macro
@@ -21,16 +21,19 @@ def gcs_mirror_url(url, sha256):
     Args:
         url: URL of the mirrored resource.
         sha256: SHA256 hash of the mirrored resource.
+        ext: string matching the extension, if not provided, it will be gleaned from the URL.
+             The auto-detected suffix must match a list. An arbitrarily provided one does not.
     Returns:
         A list of the form [original URL, mirror URL].
     """
     extension = ""
-    for suffix in _SUPPORTED_SUFFIXES:
-        if url.endswith(suffix):
-            extension = suffix
-            break
-    if extension == "":
-        fail("URL %s has an unsupported suffix." % url)
+    if ext == None:
+        for suffix in _SUPPORTED_SUFFIXES:
+            if url.endswith(suffix):
+                extension = suffix
+                break
+        if extension == "":
+            fail("URL %s has an unsupported suffix." % url)
 
     mirror_url = "%s/%s%s" % (_GCS_MIRROR_PREFIX, sha256, extension)
     return [mirror_url] if _TEST_GCS_MIRROR else [url, mirror_url]

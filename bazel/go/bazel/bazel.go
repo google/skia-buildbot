@@ -23,7 +23,7 @@ func InBazelTestOnRBE() bool {
 // its runfiles (e.g. files included in the "data" attribute of *_test targets) using relative
 // paths.
 func RunfilesDir() string {
-	// See https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location and
-	// https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
+	// See https://bazel.build/extending/rules#runfiles_location and
+	// https://bazel.build/reference/test-encyclopedia#initial-conditions.
 	return filepath.Join(os.Getenv("RUNFILES_DIR"), os.Getenv("TEST_WORKSPACE"))
 }

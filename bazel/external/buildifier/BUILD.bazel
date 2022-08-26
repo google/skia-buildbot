@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "buildifier",
+    srcs = ["buildifier.go"],
+    data = select({
+        "//bazel/constraints:linux_x64": ["@buildifier_linux_amd64//file"],
+        "//bazel/constraints:mac_x64": ["@buildifier_macos_amd64//file"],
+        "//bazel/constraints:mac_arm64": ["@buildifier_macos_arm64//file"],
+    }),
+    importpath = "go.skia.org/infra/bazel/external/buildifier",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
+)

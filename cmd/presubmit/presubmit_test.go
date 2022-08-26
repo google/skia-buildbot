@@ -8,6 +8,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestExtractFilesWithDiffs(t *testing.T) {
+	test := func(name, input string, expectedFiles []string) {
+		t.Run(name, func(t *testing.T) {
+			actualFiles := extractFilesWithDiffs(input)
+			assert.Equal(t, expectedFiles, actualFiles)
+		})
+	}
+
+	test("no diffs", "\n", nil)
+
+	const withDiffs = `:100644 100644 70423240e35dbf7c866cb44709e010e700a6ae65 0000000000000000000000000000000000000000 M	WORKSPACE
+:000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 A	bazel/external/buildifier/buildifier.go
+:100644 100644 3c82f60478d2d2b7218e6a59e8561171dbf3d82e 0000000000000000000000000000000000000000 M	cmd/presubmit/BUILD.bazel
+:100755 000000 d4f82380f925f434075678e7c6162ed2c8ff8099 0000000000000000000000000000000000000000 D	cmd/presubmit/test.sh`
+	test("some diffs", withDiffs, []string{
+		"WORKSPACE",
+		"bazel/external/buildifier/buildifier.go",
+		"cmd/presubmit/BUILD.bazel",
+		"cmd/presubmit/test.sh",
+	})
+
+}
+
 const (
 	oneCLWithManyCommits = `commit d74307d70d7a7670e196aa6170eb6c16e8772845
 HEAD -> remove-recipes$|2d1539110
@@ -55,10 +78,10 @@ commit 664b582843b7de27a1be6b2d02e03be2dc863161
 $|d144eba2e`
 )
 
-func TestParseRevList_Success(t *testing.T) {
+func TestExtractBranchBase_Success(t *testing.T) {
 	test := func(name, input, expectedOutput string) {
 		t.Run(name, func(t *testing.T) {
-			actualOutput := parseRevList(input)
+			actualOutput := extractBranchBase(input)
 			assert.Equal(t, expectedOutput, actualOutput)
 		})
 	}
@@ -69,7 +92,7 @@ func TestParseRevList_Success(t *testing.T) {
 	test("empty output means empty return value", "", "")
 }
 
-func TestParseGitDiff_NewDeletedModifiedFiles_AttributesLineNumbers(t *testing.T) {
+func TestExtractChangedAndDeletedFiles_NewDeletedModifiedFiles_AttributesLineNumbers(t *testing.T) {
 	// This example has a diff of a new, deleted, and modified file.
 	// This was based on actual output of
 	// git diff-index origin/main --patch-with-raw --unified=0 --no-color
@@ -130,7 +153,7 @@ index f3265464e3..9ef1be7dba 100644
 +const SkOpSegment* AngleSegment3(const SkOpAngle*, int id);
 +const SkOpSpanBase* AngleSpan4(const SkOpAngle*, int id);
 `
-	changedFiles, deletedFiles := parseGitDiff(input)
+	changedFiles, deletedFiles := extractChangedAndDeletedFiles(input)
 	assert.Equal(t, deletedFiles, []string{"bazel/defines.bzl"})
 	assert.Equal(t, changedFiles, []fileWithChanges{
 		{
@@ -186,7 +209,7 @@ index f3265464e3..9ef1be7dba 100644
 	})
 }
 
-func TestParseGitDiff_WhitespaceChange_WholeLineCaptured(t *testing.T) {
+func TestExtractChangedAndDeletedFiles_WhitespaceChange_WholeLineCaptured(t *testing.T) {
 	const input = `:100644 100644 464e32a3b8bc1f4e4238b6c089926d35febf3265 0000000000000000000000000000000000000000 M	bulk-triage-sk.ts
 
 diff --git a/golden/modules/bulk-triage-sk/bulk-triage-sk.ts b/golden/modules/bulk-triage-sk/bulk-triage-sk.ts
@@ -200,7 +223,7 @@ index 7f7612c28..aa1d04715 100644
 -  private onCancelBtnClick() {
 +	private onCancelBtnClick() {
 `
-	changedFiles, deletedFiles := parseGitDiff(input)
+	changedFiles, deletedFiles := extractChangedAndDeletedFiles(input)
 	assert.Empty(t, deletedFiles)
 	assert.Equal(t, changedFiles, []fileWithChanges{
 		{

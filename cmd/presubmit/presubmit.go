@@ -16,15 +16,37 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"go.skia.org/infra/bazel/external/buildifier"
 )
 
 func main() {
 	var (
+		repoDir  = flag.String("repo_dir", "", "The root directory of the repo.")
 		upstream = flag.String("upstream", "origin/main", "The upstream repo to diff against.")
 		verbose  = flag.Bool("verbose", false, "If extra logging is desired")
 	)
 	flag.Parse()
 	ctx := withOutputWriter(context.Background(), os.Stdout)
+	if *repoDir == "" {
+		logf(ctx, "Must set --repo_dir\n")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// The pre-built binaries we need are relative to the path that Bazel starts us in.
+	// We need to get those paths before we re-locate to the git repo we are testing.
+	buildifierPath := buildifier.MustFindBuildifier()
+
+	if err := os.Chdir(*repoDir); err != nil {
+		logf(ctx, "Could not cd to %s\n", *repoDir)
+		os.Exit(1)
+	}
+
+	if files := findUncommittedChanges(ctx); len(files) > 0 {
+		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n", len(files))
+		os.Exit(1)
+	}
 
 	branchBaseCommit := findBranchBase(ctx, *upstream)
 	if branchBaseCommit == "" {
@@ -32,7 +54,7 @@ func main() {
 		// somewhere. Either way, we don't want to run the presubmits. It could mutate those
 		// un-committed changes or just be a no-op, since presumably code in the past passed the
 		// presubmit checks.
-		logf(ctx, "No commits since %s. Presubmit passes by default.\nDid you forget to commit changes?\n", *upstream)
+		logf(ctx, "No commits since %s. Presubmit passes by default. Did you commit all new files?\n", *upstream)
 		os.Exit(0)
 	}
 	if *verbose {
@@ -52,11 +74,17 @@ func main() {
 	ok = ok && checkJSDebugging(ctx, changedFiles)
 	ok = ok && checkNonASCII(ctx, changedFiles)
 
-	if ok {
-		os.Exit(0)
+	// Only mutate the repo if we are good so far.
+	if !ok {
+		logf(ctx, "Presubmit errors detected!\n")
+		os.Exit(1)
 	}
-	logf(ctx, "Presubmit errors detected!\n")
-	os.Exit(1)
+
+	if !runBuildifier(ctx, buildifierPath, changedFiles) {
+		os.Exit(1)
+	}
+
+	os.Exit(0)
 }
 
 const (
@@ -67,6 +95,36 @@ bazel run //cmd/presubmit --run_under="cd $PWD &&"
 `
 	refSeperator = "$|" // Some string we hope that no users start their branch names with
 )
+
+func findUncommittedChanges(ctx context.Context) []string {
+	// diff-index is one of the git "plumbing" commands and the output should be relatively stable.
+	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
+	cmd := exec.CommandContext(ctx, "git", "diff-index", "HEAD")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output)+"\n")
+		logf(ctx, err.Error()+"\n")
+		panic(gitErrorMessage)
+	}
+	return extractFilesWithDiffs(string(output))
+}
+
+var fileDiff = regexp.MustCompile(`^:.+\t(?P<file>[^\t]+)$`)
+
+func extractFilesWithDiffs(output string) []string {
+	output = strings.TrimSpace(output)
+	if output == "" {
+		return nil
+	}
+	var files []string
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if match := fileDiff.FindStringSubmatch(line); len(match) > 0 {
+			files = append(files, match[1])
+		}
+	}
+	return files
+}
 
 // findBranchBase returns the git commit of the parent branch. If there is a chain of CLs
 // (i.e. branches), this will return the parent branch's most recent commit. If we are on the
@@ -79,6 +137,7 @@ func findBranchBase(ctx context.Context, upstream string) string {
 	cmd := exec.CommandContext(ctx, "git", "rev-list", "HEAD", "^"+upstream,
 		// %D means "ref names", which is the commit hash and any branch name associated with it
 		// %p means the shortened parent hash
+		// TODO(kjlubick) handle rebases
 		`--format=%D`+refSeperator+`%p`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -86,12 +145,12 @@ func findBranchBase(ctx context.Context, upstream string) string {
 		logf(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
-	return parseRevList(string(output))
+	return extractBranchBase(string(output))
 }
 
-// parseRevList looks for the most recent branch, as indicated by the "ref name". Failing to find
+// extractBranchBase looks for the most recent branch, as indicated by the "ref name". Failing to find
 // that, it will return the last parent commit, which will connect to the upstream branch.
-func parseRevList(output string) string {
+func extractBranchBase(output string) string {
 	output = strings.TrimSpace(output)
 	if output == "" {
 		return ""
@@ -141,7 +200,7 @@ func computeDiffFiles(ctx context.Context, branchBase string) ([]fileWithChanges
 		logf(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
-	return parseGitDiff(string(output))
+	return extractChangedAndDeletedFiles(string(output))
 }
 
 var (
@@ -178,10 +237,10 @@ func (c lineOfCode) String() string {
 	return fmt.Sprintf("% 4d:%s", c.num, c.contents)
 }
 
-// parseGitDiff looks through the provided `git diff` output and finds the files that were
+// extractChangedAndDeletedFiles looks through the provided `git diff` output and finds the files that were
 // added or modified, as well as the new version of any lines touched. It also returns
 // a slice of deleted files.
-func parseGitDiff(diffOutput string) ([]fileWithChanges, []string) {
+func extractChangedAndDeletedFiles(diffOutput string) ([]fileWithChanges, []string) {
 	var changed []fileWithChanges
 	var deleted []string
 	lines := strings.Split(diffOutput, "\n")
@@ -239,7 +298,8 @@ func parseGitDiff(diffOutput string) ([]fileWithChanges, []string) {
 func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 	const maxLineLength = 100
 	ignoreFileExts := []string{".go", ".html", ".py"}
-	ignoreFiles := []string{"package-lock.json", "go.sum", "infra/bots/tasks.json"}
+	ignoreFiles := []string{"package-lock.json", "go.sum", "infra/bots/tasks.json", "WORKSPACE",
+		"golden/k8s-config-templates/gold-common.json5"}
 	ok := true
 	for _, f := range files {
 		if contains(ignoreFiles, f.fileName) {
@@ -444,6 +504,31 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 		}
 	}
 	return ok
+}
+
+func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges) bool {
+	args := []string{"-lint=warn", "-mode=fix"}
+	for _, f := range files {
+		if filepath.Base(f.fileName) == "BUILD.bazel" || filepath.Ext(f.fileName) == ".bzl" {
+			args = append(args, f.fileName)
+		}
+	}
+	if len(args) == 2 { // no additional arguments (files) added to check
+		return true
+	}
+	cmd := exec.CommandContext(ctx, buildifierPath, args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "Buildifier linting errors detected!\n")
+		return false
+	}
+
+	if xf := findUncommittedChanges(ctx); len(xf) > 0 {
+		logf(ctx, "Buildifier caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	return true
 }
 
 // contains returns true if the given slice has the provided element in it.
