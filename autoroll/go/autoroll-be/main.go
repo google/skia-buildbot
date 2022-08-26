@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
@@ -215,6 +216,11 @@ func main() {
 
 	// The rollers use the gitcookie created by gitauth package.
 	if !*local {
+		// Prevent conflicts with other auth systems, eg. LUCI.
+		if _, err := exec.RunSimple(ctx, "git config --global --unset credential.helper"); err != nil {
+			sklog.Fatalf("Failed to unset credential.helper: %s", err)
+		}
+
 		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
 		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {

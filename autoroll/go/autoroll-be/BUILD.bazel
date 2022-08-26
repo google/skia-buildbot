@@ -17,6 +17,7 @@ go_library(
         "//go/chatbot",
         "//go/common",
         "//go/ds",
+        "//go/exec",
         "//go/fileutil",
         "//go/firestore",
         "//go/gcs",
