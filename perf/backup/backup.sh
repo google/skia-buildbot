@@ -29,3 +29,7 @@ do
     gsutil cp /tmp/alerts.dat      gs://skia-public-backup/perf/$(date +%Y)/$(date +%m)/$(date +%d)/$config/alerts.dat
     gsutil cp /tmp/regressions.dat gs://skia-public-backup/perf/$(date +%Y)/$(date +%m)/$(date +%d)/$config/regressions.dat
 done
+
+# Running this script as a CronJob is reported as an error, but looking at the
+# logs it always succeeds, so try forcing a happy exit code.
+exit 0
