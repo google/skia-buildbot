@@ -136,9 +136,8 @@ func findBranchBase(ctx context.Context, upstream string) string {
 	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
 	cmd := exec.CommandContext(ctx, "git", "rev-list", "HEAD", "^"+upstream,
 		// %D means "ref names", which is the commit hash and any branch name associated with it
-		// %p means the shortened parent hash
-		// TODO(kjlubick) handle rebases
-		`--format=%D`+refSeperator+`%p`)
+		// %P means the parent hash
+		`--format=%D`+refSeperator+`%P`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logf(ctx, string(output)+"\n")
@@ -146,6 +145,15 @@ func findBranchBase(ctx context.Context, upstream string) string {
 		panic(gitErrorMessage)
 	}
 	return extractBranchBase(string(output))
+}
+
+type revEntry struct {
+	commit  string
+	branch  string
+	parents []string
+	// depth is a monotonically increasing number for each commit we see as we are going back
+	// in time.
+	depth int
 }
 
 // extractBranchBase looks for the most recent branch, as indicated by the "ref name". Failing to find
@@ -156,30 +164,65 @@ func extractBranchBase(output string) string {
 		return ""
 	}
 	lines := strings.Split(output, "\n")
-	lastCommit := ""
-	lastParentCommit := ""
+	// Create a graph of commits. The entries map holds onto all the nodes (using the commit as
+	// a key). After we create the graph, we'll look for the key features.
+	entries := map[string]*revEntry{}
+	var currentEntry *revEntry
+	depth := 0
 	for _, line := range lines {
 		if strings.HasPrefix(line, "commit ") {
-			lastCommit = strings.TrimPrefix(line, "commit ")
+			c := strings.TrimPrefix(line, "commit ")
+			entry := entries[c]
+			if entry == nil {
+				entry = &revEntry{commit: c, depth: depth}
+				entries[c] = entry
+			} else {
+				entry.depth = depth
+			}
+			currentEntry = entry
+			depth++
 			continue
 		}
-		if strings.Contains(line, refSeperator) {
-			parts := strings.Split(line, refSeperator)
-			lastParentCommit = parts[1]
-			if parts[0] == "" {
-				continue
+		parts := strings.Split(line, refSeperator)
+		// First part is the possibly empty branch name
+		currentEntry.branch = parts[0]
+		// second part is the possibly multiple parents, seperated by spaces
+		parents := strings.Split(parts[1], " ")
+		currentEntry.parents = parents
+		for _, parent := range parents {
+			// Associate the parents with the depth of the child they apply to.
+			entries[parent] = &revEntry{commit: parent, depth: depth}
+		}
+	}
+
+	// Go through the created graph and find commits of interest
+	var shallowestCommitWithNoParents *revEntry
+	var shallowestCommitWithBranch *revEntry
+	for _, entry := range entries {
+		if len(entry.parents) == 0 {
+			if shallowestCommitWithNoParents == nil || shallowestCommitWithNoParents.depth > entry.depth {
+				shallowestCommitWithNoParents = entry
 			}
 		}
-		if strings.HasPrefix(line, "HEAD -> ") {
-			continue
+		if entry.branch != "" && !strings.HasPrefix(entry.branch, "HEAD -> ") {
+			if shallowestCommitWithBranch == nil || shallowestCommitWithBranch.depth > entry.depth {
+				shallowestCommitWithBranch = entry
+			}
 		}
-		// This means we found a branch name that the current branch is dependent on.
-		return lastCommit
 	}
-	// We got to the end without finding another branch, so that means this commit must be based
-	// directly on the main branch. The last parent shows us where in that main branch we are
-	// based.
-	return lastParentCommit
+
+	// If we found a branch that HEAD descends from, compare to the shallowest commit belonging
+	// to that branch.
+	if shallowestCommitWithBranch != nil {
+		return shallowestCommitWithBranch.commit
+	}
+	// Otherwise, go with the shallowest commit that we didn't find parents for. These parent-less
+	// commits correspond to commits on the main branch, and the shallowest one will be the newest.
+	if shallowestCommitWithNoParents != nil {
+		return shallowestCommitWithNoParents.commit
+	}
+	// This should not happen unless we are parsing things wrong.
+	panic("Could not find a branch to compare to")
 }
 
 // computeDiffFiles returns a slice of changed (modified or added) files with the lines touched
