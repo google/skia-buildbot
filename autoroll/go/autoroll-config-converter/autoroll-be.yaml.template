@@ -98,9 +98,7 @@ spec:
             requests:
               memory: "{{.kubernetes.memory}}"
               cpu: {{.kubernetes.cpu}}
-              {{- if not .kubernetes.disk}}
-              ephemeral-storage: '32M'
-              {{- end}}
+              ephemeral-storage: '100M'
           readinessProbe:
             httpGet:
               path: /healthz
