@@ -147,6 +147,16 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		return nil, skerr.Wrapf(err, "Failed to get next roll strategy")
 	}
 
+	sklog.Info("Running repo_manager.Update()")
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
+	}
+	nextRollRev := strat.GetNextRollRev(notRolledRevs)
+	if nextRollRev == nil {
+		nextRollRev = lastRollRev
+	}
+
 	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
@@ -225,13 +235,13 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		commitMsgBuilder:   commitMsgBuilder,
 		emails:             emails,
 		failureThrottle:    failureThrottle,
-		lastRollRev:        &revision.Revision{},
+		lastRollRev:        lastRollRev,
 		liveness:           metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		manualRollDB:       manualRollDB,
 		modeHistory:        mh,
-		nextRollRev:        &revision.Revision{},
+		nextRollRev:        nextRollRev,
 		notifier:           n,
-		notRolledRevs:      nil,
+		notRolledRevs:      notRolledRevs,
 		recent:             recent,
 		reg:                reg,
 		rm:                 rm,
@@ -248,7 +258,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		successThrottle:    successThrottle,
 		throttle:           unthrottle.NewDatastore(ctx),
 		timeWindow:         tw,
-		tipRev:             &revision.Revision{},
+		tipRev:             tipRev,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
