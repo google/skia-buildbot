@@ -462,7 +462,7 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private viewStats(): TemplateResult[] {
-    return this.incident_stats.map((i, index) => html`<incident-sk .incident_state=${i} ?minimized params=${index === 0}></incident-sk>`);
+    return this.incident_stats.map((i, index) => html`<incident-sk .incident_state=${i} minimized params=${index === 0}></incident-sk>`);
   }
 
   private rightHandSide(): TemplateResult|TemplateResult[] {
@@ -814,7 +814,7 @@ export class AlertManagerSk extends HTMLElement {
     });
   }
 
-  private check_selected(e: Event): void {
+  private async check_selected(e: Event): Promise<void> {
     const checkbox = this.findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
     const incidents_to_check: string[] = [];
     if (this.isBotCentricView && this.bots_to_incidents
@@ -833,13 +833,17 @@ export class AlertManagerSk extends HTMLElement {
 
     if (!this.checked.size) {
       // Request a new silence.
-      fetch('/_/new_silence', {
-        credentials: 'include',
-      }).then(jsonOrThrow).then((json) => {
+      try {
+        const resp = await fetch('/_/new_silence', {
+          credentials: 'include',
+        });
+        const silence: Silence = await jsonOrThrow(resp);
         this.selected = null;
-        this.current_silence = json;
+        this.current_silence = silence;
         checkSelectedImplFunc();
-      }).catch(errorMessage);
+      } catch (error: any) {
+        errorMessage(error);
+      }
     } else if (this.shift_pressed_during_click && this.last_checked_incident) {
       let foundStart = false;
       let foundEnd = false;
