@@ -27,7 +27,7 @@ spec:
   template:
     metadata:
       labels:
-        app: autoroll-be-{{.rollerName}}  # Pod template's label selector
+        app: autoroll-be-{{.rollerName}} # Pod template's label selector
         appgroup: autoroll
         owner-primary: {{.ownerPrimary}}
         owner-secondary: {{.ownerSecondary}}
@@ -39,7 +39,7 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
-        fsGroup: 2000   # aka skia
+        fsGroup: 2000 # aka skia
 {{- if and (eq .useWorkloadIdentity "true") (.oldCluster)}}
       serviceAccountName: {{$svcAcct}}
 {{- end}}
@@ -117,7 +117,7 @@ spec:
     - metadata:
         name: autoroll-be-{{.rollerName}}-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: {{.kubernetes.disk}}
