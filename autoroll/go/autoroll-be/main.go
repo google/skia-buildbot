@@ -54,6 +54,17 @@ const (
 	secretProject      = "skia-infra-public"
 )
 
+type HangOption string
+
+const (
+	hangNone                 HangOption = ""
+	hangImmediately                     = "immediately"
+	hangBeforeRollerCreation            = "before-roller-creation"
+	hangBeforeRunning                   = "before-running"
+)
+
+var hangOptions = []HangOption{hangNone, hangImmediately, hangBeforeRollerCreation, hangBeforeRunning}
+
 // flags
 var (
 	configContents         = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
@@ -64,7 +75,7 @@ var (
 	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile         = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
-	hang                   = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
 )
 
@@ -83,7 +94,7 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 
-	if *hang {
+	if *hang == hangImmediately {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
 	}
@@ -291,9 +302,19 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	if *hang == hangBeforeRollerCreation {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*port)
+	}
+
 	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	if *hang == hangBeforeRunning {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*port)
 	}
 
 	// Start the roller.
