@@ -13,6 +13,7 @@ go_library(
     deps = select({
         "@io_bazel_rules_go//go/platform:android": [
             "//go/skerr",
+            "//machine/go/common",
             "//machine/go/test_machine_monitor/standalone/crossplatform",
             "//machine/go/test_machine_monitor/standalone/linux",
             "@com_github_shirou_gopsutil//host",
@@ -35,6 +36,7 @@ go_library(
         ],
         "@io_bazel_rules_go//go/platform:linux": [
             "//go/skerr",
+            "//machine/go/common",
             "//machine/go/test_machine_monitor/standalone/crossplatform",
             "//machine/go/test_machine_monitor/standalone/linux",
             "@com_github_shirou_gopsutil//host",

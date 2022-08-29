@@ -2,4 +2,5 @@
   become: true
   apt:
     pkg:
+      - pciutils
       - rsync

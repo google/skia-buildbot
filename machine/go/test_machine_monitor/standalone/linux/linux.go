@@ -4,12 +4,16 @@ package linux
 
 import (
 	"bufio"
+	"context"
 	"io"
+	"regexp"
 	"strings"
 
+	shell "github.com/kballard/go-shellquote"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable"
 )
 
 // VendorAndBrand returns the vendor and brand string of the first encountered CPU in the provided
@@ -76,4 +80,62 @@ func OSVersions(platform, version string) []string {
 		ret = append(ret, crossplatform.VersionsOfAllPrecisions(platform, version)...)
 	}
 	return ret
+}
+
+var idRegex = regexp.MustCompile(`^(.+?) \[([0-9a-f]{4})\]$`)
+
+// GPUs returns a slice of Swarming-style descriptors of all the GPUs on the host, in all
+// precisions: "vendorID", "vendorID-deviceID", and, if detectable,
+// "vendorID-deviceID-driverVersion". nvidiaVersionGetter is a thunk that returns the version of the
+// installed Nvidia driver. intelVersionGetter is similar but for the Intel driver.
+func GPUs(ctx context.Context, lspciOutput string, nvidiaVersionGetter func() string, intelVersionGetter func(context.Context) string) ([]string, error) {
+	var ret []string
+	for _, line := range util.SplitLines(lspciOutput) {
+		fields, err := shell.Split(line)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse lspci output \"%s\"", line)
+		}
+		if len(fields) < 4 {
+			continue
+		}
+
+		groups := idRegex.FindStringSubmatch(fields[1])
+		if groups == nil {
+			continue
+		}
+		deviceType := groups[2]
+		// Look for display class as noted at http://wiki.osdev.org/PCI.
+		if !strings.HasPrefix(deviceType, "03") {
+			continue
+		}
+
+		groups = idRegex.FindStringSubmatch(fields[2])
+		if groups == nil {
+			continue
+		}
+		vendorName := groups[1]
+		vendorID := groups[2]
+
+		groups = idRegex.FindStringSubmatch(fields[3])
+		if groups == nil {
+			continue
+		}
+		deviceID := groups[2]
+
+		version := ""
+		if vendorID == gputable.Nvidia {
+			version = nvidiaVersionGetter()
+		} else if vendorID == gputable.Intel {
+			version = intelVersionGetter(ctx)
+		}
+
+		// Prefer vendor name from table.
+		vendorName = gputable.VendorIDToName(gputable.VendorID(vendorID), vendorName)
+
+		ret = append(ret, vendorID, vendorID+":"+deviceID)
+		if version != "" {
+			ret = append(ret, vendorID+":"+deviceID+"-"+version)
+		}
+	}
+	return ret, nil
 }

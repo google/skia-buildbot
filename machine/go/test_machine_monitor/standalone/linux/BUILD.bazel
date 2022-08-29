@@ -10,6 +10,8 @@ go_library(
         "//go/skerr",
         "//go/util",
         "//machine/go/test_machine_monitor/standalone/crossplatform",
+        "//machine/go/test_machine_monitor/standalone/gputable",
+        "@com_github_kballard_go_shellquote//:go-shellquote",
     ],
 )
 

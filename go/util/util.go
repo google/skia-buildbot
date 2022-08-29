@@ -906,3 +906,12 @@ func FirstNonEmpty(args ...string) string {
 	}
 	return a
 }
+
+// SplitLines returns a slice of the lines of s, split on newline characters. If the input string
+// ends in a single newline, we strip it rather than returning a blank extra line.
+//
+// Note that this currently works only with UNIX-style line breaks, not DOS \r\n ones, though
+// support for those may be added later.
+func SplitLines(s string) []string {
+	return strings.Split(strings.TrimSuffix(s, "\n"), "\n")
+}

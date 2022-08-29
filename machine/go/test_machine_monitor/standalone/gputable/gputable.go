@@ -15,6 +15,9 @@ type vendorNameAndDevices struct {
 	Devices map[string]string
 }
 
+const Nvidia = "10de"
+const Intel = "8086"
+
 // Static lookup tables:
 var vendorMap = map[VendorID]vendorNameAndDevices{
 	"1002": {
@@ -40,7 +43,7 @@ var vendorMap = map[VendorID]vendorNameAndDevices{
 			"2000": "ASPEED Graphics Family",
 		},
 	},
-	"8086": {
+	Intel: {
 		Name: "Intel",
 		Devices: map[string]string{
 			// http://downloadmirror.intel.com/23188/eng/config.xml
@@ -78,7 +81,7 @@ var vendorMap = map[VendorID]vendorNameAndDevices{
 			"0534": "G200eR2",
 		},
 	},
-	"10de": {
+	Nvidia: {
 		Name: "Nvidia",
 		Devices: map[string]string{
 			// ftp://download.nvidia.com/XFree86/Linux-x86_64/352.21/README/README.txt
@@ -114,4 +117,14 @@ func init() {
 func VendorNameToID(name string) VendorID {
 	// macOS 10.13 doesn't provide the vendor ID any more, so support reverse lookups on vendor name.
 	return util_generics.Get(vendorNamesToIDs, strings.ToLower(name), "")
+}
+
+// VendorIDToName returns the vendor name corresponding to the given ID, falling back to
+// fallbackName if the ID is not found.
+func VendorIDToName(id VendorID, fallbackName string) string {
+	vendor, found := vendorMap[id]
+	if found {
+		return vendor.Name
+	}
+	return fallbackName
 }

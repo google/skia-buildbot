@@ -809,3 +809,8 @@ func TestFirstNonEmpty(t *testing.T) {
 	assert.Equal(t, "a", FirstNonEmpty("a", "b"))
 	assert.Equal(t, "c", FirstNonEmpty("", "", "c"))
 }
+
+func TestSplitLines_StripsTrailingNewline(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, []string{"this", "that"}, SplitLines("this\nthat\n"))
+}
