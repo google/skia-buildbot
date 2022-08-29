@@ -2,5 +2,5 @@
   become: true
   apt:
     pkg:
-      - pciutils
+      - pciutils # for the lspci util, to probe GPUs
       - rsync
