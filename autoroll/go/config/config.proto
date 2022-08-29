@@ -212,6 +212,8 @@ message KubernetesConfig {
     string disk = 6;
     // image used for the autoroll backend container.
     string image = 8;
+    // extra_flags to pass to the autoroll-be binary.
+    repeated string extra_flags = 9;
 }
 
 // AndroidRepoManagerConfig provides configuration for a roller which rolls into

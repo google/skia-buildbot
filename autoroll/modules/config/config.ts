@@ -194,6 +194,7 @@ export interface KubernetesConfig {
   readinessPeriodSeconds: number;
   disk: string;
   image: string;
+  extraFlags?: string[];
 }
 
 interface KubernetesConfigJSON {
@@ -204,6 +205,7 @@ interface KubernetesConfigJSON {
   readiness_period_seconds?: number;
   disk?: string;
   image?: string;
+  extra_flags?: string[];
 }
 
 export interface AndroidRepoManagerConfig_ProjectMetadataFileConfig {

@@ -75,7 +75,8 @@ spec:
             - "--prom_port=:20000"
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
-            {{if not .oldCluster}}- "--namespaced-email-service"{{end}}
+            {{range .kubernetes.extraFlags}}- "{{.}}"
+            {{end}}{{if not .oldCluster}}- "--namespaced-email-service"{{end}}
           ports:
             - containerPort: 8000
             - containerPort: 20000
