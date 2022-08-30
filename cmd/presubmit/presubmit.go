@@ -43,9 +43,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if files := findUncommittedChanges(ctx); len(files) > 0 {
-		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n", len(files))
+	filesWithDiffs, untrackedFiles := findUncommittedChanges(ctx)
+	if len(filesWithDiffs) > 0 {
+		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n", len(filesWithDiffs))
 		os.Exit(1)
+	}
+	for _, uf := range untrackedFiles {
+		if filepath.Base(uf) == "BUILD.bazel" {
+			logf(ctx, "Found uncommitted BUILD.bazel files. Please delete these or check them in. Aborting.\n")
+			os.Exit(1)
+		}
 	}
 
 	branchBaseCommit := findBranchBase(ctx, *upstream)
@@ -83,6 +90,9 @@ func main() {
 	if !runBuildifier(ctx, buildifierPath, changedFiles) {
 		os.Exit(1)
 	}
+	if !runGazelle(ctx, changedFiles, deletedFiles) {
+		os.Exit(1)
+	}
 
 	os.Exit(0)
 }
@@ -96,7 +106,9 @@ bazel run //cmd/presubmit --run_under="cd $PWD &&"
 	refSeperator = "$|" // Some string we hope that no users start their branch names with
 )
 
-func findUncommittedChanges(ctx context.Context) []string {
+// findUncommittedChanges returns a list of files that git says have changed (compared to HEAD)
+// as well as a list of untracked, unignored files.
+func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untrackedFiles []string) {
 	// diff-index is one of the git "plumbing" commands and the output should be relatively stable.
 	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
 	cmd := exec.CommandContext(ctx, "git", "diff-index", "HEAD")
@@ -106,7 +118,18 @@ func findUncommittedChanges(ctx context.Context) []string {
 		logf(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
-	return extractFilesWithDiffs(string(output))
+	filesWithDiffs = extractFilesWithDiffs(string(output))
+
+	// https://stackoverflow.com/a/2659808/1447621
+	// This will list all untracked, unignored files on their own lines
+	cmd = exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output)+"\n")
+		logf(ctx, err.Error()+"\n")
+		panic(gitErrorMessage)
+	}
+	return filesWithDiffs, strings.Split(string(output), "\n")
 }
 
 var fileDiff = regexp.MustCompile(`^:.+\t(?P<file>[^\t]+)$`)
@@ -280,8 +303,8 @@ func (c lineOfCode) String() string {
 	return fmt.Sprintf("% 4d:%s", c.num, c.contents)
 }
 
-// extractChangedAndDeletedFiles looks through the provided `git diff` output and finds the files that were
-// added or modified, as well as the new version of any lines touched. It also returns
+// extractChangedAndDeletedFiles looks through the provided `git diff` output and finds the files
+// that were added or modified, as well as the new version of any lines touched. It also returns
 // a slice of deleted files.
 func extractChangedAndDeletedFiles(diffOutput string) ([]fileWithChanges, []string) {
 	var changed []fileWithChanges
@@ -549,6 +572,10 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 	return ok
 }
 
+// runBuildifier uses a provided buildifier path to reformat our BUILD.bazel and .bzl files as
+// well as check them for linting errors. If buildifier has no output and a non-zero exit code,
+// that is interpreted as "all good" and we return true. If there are issues, we print the
+// buildifier output (which has files and line numbers) and return false.
 func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges) bool {
 	args := []string{"-lint=warn", "-mode=fix"}
 	for _, f := range files {
@@ -567,9 +594,86 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 		return false
 	}
 
-	if xf := findUncommittedChanges(ctx); len(xf) > 0 {
+	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
 		logf(ctx, "Buildifier caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
+	}
+	return true
+}
+
+// runGazelle uses gazelle (and our custom gazelle plugin) to regenerate BUILD.bazel files for our
+// go files as well as our Typescript and SCSS rules. Gazelle is idempotent, so if a user has
+// already generated BUILD.bazel files, there should be no diffs. If the user forgot to do so,
+// there could be diffs or new files added. This function returns false if that is the case or true
+// if Gazelle made no modifications.
+func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFiles []string) bool {
+	// If these change, we should regenerate everything (slower, but more sound)
+	globalFilesToCheck := []string{"WORKSPACE", "WORKSPACE.bazel", "go.mod", "go.sum"}
+	globalExtensionsToCheck := []string{".bzl"}
+	// If these change, then we should only need to update their containing folders.
+	localFilesToCheck := []string{"BUILD.bazel"}
+	localExtensionsToCheck := []string{".go", ".ts", ".scss"}
+	var foldersToCheck []string
+	regenEverything := false
+	modifiedFileNames := make([]string, 0, len(changedFiles)+len(deletedFiles))
+	for _, f := range changedFiles {
+		modifiedFileNames = append(modifiedFileNames, f.fileName)
+	}
+	modifiedFileNames = append(modifiedFileNames, deletedFiles...)
+
+	for _, f := range modifiedFileNames {
+		if contains(globalFilesToCheck, filepath.Base(f)) || contains(globalExtensionsToCheck, filepath.Ext(f)) {
+			regenEverything = true
+			break
+		}
+		if contains(localFilesToCheck, filepath.Base(f)) || contains(localExtensionsToCheck, filepath.Ext(f)) {
+			folder := filepath.Dir(f)
+			if !contains(foldersToCheck, folder) {
+				foldersToCheck = append(foldersToCheck, folder)
+			}
+		}
+	}
+	// No need to run gazelle
+	if !regenEverything && len(foldersToCheck) == 0 {
+		return true
+	}
+	if regenEverything {
+		cmd := exec.CommandContext(ctx, "bazelisk", "run", "//:gazelle", "update-repos",
+			"-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			logf(ctx, string(output))
+			logf(ctx, "Could not regenerate go_repositories.bzl!\n")
+			return false
+		}
+	}
+
+	args := []string{"run", "//:gazelle", "--", "update"}
+	if regenEverything {
+		// Reminder: we have changed directory into the repo root
+		args = append(args, "./")
+	} else {
+		args = append(args, foldersToCheck...)
+	}
+
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "Could not regenerate BUILD.bazel changedFiles using gazelle!\n")
+		return false
+	}
+
+	newDiffs, untrackedFiles := findUncommittedChanges(ctx)
+	if len(newDiffs) > 0 {
+		logf(ctx, "Gazelle caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	for _, uf := range untrackedFiles {
+		if filepath.Base(uf) == "BUILD.bazel" {
+			logf(ctx, "Gazelle created new BUILD.bazel files. Please inspect these and check them in.\n")
+			return false
+		}
 	}
 	return true
 }
