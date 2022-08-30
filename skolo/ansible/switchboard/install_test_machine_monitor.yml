@@ -3,7 +3,7 @@
 # To push a test/debug version of test_machine_monitor to a machine you can
 # provide a value for the test_machine_monitor_version via the
 # --extra-vars command line parameter. See README.md for an example.
-- hosts: switchboard_rpis,gapid_test_machines,all_linux,all_mac,all_win
+- hosts: switchboard_rpis,all_linux,all_mac,all_win
   user: chrome-bot
   gather_facts: true
   vars:

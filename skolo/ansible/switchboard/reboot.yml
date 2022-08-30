@@ -3,7 +3,7 @@
 # Warning: This playbook reboots *all* machines by default. Recommended invocation:
 #
 #     ansible-playbook switchboard/reboot.yml --limit <hosts>
-- hosts: all_linux, all_mac, all_win, switchboard_rpis, gapid_test_machines, eskia_test_machines
+- hosts: all_linux, all_mac, all_win, switchboard_rpis, eskia_test_machines
   user: chrome-bot
   gather_facts: true
 
