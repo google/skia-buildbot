@@ -47,14 +47,7 @@ echo
 cat > common_instance_config.json5 <<EOF
 {{
   local: true,
-  code_review_systems: [
-    {{
-      id: "gerrit",
-      flavor: "gerrit",
-      gerrit_url: "https://skia-review.googlesource.com",
-      url_template: "https://skia-review.googlesource.com/%s"
-    }},
-  ],
+  code_review_systems: {code_review_systems},
   gcs_bucket: "{gcs_bucket}",
   git_repo_branch: "main",
   git_repo_url: "{git_repo_url}",
@@ -100,6 +93,7 @@ def gold_launcher(
         default_corpus,
         title,
         gcs_bucket,
+        code_review_systems,
         git_repo_url,
         site_url,
         sql_database,
@@ -117,6 +111,8 @@ def gold_launcher(
         default_corpus: Default corpus, e.g. "gm".
         title: Title shown in the Gold UI, e.g. "Skia Gold".
         gcs_bucket: GCS bucket where digests are found, e.g. "skia-infra-gm".
+        code_review_systems: A list dictionaries with keys "id", "flavor", "gerrit_url" and
+            "url_template".
         git_repo_url: Git repository URL, e.g. "https://skia.googlesource.com/skia.git".
         site_url: URL of the Gold instance, e.g. "https://gold.skia.org".
         sql_database: Name of the production CockroachDB database, e.g. "skia".
@@ -133,6 +129,7 @@ def gold_launcher(
         materialized_view_corpora =
             materialized_view_corpora if materialized_view_corpora else "null",
         gcs_bucket = gcs_bucket,
+        code_review_systems = json.encode(code_review_systems),
         git_repo_url = git_repo_url,
         site_url = site_url,
         sql_database = sql_database,

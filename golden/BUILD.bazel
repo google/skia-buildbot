@@ -109,6 +109,14 @@ skia_app_container(
 # Usage: bazel run //golden:skia_local -- path/to/client_secret.json
 gold_launcher(
     name = "skia_local",
+    code_review_systems = [
+        {
+            "id": "gerrit",
+            "flavor": "gerrit",
+            "gerrit_url": "https://skia-review.googlesource.com",
+            "url_template": "https://skia-review.googlesource.com/%s",
+        },
+    ],
     default_corpus = "gm",
     gcs_bucket = "skia-infra-gm",
     git_repo_url = "https://skia.googlesource.com/skia.git",
@@ -134,6 +142,14 @@ gold_launcher(
 # Usage: bazel run //golden:skia_infra_local -- path/to/client_secret.json
 gold_launcher(
     name = "skia_infra_local",
+    code_review_systems = [
+        {
+            "id": "gerrit",
+            "flavor": "gerrit",
+            "gerrit_url": "https://skia-review.googlesource.com",
+            "url_template": "https://skia-review.googlesource.com/%s",
+        },
+    ],
     default_corpus = "infra",
     gcs_bucket = "skia-gold-skia-infra",
     git_repo_url = "https://skia.googlesource.com/buildbot.git",
@@ -142,4 +158,34 @@ gold_launcher(
     sql_database = "skiainfra",
     title = "Skia Infra Gold",
     window_size = 200,
+)
+
+# Runs a local Gold instance that mirrors http://chrome-gold.skia.org. It might have write access
+# to the production CockroachDB database, so please exercise caution.
+#
+# Usage: bazel run //golden:chrome_local -- path/to/client_secret.json
+gold_launcher(
+    name = "chrome_local",
+    code_review_systems = [
+        {
+            "id": "gerrit",
+            "flavor": "gerrit",
+            "gerrit_url": "https://chromium-review.googlesource.com",
+            "url_template": "https://chromium-review.googlesource.com/%s",
+        },
+        {
+            "id": "gerrit-internal",
+            "flavor": "gerrit",
+            "gerrit_url": "https://chrome-internal-review.googlesource.com",
+            "url_template": "https://chrome-internal-review.googlesource.com/%s",
+        },
+    ],
+    default_corpus = "android-render-tests",
+    gcs_bucket = "skia-gold-chrome",
+    git_repo_url = "https://chromium.googlesource.com/chromium/src",
+    known_hashes_gcs_path = "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
+    site_url = "https://chrome-gold.skia.org",
+    sql_database = "chrome",
+    title = "Chrome Gold",
+    window_size = 1024,
 )
