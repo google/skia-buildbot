@@ -26,8 +26,8 @@ import (
 //go:generate bazelisk run //:protoc -- --go_opt=paths=source_relative --twirp_out=. --go_out=. ./rpc.proto
 //go:generate mv ./go.skia.org/infra/task_scheduler/go/rpc/rpc.twirp.go ./rpc.twirp.go
 //go:generate rm -rf ./go.skia.org
-//go:generate goimports -w rpc.pb.go
-//go:generate goimports -w rpc.twirp.go
+//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w rpc.pb.go
+//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w rpc.twirp.go
 //go:generate bazelisk run //:protoc -- --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.

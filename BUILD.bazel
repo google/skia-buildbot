@@ -198,11 +198,22 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+#############
+# goimports #
+#############
+
+# Sample usage: "bazel run //:goimports "--run_under=cd $PWD &&" -- -w myfile.go".
+alias(
+    name = "goimports",
+    actual = "@org_golang_x_tools//cmd/goimports",
+    visibility = ["//visibility:public"],
+)
+
 ############
 # Errcheck #
 ############
 
-# Sample usage: "bazel run //:errcheck --run_under="cd $PWD &&" -- go.skia.org/infra/...".
+# Sample usage: "bazel run //:errcheck "--run_under=cd $PWD &&" -- go.skia.org/infra/...".
 #
 # Note: The "errcheck go.skia.org/infra/..." command fails when executed outside of the
 # repository's root directory. The "bazel run" command executes binaries with their working

@@ -20,8 +20,8 @@ import (
 //go:generate bazelisk run //:protoc -- --go_opt=paths=source_relative --twirp_out=. --go_out=. status.proto
 //go:generate mv ./go.skia.org/infra/status/go/rpc/status.twirp.go ./status.twirp.go
 //go:generate rm -rf ./go.skia.org
-//go:generate goimports -w status.pb.go
-//go:generate goimports -w status.twirp.go
+//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w status.pb.go
+//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w status.twirp.go
 //go:generate bazelisk run //:protoc -- --twirp_typescript_out=../../modules/rpc status.proto
 
 type statusServerImpl struct {
