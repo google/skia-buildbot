@@ -1,7 +1,7 @@
 workspace(
     name = "skia_infra",
 
-    # Must be kept in sync with the npm_install rules defined below invoked below.
+    # Must be kept in sync with the npm_install rules invoked below.
     managed_directories = {
         "@npm": ["node_modules"],
     },
@@ -478,9 +478,9 @@ load("//bazel/external:google_chrome.bzl", "google_chrome")
 
 google_chrome(name = "google_chrome")
 
-#################################################################################
-# Buildifier (prebuilt)                                                         #
-#################################################################################
+##########################
+# Buildifier (prebuilt). #
+##########################
 
 http_file(
     name = "buildifier_linux_amd64",
@@ -515,5 +515,52 @@ http_file(
         ext = "",
         sha256 = "c9378d9f4293fc38ec54a08fbc74e7a9d28914dae6891334401e59f38f6e65dc",
         url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-darwin-amd64",
+    ),
+)
+
+###########
+# protoc. #
+###########
+
+# The following archives were taken from
+# https://github.com/protocolbuffers/protobuf/releases/tag/v3.3.0. In order to prevent diffs, the
+# version should match that of the protoc CIPD package, see
+# https://skia.googlesource.com/skia/+/e7cdb8e4e38f9b6af38ad65c6770ada3d42656d7/infra/bots/assets/protoc/create.py#16.
+#
+# Note that protoc v3.3.0 precedes M1 Macs and thus there is no arm64 binary. We can fix this by
+# updating protoc to a more recent version.
+
+PROTOC_BUILD_FILE_CONTENT = """
+exports_files(
+    glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        include = ["**/*"],
+    ),
+    visibility = ["//visibility:public"],
+)
+"""
+
+http_archive(
+    name = "protoc_linux_x64",
+    build_file_content = PROTOC_BUILD_FILE_CONTENT,
+    sha256 = "feb112bbc11ea4e2f7ef89a359b5e1c04428ba6cfa5ee628c410eccbfe0b64c3",
+    urls = gcs_mirror_url(
+        sha256 = "feb112bbc11ea4e2f7ef89a359b5e1c04428ba6cfa5ee628c410eccbfe0b64c3",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip",
+    ),
+)
+
+http_archive(
+    name = "protoc_mac_x64",
+    build_file_content = PROTOC_BUILD_FILE_CONTENT,
+    sha256 = "d752ba0ea67239e327a48b2f23da0e673928a9ff06ee530319fc62200c0aff89",
+    urls = gcs_mirror_url(
+        sha256 = "d752ba0ea67239e327a48b2f23da0e673928a9ff06ee530319fc62200c0aff89",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.3.0/protoc-3.3.0-osx-x86_64.zip",
     ),
 )

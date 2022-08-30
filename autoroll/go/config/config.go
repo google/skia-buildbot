@@ -1,10 +1,10 @@
 package config
 
 // Generate the go code from the protocol buffer definitions.
-//go:generate protoc --go_opt=paths=source_relative --go_out=. ./config.proto
+//go:generate bazelisk run //:protoc -- --go_opt=paths=source_relative --go_out=. ./config.proto
 //go:generate rm -rf ./go.skia.org
 //go:generate goimports -w config.pb.go
-//go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
+//go:generate bazelisk run //:protoc -- --twirp_typescript_out=../../modules/config ./config.proto
 
 import (
 	"fmt"

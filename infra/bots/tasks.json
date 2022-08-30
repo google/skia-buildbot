@@ -810,11 +810,6 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:16"
-        },
-        {
-          "name": "skia/bots/protoc",
-          "path": "protoc",
-          "version": "version:0"
         }
       ],
       "command": [
@@ -896,11 +891,6 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:16"
-        },
-        {
-          "name": "skia/bots/protoc",
-          "path": "protoc",
-          "version": "version:0"
         }
       ],
       "command": [

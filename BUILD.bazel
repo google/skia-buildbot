@@ -225,3 +225,14 @@ alias(
     actual = "@com_github_vektra_mockery_v2//:v2",
     visibility = ["//visibility:public"],
 )
+
+##########
+# protoc #
+##########
+
+# Sample usage: "bazel run //:protoc -- --twirp_out=. --go_out=. myproto.proto"
+alias(
+    name = "protoc",
+    actual = "//bazel/tools/protoc",
+    visibility = ["//visibility:public"],
+)

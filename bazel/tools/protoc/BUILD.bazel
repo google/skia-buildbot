@@ -1,0 +1,77 @@
+# Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
+# https://bazel.build/reference/be/make-variables#predefined_label_variables.
+_SCRIPT_TEMPLATE = """
+# Find the directories where each of the four binaries are located.
+PROTOC_PATH=$$(realpath $$(dirname $(rootpath {protoc_label})))
+PROTOC_GEN_GO_PATH=$$(realpath $$(dirname \\
+    $(rootpath @org_golang_google_protobuf//cmd/protoc-gen-go)))
+PROTOC_GEN_TWIRP_PATH=$$(realpath $$(dirname \\
+    $(rootpath @com_github_twitchtv_twirp//protoc-gen-twirp)))
+PROTOC_GEN_TWIRP_TYPESCRIPT_PATH=$$(realpath $$(dirname \\
+    $(rootpath @com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript)))
+
+# Add binaries to PATH.
+export PATH=$$PROTOC_PATH:$$PATH
+export PATH=$$PROTOC_GEN_GO_PATH:$$PATH
+export PATH=$$PROTOC_GEN_TWIRP_PATH:$$PATH
+export PATH=$$PROTOC_GEN_TWIRP_TYPESCRIPT_PATH:$$PATH
+
+# Change into the directory where Bazel was invoked.
+cd $$BUILD_WORKING_DIRECTORY
+
+protoc $$@
+"""
+
+_PROTOC_LABEL_TEMPLATE = "@protoc_%s//:bin/protoc"
+
+[
+    genrule(
+        name = "gen_script_" + constraint,
+        outs = ["protoc_%s.sh" % constraint],
+        cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+            protoc_label = _PROTOC_LABEL_TEMPLATE % constraint,
+        ),
+        exec_tools = [
+            _PROTOC_LABEL_TEMPLATE % constraint,
+            "@org_golang_google_protobuf//cmd/protoc-gen-go",
+            "@com_github_twitchtv_twirp//protoc-gen-twirp",
+            "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
+        ],
+    )
+    for constraint in [
+        "linux_x64",
+        "mac_x64",
+    ]
+]
+
+# Wrapper script around the "protoc" binary.
+#
+# The "protoc" binary requires plugins (that is, binaries named "protoc-gen-<TARGET LANGUAGE>") to
+# be in PATH. This script adds all protoc plugin binaries used in this repository to PATH, then
+# forwards all command-line arguments to the "protoc" binary.
+#
+# Here is the list of protoc plugin binaries used in this repository:
+#
+#  - protoc-gen-go
+#  - protoc-gen-twirp
+#  - protoc-gen-twirp_typescript
+#
+# Reference: https://bazel.build/reference/be/shell#sh_binary.
+sh_binary(
+    name = "protoc",
+    srcs = select({
+        "//bazel/constraints:linux_x64": ["protoc_linux_x64.sh"],
+        "//bazel/constraints:mac_x64": ["protoc_mac_x64.sh"],
+    }),
+    data = select({
+        "//bazel/constraints:linux_x64": ["@protoc_linux_x64//:all_files"],
+        "//bazel/constraints:mac_x64": ["@protoc_mac_x64//:all_files"],
+    }) +
+    # These Go binaries will be compiled for the correct execution platform.
+    [
+        "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
+        "@com_github_twitchtv_twirp//protoc-gen-twirp",
+        "@org_golang_google_protobuf//cmd/protoc-gen-go",
+    ],
+    visibility = ["//visibility:public"],
+)

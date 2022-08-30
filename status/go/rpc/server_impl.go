@@ -17,12 +17,12 @@ import (
 )
 
 // Generate Go structs and Typescript classes from protobuf definitions.
-//go:generate protoc --go_opt=paths=source_relative --twirp_out=. --go_out=. status.proto
+//go:generate bazelisk run //:protoc -- --go_opt=paths=source_relative --twirp_out=. --go_out=. status.proto
 //go:generate mv ./go.skia.org/infra/status/go/rpc/status.twirp.go ./status.twirp.go
 //go:generate rm -rf ./go.skia.org
 //go:generate goimports -w status.pb.go
 //go:generate goimports -w status.twirp.go
-//go:generate protoc --twirp_typescript_out=../../modules/rpc status.proto
+//go:generate bazelisk run //:protoc -- --twirp_typescript_out=../../modules/rpc status.proto
 
 type statusServerImpl struct {
 	iCache                incremental.IncrementalCache
