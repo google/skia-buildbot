@@ -75,10 +75,11 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		args := append(gclientCmd, cmd...)
 		sklog.Infof("Running: %s %s", vpythonBinary, strings.Join(args, " "))
 		_, err := exec.RunCommand(ctx, &exec.Command{
-			Dir:  workdir,
-			Env:  depotToolsEnv,
-			Name: vpythonBinary,
-			Args: args,
+			Dir:        workdir,
+			Env:        depotToolsEnv,
+			Name:       vpythonBinary,
+			Args:       args,
+			InheritEnv: true,
 		})
 		return skerr.Wrap(err)
 	}
