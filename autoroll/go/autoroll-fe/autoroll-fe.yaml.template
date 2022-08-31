@@ -34,8 +34,6 @@ spec:
         owner-primary: borenet
         owner-secondary: rmistry
       annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       automountServiceAccountToken: false

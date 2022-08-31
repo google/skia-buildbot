@@ -35,9 +35,6 @@ spec:
       labels:
         app: skiaperf
         appgroup: perf
-      annotations:
-        prometheus.io.scrape: 'true'
-        prometheus.io.port: '20000'
     spec:
       automountServiceAccountToken: false
       securityContext:

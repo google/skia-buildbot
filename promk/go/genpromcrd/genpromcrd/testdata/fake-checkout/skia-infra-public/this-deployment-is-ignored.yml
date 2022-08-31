@@ -16,6 +16,3 @@ spec:
         # Since there is no matching /monitoring/appgroup/an-unknown-appgroup.yml file, then
         # no scraping or alerting can be set up for this deployment.
         appgroup: an-unknown-appgroup
-      annotations:
-        prometheus.io.scrape: 'true'
-        prometheus.io.port: '20000'

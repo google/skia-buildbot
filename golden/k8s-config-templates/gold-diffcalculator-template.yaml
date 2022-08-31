@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: gold-{{.INSTANCE_ID}}-diffcalculator
 spec:
-  replicas: {{.K8S_REPLICAS}}
+  replicas: { { .K8S_REPLICAS } }
   selector:
     matchLabels:
       app: gold-{{.INSTANCE_ID}}-diffcalculator
@@ -29,10 +29,8 @@ spec:
         app: gold-{{.INSTANCE_ID}}-diffcalculator
         appgroup: gold
         goldgroup: '{{.INSTANCE_ID}}'
-        date: "{{.NOW}}" # Forces a re-deploy even if just the config file changes.
+        date: '{{.NOW}}' # Forces a re-deploy even if just the config file changes.
       annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     spec:
       affinity:
@@ -42,22 +40,22 @@ spec:
               # The following label/key will be available in 1.17
               # "node.kubernetes.io/instance-type": "n1-standard-16"
               - matchExpressions:
-                  - key: "{{.K8S_NODE_SELECTOR_KEY}}"
+                  - key: '{{.K8S_NODE_SELECTOR_KEY}}'
                     operator: In
                     values: # Either of these two values are fine.
-                      - "{{.K8S_NODE_SELECTOR_VALUE1}}"
-                      - "{{.K8S_NODE_SELECTOR_VALUE2}}"
+                      - '{{.K8S_NODE_SELECTOR_VALUE1}}'
+                      - '{{.K8S_NODE_SELECTOR_VALUE2}}'
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
-        fsGroup: 2000   # aka skia
+        fsGroup: 2000 # aka skia
       serviceAccountName: gold
       containers:
         - name: gold-{{.INSTANCE_ID}}-diffcalculator
-          image: {{.DIFFCALCULATOR_IMAGE}}
+          image: { { .DIFFCALCULATOR_IMAGE } }
           args:
-            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
-            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-diffcalculator.json5"
+            - '--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5'
+            - '--config=/etc/gold-config/{{.INSTANCE_ID}}-diffcalculator.json5'
           ports:
             - containerPort: 20000
               name: prom
@@ -71,8 +69,8 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "4Gi" # A rough estimate based on real-world needs.
-              cpu: "4"       # 4 diff goroutines in diff/worker.go
+              memory: '4Gi' # A rough estimate based on real-world needs.
+              cpu: '4' # 4 diff goroutines in diff/worker.go
               ephemeral-storage: '32M'
           readinessProbe:
             httpGet:

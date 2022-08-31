@@ -31,8 +31,6 @@ spec:
         goldgroup: '{{.INSTANCE_ID}}'
         date: "{{.NOW}}" # Forces a re-deploy even if just the config file changes.
       annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     spec:
       automountServiceAccountToken: false

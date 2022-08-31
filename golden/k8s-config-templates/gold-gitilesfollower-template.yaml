@@ -29,23 +29,21 @@ spec:
         app: gold-{{.INSTANCE_ID}}-gitilesfollower
         appgroup: gold
         goldgroup: '{{.INSTANCE_ID}}'
-        date: "{{.NOW}}" # Forces a re-deploy even if just the config file changes.
+        date: '{{.NOW}}' # Forces a re-deploy even if just the config file changes.
       annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
-        fsGroup: 2000   # aka skia
+        fsGroup: 2000 # aka skia
       serviceAccountName: gold-gitilesfollower
       containers:
         - name: gold-{{.INSTANCE_ID}}-gitilesfollower
-          image: {{.GITILESFOLLOWER_IMAGE}}
+          image: { { .GITILESFOLLOWER_IMAGE } }
           args:
-            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
-            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-gitilesfollower.json5"
+            - '--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5'
+            - '--config=/etc/gold-config/{{.INSTANCE_ID}}-gitilesfollower.json5'
           ports:
             - containerPort: 20000
               name: prom
@@ -59,8 +57,8 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "100Mi"
-              cpu: "10m"
+              memory: '100Mi'
+              cpu: '10m'
               ephemeral-storage: '32M'
           readinessProbe:
             httpGet:

@@ -43,9 +43,6 @@ spec:
     metadata:
       labels:
         app: datahopper
-      annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
     spec:
       securityContext:
         runAsUser: 2000 # aka skia
@@ -91,9 +88,6 @@ spec:
         appgroup: autoroll
         owner-primary: borenet
         owner-secondary: rmistry
-      annotations:
-        prometheus.io.scrape: "true"
-        prometheus.io.port: "20000"
     spec:
       automountServiceAccountToken: false
       securityContext:

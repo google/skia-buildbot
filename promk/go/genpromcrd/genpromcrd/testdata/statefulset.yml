@@ -17,9 +17,6 @@ spec:
       labels:
         app: prometheus
         appgroup: prometheus
-      annotations:
-        prometheus.io.scrape: 'true'
-        prometheus.io.port: '9090'
     spec:
       securityContext:
         runAsUser: 2000 # aka skia
