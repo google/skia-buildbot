@@ -99,16 +99,3 @@ skia_app_container(
     },
     repository = "skia-public/autoroll-config-converter",
 )
-
-skia_app_container(
-    name = "autoroll_meta_config_generator_container",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//autoroll/go/autoroll-meta-config-generator:autoroll-meta-config-generator",
-                "0755",
-            ],
-        ],
-    },
-    repository = "skia-public/autoroll-meta-config-generator",
-)

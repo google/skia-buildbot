@@ -120,11 +120,3 @@ run-local-fe-instance: autoroll-fe setup-internal-config-repo
 	# Run "bazel build //autoroll/..." after making any frontend changes
 	# to pick up the change without restarting the golang server.
 	../_bazel_bin/autoroll/go/autoroll-fe/autoroll-fe_/autoroll-fe --local --firestore_instance=staging --config_repo=https://skia.googlesource.com/skia-autoroll-internal-config.git --resources_dir ../_bazel_bin/autoroll/pages/development --config_repo=https://skia.googlesource.com/skia-autoroll-internal-config.git --config_gerrit_project=skia-autoroll-internal-config
-
-.PHONY: build-meta-config-generator
-release-meta-config-generator:
-	$(BAZEL) run //autoroll:push_autoroll_meta_config_generator_container
-
-.PHONY: push-meta-config-generator
-push-meta-config-generator: release-meta-config-generator
-	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout autoroll-meta-config-generator

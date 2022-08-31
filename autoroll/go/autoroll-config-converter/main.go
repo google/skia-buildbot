@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/base64"
@@ -12,12 +13,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/go/chrome_branch"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -42,6 +48,15 @@ var (
 		"skia-corp",
 		"skia-public",
 	}
+
+	// protoMarshalOptions are used when writing configs in text proto format.
+	protoMarshalOptions = prototext.MarshalOptions{
+		Multiline: true,
+	}
+	// funcMap is used for executing templates.
+	funcMap = template.FuncMap{
+		"map": makeMap,
+	}
 )
 
 func main() {
@@ -61,6 +76,18 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	vars := reg.Vars()
+
 	fsys := os.DirFS(*src)
 	if err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -70,8 +97,30 @@ func main() {
 			return nil
 		}
 		if strings.HasSuffix(d.Name(), ".cfg") {
-			if err := convertConfig(ctx, path, *src, *dst); err != nil {
+			srcPath := filepath.Join(*src, path)
+			sklog.Infof("Converting %s", srcPath)
+			cfgBytes, err := ioutil.ReadFile(srcPath)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to read roller config %s", srcPath)
+			}
+
+			if err := convertConfig(ctx, cfgBytes, path, *dst); err != nil {
 				return skerr.Wrapf(err, "failed to convert config %s", path)
+			}
+		} else if strings.HasSuffix(d.Name(), ".tmpl") {
+			tmplPath := filepath.Join(*src, path)
+			tmplContents, err := ioutil.ReadFile(tmplPath)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to read template file %s", tmplPath)
+			}
+			generatedConfigs, err := processTemplate(ctx, path, string(tmplContents), vars)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to process template file %s", path)
+			}
+			for path, cfgBytes := range generatedConfigs {
+				if err := convertConfig(ctx, cfgBytes, path, *dst); err != nil {
+					return skerr.Wrapf(err, "failed to convert config %s", path)
+				}
 			}
 		}
 		return nil
@@ -80,17 +129,11 @@ func main() {
 	}
 }
 
-func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
-	// Read the config file.
-	srcPath := filepath.Join(srcDir, relPath)
-	sklog.Infof("Converting %s", srcPath)
-	cfgBytes, err := ioutil.ReadFile(srcPath)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to read roller config %s", srcPath)
-	}
+func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string) error {
+	// Decode the config file.
 	var cfg config.Config
 	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
-		sklog.Fatalf("failed to parse roller config %s: %s", srcPath, err)
+		return skerr.Wrapf(err, "failed to parse roller config")
 	}
 	// Google3 uses a different type of backend.
 	if cfg.ParentDisplayName == GOOGLE3_PARENT_NAME {
@@ -132,17 +175,7 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	}
 	cfgFileBase64 := base64.StdEncoding.EncodeToString(b)
 	cfgMap["configBase64"] = cfgFileBase64
-
-	// Temporary measure to help transition over to the new cluster(s).
-	isOldCluster := false
-	splitRelPath := strings.Split(relPath, string(filepath.Separator))
-	for _, oldCluster := range oldClusters {
-		if util.In(oldCluster, splitRelPath) {
-			isOldCluster = true
-			break
-		}
-	}
-	cfgMap["oldCluster"] = isOldCluster
+	cfgMap["oldCluster"] = false
 
 	// Run kube-conf-gen to generate the backend config file.
 	relDir, baseName := filepath.Split(relPath)
@@ -155,14 +188,66 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	// Run kube-conf-gen to generate the namespace config file. Note that we'll
 	// overwrite this file for every roller in the namespace, but that shouldn't
 	// be a problem, since the generated files will be the same.
-	if !isOldCluster {
-		namespace := strings.Split(cfg.ServiceAccount, "@")[0]
-		dstNsPath := filepath.Join(dstDir, relDir, fmt.Sprintf("%s-ns.yaml", namespace))
-		if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
-			return skerr.Wrapf(err, "failed to write output")
-		}
-		sklog.Infof("Wrote %s", dstNsPath)
+	namespace := strings.Split(cfg.ServiceAccount, "@")[0]
+	dstNsPath := filepath.Join(dstDir, relDir, fmt.Sprintf("%s-ns.yaml", namespace))
+	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
+		return skerr.Wrapf(err, "failed to write output")
 	}
+	sklog.Infof("Wrote %s", dstNsPath)
 
 	return nil
+}
+
+// processTemplate converts a single template into at least one config.
+func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *config_vars.Vars) (map[string][]byte, error) {
+	// Read and execute the template.
+	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(funcMap).Parse(tmplContents)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to parse template file %q", srcPath)
+	}
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, vars); err != nil {
+		return nil, skerr.Wrapf(err, "failed to execute template file %q", srcPath)
+	}
+
+	// Parse the template as a list of Configs.
+	var configs config.Configs
+	if err := prototext.Unmarshal(buf.Bytes(), &configs); err != nil {
+		return nil, skerr.Wrapf(err, "failed to parse config proto from template file %q", srcPath)
+	}
+	sklog.Infof("  Found %d configs in %s", len(configs.Config), srcPath)
+
+	// Split off the template file name and the "templates" directory name.
+	srcPathSplit := []string{}
+	for _, elem := range strings.Split(srcPath, string(filepath.Separator)) {
+		if !strings.HasSuffix(elem, ".tmpl") && elem != "templates" {
+			srcPathSplit = append(srcPathSplit, elem)
+		}
+	}
+	srcRelPath := filepath.Join(srcPathSplit...)
+
+	changes := make(map[string][]byte, len(configs.Config))
+	for _, cfg := range configs.Config {
+		encBytes, err := protoMarshalOptions.Marshal(cfg)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to encode config from %q", srcPath)
+		}
+		changes[filepath.Join(srcRelPath, cfg.RollerName+".cfg")] = encBytes
+	}
+	return changes, nil
+}
+
+func makeMap(elems ...interface{}) (map[string]interface{}, error) {
+	if len(elems)%2 != 0 {
+		return nil, skerr.Fmt("Requires an even number of elements, not %d", len(elems))
+	}
+	rv := make(map[string]interface{}, len(elems)/2)
+	for i := 0; i < len(elems); i += 2 {
+		key, ok := elems[i].(string)
+		if !ok {
+			return nil, skerr.Fmt("Map keys must be strings, not %v", elems[i])
+		}
+		rv[key] = elems[i+1]
+	}
+	return rv, nil
 }

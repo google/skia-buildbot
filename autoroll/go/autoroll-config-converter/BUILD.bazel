@@ -11,12 +11,16 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/chrome_branch",
+        "//go/gerrit",
+        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
-        "//go/util",
         "//kube/go/kube_conf_gen_lib",
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
