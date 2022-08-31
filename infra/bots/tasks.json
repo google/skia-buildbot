@@ -84,49 +84,15 @@
   },
   "tasks": {
     "Housekeeper-OnDemand-Presubmit": {
-      "caches": [
-        {
-          "name": "git",
-          "path": "cache/git"
-        },
-        {
-          "name": "git_cache",
-          "path": "cache/git_cache"
-        },
-        {
-          "name": "vpython",
-          "path": "cache/vpython"
-        }
-      ],
-      "casSpec": "run-recipe",
+      "casSpec": "empty",
       "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
-        {
-          "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.8.10.chromium.19"
-        },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
           "path": "cipd_bin_packages",
           "version": "version:2@2.36.0-rc2.chromium.8"
         },
         {
-          "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
-          "path": "recipe_bundle",
-          "version": "git_revision:1a28cb094add070f4beefd052725223930d8c27a"
-        },
-        {
           "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
         },
@@ -136,39 +102,34 @@
           "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
         },
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
-        },
-        {
-          "name": "infra/tools/luci/vpython-native/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
-        },
-        {
-          "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
-        },
-        {
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:16"
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
-        "-u",
-        "buildbot/infra/bots/run_recipe.py",
-        "${ISOLATED_OUTDIR}",
-        "run_presubmit",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\",\"task_id\":\"<(TASK_ID)\"}",
-        "skia"
+        "./presubmit",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Housekeeper-OnDemand-Presubmit",
+        "--workdir",
+        ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -178,25 +139,13 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
-      "environment": {
-        "RECIPES_USE_PY3": "true"
-      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin",
-          "bazelisk",
-          "go/go/bin"
-        ],
-        "VPYTHON_VIRTUALENV_ROOT": [
-          "cache/vpython"
+          "bazelisk"
         ]
       },
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-      },
+      "max_attempts": 1,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {

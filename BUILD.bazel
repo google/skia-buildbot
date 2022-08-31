@@ -171,6 +171,7 @@ genrule(
         "//infra/bots/task_drivers/canary",
         "//infra/bots/task_drivers/infra_tests",
         "//infra/bots/task_drivers/roll_cipd_packages",
+        "//infra/bots/task_drivers/presubmit",
         "//infra/bots/task_drivers/validate_autoroll_configs",
     ],
     outs = ["built_task_drivers.tar"],

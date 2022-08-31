@@ -311,46 +311,35 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 
 // Run the presubmit.
 func presubmit(b *specs.TasksCfgBuilder, name string) string {
-	extraProps := map[string]string{
-		"category":         "cq",
-		"patch_gerrit_url": "https://skia-review.googlesource.com",
-		"patch_project":    "buildbot",
-		"patch_ref":        fmt.Sprintf("refs/changes/%s/%s/%s", specs.PLACEHOLDER_ISSUE_SHORT, specs.PLACEHOLDER_ISSUE, specs.PLACEHOLDER_PATCHSET),
-		"reason":           "CQ",
-		"repo_name":        "skia_buildbot",
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
+
+	cmd := []string{
+		"./presubmit",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+		"--repo", specs.PLACEHOLDER_REPO,
+		"--revision", specs.PLACEHOLDER_REVISION,
+		"--patch_issue", specs.PLACEHOLDER_ISSUE,
+		"--patch_set", specs.PLACEHOLDER_PATCHSET,
+		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 	}
-	for k, v := range extraProperties {
-		extraProps[k] = v
+
+	t := &specs.TaskSpec{
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
+		Command:      cmd,
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(machineTypeMedium),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "bazelisk"},
+		},
+		ServiceAccount: compileServiceAccount,
+		MaxAttempts:    1,
 	}
-	task := kitchenTask(name, "run_presubmit", casRunRecipe, compileServiceAccount, linuxGceDimensions(machineTypeMedium), extraProps, ignoreSwarmingOutput)
-	task.Caches = append(task.Caches, []*specs.Cache{
-		{
-			Name: "git",
-			Path: "cache/git",
-		},
-		{
-			Name: "git_cache",
-			Path: "cache/git_cache",
-		},
-	}...)
-	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	task.CipdPackages = append(task.CipdPackages, &specs.CipdPackage{
-		Name:    "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
-		Path:    "recipe_bundle",
-		Version: "git_revision:1a28cb094add070f4beefd052725223930d8c27a",
-	})
-	task.Dependencies = []string{} // No bundled recipes for this one.
-
-	// Bazelisk and Go are needed for the Gazelle, Buildifier and gofmt presubmit checks.
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk"))
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
-	task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "bazelisk", "go/go/bin")
-
-	// Setting the python version causes conflicts with some of the packages
-	// needed by the presubmit recipe.
-	delete(task.EnvPrefixes, "VPYTHON_DEFAULT_SPEC")
-
-	b.MustAddTask(name, task)
+	b.MustAddTask(name, t)
 	return name
 }
 

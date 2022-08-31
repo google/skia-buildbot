@@ -28,11 +28,18 @@ func main() {
 		repoDir  = flag.String("repo_dir", "", "The root directory of the repo.")
 		upstream = flag.String("upstream", "origin/main", "The upstream repo to diff against.")
 		verbose  = flag.Bool("verbose", false, "If extra logging is desired")
+		upload   = flag.Bool("upload", false, "If true, this will skip any checks that are not suitable for an upload check (may be the empty set).")
+		commit   = flag.Bool("commit", false, "If true, this will skip any checks that are not suitable for a commit check (may be the empty set).")
 	)
 	flag.Parse()
 	ctx := withOutputWriter(context.Background(), os.Stdout)
 	if *repoDir == "" {
 		logf(ctx, "Must set --repo_dir\n")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if *upload && *commit {
+		logf(ctx, "Cannot set both --upload and --commit\n")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -82,7 +89,11 @@ func main() {
 	ok = ok && checkHasNoTabs(ctx, changedFiles)
 	ok = ok && checkBannedGoAPIs(ctx, changedFiles)
 	ok = ok && checkJSDebugging(ctx, changedFiles)
-	ok = ok && checkNonASCII(ctx, changedFiles)
+	if !*commit {
+		// Give warnings for non-ASCII characters on upload but not commit, since they may
+		// be intentional.
+		ok = ok && checkNonASCII(ctx, changedFiles)
+	}
 
 	// Only mutate the repo if we are good so far.
 	if !ok {
@@ -673,7 +684,7 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 		return true
 	}
 	if regenEverything {
-		cmd := exec.CommandContext(ctx, "bazelisk", "run", "//:gazelle", "update-repos",
+		cmd := exec.CommandContext(ctx, "bazelisk", "run", "//:gazelle", "--", "update-repos",
 			"-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
