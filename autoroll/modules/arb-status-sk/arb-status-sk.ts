@@ -65,6 +65,7 @@ export class ARBStatusSk extends ElementSk {
   <tabs-sk>
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
+    <button value="config">View Roller Config</button>
   </tabs-sk>
   ${!ele.editRights
         ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
@@ -521,6 +522,9 @@ export class ARBStatusSk extends ElementSk {
               `
       }
       </table>
+    </div>
+    <div class="config">
+      <code style="white-space: pre;">${JSON.stringify(ele.status.config, null, 2)}</code>
     </div>
   </tabs-panel-sk>
   <dialog id="modeChangeDialog" class=surface-themes-sk>
