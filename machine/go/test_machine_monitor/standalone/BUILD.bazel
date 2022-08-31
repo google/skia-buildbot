@@ -41,6 +41,11 @@ go_library(
             "//machine/go/test_machine_monitor/standalone/linux",
             "@com_github_shirou_gopsutil//host",
         ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//go/skerr",
+            "//machine/go/test_machine_monitor/standalone/windows",
+            "@com_github_shirou_gopsutil//host",
+        ],
         "//conditions:default": [],
     }),
 )

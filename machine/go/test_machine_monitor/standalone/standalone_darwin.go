@@ -14,7 +14,7 @@ import (
 // OSVersions returns the macOS version in all possible precisions. For example, 10.5.7 would yield
 // ["Mac-10", "Mac-10.5", "Mac-10.5.7"].
 func OSVersions(ctx context.Context) ([]string, error) {
-	_, _, platformVersion, err := host.PlatformInformation()
+	_, _, platformVersion, err := host.PlatformInformationWithContext(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get macOS version")
 	}
