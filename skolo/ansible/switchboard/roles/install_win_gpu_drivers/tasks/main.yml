@@ -47,6 +47,10 @@
   import_tasks: broadwell.yml
   when: getgpu.stdout is match(".*Broadwell.*")
 
+- name: Install Iris Xe driver
+  import_tasks: irisxe.yml
+  when: getgpu.stdout is match(".*Iris\(R\) Xe.*")
+
 - name: Cleanup getgpu.exe
   win_file:
     path: C:\Temp\getgpu.exe

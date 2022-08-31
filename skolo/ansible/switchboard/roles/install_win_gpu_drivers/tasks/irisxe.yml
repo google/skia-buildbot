@@ -1,0 +1,22 @@
+# Install Intel Iris Xe Graphics Driver.
+
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+- name: Copy Intel Iris Xe Graphics Driver EXE to the host
+  win_copy:
+    src: "{{ win_package_src }}/gfx_win_101.3222_101.2111.exe"
+    dest: C:\Temp\intel_gfx.exe
+
+- name: Install Intel Iris Xe Graphics Driver
+  # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
+  # The "--overwrite" option allows downgrading the driver if a newer one is already installed for
+  # some reason (e.g. Windows Update).
+  win_command: C:\Temp\intel_gfx.exe -s --overwrite
+
+- name: Cleanup
+  win_file:
+    path: C:\Temp\intel_gfx.exe
+    state: absent
