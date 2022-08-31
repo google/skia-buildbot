@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -103,6 +104,7 @@ func main() {
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to baseline server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
+		logSQLQueries        = flag.Bool("log_sql_queries", false, "Log all SQL statements. For debugging only; do not use in production.")
 	)
 
 	// Parse the flags, so we can load the configuration files.
@@ -137,7 +139,7 @@ func main() {
 
 	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
 
-	sqlDB := mustInitSQLDatabase(ctx, fsc)
+	sqlDB := mustInitSQLDatabase(ctx, fsc, *logSQLQueries)
 
 	gsClient := mustMakeGCSClient(ctx, fsc, client)
 
@@ -242,9 +244,16 @@ func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 }
 
+// crdbLogger logs all SQL statements sent to the database.
+type crdbLogger struct{}
+
+func (l crdbLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	sklog.Infof("[pgxpool %s] %q\n%+v\n", level, msg, data)
+}
+
 // mustInitSQLDatabase initializes a SQL database. If there are any errors, it will panic via
 // sklog.Fatal.
-func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpool.Pool {
+func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig, logSQLQueries bool) *pgxpool.Pool {
 	if fsc.SQLDatabaseName == "" {
 		sklog.Fatalf("Must have SQL Database Information")
 	}
@@ -253,7 +262,9 @@ func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpoo
 	if err != nil {
 		sklog.Fatalf("error getting postgres config %s: %s", url, err)
 	}
-
+	if logSQLQueries && fsc.Local {
+		conf.ConnConfig.Logger = crdbLogger{}
+	}
 	conf.MaxConns = maxSQLConnections
 	db, err := pgxpool.ConnectConfig(ctx, conf)
 	if err != nil {

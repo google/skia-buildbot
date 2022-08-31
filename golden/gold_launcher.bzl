@@ -85,7 +85,8 @@ FIRESTORE_EMULATOR_HOST=
 # Launch the gold_frontend binary.
 $(rootpath //golden/cmd/gold_frontend:gold_frontend) \
     --config=config.json5 \
-    --common_instance_config=common_instance_config.json5
+    --common_instance_config=common_instance_config.json5 \
+    --log_sql_queries
 """
 
 def gold_launcher(
