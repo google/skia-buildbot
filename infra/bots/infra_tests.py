@@ -29,7 +29,7 @@ def test(cmd, cwd):
 
 def recipe_test(train):
   cmd = [
-      'python', os.path.join(INFRA_BOTS_DIR, 'recipes.py'), 'test']
+      sys.executable, os.path.join(INFRA_BOTS_DIR, 'recipes.py'), 'test']
   if train:
     cmd.append('train')
   else:
@@ -38,7 +38,7 @@ def recipe_test(train):
 
 
 def gen_tasks_test(train):
-  cmd = ['go', 'run', 'gen_tasks.go']
+  cmd = ['bazelisk', 'run', '//:go', '--', 'run', 'gen_tasks.go']
   if not train:
     cmd.append('--test')
   try:
