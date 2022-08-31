@@ -531,18 +531,7 @@ http_file(
 # updating protoc to a more recent version.
 
 PROTOC_BUILD_FILE_CONTENT = """
-exports_files(
-    glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        include = ["**/*"],
-    ),
-    visibility = ["//visibility:public"],
-)
+exports_files(["bin/protoc"], visibility = ["//visibility:public"])
 """
 
 http_archive(

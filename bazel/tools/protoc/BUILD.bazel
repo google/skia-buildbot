@@ -22,25 +22,29 @@ cd $$BUILD_WORKING_DIRECTORY
 protoc $$@
 """
 
-_PROTOC_LABEL_TEMPLATE = "@protoc_%s//:bin/protoc"
-
 [
     genrule(
-        name = "gen_script_" + constraint,
-        outs = ["protoc_%s.sh" % constraint],
+        name = "gen_script_" + script_suffix,
+        outs = ["protoc_%s.sh" % script_suffix],
         cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
-            protoc_label = _PROTOC_LABEL_TEMPLATE % constraint,
+            protoc_label = protoc_label,
         ),
         exec_tools = [
-            _PROTOC_LABEL_TEMPLATE % constraint,
+            protoc_label,
             "@org_golang_google_protobuf//cmd/protoc-gen-go",
             "@com_github_twitchtv_twirp//protoc-gen-twirp",
             "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
         ],
     )
-    for constraint in [
-        "linux_x64",
-        "mac_x64",
+    for script_suffix, protoc_label in [
+        [
+            "linux_x64",
+            "@protoc_linux_x64//:bin/protoc",
+        ],
+        [
+            "mac_x64",
+            "@protoc_mac_x64//:bin/protoc",
+        ],
     ]
 ]
 
@@ -64,8 +68,8 @@ sh_binary(
         "//bazel/constraints:mac_x64": ["protoc_mac_x64.sh"],
     }),
     data = select({
-        "//bazel/constraints:linux_x64": ["@protoc_linux_x64//:all_files"],
-        "//bazel/constraints:mac_x64": ["@protoc_mac_x64//:all_files"],
+        "//bazel/constraints:linux_x64": ["@protoc_linux_x64//:bin/protoc"],
+        "//bazel/constraints:mac_x64": ["@protoc_mac_x64//:bin/protoc"],
     }) +
     # These Go binaries will be compiled for the correct execution platform.
     [
