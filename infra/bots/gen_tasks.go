@@ -9,41 +9,27 @@ package main
 */
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/cas/rbe"
-	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
 	buildTaskDriversName = "Housekeeper-PerCommit-BuildTaskDrivers"
-	buildRecipesName     = "Housekeeper-PerCommit-BundleRecipes"
 
 	casAutorollConfigs = "autoroll-configs"
 	casEmpty           = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
-	casRunRecipe       = "run-recipe"
-	casRecipes         = "recipes"
 	casWholeRepo       = "whole-repo"
 
 	defaultOSLinux   = "Debian-10.3"
 	defaultOSWindows = "Windows-Server-17763"
 
-	logdogAnnotationURL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-
-	// machineTypeSmall refers to a 2-core machine.
-	machineTypeSmall = "n1-highmem-2"
 	// machineTypeMedium refers to a 16-core machine
 	machineTypeMedium = "n1-standard-16"
 	// machineTypeLarge refers to a 64-core machine.
 	machineTypeLarge = "n1-highcpu-64"
-
-	// ignoreSwarmingOutput indicates that the outputs will not be isolated/uploaded by swarming
-	ignoreSwarmingOutput = "output_ignored"
 
 	cipdUploaderServiceAccount = "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
 	compileServiceAccount      = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
@@ -55,9 +41,6 @@ var (
 	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
 		"Housekeeper-OnDemand-Presubmit":  &cqWithDefaults,
 		"Infra-PerCommit-Build-Bazel-RBE": &cqWithDefaults,
-		"Infra-PerCommit-Large":           &cqWithDefaults,
-		"Infra-PerCommit-Medium":          &cqWithDefaults,
-		"Infra-PerCommit-Small":           &cqWithDefaults,
 		"Infra-PerCommit-Test-Bazel-RBE":  &cqWithDefaults,
 
 		"Housekeeper-PerCommit-CIPD-Canary":                  noCQ,
@@ -67,7 +50,6 @@ var (
 		"Infra-Experimental-Small-Linux":                     noCQ,
 		"Infra-Experimental-Small-Win":                       noCQ,
 		"Infra-PerCommit-Build-Bazel-Local":                  noCQ,
-		"Infra-PerCommit-Race":                               noCQ,
 		"Infra-PerCommit-Test-Bazel-Local":                   noCQ,
 	}
 
@@ -88,33 +70,11 @@ var (
 		},
 	}
 
-	dockerCaches = []*specs.Cache{
-		{
-			Name: "docker",
-			Path: "cache/docker",
-		},
-	}
-
 	vpythonCaches = []*specs.Cache{
 		{
 			Name: "vpython",
 			Path: "cache/vpython",
 		},
-	}
-
-	// These properties are required by some tasks, eg. for running
-	// bot_update, but they prevent de-duplication, so they should only be
-	// used where necessary.
-	extraProperties = map[string]string{
-		"buildbucket_build_id": specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
-		"patch_issue":          specs.PLACEHOLDER_ISSUE_INT,
-		"patch_ref":            specs.PLACEHOLDER_PATCH_REF,
-		"patch_repo":           specs.PLACEHOLDER_PATCH_REPO,
-		"patch_set":            specs.PLACEHOLDER_PATCHSET_INT,
-		"patch_storage":        specs.PLACEHOLDER_PATCH_STORAGE,
-		"repository":           specs.PLACEHOLDER_REPO,
-		"revision":             specs.PLACEHOLDER_REVISION,
-		"task_id":              specs.PLACEHOLDER_TASK_ID,
 	}
 
 	cipdPlatforms = []string{
@@ -149,49 +109,6 @@ func winGceDimensions(machineType string) []string {
 	}
 }
 
-// Create a properties JSON string.
-func props(p map[string]string) string {
-	d := make(map[string]interface{}, len(p)+1)
-	for k, v := range p {
-		d[k] = interface{}(v)
-	}
-	d["$kitchen"] = struct {
-		DevShell bool `json:"devshell"`
-		GitAuth  bool `json:"git_auth"`
-	}{
-		DevShell: true,
-		GitAuth:  true,
-	}
-
-	j, err := json.Marshal(d)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	return strings.Replace(string(j), "\\u003c", "<", -1)
-}
-
-// bundleRecipes generates the task to bundle and isolate the recipes.
-func bundleRecipes(b *specs.TasksCfgBuilder) string {
-	b.MustAddTask(buildRecipesName, &specs.TaskSpec{
-		CasSpec:      casRecipes,
-		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.Python3LinuxAMD64CIPDPackages()...),
-		Command: []string{
-			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
-		},
-		Dimensions: linuxGceDimensions(machineTypeSmall),
-		EnvPrefixes: map[string][]string{
-			"PATH": {
-				"cipd_bin_packages",
-				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython3",
-				"cipd_bin_packages/cpython3/bin",
-			},
-		},
-		Idempotent: true,
-	})
-	return buildRecipesName
-}
-
 // buildTaskDrivers generates the task which compiles the task driver code to run on the specified
 // the platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
@@ -222,90 +139,6 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		// because it depends on the entire repo...
 		Idempotent: true,
 	})
-	return name
-}
-
-// kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
-// recipe.
-func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
-	// TODO(borenet): Currently all callers are for Linux tasks, but that may
-	// not always be the case.
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN_LINUX_AMD64...)
-	properties := map[string]string{
-		"buildername":   name,
-		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
-	}
-	for k, v := range extraProps {
-		properties[k] = v
-	}
-	var outputs []string = nil
-	if outputDir != ignoreSwarmingOutput {
-		outputs = []string{outputDir}
-	}
-	python := "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}"
-	return &specs.TaskSpec{
-		Caches:       vpythonCaches,
-		CasSpec:      casSpec,
-		CipdPackages: pkgs,
-		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
-		Dependencies: []string{buildRecipesName},
-		Dimensions:   dimensions,
-		Environment: map[string]string{
-			"RECIPES_USE_PY3": "true",
-		},
-		EnvPrefixes: map[string][]string{
-			"PATH": {
-				"cipd_bin_packages",
-				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython3",
-				"cipd_bin_packages/cpython3/bin",
-			},
-			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
-			"VPYTHON_DEFAULT_SPEC":    {"buildbot/.vpython"},
-		},
-		ExtraTags: map[string]string{
-			"log_location": logdogAnnotationURL,
-		},
-		Outputs:        outputs,
-		ServiceAccount: serviceAccount,
-	}
-}
-
-// infra generates an infra test Task. Returns the name of the last Task in the
-// generated chain of Tasks, which the Job should add as a dependency.
-func infra(b *specs.TasksCfgBuilder, name string) string {
-	machineType := machineTypeMedium
-	if strings.Contains(name, "Large") {
-		// Using machineTypeLarge for Large tests saves ~2 minutes.
-		machineType = machineTypeLarge
-	}
-
-	task := kitchenTask(name, "swarm_infra", casWholeRepo, compileServiceAccount, linuxGceDimensions(machineType), nil, ignoreSwarmingOutput)
-
-	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
-	task.Caches = append(task.Caches, goCaches...)
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
-	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
-		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
-	}
-
-	// Cloud datastore tests are assumed to be marked as 'Large'
-	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
-		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_ISOLATE...)
-		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
-		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("cockroachdb"))
-		task.CipdPackages = append(task.CipdPackages, cipd.MustGetPackage("infra/tools/luci/lucicfg/${platform}"))
-	}
-
-	// Re-run failing bots but not when testing for race conditions.
-	task.MaxAttempts = 2
-	if strings.Contains(name, "Race") {
-		task.MaxAttempts = 1
-		task.ExecutionTimeout = 2 * time.Hour
-		task.IoTimeout = 2 * time.Hour
-	}
-	b.MustAddTask(name, task)
 	return name
 }
 
@@ -537,11 +370,9 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		Command:      cmd,
 		Dependencies: []string{
 			buildTaskDrivers(b, "Linux", "x86_64"),
-			// TODO(borenet): Replace these with Infra-PerCommit-Test-Bazel-RBE
-			// once that becomes the source of truth.
-			"Infra-PerCommit-Small",
-			"Infra-PerCommit-Medium",
-			"Infra-PerCommit-Large",
+			// We don't use any outputs of the Test job, we just want to make sure that we
+			// do not upload to CIPD if our tests are failing.
+			"Infra-PerCommit-Test-Bazel-RBE",
 		},
 		Dimensions: linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
@@ -595,11 +426,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	} else if name == "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs" {
 		deps = append(deps, buildAndDeployValidateAutorollConfigs(b, name))
 	} else {
-		// Infra tests.
-		if strings.Contains(name, "Infra-PerCommit") {
-			deps = append(deps, infra(b, name))
-		}
-		// Presubmit.
 		if strings.Contains(name, "Presubmit") {
 			priority = 1
 			deps = append(deps, presubmit(b, name))
@@ -634,7 +460,6 @@ func main() {
 	b := specs.MustNewTasksCfgBuilder()
 
 	// Create Tasks and Jobs.
-	bundleRecipes(b)
 	for name, cq := range jobsToCQStatus {
 		process(b, name, cq)
 	}
@@ -645,23 +470,6 @@ func main() {
 		Paths: []string{"autoroll/config"},
 	})
 	b.MustAddCasSpec(casEmpty, specs.EmptyCasSpec)
-	b.MustAddCasSpec(casRecipes, &specs.CasSpec{
-		Root: "..",
-		Paths: []string{
-			"buildbot/.vpython",
-			"buildbot/infra/config/recipes.cfg",
-			"buildbot/infra/bots/bundle_recipes.sh",
-			"buildbot/infra/bots/recipes",
-			"buildbot/infra/bots/recipes.py",
-		},
-	})
-	b.MustAddCasSpec(casRunRecipe, &specs.CasSpec{
-		Root: "..",
-		Paths: []string{
-			"buildbot/.vpython",
-			"buildbot/infra/bots/run_recipe.py",
-		},
-	})
 	b.MustAddCasSpec(casWholeRepo, &specs.CasSpec{
 		Root:     "..",
 		Paths:    []string{"buildbot"},
