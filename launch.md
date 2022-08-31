@@ -211,13 +211,13 @@ via the package manager in your Docker image.
   for more on the schema. Commit this, then run `pushk appname` to make the
   configuration active.
 - Metrics are customarily made available at port 20000. To configure metrics
-  scraping, add the following to the `app.yaml` under spec -> template ->
-  metadata:
+  scraping the port should be named 'prom'. See [go/skia-infra-metrics](http://go/skia-infra-metrics)
+  for more details.
 
 ```yaml
-annotations:
-  prometheus.io.scrape: 'true'
-  prometheus.io.port: '20000'
+ports:
+  - containerPort: 20000
+    name: prom
 ```
 
 - Clusters run with [Cluster
