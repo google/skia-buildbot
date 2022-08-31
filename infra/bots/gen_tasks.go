@@ -464,14 +464,13 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       goCaches,
 		CasSpec:      casEmpty,
 		CipdPackages: pkgs,
 		Command:      cmd,
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "bazelisk"},
+			"PATH": {"cipd_bin_packages", "bazelisk"},
 		},
 		ServiceAccount: compileServiceAccount,
 	}
@@ -481,12 +480,8 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 
 func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("cockroachdb"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 
 	cmd := []string{
 		"./bazel_test_all",
@@ -506,7 +501,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       append(vpythonCaches, goCaches...),
 		CasSpec:      casEmpty,
 		CipdPackages: pkgs,
 		Command:      cmd,
@@ -515,15 +509,8 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
-				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython3",
-				"cipd_bin_packages/cpython3/bin",
-				"go/go/bin",
 				"bazelisk",
-				"cockroachdb",
-				"gcloud_linux/bin",
 			},
-			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
 		},
 		ServiceAccount: compileServiceAccount,
 	}
