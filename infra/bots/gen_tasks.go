@@ -446,7 +446,6 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
 
 	cmd := []string{
 		"./bazel_build_all",
@@ -472,7 +471,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "bazelisk"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "bazelisk"},
 		},
 		ServiceAccount: compileServiceAccount,
 	}

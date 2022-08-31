@@ -8,7 +8,7 @@
 // file.
 //
 //
-//    //go:generate go run .
+//    //go:generate bazelisk run //:go -- run .
 //    package main
 //
 //    import (

@@ -4,7 +4,7 @@ package cipd
 	Utilities for working with CIPD.
 */
 
-//go:generate go run gen_versions.go
+//go:generate bazelisk run //:go -- run gen_versions.go
 
 import (
 	"context"

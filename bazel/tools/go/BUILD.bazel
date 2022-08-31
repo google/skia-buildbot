@@ -1,0 +1,36 @@
+# Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
+# https://bazel.build/reference/be/make-variables#predefined_label_variables.
+_SCRIPT = """
+# Add the "go" and "gofmt" binaries to PATH (they are located in the same directory).
+GO_PATH=$$(realpath $$(dirname $(rootpath @go_sdk//:bin/go)))
+export PATH=$$GO_PATH:$$PATH
+
+# Change into the directory where Bazel was invoked.
+cd $$BUILD_WORKING_DIRECTORY
+
+go $$@
+"""
+
+genrule(
+    name = "gen_script",
+    outs = ["go.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT,
+    exec_tools = ["@go_sdk//:bin/go"],
+)
+
+# Wrapper script around the Bazel-downloaded "go" binary.
+#
+# Some commands invoked via "go generate" expect the "go" and/or "gofmt" binaries to be in PATH.
+# This script adds the Bazel-downloaded "go" and "gofmt" binaries to PATH, then forwards all
+# command-line arguments to the "go" binary.
+#
+# Reference: https://bazel.build/reference/be/shell#sh_binary.
+sh_binary(
+    name = "go",
+    srcs = ["go.sh"],
+    data = [
+        "@go_sdk//:bin/go",
+        "@go_sdk//:bin/gofmt",  # Some commands invoked via "go generate" require gofmt.
+    ],
+    visibility = ["//visibility:public"],
+)

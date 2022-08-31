@@ -1,6 +1,6 @@
 // Program to generate JSON Schema definitions for the InstanceConfig struct.
 //
-//go:generate go run .
+//go:generate bazelisk run //:go -- run .
 package main
 
 import (

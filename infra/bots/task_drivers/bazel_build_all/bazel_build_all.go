@@ -2,13 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"path"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
-	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -37,7 +35,7 @@ func main() {
 	ctx := td.StartRun(projectID, taskID, taskName, output, local)
 	defer td.EndRun(ctx)
 
-	// Compute various paths.
+	// Compute work dir path.
 	workDir, err := os_steps.Abs(ctx, *workDirFlag)
 	if err != nil {
 		td.Fatal(ctx, err)
@@ -59,18 +57,6 @@ func main() {
 			td.Fatal(ctx, err)
 		}
 	}
-
-	// Set up go.
-	ctx = golang.WithEnv(ctx, workDir)
-	if err := golang.InstallCommonDeps(ctx, gitDir.Dir()); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Run "go generate" and fail it there are any diffs.
-	if _, err := golang.Go(ctx, gitDir.Dir(), "generate", "./..."); err != nil {
-		td.Fatal(ctx, err)
-	}
-	failIfNonEmptyGitDiff()
 
 	// Set up Bazel.
 	var (
@@ -95,8 +81,14 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Run "go generate" and fail it there are any diffs.
+	if _, err := bzl.Do(ctx, "run", "//:go", "--", "generate", "./..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+	failIfNonEmptyGitDiff()
+
 	// Run "errcheck" and fail it there are any findings.
-	if _, err := bzl.Do(ctx, "run", "//:errcheck", fmt.Sprintf("--run_under=cd %s &&", gitDir.Dir()), "--", "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
+	if _, err := bzl.Do(ctx, "run", "//:errcheck", "--", "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 

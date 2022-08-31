@@ -805,11 +805,6 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:16"
         }
       ],
       "command": [
@@ -848,7 +843,6 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "go/go/bin",
           "bazelisk"
         ]
       },
@@ -886,11 +880,6 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:16"
         }
       ],
       "command": [
@@ -930,7 +919,6 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "go/go/bin",
           "bazelisk"
         ]
       },

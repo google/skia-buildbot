@@ -9,7 +9,6 @@ go_library(
         "//go/exec",
         "//task_driver/go/lib/bazel",
         "//task_driver/go/lib/checkout",
-        "//task_driver/go/lib/golang",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
     ],
