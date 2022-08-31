@@ -3,6 +3,9 @@
 // will only consider the diffs between the current commit and the parent branch.
 // If all presubmits pass, this binary will output nothing (by default) and have exit code 0.
 // If any presubmits fail, there will be errors logged to stdout and the exit code will be non-zero.
+//
+// This should be invoked from the root of the repo via Bazel like
+//   bazel run //cmd/presubmit -- --repo_dir=$PWD
 package main
 
 import (
@@ -88,6 +91,9 @@ func main() {
 	}
 
 	if !runBuildifier(ctx, buildifierPath, changedFiles) {
+		os.Exit(1)
+	}
+	if !runGofmt(ctx, changedFiles) {
 		os.Exit(1)
 	}
 	if !runGazelle(ctx, changedFiles, deletedFiles) {
@@ -596,6 +602,35 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 
 	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
 		logf(ctx, "Buildifier caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	return true
+}
+
+// runGofmt runs gofmt on any changed golang files. It returns false if gofmt fails or
+// produces any diffs.
+func runGofmt(ctx context.Context, files []fileWithChanges) bool {
+	// -s means "simplify"
+	// -w means "write", as in, modify the files that need formatting.
+	args := []string{"run", "//:gofmt", "--", "-s", "-w"}
+	for _, f := range files {
+		if filepath.Ext(f.fileName) == ".go" {
+			args = append(args, f.fileName)
+		}
+	}
+	if len(args) == 5 { // no additional arguments (files) added to check
+		return true
+	}
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "gofmt failed!\n")
+		return false
+	}
+
+	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
+		logf(ctx, "gofmt caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
 	return true
