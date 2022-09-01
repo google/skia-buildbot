@@ -662,25 +662,22 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 	localFilesToCheck := []string{"BUILD.bazel"}
 	localExtensionsToCheck := []string{".go", ".ts", ".scss"}
 	var foldersToCheck []string
-	regenEverything := false
-	modifiedFileNames := make([]string, 0, len(changedFiles)+len(deletedFiles))
-	for _, f := range changedFiles {
-		modifiedFileNames = append(modifiedFileNames, f.fileName)
-	}
-	modifiedFileNames = append(modifiedFileNames, deletedFiles...)
-
-	for _, f := range modifiedFileNames {
-		if contains(globalFilesToCheck, filepath.Base(f)) || contains(globalExtensionsToCheck, filepath.Ext(f)) {
-			regenEverything = true
-			break
-		}
-		if contains(localFilesToCheck, filepath.Base(f)) || contains(localExtensionsToCheck, filepath.Ext(f)) {
-			folder := filepath.Dir(f)
-			if !contains(foldersToCheck, folder) {
-				foldersToCheck = append(foldersToCheck, folder)
+	regenEverything := len(deletedFiles) > 0
+	if !regenEverything {
+		for _, f := range changedFiles {
+			if contains(globalFilesToCheck, filepath.Base(f.fileName)) || contains(globalExtensionsToCheck, filepath.Ext(f.fileName)) {
+				regenEverything = true
+				break
+			}
+			if contains(localFilesToCheck, filepath.Base(f.fileName)) || contains(localExtensionsToCheck, filepath.Ext(f.fileName)) {
+				folder := filepath.Dir(f.fileName)
+				if !contains(foldersToCheck, folder) {
+					foldersToCheck = append(foldersToCheck, folder)
+				}
 			}
 		}
 	}
+
 	// No need to run gazelle
 	if !regenEverything && len(foldersToCheck) == 0 {
 		return true
