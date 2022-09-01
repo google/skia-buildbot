@@ -5,6 +5,7 @@ import (
 
 	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/windows"
 )
 
@@ -21,8 +22,7 @@ func OSVersions(ctx context.Context) ([]string, error) {
 }
 
 func CPUs(ctx context.Context) ([]string, error) {
-	var ret []string
-	return ret, nil
+	return crossplatform.CPUs("", "")
 }
 
 func GPUs(ctx context.Context) ([]string, error) {

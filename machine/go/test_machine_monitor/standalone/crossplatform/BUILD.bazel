@@ -6,7 +6,10 @@ go_library(
     srcs = ["crossplatform.go"],
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform",
     visibility = ["//visibility:public"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//go/skerr",
+        "@com_github_shirou_gopsutil//host",
+    ],
 )
 
 go_test(
@@ -15,6 +18,8 @@ go_test(
     embed = [":crossplatform"],
     deps = [
         "//go/testutils/unittest",
+        "@com_github_shirou_gopsutil//host",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

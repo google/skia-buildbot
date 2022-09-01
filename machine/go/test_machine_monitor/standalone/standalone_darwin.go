@@ -23,14 +23,10 @@ func OSVersions(ctx context.Context) ([]string, error) {
 
 // CPUs returns a Swarming-style description of the host's CPU, in various precisions.
 func CPUs(ctx context.Context) ([]string, error) {
-	arch, err := host.KernelArch()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to get Mac CPU architecture")
-	}
 	// It is perfectly normal for these sysctl keys to be missing sometimes:
 	vendor, _ := unix.Sysctl("machdep.cpu.vendor") // Sysctl returns "" on failure.
 	brandString, _ := unix.Sysctl("machdep.cpu.brand_string")
-	return crossplatform.CPUs(arch, vendor, brandString)
+	return crossplatform.CPUs(vendor, brandString)
 }
 
 // GPUs returns Swarming-style descriptions of all the host's GPUs, in various precisions, all

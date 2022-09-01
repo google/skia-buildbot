@@ -3,68 +3,92 @@ package crossplatform
 import (
 	"testing"
 
+	"github.com/shirou/gopsutil/host"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func assertCPUDimensions(t *testing.T, arch string, vendor string, brandString string, expected []string, failureMessage string) {
-	dimensions, err := CPUs(arch, vendor, brandString)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, dimensions, failureMessage)
+func assertIsaAndBitnessEqual(t *testing.T, arch, expectedIsa, expectedBitness string) {
+	isa, bitness, err := isaAndBitness(arch)
+	require.NoError(t, err)
+	assert.Equal(t, expectedIsa, isa)
+	assert.Equal(t, expectedBitness, bitness)
 }
 
-func TestCPUs_ParsingAndBitWidthAndArchMapping(t *testing.T) {
+func TestIsaAndBitness(t *testing.T) {
 	unittest.SmallTest(t)
-	assertCPUDimensions(
+	assertIsaAndBitnessEqual(t, "x86_64", "x86", "64")
+	assertIsaAndBitnessEqual(t, "amd64", "x86", "64")
+	assertIsaAndBitnessEqual(t, "aarch64", "arm64", "64")
+
+	_, _, err := isaAndBitness("kersmoo")
+	assert.Error(t, err, "An unknown CPU architecture should result in an error (and we should add it to the mapping).")
+}
+
+func assertCPUModelEqual(t *testing.T, vendor, brandString, expected, failureMessage string) {
+	assert.Equal(t, expected, cpuModel(vendor, brandString), failureMessage)
+}
+
+func TestCPUModel(t *testing.T) {
+	unittest.SmallTest(t)
+	assertCPUModelEqual(
 		t,
-		"x86_64",
 		"GenuineIntel",
 		"Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz",
-		[]string{"x86", "x86-64", "x86-64-i7-9750H v2"},
-		"x86_64 should be recognized as x86 ISA, and Intel model numbers should be extracted.",
+		"i7-9750H v2",
+		"Intel model numbers should be extracted.",
 	)
-	assertCPUDimensions(
+	assertCPUModelEqual(
 		t,
-		"amd64",
 		"Wackadoo Inc.",
 		"Wackadoo ALU i5-9600",
-		[]string{"x86", "x86-64", "x86-64-Wackadoo_ALU_i5-9600"},
-		"amd64 should be recognized as x86 ISA, and non-Intel model numbers should be smooshed into snake_case.",
+		"Wackadoo_ALU_i5-9600",
+		"Non-Intel model numbers should be smooshed into snake_case.",
 	)
-	assertCPUDimensions(
+	assertCPUModelEqual(
 		t,
-		"aarch64",
 		"GenuineIntel",
 		"something it fails to extract anything from",
-		[]string{"arm64", "arm64-64"},
-		"aarch64 should be recognized as arm64 ISA, and an unrecognizable Intel brand string should result in no third element.",
-	)
-	assertCPUDimensions(
-		t,
-		"arm64",
 		"",
-		"",
-		[]string{"arm64", "arm64-64"},
-		"Empty vendor and brand string should result in no third element.",
+		"An unrecognizable Intel brand string should result in no extracted model.",
 	)
-	assertCPUDimensions(
+	assertCPUModelEqual(
 		t,
-		"arm64",
 		"",
 		"Wackadoo ALU",
-		[]string{"arm64", "arm64-64", "arm64-64-Wackadoo_ALU"},
-		"Empty vendor and full brand string should result in smooshed brand string for third element.",
+		"Wackadoo_ALU",
+		"An unrecognizable Intel brand string should result in no extracted model.",
 	)
 }
 
-func TestCPUs_UnrecognizedArch_ReturnsError(t *testing.T) {
+func TestCPUs(t *testing.T) {
 	unittest.SmallTest(t)
-	_, err := CPUs(
-		"kersmoo",
-		"GenuineIntel",
-		"Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz",
+
+	arch, err := host.KernelArch()
+	require.NoError(t, err)
+	isa, bitness, err := isaAndBitness(arch)
+	require.NoError(t, err)
+	vendor := "GenuineIntel"
+	brandString := "Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz"
+	model := cpuModel(vendor, brandString)
+
+	dimensions, err := CPUs(vendor, brandString)
+	require.NoError(t, err)
+	assert.Equal(
+		t,
+		[]string{isa, isa + "-" + bitness, isa + "-" + bitness + "-" + model},
+		dimensions,
+		"If a model can be extracted, there should be a third slice element containing it.",
 	)
-	assert.Error(t, err, "An unknown CPU architecture should result in an error (and we should add it to the mapping).")
+	dimensions, err = CPUs("", "")
+	require.NoError(t, err)
+	assert.Equal(
+		t,
+		[]string{isa, isa + "-" + bitness},
+		dimensions,
+		"Empty vendor and brand string should result in no third element.",
+	)
 }
 
 func TestVersionsOfAllPrecisions(t *testing.T) {

@@ -27,11 +27,6 @@ func OSVersions(ctx context.Context) ([]string, error) {
 // kernel, we do not. None of our jobs care about that distinction, nor, I think, do any of our
 // boxes run like that.
 func CPUs(ctx context.Context) ([]string, error) {
-	arch, err := host.KernelArch()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to get Linux CPU architecture")
-	}
-
 	procFile, err := os.Open("/proc/cpuinfo")
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -43,7 +38,7 @@ func CPUs(ctx context.Context) ([]string, error) {
 		return nil, skerr.Wrapf(err, "failed to get vendor and brand string")
 	}
 
-	return crossplatform.CPUs(arch, vendor, brandString)
+	return crossplatform.CPUs(vendor, brandString)
 }
 
 // nvidiaVersion returns the version of the installed Nvidia GPU driver, "" if not available.

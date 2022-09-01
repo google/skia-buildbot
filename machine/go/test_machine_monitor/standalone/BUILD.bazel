@@ -43,6 +43,7 @@ go_library(
         ],
         "@io_bazel_rules_go//go/platform:windows": [
             "//go/skerr",
+            "//machine/go/test_machine_monitor/standalone/crossplatform",
             "//machine/go/test_machine_monitor/standalone/windows",
             "@com_github_shirou_gopsutil//host",
         ],

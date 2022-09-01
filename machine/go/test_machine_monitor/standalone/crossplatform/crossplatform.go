@@ -7,12 +7,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
 )
 
-// ISAAndBitness, given an architecture like "x86_64", extracts both an instruction set architecture
+// isaAndBitness, given an architecture like "x86_64", extracts both an instruction set architecture
 // and bit width, e.g. "x86" and "64".
-func ISAAndBitness(arch string) (isa, bitness string, err error) {
+func isaAndBitness(arch string) (isa, bitness string, err error) {
 	// gopsutil can spit out i386, i686, arm, aarch64, ia64, or x86_64 under Windows; "" as a
 	// fallback; whatever uname's utsname.machine struct member (a string) has on POSIX. On our lab
 	// Macs, that's arm64 or x64_86 (exposed by uname -m). Our lab Linuxes: x86_64.
@@ -57,26 +58,36 @@ func intelModel(brandString string) string {
 	return ""
 }
 
+// cpuModel takes a vendor name and a brand string (see CPUs()) and synthesizes a descriptive model
+// string from the two. If it fails to do so, it returns "".
+func cpuModel(vendor, brandString string) string {
+	if vendor == "GenuineIntel" {
+		return intelModel(brandString)
+	} else {
+		return strings.ReplaceAll(brandString, " ", "_")
+	}
+}
+
 // CPUs is the brains behind various platform-specific CPUs() functions, broken off for testing. It
 // takes the architecture, vendor name and a "brand string", which is a model signifier whose format
 // is vendor-specific, and returns a Swarming-style description of the host's CPU, in various
 // precisions, e.g. ["x86", "x86-64", "x86-64-i5-5350U"]. The first (ISA) and second (bit width)
 // will always be returned (if returned error is nil). The third (model number) will be added if we
 // succeed in extracting it.
-func CPUs(arch string, vendor string, brandString string) ([]string, error) {
-	isa, bitness, err := ISAAndBitness(arch)
+func CPUs(vendor, brandString string) ([]string, error) {
+	arch, err := host.KernelArch()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get CPU architecture")
+	}
+
+	isa, bitness, err := isaAndBitness(arch)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	ret := []string{isa, fmt.Sprintf("%s-%s", isa, bitness)}
 
-	var model string
-	if vendor == "GenuineIntel" {
-		model = intelModel(brandString)
-	} else {
-		model = strings.ReplaceAll(brandString, " ", "_")
-	}
+	model := cpuModel(vendor, brandString)
 	if model != "" {
 		ret = append(ret, fmt.Sprintf("%s-%s-%s", isa, bitness, model))
 	}
