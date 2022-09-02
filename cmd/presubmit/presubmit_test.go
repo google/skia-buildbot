@@ -450,11 +450,11 @@ README.md:7 Trailing whitespace
 `)
 }
 
-func TestCheckHasNoTabs(t *testing.T) {
+func TestCheckPythonFilesHaveNoTabs(t *testing.T) {
 	test := func(name string, input []fileWithChanges, expectedReturn bool, expectedLogs string) {
 		t.Run(name, func(t *testing.T) {
 			ctx, logs := captureLogs()
-			ok := checkHasNoTabs(ctx, input)
+			ok := checkPythonFilesHaveNoTabs(ctx, input)
 			assert.Equal(t, expectedReturn, ok)
 			assert.Equal(t, expectedLogs, logs.String())
 		})
@@ -480,7 +480,7 @@ func TestCheckHasNoTabs(t *testing.T) {
 		},
 	}, true, "")
 
-	test("Tabs ok in go or Makefiles", []fileWithChanges{
+	test("Tabs ok in non-Python files", []fileWithChanges{
 		{
 			fileName: "file.go",
 			touchedLines: []lineOfCode{{
@@ -495,9 +495,23 @@ func TestCheckHasNoTabs(t *testing.T) {
 				num:      7,
 			}},
 		},
+		{
+			fileName: "file.ts",
+			touchedLines: []lineOfCode{{
+				contents: "\t// We're cool with tabs on TypeScript files",
+				num:      5,
+			}},
+		},
+		{
+			fileName: "foo/bar/README.md",
+			touchedLines: []lineOfCode{{
+				contents: "\tTabs are ok in markdown",
+				num:      6,
+			}},
+		},
 	}, true, "")
 
-	test("Tabs not ok in 'normal' files", []fileWithChanges{
+	test("Tabs not ok in Python files", []fileWithChanges{
 		{
 			fileName: "file.py",
 			touchedLines: []lineOfCode{{
@@ -508,16 +522,8 @@ func TestCheckHasNoTabs(t *testing.T) {
 				num:      5,
 			}},
 		},
-		{
-			fileName: "foo/bar/README.md",
-			touchedLines: []lineOfCode{{
-				contents: "\tNot ok in markdown",
-				num:      7,
-			}},
-		},
 	}, false, `file.py:2 Tab character not allowed
 file.py:5 Tab character not allowed
-foo/bar/README.md:7 Tab character not allowed
 `)
 }
 

@@ -88,7 +88,7 @@ func main() {
 	ok := true
 	ok = ok && checkTODOHasOwner(ctx, changedFiles)
 	ok = ok && checkForStrayWhitespace(ctx, changedFiles)
-	ok = ok && checkHasNoTabs(ctx, changedFiles)
+	ok = ok && checkPythonFilesHaveNoTabs(ctx, changedFiles)
 	ok = ok && checkBannedGoAPIs(ctx, changedFiles)
 	ok = ok && checkJSDebugging(ctx, changedFiles)
 	if !*commit {
@@ -450,18 +450,13 @@ func checkForStrayWhitespace(ctx context.Context, files []fileWithChanges) bool 
 	return ok
 }
 
-// checkHasNoTabs goes through all touched lines and returns false if any of them (barring
-// exceptions for Golang and Makefiles) have tabs anywhere.
+// checkPythonFilesHaveNoTabs goes through the touched lines of all Python files and returns false
+// if any of them have tabs anywhere.
 // Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#441
-func checkHasNoTabs(ctx context.Context, files []fileWithChanges) bool {
-	ignoreFileExts := []string{".go", ".mk"}
-	ignoreFiles := []string{"Makefile"}
+func checkPythonFilesHaveNoTabs(ctx context.Context, files []fileWithChanges) bool {
 	ok := true
 	for _, f := range files {
-		if contains(ignoreFiles, f.fileName) || contains(ignoreFiles, filepath.Base(f.fileName)) {
-			continue
-		}
-		if contains(ignoreFileExts, filepath.Ext(f.fileName)) {
+		if filepath.Ext(f.fileName) != ".py" {
 			continue
 		}
 		for _, line := range f.touchedLines {
