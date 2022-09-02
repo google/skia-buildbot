@@ -4,8 +4,6 @@ import (
 	"math"
 	"sort"
 	"testing"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // myObservation implements Clusterable and Centroid.
@@ -50,7 +48,6 @@ func almostEqual(t *testing.T, a, b Clusterable) {
 }
 
 func TestBasicIteration(t *testing.T) {
-	unittest.SmallTest(t)
 	observations := []Clusterable{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
@@ -66,7 +63,6 @@ func TestBasicIteration(t *testing.T) {
 }
 
 func TestEmptyCentroids(t *testing.T) {
-	unittest.SmallTest(t)
 	observations := []Clusterable{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
@@ -80,7 +76,6 @@ func TestEmptyCentroids(t *testing.T) {
 }
 
 func TestEmptyEverything(t *testing.T) {
-	unittest.SmallTest(t)
 	observations := []Clusterable{}
 	centroids := []Centroid{}
 	centroids = Do(observations, centroids, calculateCentroid)
@@ -90,7 +85,6 @@ func TestEmptyEverything(t *testing.T) {
 }
 
 func TestLosingCentroids(t *testing.T) {
-	unittest.SmallTest(t)
 	observations := []Clusterable{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
@@ -115,7 +109,6 @@ func (p SortableClusterSlice) Less(i, j int) bool { return len(p[i]) > len(p[j])
 func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 func TestFullKmeans(t *testing.T) {
-	unittest.SmallTest(t)
 	observations := []Clusterable{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},

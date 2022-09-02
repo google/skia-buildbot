@@ -32,7 +32,6 @@ go_test(
         "//go/autoroll",
         "//go/gcs",
         "//go/gcs/mem_gcsclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -25,7 +25,6 @@ go_test(
     deps = [
         "//go/metrics2",
         "//go/now",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

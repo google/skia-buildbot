@@ -11,14 +11,12 @@ import (
 
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
 func TestUpdateCycle_Load1501CommitsFromGitiles_Success(t *testing.T) {
-	unittest.ManualTest(t)
 
 	rfc := repoFollowerConfig{
 		Common: config.Common{

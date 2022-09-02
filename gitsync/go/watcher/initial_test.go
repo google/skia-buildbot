@@ -17,13 +17,11 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestInitialIngestCommitBatch(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	ri := repograph.NewMemCacheRepoImpl(nil, nil)
@@ -165,7 +163,6 @@ func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder,
 }
 
 func TestInitialIngestion(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, gb, mockRepo, ri, commit, test, cleanup := setupTestInitial(t)
 	defer cleanup()
 
@@ -221,7 +218,6 @@ func TestInitialIngestion(t *testing.T) {
 }
 
 func TestInitialIngestionRespectsIncludeBranches(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, gb, mockRepo, ri, commit, test, cleanup := setupTestInitial(t)
 	defer cleanup()
 

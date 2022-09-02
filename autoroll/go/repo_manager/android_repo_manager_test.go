@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -136,7 +135,6 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
 func TestAndroidRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &mocks.GerritInterface{}
@@ -156,7 +154,6 @@ func TestAndroidRepoManager(t *testing.T) {
 
 // TestCreateNewAndroidRoll tests creating a new roll.
 func TestCreateNewAndroidRoll(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -182,7 +179,6 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 // TestCreateNewAndroidRollWithExternalChangeId tests creating a new roll
 // with an external change ID specified in the target revision.
 func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
-	unittest.LargeTest(t)
 	testTopicName := "test_topic_name"
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
@@ -211,7 +207,6 @@ func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -244,7 +239,6 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 }
 
 func TestAndroidConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cfg := androidCfg()
 	require.NoError(t, cfg.Validate())

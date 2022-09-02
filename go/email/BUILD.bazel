@@ -21,7 +21,6 @@ go_test(
     embed = [":email"],
     deps = [
         "//go/httputils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//gmail/v1:gmail",
     ],

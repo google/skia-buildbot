@@ -21,7 +21,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
@@ -144,7 +143,6 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 
 // TestCopyRepoManager tests all aspects of the CopyRepoManager.
 func TestCopyRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cfg, _, rm, child, parent, mockChild, mockParent, childCommits, _, cleanup := setupCopy(t)
 	defer cleanup()
@@ -172,7 +170,6 @@ func TestCopyRepoManager(t *testing.T) {
 }
 
 func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cfg, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlMock, cleanup := setupCopy(t)
 	defer cleanup()

@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingest/parser"
 )
@@ -59,7 +58,6 @@ func ingestParser() *parser.Parser {
 }
 
 func TestLoad_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const sourceFilePath = "path/file.json"
@@ -86,7 +84,6 @@ func TestLoad_Success(t *testing.T) {
 }
 
 func TestLoad_FileReaderFails_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	const sourceFilePath = "path/file.json"
 	const sourceFileName = "gs://skia-perf/" + sourceFilePath
@@ -99,7 +96,6 @@ func TestLoad_FileReaderFails_Failure(t *testing.T) {
 }
 
 func TestLoad_InvalidFilenameURL_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	gcsclient := &test_gcsclient.GCSClient{}
 	g := New(gcsclient, ingestParser())
@@ -108,7 +104,6 @@ func TestLoad_InvalidFilenameURL_Failure(t *testing.T) {
 }
 
 func TestLoad_InvalidJSON_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const sourceFilePath = "path/file.json"

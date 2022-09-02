@@ -10,11 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMPowerClient_PowerCycle_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	mp, err := newMPowerController(context.Background(), mpowerConfig(), false)
 	require.NoError(t, err)
 
@@ -28,7 +26,6 @@ func TestMPowerClient_PowerCycle_Success(t *testing.T) {
 }
 
 func TestMPowerClient_NewFails_ControllerIsStillReturnedAndCanListMachines(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Hand in a cancelled context so the attempt to talk to the mPower device
 	// fails immeditely, otherwise this test takes 3s to fail.
@@ -43,7 +40,6 @@ func TestMPowerClient_NewFails_ControllerIsStillReturnedAndCanListMachines(t *te
 // This is a fake executable used to assert that a correct call to disable port 7 of the mpower
 // switch was made. It is invoked using executil.FakeTestsContext.
 func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -61,7 +57,6 @@ func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
 // This is a fake executable used to assert that a correct call to enable port 7 of the mpower
 // switch was made. It is invoked using executil.FakeTestsContext.
 func Test_FakeExe_MPowerSSHEnablePort7_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

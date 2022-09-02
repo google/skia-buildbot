@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	storemock "go.skia.org/infra/machine/go/machine/store/mocks"
 	rpfMock "go.skia.org/infra/machine/go/machine/targetconnect/mocks"
@@ -34,7 +33,6 @@ var (
 )
 
 func TestSingleStep_FirstCallToReserveMeetingPointReturnsError_Returns(t *testing.T) {
-	unittest.SmallTest(t)
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, errMyMockError)
 	rpf := &rpfMock.RevPortForward{}
@@ -47,7 +45,6 @@ func TestSingleStep_FirstCallToReserveMeetingPointReturnsError_Returns(t *testin
 }
 
 func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -79,7 +76,6 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 }
 
 func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	switchboardMock := &mocks.Switchboard{}
@@ -99,7 +95,6 @@ func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
 }
 
 func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -123,7 +118,6 @@ func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
 }
 
 func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	switchboardMock := &mocks.Switchboard{}
@@ -151,7 +145,6 @@ func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) 
 }
 
 func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Times(2).Return(nil)

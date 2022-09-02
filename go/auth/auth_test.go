@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -16,7 +15,6 @@ const (
 )
 
 func TestSkoloToken_ValidToken_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const fakeToken = `{"access_token":"ya29.c.El...zwJOP","expires_in":900,"token_type":"Bearer"}`
 
@@ -34,7 +32,6 @@ func TestSkoloToken_ValidToken_Success(t *testing.T) {
 }
 
 func TestSkoloToken_InvalidToken_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name, token string) {
 		t.Run(name, func(t *testing.T) {

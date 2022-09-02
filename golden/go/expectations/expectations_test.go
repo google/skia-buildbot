@@ -7,12 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	e.Set("a", "pos", Positive)
@@ -45,7 +43,6 @@ func TestSet(t *testing.T) {
 }
 
 func TestMerge(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	e.Set("a", "pos", Positive)
@@ -78,7 +75,6 @@ func TestMerge(t *testing.T) {
 }
 
 func TestForAll(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	e.Set("a", "pos", Positive)
@@ -111,7 +107,6 @@ func TestForAll(t *testing.T) {
 
 // TestForAllError tests that we stop iterating through the entries when an error is returned.
 func TestForAllError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	e.Set("a", "pos", Positive)
@@ -134,7 +129,6 @@ func TestForAllError(t *testing.T) {
 }
 
 func TestDeepCopy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	e.Set("a", "pos", Positive)
@@ -151,7 +145,6 @@ func TestDeepCopy(t *testing.T) {
 }
 
 func TestCounts(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var e Expectations
 	require.True(t, e.Empty())
@@ -175,7 +168,6 @@ func TestCounts(t *testing.T) {
 }
 
 func TestExpString(t *testing.T) {
-	unittest.SmallTest(t)
 	te := Expectations{
 		labels: map[types.TestName]map[types.Digest]Label{
 			"beta": {
@@ -203,7 +195,6 @@ beta:
 }
 
 func TestAsBaseline(t *testing.T) {
-	unittest.SmallTest(t)
 	input := Expectations{
 		labels: map[types.TestName]map[types.Digest]Label{
 			"gamma": {
@@ -248,7 +239,6 @@ const (
 )
 
 func TestJoin(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var masterE Expectations
 	masterE.Set(testName, alphaPositiveDigest, Positive)
@@ -267,7 +257,6 @@ func TestJoin(t *testing.T) {
 }
 
 func TestEmptyClassifier(t *testing.T) {
-	unittest.SmallTest(t)
 
 	e := EmptyClassifier()
 	assert.Equal(t, Untriaged, e.Classification(testName, alphaPositiveDigest))

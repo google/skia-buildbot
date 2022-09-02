@@ -8,12 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/loggingsyncbuffer"
 	"go.skia.org/infra/go/sklog/sklogimpl"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func testLogAtSeverity(t *testing.T, prefix, contains string, severity sklogimpl.Severity, fmt string, args ...interface{}) {
 	t.Helper()
-	unittest.SmallTest(t)
 	sb := loggingsyncbuffer.New()
 	sklogimpl.SetLogger(New(sb))
 	t.Cleanup(func() {

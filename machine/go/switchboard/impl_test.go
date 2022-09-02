@@ -44,7 +44,6 @@ func setupForTest(t *testing.T) (*now.TimeTravelCtx, *switchboardImpl) {
 }
 
 func TestAddPod_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -65,7 +64,6 @@ func TestAddPod_Success(t *testing.T) {
 }
 
 func TestAddPod_AddWhenAlreadyExisting_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -80,7 +78,6 @@ func TestAddPod_AddWhenAlreadyExisting_ReturnsError(t *testing.T) {
 }
 
 func TestRemovePod_PodExists_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -102,7 +99,6 @@ func TestRemovePod_PodExists_Success(t *testing.T) {
 }
 
 func TestRemovePod_PodDoesNotExist_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Note we never added a pod.
@@ -112,7 +108,6 @@ func TestRemovePod_PodDoesNotExist_Success(t *testing.T) {
 }
 
 func TestKeepAlivePod_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -143,7 +138,6 @@ func TestKeepAlivePod_Success(t *testing.T) {
 }
 
 func TestKeepAlivePod_PodDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Note we never added a pod.
@@ -155,7 +149,6 @@ func TestKeepAlivePod_PodDoesNotExist_ReturnsError(t *testing.T) {
 }
 
 func TestReserveMeetingPoint_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -178,7 +171,6 @@ func TestReserveMeetingPoint_Success(t *testing.T) {
 }
 
 func TestReserveMeetingPoint_TriesAgainOnCollision_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -207,7 +199,6 @@ func TestReserveMeetingPoint_TriesAgainOnCollision_Success(t *testing.T) {
 }
 
 func TestReserveMeetingPoint_NoPodsAvailable_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// We haven't added any pods, so this should fail after 'reserveRetries' retries.
@@ -220,7 +211,6 @@ func TestReserveMeetingPoint_NoPodsAvailable_ReturnsError(t *testing.T) {
 }
 
 func TestGetMeetingPoint_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -246,7 +236,6 @@ func TestGetMeetingPoint_Success(t *testing.T) {
 }
 
 func TestGetMeetingPoint_NoSuchMachine_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -263,7 +252,6 @@ func TestGetMeetingPoint_NoSuchMachine_ReturnsError(t *testing.T) {
 }
 
 func TestKeepAliveMeetingPoint_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -297,7 +285,6 @@ func TestKeepAliveMeetingPoint_Success(t *testing.T) {
 }
 
 func TestKeepAliveMeetingPoint_MeetingPointDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	err := s.KeepAliveMeetingPoint(ctx, MeetingPoint{
@@ -311,7 +298,6 @@ func TestKeepAliveMeetingPoint_MeetingPointDoesNotExist_ReturnsError(t *testing.
 }
 
 func TestClearMeetingPoint_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -337,7 +323,6 @@ func TestClearMeetingPoint_Success(t *testing.T) {
 }
 
 func TestClearMeetingPoint_NoSuchMeetingPoint_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	err := s.ClearMeetingPoint(ctx, MeetingPoint{
@@ -348,7 +333,6 @@ func TestClearMeetingPoint_NoSuchMeetingPoint_Success(t *testing.T) {
 }
 
 func TestListMeetingPoints_NoMeetingPointsExist_ReturnsEmptySlice(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Note we haven't added any meeting points, so this should return an empty list.
@@ -360,7 +344,6 @@ func TestListMeetingPoints_NoMeetingPointsExist_ReturnsEmptySlice(t *testing.T) 
 }
 
 func TestListMeetingPoints_MeetingPointsExist_ReturnsMeetingPoints(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -379,7 +362,6 @@ func TestListMeetingPoints_MeetingPointsExist_ReturnsMeetingPoints(t *testing.T)
 }
 
 func TestNumMeetingPointsForPod_NoMeetingPointsExist_ReturnsZero(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Note we haven't added any meeting points, so this should return 0.
@@ -391,7 +373,6 @@ func TestNumMeetingPointsForPod_NoMeetingPointsExist_ReturnsZero(t *testing.T) {
 }
 
 func TestNumMeetingPointsForPod_MeetingPointExists_ReturnsOne(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -409,7 +390,6 @@ func TestNumMeetingPointsForPod_MeetingPointExists_ReturnsOne(t *testing.T) {
 }
 
 func TestNumMeetingPointsForPod_MeetingPointsExistButNoneMatchThePodName_ReturnZero(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.
@@ -428,7 +408,6 @@ func TestNumMeetingPointsForPod_MeetingPointsExistButNoneMatchThePodName_ReturnZ
 }
 
 func TestIsValidPod(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, s := setupForTest(t)
 
 	// Add a pod.

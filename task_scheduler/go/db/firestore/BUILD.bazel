@@ -37,7 +37,6 @@ go_test(
     deps = [
         "//go/deepequal/assertdeep",
         "//go/firestore/testutils",
-        "//go/testutils/unittest",
         "//task_scheduler/go/db",
         "@com_github_stretchr_testify//require",
     ],

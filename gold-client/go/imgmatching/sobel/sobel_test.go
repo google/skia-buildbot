@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/image/text"
@@ -116,7 +115,6 @@ func makeMatcherTestCases() []matcherTestCase {
 // TestMatcher_Match_MockFuzzyMatcher_CallsFuzzyMatcherWithExpectedInputImages tests
 // sobel.Matcher's Match() method in isolation with respect to the embedded fuzzy.Matcher.
 func TestMatcher_Match_MockFuzzyMatcher_CallsFuzzyMatcherWithExpectedInputImages(t *testing.T) {
-	unittest.SmallTest(t)
 
 	for _, tc := range makeMatcherTestCases() {
 		t.Run(tc.name, func(t *testing.T) {
@@ -138,7 +136,6 @@ func TestMatcher_Match_MockFuzzyMatcher_CallsFuzzyMatcherWithExpectedInputImages
 
 // TestMatcher_Match_Success tests sobel.Matcher's Match() method using a real fuzzy.Matcher.
 func TestMatcher_Match_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	for _, tc := range makeMatcherTestCases() {
 		t.Run(tc.name, func(t *testing.T) {
@@ -161,7 +158,6 @@ func TestMatcher_Match_Success(t *testing.T) {
 }
 
 func TestMatcher_Match_DifferentSizeImages_ReturnsFalse(t *testing.T) {
-	unittest.SmallTest(t)
 
 	smallImage := text.MustToNRGBA(`! SKTEXTSIMPLE
 	7 7
@@ -199,7 +195,6 @@ func TestMatcher_Match_DifferentSizeImages_ReturnsFalse(t *testing.T) {
 // TestSobel_Success tests the sobel() function using the canonical image1 and image1Sobel images
 // used throughout this file.
 func TestSobel_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	assertImagesEqual(t, text.MustToGray(image1Sobel), sobel(text.MustToGray(image1)))
 }
 
@@ -211,7 +206,6 @@ func TestSobel_Success(t *testing.T) {
 //   development (e.g. indexing and off-by-one errors). Those same bugs could be exposed with
 //   larger, more realistic images, but using small images makes it easier to debug failing tests.
 func TestSobel_SmallImages_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		name           string
@@ -370,7 +364,6 @@ func TestSobel_SmallImages_Success(t *testing.T) {
 }
 
 func TestSobel_EdgesAtVariousAngles_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	input0Degrees := text.MustToGray(`! SKTEXTSIMPLE
 	10 10
@@ -489,7 +482,6 @@ func TestSobel_EdgesAtVariousAngles_Success(t *testing.T) {
 }
 
 func TestSobel_GoldenImage_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Attribution for the test/input.png image used below:
 	//
@@ -506,7 +498,6 @@ func TestSobel_GoldenImage_Success(t *testing.T) {
 // TestZeroOutEdges_Success tests function zeroOutEdges() against image1 and image2 using the edges
 // from image1 (i.e. image1Sobel) in both cases, and a variety of edge thresholds.
 func TestZeroOutEdges_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name, expectedOutput, input string, edgeThreshold uint8) {
 		t.Run(name, func(t *testing.T) {
@@ -531,7 +522,6 @@ func TestZeroOutEdges_Success(t *testing.T) {
 
 // TestZeroOutEdges_SmallImages_Success tests various edge cases involving small images.
 func TestZeroOutEdges_SmallImages_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		name           string
@@ -586,7 +576,6 @@ func TestZeroOutEdges_SmallImages_Success(t *testing.T) {
 }
 
 func TestZeroOutEdges_GoldenImage_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	input := readPng(t, "test/input.png")
 	edges := readPngAsGray(t, "test/sobel-expected-output.png")
@@ -595,7 +584,6 @@ func TestZeroOutEdges_GoldenImage_Success(t *testing.T) {
 }
 
 func TestZeroOutEdges_InputAndEdgesImagesHaveDifferentBounds_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		img := text.MustToNRGBA(`! SKTEXTSIMPLE

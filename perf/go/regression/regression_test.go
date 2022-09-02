@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -14,7 +13,6 @@ import (
 var testTime = time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
 
 func TestMerge(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := NewRegression()
 

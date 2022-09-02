@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestValidateKey(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		key    string
 		valid  bool
@@ -91,7 +89,6 @@ func TestValidateKey(t *testing.T) {
 }
 
 func TestMakeKey(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		m      map[string]string
 		key    string
@@ -141,7 +138,6 @@ func TestMakeKey(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	unittest.SmallTest(t)
 	q, err := New(url.Values{"config": []string{"565", "8888"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.params))
@@ -197,7 +193,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		key     string
 		query   url.Values
@@ -342,7 +337,6 @@ func TestMatches(t *testing.T) {
 }
 
 func TestParseKey(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		key      string
 		parsed   map[string]string
@@ -414,7 +408,6 @@ func TestParseKey(t *testing.T) {
 }
 
 func TestParseKeyFast(t *testing.T) {
-	unittest.SmallTest(t)
 	p, err := ParseKeyFast(",arch=x86,config=565,debug=true,")
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]string{
@@ -426,7 +419,6 @@ func TestParseKeyFast(t *testing.T) {
 
 // Test a variety of inputs to make sure the code doesn't panic.
 func TestParseKeyFastNoPanics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testCases := []string{
 		",config=565,arch=x86,", // unsorted
@@ -449,7 +441,6 @@ func TestParseKeyFastNoPanics(t *testing.T) {
 }
 
 func TestForceValue(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		input map[string]string
 		want  map[string]string
@@ -487,7 +478,6 @@ func TestForceValue(t *testing.T) {
 }
 
 func TestQueryPlan(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rops := paramtools.ReadOnlyParamSet{
 		"config": []string{"8888", "565", "gpu"},
@@ -610,7 +600,6 @@ func TestQueryPlan(t *testing.T) {
 }
 
 func TestValidateParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.NoError(t, ValidateParamSet(nil))
 	assert.NoError(t, ValidateParamSet(paramtools.ParamSet{}))

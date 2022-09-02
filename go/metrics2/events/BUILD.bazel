@@ -33,7 +33,6 @@ go_test(
     deps = [
         "//go/bt/testutil",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

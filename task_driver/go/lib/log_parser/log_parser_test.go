@@ -18,7 +18,6 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Create a dummy output format which just indicates results of steps.
 	steps := []struct {
@@ -77,7 +76,6 @@ func everyLineIsAStep(sm *StepManager, line string) error {
 }
 
 func TestTimeout(t *testing.T) {
-	unittest.MediumTest(t)
 	// TODO(borenet): This test will not work on Windows.
 
 	// Write a script to generate steps.
@@ -166,7 +164,6 @@ func assertLogMatchesContent(t *testing.T, s *td.StepReport, logName, expect str
 }
 
 func TestLogs(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 
 	// This script writes log output which implies two sub-steps. We expect

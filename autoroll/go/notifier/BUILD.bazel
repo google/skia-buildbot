@@ -23,7 +23,6 @@ go_test(
     deps = [
         "//email/go/emailclient",
         "//go/notifier",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

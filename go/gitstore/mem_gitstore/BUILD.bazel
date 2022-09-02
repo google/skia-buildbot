@@ -27,7 +27,6 @@ go_test(
         "//go/git/testutils",
         "//go/gitstore",
         "//go/gitstore/shared_tests",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "@com_github_stretchr_testify//require",
     ],

@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTemplateExpand_SVGToCPP_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	tmplMap, err := loadTemplates()
 	require.NoError(t, err)
 	var b bytes.Buffer

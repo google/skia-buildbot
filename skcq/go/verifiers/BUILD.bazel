@@ -61,7 +61,6 @@ go_test(
         "//go/mockhttpclient",
         "//go/skerr",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//skcq/go/codereview/mocks",
         "//skcq/go/config",
         "//skcq/go/config/mocks",

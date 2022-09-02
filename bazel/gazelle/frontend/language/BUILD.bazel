@@ -23,8 +23,5 @@ go_test(
     name = "language_test",
     srcs = ["language_test.go"],
     embed = [":language"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

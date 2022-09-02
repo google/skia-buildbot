@@ -13,8 +13,5 @@ go_test(
     name = "validation_test",
     srcs = ["validation_test.go"],
     embed = [":validation"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

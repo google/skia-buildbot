@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const body = `
@@ -39,7 +38,6 @@ func failingTx(ctx context.Context, format, dotCode string) (string, error) {
 }
 
 func Test_server_transformHandler(t *testing.T) {
-	unittest.LargeTest(t)
 
 	goodTS := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")

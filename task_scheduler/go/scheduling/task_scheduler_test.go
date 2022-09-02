@@ -39,7 +39,6 @@ import (
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -262,7 +261,6 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, *mocks.CAS, func()) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -1112,7 +1110,6 @@ func TestProcessTaskCandidates(t *testing.T) {
 }
 
 func TestTestedness(t *testing.T) {
-	unittest.SmallTest(t)
 	tc := []struct {
 		in  int
 		out float64
@@ -1152,7 +1149,6 @@ func TestTestedness(t *testing.T) {
 }
 
 func TestTestednessIncrease(t *testing.T) {
-	unittest.SmallTest(t)
 	tc := []struct {
 		a   int
 		b   int
@@ -1253,7 +1249,6 @@ func TestTestednessIncrease(t *testing.T) {
 }
 
 func TestComputeBlamelist(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Setup.
 	nowCtx := now.TimeTravelingContext(mem_git.BaseTime.Add(time.Hour))
@@ -1563,7 +1558,6 @@ func TestComputeBlamelist(t *testing.T) {
 }
 
 func TestTimeDecay24Hr(t *testing.T) {
-	unittest.SmallTest(t)
 	tc := []struct {
 		decayAmt24Hr float64
 		elapsed      time.Duration
@@ -1765,7 +1759,6 @@ func makeSwarmingBot(id string, dims []string) *types.Machine {
 }
 
 func TestGetCandidatesToSchedule(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 	// Empty lists.
 	rv := getCandidatesToSchedule(ctx, []*types.Machine{}, []*TaskCandidate{})
@@ -2303,7 +2296,6 @@ func (s *spyDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, func()) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	workdir, err := ioutil.TempDir("", "")
@@ -3836,7 +3828,6 @@ func TestTriggerTaskNoResource(t *testing.T) {
 }
 
 func TestScoreCandidate_TryJob_PrioritizedHigherByWaitTime(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	test := func(name, jobCreated, now string, expectedScore float64) {
@@ -3861,7 +3852,6 @@ func TestScoreCandidate_TryJob_PrioritizedHigherByWaitTime(t *testing.T) {
 }
 
 func TestScoreCandidate_TryJob_PrioritizedLowerByNumRetries(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	test := func(name string, numRetries int, expectedScore float64) {
@@ -3888,7 +3878,6 @@ func TestScoreCandidate_TryJob_PrioritizedLowerByNumRetries(t *testing.T) {
 }
 
 func TestScoreCandidate_TryJob_MultipleJobPrioritiesImpactScore(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	test := func(name string, expectedScore float64, jobPriorities ...float64) {
@@ -3928,7 +3917,6 @@ func TestScoreCandidate_TryJob_MultipleJobPrioritiesImpactScore(t *testing.T) {
 }
 
 func TestScoreCandidate_TryJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	cycleStart := rfc3339(t, "2021-10-01T15:00:00Z")
@@ -3954,7 +3942,6 @@ func TestScoreCandidate_TryJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
 }
 
 func TestScoreCandidate_ForcedJob_PrioritizedHigherByWaitTime(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	test := func(name, jobCreated, now string, expectedScore float64) {
@@ -3979,7 +3966,6 @@ func TestScoreCandidate_ForcedJob_PrioritizedHigherByWaitTime(t *testing.T) {
 }
 
 func TestScoreCandidate_ForcedJob_MultipleJobPrioritiesImpactScore(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	test := func(name string, expectedScore float64, jobPriorities ...float64) {
@@ -4019,7 +4005,6 @@ func TestScoreCandidate_ForcedJob_MultipleJobPrioritiesImpactScore(t *testing.T)
 }
 
 func TestScoreCandidate_ForcedJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	cycleStart := rfc3339(t, "2021-10-01T15:00:00Z")
@@ -4045,7 +4030,6 @@ func TestScoreCandidate_ForcedJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
 }
 
 func TestComputeBlamelist_NoExistingTests(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const repoName = "some_repo"
@@ -4075,7 +4059,6 @@ func TestComputeBlamelist_NoExistingTests(t *testing.T) {
 }
 
 func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const repoName = "some_repo"
@@ -4116,7 +4099,6 @@ func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
 }
 
 func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const repoName = "some_repo"
@@ -4152,7 +4134,6 @@ func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) 
 }
 
 func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const repoName = "some_repo"
@@ -4182,7 +4163,6 @@ func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
 }
 
 func TestComputeBlamelist_BranchInHistory_NonOverlappingCoverage(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	const repoName = "some_repo"
@@ -4282,7 +4262,6 @@ func newTask(id string, ranAt string, alsoCovered ...string) *types.Task {
 }
 
 func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -4387,7 +4366,6 @@ func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
 }
 
 func TestRegenerateTaskQueue_NoBackfillForCD(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -4499,7 +4477,6 @@ func TestRegenerateTaskQueue_NoBackfillForCD(t *testing.T) {
 }
 
 func TestFilterTaskCandidates_NoCDTasksInRegularPools(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -4538,7 +4515,6 @@ func TestFilterTaskCandidates_NoCDTasksInRegularPools(t *testing.T) {
 }
 
 func TestFilterTaskCandidates_NoRegularTasksInCDPool(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 

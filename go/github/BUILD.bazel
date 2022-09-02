@@ -21,7 +21,6 @@ go_test(
         "//go/git",
         "//go/mockhttpclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_google_go_github_v29//github",
         "@com_github_gorilla_mux//:mux",
         "@com_github_stretchr_testify//require",

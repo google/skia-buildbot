@@ -79,7 +79,6 @@ func sendPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *pubsub.
 }
 
 func TestStart(t *testing.T) {
-	unittest.ManualTest(t)
 	unittest.RequiresPubSubEmulator(t)
 
 	ctx, pubsubClient, instanceConfig := setupPubSubClient(t)
@@ -107,7 +106,6 @@ func TestStart(t *testing.T) {
 }
 
 func TestStart_SecondCallToStartFails(t *testing.T) {
-	unittest.ManualTest(t)
 	unittest.RequiresPubSubEmulator(t)
 
 	ctx, pubsubClient, instanceConfig := setupPubSubClient(t)

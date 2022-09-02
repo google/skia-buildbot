@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -83,7 +82,6 @@ func fakeBuilder(t *testing.T) *Builder {
 }
 
 func TestMakeVars(t *testing.T) {
-	unittest.SmallTest(t)
 
 	reg := fakeRegistry(t)
 
@@ -176,7 +174,6 @@ func TestMakeVars(t *testing.T) {
 }
 
 func TestNamedTemplatesValid(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cfg := fakeCommitMsgConfig(t)
 	for tmpl := range namedCommitMsgTemplates {
@@ -188,7 +185,6 @@ func TestNamedTemplatesValid(t *testing.T) {
 }
 
 func TestQuotedLines(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := fakeCommitMsgConfig(t)
 	c.Template = &config.CommitMsgConfig_Custom{

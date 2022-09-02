@@ -27,7 +27,6 @@ go_test(
     embed = [":basic_lib"],
     deps = [
         "//go/exec",
-        "//go/testutils/unittest",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

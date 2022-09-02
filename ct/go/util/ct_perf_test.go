@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -23,7 +22,6 @@ const (
 )
 
 func TestCommitToSyntheticRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 
 	// Create a test repo.
@@ -71,7 +69,6 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 }
 
 func TestConvertCSVToBenchData(t *testing.T) {
-	unittest.SmallTest(t)
 	testDataDir := testutils.TestDataDir(t)
 	pathToTestCSV := filepath.Join(testDataDir, "test.csv")
 

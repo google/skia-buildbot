@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/firestore/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -38,7 +37,6 @@ func req() *ManualRollRequest {
 }
 
 func TestCopyManualRollRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	v := req()
 	v.Id = "abc123"
 	v.DbModified = time.Now()
@@ -46,7 +44,6 @@ func TestCopyManualRollRequest(t *testing.T) {
 }
 
 func TestRequestValidation(t *testing.T) {
-	unittest.SmallTest(t)
 
 	check := func(r *ManualRollRequest, expectErr string) {
 		err := r.Validate()
@@ -223,14 +220,12 @@ func testDB(t *testing.T, db DB) {
 }
 
 func TestMemoryDB(t *testing.T) {
-	unittest.SmallTest(t)
 	db := NewInMemoryDB()
 	defer util.Close(db)
 	testDB(t, db)
 }
 
 func TestFirestoreDB(t *testing.T) {
-	unittest.LargeTest(t)
 	c, cleanup := testutils.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 	db, err := NewDB(context.Background(), c)

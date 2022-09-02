@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const testRollerName = "fake-roller"
@@ -51,7 +50,6 @@ func checkReviewersNonEmpty(t *testing.T) {
 }
 
 func TestGetReviewers(t *testing.T) {
-	unittest.SmallTest(t)
 
 	urlMock := mockhttpclient.NewURLMock()
 	urlMock.MockOnce("https://reviewers.com/fake", mockhttpclient.MockGetDialogue([]byte(`{"emails": ["you@google.com", "me@google.com"]}`)))
@@ -71,7 +69,6 @@ func TestGetReviewers(t *testing.T) {
 }
 
 func TestGetReviewers_Backup(t *testing.T) {
-	unittest.SmallTest(t)
 
 	backupReviewers := []string{"backup-reviewer@google.com"}
 	gotReviewers := GetReviewers(nil, testRollerName, []string{"bad-source"}, backupReviewers)

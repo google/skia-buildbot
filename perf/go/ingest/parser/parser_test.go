@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -34,7 +33,6 @@ var (
 )
 
 func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
 
 	r := testutils.GetReader(t, filepath.Join("legacy", "success.json"))
@@ -50,7 +48,6 @@ func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 }
 
 func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
 	r := testutils.GetReader(t, filepath.Join("version_1", "success.json"))
 
@@ -65,7 +62,6 @@ func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 }
 
 func TestParser(t *testing.T) {
-	unittest.SmallTest(t)
 	// Loop over all the ingestion formats we support. Parallel test files with
 	// the same names are held in subdirectories of 'testdata'.
 	for _, ingestionFormat := range []string{"legacy", "version_1"} {
@@ -80,7 +76,6 @@ func TestParser(t *testing.T) {
 }
 
 func parserForTest(t *testing.T, subdir, filename string) (*Parser, file.File) {
-	unittest.SmallTest(t)
 	ret := New([]string{goodBranchName})
 	ret.parseCounter.Reset()
 	ret.parseFailCounter.Reset()
@@ -218,7 +213,6 @@ func parse_ReadErr(t *testing.T, p *Parser, f file.File) {
 }
 
 func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
 
 	r := testutils.GetReader(t, filepath.Join("legacy", "samples_success.json"))
@@ -259,7 +253,6 @@ func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
 }
 
 func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Load the sample data file as BenchData.
 	r := testutils.GetReader(t, filepath.Join("legacy", "samples_no_results.json"))
@@ -272,7 +265,6 @@ func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
 }
 
 func TestSamplesSetAdd_EmptySamples_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	a := SamplesSet{}
 	b := SamplesSet{}
 	a.Add(b)
@@ -280,7 +272,6 @@ func TestSamplesSetAdd_EmptySamples_Success(t *testing.T) {
 }
 
 func TestSamplesSetAdd_NonEmptySamples_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	a := SamplesSet{
 		",config=8888,": Samples{
 			Params: paramtools.Params{"config": "8888"},

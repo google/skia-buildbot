@@ -43,7 +43,6 @@ go_test(
     deps = [
         "//go/now",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machine/change/sink/mocks",
         "//machine/go/machine/store/mocks",

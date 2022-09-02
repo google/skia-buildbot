@@ -22,7 +22,6 @@ go_test(
     deps = [
         "//go/exec",
         "//go/git/git_common",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

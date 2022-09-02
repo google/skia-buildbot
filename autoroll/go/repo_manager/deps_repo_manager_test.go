@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -190,7 +189,6 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 
 // TestRepoManager tests all aspects of the DEPSRepoManager except for CreateNewRoll.
 func TestDEPSRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := depsCfg(t)
 	ctx, rm, _, _, childCommits, _, _, _, _, _, cleanup := setupDEPSRepoManager(t, cfg)
@@ -249,7 +247,6 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 }
 
 func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := depsCfg(t)
 	ctx, rm, _, _, _, _, _, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
@@ -268,7 +265,6 @@ func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
 }
 
 func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := depsCfg(t)
 	ctx, rm, _, _, _, _, _, _, urlmock, patchRefInSyncCmd, cleanup := setupDEPSRepoManager(t, cfg)
@@ -293,7 +289,6 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Create a fake pre-upload step.
 	ran := false
@@ -323,7 +318,6 @@ func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 // Verify that we properly utilize a gclient spec.
 func TestDEPSRepoManagerGClientSpec(t *testing.T) {
-	unittest.LargeTest(t)
 
 	gclientSpec := `
 solutions=[{

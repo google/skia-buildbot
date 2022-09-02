@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -57,7 +56,6 @@ var (
 )
 
 func TestMatcherFromRules_ValidConfig_RulesAreFollowed(t *testing.T) {
-	unittest.SmallTest(t)
 	m, err := MatcherFromRules(MatchingRules{
 		"alpha": {},
 		"beta": {
@@ -85,14 +83,12 @@ func TestMatcherFromRules_ValidConfig_RulesAreFollowed(t *testing.T) {
 }
 
 func TestMatcherFromRules_EmptyConfig_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := MatcherFromRules(MatchingRules{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "No rules detected")
 }
 
 func TestMatcherFromRules_EmptyCorpus_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := MatcherFromRules(MatchingRules{
 		"": {},
 	})

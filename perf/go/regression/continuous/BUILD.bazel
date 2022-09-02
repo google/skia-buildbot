@@ -33,7 +33,6 @@ go_test(
     embed = [":continuous"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//perf/go/alerts",
         "//perf/go/config",
         "@com_github_stretchr_testify//assert",

@@ -20,7 +20,6 @@ go_test(
     embed = [":gcr"],
     deps = [
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

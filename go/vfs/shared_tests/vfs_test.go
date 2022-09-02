@@ -15,13 +15,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vfs"
 	"go.skia.org/infra/go/vfs/mocks"
 )
 
 func TestReuseContextFile(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup.
 	origFile := &mocks.File{}
@@ -48,7 +46,6 @@ func TestReuseContextFile(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	name := "myfile.txt"
@@ -72,7 +69,6 @@ func TestReadFile(t *testing.T) {
 }
 
 func TestReadDir(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	name := "mydir"
@@ -108,7 +104,6 @@ func TestReadDir(t *testing.T) {
 }
 
 func TestStat(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	fs := &mocks.FS{}
@@ -122,7 +117,6 @@ func TestStat(t *testing.T) {
 }
 
 func TestWalk(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	fs := &mocks.FS{}

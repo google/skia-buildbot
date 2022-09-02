@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/loggingsyncbuffer"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type myGeneric struct {
@@ -27,7 +26,6 @@ func (m *myGeneric) String() string {
 }
 
 func TestLogFlags(t *testing.T) {
-	unittest.SmallTest(t)
 
 	logsBuffer := loggingsyncbuffer.New()
 

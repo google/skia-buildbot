@@ -18,13 +18,11 @@ import (
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/time/rate"
 )
 
 func TestLog(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Setup. The test repo looks like this:
 	/*
@@ -208,7 +206,6 @@ func TestLog(t *testing.T) {
 }
 
 func TestLogPagination(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Gitiles API paginates logs over 100 commits long.
 	ctx := context.Background()
@@ -326,7 +323,6 @@ func TestLogPagination(t *testing.T) {
 }
 
 func TestLogLimit(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	gs := mem_gitstore.New()
@@ -426,7 +422,6 @@ func TestLogLimit(t *testing.T) {
 }
 
 func TestLogPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	repoURL := "https://fake/repo"
@@ -445,7 +440,6 @@ func TestLogPath(t *testing.T) {
 }
 
 func TestGetTreeDiffs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	repoURL := "https://skia.googlesource.com/buildbot.git"
@@ -498,7 +492,6 @@ func TestGetTreeDiffs(t *testing.T) {
 }
 
 func TestListDir(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	repoURL := "https://skia.googlesource.com/buildbot.git"
@@ -562,7 +555,6 @@ func TestListDir(t *testing.T) {
 }
 
 func TestLogOptionsToQuery(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(expectPath string, expectQuery string, expectLimit int, opts ...LogOption) {
 		path, query, limit, err := LogOptionsToQuery(opts)
@@ -583,7 +575,6 @@ func TestLogOptionsToQuery(t *testing.T) {
 }
 
 func TestDetails(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Setup.
 	ctx := context.Background()

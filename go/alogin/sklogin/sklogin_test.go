@@ -7,11 +7,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/alogin"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRegisterHandlers_HandlersAreRegistered(t *testing.T) {
-	unittest.SmallTest(t)
 
 	router := mux.NewRouter()
 	(&sklogin{}).RegisterHandlers(router)
@@ -21,7 +19,6 @@ func TestRegisterHandlers_HandlersAreRegistered(t *testing.T) {
 }
 
 func TestStatus_CookiesAreNotPresent_EMailIsNotReturnedInStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	expected := alogin.Status{

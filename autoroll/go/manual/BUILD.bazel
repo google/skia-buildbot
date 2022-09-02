@@ -26,7 +26,6 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/firestore",
         "//go/firestore/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//require",
     ],

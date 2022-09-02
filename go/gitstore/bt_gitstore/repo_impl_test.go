@@ -137,56 +137,48 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *r
 }
 
 func TestGraphWellFormedBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestGraphWellFormed(t, ctx, g, repo, ud)
 }
 
 func TestRecurseBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestLogLinearBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestLogLinear(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRevList(t, ctx, g, repo, ud)
 }
 
 func TestBranchMembershipBTGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestBranchMembership(t, ctx, g, repo, ud)

@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/scrap/go/api"
 	"go.skia.org/infra/scrap/go/scrap"
 	"go.skia.org/infra/scrap/go/scrap/mocks"
@@ -31,7 +30,6 @@ const (
 )
 
 func TestCheckResponseForError_BadStatusCode_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	resp := &http.Response{
 		StatusCode: http.StatusBadGateway,
@@ -41,7 +39,6 @@ func TestCheckResponseForError_BadStatusCode_ReturnsError(t *testing.T) {
 }
 
 func TestNew_InvalidURL_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := New("not-a-valid-url\n")
 	require.Error(t, err)
 }
@@ -63,7 +60,6 @@ func setupForTest(t *testing.T) (*mocks.ScrapExchange, *Client) {
 }
 
 func TestExpand_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("Expand", testutils.AnyContext, scrap.SVG, scrapName, scrap.CPP, mock.Anything).Run(func(args mock.Arguments) {
@@ -79,7 +75,6 @@ func TestExpand_HappyPath_Success(t *testing.T) {
 }
 
 func TestExpand_HappyPathButContextTimesOut_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	// Create and cancel a Context.
@@ -93,7 +88,6 @@ func TestExpand_HappyPathButContextTimesOut_ReturnsError(t *testing.T) {
 }
 
 func TestExpand_ExpandError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("Expand", testutils.AnyContext, scrap.SVG, scrapName, scrap.CPP, mock.Anything).Return(errMyMockError)
@@ -104,7 +98,6 @@ func TestExpand_ExpandError_ReturnsError(t *testing.T) {
 }
 
 func TestLoadScrap_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapBody := scrap.ScrapBody{
@@ -120,7 +113,6 @@ func TestLoadScrap_HappyPath_Success(t *testing.T) {
 }
 
 func TestLoadScrap_LoadScrapError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapBody := scrap.ScrapBody{
@@ -135,7 +127,6 @@ func TestLoadScrap_LoadScrapError_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapBody := scrap.ScrapBody{
@@ -154,7 +145,6 @@ func TestCreateScrap_HappyPath_Success(t *testing.T) {
 }
 
 func TestCreateScrap_CreateReturnsError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapBody := scrap.ScrapBody{}
@@ -167,7 +157,6 @@ func TestCreateScrap_CreateReturnsError_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("DeleteScrap", testutils.AnyContext, scrap.SVG, scrapName).Return(nil)
@@ -178,7 +167,6 @@ func TestDeleteScrap_HappyPath_Success(t *testing.T) {
 }
 
 func TestDeleteScrap_DeleteErrors_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("DeleteScrap", testutils.AnyContext, scrap.SVG, scrapName).Return(errMyMockError)
@@ -189,7 +177,6 @@ func TestDeleteScrap_DeleteErrors_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	name := scrap.Name{
@@ -203,7 +190,6 @@ func TestPutName_HappyPath_Success(t *testing.T) {
 }
 
 func TestPutName_PutErrors_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	name := scrap.Name{
@@ -217,7 +203,6 @@ func TestPutName_PutErrors_ReturnsError(t *testing.T) {
 }
 
 func TestGetName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	name := scrap.Name{
@@ -232,7 +217,6 @@ func TestGetName_HappyPath_Success(t *testing.T) {
 }
 
 func TestGetName_GetErrors_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	name := scrap.Name{
@@ -246,7 +230,6 @@ func TestGetName_GetErrors_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("DeleteName", testutils.AnyContext, scrap.SVG, scrapName).Return(nil)
@@ -257,7 +240,6 @@ func TestDeleteName_HappyPath_Success(t *testing.T) {
 }
 
 func TestDeleteName_DeleteErrors_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("DeleteName", testutils.AnyContext, scrap.SVG, scrapName).Return(errMyMockError)
@@ -268,7 +250,6 @@ func TestDeleteName_DeleteErrors_ReturnsError(t *testing.T) {
 }
 
 func TestListNames_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	body := []string{scrapName, scrapName2}
@@ -281,7 +262,6 @@ func TestListNames_HappyPath_Success(t *testing.T) {
 }
 
 func TestListNames_ListErrors_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	scrapExchangeMock, client := setupForTest(t)
 
 	scrapExchangeMock.On("ListNames", testutils.AnyContext, scrap.SVG).Return(nil, errMyMockError)

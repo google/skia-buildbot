@@ -37,7 +37,6 @@ go_test(
         "//autoroll/go/revision",
         "//go/ds",
         "//go/ds/testutil",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

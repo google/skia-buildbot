@@ -14,14 +14,12 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 func TestWithEnv(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Mock the run function with one which asserts that it has the
@@ -125,7 +123,6 @@ func executeAndExpectResult(t *testing.T, content test2json.TestContent, expectR
 }
 
 func TestRunTestSteps_FailingTestHasFailureResult(t *testing.T) {
-	unittest.MediumTest(t)
 
 	res := executeAndExpectResult(t, test2json.ContentFail, td.StepResultFailure)
 
@@ -141,19 +138,16 @@ func TestRunTestSteps_FailingTestHasFailureResult(t *testing.T) {
 }
 
 func TestRunTestSteps_PassingTestHasSuccessResult(t *testing.T) {
-	unittest.MediumTest(t)
 
 	executeAndExpectResult(t, test2json.ContentPass, td.StepResultSuccess)
 }
 
 func TestRunTestSteps_SkippedTestHasSuccessResult(t *testing.T) {
-	unittest.MediumTest(t)
 
 	executeAndExpectResult(t, test2json.ContentPass, td.StepResultSuccess)
 }
 
 func TestRunTestSteps_NestedTestHasSuccessResultAndNestedSteps(t *testing.T) {
-	unittest.MediumTest(t)
 
 	res := executeAndExpectResult(t, test2json.ContentNested, td.StepResultSuccess)
 

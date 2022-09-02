@@ -52,7 +52,6 @@ go_test(
         "//go/now",
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//gold-client/go/gcsuploader",
         "//gold-client/go/goldclient",
         "//gold-client/go/httpclient",

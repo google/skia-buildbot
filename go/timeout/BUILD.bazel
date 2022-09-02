@@ -12,8 +12,5 @@ go_test(
     name = "timeout_test",
     srcs = ["timeout_test.go"],
     embed = [":timeout"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

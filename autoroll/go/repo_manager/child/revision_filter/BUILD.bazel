@@ -29,7 +29,6 @@ go_test(
     deps = [
         "//autoroll/go/revision",
         "//go/cipd/mocks",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//cipd/common",
     ],

@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
@@ -188,7 +187,6 @@ func matchTime(t *testing.T, ts time.Time) interface{} {
 }
 
 func TestGetIncrementalCommits_FreshLoad_ValidResponse(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	// Use same times everywhere for ease of testing.
@@ -290,7 +288,6 @@ func TestGetIncrementalCommits_FreshLoad_ValidResponse(t *testing.T) {
 }
 
 func TestGetIncrementalCommits_IncrementalCall_UsesCacheCorrectly(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now()
@@ -309,7 +306,6 @@ func TestGetIncrementalCommits_IncrementalCall_UsesCacheCorrectly(t *testing.T) 
 }
 
 func TestGetIncrementalCommits_RangeCall_UsesCacheCorrectly(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now()
@@ -332,7 +328,6 @@ func TestGetIncrementalCommits_RangeCall_UsesCacheCorrectly(t *testing.T) {
 }
 
 func TestGetAutorollerStatuses_ValidResponse(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, _, server := setupServerWithMockCapacityClient()
 	resp, err := server.GetAutorollerStatuses(ctx, &GetAutorollerStatusesRequest{})
 	require.NoError(t, err)
@@ -361,7 +356,6 @@ func TestGetAutorollerStatuses_ValidResponse(t *testing.T) {
 }
 
 func TestAddComment_TaskSpecComment_Added(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	matchComment := mock.MatchedBy(func(c *types.TaskSpecComment) bool {
@@ -386,7 +380,6 @@ func TestAddComment_TaskSpecComment_Added(t *testing.T) {
 }
 
 func TestAddComment_NotLoggedIn_ErrorReturned(t *testing.T) {
-	unittest.SmallTest(t)
 	_, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ctx := login.FakeLoggedInAs(context.Background(), "not_on_the_list@example.com")
@@ -402,7 +395,6 @@ func TestAddComment_NotLoggedIn_ErrorReturned(t *testing.T) {
 }
 
 func TestAddComment_TaskComment_Added(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	mocks.remoteDB.
@@ -440,7 +432,6 @@ func TestAddComment_TaskComment_Added(t *testing.T) {
 }
 
 func TestAddComment_CommitComment_Added(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	matchComment := mock.MatchedBy(func(c *types.CommitComment) bool {
@@ -466,7 +457,6 @@ func TestAddComment_CommitComment_Added(t *testing.T) {
 }
 
 func TestDeleteComment_TaskSpecComment_Deleted(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
@@ -487,7 +477,6 @@ func TestDeleteComment_TaskSpecComment_Deleted(t *testing.T) {
 }
 
 func TestDeleteComment_TaskComment_Deleted(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
@@ -521,7 +510,6 @@ func TestDeleteComment_TaskComment_Deleted(t *testing.T) {
 }
 
 func TestDeleteComment_CommitComment_Deleted(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
@@ -542,7 +530,6 @@ func TestDeleteComment_CommitComment_Deleted(t *testing.T) {
 }
 
 func TestConvertUpdate_NontrivialUpdate_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := time.Now()
 	// Minimal update.
 	src := &incremental.Update{Timestamp: ts}
@@ -639,7 +626,6 @@ func TestConvertUpdate_NontrivialUpdate_Success(t *testing.T) {
 }
 
 func TestGetBotUsage_MultipleDimensionSets_ValidResponse(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	mocks.capacityClient.On("CapacityMetrics").Return(map[string]capacity.BotConfig{

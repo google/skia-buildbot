@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/android_ingest/go/buildapi"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRationalize(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// startTS is much later.
 	builds := []buildapi.Build{
@@ -47,7 +45,6 @@ func TestRationalize(t *testing.T) {
 }
 
 func TestSort(t *testing.T) {
-	unittest.SmallTest(t)
 	builds := []buildapi.Build{
 		{TS: 120, BuildId: 12},
 		{TS: 123, BuildId: 11},
@@ -64,7 +61,6 @@ const startBuildID int64 = 123
 const startTS int64 = 1622980000
 
 func TestBuildsFromStartToMostRecent_Simple_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID+2, startTS+20)
 	expected := []buildapi.Build{
 		{BuildId: startBuildID + 1, TS: startTS + 19},
@@ -74,14 +70,12 @@ func TestBuildsFromStartToMostRecent_Simple_Success(t *testing.T) {
 }
 
 func TestBuildsFromStartToMostRecent_MatchingBeginAndEndTime_ReturnsEmptySlice(t *testing.T) {
-	unittest.SmallTest(t)
 	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID, startTS)
 	expected := []buildapi.Build{}
 	assert.Equal(t, expected, builds)
 }
 
 func TestBuildsFromStartToMostRecent_NotEnoughSecondsToHaveOneCommitPerSecond_ReturnAllBuilds(t *testing.T) {
-	unittest.SmallTest(t)
 	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID+4, startTS+2)
 	expected := []buildapi.Build{
 		{BuildId: startBuildID + 1, TS: startTS + 1},

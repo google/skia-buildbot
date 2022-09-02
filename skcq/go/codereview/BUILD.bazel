@@ -28,7 +28,6 @@ go_test(
         "//go/gerrit/mocks",
         "//go/httputils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],

@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	// This is pared down to the used fields plus one or two more at each level to make sure unused
 	// ones get ignored. Additionally, the used one spdisplays_vendor-id is missing in one element
 	// to make sure missing fields turned into empty strings.
@@ -86,14 +84,12 @@ func TestGPUsFromSystemProfilerXML_HappyPath(t *testing.T) {
 }
 
 func TestGPUsFromSystemProfilerXML_BadXML_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	xml := `invalid XML`
 	_, err := GPUsFromSystemProfilerXML(xml)
 	assert.Error(t, err)
 }
 
 func TestGPUsFromSystemProfilerXML_EmptyOuterArray_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	xml := `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -105,7 +101,6 @@ func TestGPUsFromSystemProfilerXML_EmptyOuterArray_ReturnsError(t *testing.T) {
 }
 
 func TestDimensionsFromMacGPUs_EmptyIDYieldsNoDimensions(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"none"},
@@ -120,7 +115,6 @@ func TestDimensionsFromMacGPUs_EmptyIDYieldsNoDimensions(t *testing.T) {
 }
 
 func TestDimensionsFromMacGPUs_VendorIDAndGPUIDGet0xPrefixRemovedAndGPUVersionGetsParsed(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"1234", "1234:5678", "1234:5678-9.8.7-6.5.4"},
@@ -135,7 +129,6 @@ func TestDimensionsFromMacGPUs_VendorIDAndGPUIDGet0xPrefixRemovedAndGPUVersionGe
 }
 
 func TestDimensionsFromMacGPUs_ExtractVendorIDFromVendor(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"eeee", "eeee:5678"},
@@ -150,7 +143,6 @@ func TestDimensionsFromMacGPUs_ExtractVendorIDFromVendor(t *testing.T) {
 }
 
 func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromModel(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"10de", "10de:5678"},
@@ -165,7 +157,6 @@ func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromModel(
 }
 
 func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromVendorField(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"10de", "10de:5678"},
@@ -180,7 +171,6 @@ func TestDimensionsFromMacGPUs_FindsVendorIDBasedOnVendorNameExtractedFromVendor
 }
 
 func TestDimensionsFromMacGPUs_SetsVendorIDToUnknownIfAllElseFails(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"UNKNOWN", "UNKNOWN:5678"},
@@ -195,7 +185,6 @@ func TestDimensionsFromMacGPUs_SetsVendorIDToUnknownIfAllElseFails(t *testing.T)
 }
 
 func TestDimensionsFromMacGPUs_YieldsNoDimensionsOnVMWare(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(
 		t,
 		[]string{"none"},

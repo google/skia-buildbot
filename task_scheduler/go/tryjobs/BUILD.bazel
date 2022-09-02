@@ -26,7 +26,6 @@ go_library(
         "//go/sklog",
         "//go/sktest",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//task_scheduler/go/cacher",
         "//task_scheduler/go/db",

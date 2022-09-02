@@ -22,7 +22,6 @@ go_test(
     embed = [":diff"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/image/text",
         "//golden/go/testutils/data_one_by_five",
         "@com_github_stretchr_testify//assert",

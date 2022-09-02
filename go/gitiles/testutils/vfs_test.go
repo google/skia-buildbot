@@ -8,14 +8,12 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vfs/shared_tests"
 )
 
 // Ideally, this would be in the go/gitiles package, but we want to use the
 // mocks in this package.
 func TestFS(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	repoURL := "https://fake.repo.git"

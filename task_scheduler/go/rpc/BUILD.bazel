@@ -47,7 +47,6 @@ go_test(
         "//go/gitstore/mem_gitstore",
         "//go/swarming/mocks",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_scheduler/go/db/memory",
         "//task_scheduler/go/skip_tasks",
         "//task_scheduler/go/specs",

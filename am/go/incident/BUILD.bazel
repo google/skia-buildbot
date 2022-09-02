@@ -33,7 +33,6 @@ go_test(
         "//go/ds",
         "//go/ds/testutil",
         "//go/paramtools",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

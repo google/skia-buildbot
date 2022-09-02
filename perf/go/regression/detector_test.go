@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
@@ -21,7 +20,6 @@ const (
 )
 
 func TestTooMuchMissingData(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		value    types.Trace
 		expected bool
@@ -72,7 +70,6 @@ func TestTooMuchMissingData(t *testing.T) {
 }
 
 func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	alert := alerts.NewConfig() // A known query that will fail to parse.
 	alert.Query = "http://[::1]a"
@@ -92,7 +89,6 @@ func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
 }
 
 func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	baseRequest := NewRegressionDetectionRequest()
 	alert := alerts.NewConfig()
@@ -109,7 +105,6 @@ func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
 }
 
 func TestAllRequestsFromBaseRequest_WithInvalidGroupBy_NoRequestsReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	baseRequest := NewRegressionDetectionRequest()
 	alert := alerts.NewConfig()
@@ -125,7 +120,6 @@ func TestAllRequestsFromBaseRequest_WithInvalidGroupBy_NoRequestsReturned(t *tes
 }
 
 func TestAllRequestsFromBaseRequest_WithoutGroupBy_BaseRequestReturnedUnchanged(t *testing.T) {
-	unittest.SmallTest(t)
 
 	baseRequest := NewRegressionDetectionRequest()
 	alert := alerts.NewConfig()
@@ -144,7 +138,6 @@ func TestAllRequestsFromBaseRequest_WithoutGroupBy_BaseRequestReturnedUnchanged(
 }
 
 func TestAllRequestsFromBaseRequest_WithGroupBy_DoNoExpandBaseAlertByGroupBySuppressedGroupBy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	baseRequest := NewRegressionDetectionRequest()
 	alert := alerts.NewConfig()
@@ -163,13 +156,11 @@ func TestAllRequestsFromBaseRequest_WithGroupBy_DoNoExpandBaseAlertByGroupBySupp
 }
 
 func TestRegressionDetectionRequestQuery_NoAlert_ReturnsEmptyQuery(t *testing.T) {
-	unittest.SmallTest(t)
 	r := NewRegressionDetectionRequest()
 	assert.Equal(t, "", r.Query())
 }
 
 func TestRegressionDetectionRequestQuery_Alert_ReturnsTheAlertsQueryValue(t *testing.T) {
-	unittest.SmallTest(t)
 	r := NewRegressionDetectionRequest()
 	r.Alert = alerts.NewConfig()
 	r.Alert.Query = "foo"
@@ -177,7 +168,6 @@ func TestRegressionDetectionRequestQuery_Alert_ReturnsTheAlertsQueryValue(t *tes
 }
 
 func TestRegressionDetectionRequestQuery_AlertAndSetQueryCalled_ReturnsTheSetQueryValue(t *testing.T) {
-	unittest.SmallTest(t)
 	r := NewRegressionDetectionRequest()
 	r.Alert = alerts.NewConfig()
 	r.Alert.Query = "foo"

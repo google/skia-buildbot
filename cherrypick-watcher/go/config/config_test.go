@@ -9,11 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseCfg(t *testing.T) {
-	unittest.MediumTest(t)
 	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "test-config.json")
 	cfgContents, err := ioutil.ReadFile(configFile)
@@ -31,7 +29,6 @@ func TestParseCfg(t *testing.T) {
 }
 
 func TestParseCfgInvalid(t *testing.T) {
-	unittest.SmallTest(t)
 
 	supportedBranchDeps, err := ParseCfg([]byte("Hi Mom!"))
 	require.Nil(t, supportedBranchDeps)

@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -23,7 +22,6 @@ import (
 )
 
 func setup(t *testing.T) (context.Context, *Cacher, task_cfg_cache.TaskCfgCache, *mocks.CAS, types.RepoState, *git_testutils.GitBuilder, func()) {
-	unittest.LargeTest(t)
 	ctx, gb, rev, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
 

@@ -8,11 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRender_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	d := New("/usr/bin/hugo", "/my-docsy-dir", "relative/path/into/checkout")
 
@@ -22,7 +20,6 @@ func TestRender_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_Hugo_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -36,7 +33,6 @@ func Test_FakeExe_Hugo_Success(t *testing.T) {
 }
 
 func TestRender_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 
 	d := New("/usr/bin/hugo", "/my-docsy-dir", "relative/path/into/checkout")
 	ctx := executil.FakeTestsContext("Test_FakeExe_Hugo_Failure")
@@ -45,7 +41,6 @@ func TestRender_Failure(t *testing.T) {
 }
 
 func Test_FakeExe_Hugo_Failure(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

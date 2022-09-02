@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 	"go.skia.org/infra/skcq/go/config"
 	cfg_mocks "go.skia.org/infra/skcq/go/config/mocks"
@@ -105,14 +104,12 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 }
 
 func TestGetVerifier_CQ_NoTogetherChanges(t *testing.T) {
-	unittest.SmallTest(t)
 
 	expectedVerifiers := []string{"CQAccessListVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
 	testGetVerifier(t, true, false, nil, expectedVerifiers)
 }
 
 func TestGetVerifier_CQ_WithTogetherChanges(t *testing.T) {
-	unittest.SmallTest(t)
 
 	expectedVerifiers := []string{"CQAccessListVerifier", "SubmittedTogetherVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
 	togetherChange := &gerrit.ChangeInfo{Issue: int64(222)}
@@ -120,14 +117,12 @@ func TestGetVerifier_CQ_WithTogetherChanges(t *testing.T) {
 }
 
 func TestGetVerifier_DryRun(t *testing.T) {
-	unittest.SmallTest(t)
 
 	expectedVerifiers := []string{"DryRunAccessListVerifier", "TryJobsVerifier"}
 	testGetVerifier(t, false, true, nil, expectedVerifiers)
 }
 
 func TestGetVerifier_DryRun_WithTogetherChanges(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Together changes should be ignored for dry runs.
 	expectedVerifiers := []string{"DryRunAccessListVerifier", "TryJobsVerifier"}
@@ -135,7 +130,6 @@ func TestGetVerifier_DryRun_WithTogetherChanges(t *testing.T) {
 	testGetVerifier(t, false, true, togetherChange, expectedVerifiers)
 }
 func TestGetVerifier_CQAndDryRun(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// If both CQ and DryRun are set then the verifiers should be the same as
 	// CQ verifiers.
@@ -144,7 +138,6 @@ func TestGetVerifier_CQAndDryRun(t *testing.T) {
 }
 
 func TestRunVerifiers(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	startTime := vmCurrentTime.Unix() - 100

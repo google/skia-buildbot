@@ -10,14 +10,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	botmachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
 func TestGetSettings_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/get_settings", nil)
 	s, err := New(&botmachine.Machine{})
@@ -34,7 +32,6 @@ func TestGetSettings_Success(t *testing.T) {
 }
 
 func TestGetState_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const someRackName = "some-rack-name"
 
@@ -61,7 +58,6 @@ func TestGetState_Success(t *testing.T) {
 }
 
 func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const someRackName = "some-rack-name"
 
@@ -89,7 +85,6 @@ func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
 }
 
 func TestGetState_ErrOnInvalidJSON(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("This is not valid JSON"))
 
@@ -104,7 +99,6 @@ func TestGetState_ErrOnInvalidJSON(t *testing.T) {
 }
 
 func TestGetDimensions_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("POST", "/get_settings", strings.NewReader("{\"foo\": [\"bar\"]}"))
 
@@ -131,7 +125,6 @@ func TestGetDimensions_Success(t *testing.T) {
 }
 
 func TestOnBeginTask_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/on_begin_task", nil)
 
@@ -153,7 +146,6 @@ func TestOnBeginTask_Success(t *testing.T) {
 }
 
 func TestOnAfterTask_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/on_after_task", nil)
 

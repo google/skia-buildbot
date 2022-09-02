@@ -14,7 +14,6 @@ go_test(
     srcs = ["bloaty_test.go"],
     embed = [":bloaty"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

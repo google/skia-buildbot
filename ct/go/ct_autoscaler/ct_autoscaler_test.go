@@ -8,11 +8,9 @@ import (
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRegisterGCETask(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockGCETasksCount := func(ctx context.Context) (int, error) {
 		return 1, nil
@@ -34,7 +32,6 @@ func TestRegisterGCETask(t *testing.T) {
 }
 
 func TestUnRegisterGCETask(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	mockTasksCount := 0

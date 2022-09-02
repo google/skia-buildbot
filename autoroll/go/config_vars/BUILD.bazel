@@ -19,7 +19,6 @@ go_test(
     deps = [
         "//go/chrome_branch/mocks",
         "//go/deepequal/assertdeep",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

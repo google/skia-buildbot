@@ -8,11 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetResultFilePath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	arbitraryTime := time.Date(2022, 1, 2, 3, 4, 5, 67, time.UTC)
 	ctx := now.TimeTravelingContext(arbitraryTime)

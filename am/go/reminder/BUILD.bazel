@@ -27,7 +27,6 @@ go_test(
         "//am/go/incident",
         "//am/go/silence",
         "//go/paramtools",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

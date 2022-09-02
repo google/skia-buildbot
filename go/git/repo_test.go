@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -19,7 +18,6 @@ const (
 )
 
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
-	unittest.LargeTest(t)
 
 	// Create a local git repo to play with.
 	ctx := context.Background()

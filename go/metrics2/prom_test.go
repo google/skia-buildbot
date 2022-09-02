@@ -7,11 +7,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestClean(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, "a_b_c", clean("a.b-c"))
 }
 
@@ -23,7 +21,6 @@ func getPromClient() *promClient {
 }
 
 func TestInt64(t *testing.T) {
-	unittest.SmallTest(t)
 	c := getPromClient()
 	check := func(m Int64Metric, metric string, tags map[string]string, expect float64) {
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
@@ -67,7 +64,6 @@ func TestInt64(t *testing.T) {
 }
 
 func TestFloat64(t *testing.T) {
-	unittest.SmallTest(t)
 	c := getPromClient()
 	check := func(m Float64Metric, metric string, tags map[string]string, expect float64) {
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
@@ -111,7 +107,6 @@ func TestFloat64(t *testing.T) {
 }
 
 func TestCounter(t *testing.T) {
-	unittest.SmallTest(t)
 	c := getPromClient()
 	check := func(m Counter, metric string, tags map[string]string, expect float64) {
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
@@ -142,7 +137,6 @@ func TestCounter(t *testing.T) {
 }
 
 func TestPanicOn(t *testing.T) {
-	unittest.SmallTest(t)
 	/*
 		  We need a sklog stand-in that just panics on Fatal*.
 

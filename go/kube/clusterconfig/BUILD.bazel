@@ -17,8 +17,5 @@ go_test(
     name = "clusterconfig_test",
     srcs = ["clusterconfig_test.go"],
     embed = [":clusterconfig"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

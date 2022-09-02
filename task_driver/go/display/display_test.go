@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTruncateError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(input, expect string) {
 		assert.Equal(t, expect, truncateError(input))

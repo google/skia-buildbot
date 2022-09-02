@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -218,7 +217,6 @@ func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRe
 
 // TestGithubDEPSRepoManager tests all aspects of the GithubDEPSRepoManager except for CreateNewRoll.
 func TestGithubDEPSRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
 	ctx, rm, _, child, childCommits, _, _, _, cleanup := setupGithubDEPS(t, cfg)
@@ -238,7 +236,6 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 }
 
 func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
@@ -256,7 +253,6 @@ func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 }
 
 func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
@@ -295,7 +291,6 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Create a fake pre-upload step.
 	ran := false
@@ -321,7 +316,6 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 // Verify that we fail when a PreUploadStep fails.
 func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Create a fake pre-upload step.
 	ran := false

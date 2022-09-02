@@ -17,7 +17,6 @@ import (
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -90,7 +89,6 @@ func assertJobEvent(t *testing.T, ev *events.Event, j *types.Job) {
 
 // TestJobUpdate checks that jobEventDB.update creates the correct Events from Jobs in the DB.
 func TestJobUpdate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, jdb, wait, cleanup := setupJobs(t, now)
 	defer cleanup()
@@ -123,7 +121,6 @@ func TestJobUpdate(t *testing.T) {
 
 // TestJobRange checks that jobEventDB.Range returns Events within the given range.
 func TestJobRange(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, jdb, wait, cleanup := setupJobs(t, now)
 	defer cleanup()
@@ -217,7 +214,6 @@ func (dt *DynamicAggregateFnTester) Run(evs []*events.Event) {
 }
 
 func TestComputeAvgJobDuration(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, jdb, wait, cleanup := setupJobs(t, now)
 	defer cleanup()
@@ -280,7 +276,6 @@ func TestComputeAvgJobDuration(t *testing.T) {
 }
 
 func TestComputeJobFailureMishapRate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, jdb, wait, cleanup := setupJobs(t, now)
 	defer cleanup()
@@ -374,7 +369,6 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 }
 
 func TestOverdueJobSpecMetrics(t *testing.T) {
-	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)

@@ -8,11 +8,9 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/skerr/alpha_test"
 	"go.skia.org/infra/go/skerr/beta_test"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCallStack(t *testing.T) {
-	unittest.SmallTest(t)
 	var stack []skerr.StackTrace
 	callback := func() error {
 		stack = skerr.CallStack(7, 0)
@@ -33,7 +31,6 @@ func TestCallStack(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	unittest.SmallTest(t)
 	var alpha alpha_test.Alpha
 	alpha.SetWrappedCallback(beta_test.GetGenericError)
 	err := alpha.Call()
@@ -42,13 +39,11 @@ func TestWrap(t *testing.T) {
 }
 
 func TestUnwrapOtherErr(t *testing.T) {
-	unittest.SmallTest(t)
 	err := beta_test.GenericError
 	require.Equal(t, err, skerr.Unwrap(err))
 }
 
 func TestFmt(t *testing.T) {
-	unittest.SmallTest(t)
 	const fmtStr = "Dog too small; dog is %d kg; minimum is %d kg."
 	callback := func() error {
 		return skerr.Fmt(fmtStr, 45, 50)
@@ -62,14 +57,12 @@ func TestFmt(t *testing.T) {
 }
 
 func TestWrapfCreate(t *testing.T) {
-	unittest.SmallTest(t)
 	err := beta_test.Context1(beta_test.GetGenericError)
 	require.Equal(t, beta_test.GenericError, skerr.Unwrap(err))
 	require.Regexp(t, `When searching for 35 trees: human detected\. At beta.go:31 skerr_test\.go:\d+.*`, err.Error())
 }
 
 func TestWrapfAppend(t *testing.T) {
-	unittest.SmallTest(t)
 	callback := func() error {
 		return skerr.Fmt("Dog lost interest")
 	}

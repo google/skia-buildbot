@@ -9,7 +9,6 @@ import (
 
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // Find the name of the nameservers to use for Cloud DNS by running:
@@ -62,7 +61,6 @@ func testZoneEntry(t *testing.T, qType uint16, domainName, expectedValue string)
 }
 
 func TestDNSConfiguration(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Keep these tests in the same order as the records appear in
 	// skia.org.zone, to make it easier to confirm that all cases are being

@@ -23,7 +23,6 @@ go_test(
     deps = [
         "//go/bt/testutil",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_driver/go/db",
         "//task_driver/go/db/shared_tests",
         "@com_github_stretchr_testify//require",

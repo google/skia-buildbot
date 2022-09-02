@@ -7,12 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 func TestDigestToBytes_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	actualBytes, err := DigestToBytes("0123456789abcdef0123456789abcdef")
 	require.NoError(t, err)
@@ -20,28 +18,24 @@ func TestDigestToBytes_Success(t *testing.T) {
 }
 
 func TestDigestToBytes_MissingDigest_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := DigestToBytes("")
 	require.Error(t, err)
 }
 
 func TestDigestToBytes_InvalidCharacters_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := DigestToBytes("ZZZZZZZZ89abcdef0123456789abcdef")
 	require.Error(t, err)
 }
 
 func TestDigestToBytes_InvalidLength_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := DigestToBytes("abcdef")
 	require.Error(t, err)
 }
 
 func TestSerializeMap_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mJSON, expectedHash := SerializeMap(map[string]string{
 		"opt": "png",
@@ -69,14 +63,12 @@ func TestSerializeMap_Success(t *testing.T) {
 }
 
 func TestComputeTraceValueShard_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, byte(0x05), ComputeTraceValueShard(schema.TraceID{0xed, 0x12}))
 	assert.Equal(t, byte(0x03), ComputeTraceValueShard(schema.TraceID{0x13, 0x14}))
 }
 
 func TestAsMD5Hash_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	db, err := DigestToBytes("aaaabbbbccccddddeeeeffff00001111")
 	require.NoError(t, err)
@@ -86,7 +78,6 @@ func TestAsMD5Hash_Success(t *testing.T) {
 }
 
 func TestFromMD5Hash_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	someHashes := []schema.MD5Hash{
 		{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11},
 		{0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22},
@@ -106,7 +97,6 @@ func TestFromMD5Hash_Success(t *testing.T) {
 }
 
 func TestValuesPlaceholders_ValidInputs_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	v := ValuesPlaceholders(3, 2)
 	assert.Equal(t, "($1,$2,$3),($4,$5,$6)", v)
@@ -122,7 +112,6 @@ func TestValuesPlaceholders_ValidInputs_Success(t *testing.T) {
 }
 
 func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		ValuesPlaceholders(-3, 2)
@@ -136,14 +125,12 @@ func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
 }
 
 func TestQualify_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, "gerrit_12345", Qualify("gerrit", "12345"))
 	assert.Equal(t, "gerrit-internal_6789012", Qualify("gerrit-internal", "6789012"))
 }
 
 func TestUnqualify_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, "12345", Unqualify("gerrit_12345"))
 	assert.Equal(t, "6789012", Unqualify("gerrit-internal_6789012"))
@@ -152,7 +139,6 @@ func TestUnqualify_Success(t *testing.T) {
 }
 
 func TestSanitize_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, "All Good!", Sanitize(`All Good!`))
 	assert.Equal(t, "foo OR 1=1", Sanitize(`foo OR '1=1'`))

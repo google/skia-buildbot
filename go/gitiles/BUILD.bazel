@@ -32,7 +32,6 @@ go_test(
         "//go/gitstore/mem_gitstore",
         "//go/mockhttpclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "@com_github_stretchr_testify//require",
         "@org_golang_x_time//rate",

@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -22,7 +21,6 @@ func (r *mockTryJobReader) getTryJobs(ctx context.Context) (map[string][]string,
 }
 
 func TestTry(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCmd := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockCmd.Run)

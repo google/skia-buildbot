@@ -12,11 +12,9 @@ import (
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/go/mockhttpclient"
 	monorail_srv "go.skia.org/infra/go/monorail/v3"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMonorailSearch(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	mc := &MonorailQueryConfig{

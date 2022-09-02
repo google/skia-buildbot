@@ -9,11 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNumber(t *testing.T) {
-	unittest.SmallTest(t)
 	type testCase struct {
 		in  string
 		out int64
@@ -80,7 +78,6 @@ func TestNumber(t *testing.T) {
 }
 
 func TestTime(t *testing.T) {
-	unittest.SmallTest(t)
 	type testCase struct {
 		in  time.Time
 		out string
@@ -107,7 +104,6 @@ func TestTime(t *testing.T) {
 	}
 }
 func TestMarshalStringMap_NonEmptyMap_MatchesBuiltInImpl(t *testing.T) {
-	unittest.MediumTest(t)
 	input := map[string]string{}
 	testutils.ReadJSONFile(t, "mediumparams.json", &input)
 	require.Len(t, input, 50)
@@ -126,7 +122,6 @@ func TestMarshalStringMap_NonEmptyMap_MatchesBuiltInImpl(t *testing.T) {
 }
 
 func TestMarshalStringMap_EmptyMap_MatchesBuiltInImpl(t *testing.T) {
-	unittest.SmallTest(t)
 	input := map[string]string{}
 	actual := MarshalStringMap(input)
 	expected, err := json.Marshal(input)
@@ -135,7 +130,6 @@ func TestMarshalStringMap_EmptyMap_MatchesBuiltInImpl(t *testing.T) {
 }
 
 func TestMarshalStringMap_NilMap_MatchesBuiltInImpl(t *testing.T) {
-	unittest.SmallTest(t)
 	var input map[string]string
 	actual := MarshalStringMap(input)
 	expected, err := json.Marshal(input)

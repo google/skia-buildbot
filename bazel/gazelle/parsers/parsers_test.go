@@ -4,12 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSplitLinesAndRemoveComments_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const input = `
 First // inline comments are kept
@@ -41,7 +38,6 @@ Seventh`
 }
 
 func TestSplitLinesAndRemoveComments_HandlesMultipleBlockCommentsOnALine(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const input = `#include "alpha.h"
 /* foo */ /* bar */

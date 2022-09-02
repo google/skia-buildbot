@@ -8,13 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
 func TestSetIngested_WritesToDeprecatedIngestedFiles(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
@@ -35,7 +33,6 @@ func TestSetIngested_WritesToDeprecatedIngestedFiles(t *testing.T) {
 }
 
 func TestWasIngested_AlreadyStored_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
@@ -54,7 +51,6 @@ func TestWasIngested_AlreadyStored_Success(t *testing.T) {
 }
 
 func TestWasIngested_StoredLater_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)

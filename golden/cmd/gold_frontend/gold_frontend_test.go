@@ -9,12 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/web"
 )
 
 func TestAddJSONRoute_ValidRoute_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(router *mux.Router, jsonRoute, expectedResponse string, callCountMetricExpectedToIncrease metrics2.Counter) {
 		// Mock HTTP request and response.
@@ -75,7 +73,6 @@ func TestAddJSONRoute_ValidRoute_Success(t *testing.T) {
 }
 
 func TestAddJSONRoute_InvalidRoute_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(routerPathPrefix, jsonRoute, expectedError string) {
 		require.PanicsWithValue(t, expectedError, func() {

@@ -21,7 +21,6 @@ go_test(
     deps = [
         "//go/now",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//machine/go/switchboard",
         "//machine/go/switchboard/mocks",
         "@com_github_stretchr_testify//mock",

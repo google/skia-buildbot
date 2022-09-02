@@ -23,7 +23,6 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":html_insert_assets_lib"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

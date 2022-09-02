@@ -25,7 +25,6 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":open_ar_lib"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

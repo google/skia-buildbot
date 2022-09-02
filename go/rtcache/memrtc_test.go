@@ -8,13 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // TestMemReadThroughCacheGetSunnyDay checks that we cache the values after reading them
 // from the passed in read-through function.
 func TestMemReadThroughCacheGetSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"
@@ -65,7 +63,6 @@ func TestMemReadThroughCacheGetSunnyDay(t *testing.T) {
 // TestMemReadThroughCacheGetAllSunnyDay checks that GetAll returns correctly when either both
 // things are cached or both things are not cached.
 func TestMemReadThroughCacheGetAllSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"
@@ -108,7 +105,6 @@ func TestMemReadThroughCacheGetAllSunnyDay(t *testing.T) {
 // TestMemReadThroughCacheGetAllPartial checks that GetAll behaves correctly when some things
 // are cached, but other things are not
 func TestMemReadThroughCacheGetAllPartial(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"
@@ -141,7 +137,6 @@ func TestMemReadThroughCacheGetAllPartial(t *testing.T) {
 
 // TestMemReadThroughCacheRace checks that multiple concurrent calls to Get
 func TestMemReadThroughCacheRace(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"
@@ -174,7 +169,6 @@ func TestMemReadThroughCacheRace(t *testing.T) {
 // TestMemReadThroughCacheRemove checks that if we call remove, we re-fetch the value
 // on the next call
 func TestMemReadThroughCacheRemove(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"
@@ -207,7 +201,6 @@ func TestMemReadThroughCacheRemove(t *testing.T) {
 // TestMemReadThroughCacheGetErrors checks that if a worker function call returns error, we will
 // try it again later
 func TestMemReadThroughCacheGetErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 
@@ -250,7 +243,6 @@ func TestMemReadThroughCacheGetErrors(t *testing.T) {
 // TestMemReadThroughCacheGetAllErrors checks that if a worker function call returns error, we will
 // try it again later
 func TestMemReadThroughCacheGetAllErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const alpha = "alpha"
 	const beta = "beta"

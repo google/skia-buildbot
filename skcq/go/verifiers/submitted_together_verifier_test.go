@@ -8,14 +8,12 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 	"go.skia.org/infra/skcq/go/types/mocks"
 )
 
 func TestVerify_NoTogetherChanges(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stv := &SubmittedTogetherVerifier{
 		togetherChangesToVerifiers: nil,
@@ -27,7 +25,6 @@ func TestVerify_NoTogetherChanges(t *testing.T) {
 }
 
 func TestVerify_NoDepChecksFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	stv := &SubmittedTogetherVerifier{
@@ -45,7 +42,6 @@ func TestVerify_NoDepChecksFooter(t *testing.T) {
 }
 
 func TestVerify_AllStates(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	togetherVerifiers := []types.Verifier{&mocks.Verifier{}, &mocks.Verifier{}}
@@ -81,7 +77,6 @@ func TestVerify_AllStates(t *testing.T) {
 }
 
 func TestCleanup(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	cleanupPatchsetID := int64(5)

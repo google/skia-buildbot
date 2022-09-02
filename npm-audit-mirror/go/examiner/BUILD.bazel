@@ -26,7 +26,6 @@ go_test(
         "//go/mockhttpclient",
         "//go/monorail/v3:monorail",
         "//go/monorail/v3/mocks",
-        "//go/testutils/unittest",
         "//npm-audit-mirror/go/config",
         "//npm-audit-mirror/go/types",
         "//npm-audit-mirror/go/types/mocks",

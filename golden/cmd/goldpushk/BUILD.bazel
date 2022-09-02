@@ -29,7 +29,6 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":goldpushk_lib"],
     deps = [
-        "//go/testutils/unittest",
         "//golden/cmd/goldpushk/goldpushk",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

@@ -7,12 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // TestStrategyHistory verifies that we correctly track strategy history.
 func TestStrategyHistory(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_STRATEGY)
 

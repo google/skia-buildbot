@@ -30,7 +30,6 @@ go_test(
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/syncer",
         "//task_scheduler/go/task_cfg_cache",

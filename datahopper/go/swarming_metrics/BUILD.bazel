@@ -41,7 +41,6 @@ go_test(
         "//go/swarming/mocks",
         "//go/taskname",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//perf/go/ingest/format",
         "//perf/go/perfclient",

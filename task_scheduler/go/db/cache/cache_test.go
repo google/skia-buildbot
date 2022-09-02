@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
@@ -29,7 +28,6 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
 }
 
 func TestTaskCache(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -93,7 +91,6 @@ func TestTaskCache(t *testing.T) {
 }
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
@@ -137,7 +134,6 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 }
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
@@ -233,7 +229,6 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 }
 
 func TestTaskCacheMultiRepo(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
@@ -299,7 +294,6 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 }
 
 func TestTaskCacheUnfinished(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
@@ -423,7 +417,6 @@ func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*types.Task) {
 }
 
 func TestTaskCacheExpiration(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
@@ -570,7 +563,6 @@ func TestTaskCacheExpiration(t *testing.T) {
 }
 
 func TestJobCache(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryJobDB()
@@ -635,7 +627,6 @@ func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 }
 
 func TestJobCacheUnfinished(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryJobDB()
@@ -785,7 +776,6 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 }
 
 func TestJobCacheExpiration(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryJobDB()
@@ -860,7 +850,6 @@ func TestJobCacheExpiration(t *testing.T) {
 }
 
 func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

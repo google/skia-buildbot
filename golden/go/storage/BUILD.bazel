@@ -23,7 +23,6 @@ go_test(
     srcs = ["gcsclient_manual_test.go"],
     embed = [":storage"],
     deps = [
-        "//go/testutils/unittest",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

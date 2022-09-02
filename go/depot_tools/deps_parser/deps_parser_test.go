@@ -7,7 +7,6 @@ import (
 	"github.com/go-python/gpython/ast"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const fakeDepsContent = `# This is a fake DEPS file.
@@ -54,7 +53,6 @@ deps = {
 `
 
 func TestParseDeps(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Verify that we parse the DEPS content successfully and get the
 	// correct results for our toy example.
@@ -116,7 +114,6 @@ func TestParseDeps(t *testing.T) {
 }
 
 func TestSetDep(t *testing.T) {
-	unittest.SmallTest(t)
 
 	before, beforePos, err := parseDeps(fakeDepsContent)
 	require.NoError(t, err)

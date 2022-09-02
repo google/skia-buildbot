@@ -12,8 +12,5 @@ go_test(
     name = "linenumbers_test",
     srcs = ["linenumbers_test.go"],
     embed = [":linenumbers"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

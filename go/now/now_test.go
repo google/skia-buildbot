@@ -7,12 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNow_ConstValue_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var mockTime = time.Unix(12, 11).UTC()
 	backgroundCtx := context.Background()
@@ -23,7 +20,6 @@ func TestNow_ConstValue_Success(t *testing.T) {
 }
 
 func TestNow_NowProvider_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var monotonicTime int64 = 0
 	var mockTimeProvider = func() time.Time {
@@ -47,7 +43,6 @@ func TestNow_NowProvider_Success(t *testing.T) {
 }
 
 func TestNow_InvalidValue_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	backgroundCtx := context.Background()
 	ctx := context.WithValue(backgroundCtx, ContextKey, "strings are not valid types for ContextKey")
@@ -58,7 +53,6 @@ func TestNow_InvalidValue_Panics(t *testing.T) {
 }
 
 func TestTimeTravelingContext_SetTime_ChangesWhenNowIs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	firstTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	secondTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -82,7 +76,6 @@ func TestTimeTravelingContext_SetTime_ChangesWhenNowIs(t *testing.T) {
 }
 
 func TestTimeTravelingContext_WithContext_AllowsWrappingContext(t *testing.T) {
-	unittest.SmallTest(t)
 
 	firstTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	secondTime := time.Date(2021, time.August, 20, 4, 0, 0, 0, time.UTC)

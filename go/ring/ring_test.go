@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStringRing(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Cap of 1.
 	r := NewStringRing(1)
@@ -49,7 +47,6 @@ func TestStringRing(t *testing.T) {
 }
 
 func TestStringRingConcurrent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Check for racy behavior by spinning up a bunch of goroutines to write
 	// to the ring and verifying that it ends up with the correct set of

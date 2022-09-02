@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseTSImports_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const source = `/* Sample TypeScript file with imports. */
 import 'path/to/a';                                // This comment should be ignored.
@@ -99,7 +97,6 @@ from = 'ignored/g';
 }
 
 func TestParseSassImports_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const source = `/* Sample Sass file with @import, @use and @forward statements. */
 @import 'path/to/a';  // This comment should be ignored.

@@ -6,13 +6,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
 func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, err := MakeMatcher(map[string]string{
 		AlgorithmNameOptKey: "FakeAlgorithm",
@@ -23,7 +21,6 @@ func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 }
 
 func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	algorithmName, matcher, err := MakeMatcher(map[string]string{})
 
@@ -33,7 +30,6 @@ func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
 }
 
 func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	algorithmName, matcher, err := MakeMatcher(map[string]string{
 		AlgorithmNameOptKey: string(ExactMatching),
@@ -292,7 +288,6 @@ func commonIgnoredBorderThicknessTestCases() []fuzzyMatchingTestCase {
 }
 
 func TestMakeMatcher_FuzzyMatching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []fuzzyMatchingTestCase{
 		{
@@ -337,7 +332,6 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 }
 
 func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type sobelFuzzyMatchingTestCase struct {
 		name                   string

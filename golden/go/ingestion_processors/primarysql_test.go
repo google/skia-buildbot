@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -30,7 +29,6 @@ import (
 // This tests the first ingestion of data, with no data filled in except the GitCommits table, which
 // will be read from during ingestion.
 func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	validCommits := dks.Build().GitCommits
@@ -249,7 +247,6 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_CommitIDSpecified_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -470,7 +467,6 @@ func TestPrimarySQL_Process_CommitIDSpecified_Success(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -569,7 +565,6 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -674,7 +669,6 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -725,7 +719,6 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -776,7 +769,6 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testin
 }
 
 func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -826,7 +818,6 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -883,7 +874,6 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 }
 
 func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	// GitCommits table is empty, meaning all commits are unknown.
@@ -897,7 +887,6 @@ func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -910,7 +899,6 @@ func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	validCommits := dks.Build().GitCommits
@@ -943,7 +931,6 @@ func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
 // ValuesAtHead table will have the existing trace be updated and a new entry created for the old
 // trace.
 func TestPrimarySQL_Process_MoreRecentData_ValuesAtHeadUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1031,7 +1018,6 @@ func TestPrimarySQL_Process_MoreRecentData_ValuesAtHeadUpdated(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1122,7 +1108,6 @@ func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *test
 }
 
 func TestPrimarySQL_Process_DataFromSameTraceWithDifferentOptions_ValuesAtHeadUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1183,7 +1168,6 @@ func TestPrimarySQL_Process_DataFromSameTraceWithDifferentOptions_ValuesAtHeadUp
 }
 
 func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1266,7 +1250,6 @@ func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
 }
 
 func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1351,7 +1334,6 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testi
 }
 
 func TestPrimarySQL_Process_DuplicateTraces_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	validCommits := dks.Build().GitCommits
@@ -1413,7 +1395,6 @@ func TestPrimarySQL_Process_DuplicateTraces_Success(t *testing.T) {
 }
 
 func TestPrimarySQL_MonitorCacheMetrics_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	s := PrimaryBranchSQL(nil, nil, nil)
 	addToOptionGroupingCache(s, pngOptions)
 	addToExpectationsCache(s, "whatever", dks.DigestBlank)

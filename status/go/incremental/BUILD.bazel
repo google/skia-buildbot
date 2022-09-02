@@ -37,7 +37,6 @@ go_test(
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//go/vcsinfo",
         "//task_scheduler/go/db/memory",

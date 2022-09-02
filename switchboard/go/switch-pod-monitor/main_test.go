@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/switchboard/mocks"
 )
@@ -21,7 +20,6 @@ var errMock = errors.New("test error")
 const hostname = "skia-rpi2-rack4-shelf1-002"
 
 func TestConnectToSwitchboardAndWait_ContextCancelled_ReturnsNil(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -36,7 +34,6 @@ func TestConnectToSwitchboardAndWait_ContextCancelled_ReturnsNil(t *testing.T) {
 }
 
 func TestConnectToSwitchboardAndWait_AddPodFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -49,7 +46,6 @@ func TestConnectToSwitchboardAndWait_AddPodFails_ReturnsError(t *testing.T) {
 }
 
 func TestConnectToSwitchboardAndWait_TooManyKeepAlivePodFailures_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -65,7 +61,6 @@ func TestConnectToSwitchboardAndWait_TooManyKeepAlivePodFailures_ReturnsError(t 
 }
 
 func TestConnectToSwitchboardAndWait_SIGTERMSent_RemovePodGetsCalled(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -92,7 +87,6 @@ func TestConnectToSwitchboardAndWait_SIGTERMSent_RemovePodGetsCalled(t *testing.
 }
 
 func TestConnectToSwitchboardAndWait_SIGTERMSentAndNoMeetingPointsRemain_ReturnsNoError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}
@@ -124,7 +118,6 @@ func TestConnectToSwitchboardAndWait_SIGTERMSentAndNoMeetingPointsRemain_Returns
 }
 
 func TestConnectToSwitchboardAndWait_SIGTERMSentAndMeetingPointsRemain_ReturnsWithNoErrorOnceNoMatchingMeetingPointsAreFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -159,7 +152,6 @@ func TestConnectToSwitchboardAndWait_SIGTERMSentAndMeetingPointsRemain_ReturnsWi
 }
 
 func TestConnectToSwitchboardAndWait_TwoLoops_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switchboardMock := &mocks.Switchboard{}

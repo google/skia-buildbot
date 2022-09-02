@@ -26,8 +26,5 @@ go_test(
     name = "dotserver_test",
     srcs = ["main_test.go"],
     embed = [":dotserver_lib"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

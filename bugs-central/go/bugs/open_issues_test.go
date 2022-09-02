@@ -6,11 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/bugs-central/go/types"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestPutOpenIssues(t *testing.T) {
-	unittest.SmallTest(t)
 
 	o := InitOpenIssues()
 	client1 := types.RecognizedClient("client1")

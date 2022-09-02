@@ -9,11 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/gerrit/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestHandleExternalChangeId(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// Test values.
@@ -40,7 +38,6 @@ func TestHandleExternalChangeId(t *testing.T) {
 }
 
 func TestHandleExternalChangeId_InvalidExternalChangeId(t *testing.T) {
-	unittest.SmallTest(t)
 
 	err := handleExternalChangeId(context.Background(), map[string]string{"DEPS": "xyz"}, "invalid-change-num", nil)
 	fmt.Println(err)
@@ -49,7 +46,6 @@ func TestHandleExternalChangeId_InvalidExternalChangeId(t *testing.T) {
 }
 
 func TestHandleExternalChange_MergeConflict(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// Test values.

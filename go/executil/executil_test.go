@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // runSomething would normally be in the code under test, where it has to invoke a command.
@@ -25,7 +24,6 @@ func runSomething(ctx context.Context) (string, error) {
 }
 
 func TestFakeTestsContext_SingleFakeTest_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext("Test_FakeExe_Cowsay_ReturnsASCIIArt")
 
 	out, err := runSomething(ctx)
@@ -36,7 +34,6 @@ func TestFakeTestsContext_SingleFakeTest_Success(t *testing.T) {
 }
 
 func TestFakeTestsContext_SingleFakeTest_ReturnsErrorIfWrongArgumentsPassed(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext("Test_FakeExe_Cowsay_ReturnsASCIIArt")
 
 	cmd := executil.CommandContext(ctx, "cowsay", "wrong arguments")
@@ -45,7 +42,6 @@ func TestFakeTestsContext_SingleFakeTest_ReturnsErrorIfWrongArgumentsPassed(t *t
 }
 
 func TestFakeTestsContext_SingleFakeTest_CowsayFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext("Test_FakeExe_Cowsay_Crashes")
 
 	out, err := runSomething(ctx)
@@ -55,7 +51,6 @@ func TestFakeTestsContext_SingleFakeTest_CowsayFails_ReturnsError(t *testing.T) 
 }
 
 func TestFakeTestsContext_MultipleFakeTests_FirstSucceedsSecondReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Cowsay_ReturnsASCIIArt", // should be run first
 		"Test_FakeExe_Cowsay_Crashes")         // should be run second
@@ -71,7 +66,6 @@ func TestFakeTestsContext_MultipleFakeTests_FirstSucceedsSecondReturnsError(t *t
 }
 
 func TestWithFakeTests_ParentContextTimeoutRespected(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -85,7 +79,6 @@ func TestWithFakeTests_ParentContextTimeoutRespected(t *testing.T) {
 // This is not a real test, but a fake implementation of the executable in question (i.e. cowsay).
 // By convention, we prefix these with FakeExe to make that clear.
 func Test_FakeExe_Cowsay_ReturnsASCIIArt(t *testing.T) {
-	unittest.FakeExeTest(t)
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
@@ -101,7 +94,6 @@ func Test_FakeExe_Cowsay_ReturnsASCIIArt(t *testing.T) {
 }
 
 func Test_FakeExe_Cowsay_Crashes(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -114,7 +106,6 @@ func Test_FakeExe_Cowsay_Crashes(t *testing.T) {
 }
 
 func Test_FakeExe_Cowsay_Hangs(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

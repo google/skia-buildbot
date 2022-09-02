@@ -23,7 +23,6 @@ go_test(
     embed = [":pivot"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//perf/go/dataframe",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",

@@ -14,13 +14,11 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestEnsureGitCheckout(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Setup.
 	ctx := context.Background()

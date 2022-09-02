@@ -13,7 +13,6 @@ go_test(
     srcs = ["now_test.go"],
     embed = [":now"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

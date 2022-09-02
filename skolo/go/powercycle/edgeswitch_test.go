@@ -7,18 +7,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetPassword_EmptyIfNotSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	e := EdgeSwitchConfig{}
 	assert.Equal(t, "", e.getPassword())
 }
 
 func TestGetPassword_SuccessIfSetInStruct(t *testing.T) {
-	unittest.SmallTest(t)
 
 	e := EdgeSwitchConfig{
 		Password: "foo",
@@ -27,7 +24,6 @@ func TestGetPassword_SuccessIfSetInStruct(t *testing.T) {
 }
 
 func TestGetPassword_SuccessIfSetByEnvVar(t *testing.T) {
-	unittest.SmallTest(t)
 
 	e := EdgeSwitchConfig{}
 	err := os.Setenv(powerCyclePasswordEnvVar, "bar")
@@ -40,7 +36,6 @@ func TestGetPassword_SuccessIfSetByEnvVar(t *testing.T) {
 }
 
 func TestNewEdgeSwitch_NewFails_ControllerIsStillReturnedAndCanListMachines(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Hand in a cancelled context so the attempt to talk to the mPower device
 	// fails immeditely, otherwise this test takes 3s to fail.

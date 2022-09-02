@@ -40,7 +40,6 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/ds",
         "//go/ds/testutil",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

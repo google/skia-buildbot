@@ -25,7 +25,6 @@ go_test(
     deps = [
         "//autoroll/go/config",
         "//go/firestore/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_protobuf//encoding/prototext",
     ],

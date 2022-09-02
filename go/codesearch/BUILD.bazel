@@ -17,8 +17,5 @@ go_test(
     name = "codesearch_test",
     srcs = ["codesearch_test.go"],
     embed = [":codesearch"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

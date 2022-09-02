@@ -7,13 +7,11 @@ import (
 	"github.com/bazelbuild/buildtools/build"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const filename = "main.star"
 
 func TestCloneBranch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	t.Run("clone all", func(t *testing.T) {
 		actual, err := WithUpdateCQConfigBytes(filename, []byte(fakeConfig), func(f *build.File) error {
@@ -50,7 +48,6 @@ func TestCloneBranch(t *testing.T) {
 }
 
 func TestDeleteBranch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	actual, err := WithUpdateCQConfigBytes(filename, []byte(fakeConfig), func(f *build.File) error {
 		return DeleteBranch(f, git.MasterBranch)

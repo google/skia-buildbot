@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type expectedPixel struct {
@@ -40,7 +39,6 @@ var validImageExpectedPixels = []expectedPixel{
 }
 
 func TestDecode_ValidImage_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(validImage)
 	img, err := Decode(buf)
 	require.NoError(t, err)
@@ -72,7 +70,6 @@ var grayscaleNotationImageExpectedPixels = []expectedPixel{
 }
 
 func TestDecode_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(grayscaleNotationImage)
 	img, err := Decode(buf)
 	require.NoError(t, err)
@@ -84,7 +81,6 @@ const zeroImage = `! SKTEXTSIMPLE
 `
 
 func TestDecode_ZeroImage_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(zeroImage)
 	img, err := Decode(buf)
 	require.NoError(t, err)
@@ -113,7 +109,6 @@ const badImage5 = `! SKTEXTSIMPLE
 0xddeeff00 0xffffff88`
 
 func TestDecode_InvalidImage_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	for _, tc := range []string{badImage1, badImage2, badImage3, badImage4, badImage5} {
 		buf := bytes.NewBufferString(tc)
 		_, err := Decode(buf)
@@ -134,7 +129,6 @@ const nonSquareImage2 = `! SKTEXTSIMPLE
 0x001100ff`
 
 func TestDecodeThenEncode_ReturnsTheSameImage(t *testing.T) {
-	unittest.SmallTest(t)
 	for _, tc := range []string{zeroImage, validImage, nonSquareImage, nonSquareImage2} {
 		// Decode image.
 		buf := bytes.NewBufferString(tc)
@@ -151,18 +145,15 @@ func TestDecodeThenEncode_ReturnsTheSameImage(t *testing.T) {
 }
 
 func TestMustToNRGBA_ValidImage_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	img := MustToNRGBA(validImage)
 	assertImageEqualsExpectedPixels(t, img, 2, 2, validImageExpectedPixels)
 }
 
 func TestMustToNRGBA_InvalidImage_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Panics(t, func() { MustToNRGBA(badImage1) })
 }
 
 func TestMustToGray_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	img := MustToGray(grayscaleNotationImage)
 
 	assert.Equal(t, 2, img.Bounds().Dx())
@@ -177,7 +168,6 @@ func TestMustToGray_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
 }
 
 func TestMustToGray_InvalidImage_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Panics(t, func() { MustToGray(badImage1) })
 }
 

@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -72,7 +71,6 @@ func getShortRev(revID string) string {
 }
 
 func TestGCSChild_ObjectAttrsToRevision_Regex(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &gcsChild{
 		revisionIDRegex: revisionIDRegex,
@@ -84,7 +82,6 @@ func TestGCSChild_ObjectAttrsToRevision_Regex(t *testing.T) {
 }
 
 func TestGCSChild_ObjectAttrsToRevision_Basename(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &gcsChild{
 		revisionIDRegex: nil, // No revision ID regex; just use the basename.
@@ -96,7 +93,6 @@ func TestGCSChild_ObjectAttrsToRevision_Basename(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Regex(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
@@ -123,7 +119,6 @@ func TestGCSChild_GetRevision_Regex(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Basename(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
@@ -161,7 +156,6 @@ func (v *testGcsVersion) Id() string {
 }
 
 func TestGCSChild_Update_Regex(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
@@ -196,7 +190,6 @@ func TestGCSChild_Update_Regex(t *testing.T) {
 }
 
 func TestGCSChild_Update_Basename(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{

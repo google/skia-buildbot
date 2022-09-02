@@ -21,7 +21,6 @@ go_test(
     deps = [
         "//go/git",
         "//go/git/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

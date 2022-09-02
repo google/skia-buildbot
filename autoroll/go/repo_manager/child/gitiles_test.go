@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // TODO(borenet): Split up the tests in no_checkout_deps_repo_manager_test.go
@@ -40,7 +39,6 @@ func setupRegistry(t *testing.T) *config_vars.Registry {
 // TestGitilesChildPathFilter verifies that GitilesChild filters out Revisions
 // which do not modify the configured path.
 func TestGitilesChildPathFilter(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	repo := git_testutils.GitInit(t, ctx)

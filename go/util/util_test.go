@@ -18,11 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSSliceEqual(t *testing.T) {
-	unittest.SmallTest(t)
 	testcases := []struct {
 		a    []string
 		b    []string
@@ -68,7 +66,6 @@ func TestSSliceEqual(t *testing.T) {
 }
 
 func TestInsertString(t *testing.T) {
-	unittest.SmallTest(t)
 	assertdeep.Equal(t, []string{"a"}, insertString([]string{}, 0, "a"))
 	assertdeep.Equal(t, []string{"b", "a"}, insertString([]string{"a"}, 0, "b"))
 	assertdeep.Equal(t, []string{"b", "c", "a"}, insertString([]string{"b", "a"}, 1, "c"))
@@ -76,7 +73,6 @@ func TestInsertString(t *testing.T) {
 }
 
 func TestInsertStringSorted(t *testing.T) {
-	unittest.SmallTest(t)
 	assertdeep.Equal(t, []string{"a"}, InsertStringSorted([]string{}, "a"))
 	assertdeep.Equal(t, []string{"a"}, InsertStringSorted([]string{"a"}, "a"))
 	assertdeep.Equal(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
@@ -85,7 +81,6 @@ func TestInsertStringSorted(t *testing.T) {
 }
 
 func TestIsNil(t *testing.T) {
-	unittest.SmallTest(t)
 	require.True(t, IsNil(nil))
 	require.False(t, IsNil(false))
 	require.False(t, IsNil(0))
@@ -125,7 +120,6 @@ func TestIsNil(t *testing.T) {
 }
 
 func TestMD5Hash(t *testing.T) {
-	unittest.SmallTest(t)
 	m_1 := map[string]string{"key1": "val1"}
 	m_2 := map[string]string{}
 	var m_3 map[string]string = nil
@@ -170,7 +164,6 @@ func TestMD5Hash(t *testing.T) {
 }
 
 func TestBugsFromCommitMsg(t *testing.T) {
-	unittest.SmallTest(t)
 	cases := []struct {
 		in  string
 		out map[string][]string
@@ -350,7 +343,6 @@ Bug: bb/234`,
 }
 
 func TestIsDirEmpty(t *testing.T) {
-	unittest.SmallTest(t)
 	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
 	require.NoError(t, err)
 	defer RemoveAll(d)
@@ -382,7 +374,6 @@ type DomainTestCase struct {
 }
 
 func TestValidateCommit(t *testing.T) {
-	unittest.SmallTest(t)
 	tc := map[string]bool{
 		"":       false,
 		"abc123": false,
@@ -398,7 +389,6 @@ func TestValidateCommit(t *testing.T) {
 }
 
 func TestParseIntSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(input string, expect []int, expectErr string) {
 		res, err := ParseIntSet(input)
@@ -424,7 +414,6 @@ func TestParseIntSet(t *testing.T) {
 }
 
 func TestTruncate(t *testing.T) {
-	unittest.SmallTest(t)
 	s := "abcdefghijkl"
 	require.Equal(t, "", Truncate(s, 0))
 	require.Equal(t, "a", Truncate(s, 1))
@@ -437,7 +426,6 @@ func TestTruncate(t *testing.T) {
 }
 
 func TestWithWriteFile(t *testing.T) {
-	unittest.MediumTest(t)
 	tmp, err := ioutil.TempDir("", "whatever")
 	require.NoError(t, err)
 
@@ -463,7 +451,6 @@ func (w *fakeWriter) Write(p []byte) (int, error) {
 }
 
 func TestWithGzipWriter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	write := func(w io.Writer, msg string) error {
 		_, err := w.Write([]byte(msg))
@@ -508,7 +495,6 @@ func TestWithGzipWriter(t *testing.T) {
 }
 
 func TestChunkIter_IteratesInBatches(t *testing.T) {
-	unittest.SmallTest(t)
 
 	check := func(length, chunkSize int, expect [][]int) {
 		var actual [][]int
@@ -528,7 +514,6 @@ func TestChunkIter_IteratesInBatches(t *testing.T) {
 }
 
 func TestChunkIter_InvalidBatches_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Error(t, ChunkIter(10, -1, func(int, int) error {
 		require.Fail(t, "shouldn't be called")
@@ -541,7 +526,6 @@ func TestChunkIter_InvalidBatches_Error(t *testing.T) {
 }
 
 func TestChunkIter_InvalidLength_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Error(t, ChunkIter(-1, 10, func(int, int) error {
 		require.Fail(t, "shouldn't be called")
@@ -550,7 +534,6 @@ func TestChunkIter_InvalidLength_Error(t *testing.T) {
 }
 
 func TestChunkIter_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	called := 0
 	err := ChunkIter(10, 3, func(int, int) error {
 		called++
@@ -562,7 +545,6 @@ func TestChunkIter_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
 }
 
 func TestChunkIterParallel_IteratesInBatches(t *testing.T) {
-	unittest.SmallTest(t)
 
 	check := func(length, chunkSize int, expect []int, expectedCallbackCount int32) {
 		actual := make([]int, length)
@@ -589,7 +571,6 @@ func TestChunkIterParallel_IteratesInBatches(t *testing.T) {
 }
 
 func TestChunkIterParallel_InvalidBatches_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	require.Error(t, ChunkIterParallel(ctx, 10, -1, func(context.Context, int, int) error {
 		require.Fail(t, "shouldn't be called")
@@ -602,7 +583,6 @@ func TestChunkIterParallel_InvalidBatches_Error(t *testing.T) {
 }
 
 func TestChunkIterParallel_InvalidLength_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	require.Error(t, ChunkIterParallel(ctx, -1, 10, func(context.Context, int, int) error {
 		require.Fail(t, "shouldn't be called")
@@ -611,7 +591,6 @@ func TestChunkIterParallel_InvalidLength_Error(t *testing.T) {
 }
 
 func TestChunkIterParallel_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	err := ChunkIterParallel(context.Background(), 10, 3, func(context.Context, int, int) error {
 		return fmt.Errorf("oops, robots took over")
 	})
@@ -623,7 +602,6 @@ func TestChunkIterParallel_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.
 	}
 }
 func TestChunkIterParallel_CancelledContext_ReturnsImmediatelyWithError(t *testing.T) {
-	unittest.SmallTest(t)
 	// If the context is already in an error state, don't call the passed in function, just error.
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -636,7 +614,6 @@ func TestChunkIterParallel_CancelledContext_ReturnsImmediatelyWithError(t *testi
 }
 
 func TestChunkIterParallelPool_IteratesInChunks_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	check := func(length, chunkSize int, expect []int, expectedCallbackCount int32) {
 		actual := make([]int, length)
@@ -663,7 +640,6 @@ func TestChunkIterParallelPool_IteratesInChunks_Success(t *testing.T) {
 }
 
 func TestChunkIterParallelPool_InvalidArgs_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	require.Error(t, ChunkIterParallelPool(ctx, -1, 10, 2, func(context.Context, int, int) error {
 		require.Fail(t, "shouldn't be called")
@@ -680,7 +656,6 @@ func TestChunkIterParallelPool_InvalidArgs_Error(t *testing.T) {
 }
 
 func TestChunkIterParallelPool_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	err := ChunkIterParallelPool(context.Background(), 10, 3, 2, func(context.Context, int, int) error {
 		return fmt.Errorf("oops, robots took over")
 	})
@@ -693,7 +668,6 @@ func TestChunkIterParallelPool_ErrorReturnedOnChunk_StopsAndReturnsError(t *test
 }
 
 func TestChunkIterParallelPool_CancelledContext_ReturnsImmediatelyWithError(t *testing.T) {
-	unittest.SmallTest(t)
 	// If the context is already in an error state, don't call the passed in function, just error.
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -706,7 +680,6 @@ func TestChunkIterParallelPool_CancelledContext_ReturnsImmediatelyWithError(t *t
 }
 
 func TestRoundUpToPowerOf2(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(input, output int32) {
 		require.Equal(t, output, RoundUpToPowerOf2(input))
@@ -734,7 +707,6 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 }
 
 func TestPowerSet(t *testing.T) {
-	unittest.SmallTest(t)
 	test := func(inp int, expect [][]int) {
 		assertdeep.Equal(t, expect, PowerSet(inp))
 	}
@@ -745,7 +717,6 @@ func TestPowerSet(t *testing.T) {
 }
 
 func TestSSliceDedup(t *testing.T) {
-	unittest.SmallTest(t)
 
 	require.Equal(t, []string{}, SSliceDedup([]string{}))
 	require.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo"}))
@@ -760,7 +731,6 @@ func TestSSliceDedup(t *testing.T) {
 }
 
 func TestCopyFile(t *testing.T) {
-	unittest.MediumTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -803,7 +773,6 @@ func TestCopyFile(t *testing.T) {
 }
 
 func TestFirstNonEmpty(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, "", FirstNonEmpty())
 	assert.Equal(t, "", FirstNonEmpty(""))
 	assert.Equal(t, "a", FirstNonEmpty("a", "b"))
@@ -811,6 +780,5 @@ func TestFirstNonEmpty(t *testing.T) {
 }
 
 func TestSplitLines_StripsTrailingNewline(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, []string{"this", "that"}, SplitLines("this\nthat\n"))
 }

@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff/mocks"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -30,7 +29,6 @@ import (
 )
 
 func TestWorkerImpl_CalculateDiffs_NoExistingData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -67,7 +65,6 @@ func TestWorkerImpl_CalculateDiffs_NoExistingData_Success(t *testing.T) {
 }
 
 func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -116,7 +113,6 @@ func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 }
 
 func TestWorkerImpl_CalculateDiffs_DiffSubset_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -170,7 +166,6 @@ func TestWorkerImpl_CalculateDiffs_DiffSubset_Success(t *testing.T) {
 }
 
 func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -209,7 +204,6 @@ func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *t
 }
 
 func TestWorkerImpl_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -252,7 +246,6 @@ func TestWorkerImpl_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 }
 
 func TestWorkerImpl_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 2, 2, 2, 2, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
@@ -304,7 +297,6 @@ func TestWorkerImpl_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 }
 
 func TestWorkerImpl_GetTriagedDigests_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -338,7 +330,6 @@ func TestWorkerImpl_GetTriagedDigests_Success(t *testing.T) {
 }
 
 func TestWorkerImpl_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)

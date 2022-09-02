@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -19,7 +18,6 @@ import (
 )
 
 func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -93,7 +91,6 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 }
 
 func TestGroupingIDs_HardCodedValuesMatchComputedValuesAndAreInComputedData(t *testing.T) {
-	unittest.MediumTest(t)
 	data := dks.Build()
 	test := func(name, hardCodedHex string, hardCodedID []byte, groupingKeys paramtools.Params) {
 		t.Run(name, func(t *testing.T) {

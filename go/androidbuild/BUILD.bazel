@@ -25,7 +25,6 @@ go_test(
     srcs = ["androidbuild_test.go"],
     embed = [":androidbuild"],
     deps = [
-        "//go/testutils/unittest",
         "//go/util",
         "//go/vcsinfo",
         "@com_github_stretchr_testify//assert",

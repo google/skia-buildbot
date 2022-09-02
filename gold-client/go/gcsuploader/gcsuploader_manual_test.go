@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -22,7 +21,6 @@ const (
 )
 
 func TestClientImpl(t *testing.T) {
-	unittest.ManualTest(t)
 
 	ctx := context.Background()
 	gc, err := storage.NewClient(ctx)

@@ -27,7 +27,6 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":auth-proxy_lib"],
     deps = [
-        "//go/testutils/unittest",
         "//kube/go/auth-proxy/auth/mocks",
         "@com_github_stretchr_testify//require",
     ],

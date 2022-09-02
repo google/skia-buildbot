@@ -35,7 +35,6 @@ go_test(
     deps = [
         "//go/httputils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/rpc",
         "//skolo/go/powercycle",

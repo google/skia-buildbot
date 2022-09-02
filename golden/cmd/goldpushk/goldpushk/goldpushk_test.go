@@ -19,7 +19,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather some DeployableUnits to pass to New() as parameters.
@@ -47,7 +46,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
@@ -90,7 +88,6 @@ func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
 }
 
 func TestGoldpushk_GetDeploymentFilePath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
@@ -105,7 +102,6 @@ func TestGoldpushk_GetDeploymentFilePath_Success(t *testing.T) {
 }
 
 func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Test on a good combination of different types of deployments.
@@ -179,7 +175,6 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 }
 
 func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
@@ -220,7 +215,6 @@ func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
 }
 
 func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
@@ -264,7 +258,6 @@ func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
 }
 
 func TestGoldpushk_CommitConfigFiles_FlagNoCommitSet_DoesNotCommit(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
@@ -303,7 +296,6 @@ func TestGoldpushk_CommitConfigFiles_FlagNoCommitSet_DoesNotCommit(t *testing.T)
 }
 
 func TestGoldpushk_CommitConfigFiles_FlagDryRunSet_DoesNotCommit(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
@@ -342,7 +334,6 @@ func TestGoldpushk_CommitConfigFiles_FlagDryRunSet_DoesNotCommit(t *testing.T) {
 }
 
 func TestGoldpushk_SwitchClusters_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
@@ -375,7 +366,6 @@ func TestGoldpushk_SwitchClusters_Success(t *testing.T) {
 }
 
 func TestGoldpushk_PushCanaries_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -415,7 +405,6 @@ func TestGoldpushk_PushCanaries_Success(t *testing.T) {
 }
 
 func TestGoldpushk_PushCanaries_FlagDryRunSet_DoesNotPush(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -455,7 +444,6 @@ Skipping push step (dry run).
 }
 
 func TestGoldpushk_PushServices_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -503,7 +491,6 @@ func assertCommandsMatch(t *testing.T, commandCollector *exec.CommandCollector, 
 }
 
 func TestGoldpushk_PushServices_FlagDryRunSet_DoesNotPush(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -543,7 +530,6 @@ Skipping push step (dry run).
 }
 
 func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -586,7 +572,6 @@ func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 }
 
 func TestGoldpushk_GetUptimes_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
@@ -630,7 +615,6 @@ func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 }
 
 func TestGoldpushk_Monitor_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to monitor.
@@ -751,7 +735,6 @@ func TestGoldpushk_Monitor_Success(t *testing.T) {
 }
 
 func TestGoldpushk_Monitor_FlagDryRunSet_DoesNotMonitor(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to monitor.

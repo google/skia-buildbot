@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -212,21 +211,18 @@ func fakeMilestones() []*Branch {
 }
 
 func TestBranchCopy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBranches()
 	assertdeep.Copy(t, b.Beta, b.Beta.Copy())
 }
 
 func TestBranchesCopy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBranches()
 	assertdeep.Copy(t, b, b.Copy())
 }
 
 func TestBranchValidate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(fn func(*Branch), expectErr string) {
 		b := fakeBranches().Beta
@@ -260,7 +256,6 @@ func TestBranchValidate(t *testing.T) {
 }
 
 func TestBranchesValidate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(fn func(*Branches), expectErr string) {
 		b := fakeBranches()
@@ -301,7 +296,6 @@ func TestBranchesValidate(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	urlmock := mockhttpclient.NewURLMock()
@@ -352,7 +346,6 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetSecondDataSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	urlmock := mockhttpclient.NewURLMock()

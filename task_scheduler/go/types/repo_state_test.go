@@ -11,11 +11,9 @@ import (
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyPatch(t *testing.T) {
-	unittest.SmallTest(t)
 	v := Patch{
 		Issue:     "1",
 		Patchset:  "2",
@@ -26,7 +24,6 @@ func TestCopyPatch(t *testing.T) {
 }
 
 func TestCopyRepoState(t *testing.T) {
-	unittest.SmallTest(t)
 	v := RepoState{
 		Patch: Patch{
 			Issue:     "1",
@@ -54,7 +51,6 @@ func TestCopyRepoState(t *testing.T) {
 // c0--c1--c2------c4--c5--
 //           \-c3-----/
 func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -150,7 +146,6 @@ func TestGetCommitError(t *testing.T) {
 }
 
 func TestParentsTryJob(t *testing.T) {
-	unittest.SmallTest(t)
 	input := RepoState{
 		Patch: Patch{
 			Issue:    "1",
@@ -247,7 +242,6 @@ func TestParentsNone(t *testing.T) {
 }
 
 func TestParentsError(t *testing.T) {
-	unittest.SmallTest(t)
 	// Empty.
 	var repoMap repograph.Map
 	input := RepoState{
@@ -260,7 +254,6 @@ func TestParentsError(t *testing.T) {
 }
 
 func TestRepoStateRowKey(t *testing.T) {
-	unittest.SmallTest(t)
 
 	check := func(rs RepoState, expect string) {
 		require.Equal(t, expect, rs.RowKey())

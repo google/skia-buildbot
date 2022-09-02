@@ -18,7 +18,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -47,7 +46,6 @@ func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig 
 }
 
 func TestFuchsiaSDKAndroidConfig(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cfg := fuchsiaAndroidCfg(t)
 	require.NoError(t, cfg.Validate())
@@ -130,7 +128,6 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 }
 
 func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, wd, cleanup := setupFuchsiaSDKAndroid(t)
 	defer cleanup()

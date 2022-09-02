@@ -6,11 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseIncludeTryjobsFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		footer         string

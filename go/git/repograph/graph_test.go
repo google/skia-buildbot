@@ -19,12 +19,10 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestFindCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx1, g1, repo1, rf1, cleanup1 := setupRepo(t)
 	defer cleanup1()
 	commits1 := shared_tests.GitSetup(t, ctx1, g1, repo1, rf1)
@@ -160,7 +158,6 @@ func checkTopoSortGitBuilder(t *testing.T, ctx context.Context, gb *git_testutil
 
 // TestTopoSort tests repograph.TopologicalSort using the default test repo.
 func TestTopoSortDefault(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -186,7 +183,6 @@ func TestTopoSortDefault(t *testing.T) {
 
 // TestTopoSortTimestamp verifies that we use the timestamp as a tie-breaker.
 func TestTopoSortTimestamp(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -212,7 +208,6 @@ func TestTopoSortTimestamp(t *testing.T) {
 // commits have the same timestamp. Verify that we use the commit hash as a
 // secondary tie-breaker.
 func TestTopoSortCommitHash(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -238,7 +233,6 @@ func TestTopoSortCommitHash(t *testing.T) {
 // TestTopoSortMergeTimestamp extends TestTopoSortCommitHash to ensure that, in
 // the case of a merge, we follow the parent with the newer timestamp.
 func TestTopoSortMergeTimestamp(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -267,7 +261,6 @@ func TestTopoSortMergeTimestamp(t *testing.T) {
 }
 
 func TestIsAncestor(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -339,7 +332,6 @@ func TestIsAncestor(t *testing.T) {
 }
 
 func TestMapUpdate(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, gb1, g1, r1, cleanup1 := setupRepo(t)
 	defer cleanup1()
 	_, gb2, g2, r2, cleanup2 := setupRepo(t)

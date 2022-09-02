@@ -17,7 +17,6 @@ go_test(
     srcs = ["jsonio_test.go"],
     embed = [":jsonio"],
     deps = [
-        "//go/testutils/unittest",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

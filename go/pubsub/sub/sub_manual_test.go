@@ -13,7 +13,6 @@ import (
 )
 
 func TestNewWithSubNameProviderAndExpirationPolicy(t *testing.T) {
-	unittest.ManualTest(t)
 	unittest.RequiresPubSubEmulator(t)
 
 	ctx := context.Background()

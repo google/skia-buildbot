@@ -52,7 +52,6 @@ func setupPubSubClient(t *testing.T) (context.Context, *pubsub.Client, *pubsub.S
 }
 
 func TestSink(t *testing.T) {
-	unittest.ManualTest(t)
 	unittest.RequiresPubSubEmulator(t)
 	ctx, _, sub, instanceConfig := setupPubSubClient(t)
 

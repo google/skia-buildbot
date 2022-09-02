@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestBusyBots(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bot := func(id string, dims map[string][]string) *types.Machine {
 		dimsFlat := make([]string, 0, len(dims))

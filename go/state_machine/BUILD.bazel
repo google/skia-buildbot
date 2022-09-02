@@ -18,7 +18,6 @@ go_test(
     embed = [":state_machine"],
     deps = [
         "//go/gcs/mem_gcsclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

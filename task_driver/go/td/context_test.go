@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetEnv(t *testing.T) {
-	unittest.SmallTest(t)
 	tr := StartTestRun(t)
 	defer tr.Cleanup()
 

@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testTable struct {
@@ -18,7 +16,6 @@ type testTable struct {
 }
 
 func TestGetSchedules_AllCadencesSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := &fakeRNG{n: 2}
 
@@ -47,7 +44,6 @@ type tableMissingFrequency struct {
 }
 
 func TestGetSchedules_MissingCadence_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		getSchedules(tableMissingFrequency{}, "test-backups", "testdbname", &fakeRNG{})

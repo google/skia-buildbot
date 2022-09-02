@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type myTestType struct {
@@ -14,7 +13,6 @@ type myTestType struct {
 }
 
 func TestJSONCodec(t *testing.T) {
-	unittest.SmallTest(t)
 	itemCodec := NewJSONCodec(&myTestType{})
 	testInstance := &myTestType{5, "hello"}
 	jsonBytes, err := itemCodec.Encode(testInstance)

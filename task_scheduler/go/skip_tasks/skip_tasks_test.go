@@ -15,11 +15,9 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func setup(t *testing.T) (*DB, func()) {
-	unittest.LargeTest(t)
 	c, cleanup := ftestutils.NewClientForTesting(context.Background(), t)
 	b, err := New(context.Background(), c)
 	require.NoError(t, err)
@@ -60,7 +58,6 @@ func TestAddRemove(t *testing.T) {
 }
 
 func TestRuleCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	r := &Rule{
 		AddedBy:          "me@google.com",
 		TaskSpecPatterns: []string{"a", "b"},
@@ -72,7 +69,6 @@ func TestRuleCopy(t *testing.T) {
 }
 
 func TestRules(t *testing.T) {
-	unittest.SmallTest(t)
 	type testCase struct {
 		taskSpec    string
 		commit      string
@@ -259,7 +255,6 @@ func setupTestRepo(t *testing.T) (context.Context, repograph.Map, []string) {
 }
 
 func TestValidation(t *testing.T) {
-	unittest.SmallTest(t)
 	// Setup.
 	_, repos, commits := setupTestRepo(t)
 
@@ -384,7 +379,6 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCommitRange(t *testing.T) {
-	unittest.LargeTest(t)
 	// Setup.
 	ctx, repos, commits := setupTestRepo(t)
 	b, cleanup := setup(t)

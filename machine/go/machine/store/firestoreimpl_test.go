@@ -16,7 +16,6 @@ import (
 )
 
 func TestConvertDescription_NoDimensions(t *testing.T) {
-	unittest.SmallTest(t)
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
@@ -28,7 +27,6 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 }
 
 func TestConvertDescription_WithDimensions(t *testing.T) {
-	unittest.SmallTest(t)
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	d.AttachedDevice = machine.AttachedDeviceAdb
 	d.Dimensions = machine.SwarmingDimensions{
@@ -51,7 +49,6 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 }
 
 func TestConvertDescription_WithPowerCycle(t *testing.T) {
-	unittest.SmallTest(t)
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	d.AttachedDevice = machine.AttachedDeviceAdb
 	d.Dimensions = machine.SwarmingDimensions{
@@ -95,14 +92,12 @@ func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
 }
 
 func TestNew(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	_, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 }
 
 func TestGet_MachineDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -115,7 +110,6 @@ func TestGet_MachineDoesNotExist_ReturnsError(t *testing.T) {
 }
 
 func TestGet_MachineExists_ReturnsCurrentDescription(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -137,7 +131,6 @@ func TestGet_MachineExists_ReturnsCurrentDescription(t *testing.T) {
 }
 
 func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -166,7 +159,6 @@ func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 }
 
 func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -194,7 +186,6 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 }
 
 func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -227,7 +218,6 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 }
 
 func TestWatch_StartWatchBeforeMachineExists_ContinuesToTryUntilMachineExists(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -263,7 +253,6 @@ func TestWatch_StartWatchBeforeMachineExists_ContinuesToTryUntilMachineExists(t 
 }
 
 func TestWatch_IsCancellable(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -290,7 +279,6 @@ func TestWatch_IsCancellable(t *testing.T) {
 }
 
 func TestList_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -336,7 +324,6 @@ func TestList_Success(t *testing.T) {
 }
 
 func TestListPowerCycle_OneMachineNeedsPowerCycling_ReturnsMachineInList(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -369,7 +356,6 @@ func TestListPowerCycle_OneMachineNeedsPowerCycling_ReturnsMachineInList(t *test
 }
 
 func TestListPowerCycle_NoMachinesNeedPowerCycling_ReturnsEmptyList(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -387,7 +373,6 @@ func TestListPowerCycle_NoMachinesNeedPowerCycling_ReturnsEmptyList(t *testing.T
 
 func TestDelete_Success(t *testing.T) {
 	const machineName = "skia-rpi2-rack2-shelf1-001"
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -412,7 +397,6 @@ func TestDelete_Success(t *testing.T) {
 
 func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 	const machineName = "skia-rpi2-rack2-shelf1-001"
-	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -427,20 +411,17 @@ func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 var fakeTime = time.Date(2021, time.September, 1, 0, 0, 0, 0, time.UTC)
 
 func TestForceToAttachedDevice(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, machine.AttachedDeviceSSH, forceToAttachedDevice(machine.AttachedDeviceSSH))
 	assert.Equal(t, machine.AttachedDeviceNone, forceToAttachedDevice(machine.AttachedDevice("this is not a valid attached device name")))
 }
 
 func TestForceToPowerCycleState_AllCurrentValuesConvertToThemSelves(t *testing.T) {
-	unittest.SmallTest(t)
 	for _, state := range machine.AllPowerCycleStates {
 		assert.Equal(t, state, forceToPowerCycleState(state), state)
 	}
 }
 
 func TestForceToPowerCycleState_UnknownValuesAreConvertedToNotAvailable(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState(""), "empty string")
 	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState("foo-bar-baz"), "foo-bar-baz")
 }

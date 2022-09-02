@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/parser"
@@ -16,7 +15,6 @@ import (
 var createdTime = time.Date(2020, 01, 01, 00, 00, 00, 0000, time.UTC)
 
 func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
-	unittest.SmallTest(t)
 	instanceConfig := &config.InstanceConfig{
 		IngestionConfig: config.IngestionConfig{
 			Branches: []string{}, // Branches are ignored by ParseTryBot.
@@ -32,7 +30,6 @@ func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 }
 
 func TestGerrit_InvalidTryBotFile_DoesNotProduceTryFile(t *testing.T) {
-	unittest.SmallTest(t)
 
 	parser, invalidFile := setupForTest(t, "invalid.json")
 	ingester := New(parser)
@@ -55,7 +52,6 @@ func TestGerrit_InvalidTryBotFile_DoesNotProduceTryFile(t *testing.T) {
 }
 
 func TestGerrit_InvalidPatchNumber_DoesNotProduceTryFile(t *testing.T) {
-	unittest.SmallTest(t)
 
 	parser, invalidFile := setupForTest(t, "invalid_patch_number.json")
 	ingester := New(parser)
@@ -78,7 +74,6 @@ func TestGerrit_InvalidPatchNumber_DoesNotProduceTryFile(t *testing.T) {
 }
 
 func TestGerrit_ValidTryBotFile_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const filename = "success.json"
 	parser, invalidFile := setupForTest(t, filename)

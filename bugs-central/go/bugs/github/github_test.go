@@ -13,11 +13,9 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGithubSearch(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	id1 := 11

@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestFlagSetOpt_UsingFlagSetOptChangesFlagSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	myFlagSet := flag.NewFlagSet("my-flagset-name", flag.ContinueOnError)
 	err := InitWith("my-app-name", FlagSetOpt(myFlagSet))

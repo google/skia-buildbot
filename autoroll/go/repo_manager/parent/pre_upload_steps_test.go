@@ -13,7 +13,6 @@ import (
 )
 
 func TestGetPreUploadStep(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Test for existing steps.
 	infraStep, err := GetPreUploadStep(config.PreUploadStep_TRAIN_INFRA)
@@ -31,7 +30,6 @@ func TestGetPreUploadStep(t *testing.T) {
 }
 
 func TestFlutterLicenseScripts(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
 	pubErr := error(nil)

@@ -17,7 +17,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -145,7 +144,6 @@ func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) 
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()

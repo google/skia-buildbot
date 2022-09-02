@@ -30,7 +30,6 @@ go_test(
         "//go/gce/autoscaler",
         "//go/swarming/mocks",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

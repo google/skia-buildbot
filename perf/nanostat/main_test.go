@@ -8,11 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMain_DifferentFlags_ChangeOutput(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testdataDir := testutils.TestDataDir(t)
 	oldFile := filepath.Join(testdataDir, "nanobench_old.json")

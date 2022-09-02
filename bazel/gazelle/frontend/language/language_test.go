@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIsAppPageDir_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.False(t, isAppPageDir(""))
 	assert.False(t, isAppPageDir("myapp"))
@@ -20,7 +18,6 @@ func TestIsAppPageDir_Success(t *testing.T) {
 }
 
 func TestExtractCustomElementNameFromDir_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ok, _ := extractCustomElementNameFromDir("")
 	assert.False(t, ok)

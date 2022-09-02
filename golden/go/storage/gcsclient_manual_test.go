@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -22,7 +21,7 @@ const (
 // TestWritingHashes writes hashes to an actual GCS location, then reads from it, before
 // cleaning it up.
 func TestWritingReadingHashes(t *testing.T) {
-	unittest.ManualTest(t) // This test hits a production service and requires a service account.
+	// This test hits a production service and requires a service account.
 	gsClient, opt := initGSClient(t)
 
 	knownDigests := types.DigestSlice{

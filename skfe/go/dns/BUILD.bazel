@@ -4,7 +4,6 @@ go_test(
     name = "dns_test",
     srcs = ["dns_test.go"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_miekg_dns//:dns",
         "@com_github_stretchr_testify//require",
     ],

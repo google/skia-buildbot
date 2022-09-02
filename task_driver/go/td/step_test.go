@@ -34,7 +34,6 @@ func mockExec(ctx context.Context) (context.Context, *int) {
 }
 
 func TestDefer(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Verify that we handle panics properly.
 	res := RunTestSteps(t, true, func(ctx context.Context) error {
@@ -86,7 +85,6 @@ func TestDefer(t *testing.T) {
 }
 
 func TestExec(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 
 	// Basic tests around executing subprocesses.
@@ -122,7 +120,6 @@ func TestExec(t *testing.T) {
 }
 
 func TestFatal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	err := errors.New("FATAL")
 	checkErr := func(s *StepReport) {
@@ -208,7 +205,6 @@ func TestFatal(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Verify that each step inherits the environment of its parent.
 	s := RunTestSteps(t, false, func(ctx context.Context) error {
@@ -249,7 +245,6 @@ func TestEnv(t *testing.T) {
 }
 
 func TestEnvMerge(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tc := []struct {
 		a      []string
@@ -319,7 +314,6 @@ func TestEnvMerge(t *testing.T) {
 }
 
 func TestEnvInheritance(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Set up exec mock and expectations.
 	runCount := 0
@@ -408,7 +402,6 @@ func TestEnvInheritance(t *testing.T) {
 }
 
 func TestMustGetAbsolutePathOfFlag_NonEmptyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	wd, err := os.Getwd()
 	require.NoError(t, err)
 	assert.NotEmpty(t, wd)
@@ -425,7 +418,6 @@ func TestMustGetAbsolutePathOfFlag_NonEmptyPath_Success(t *testing.T) {
 }
 
 func TestMustGetAbsolutePathOfFlag_EmptyPath_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := RunTestSteps(t, true, func(ctx context.Context) error {
 		MustGetAbsolutePathOfFlag(ctx, "", "some_flag")

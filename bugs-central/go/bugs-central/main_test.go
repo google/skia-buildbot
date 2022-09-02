@@ -7,11 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/bugs-central/go/types"
 	db_mocks "go.skia.org/infra/bugs-central/go/types/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestPopulateChartsDataCache_MockClientData_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	testRunID1 := "test-run1"

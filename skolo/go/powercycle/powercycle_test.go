@@ -7,13 +7,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
 
 func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
-	unittest.MediumTest(t)
 
 	allMachines := []DeviceID{}
 	controllerInitCallback := func(update rpc.UpdatePowerCycleStateRequest) error {
@@ -70,7 +68,6 @@ func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 }
 
 func TestControllerFromJSON5_ControllerInitCBReturnsError_ControllerFromJSON5ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 
 	controllerInitCallback := func(update rpc.UpdatePowerCycleStateRequest) error {
 		return fmt.Errorf("my fake error")
@@ -80,7 +77,6 @@ func TestControllerFromJSON5_ControllerInitCBReturnsError_ControllerFromJSON5Ret
 }
 
 func TestUpdatePowerCycleStateRequestFromController_ControllerIsNil_StillReturnsValidUpdatePowerCycleStateRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	actual := updatePowerCycleStateRequestFromController(nil, machine.Available)
 	require.NotNil(t, actual)
 }

@@ -50,7 +50,6 @@ go_test(
         "//go/sklog",
         "//go/swarming",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "//task_scheduler/go/db/memory",
         "//task_scheduler/go/scheduling",

@@ -84,7 +84,6 @@ go_test(
         "//go/skerr",
         "//go/sklog",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//go/vcsinfo",
         "@com_github_google_go_github_v29//github",

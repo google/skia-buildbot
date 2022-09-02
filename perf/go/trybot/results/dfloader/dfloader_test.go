@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
@@ -38,7 +37,6 @@ func setupForTest(t *testing.T) (context.Context, *perfgit.Git, []string) {
 }
 
 func TestLoader_UnknownCommit_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -55,7 +53,6 @@ func TestLoader_UnknownCommit_ReturnsError(t *testing.T) {
 }
 
 func TestLoader_InvalidQuery_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -72,7 +69,6 @@ func TestLoader_InvalidQuery_ReturnsError(t *testing.T) {
 }
 
 func TestLoader_EmptyQuery_LoadReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -89,7 +85,6 @@ func TestLoader_EmptyQuery_LoadReturnsError(t *testing.T) {
 }
 
 func TestLoader_LoadWithDataFrameBuilderThatErrorsNewNFromQuery_LoadReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -108,7 +103,6 @@ func TestLoader_LoadWithDataFrameBuilderThatErrorsNewNFromQuery_LoadReturnsError
 }
 
 func TestLoader_LoadWithTryBotStoreThatErrors_LoadReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -129,7 +123,6 @@ func TestLoader_LoadWithTryBotStoreThatErrors_LoadReturnsError(t *testing.T) {
 }
 
 func TestLoader_LoadDataFrameBuilderThatErrorsNewNFromKeys_LoadReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -152,7 +145,6 @@ func TestLoader_LoadDataFrameBuilderThatErrorsNewNFromKeys_LoadReturnsError(t *t
 }
 
 func TestLoader_ZeroLengthResponseFromTryBotStore_LoadReturnsSuccess(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -181,7 +173,6 @@ func TestLoader_ZeroLengthResponseFromTryBotStore_LoadReturnsSuccess(t *testing.
 }
 
 func TestLoader_OneTraceTryBotHappyPath_LoadReturnsSuccess(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -239,7 +230,6 @@ func TestLoader_OneTraceTryBotHappyPath_LoadReturnsSuccess(t *testing.T) {
 }
 
 func TestLoader_TwoTraces_LoadReturnsSuccessAndResultsAreSorted(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}
@@ -311,7 +301,6 @@ func TestLoader_TwoTraces_LoadReturnsSuccessAndResultsAreSorted(t *testing.T) {
 }
 
 func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	// The trybotStore has two results, but there are trace values for only one of those results (config=8888).
@@ -374,7 +363,6 @@ func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
 }
 
 func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	// The trybotStore has two results, but there are trace values for only one of those results (config=8888).
@@ -438,7 +426,6 @@ func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T)
 }
 
 func TestLoader_InvalidTraceKeysAreIgnored_LoadReturnsSuccess(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
 
 	dfb := &mocks.DataFrameBuilder{}

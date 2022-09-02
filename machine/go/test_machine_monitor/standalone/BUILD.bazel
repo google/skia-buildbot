@@ -55,8 +55,5 @@ go_test(
     name = "standalone_test",
     srcs = ["standalone_test.go"],
     embed = [":standalone"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

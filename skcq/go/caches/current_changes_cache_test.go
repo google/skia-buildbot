@@ -8,14 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/db"
 	db_mocks "go.skia.org/infra/skcq/go/db/mocks"
 	"go.skia.org/infra/skcq/go/types"
 )
 
 func TestCurrentChangesCache(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	cacheMap := map[string]*types.CurrentlyProcessingChange{}

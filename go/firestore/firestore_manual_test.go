@@ -9,14 +9,12 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetAllDescendants(t *testing.T) {
 	// The emulator does not support the query used in RecursiveDelete and
 	// GetAllDescendantDocuments, so this must test against a real firestore
 	// instance; hence it is a manual test.
-	unittest.ManualTest(t)
 	EnsureNotEmulator()
 
 	project := "skia-firestore"

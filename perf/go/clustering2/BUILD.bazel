@@ -32,7 +32,6 @@ go_test(
     deps = [
         "//go/now",
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//perf/go/ctrace2",
         "//perf/go/dataframe",
         "//perf/go/kmeans",

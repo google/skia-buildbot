@@ -8,13 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseDepsRealWorld(t *testing.T) {
 	// Manual test, since it loads data from real APIs.
-	unittest.ManualTest(t)
-	unittest.MediumTest(t)
 
 	type depsEntryPos struct {
 		*DepsEntry

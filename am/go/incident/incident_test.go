@@ -8,11 +8,9 @@ import (
 	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAreIncidentsFlaky(t *testing.T) {
-	unittest.SmallTest(t)
 
 	now := time.Now().Unix()
 
@@ -52,7 +50,6 @@ func TestAreIncidentsFlaky(t *testing.T) {
 }
 
 func TestIsSilenced(t *testing.T) {
-	unittest.SmallTest(t)
 
 	i := Incident{
 		Params: map[string]string{
@@ -167,7 +164,6 @@ func TestIsSilenced(t *testing.T) {
 }
 
 func TestIdForAlert(t *testing.T) {
-	unittest.LargeTest(t)
 	m := map[string]string{
 		"__name__":   "ALERTS",
 		"alertname":  "BotMissing",
@@ -195,7 +191,6 @@ func TestIdForAlert(t *testing.T) {
 }
 
 func TestGetRegexesToOwners(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ownersRegexesStr := "owner1:abbr_regex1,abbr_regex2;owner2:abbr_regex3"
 	m1, err := getRegexesToOwners(ownersRegexesStr)
@@ -212,7 +207,6 @@ func TestGetRegexesToOwners(t *testing.T) {
 }
 
 func TestGetOwnerIfMatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Test matches.
 	ownersRegexesStr := "superman@krypton.com:Bizarro.*,^Kryptonite.*Asteroid.*$;batman@gotham.com:Joker.*"
@@ -254,7 +248,6 @@ func TestGetOwnerIfMatch(t *testing.T) {
 }
 
 func TestGetOwnerFromDockerImage(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		dockerImage   string

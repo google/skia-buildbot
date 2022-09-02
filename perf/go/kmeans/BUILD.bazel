@@ -12,5 +12,4 @@ go_test(
     name = "kmeans_test",
     srcs = ["kmeans_test.go"],
     embed = [":kmeans"],
-    deps = ["//go/testutils/unittest"],
 )

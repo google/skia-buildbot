@@ -37,7 +37,6 @@ go_test(
         "//go/git",
         "//go/login",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "//status/go/capacity",
         "//status/go/incremental",

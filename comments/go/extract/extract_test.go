@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // testCode is fragments of C++ code we should be able to extract
@@ -80,7 +79,6 @@ DEF_SIMPLE_GM(arccirclegap, canvas, 250, 250) {
 `
 
 func TestExtract(t *testing.T) {
-	unittest.SmallTest(t)
 	gms := Extract(testCode, "filename.cpp")
 	assert.Equal(t, 7, len(gms))
 

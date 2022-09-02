@@ -20,7 +20,6 @@ go_test(
     srcs = ["server_test.go"],
     embed = [":server"],
     deps = [
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/rpc",
         "//machine/go/test_machine_monitor/machine",

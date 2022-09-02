@@ -24,7 +24,6 @@ go_test(
         "//go/gcs",
         "//go/gcs/test_gcsclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/ingest/format",
         "@com_github_stretchr_testify//require",
     ],

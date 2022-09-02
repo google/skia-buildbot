@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testCommonConfig struct {
@@ -26,7 +25,6 @@ type testSpecificConfig struct {
 }
 
 func TestLoadFromJSON5_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common.json5")
@@ -48,7 +46,6 @@ func TestLoadFromJSON5_Success(t *testing.T) {
 }
 
 func TestLoadFromJSON5_WithDuration_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common.json5")
@@ -71,7 +68,6 @@ func TestLoadFromJSON5_WithDuration_Success(t *testing.T) {
 }
 
 func TestLoadFromJSON5_RequiredFieldMissing_Error(t *testing.T) {
-	unittest.MediumTest(t)
 
 	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common_missing_field.json5")

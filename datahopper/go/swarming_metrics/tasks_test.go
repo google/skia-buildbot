@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/perfclient"
@@ -79,7 +78,6 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 }
 
 func TestLoadSwarmingTasks(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
@@ -159,7 +157,6 @@ func TestLoadSwarmingTasks(t *testing.T) {
 }
 
 func TestMetrics(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
@@ -243,7 +240,6 @@ func TestMetrics(t *testing.T) {
 }
 
 func TestPerfUpload(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")

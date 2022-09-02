@@ -11,11 +11,9 @@ import (
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/github"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAutoRollIssueCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	roll := &AutoRollIssue{
 		Attempt: 2,
 		Closed:  true,
@@ -64,7 +62,6 @@ func ts(t time.Time) *timestamp.Timestamp {
 }
 
 func TestTrybotResults(t *testing.T) {
-	unittest.SmallTest(t)
 	// Create a fake roll with one in-progress trybot.
 	roll := &AutoRollIssue{
 		Closed:    false,
@@ -172,7 +169,6 @@ func TestTrybotResults(t *testing.T) {
 }
 
 func TestTryResultsFromGithubChecks(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Create local vars since you cannot take address of a const.
 	pendingState := github.CHECK_STATE_PENDING

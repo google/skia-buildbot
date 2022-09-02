@@ -49,7 +49,6 @@ go_test(
         "//go/paramtools",
         "//go/skerr",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//gold-client/go/gcsuploader",
         "//gold-client/go/imgmatching",

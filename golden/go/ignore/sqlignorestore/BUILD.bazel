@@ -32,7 +32,6 @@ go_test(
     embed = [":sqlignorestore"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//golden/go/ignore",
         "//golden/go/sql/databuilder",
         "//golden/go/sql/datakitchensink",

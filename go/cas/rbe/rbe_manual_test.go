@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 )
@@ -22,8 +21,6 @@ const testInstance = "projects/chromium-swarm-dev/instances/default_instance"
 
 // setup creates and returns a Client instance
 func setup(t *testing.T) (context.Context, *Client) {
-	unittest.ManualTest(t)
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, compute.CloudPlatformScope)

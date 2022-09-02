@@ -7,18 +7,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestJobCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	v := MakeFullJob(time.Now())
 	assertdeep.Copy(t, v, v.Copy())
 }
 
 // Test that sort.Sort(JobSlice(...)) works correctly.
 func TestJobSort(t *testing.T) {
-	unittest.SmallTest(t)
 	jobs := []*Job{}
 	addJob := func(ts time.Time) {
 		job := &Job{
@@ -42,7 +39,6 @@ func TestJobSort(t *testing.T) {
 }
 
 func TestJobDeriveStatus(t *testing.T) {
-	unittest.SmallTest(t)
 	// No tasks for the Job: in progress.
 	j1 := &Job{
 		Dependencies: map[string][]string{"test": {"build"}, "build": {}},

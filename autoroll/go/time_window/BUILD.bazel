@@ -12,8 +12,5 @@ go_test(
     name = "time_window_test",
     srcs = ["time_window_test.go"],
     embed = [":time_window"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

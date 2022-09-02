@@ -11,11 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestPush(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/metrics/job/test_job" {

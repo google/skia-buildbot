@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -136,7 +135,6 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 }
 
 func TestTriggerJobs(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, _, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -179,7 +177,6 @@ func TestTriggerJobs(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -211,7 +208,6 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestCancelJob(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -245,7 +241,6 @@ func TestCancelJob(t *testing.T) {
 }
 
 func TestSearchJobs(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -272,7 +267,6 @@ func TestSearchJobs(t *testing.T) {
 }
 
 func TestGetTask(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, task, _, _, swarm, cleanup := setup(t)
 	defer cleanup()
@@ -324,7 +318,6 @@ func TestGetTask(t *testing.T) {
 }
 
 func TestSearchTasks(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, task, _, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -351,7 +344,6 @@ func TestSearchTasks(t *testing.T) {
 }
 
 func TestGetSkipTaskRules(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
@@ -380,7 +372,6 @@ func TestGetSkipTaskRules(t *testing.T) {
 }
 
 func TestAddSkipTaskRule(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
@@ -423,7 +414,6 @@ func TestAddSkipTaskRule(t *testing.T) {
 }
 
 func TestDeleteSkipTaskRule(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
@@ -453,7 +443,6 @@ func TestDeleteSkipTaskRule(t *testing.T) {
 }
 
 func TestConvertRepoState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	actual := convertRepoState(types.RepoState{
 		Repo:     fakeRepo,
@@ -478,7 +467,6 @@ func TestConvertRepoState(t *testing.T) {
 }
 
 func TestConvertTaskStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(input types.TaskStatus, expect TaskStatus) {
 		actual, err := convertTaskStatus(input)
@@ -497,7 +485,6 @@ func TestConvertTaskStatus(t *testing.T) {
 }
 
 func TestConvertTask(t *testing.T) {
-	unittest.SmallTest(t)
 
 	actual, err := convertTask(&types.Task{
 		Attempt:        1,
@@ -586,7 +573,6 @@ func TestConvertTask(t *testing.T) {
 }
 
 func TestConvertJobStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(input types.JobStatus, expect JobStatus) {
 		actual, err := convertJobStatus(input)
@@ -605,7 +591,6 @@ func TestConvertJobStatus(t *testing.T) {
 }
 
 func TestConvertJob(t *testing.T) {
-	unittest.SmallTest(t)
 
 	actual, err := convertJob(&types.Job{
 		BuildbucketBuildId:  12345,

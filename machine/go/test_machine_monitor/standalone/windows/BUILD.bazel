@@ -14,7 +14,6 @@ go_test(
     srcs = ["windows_test.go"],
     embed = [":windows"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

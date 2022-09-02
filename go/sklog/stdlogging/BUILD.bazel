@@ -19,7 +19,6 @@ go_test(
     deps = [
         "//go/loggingsyncbuffer",
         "//go/sklog/sklogimpl",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

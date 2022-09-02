@@ -10,12 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 func TestMakeConfig_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Arp_ReturnsTable",
@@ -46,7 +44,6 @@ func TestMakeConfig_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Arp_ReturnsTable(t *testing.T) {
-	unittest.FakeExeTest(t)
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
@@ -83,7 +80,6 @@ skia-rpi-042             ether   b8:27:eb:83:06:91   C                     eno1
 skia-rpi-022             ether   b8:27:eb:80:ba:ce   C                     eno1`
 
 func Test_FakeExe_EdgeSwitch_ReturnsTable(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

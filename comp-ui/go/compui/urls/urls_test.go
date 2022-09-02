@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -16,13 +15,11 @@ const (
 )
 
 func TestDownloadURLs_UnknownOSOrArch_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := NewDownloadURLs("unknown", "unknown")
 	require.Error(t, err)
 }
 
 func TestDownloadURLs_ValidOSAndArch_ReturnsValidDownload(t *testing.T) {
-	unittest.SmallTest(t)
 	urls, err := NewDownloadURLs("darwin", "arm64")
 	require.NoError(t, err)
 	require.Equal(t, "https://chromedriver.storage.googleapis.com/LATEST_RELEASE", urls.LatestURL())
@@ -32,7 +29,6 @@ func TestDownloadURLs_ValidOSAndArch_ReturnsValidDownload(t *testing.T) {
 }
 
 func TestGetVerionFromURL_GoodHTTPResponse_ReturnsVersionNumber(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := fmt.Fprintln(w, version)
 		assert.NoError(t, err)
@@ -45,7 +41,6 @@ func TestGetVerionFromURL_GoodHTTPResponse_ReturnsVersionNumber(t *testing.T) {
 }
 
 func TestGetVerionFromURL_BadHTTPResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "my fake error", http.StatusNotFound)
 	}))

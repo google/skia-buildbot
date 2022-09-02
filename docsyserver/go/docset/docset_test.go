@@ -16,7 +16,6 @@ import (
 	gittestutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -97,7 +96,6 @@ func setupForTestWithMainRepoAndIssueAlreadyLoaded(t *testing.T) (context.Contex
 }
 
 func TestStart_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	parentContext, _, src, dst, docsy, _, docset := setupForTest(t)
 
 	docsy.On("Render", testutils.AnyContext, src, dst).Return(nil)
@@ -121,7 +119,6 @@ func TestStart_Success(t *testing.T) {
 }
 
 func TestStart_RenderFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	parentContext, _, src, dst, docsy, _, docset := setupForTest(t)
 
 	docsy.On("Render", testutils.AnyContext, src, dst).Return(myFakeError)
@@ -136,7 +133,6 @@ func TestStart_RenderFails_ReturnsError(t *testing.T) {
 }
 
 func TestStart_BadGitRepoURL_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	workDir := t.TempDir()
 	emptyDirectoryIsNotAValidGitRepo := t.TempDir()
@@ -151,7 +147,6 @@ func TestStart_BadGitRepoURL_ReturnsError(t *testing.T) {
 }
 
 func TestFileSystem_NoFilesChanged_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, docsy, cr, docset := setupForTestWithMainRepoLoaded(t)
 
 	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, nil)
@@ -170,7 +165,6 @@ func TestFileSystem_NoFilesChanged_Success(t *testing.T) {
 }
 
 func TestFileSystem_GetPatchsetInfoFailsAndNoFileSystemAlreadyExistsInCache_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, _, _, cr, docset := setupForTestWithMainRepoLoaded(t)
 
 	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, myFakeError)
@@ -182,7 +176,6 @@ func TestFileSystem_GetPatchsetInfoFailsAndNoFileSystemAlreadyExistsInCache_Retu
 }
 
 func TestFileSystem_FilesAreSymlinks(t *testing.T) {
-	unittest.LargeTest(t)
 	_, _, src, _, _, _, _ := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	// _index.md is not modified in the issue, so it should exist as a symlink
@@ -193,7 +186,6 @@ func TestFileSystem_FilesAreSymlinks(t *testing.T) {
 }
 
 func TestFileSystem_GetPatchsetInfoFailsAndFileSystemAlreadyExistsInCache_SuccessReturnsExistingFileSystem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, _, _, _, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	cr2 := &crmocks.CodeReview{}
@@ -212,7 +204,6 @@ func TestFileSystem_GetPatchsetInfoFailsAndFileSystemAlreadyExistsInCache_Succes
 }
 
 func TestFileSystem_FileOutsideDocPathIsAdded_SuccessAndFileIsNotPresent(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, docsy, cr, docset := setupForTestWithMainRepoLoaded(t)
 
 	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, nil)
@@ -237,7 +228,6 @@ func TestFileSystem_FileOutsideDocPathIsAdded_SuccessAndFileIsNotPresent(t *test
 }
 
 func TestFileSystem_FileAddedButGetFileFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, _, _, cr, docset := setupForTestWithMainRepoLoaded(t)
 
 	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, nil)
@@ -256,7 +246,6 @@ func TestFileSystem_FileAddedButGetFileFails_ReturnsError(t *testing.T) {
 }
 
 func TestFileSystem_FileDeletedInIssue_FileIsRemoved(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, docsy, cr, docset := setupForTestWithMainRepoLoaded(t)
 
 	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, nil)
@@ -280,7 +269,6 @@ func TestFileSystem_FileDeletedInIssue_FileIsRemoved(t *testing.T) {
 }
 
 func TestFileSystem_CacheIsExpiredButIssueHasNotChanged_ReturnsExistingFS(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, _, _, cr, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	// Make sure we move far enough into the future that docset decides
@@ -298,7 +286,6 @@ func TestFileSystem_CacheIsExpiredButIssueHasNotChanged_ReturnsExistingFS(t *tes
 }
 
 func TestFileSystem_IssueIsClosed_ReturnsErrorAndDirectoriesGetCleanedUp(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, _, _, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	src := filepath.Join(workDir, contentSubDirectory, string(issue), docPath)
@@ -327,7 +314,6 @@ func TestFileSystem_IssueIsClosed_ReturnsErrorAndDirectoriesGetCleanedUp(t *test
 }
 
 func TestFileSystem_IssueIsUpdated_NewFilesAreUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, _, _, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	// Make sure we move far enough into the future that docset decides
@@ -362,7 +348,6 @@ func TestFileSystem_IssueIsUpdated_NewFilesAreUpdated(t *testing.T) {
 }
 
 func TestSingleStep_IssueIsClosed_DirectoriesGetCleanedUp(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, workDir, _, _, _, _, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	src := filepath.Join(workDir, contentSubDirectory, string(issue), docPath)
@@ -390,7 +375,6 @@ func TestSingleStep_IssueIsClosed_DirectoriesGetCleanedUp(t *testing.T) {
 }
 
 func TestRefresh_ListModifiedFilesFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, _, _, cr, docset := setupForTestWithMainRepoAndIssueAlreadyLoaded(t)
 
 	// Make sure we move far enough into the future that docset decides

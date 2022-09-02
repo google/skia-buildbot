@@ -26,7 +26,6 @@ go_test(
         "//go/comment",
         "//go/deepequal/assertdeep",
         "//go/github",
-        "//go/testutils/unittest",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_stretchr_testify//require",
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",

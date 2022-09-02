@@ -1,4 +1,3 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("//:elements-sk-scss.bzl", "generate_tilde_prefixed_elements_sk_scss_files")
@@ -129,26 +128,6 @@ sh_binary(
 # compatibility with Webpack-style tilde-prefixed SCSS imports. See the macro docstring for details.
 generate_tilde_prefixed_elements_sk_scss_files(
     name = "~elements-sk",
-)
-
-go_library(
-    name = "infra_lib",
-    srcs = ["run_unittests.go"],
-    importpath = "go.skia.org/infra",
-    visibility = ["//visibility:private"],
-    deps = [
-        "//go/common",
-        "//go/sklog",
-        "//go/testutils/unittest",
-        "//go/timer",
-        "//go/util",
-    ],
-)
-
-go_binary(
-    name = "infra",
-    embed = [":infra_lib"],
-    visibility = ["//visibility:public"],
 )
 
 # This rule is a convenient way to build all the task drivers and copy them all into a single

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -16,7 +15,6 @@ import (
 const badValue = "not a valid choice"
 
 func TestOptionsValid_Valid_ReturnsNil(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.NoError(t, Request{
 		GroupBy:   []string{"test"},
 		Operation: Avg,
@@ -25,7 +23,6 @@ func TestOptionsValid_Valid_ReturnsNil(t *testing.T) {
 }
 
 func TestOptionsValid_EmptyGroupBy_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Contains(t, Request{
 		GroupBy:   []string{},
 		Operation: Avg,
@@ -33,7 +30,6 @@ func TestOptionsValid_EmptyGroupBy_ReturnsError(t *testing.T) {
 }
 
 func TestOptionsValid_BadOperation_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Contains(t, Request{
 		GroupBy:   []string{"test"},
@@ -42,7 +38,6 @@ func TestOptionsValid_BadOperation_ReturnsError(t *testing.T) {
 }
 
 func TestOptionsValid_BadColumns_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Contains(t, Request{
 		GroupBy:   []string{"test"},
@@ -52,26 +47,22 @@ func TestOptionsValid_BadColumns_ReturnsError(t *testing.T) {
 }
 
 func TestIntermediateKeyFromFullKey_AllKeysExist_ReturnsCorrectKey(t *testing.T) {
-	unittest.SmallTest(t)
 	const traceKey = ",arch=arm,config=8888,"
 	actual := groupKeyFromTraceKey(paramtools.NewParams(traceKey), []string{"arch", "config"})
 	assert.Equal(t, traceKey, actual)
 }
 
 func TestIntermediateKeyFromFullKey_OnlySomeKeysAreSelected_UnselectedKeysAreRemoved(t *testing.T) {
-	unittest.SmallTest(t)
 	actual := groupKeyFromTraceKey(paramtools.NewParams(",arch=arm,config=8888,device=Nexus7"), []string{"arch", "config"})
 	assert.Equal(t, ",arch=arm,config=8888,", actual)
 }
 
 func TestIntermediateKeyFromFullKey_OneKeyDoesNotExist_ReturnsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 	actual := groupKeyFromTraceKey(paramtools.NewParams(",arch=arm,config=8888,"), []string{"unknown_key"})
 	assert.Equal(t, "", actual)
 }
 
 func TestIntermediateKeyFromFullKey_NoKeys_ReturnsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 	actual := groupKeyFromTraceKey(paramtools.NewParams(",arch=arm,config=8888,"), nil)
 	assert.Equal(t, "", actual)
 }
@@ -103,7 +94,6 @@ func dataframeForTesting() *dataframe.DataFrame {
 }
 
 func TestPivot_InvalidRequest_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{},
@@ -115,7 +105,6 @@ func TestPivot_InvalidRequest_ReturnsError(t *testing.T) {
 }
 
 func TestPivot_KeyNotInParamSet_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{"unknown_key"},
@@ -127,7 +116,6 @@ func TestPivot_KeyNotInParamSet_ReturnsError(t *testing.T) {
 }
 
 func TestPivot_SumOperationNoSummary_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{"arch", "device"},
@@ -146,7 +134,6 @@ func TestPivot_SumOperationNoSummary_Success(t *testing.T) {
 }
 
 func TestPivot_SumOperationNoSummaryExtraKeyInParamSet_GroupsWithNoTracesAreMissingFromResult(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{"arch"},
@@ -167,7 +154,6 @@ func TestPivot_SumOperationNoSummaryExtraKeyInParamSet_GroupsWithNoTracesAreMiss
 }
 
 func TestPivot_SumOperationWithSummary_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{"arch", "device"},
@@ -188,7 +174,6 @@ func TestPivot_SumOperationWithSummary_Success(t *testing.T) {
 }
 
 func TestPivot_ContextIsCancelled_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := Request{
 		GroupBy:   []string{"arch", "device"},

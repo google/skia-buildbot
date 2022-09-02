@@ -24,8 +24,5 @@ go_test(
     name = "sqlinit_test",
     srcs = ["sqlinit_test.go"],
     embed = [":sqlinit_lib"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

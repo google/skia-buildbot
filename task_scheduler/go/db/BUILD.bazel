@@ -38,7 +38,6 @@ go_test(
     embed = [":db"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/testutils/unittest",
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//assert",
     ],

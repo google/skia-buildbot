@@ -12,8 +12,5 @@ go_test(
     name = "shortcut_test",
     srcs = ["shortcut_test.go"],
     embed = [":shortcut"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

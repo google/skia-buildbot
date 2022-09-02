@@ -6,11 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRamDisk(t *testing.T) {
-	unittest.ManualTest(t)
 
 	// Create a ram disk. Ensure that it creates a real directory.
 	rd, cleanup, err := New(context.Background())

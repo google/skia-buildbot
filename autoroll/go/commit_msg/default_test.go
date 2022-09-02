@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNamedTemplateDefault_AllFeatures(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	result, err := b.Build(FakeCommitMsgInputs())
@@ -48,7 +46,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateDefault_NoLog(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.IncludeLog = false
@@ -85,7 +82,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateDefault_NoBugProject(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
@@ -124,7 +120,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateDefault_NoBugs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	from, to, revs, emails, canary := FakeCommitMsgInputs()
@@ -169,7 +164,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateDefault_Minimal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
@@ -200,7 +194,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 }
 
 func TestTotalOverride(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_Custom{
@@ -222,7 +215,6 @@ Variables from config_vars should work, eg. m92, v8:9.2-lkgr
 }
 
 func TestNamedTemplateDefault_BugLinks(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.childBugLink = fakeChildBugLink

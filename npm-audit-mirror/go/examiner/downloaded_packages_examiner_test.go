@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/monorail/v3"
 	monorail_mocks "go.skia.org/infra/go/monorail/v3/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 	npm_mocks "go.skia.org/infra/npm-audit-mirror/go/types/mocks"
@@ -115,31 +114,26 @@ func testOneExaminationCycle(t *testing.T, trustedScopes []string, packageCreate
 }
 
 func TestStartExamination_NoRepublishedPackageFound_DoNotFileBugs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneExaminationCycle(t, []string{}, false, false, false)
 }
 
 func TestStartExamination_RepublishedPackageFound_NoExaminerIssueFiledYet_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneExaminationCycle(t, []string{}, true, true, false)
 }
 
 func TestStartExamination_RepublishedPackageFound_ExaminerIssueClosedLessThanThreshold_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneExaminationCycle(t, []string{}, true, false, true)
 }
 
 func TestStartExamination_RepublishedPackageFoundInAllowedScopes_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneExaminationCycle(t, []string{"@scope/"}, true, false, true)
 }
 
 func TestStartExamination_FullEndToEndFlow_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneExaminationCycle(t, []string{}, true, false, false)
 }

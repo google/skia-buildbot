@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -252,7 +251,6 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 }
 
 func TestGetRollers(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -290,7 +288,6 @@ func TestGetRollers(t *testing.T) {
 }
 
 func TestGetMiniStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -339,7 +336,6 @@ func TestGetMiniStatus(t *testing.T) {
 }
 
 func TestGetStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -381,7 +377,6 @@ func TestGetStatus(t *testing.T) {
 }
 
 func TestSetMode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -426,7 +421,6 @@ func TestSetMode(t *testing.T) {
 }
 
 func TestSetStrategy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -471,7 +465,6 @@ func TestSetStrategy(t *testing.T) {
 }
 
 func TestCreateManualRoll(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -520,7 +513,6 @@ func TestCreateManualRoll(t *testing.T) {
 }
 
 func TestUnthrottle(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup, mocks.
 	ctx, rollers, srv := setup(t)
@@ -557,7 +549,6 @@ func TestUnthrottle(t *testing.T) {
 }
 
 func TestConvertMiniStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	r := rollers["roller1"]
@@ -582,7 +573,6 @@ func TestConvertMiniStatus(t *testing.T) {
 }
 
 func TestConvertRollCL(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	r := rollers["roller1"]
@@ -610,7 +600,6 @@ func TestConvertRollCL(t *testing.T) {
 }
 
 func TestConvertTryJob(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	tr := rollers["roller1"].Status.Get().LastRoll.TryResults[0]
@@ -633,7 +622,6 @@ func TestConvertTryJob(t *testing.T) {
 }
 
 func TestConvertModeChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	m := rollers["roller1"].Mode.CurrentMode()
@@ -654,7 +642,6 @@ func TestConvertModeChange(t *testing.T) {
 }
 
 func TestConvertStrategyChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	s := rollers["roller1"].Strategy.CurrentStrategy()
@@ -675,7 +662,6 @@ func TestConvertStrategyChange(t *testing.T) {
 }
 
 func TestConvertRevision(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	rev := rollers["roller1"].Status.Get().NotRolledRevisions[0]
@@ -692,7 +678,6 @@ func TestConvertRevision(t *testing.T) {
 }
 
 func TestConvertConfig(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, _ := setup(t)
 	cfg := rollers["roller1"].Cfg
@@ -710,7 +695,6 @@ func TestConvertConfig(t *testing.T) {
 }
 
 func TestConvertManualRollRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	req := &manual.ManualRollRequest{
 		Id:                "999",
@@ -752,7 +736,6 @@ func TestConvertManualRollRequest(t *testing.T) {
 }
 
 func TestConvertStatus(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, rollers, srv := setup(t)
 	r := rollers["roller1"]

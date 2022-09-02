@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestClose_WhenOpen_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 
@@ -19,7 +17,6 @@ func TestClose_WhenOpen_Success(t *testing.T) {
 }
 
 func TestClose_WhenClosed_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 
@@ -30,7 +27,6 @@ func TestClose_WhenClosed_ReturnsError(t *testing.T) {
 }
 
 func TestFlush_WhenOpen_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 
@@ -39,7 +35,6 @@ func TestFlush_WhenOpen_Success(t *testing.T) {
 }
 
 func TestFlush_WhenClosed_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 
@@ -48,7 +43,6 @@ func TestFlush_WhenClosed_ReturnsError(t *testing.T) {
 }
 
 func TestRead_SuccessiveReads_ContinuesWherePreviousEnded(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	p.setReadData(0, 1, 2, 3, 4, 5, 6, 7)
@@ -67,7 +61,6 @@ func TestRead_SuccessiveReads_ContinuesWherePreviousEnded(t *testing.T) {
 }
 
 func TestRead_ReadNothing_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	p.setReadData(0, 1, 2, 3, 4, 5, 6, 7)
@@ -80,7 +73,6 @@ func TestRead_ReadNothing_Success(t *testing.T) {
 }
 
 func TestRead_WhenClosed_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	p.setReadData(0, 1, 2, 3, 4, 5, 6, 7)
@@ -95,7 +87,6 @@ func TestRead_WhenClosed_ReturnsError(t *testing.T) {
 }
 
 func TestRead_MoreThanAvail_ReturnOnlyAvailable(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	p.setReadData(0, 1, 2)
@@ -108,7 +99,6 @@ func TestRead_MoreThanAvail_ReturnOnlyAvailable(t *testing.T) {
 }
 
 func TestWrite_MultipleWrites_BytesArrayAppended(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	nb, err := p.Write([]byte{0, 1, 2})
@@ -123,7 +113,6 @@ func TestWrite_MultipleWrites_BytesArrayAppended(t *testing.T) {
 }
 
 func TestWrite_EmptyData_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 	nb, err := p.Write([]byte{0, 1, 2})
@@ -138,7 +127,6 @@ func TestWrite_EmptyData_Success(t *testing.T) {
 }
 
 func TestWrite_WhenClosed_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := fakeSerialPort{}
 

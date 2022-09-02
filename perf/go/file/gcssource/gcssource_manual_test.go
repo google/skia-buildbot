@@ -128,7 +128,6 @@ func sendTwoGoodPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *
 }
 
 func TestStart_ReceiveOneFileFilterOneFileViaSources(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
@@ -153,7 +152,6 @@ func TestStart_ReceiveOneFileFilterOneFileViaSources(t *testing.T) {
 }
 
 func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
@@ -181,7 +179,6 @@ func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
 }
 
 func TestStart_SecondCallToStartFails(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
@@ -199,7 +196,6 @@ func TestStart_SecondCallToStartFails(t *testing.T) {
 }
 
 func TestReceiveSingleEvent_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
@@ -235,7 +231,6 @@ func TestReceiveSingleEvent_Success(t *testing.T) {
 }
 
 func TestReceiveSingleEvent_FileDoesntExist(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
@@ -258,7 +253,6 @@ func TestReceiveSingleEvent_FileDoesntExist(t *testing.T) {
 }
 
 func TestReceiveSingleEvent_InvalidJSONInMessage(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.

@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -14,7 +13,6 @@ import (
 const e = vec32.MissingDataSentinel
 
 func TestBuilder(t *testing.T) {
-	unittest.SmallTest(t)
 
 	traces1 := types.TraceSet{
 		",arch=x86,name=foo,": []float32{1.0, 2.0},
@@ -55,7 +53,6 @@ func TestBuilder(t *testing.T) {
 }
 
 func TestBuilderEmpty(t *testing.T) {
-	unittest.SmallTest(t)
 
 	builder := New(5)
 	defer builder.Close()

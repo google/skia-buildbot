@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -44,56 +43,48 @@ func setupMem(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repogr
 }
 
 func TestGraphWellFormedMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestGraphWellFormed(t, ctx, g, repo, ud)
 }
 
 func TestRecurseMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestLogLinearMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestLogLinear(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestRevList(t, ctx, g, repo, ud)
 }
 
 func TestBranchMembershipMem(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupMem(t)
 	defer cleanup()
 	shared_tests.TestBranchMembership(t, ctx, g, repo, ud)

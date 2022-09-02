@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/secret/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -57,7 +56,6 @@ func stdoutWatcher(t *testing.T) (io.Writer, <-chan string) {
 }
 
 func setup(t *testing.T) (context.Context, *secretsApp, *mocks.Client, <-chan string, chan<- bool) {
-	unittest.MediumTest(t)
 
 	mockClient := mocks.NewClient(t)
 	stdin, stdinWriter := io.Pipe()
@@ -119,7 +117,6 @@ func TestSecretsApp_Update(t *testing.T) {
 }
 
 func TestSecretsApp_Migrate(t *testing.T) {
-	unittest.MediumTest(t)
 
 	mockClient := mocks.NewClient(t)
 	app := &secretsApp{
@@ -136,7 +133,6 @@ func TestSecretsApp_Migrate(t *testing.T) {
 }
 
 func Test_FakeExe_Mount(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -146,7 +142,6 @@ func Test_FakeExe_Mount(t *testing.T) {
 }
 
 func Test_FakeExe_Umount(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -156,7 +151,6 @@ func Test_FakeExe_Umount(t *testing.T) {
 }
 
 func Test_FakeExe_KubectlGetSecret(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

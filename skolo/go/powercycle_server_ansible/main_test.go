@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/skolo/go/powercycle"
@@ -22,7 +21,6 @@ import (
 )
 
 func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *http.Client) {
-	unittest.SmallTest(t)
 	t.Helper()
 	called := false
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +38,6 @@ func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *http.Cli
 }
 
 func TestSingleStep_MalformedMachineServerURL_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	err := singleStep(context.Background(), nil, "http://spaces in host names are invalid.com/", []powercycle.DeviceID{}, nil)
 	require.Error(t, err)
 }
@@ -193,7 +190,6 @@ func TestBuildPowerCycleControllerCallback_ServerReturnsError_ControllerInitCBRe
 }
 
 func TestBuildPowerCycleControllerCallback_InvalidMachineHostName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := buildPowerCycleControllerCallback(nil, "http://spaces in host names are invalid.com/")
 	require.Error(t, err)
 }

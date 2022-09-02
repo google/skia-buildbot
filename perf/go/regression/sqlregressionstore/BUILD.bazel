@@ -34,7 +34,6 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
-        "//go/testutils/unittest",
         "//perf/go/regression",
         "//perf/go/regression/regressiontest",
         "//perf/go/sql/sqltest",

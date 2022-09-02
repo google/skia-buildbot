@@ -12,7 +12,6 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const myMesageID = "<abcdef>"
@@ -64,7 +63,6 @@ func createAppForTest(t *testing.T, handler http.Handler) *App {
 }
 
 func TestAppIncomingEmaiHandler_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	app := createAppForTest(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("X-Message-Id", myMesageID)
 		resp := Response{
@@ -84,7 +82,6 @@ func TestAppIncomingEmaiHandler_HappyPath(t *testing.T) {
 }
 
 func TestAppIncomingEmaiHandler_RequestBodyIsInvalidRFC2822Message_ReturnsHTTPError(t *testing.T) {
-	unittest.SmallTest(t)
 	app := createAppForTest(t, nil)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/send", bytes.NewBufferString(""))
@@ -97,7 +94,6 @@ func TestAppIncomingEmaiHandler_RequestBodyIsInvalidRFC2822Message_ReturnsHTTPEr
 }
 
 func TestAppIncomingEmaiHandler_ServerReturnsError_ReturnsHTTPError(t *testing.T) {
-	unittest.SmallTest(t)
 	app := createAppForTest(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := Response{
 			Errors: []Error{
@@ -121,7 +117,6 @@ func TestAppIncomingEmaiHandler_ServerReturnsError_ReturnsHTTPError(t *testing.T
 }
 
 func TestConvertRFC2822ToSendGrid_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	body := bytes.NewBufferString(`From: Alert Service <alerts@skia.org>
 To: test@example.com, B <b@example.com>
 Subject: An Alert!
@@ -137,7 +132,6 @@ Hi!
 }
 
 func TestConvertRFC2822ToSendGrid_ToLineIsInvalid_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	body := bytes.NewBufferString(`From: Alert Service <alerts@skia.org>
 To: you
 Subject: An Alert!
@@ -150,7 +144,6 @@ Hi!
 }
 
 func TestConvertRFC2822ToSendGrid_FromLineIsInvalid_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	body := bytes.NewBufferString(`From: me
 To: you@example.com
 Subject: An Alert!

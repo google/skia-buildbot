@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -35,7 +34,6 @@ var cfg = config.DataStoreConfig{
 }
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
 
@@ -506,7 +504,6 @@ func TestSQLTraceStore_TileSize(t *testing.T) {
 }
 
 func TestCommitNumberOfTileStart(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &SQLTraceStore{
 		tileSize: 8,
 	}
@@ -548,7 +545,6 @@ func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {
 }
 
 func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	/*
 	   $ python3
 	   Python 3.7.3 (default, Dec 20 2019, 18:57:59)
@@ -562,7 +558,6 @@ func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
 }
 
 func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	context := convertTraceIDsContext{
 		TileNumber: 12,
 		TraceIDs:   []traceIDForSQL{"foo", "bar", "baz"},

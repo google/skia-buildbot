@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -23,7 +22,6 @@ import (
 // There don't need to be more of these here because we should
 // depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fp := filepath.Join(testutils.TestDataDir(t), "dm.json")
 	f, err := os.Open(fp)
@@ -84,7 +82,6 @@ func TestDMResults(t *testing.T) {
 // TestGetCanonicalCommitHashPrimary tests the case where the commit hash
 // was in the primary repo
 func TestGetCanonicalCommitHashPrimary(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mvs := &mock_vcs.VCS{}
 	defer mvs.AssertExpectations(t)
@@ -101,7 +98,6 @@ func TestGetCanonicalCommitHashPrimary(t *testing.T) {
 // TestGetCanonicalCommitHashNewCommit tests the case where a new commit has landed, but
 // our VCS does not know about it yet and needs to update.
 func TestGetCanonicalCommitHashNewCommit(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mvs := &mock_vcs.VCS{}
 	defer mvs.AssertExpectations(t)
@@ -121,7 +117,6 @@ func TestGetCanonicalCommitHashNewCommit(t *testing.T) {
 // TestGetCanonicalCommitHashInvalid tests the case where the commit hash
 // was resolved to something that didn't exist in the primary repo.
 func TestGetCanonicalCommitHashInvalid(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mvs := &mock_vcs.VCS{}
 	defer mvs.AssertExpectations(t)

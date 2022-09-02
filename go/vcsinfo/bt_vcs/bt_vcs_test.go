@@ -13,7 +13,6 @@ import (
 	gs_testutils "go.skia.org/infra/go/gitstore/bt_gitstore/testutils"
 	"go.skia.org/infra/go/gitstore/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
@@ -21,7 +20,6 @@ import (
 )
 
 func TestVCSSuite(t *testing.T) {
-	unittest.LargeTest(t)
 	vcs, _, cleanup := setupVCSLocalRepo(t, git.MasterBranch)
 	defer cleanup()
 
@@ -35,7 +33,6 @@ func TestVCSSuite(t *testing.T) {
 }
 
 func TestBranchInfo(t *testing.T) {
-	unittest.LargeTest(t)
 	vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore.ALL_BRANCHES)
 	defer cleanup()
 
@@ -54,7 +51,6 @@ func TestBranchInfo(t *testing.T) {
 // TestConcurrentUpdate verifies that BigTableVCS.Update() behaves correctly
 // when called concurrently.
 func TestConcurrentUpdate(t *testing.T) {
-	unittest.LargeTest(t)
 
 	numGoroutines := 10
 	mg := &mocks.GitStore{}
@@ -98,7 +94,6 @@ func TestConcurrentUpdate(t *testing.T) {
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
 func TestDetailsCaching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)
@@ -131,7 +126,6 @@ func TestDetailsCaching(t *testing.T) {
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
 func TestDetailsMultiCaching(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)

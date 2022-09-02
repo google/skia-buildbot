@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -23,8 +22,6 @@ func TestTempGitRepoBadRev(t *testing.T) {
 	// encounters "transient" errors. I'm not sure why it thinks "fatal:
 	// couldn't find remote ref" is transient, but these retries cause the
 	// test to time out.
-	unittest.ManualTest(t)
-	unittest.LargeTest(t)
 	_, gb, _, _ := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
@@ -41,8 +38,6 @@ func TestTempGitRepoErr(t *testing.T) {
 	// TODO(borenet): Git wrapper automatically retries commands when it
 	// encounters "transient" errors. I'm not sure why it thinks this error
 	// is transient, but these retries cause the test to time out.
-	unittest.ManualTest(t)
-	unittest.LargeTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -76,10 +71,8 @@ func TestTempGitRepoErr(t *testing.T) {
 }
 
 func TestLazyTempGitRepo(t *testing.T) {
-	unittest.LargeTest(t)
 	// TODO(borenet): This test only takes ~5 seconds locally, but for some
 	// reason it consistently times out after 4 minutes on the bots.
-	unittest.ManualTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()

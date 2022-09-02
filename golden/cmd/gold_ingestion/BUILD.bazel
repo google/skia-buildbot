@@ -44,7 +44,6 @@ go_test(
         "//go/metrics2",
         "//go/now",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/config",
         "//golden/go/ingestion",
         "//golden/go/ingestion/mocks",

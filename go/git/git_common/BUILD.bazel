@@ -22,7 +22,6 @@ go_test(
     embed = [":git_common"],
     deps = [
         "//go/exec",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

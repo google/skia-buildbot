@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/gcsuploader"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/gold-client/go/httpclient"
@@ -50,7 +49,6 @@ var (
 )
 
 func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -88,7 +86,6 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 }
 
 func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -127,7 +124,6 @@ func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.
 }
 
 func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -169,7 +165,6 @@ func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *tes
 }
 
 func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -196,7 +191,6 @@ func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
 }
 
 func TestImgTest_Init_EmptyExpectationsReturned_EmitsWarning(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -225,7 +219,6 @@ func TestImgTest_Init_EmptyExpectationsReturned_EmitsWarning(t *testing.T) {
 }
 
 func TestImgTest_InitCheck_EmptyExpectationsReturned_ReturnsNonzeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -261,7 +254,6 @@ func TestImgTest_InitCheck_EmptyExpectationsReturned_ReturnsNonzeroExitCode(t *t
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -337,7 +329,6 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 }
 
 func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -415,7 +406,6 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -479,7 +469,6 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -579,7 +568,6 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 
 // This tests calling imgtest add without calling imgtest init first.
 func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -634,7 +622,6 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 }
 
 func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -727,7 +714,6 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 }
 
 func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndImageUploaded(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -832,7 +818,6 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 // This test compares image a01 and a05. These images have 2 pixels different, with a maximum
 // delta of 7, so the settings are close enough to let those match.
 func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -871,7 +856,6 @@ func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
 }
 
 func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -1038,7 +1022,6 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 }
 
 func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
@@ -1055,7 +1038,6 @@ func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 }
 
 func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := mockRPCResponses("http://my-custom-url.example.com").
 		Known("first_digest").

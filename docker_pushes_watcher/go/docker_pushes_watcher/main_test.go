@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/docker/build/pubsub"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils/unittest"
 	"golang.org/x/oauth2"
 )
 
@@ -32,7 +31,6 @@ func (t *testTokenSource) Token() (*oauth2.Token, error) {
 }
 
 func TestBaseImageName(t *testing.T) {
-	unittest.SmallTest(t)
 	Init()
 
 	assert.Equal(t, "", baseImageName(""))
@@ -43,7 +41,6 @@ func TestBaseImageName(t *testing.T) {
 }
 
 func TestAddDockerProdTag(t *testing.T) {
-	unittest.SmallTest(t)
 	Init()
 	docker = "docker"
 
@@ -84,7 +81,6 @@ func TestAddDockerProdTag(t *testing.T) {
 }
 
 func TestDeployImage(t *testing.T) {
-	unittest.SmallTest(t)
 	Init()
 	pushk = "pushk"
 

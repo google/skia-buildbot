@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -29,7 +28,6 @@ func skipTestIfRequired(t *testing.T) {
 	if !RUN_GERRIT_TESTS {
 		t.Skip("Skipping test due to RUN_GERRIT_TESTS=false")
 	}
-	unittest.LargeTest(t)
 }
 
 func TestHasOpenDependency(t *testing.T) {
@@ -307,7 +305,6 @@ func TestAbandon(t *testing.T) {
 }
 
 func TestGetAbandonReason(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Messages that will be used by tests.
 	msgWithAbandonFromUser := ChangeInfoMessage{
@@ -370,7 +367,6 @@ func TestGetAbandonReason(t *testing.T) {
 }
 
 func TestFiles(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := fmt.Fprintln(w, `)]}'
@@ -419,7 +415,6 @@ func TestFiles(t *testing.T) {
 }
 
 func TestGetFileNames(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := fmt.Fprintln(w, `)]}'
@@ -463,7 +458,6 @@ func TestGetFileNames(t *testing.T) {
 }
 
 func TestGetFilesToContent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/a/changes/123/revisions/current/files" {
@@ -500,7 +494,6 @@ func TestGetFilesToContent(t *testing.T) {
 }
 
 func TestSubmittedTogether(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := fmt.Fprintln(w, `)]}'
@@ -530,7 +523,6 @@ func TestSubmittedTogether(t *testing.T) {
 }
 
 func TestIsBinaryPatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tsNoBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -580,7 +572,6 @@ func TestIsBinaryPatch(t *testing.T) {
 }
 
 func TestExtractIssueFromCommit(t *testing.T) {
-	unittest.SmallTest(t)
 	cmtMsg := `
    	Author: John Doe <jdoe@example.com>
 		Date:   Mon Feb 5 10:51:20 2018 -0500
@@ -617,7 +608,6 @@ func TestGetCommit(t *testing.T) {
 }
 
 func TestParseChangeId(t *testing.T) {
-	unittest.SmallTest(t)
 
 	expect := "Ie00a12db04350ab0f8c754b3674eaa5a0a556b63"
 	actual, err := ParseChangeId(`commit 96c2eb6258aef6146d947648db12b6470de8197a (origin/master, origin/HEAD, master)
@@ -636,7 +626,6 @@ Date:   Mon Mar 2 14:53:04 2020 -0500
 }
 
 func TestFullChangeId(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &ChangeInfo{
 		Project:  "skia",

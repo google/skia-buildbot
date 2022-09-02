@@ -49,7 +49,6 @@ go_test(
     embed = [":periodictasks_lib"],
     deps = [
         "//go/now",
-        "//go/testutils/unittest",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMultiString(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Test basic operation.
 	defaults := []string{"mydefault", "mydefault2"}

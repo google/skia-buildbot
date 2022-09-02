@@ -6,11 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
-	unittest.MediumTest(t)
 
 	allExistingConfigs, err := filepath.Glob("../../configs/*.json")
 	require.Greater(t, len(allExistingConfigs), 0)
@@ -23,7 +21,6 @@ func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
 }
 
 func TestInstanceConfigBytes_EmptyJSONObject_ShouldBeInValid(t *testing.T) {
-	unittest.MediumTest(t)
 
 	_, _, err := InstanceConfigFromFile("./testdata/empty.json")
 	require.Error(t, err)

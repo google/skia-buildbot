@@ -24,7 +24,6 @@ go_test(
     embed = [":allowed"],
     deps = [
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

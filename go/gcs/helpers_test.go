@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // captureFileWriterGCSClient captures FileWriter args for TestWithWriteFile* and
@@ -27,7 +26,6 @@ func (c *captureFileWriterGCSClient) FileWriter(ctx context.Context, path string
 }
 
 func TestWithWriteFileSimple(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
 		MemoryGCSClient: mem_gcsclient.New("compositions"),
@@ -52,7 +50,6 @@ func TestWithWriteFileSimple(t *testing.T) {
 }
 
 func TestWithWriteFileError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
 		MemoryGCSClient: mem_gcsclient.New("compositions"),
@@ -76,7 +73,6 @@ func TestWithWriteFileError(t *testing.T) {
 }
 
 func TestWithWriteFileGzipSimple(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
 		MemoryGCSClient: mem_gcsclient.New("compositions"),

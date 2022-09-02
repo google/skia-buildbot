@@ -19,7 +19,6 @@ go_test(
     srcs = ["sqlingestionstore_test.go"],
     embed = [":sqlingestionstore"],
     deps = [
-        "//go/testutils/unittest",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",

@@ -26,7 +26,6 @@ go_test(
     deps = [
         ":sqltest",
         "//go/skerr",
-        "//go/testutils/unittest",
         "//golden/go/sql/schema",
         "@com_github_jackc_pgtype//:pgtype",
         "@com_github_stretchr_testify//assert",

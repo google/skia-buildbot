@@ -20,8 +20,5 @@ go_test(
     srcs = ["jsonschema_test.go"],
     data = glob(["testdata/**"]),
     embed = [":jsonschema"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

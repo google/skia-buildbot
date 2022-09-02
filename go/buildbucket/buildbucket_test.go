@@ -9,11 +9,9 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetBuild(t *testing.T) {
-	unittest.SmallTest(t)
 
 	id := int64(12345)
 	c := bb_testutils.NewMockClient(t)
@@ -54,7 +52,6 @@ func TestGetBuild(t *testing.T) {
 }
 
 func TestScheduleBuilds(t *testing.T) {
-	unittest.SmallTest(t)
 
 	buildID := int64(12345)
 	bbProject := "fake"
@@ -116,7 +113,6 @@ func TestScheduleBuilds(t *testing.T) {
 }
 
 func TestCancelBuilds(t *testing.T) {
-	unittest.SmallTest(t)
 
 	buildID := int64(12345)
 	bbProject := "fake"
@@ -177,7 +173,6 @@ func TestCancelBuilds(t *testing.T) {
 }
 
 func TestGetTrybotsForCL(t *testing.T) {
-	unittest.SmallTest(t)
 
 	id := int64(12345)
 	c := bb_testutils.NewMockClient(t)

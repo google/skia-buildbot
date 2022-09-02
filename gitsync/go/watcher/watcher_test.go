@@ -26,13 +26,11 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestIngestCommits(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	gs := &mocks.GitStore{}
@@ -154,7 +152,6 @@ func TestIngestCommits(t *testing.T) {
 }
 
 func TestGetFilteredBranches(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
@@ -185,7 +182,6 @@ func TestGetFilteredBranches(t *testing.T) {
 }
 
 func TestRepoImplIncludeBranches(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
@@ -404,56 +400,48 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 }
 
 func TestGraphWellFormedGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestGraphWellFormed(t, ctx, g, repo, ud)
 }
 
 func TestRecurseGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestRevList(t, ctx, g, repo, ud)
 }
 
 func TestBranchMembershipGitSync(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestBranchMembership(t, ctx, g, repo, ud)
 }
 
 func TestMissingOldBranchHeadFallback(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()

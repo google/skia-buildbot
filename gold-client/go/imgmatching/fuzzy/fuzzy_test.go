@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/image/text"
 )
 
@@ -37,7 +36,6 @@ func runTestCases(t *testing.T, tests []testCase, makeMatcher func() Matcher) {
 }
 
 func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []testCase{
 		{
@@ -91,7 +89,6 @@ func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
 }
 
 func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []testCase{
 		{
@@ -220,7 +217,6 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 }
 
 func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []testCase{
 		{
@@ -304,7 +300,6 @@ func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T)
 }
 
 func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []testCase{
 		{
@@ -625,7 +620,6 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 }
 
 func TestMatcher_NonZeroIgnoredBorderThickness_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	imageWithNoBorder := text.MustToNRGBA(`! SKTEXTSIMPLE
 	10 10

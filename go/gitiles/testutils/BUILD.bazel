@@ -24,7 +24,6 @@ go_test(
         "//go/git",
         "//go/gitiles",
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "//go/vfs/shared_tests",
         "@com_github_stretchr_testify//require",
     ],

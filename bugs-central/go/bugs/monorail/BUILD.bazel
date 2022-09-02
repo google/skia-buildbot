@@ -24,7 +24,6 @@ go_test(
         "//bugs-central/go/bugs",
         "//go/mockhttpclient",
         "//go/monorail/v3:monorail",
-        "//go/testutils/unittest",
         "@com_github_gorilla_mux//:mux",
         "@com_github_stretchr_testify//require",
     ],

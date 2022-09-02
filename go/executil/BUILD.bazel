@@ -13,7 +13,6 @@ go_test(
     srcs = ["executil_test.go"],
     deps = [
         ":executil",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

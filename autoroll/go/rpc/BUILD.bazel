@@ -61,7 +61,6 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/firestore",
         "//go/git",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],

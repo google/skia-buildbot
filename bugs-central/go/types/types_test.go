@@ -5,12 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIncSLOViolation(t *testing.T) {
-	unittest.SmallTest(t)
 
 	now := time.Unix(1405544146, 0)
 	after1Day := now.Add(Daily).Add(time.Minute)
@@ -61,7 +58,6 @@ func TestIncSLOViolation(t *testing.T) {
 }
 
 func TestMergeInfo(t *testing.T) {
-	unittest.SmallTest(t)
 
 	to := IssueCountsData{
 		OpenCount:       120,
@@ -101,7 +97,6 @@ func TestMergeInfo(t *testing.T) {
 }
 
 func TestIncPriority(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ics := IssueCountsData{}
 	assertPriorityCounts := func(p0, p1, p2, p3, p4, p5, p6 int) {

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testTables struct {
@@ -30,7 +29,6 @@ type tableTwoRow struct {
 }
 
 func TestGenerateSQL_WellFormedInput_CorrectOutput(t *testing.T) {
-	unittest.SmallTest(t)
 
 	gen := generateSQL(testTables{}, "test_package_one")
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
@@ -62,7 +60,6 @@ type malformedTable struct {
 }
 
 func TestGenerateSQL_NonSliceField_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		generateSQL(malformedTable{}, "test_package_one")
@@ -75,7 +72,6 @@ type missingSQLStructs struct {
 }
 
 func TestGenerateSQL_MissingSQLStructTag_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		generateSQL(missingSQLStructs{}, "test_package_one")

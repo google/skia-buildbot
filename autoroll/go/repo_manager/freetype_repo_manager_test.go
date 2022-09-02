@@ -20,7 +20,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -39,7 +38,6 @@ blah blah`
 )
 
 func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
-	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)

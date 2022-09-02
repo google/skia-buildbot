@@ -15,11 +15,9 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAddComment(t *testing.T) {
-	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"body":"test msg"}
 `)
@@ -35,7 +33,6 @@ func TestAddComment(t *testing.T) {
 }
 
 func TestGetAuthenticatedUser(t *testing.T) {
-	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetError("OK", http.StatusOK)
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/user").Handler(md)
@@ -48,7 +45,6 @@ func TestGetAuthenticatedUser(t *testing.T) {
 }
 
 func TestListOpenPullRequests(t *testing.T) {
-	unittest.SmallTest(t)
 	prNum1 := 1
 	prNum2 := 101
 	respBody := []byte(testutils.MarshalJSON(t, []*github.PullRequest{
@@ -70,7 +66,6 @@ func TestListOpenPullRequests(t *testing.T) {
 }
 
 func TestGetPullRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
@@ -85,7 +80,6 @@ func TestGetPullRequest(t *testing.T) {
 }
 
 func TestGetReference(t *testing.T) {
-	unittest.SmallTest(t)
 	testSHA := "xyz"
 	testRef := "test-branch"
 	testRepoOwner := "batman"
@@ -104,7 +98,6 @@ func TestGetReference(t *testing.T) {
 }
 
 func TestListMatchingReferences(t *testing.T) {
-	unittest.SmallTest(t)
 	testSHA1 := "abc"
 	testSHA2 := "xyz"
 	testRef := "test-branch"
@@ -128,7 +121,6 @@ func TestListMatchingReferences(t *testing.T) {
 }
 
 func TestDeleteReference(t *testing.T) {
-	unittest.SmallTest(t)
 	testRef := "test-branch"
 	testRepoOwner := "batman"
 	testRepoName := "gotham"
@@ -144,7 +136,6 @@ func TestDeleteReference(t *testing.T) {
 }
 
 func TestCreateReference(t *testing.T) {
-	unittest.SmallTest(t)
 	testSHA := "xyz"
 	testRef := "test-branch"
 	testRepoOwner := "batman"
@@ -163,7 +154,6 @@ func TestCreateReference(t *testing.T) {
 }
 
 func TestCreatePullRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"title":"title","head":"headBranch","base":"baseBranch","body":"testBody"}
 `)
@@ -182,7 +172,6 @@ func TestCreatePullRequest(t *testing.T) {
 }
 
 func TestMergePullRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"commit_message":"test comment","merge_method":"squash"}
 `)
@@ -198,7 +187,6 @@ func TestMergePullRequest(t *testing.T) {
 }
 
 func TestClosePullRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
 	reqType := "application/json"
 	reqBody := []byte(`{"state":"closed"}
@@ -216,7 +204,6 @@ func TestClosePullRequest(t *testing.T) {
 }
 
 func TestGetIssues(t *testing.T) {
-	unittest.SmallTest(t)
 	id1 := int64(11)
 	id2 := int64(22)
 	issue1 := github.Issue{ID: &id1}
@@ -237,7 +224,6 @@ func TestGetIssues(t *testing.T) {
 }
 
 func TestGetLabelsRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -256,7 +242,6 @@ func TestGetLabelsRequest(t *testing.T) {
 }
 
 func TestAddLabelRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -282,7 +267,6 @@ func TestAddLabelRequest(t *testing.T) {
 }
 
 func TestRemoveLabelRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -308,7 +292,6 @@ func TestRemoveLabelRequest(t *testing.T) {
 }
 
 func TestReplaceLabelRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -334,7 +317,6 @@ func TestReplaceLabelRequest(t *testing.T) {
 }
 
 func TestGetChecksRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock out check-runs call.
 	checkID1 := int64(100)
@@ -368,7 +350,6 @@ func TestGetChecksRequest(t *testing.T) {
 }
 
 func TestReRequestLatestCheckSuite(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock out list check suites call.
 	totalResults := int(1)
@@ -393,7 +374,6 @@ func TestReRequestLatestCheckSuite(t *testing.T) {
 }
 
 func TestGetDescription(t *testing.T) {
-	unittest.SmallTest(t)
 	body := "test test test"
 	respBody := []byte(testutils.MarshalJSON(t, &github.Issue{Body: &body}))
 	r := mux.NewRouter()
@@ -409,7 +389,6 @@ func TestGetDescription(t *testing.T) {
 }
 
 func TestReadRawFileRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	respBody := []byte(`abcd`)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
@@ -424,7 +403,6 @@ func TestReadRawFileRequest(t *testing.T) {
 }
 
 func TestGetFullHistoryUrl(t *testing.T) {
-	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
@@ -433,7 +411,6 @@ func TestGetFullHistoryUrl(t *testing.T) {
 }
 
 func TestGetPullRequestUrlBase(t *testing.T) {
-	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
@@ -442,7 +419,6 @@ func TestGetPullRequestUrlBase(t *testing.T) {
 }
 
 func TestGetIssueUrlBase(t *testing.T) {
-	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)

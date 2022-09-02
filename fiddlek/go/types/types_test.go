@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestOptions(t *testing.T) {
-	unittest.SmallTest(t)
 	code := `void draw(SkCanvas* canvas) {
     SkPaint p;
     p.setColor(SK_ColorRED);

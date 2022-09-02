@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestEnsureNotEmulator_EnvNotVarSet_DoesNotPanic(t *testing.T) {
-	unittest.SmallTest(t)
 	oldValue := emulators.GetEmulatorHostEnvVar(emulators.PubSub)
 	defer func() {
 		err := os.Setenv(string(emulators.PubSub), oldValue)
@@ -25,7 +23,6 @@ func TestEnsureNotEmulator_EnvNotVarSet_DoesNotPanic(t *testing.T) {
 }
 
 func TestEnsureNotEmulator_EnvVarSet_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 	oldValue := emulators.GetEmulatorHostEnvVar(emulators.PubSub)
 	defer func() {
 		err := os.Setenv(string(emulators.PubSub), oldValue)

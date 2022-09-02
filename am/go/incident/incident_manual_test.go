@@ -9,12 +9,10 @@ import (
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAlertArrival(t *testing.T) {
-	unittest.ManualTest(t) // Disabled due to flaky cloud emulator on the CI
-
+	// Manual due to flaky cloud emulator on the CI
 	cleanup := testutil.InitDatastore(t, ds.INCIDENT_AM, ds.INCIDENT_ACTIVE_PARENT_AM)
 	defer cleanup()
 

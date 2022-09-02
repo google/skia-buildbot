@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -213,7 +212,6 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoU
 
 // TestGithubRepoManager tests all aspects of the Github RepoManager except for CreateNewRoll.
 func TestGithubRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
 	ctx, rm, _, _, childCommits, _, _, _, cleanup := setupGithub(t, cfg)
@@ -227,7 +225,6 @@ func TestGithubRepoManager(t *testing.T) {
 }
 
 func TestGithubRepoManagerCreateNewRoll(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
@@ -245,7 +242,6 @@ func TestGithubRepoManagerCreateNewRoll(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
 	// Create a fake pre-upload step.
@@ -271,7 +267,6 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 
 // Verify that we fail when a PreUploadStep fails.
 func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
 	// Create a fake pre-upload step.

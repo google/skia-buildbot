@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNamedTemplateCanary(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
@@ -36,7 +34,6 @@ Cq-Do-Not-Cancel-Tryjobs: true
 }
 
 func TestNamedTemplateCanary_WithExternalChangeId(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{

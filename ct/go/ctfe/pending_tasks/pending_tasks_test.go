@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func getCommonCols(kind ds.Kind) task_common.CommonCols {
@@ -25,7 +24,6 @@ func getCommonCols(kind ds.Kind) task_common.CommonCols {
 }
 
 func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
-	unittest.SmallTest(t)
 	test := func(task task_common.Task) {
 		buf := bytes.Buffer{}
 		require.NoError(t, EncodeTask(&buf, task))

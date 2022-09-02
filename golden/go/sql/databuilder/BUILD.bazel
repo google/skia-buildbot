@@ -26,7 +26,6 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/sql/schema",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",

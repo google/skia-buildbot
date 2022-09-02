@@ -12,13 +12,11 @@ import (
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
 )
 
 func TestGetChangelistSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -42,7 +40,6 @@ func TestGetChangelistSunnyDay(t *testing.T) {
 }
 
 func TestGetChangelistLanded(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -67,7 +64,6 @@ func TestGetChangelistLanded(t *testing.T) {
 }
 
 func TestGetChangelistDoesNotExist(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -83,7 +79,6 @@ func TestGetChangelistDoesNotExist(t *testing.T) {
 }
 
 func TestGetChangelistInvalidID(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -97,7 +92,6 @@ func TestGetChangelistInvalidID(t *testing.T) {
 }
 
 func TestGetChangelistOtherErr(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -117,7 +111,6 @@ const omitPS = ""
 const omitOrder = 0
 
 func TestGetPatchset_PatchsetExists_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -161,7 +154,6 @@ func TestGetPatchset_PatchsetExists_Success(t *testing.T) {
 }
 
 func TestGetPatchset_PatchsetDoesNotExist_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -181,7 +173,6 @@ func TestGetPatchset_PatchsetDoesNotExist_ReturnsNotFound(t *testing.T) {
 }
 
 func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -200,7 +191,6 @@ func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
 }
 
 func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -214,7 +204,6 @@ func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
 }
 
 func TestGetPatchset_OtherError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -231,7 +220,6 @@ func TestGetPatchset_OtherError_ReturnsError(t *testing.T) {
 }
 
 func TestGetChangelistForCommitSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -255,7 +243,6 @@ blah blah blah
 }
 
 func TestGetChangelistForCommitBadBody(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -275,7 +262,6 @@ func TestGetChangelistForCommitBadBody(t *testing.T) {
 }
 
 func TestCommentOnChangelistSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -292,7 +278,6 @@ func TestCommentOnChangelistSunnyDay(t *testing.T) {
 }
 
 func TestCommentOnChangelistGerritError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
@@ -310,7 +295,6 @@ func TestCommentOnChangelistGerritError(t *testing.T) {
 }
 
 func TestCommentOnChangelist_CLNotFound_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 
@@ -327,7 +311,6 @@ func TestCommentOnChangelist_CLNotFound_ReturnsError(t *testing.T) {
 }
 
 func TestCommentOnChangelist_CLNotFound2_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 

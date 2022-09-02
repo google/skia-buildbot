@@ -29,7 +29,6 @@ go_test(
     deps = [
         "//go/deepequal/assertdeep",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_x_oauth2//google",

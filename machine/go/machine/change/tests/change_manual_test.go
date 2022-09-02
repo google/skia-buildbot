@@ -14,7 +14,6 @@ import (
 )
 
 func TestSourceAndSink(t *testing.T) {
-	unittest.LargeTest(t)
 	unittest.RequiresPubSubEmulator(t)
 
 	const machineID1 = "skia-rpi2-rack4-shelf1-001"

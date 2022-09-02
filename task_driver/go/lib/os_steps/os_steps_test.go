@@ -7,12 +7,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 func TestOsSteps(t *testing.T) {
-	unittest.MediumTest(t)
 	tr := td.StartTestRun(t)
 	defer tr.Cleanup()
 

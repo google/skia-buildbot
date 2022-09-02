@@ -34,7 +34,6 @@ go_test(
     embed = [":gerrit"],
     deps = [
         "//go/httputils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

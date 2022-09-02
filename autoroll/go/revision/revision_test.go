@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyRevision(t *testing.T) {
-	unittest.SmallTest(t)
 
 	v := &Revision{
 		Id:               "abc123",
@@ -34,7 +32,6 @@ func TestCopyRevision(t *testing.T) {
 }
 
 func TestParseTests(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bodyWithThreeTestLines := `testing
 Test: tested with 0

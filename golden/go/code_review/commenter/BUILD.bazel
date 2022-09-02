@@ -27,7 +27,6 @@ go_test(
     deps = [
         "//go/now",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/code_review",
         "//golden/go/code_review/mocks",
         "//golden/go/sql/datakitchensink",

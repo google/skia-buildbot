@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/mocks"
@@ -43,7 +42,6 @@ import (
 
 // test data processing of the known hashes input.
 func TestLoadKnownHashes(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -75,7 +73,6 @@ func TestLoadKnownHashes(t *testing.T) {
 // TestLoadBaseline loads a baseline for an issue (testSharedConfig defaults to being
 // an configured for a tryjob).
 func TestLoadBaseline(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -110,7 +107,6 @@ func TestLoadBaseline(t *testing.T) {
 
 // TestLoadBaselineMaster loads the baseline for the master branch.
 func TestLoadBaselineMaster(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -154,7 +150,6 @@ func TestLoadBaselineMaster(t *testing.T) {
 // This is effectively a test for "goldctl imgtest init"
 func TestInit(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -196,7 +191,6 @@ func TestInit(t *testing.T) {
 
 // TestInitInvalidKeys fails if the SharedConfig would not pass validation (e.g. keys are malformed)
 func TestInitInvalidKeys(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -215,7 +209,6 @@ func TestInitInvalidKeys(t *testing.T) {
 // This is effectively a test for "goldctl imgtest init --upload-only"
 func TestInitUploadOnly(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -250,7 +243,6 @@ func TestInitUploadOnly(t *testing.T) {
 }
 
 func TestAddResult_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const expectedTraceID = "673031cf116813b91be9c4ac14d62412"
 	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta", "name": "my_test", "source_type": "my_corpus"})
@@ -286,7 +278,6 @@ func TestAddResult_Success(t *testing.T) {
 }
 
 func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const expectedTraceID = "b8bb20640d45f2fa4f2b52d1acb11abd"
 	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta", "name": "my_test", "source_type": "my_instance"})
@@ -325,7 +316,6 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 // Report an image that does not match any previous digests.
 // This is effectively a test for "goldctl imgtest add"
 func TestNewReportNormal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -366,7 +356,6 @@ func TestNewReportNormal(t *testing.T) {
 // Report an image using the supplied digest
 // This is effectively a test for "goldctl imgtest add --png-digest ... --png-file ..."
 func TestNewReportDigestAndImageSupplied(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -409,7 +398,6 @@ func TestNewReportDigestAndImageSupplied(t *testing.T) {
 // Report an image using only the supplied digest (no png to upload).
 // This is effectively a test for "goldctl imgtest add --png-digest ..."
 func TestNewReportDigestSupplied(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -447,7 +435,6 @@ func TestNewReportDigestSupplied(t *testing.T) {
 // TestNewReportNormalBadKeys tests the case when bad keys are passed in, which should not upload
 // because the jsonio.GoldResults would be invalid.
 func TestNewReportNormalBadKeys(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -484,7 +471,6 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 // This is effectively a test for "goldctl imgtest finalize"
 func TestFinalizeNormal(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -565,7 +551,6 @@ func TestFinalizeNormal(t *testing.T) {
 //   goldctl imgtest finalize
 func TestInitAddFinalize(t *testing.T) {
 	// We read and write to disk a little
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -663,7 +648,6 @@ func TestInitAddFinalize(t *testing.T) {
 
 // TestNewReportPassFail ensures that a brand new test/digest returns false in pass-fail mode.
 func TestNewReportPassFail(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -738,7 +722,6 @@ func TestNewReportPassFail(t *testing.T) {
 // TestReportPassFailPassWithCorpus test that when we set the corpus via the initial config
 // // it properly gets overridden.
 func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -813,7 +796,6 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 // TestReportPassFailPassWithCorpusInKeys test that when we set the corpus via additional keys,
 // it properly gets overridden.
 func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -890,7 +872,6 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 // "111...", which is deemed to be an approximate match to the latest positive digest "222...".
 // Because it is deemed to be a match, we expect to see an RPC to triage "111..." as positive.
 func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1027,7 +1008,6 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 // TestNegativePassFail ensures that a digest marked negative returns false in pass-fail mode.
 func TestNegativePassFail(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1081,7 +1061,6 @@ https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325
 
 // TestPositivePassFail ensures that a positively marked digest returns true in pass-fail mode.
 func TestPositivePassFail(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1125,7 +1104,6 @@ func TestPositivePassFail(t *testing.T) {
 // TestCheckSunnyDay emulates running goldctl auth; goldctl imgtest check ... where the
 // passed in image matches something on the baseline
 func TestCheckSunnyDay(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1169,7 +1147,6 @@ func TestCheckSunnyDay(t *testing.T) {
 // TestCheckIssue emulates running goldctl auth; goldctl imgtest check ... where the
 // passed in image matches something on the baseline for a changelist.
 func TestCheckIssue(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1223,7 +1200,6 @@ func TestCheckIssue(t *testing.T) {
 // TestCheckSunnyDayNegative emulates running goldctl auth; goldctl imgtest check ... where the
 // passed in image does not match something on the baseline.
 func TestCheckSunnyDayNegative(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wd := t.TempDir()
 
@@ -1262,7 +1238,6 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 // specifically focusing on loading from disk after the first check and not querying the
 // backend every time.
 func TestCheckLoad(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1311,7 +1286,6 @@ func TestCheckLoad(t *testing.T) {
 // TestCheckLoadFails make sure that if we load from an empty directory, we fail to initialize
 // a GoldClient.
 func TestCheckLoadFails(t *testing.T) {
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -1327,7 +1301,6 @@ func TestCheckLoadFails(t *testing.T) {
 // It asserts that the given output directory has the original image, the closest image and
 // the computed diff.
 func TestDiffSunnyDay(t *testing.T) {
-	unittest.MediumTest(t)
 
 	const corpus = "This Has spaces"
 	const testName = types.TestName("This IsTheOnly Test")
@@ -1390,7 +1363,6 @@ func TestDiffSunnyDay(t *testing.T) {
 // TestDiffCaching makes sure we cache the images we download from GCS and only download them
 // once if we try calling Diff multiple times.
 func TestDiffCaching(t *testing.T) {
-	unittest.MediumTest(t)
 
 	const corpus = "whatever"
 	const testName = types.TestName("ThisIsTheOnlyTest")
@@ -1441,7 +1413,6 @@ func TestDiffCaching(t *testing.T) {
 }
 
 func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const instanceId = "my_instance"
 	const testName = types.TestName("my_test")
@@ -1550,8 +1521,6 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToExactMatching_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
-
 	const testName = types.TestName("my_test")
 	const digest = types.Digest("11111111111111111111111111111111")
 	const unlabeled = expectations.Label("unlabeled") // Sentinel value.
@@ -1584,7 +1553,6 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
 	const digest = types.Digest("11111111111111111111111111111111")
@@ -1622,7 +1590,6 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
@@ -1655,7 +1622,6 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
@@ -1728,7 +1694,6 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	tests := []struct {
 		name         string
@@ -1773,7 +1738,6 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDigests_ReturnsFalse(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
@@ -1803,7 +1767,6 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
@@ -1837,7 +1800,6 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
@@ -1895,7 +1857,6 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	tests := []struct {
 		name         string
@@ -1951,7 +1912,6 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
@@ -1965,8 +1925,6 @@ func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *
 }
 
 func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Success(t *testing.T) {
-	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
-
 	wd := t.TempDir()
 
 	ctx, _, _, gcsDownloader := makeMocks()
@@ -1991,8 +1949,6 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Su
 }
 
 func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageFromGCS_Failure(t *testing.T) {
-	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
-
 	wd := t.TempDir()
 
 	ctx, _, _, gcsDownloader := makeMocks()
@@ -2015,8 +1971,6 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageF
 }
 
 func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(t *testing.T) {
-	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
-
 	wd := t.TempDir()
 
 	ctx, _, _, _ := makeMocks()
@@ -2046,8 +2000,6 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 }
 
 func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk_Failure(t *testing.T) {
-	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
-
 	wd := t.TempDir()
 
 	ctx, _, _, _ := makeMocks()
@@ -2076,7 +2028,6 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk
 
 func TestCloudClient_Whoami_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -2101,7 +2052,6 @@ func TestCloudClient_Whoami_Success(t *testing.T) {
 
 func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 	// This test takes >30 seconds to retry a bunch.
-	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 
@@ -2125,7 +2075,6 @@ func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 
 func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -2173,7 +2122,6 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 
 func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -2226,7 +2174,6 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 
 func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) {
 	// This test takes >30 seconds to retry a bunch.
-	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 
@@ -2255,7 +2202,6 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 
 func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -2283,7 +2229,6 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 
 func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
 
 	wd := t.TempDir()
 
@@ -2310,7 +2255,6 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 
 func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *testing.T) {
 	// This test takes a while to deal with retries
-	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 

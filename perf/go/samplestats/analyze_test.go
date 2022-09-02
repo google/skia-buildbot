@@ -7,12 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingest/parser"
 )
 
 func TestAnalyze_MannWhitneyUTest_SuccessfullyDetectChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	before := map[string]parser.Samples{
 		",name=test1,": {
@@ -52,7 +50,6 @@ func TestAnalyze_MannWhitneyUTest_SuccessfullyDetectChange(t *testing.T) {
 }
 
 func TestAnalyze_TwoSampleWelchTTest_SuccessfullyDetectChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	before := map[string]parser.Samples{
 		",name=test1,": {
@@ -94,7 +91,6 @@ func TestAnalyze_TwoSampleWelchTTest_SuccessfullyDetectChange(t *testing.T) {
 }
 
 func TestAnalyze_TwoResults_ResultsAreSortedCorrectly(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Set up samples where test1 has a smaller delta than test2.
 	before := map[string]parser.Samples{
@@ -138,7 +134,6 @@ func TestAnalyze_TwoResults_ResultsAreSortedCorrectly(t *testing.T) {
 }
 
 func TestAnalyze_ErrorCalculatingTest_NoteContainsErrorMessage(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Set up samples where test1 doesn't change, but test2 does,
 	// and confirm we sort correctly on the delta.

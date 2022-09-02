@@ -12,13 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/image/text"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 )
 
 func TestDiffMetrics(t *testing.T) {
-	unittest.MediumTest(t)
 	// Assert different images with the same dimensions.
 	assertDiffs(t, "4029959456464745507", "16465366847175223174",
 		&DiffMetrics{
@@ -145,7 +143,6 @@ func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetr
 
 // TestDiffImages tests that the diff images produced are correct.
 func TestDiffImages(t *testing.T) {
-	unittest.MediumTest(t)
 	assertDiffMatch(t, one_by_five.DiffNone, one_by_five.ImageOne, one_by_five.ImageOne)
 	assertDiffMatch(t, one_by_five.DiffNone, one_by_five.ImageTwo, one_by_five.ImageTwo)
 	assertDiffMatch(t, one_by_five.DiffImageOneAndTwo, one_by_five.ImageOne, one_by_five.ImageTwo)
@@ -181,7 +178,6 @@ func roundToDecimalPlace(num float32, places int) float32 {
 }
 
 func TestDeltaOffset(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		offset int
 		want   int
@@ -221,7 +217,6 @@ func TestDeltaOffset(t *testing.T) {
 }
 
 func TestCombinedDiffMetric(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.InDelta(t, 10.0, CombinedDiffMetric([4]int{255, 255, 255, 255}, 100.0), 0.000001)
 	assert.InDelta(t, 1.0, CombinedDiffMetric([4]int{255, 255, 255, 255}, 1.0), 0.000001)
 	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric([4]int{255, 255, 255, 255}, 0.5), 0.000001)

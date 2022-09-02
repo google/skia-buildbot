@@ -30,7 +30,6 @@ go_test(
     embed = [":memory"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/testutils/unittest",
         "//task_scheduler/go/db",
     ],
 )

@@ -18,8 +18,5 @@ go_test(
     name = "download_test",
     srcs = ["download_test.go"],
     embed = [":download"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

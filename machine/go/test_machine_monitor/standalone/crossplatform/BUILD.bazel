@@ -17,7 +17,6 @@ go_test(
     srcs = ["crossplatform_test.go"],
     embed = [":crossplatform"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_shirou_gopsutil//host",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

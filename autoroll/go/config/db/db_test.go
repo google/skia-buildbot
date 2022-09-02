@@ -7,12 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/firestore/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
 func TestFirestoreDB(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	c, cleanup := testutils.NewClientForTesting(ctx, t)

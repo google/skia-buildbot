@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -229,7 +228,6 @@ func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 
 // TestGithubRepoManager tests all aspects of the GithubRepoManager except for CreateNewRoll.
 func TestGithubCipdDEPSRepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubCipdDEPSRmCfg(t)
 	ctx, rm, _, _, _, _, _, cleanup := setupGithubCipdDEPS(t, cfg)
@@ -247,7 +245,6 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 }
 
 func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubCipdDEPSRmCfg(t)
 	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
@@ -264,7 +261,6 @@ func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Create a fake pre-upload step.
 	ran := false
@@ -291,7 +287,6 @@ func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 // Verify that we fail when a PreUploadStep fails.
 func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ran := false
 	expectedErr := errors.New("Expected error")
@@ -318,7 +313,6 @@ func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 
 // TestGithubRepoManagerGetRevision tests GithubCipdDEPSRepoManager.GetRevision().
 func TestGithubCipdDEPSRepoManagerGetRevision(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cfg := githubCipdDEPSRmCfg(t)
 	ctx, rm, _, _, _, mockCipd, _, cleanup := setupGithubCipdDEPS(t, cfg)

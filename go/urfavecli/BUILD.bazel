@@ -20,7 +20,6 @@ go_test(
         "//go/loggingsyncbuffer",
         "//go/sklog/sklogimpl",
         "//go/sklog/stdlogging",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@com_github_urfave_cli_v2//:cli",
     ],

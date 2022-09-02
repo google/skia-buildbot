@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
@@ -68,7 +67,6 @@ func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
 
 // TestTaskUpdate checks that taskEventDB.update creates the correct Events from Tasks in the DB.
 func TestTaskUpdate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb, wait, cancel := setupTasks(t, now)
 	defer cancel()
@@ -100,7 +98,6 @@ func TestTaskUpdate(t *testing.T) {
 
 // TestTaskRange checks that taskEventDB.Range returns Events within the given range.
 func TestTaskRange(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb, wait, cancel := setupTasks(t, now)
 	defer cancel()
@@ -151,7 +148,6 @@ func TestTaskRange(t *testing.T) {
 }
 
 func TestComputeTaskFlakeRate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb, wait, cancel := setupTasks(t, now)
 	defer cancel()

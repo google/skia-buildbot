@@ -14,12 +14,10 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/continuous_integration"
 )
 
 func TestGetTryJobSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
 	c := New(mbi)
@@ -41,7 +39,6 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 }
 
 func TestGetTryJobRunning(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
 	c := New(mbi)
@@ -63,7 +60,6 @@ func TestGetTryJobRunning(t *testing.T) {
 }
 
 func TestGetTryJobDoesNotExist(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
 	c := New(mbi)
@@ -78,7 +74,6 @@ func TestGetTryJobDoesNotExist(t *testing.T) {
 }
 
 func TestGetTryJobOtherError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
 	c := New(mbi)

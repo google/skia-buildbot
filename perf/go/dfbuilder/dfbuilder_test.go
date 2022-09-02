@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -31,7 +30,6 @@ var (
 )
 
 func TestBuildTraceMapper(t *testing.T) {
-	unittest.LargeTest(t)
 
 	db, cleanup := sqltest.NewCockroachDBForTests(t, "dfbuilder")
 	defer cleanup()
@@ -66,7 +64,6 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 }
 
 func TestBuildNew(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
@@ -200,7 +197,6 @@ func TestBuildNew(t *testing.T) {
 }
 
 func TestFromIndexRange_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -226,7 +222,6 @@ func TestFromIndexRange_Success(t *testing.T) {
 }
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -240,7 +235,6 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 }
 
 func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -270,7 +264,6 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 }
 
 func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -316,7 +309,6 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 }
 
 func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -368,7 +360,6 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 }
 
 func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -388,7 +379,6 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 }
 
 func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -420,7 +410,6 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 }
 
 func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()

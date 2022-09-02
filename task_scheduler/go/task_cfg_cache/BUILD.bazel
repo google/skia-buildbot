@@ -30,7 +30,6 @@ go_test(
         "//go/git",
         "//go/git/repograph",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_scheduler/go/task_cfg_cache/testutils",
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//require",

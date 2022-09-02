@@ -27,7 +27,6 @@ go_test(
     deps = [
         "//go/exec",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//require",
     ],

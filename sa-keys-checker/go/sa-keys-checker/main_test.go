@@ -9,7 +9,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // testFloat64Metric implements the Float64Metric interface.
@@ -32,7 +31,6 @@ func (m *testFloat64Metric) Update(v float64) {
 }
 
 func TestDeleteUnusedMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m1 := &testFloat64Metric{id: 1}
 	m2 := &testFloat64Metric{id: 2}
@@ -121,7 +119,6 @@ func TestDeleteUnusedMetrics(t *testing.T) {
 }
 
 func TestProcessKey(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		key                    *adminpb.ServiceAccountKey

@@ -33,7 +33,6 @@ go_test(
     embed = [":sa-keys-checker_lib"],
     deps = [
         "//go/metrics2",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@go_googleapis//google/iam/admin/v1:admin_go_proto",
         "@org_golang_google_protobuf//types/known/timestamppb",

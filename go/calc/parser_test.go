@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -52,7 +51,6 @@ func newTestContext(rows, shortcutRows types.TraceSet) *Context {
 }
 
 func TestFilter(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(nil, nil)
 
 	testCases := []struct {
@@ -77,7 +75,6 @@ func TestFilter(t *testing.T) {
 }
 
 func TestShortcut(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(nil, types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
@@ -102,7 +99,6 @@ func TestShortcut(t *testing.T) {
 }
 
 func TestEvalNoModifyTile(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(nil, nil)
 
 	rows, err := ctx.Eval(`fill(filter("config=8888"))`)
@@ -120,7 +116,6 @@ func TestEvalNoModifyTile(t *testing.T) {
 }
 
 func TestEvalErrors(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(nil, nil)
 
 	testCases := []string{
@@ -156,7 +151,6 @@ func near(a, b float32) bool {
 }
 
 func TestNorm(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{2.0, -2.0, e},
 	}, nil)
@@ -171,7 +165,6 @@ func TestNorm(t *testing.T) {
 }
 
 func TestAve(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -193,7 +186,6 @@ func TestAve(t *testing.T) {
 }
 
 func TestAvg(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -215,7 +207,6 @@ func TestAvg(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -237,7 +228,6 @@ func TestCount(t *testing.T) {
 }
 
 func TestRatio(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{10, 4, 100, 50, 9999, 0},
 		",name=t2,": []float32{5, 2, 4, 5, 0, 1000},
@@ -259,7 +249,6 @@ func TestRatio(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{e, e, 2, 3, e, 5},
 	}, nil)
@@ -280,7 +269,6 @@ func TestFill(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -302,7 +290,6 @@ func TestSum(t *testing.T) {
 }
 
 func TestGeo(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
@@ -324,7 +311,6 @@ func TestGeo(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1, 10, 100, -1, 0, e},
 	}, nil)
@@ -346,7 +332,6 @@ func TestLog(t *testing.T) {
 }
 
 func TestIQRR(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{5, 7, 10, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25},
 	}, nil)

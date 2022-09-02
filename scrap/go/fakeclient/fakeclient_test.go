@@ -6,12 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/scrap/go/scrap"
 )
 
 func TestLoadScrap_NameExists_ReturnsBody(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc := New(map[string]scrap.ScrapBody{
 		"alpha": {Body: "alpha body"},
@@ -28,7 +26,6 @@ func TestLoadScrap_NameExists_ReturnsBody(t *testing.T) {
 }
 
 func TestLoadScrap_NameDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc := New(map[string]scrap.ScrapBody{})
 	ctx := context.Background()
@@ -38,7 +35,6 @@ func TestLoadScrap_NameDoesNotExist_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_UsesTypeAndBodyForHash(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc := New(map[string]scrap.ScrapBody{
 		"alpha": {Body: "alpha body"},
@@ -77,7 +73,6 @@ func TestCreateScrap_UsesTypeAndBodyForHash(t *testing.T) {
 }
 
 func TestDeleteScrap_Exists_RemovedFromList(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc := New(map[string]scrap.ScrapBody{
 		"alpha": {Body: "alpha body"},
@@ -93,7 +88,6 @@ func TestDeleteScrap_Exists_RemovedFromList(t *testing.T) {
 }
 
 func TestDeleteScrap_NameDoesNotExist_ReturnError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc := New(map[string]scrap.ScrapBody{
 		"alpha": {Body: "alpha body"},

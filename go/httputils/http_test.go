@@ -15,11 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestResponse2xxOnly(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := strconv.Atoi(r.URL.Query().Get("code"))
@@ -76,7 +74,6 @@ func (t *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func TestBackoffTransport(t *testing.T) {
-	unittest.LargeTest(t) // BackoffTransport sleeps between requests.
 	// Use a fail-faster config so the test doesn't take so long.
 	maxInterval := 600 * time.Millisecond
 	config := &BackOffConfig{
@@ -141,7 +138,6 @@ func (f RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func TestBackoffTransportWithContext(t *testing.T) {
-	unittest.LargeTest(t) // BackoffTransport sleeps between requests.
 	// Use a fail-faster config so the test doesn't take so long.
 	maxInterval := 600 * time.Millisecond
 	config := &BackOffConfig{
@@ -207,7 +203,6 @@ func TestBackoffTransportWithContext(t *testing.T) {
 }
 
 func TestForceHTTPS(t *testing.T) {
-	unittest.SmallTest(t)
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, "Hello World!")
 		require.NoError(t, err)
@@ -243,7 +238,6 @@ func TestForceHTTPS(t *testing.T) {
 }
 
 func TestGetWithContextSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	content := []byte("something")
 	m := mockhttpclient.NewURLMock()
@@ -259,7 +253,6 @@ func TestGetWithContextSunnyDay(t *testing.T) {
 }
 
 func TestGetWithContextCanceled(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -269,7 +262,6 @@ func TestGetWithContextCanceled(t *testing.T) {
 }
 
 func TestPostWithContextSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const mimeType = "text/plain"
 	const input = "something"
@@ -287,7 +279,6 @@ func TestPostWithContextSunnyDay(t *testing.T) {
 }
 
 func TestPostWithContextCancelled(t *testing.T) {
-	unittest.MediumTest(t)
 
 	const mimeType = "text/plain"
 	const input = "something"
@@ -300,7 +291,6 @@ func TestPostWithContextCancelled(t *testing.T) {
 }
 
 func TestCrossOriginResourcePolicy_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	w := httptest.NewRecorder()
 	var h http.Handler

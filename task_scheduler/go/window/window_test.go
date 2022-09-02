@@ -11,12 +11,10 @@ import (
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // A Window with no repos should just be a time range check.
 func TestWindowNoRepos(t *testing.T) {
-	unittest.SmallTest(t)
 	period := time.Hour
 	w, err := New(context.Background(), period, 0, nil)
 	require.NoError(t, err)
@@ -65,7 +63,6 @@ func setupRepo(t *testing.T, numCommits int) (*repograph.Graph, []string) {
 // asserting that the Window returns a particular value for a given commit
 // index, and a cleanup function.
 func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*WindowImpl, func(int, bool)) {
-	unittest.SmallTest(t)
 
 	repo, commits := setupRepo(t, numCommits)
 	repoUrl := "fake.git"
@@ -135,7 +132,6 @@ func TestWindowRepoAndDuration2(t *testing.T) {
 
 // Test multiple repos.
 func TestWindowMultiRepo(t *testing.T) {
-	unittest.SmallTest(t)
 	repo1, commits1 := setupRepo(t, 20)
 	repo2, commits2 := setupRepo(t, 10)
 

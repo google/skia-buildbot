@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -83,7 +82,6 @@ func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 }
 
 func TestTempGitRepo(t *testing.T) {
-	unittest.LargeTest(t)
 	_, gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
@@ -101,7 +99,6 @@ func TestTempGitRepo(t *testing.T) {
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, gb, _, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
@@ -125,7 +122,6 @@ func TestTempGitRepoPatch(t *testing.T) {
 }
 
 func TestTempGitRepoParallel(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()

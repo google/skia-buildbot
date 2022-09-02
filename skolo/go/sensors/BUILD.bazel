@@ -26,7 +26,6 @@ go_test(
     deps = [
         "//go/serial/mocks",
         "//go/skerr",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",

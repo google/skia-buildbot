@@ -32,7 +32,6 @@ go_test(
         "//go/gerrit",
         "//go/httputils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//skcq/go/caches/mocks",
         "//skcq/go/codereview/mocks",
         "//skcq/go/config",

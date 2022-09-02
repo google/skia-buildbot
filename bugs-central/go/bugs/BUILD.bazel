@@ -21,7 +21,6 @@ go_test(
     embed = [":bugs"],
     deps = [
         "//bugs-central/go/types",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

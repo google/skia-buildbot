@@ -7,14 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 // TestSubprocessExample_UseWithCommandCollector shows how to properly tell task driver to use
 // a mock implementation of exec for its child subprocesses.
 func TestSubprocessExample_UseWithCommandCollector(t *testing.T) {
-	unittest.SmallTest(t)
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mock := exec.CommandCollector{}
 		// In other code, this would be exec.NewContext(ctx, mock.Run), but that doesn't work with

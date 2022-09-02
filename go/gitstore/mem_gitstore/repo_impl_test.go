@@ -10,7 +10,6 @@ import (
 	repograph_shared_tests "go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -65,56 +64,48 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *r
 }
 
 func TestGraphWellFormedGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestGraphWellFormed(t, ctx, g, repo, ud)
 }
 
 func TestRecurseGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestLogLinearGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestLogLinear(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRevList(t, ctx, g, repo, ud)
 }
 
 func TestBranchMembershipGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestBranchMembership(t, ctx, g, repo, ud)

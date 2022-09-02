@@ -8,7 +8,6 @@ import (
 
 	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -18,7 +17,6 @@ const (
 )
 
 func TestGetKey(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		sourceRepo   string
@@ -63,7 +61,6 @@ func newDBClientForTesting(ctx context.Context, t sktest.TestingT) (*FirestoreDB
 }
 
 func TestGetFromDB_EmptyResults_NoErrors(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db, cleanup := newDBClientForTesting(ctx, t)
 	defer cleanup()
@@ -75,7 +72,6 @@ func TestGetFromDB_EmptyResults_NoErrors(t *testing.T) {
 }
 
 func TestPutInDB_OneEntry_ExpectedChangeNum(t *testing.T) {
-	unittest.LargeTest(t)
 	db, cleanup := newDBClientForTesting(context.Background(), t)
 	defer cleanup()
 	ctx := context.Background()

@@ -44,7 +44,6 @@ go_test(
         "//go/gitiles",
         "//go/httputils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "//golden/cmd/gitilesfollower/mocks",
         "//golden/go/config",

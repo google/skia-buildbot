@@ -30,7 +30,6 @@ go_test(
     embed = [":metrics2"],
     deps = [
         "//go/metrics2/testutils",
-        "//go/testutils/unittest",
         "@com_github_prometheus_client_golang//prometheus",
         "@com_github_stretchr_testify//require",
     ],

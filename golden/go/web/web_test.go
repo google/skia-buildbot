@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	"go.skia.org/infra/golden/go/expectations"
@@ -49,7 +48,6 @@ import (
 )
 
 func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
-	unittest.SmallTest(t)
 	r := httptest.NewRequest(http.MethodGet, "/does/not/matter", nil)
 	wh := Handlers{}
 	assert.Equal(t, "", wh.loggedInAs(r))
@@ -62,7 +60,6 @@ func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 // TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure we can create a web.Handlers
 // using the BaselineSubset of inputs.
 func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc := HandlersConfig{
 		GCSClient: &mocks.GCSClient{},
@@ -81,7 +78,6 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 // TestNewHandlers_BaselineSubset_MissingPieces_Failure makes sure that if we omit values from
 // HandlersConfig, NewHandlers returns an error.
 func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc := HandlersConfig{}
 	_, err := NewHandlers(hc, BaselineSubset)
@@ -101,7 +97,6 @@ func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 // TODO(kjlubick) Add a case for FullFrontEnd with all pieces when we have mocks for all
 //   remaining services.
 func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc := HandlersConfig{}
 	_, err := NewHandlers(hc, FullFrontEnd)
@@ -126,7 +121,6 @@ func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 // TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError tests a list of handlers to make sure
 // they return an Unauthorized status if attempted to be used without being logged in.
 func TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{}
 
@@ -149,7 +143,6 @@ func TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError(t *testing.T) {
 // TestHandlersWhichTakeJSON_BadInput_BadRequestError tests a list of handlers which take JSON as an
 // input and make sure they all return a BadRequest response when given bad input.
 func TestHandlersWhichTakeJSON_BadInput_BadRequestError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		testingAuthAs: "test@google.com",
@@ -173,7 +166,6 @@ func TestHandlersWhichTakeJSON_BadInput_BadRequestError(t *testing.T) {
 // TestAddIgnoreRule_SunnyDay_Success tests a typical case of adding an ignore rule (which ends
 // up in the IgnoreStore).
 func TestAddIgnoreRule_SunnyDay_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const user = "test@example.com"
 	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
@@ -210,7 +202,6 @@ func TestAddIgnoreRule_SunnyDay_Success(t *testing.T) {
 // TestAddIgnoreRule_StoreFailure_InternalServerError tests the exceptional case where a rule
 // fails to be added to the IgnoreStore).
 func TestAddIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mis := &mock_ignore.Store{}
 	defer mis.AssertExpectations(t)
@@ -235,7 +226,6 @@ func TestAddIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 // TestGetValidatedIgnoreRule_InvalidInput_Error tests several exceptional cases where an invalid
 // rule is given to the handler.
 func TestGetValidatedIgnoreRule_InvalidInput_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name, errorFragment, jsonInput string) {
 		t.Run(name, func(t *testing.T) {
@@ -284,7 +274,6 @@ func makeJSONWithLongNote(t *testing.T) []byte {
 // TestUpdateIgnoreRule_SunnyDay_Success tests a typical case of updating an ignore rule in
 // IgnoreStore.
 func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const id = "12345"
 	const user = "test@example.com"
@@ -323,7 +312,6 @@ func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
 // TestUpdateIgnoreRule_NoID_BadRequestError tests an exceptional case of attempting to update
 // an ignore rule without providing an id for that ignore rule.
 func TestUpdateIgnoreRule_NoID_BadRequestError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		testingAuthAs: "test@google.com",
@@ -339,7 +327,6 @@ func TestUpdateIgnoreRule_NoID_BadRequestError(t *testing.T) {
 // TestUpdateIgnoreRule_StoreFailure_InternalServerError tests an exceptional case of attempting
 // to update an ignore rule in which there is an error returned by the IgnoreStore.
 func TestUpdateIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	mis := &mock_ignore.Store{}
 	defer mis.AssertExpectations(t)
 
@@ -363,7 +350,6 @@ func TestUpdateIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 // TestDeleteIgnoreRule_RuleExists_SunnyDay_Success tests a typical case of deleting an ignore
 // rule which exists in the IgnoreStore.
 func TestDeleteIgnoreRule_RuleExists_SunnyDay_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const id = "12345"
 
@@ -389,7 +375,6 @@ func TestDeleteIgnoreRule_RuleExists_SunnyDay_Success(t *testing.T) {
 // TestDeleteIgnoreRule_NoID_InternalServerError tests an exceptional case of attempting to
 // delete an ignore rule without providing an id for that ignore rule.
 func TestDeleteIgnoreRule_NoID_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		testingAuthAs: "test@google.com",
@@ -406,7 +391,6 @@ func TestDeleteIgnoreRule_NoID_InternalServerError(t *testing.T) {
 // to delete an ignore rule in which there is an error returned by the IgnoreStore (note: There
 // is no error returned from ignore.Store when deleting a rule which does not exist).
 func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const id = "12345"
 
@@ -431,7 +415,6 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 }
 
 func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -452,7 +435,6 @@ func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
 }
 
 func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -480,7 +462,6 @@ func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
 }
 
 func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -510,7 +491,6 @@ func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
 }
 
 func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -535,7 +515,6 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 }
 
 func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -563,7 +542,6 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
 // no user is logged in.
 func TestWhoami_NotLoggedIn_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	wh := Handlers{
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
@@ -576,7 +554,6 @@ func TestWhoami_NotLoggedIn_Success(t *testing.T) {
 // TestWhoami_LoggedIn_Success tests that /json/whoami returns the email of the user that is
 // currently logged in.
 func TestWhoami_LoggedIn_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	wh := Handlers{
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 		testingAuthAs:       "test@example.com",
@@ -588,7 +565,6 @@ func TestWhoami_LoggedIn_Success(t *testing.T) {
 }
 
 func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -618,7 +594,6 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 }
 
 func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -650,7 +625,6 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 }
 
 func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -678,7 +652,6 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 }
 
 func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -720,7 +693,6 @@ func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *t
 }
 
 func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -762,7 +734,6 @@ func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
 }
 
 func TestImageHandler_SingleKnownImage_CorrectBytesReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgc := &mocks.GCSClient{}
 	mgc.On("GetImage", testutils.AnyContext, types.Digest("0123456789abcdef0123456789abcdef")).Return([]byte("some png bytes"), nil)
@@ -780,7 +751,6 @@ func TestImageHandler_SingleKnownImage_CorrectBytesReturned(t *testing.T) {
 }
 
 func TestImageHandler_SingleUnknownImage_404Returned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgc := &mocks.GCSClient{}
 	mgc.On("GetImage", testutils.AnyContext, mock.Anything).Return(nil, errors.New("unknown"))
@@ -798,7 +768,6 @@ func TestImageHandler_SingleUnknownImage_404Returned(t *testing.T) {
 }
 
 func TestImageHandler_TwoKnownImages_DiffReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	image1 := loadAsPNGBytes(t, one_by_five.ImageOne)
 	image2 := loadAsPNGBytes(t, one_by_five.ImageTwo)
@@ -828,7 +797,6 @@ func TestImageHandler_TwoKnownImages_DiffReturned(t *testing.T) {
 }
 
 func TestImageHandler_OneUnknownImage_404Returned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	image1 := loadAsPNGBytes(t, one_by_five.ImageOne)
 	mgc := &mocks.GCSClient{}
@@ -849,7 +817,6 @@ func TestImageHandler_OneUnknownImage_404Returned(t *testing.T) {
 }
 
 func TestImageHandler_TwoUnknownImages_404Returned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mgc := &mocks.GCSClient{}
 	mgc.On("GetImage", testutils.AnyContext, types.Digest("11111111111111111111111111111111")).Return(nil, errors.New("unknown"))
@@ -868,7 +835,6 @@ func TestImageHandler_TwoUnknownImages_404Returned(t *testing.T) {
 }
 
 func TestImageHandler_InvalidRequest_404Returned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{}
 
@@ -879,7 +845,6 @@ func TestImageHandler_InvalidRequest_404Returned(t *testing.T) {
 }
 
 func TestImageHandler_InvalidImageFormat_404Returned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{}
 
@@ -897,7 +862,6 @@ func loadAsPNGBytes(t *testing.T, textImage string) []byte {
 }
 
 func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
@@ -942,7 +906,6 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 }
 
 func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFreshResult(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 	// First call should have just one PS.
@@ -1006,7 +969,6 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 }
 
 func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResult(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 	// First call should have just one PS.
@@ -1074,7 +1036,6 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 }
 
 func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1095,7 +1056,6 @@ func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
 }
 
 func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1116,7 +1076,6 @@ func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
 }
 
 func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1138,7 +1097,6 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 }
 
 func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Time{}, errors.New("boom"))
@@ -1164,7 +1122,6 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 }
 
 func TestStartCLCacheProcess_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -1190,7 +1147,6 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 }
 
 func TestStatusHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{statusCache: frontend.GUIStatus{
 		LastCommit: frontend.Commit{
@@ -1220,7 +1176,6 @@ func TestStatusHandler_Success(t *testing.T) {
 }
 
 func TestGroupingsHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{statusCache: frontend.GUIStatus{
 		CorpStatus: []frontend.GUICorpusStatus{{Name: dks.CornersCorpus}, {Name: dks.RoundCorpus}},
@@ -1234,7 +1189,6 @@ func TestGroupingsHandler_Success(t *testing.T) {
 }
 
 func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 
@@ -1287,7 +1241,6 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 }
 
 func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 
@@ -1337,7 +1290,6 @@ func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 }
 
 func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 
@@ -1370,7 +1322,6 @@ func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
 }
 
 func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := &mock_search.API{}
 
@@ -1397,7 +1348,6 @@ func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
 }
 
 func TestDigestListHandler_GroupingOmitted_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	wh := Handlers{
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
@@ -1411,7 +1361,6 @@ func TestDigestListHandler_GroupingOmitted_Error(t *testing.T) {
 }
 
 func TestGetGroupingForTest_GroupingExists_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1432,7 +1381,6 @@ func TestGetGroupingForTest_GroupingExists_Success(t *testing.T) {
 }
 
 func TestGetGroupingForTest_GroupingDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1450,7 +1398,6 @@ func TestGetGroupingForTest_GroupingDoesNotExist_ReturnsError(t *testing.T) {
 }
 
 func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1481,7 +1428,6 @@ func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
 }
 
 func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1512,7 +1458,6 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 }
 
 func TestTriageLogHandler_PrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1544,7 +1489,6 @@ func TestTriageLogHandler_PrimaryBranch_Success(t *testing.T) {
 }
 
 func TestTriageLogHandler_RespectsPagination_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1567,7 +1511,6 @@ func TestTriageLogHandler_RespectsPagination_Success(t *testing.T) {
 }
 
 func TestTriageLogHandler_ValidChangelist_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1593,7 +1536,6 @@ func TestTriageLogHandler_ValidChangelist_Success(t *testing.T) {
 }
 
 func TestTriageLogHandler_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1617,7 +1559,6 @@ func TestTriageLogHandler_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 }
 
 func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1690,7 +1631,6 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 }
 
 func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1753,7 +1693,6 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 }
 
 func TestUndoExpectationChanges_UnknownID_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1777,7 +1716,6 @@ func TestUndoExpectationChanges_UnknownID_ReturnsError(t *testing.T) {
 }
 
 func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1831,7 +1769,6 @@ func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 }
 
 func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1887,7 +1824,6 @@ func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.
 }
 
 func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1980,7 +1916,6 @@ func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
 }
 
 func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2065,7 +2000,6 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 }
 
 func TestTriage3_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2143,7 +2077,6 @@ func assertNoChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool,
 }
 
 func TestTriage3_SingleDigestOnPrimaryBranch_EmptyLabels_Error(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2205,7 +2138,6 @@ func TestTriage3_SingleDigestOnPrimaryBranch_EmptyLabels_Error(t *testing.T) {
 }
 
 func TestTriage3_SingleDigestOnPrimaryBranch_WrongLabelBefore_TriageConflict(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2290,7 +2222,6 @@ func TestTriage3_SingleDigestOnPrimaryBranch_WrongLabelBefore_TriageConflict(t *
 }
 
 func TestTriage3_SingleDigestOnOpenCL_WrongLabelBefore_TriageConflict(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2436,7 +2367,6 @@ func TestTriage3_SingleDigestOnOpenCL_WrongLabelBefore_TriageConflict(t *testing
 }
 
 func TestTriage3_SingleDigestOnPrimaryBranch_ImageMatchingAlgorithm_UsesAlgorithmNameAsAuthor(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2509,7 +2439,6 @@ func TestTriage3_SingleDigestOnPrimaryBranch_ImageMatchingAlgorithm_UsesAlgorith
 }
 
 func TestTriage3_BulkTriageOnPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2631,7 +2560,6 @@ func TestTriage3_BulkTriageOnPrimaryBranch_Success(t *testing.T) {
 }
 
 func TestTriage3_BulkTriageOnPrimaryBranch_OneCorrectAndOneWrongLabelBefore_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2695,7 +2623,6 @@ func TestTriage3_BulkTriageOnPrimaryBranch_OneCorrectAndOneWrongLabelBefore_Succ
 }
 
 func TestTriage3_BulkTriageOnOpenCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2848,7 +2775,6 @@ func TestTriage3_BulkTriageOnOpenCL_Success(t *testing.T) {
 }
 
 func TestTriage3_BulkTriageOnLandedCL_Error(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2898,7 +2824,6 @@ func TestTriage3_BulkTriageOnLandedCL_Error(t *testing.T) {
 }
 
 func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2944,7 +2869,6 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 }
 
 func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2967,7 +2891,6 @@ func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
 }
 
 func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2990,7 +2913,6 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 }
 
 func TestGetChangelistsHandler_AllChangelists_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -3022,7 +2944,6 @@ func TestGetChangelistsHandler_AllChangelists_Success(t *testing.T) {
 }
 
 func TestGetChangelistsHandler_RespectsPagination_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -3051,7 +2972,6 @@ func TestGetChangelistsHandler_RespectsPagination_Success(t *testing.T) {
 }
 
 func TestGetChangelistsHandler_ActiveChangelists_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -3081,7 +3001,6 @@ func TestGetChangelistsHandler_ActiveChangelists_Success(t *testing.T) {
 }
 
 func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -3106,7 +3025,6 @@ func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
 }
 
 func TestStartIgnoredTraceCacheProcess(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -3152,7 +3070,6 @@ func TestStartIgnoredTraceCacheProcess(t *testing.T) {
 }
 
 func TestPositiveDigestsByGroupingIDHandler_ExistingGrouping_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -3188,7 +3105,6 @@ func TestPositiveDigestsByGroupingIDHandler_ExistingGrouping_Success(t *testing.
 }
 
 func TestPositiveDigestsByGroupingIDHandler_NonExistingGrouping_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)

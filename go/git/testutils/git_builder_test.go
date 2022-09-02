@@ -9,11 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGitSetup(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 	g := GitInit(t, ctx)
 	defer g.Cleanup()
@@ -56,7 +54,6 @@ func TestGitSetup(t *testing.T) {
 }
 
 func TestGitBuilderCommitTime(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 	g := GitInit(t, ctx)
 	defer g.Cleanup()

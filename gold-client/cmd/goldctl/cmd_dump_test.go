@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestDump_AfterInit_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)

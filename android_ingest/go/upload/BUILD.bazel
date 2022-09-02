@@ -14,7 +14,6 @@ go_test(
     srcs = ["upload_test.go"],
     embed = [":upload"],
     deps = [
-        "//go/testutils/unittest",
         "//perf/go/ingest/format",
         "@com_github_stretchr_testify//assert",
     ],

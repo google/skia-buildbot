@@ -8,11 +8,9 @@ import (
 	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCIPDRevisionFilter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	rf := &CIPDRevisionFilter{

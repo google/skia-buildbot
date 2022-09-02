@@ -73,7 +73,6 @@ go_test(
         "//go/metrics2/testutils",
         "//go/sklog",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/cache",

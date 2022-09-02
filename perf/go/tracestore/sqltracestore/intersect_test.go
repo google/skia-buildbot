@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // asChan create a channel supplied by the given slice of strings 's'.
@@ -35,7 +34,6 @@ func fromChan(ch <-chan traceIDForSQL) []traceIDForSQL {
 }
 
 func TestIntersect2Cancel(t *testing.T) {
-	unittest.SmallTest(t)
 	a := make(chan traceIDForSQL)
 	b := make(chan traceIDForSQL)
 
@@ -53,7 +51,6 @@ func TestIntersect2Cancel(t *testing.T) {
 }
 
 func TestIntersect2(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		a    []traceIDForSQL
 		b    []traceIDForSQL
@@ -100,7 +97,6 @@ func TestIntersect2(t *testing.T) {
 }
 
 func TestIntersect(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		inputs [][]traceIDForSQL
 		exp    []traceIDForSQL

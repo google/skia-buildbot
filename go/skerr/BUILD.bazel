@@ -15,7 +15,6 @@ go_test(
         ":skerr",
         "//go/skerr/alpha_test",
         "//go/skerr/beta_test",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

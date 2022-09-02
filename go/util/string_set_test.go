@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStringSets(t *testing.T) {
-	unittest.SmallTest(t)
 	ret := NewStringSet([]string{"abc", "abc"}, []string{"efg", "abc"}).Keys()
 	sort.Strings(ret)
 	require.Equal(t, []string{"abc", "efg"}, ret)
@@ -20,7 +18,6 @@ func TestStringSets(t *testing.T) {
 }
 
 func TestStringSetCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	someKeys := []string{"gamma", "beta", "alpha"}
 	orig := NewStringSet(someKeys)
 	copy := orig.Copy()
@@ -46,7 +43,6 @@ func TestStringSetCopy(t *testing.T) {
 }
 
 func TestStringSetKeys(t *testing.T) {
-	unittest.SmallTest(t)
 	expectedKeys := []string{"gamma", "beta", "alpha"}
 	s := NewStringSet(append(expectedKeys, expectedKeys...))
 	keys := s.Keys()
@@ -61,7 +57,6 @@ func TestStringSetKeys(t *testing.T) {
 }
 
 func TestStringSetIntersect(t *testing.T) {
-	unittest.SmallTest(t)
 	someKeys := []string{"gamma", "beta", "alpha"}
 	otherKeys := []string{"mu", "nu", "omicron"}
 	a := NewStringSet(append(someKeys, otherKeys...))
@@ -83,7 +78,6 @@ func TestStringSetIntersect(t *testing.T) {
 }
 
 func TestStringSetComplement(t *testing.T) {
-	unittest.SmallTest(t)
 	someKeys := []string{"gamma", "beta", "alpha"}
 	otherKeys := []string{"mu", "nu", "omicron"}
 	a := NewStringSet(append(someKeys, otherKeys...))
@@ -101,7 +95,6 @@ func TestStringSetComplement(t *testing.T) {
 }
 
 func TestStringSetUnion(t *testing.T) {
-	unittest.SmallTest(t)
 	someKeys := []string{"gamma", "beta", "alpha", "zeta"}
 	otherKeys := []string{"mu", "nu", "omicron", "zeta"}
 	a := NewStringSet(otherKeys)
@@ -131,7 +124,6 @@ func TestStringSetUnion(t *testing.T) {
 }
 
 func TestStringSetEqual(t *testing.T) {
-	unittest.SmallTest(t)
 	require.True(t, StringSet(nil).Equals(nil))
 	require.True(t, NewStringSet(nil).Equals(nil))
 	require.True(t, NewStringSet(nil).Equals(NewStringSet(nil)))

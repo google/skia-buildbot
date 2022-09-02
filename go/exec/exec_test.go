@@ -30,7 +30,6 @@ func RemoveAll(path string) {
 }
 
 func TestParseCommand(t *testing.T) {
-	unittest.SmallTest(t)
 	test := func(input string, expected Command) {
 		expect.Equal(t, expected, ParseCommand(input))
 	}
@@ -45,7 +44,6 @@ func TestParseCommand(t *testing.T) {
 }
 
 func TestSquashWriters(t *testing.T) {
-	unittest.SmallTest(t)
 	expect.Equal(t, nil, squashWriters())
 	expect.Equal(t, nil, squashWriters(nil))
 	expect.Equal(t, nil, squashWriters(nil, nil))
@@ -97,7 +95,6 @@ func TestSquashWriters(t *testing.T) {
 }
 
 func TestBasic(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -113,7 +110,6 @@ func TestBasic(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -136,7 +132,6 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 }
 
 func TestInheritPath(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -159,7 +154,6 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 }
 
 func TestInheritEnv(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -192,7 +186,6 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 }
 
 func TestDir(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir1, err := ioutil.TempDir("", "exec_test1")
 	require.NoError(t, err)
@@ -211,7 +204,6 @@ func TestDir(t *testing.T) {
 }
 
 func TestSimpleIO(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
@@ -225,7 +217,6 @@ func TestSimpleIO(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -249,7 +240,6 @@ sys.exit(123)
 }
 
 func TestCombinedOutput(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -277,7 +267,6 @@ sys.stderr.write('blue')
 // Run(&Command{... Stdout: outputFile})
 // See http://devs.cloudimmunity.com/gotchas-and-common-mistakes-in-go-golang/index.html#nil_in_nil_in_vals
 func TestNilIO(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	inputString := "foo\nbar\nbaz\n"
 	require.NoError(t, Run(context.Background(), &Command{
@@ -289,7 +278,6 @@ func TestNilIO(t *testing.T) {
 }
 
 func TestTimeoutNotReached(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -311,7 +299,6 @@ with open('ran', 'w') as f:
 }
 
 func TestTimeoutExceeded(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -335,7 +322,6 @@ with open('ran', 'w') as f:
 }
 
 func TestInjection(t *testing.T) {
-	unittest.SmallTest(t)
 	var actualCommand *Command
 	ctx := NewContext(context.Background(), func(ctx context.Context, command *Command) error {
 		actualCommand = command
@@ -357,7 +343,6 @@ func TestInjection(t *testing.T) {
 }
 
 func TestRunSimple(t *testing.T) {
-	unittest.SmallTest(t)
 	cmd := "echo Hello Go!"
 	if runtime.GOOS == "windows" {
 		cmd = "cmd /C " + cmd
@@ -368,7 +353,6 @@ func TestRunSimple(t *testing.T) {
 }
 
 func TestRunCwd(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
@@ -382,7 +366,6 @@ func TestRunCwd(t *testing.T) {
 }
 
 func TestCommandCollector(t *testing.T) {
-	unittest.SmallTest(t)
 	mock := CommandCollector{}
 	ctx := NewContext(context.Background(), mock.Run)
 	require.NoError(t, Run(ctx, &Command{
@@ -416,7 +399,6 @@ func TestCommandCollector(t *testing.T) {
 }
 
 func TestRunCommand(t *testing.T) {
-	unittest.MediumTest(t)
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
 	ctx := context.Background()
 	// Without a thread-safe io.Writer for Command.CombinedOutput, this test

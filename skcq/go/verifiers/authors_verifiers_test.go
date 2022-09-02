@@ -8,7 +8,6 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 	"go.skia.org/infra/skcq/go/types"
 )
@@ -34,7 +33,6 @@ Batman <batman@gotham.com>
 )
 
 func TestVerify_Authors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		authorsFileContent string

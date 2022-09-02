@@ -8,13 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestStepFit(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	rand.Seed(1)

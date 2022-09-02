@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAutoRollerRolledPast(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	r := &AutoRoller{}

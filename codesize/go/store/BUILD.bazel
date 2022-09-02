@@ -20,7 +20,6 @@ go_test(
     embed = [":store"],
     deps = [
         "//codesize/go/common",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

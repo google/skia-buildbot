@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGet(t *testing.T) {
-	unittest.SmallTest(t)
 	someMap := map[string]int{
 		"one": 1,
 		"two": 2,

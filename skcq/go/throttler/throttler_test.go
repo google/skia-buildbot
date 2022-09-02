@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/config"
 )
 
@@ -15,7 +14,6 @@ var (
 )
 
 func TestThrottler(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testRepo1 := "test-repo1"
 	testRepo2 := "test-repo2"

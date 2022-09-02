@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/monorail/v3"
 	monorail_mocks "go.skia.org/infra/go/monorail/v3/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 	npm_mocks "go.skia.org/infra/npm-audit-mirror/go/types/mocks"
@@ -110,25 +109,21 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 }
 
 func TestStartAudit_NoHighSeverityIssuesFound_DoNotFileBugs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneAuditCycle(t, true, false, false)
 }
 
 func TestStartAudit_HighSeverityIssues_NoAuditIssueFiledYet_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneAuditCycle(t, false, true, false)
 }
 
 func TestStartAudit_HighSeverityIssues_AuditIssueClosedLessThanThreshold_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneAuditCycle(t, false, false, true)
 }
 
 func TestStartAudit_FullEndToEndFlow_NoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testOneAuditCycle(t, false, false, false)
 }
@@ -136,7 +131,6 @@ func TestStartAudit_FullEndToEndFlow_NoErrors(t *testing.T) {
 // This is not a real test, but a fake implementation of the executable in question.
 // By convention, we prefix these with FakeExe to make that clear.
 func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
-	unittest.FakeExeTest(t)
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
@@ -164,7 +158,6 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 }
 
 func Test_FakeExe_NPM_Audit_ReturnsNoHighIssues(t *testing.T) {
-	unittest.FakeExeTest(t)
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {

@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestFilter(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		value    []string
 		expected []string
@@ -77,7 +75,6 @@ func TestFilter(t *testing.T) {
 }
 
 func TestImageFromCmdLineImage(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		value         string
 		provider      tagProvider
@@ -129,7 +126,6 @@ func TestImageFromCmdLineImage(t *testing.T) {
 }
 
 func Test_byClusterFromChanged(t *testing.T) {
-	unittest.SmallTest(t)
 	type args struct {
 		gitDir  string
 		changed util.StringSet

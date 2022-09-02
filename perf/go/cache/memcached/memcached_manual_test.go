@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // To run these tests manually run a local memcached instance at the given port
@@ -15,13 +14,11 @@ import (
 var localServerAddress = []string{"127.0.0.1:11211"}
 
 func TestCache_New_Failure(t *testing.T) {
-	unittest.ManualTest(t)
 	_, err := New([]string{""}, "")
 	require.Error(t, err)
 }
 
 func TestCache_Exists_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	c, err := New(localServerAddress, "test-namespace")
 	require.NoError(t, err)
 
@@ -31,7 +28,6 @@ func TestCache_Exists_Success(t *testing.T) {
 }
 
 func TestCache_ExistsOnlyInOneNamespace_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	c, err := New(localServerAddress, "test-namespace")
 	require.NoError(t, err)
 
@@ -48,7 +44,6 @@ func TestCache_ExistsOnlyInOneNamespace_Success(t *testing.T) {
 }
 
 func TestCache_Exists_FalseOnMiss(t *testing.T) {
-	unittest.ManualTest(t)
 	c, err := New(localServerAddress, "test-namespace")
 	require.NoError(t, err)
 

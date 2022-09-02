@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -35,7 +34,6 @@ func setupForTest(t *testing.T, h http.HandlerFunc) (string, *http.Client) {
 }
 
 func TestComputeUploadPathFromTime(t *testing.T) {
-	unittest.SmallTest(t)
 	var mockTime = time.Unix(1649770315, 12).UTC()
 	ctx := context.WithValue(context.Background(), now.ContextKey, mockTime)
 	assert.Equal(t, "2022/04/12/13", computeUploadPathFromTime(ctx))
@@ -44,7 +42,6 @@ func TestComputeUploadPathFromTime(t *testing.T) {
 var benchmarkScriptArgs = []string{"--output", "results.json"}
 
 func TestRunBenchMarkScript_ScriptReturnsError_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir, _ := setupForTest(t, nil)
 	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Exec_Fails")
@@ -54,7 +51,6 @@ func TestRunBenchMarkScript_ScriptReturnsError_ReturnsError(t *testing.T) {
 }
 
 func TestRunBenchMarkScript_ScriptSucceeds_DoesNotReturnError(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir, _ := setupForTest(t, nil)
 	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Python_Script_Success")
@@ -64,7 +60,6 @@ func TestRunBenchMarkScript_ScriptSucceeds_DoesNotReturnError(t *testing.T) {
 }
 
 func Test_FakeExe_Exec_Fails(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -72,7 +67,6 @@ func Test_FakeExe_Exec_Fails(t *testing.T) {
 }
 
 func Test_FakeExe_Python_Script_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -107,7 +101,6 @@ var (
 )
 
 func TestNewSparseCheckout_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.WithFakeTests(context.Background(),
 		"Test_FakeExe_Clone_Success",
 		"Test_FakeExe_Sparse_Init_Success",
@@ -119,7 +112,6 @@ func TestNewSparseCheckout_Success(t *testing.T) {
 }
 
 func TestNewSparseCheckout_GitCommandFails_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.WithFakeTests(context.Background(),
 		"Test_FakeExe_Exec_Fails",
 	)
@@ -129,7 +121,6 @@ func TestNewSparseCheckout_GitCommandFails_ReturnsError(t *testing.T) {
 }
 
 func Test_FakeExe_Clone_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -142,7 +133,6 @@ func Test_FakeExe_Clone_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Sparse_Init_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -154,7 +144,6 @@ func Test_FakeExe_Sparse_Init_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Sparse_Set_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -166,7 +155,6 @@ func Test_FakeExe_Sparse_Set_Success(t *testing.T) {
 }
 
 func TestRunSingleBenchmark_HappyPath(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.WithFakeTests(context.Background(),
 		"Test_FakeExe_Exec_Success",
 		"Test_FakeExe_Exec_Success",
@@ -184,7 +172,6 @@ func TestRunSingleBenchmark_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_Exec_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -192,7 +179,6 @@ func Test_FakeExe_Exec_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Run_Canary_Python_Script_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -235,7 +221,6 @@ func setupForUploadTest(t *testing.T) (context.Context, string) {
 }
 
 func TestUploadResultsFile_HappyPath(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, resultsFile := setupForUploadTest(t)
 
 	var b myWriteCloser
@@ -264,7 +249,6 @@ func (*myFailingWriteCloser) Close() error {
 }
 
 func TestUploadResultsFile_WriteCloserFailsToWrite_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, resultsFile := setupForUploadTest(t)
 
 	var b myFailingWriteCloser
@@ -280,7 +264,6 @@ func TestUploadResultsFile_WriteCloserFailsToWrite_ReturnsError(t *testing.T) {
 }
 
 func TestReadBenchmarksFromFile_NonExistentFile_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 	filename := filepath.Join(t.TempDir(), "file.json")
 	_, err := readBenchMarksFromFile(context.Background(), filename)
 	require.Error(t, err)
@@ -298,7 +281,6 @@ const TestFileContents = `{
 }`
 
 func TestReadBenchmarksFromFile_ReadCanaryJSON_ReturnsParsedFile(t *testing.T) {
-	unittest.MediumTest(t)
 	filename := filepath.Join(t.TempDir(), "file.json")
 	err := ioutil.WriteFile(filename, []byte(TestFileContents), 0644)
 	require.NoError(t, err)
@@ -309,13 +291,11 @@ func TestReadBenchmarksFromFile_ReadCanaryJSON_ReturnsParsedFile(t *testing.T) {
 }
 
 func TestDriverFilenames_DownloadIsFalseButAlternateFilenamesAreNotProvided_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, err := driverFilenames(false, "", "")
 	require.Error(t, err)
 }
 
 func TestDriverFilenames_DownloadIsFalseAndAlternateFilenamesAreProvided_ReturnsAlternateFilename(t *testing.T) {
-	unittest.SmallTest(t)
 	got1, got2, _, err := driverFilenames(false, alternateChromeDriver, alternateChromeCanaryDriver)
 	require.NoError(t, err)
 	require.Equal(t, got1, alternateChromeDriver)
@@ -323,7 +303,6 @@ func TestDriverFilenames_DownloadIsFalseAndAlternateFilenamesAreProvided_Returns
 }
 
 func TestPopulateBenchmarksWithDrivers(t *testing.T) {
-	unittest.SmallTest(t)
 	var benchmarks = map[string]*Benchmark{
 		// We always run the canary to validate that the whole pipeline works even
 		// if the "real" benchmark scripts start to fail.

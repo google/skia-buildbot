@@ -27,7 +27,6 @@ go_test(
     deps = [
         "//go/deepequal/assertdeep",
         "//go/gitiles",
-        "//go/testutils/unittest",
         "@com_github_go_python_gpython//ast",
         "@com_github_stretchr_testify//require",
     ],

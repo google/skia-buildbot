@@ -20,7 +20,6 @@ go_test(
     embed = [":client"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//scrap/go/api",
         "//scrap/go/scrap",
         "//scrap/go/scrap/mocks",

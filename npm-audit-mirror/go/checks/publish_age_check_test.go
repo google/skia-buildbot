@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
@@ -40,7 +39,6 @@ var (
 )
 
 func TestPerformPublishAgeCheck_PackageExists(t *testing.T) {
-	unittest.SmallTest(t)
 
 	pac := PublishAgeCheck{}
 	testPackageVersion := "1.1.0"
@@ -63,7 +61,6 @@ func TestPerformPublishAgeCheck_PackageExists(t *testing.T) {
 }
 
 func TestPerformPublishAgeCheck_PackageDoesNotExist(t *testing.T) {
-	unittest.SmallTest(t)
 
 	pac := PublishAgeCheck{}
 	testPackageVersion := "1.1.0"

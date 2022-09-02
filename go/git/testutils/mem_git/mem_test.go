@@ -10,11 +10,9 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMemGit(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -97,7 +95,6 @@ func TestMemGit(t *testing.T) {
 }
 
 func TestCommit_Parents(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	gs := mem_gitstore.New()
@@ -147,7 +144,6 @@ func TestCommit_Parents(t *testing.T) {
 }
 
 func TestCommitAt(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	gs := mem_gitstore.New()

@@ -26,7 +26,6 @@ go_test(
         "//go/skerr",
         "//go/test2json",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//task_driver/go/lib/dirs",
         "//task_driver/go/td",

@@ -6,18 +6,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseBloatyOutput_EmptyBloatyOutput_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := ParseTSVOutput("")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "empty input")
 }
 
 func TestParseBloatyOutput_NotTSV_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bloatyOutput := `compileunits,symbols,vmsize,filesize
 ../../dm/DMSrcSink.cpp,DM::CodecSrc::draw(),7307,7382
@@ -29,7 +26,6 @@ func TestParseBloatyOutput_NotTSV_Error(t *testing.T) {
 }
 
 func TestParseBloatyOutput_WrongColumns_Error(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bloatyOutput := `compileunits	filesize
 ../../dm/DMSrcSink.cpp	7382
@@ -59,7 +55,6 @@ var sampleBloatyOutput = `compileunits	symbols	vmsize	filesize
 `
 
 func TestParseBloatyOutput_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	items, err := ParseTSVOutput(sampleBloatyOutput)
 	require.NoError(t, err)
@@ -136,7 +131,6 @@ func TestParseBloatyOutput_Success(t *testing.T) {
 }
 
 func TestGenTreeMapDataTable_AllRowsCreatedInSpecifiedOrder(t *testing.T) {
-	unittest.SmallTest(t)
 
 	items, err := ParseTSVOutput(sampleBloatyOutput)
 	require.NoError(t, err)
@@ -304,7 +298,6 @@ func TestGenTreeMapDataTable_AllRowsCreatedInSpecifiedOrder(t *testing.T) {
 }
 
 func TestGenTreeMapDataTable_GroupsSymbolsBeyondCutoff(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Create 10 alpha items (of which the biggest 4 will be shown) and 2 beta items (all of which
 	// will be shown).

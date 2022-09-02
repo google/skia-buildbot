@@ -13,14 +13,12 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/mocks"
 )
 
 func TestPubSubSource_IngestFile_PrimaryBranch_NoErrors_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realPrimaryBranchFile = "dm-json-v1/2021/03/02/15/a07ced8f471f8139771d045086aa6e2c2d6746ab/waterfall/dm-1614698630345047867.json"
 
@@ -43,7 +41,6 @@ func TestPubSubSource_IngestFile_PrimaryBranch_NoErrors_Ack(t *testing.T) {
 }
 
 func TestPubSubSource_IngestFile_PrimaryBranch_NonRetryableError_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realPrimaryBranchFile = "dm-json-v1/2021/03/02/15/a07ced8f471f8139771d045086aa6e2c2d6746ab/waterfall/dm-1614698630345047867.json"
 
@@ -65,7 +62,6 @@ func TestPubSubSource_IngestFile_PrimaryBranch_NonRetryableError_Ack(t *testing.
 }
 
 func TestPubSubSource_IngestFile_PrimaryBranch_RetryableError_Nack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realPrimaryBranchFile = "dm-json-v1/2021/03/02/15/a07ced8f471f8139771d045086aa6e2c2d6746ab/waterfall/dm-1614698630345047867.json"
 
@@ -82,7 +78,6 @@ func TestPubSubSource_IngestFile_PrimaryBranch_RetryableError_Nack(t *testing.T)
 }
 
 func TestPubSubSource_IngestFile_TryjobData_NoErrors_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realTryjobFile = "trybot/dm-json-v1/2021/03/02/17/378362__1/8853853547141503920/dm-1614705135861548495.json"
 
@@ -108,7 +103,6 @@ func TestPubSubSource_IngestFile_TryjobData_NoErrors_Ack(t *testing.T) {
 }
 
 func TestPubSubSource_IngestFile_TryjobData_NonRetryableError_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realTryjobFile = "trybot/dm-json-v1/2021/03/02/17/378362__1/8853853547141503920/dm-1614705135861548495.json"
 
@@ -133,7 +127,6 @@ func TestPubSubSource_IngestFile_TryjobData_NonRetryableError_Ack(t *testing.T) 
 }
 
 func TestPubSubSource_IngestFile_TryjobData_RetryableError_Nack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const realTryjobFile = "trybot/dm-json-v1/2021/03/02/17/378362__1/8853853547141503920/dm-1614705135861548495.json"
 
@@ -153,7 +146,6 @@ func TestPubSubSource_IngestFile_TryjobData_RetryableError_Nack(t *testing.T) {
 }
 
 func TestPubSubSource_IngestFile_InvalidFile_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const unknownFile = "unknownfile.json"
 
@@ -172,7 +164,6 @@ func TestPubSubSource_IngestFile_InvalidFile_Ack(t *testing.T) {
 }
 
 func TestPubSubSource_IngestFile_InvalidFileType_Ack(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const logFile = "verbose.log"
 
@@ -182,7 +173,6 @@ func TestPubSubSource_IngestFile_InvalidFileType_Ack(t *testing.T) {
 }
 
 func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

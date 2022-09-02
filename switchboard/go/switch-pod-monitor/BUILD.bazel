@@ -28,7 +28,6 @@ go_test(
     embed = [":switch-pod-monitor_lib"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//machine/go/switchboard",
         "//machine/go/switchboard/mocks",
         "@com_github_stretchr_testify//mock",

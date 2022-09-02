@@ -17,7 +17,6 @@ go_test(
     srcs = ["fakeclient_test.go"],
     embed = [":fakeclient"],
     deps = [
-        "//go/testutils/unittest",
         "//scrap/go/scrap",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

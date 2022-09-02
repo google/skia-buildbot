@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -40,7 +39,6 @@ technology: Li-ion`
 )
 
 func TestReboot_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbReboot_Success")
 
@@ -50,7 +48,6 @@ func TestReboot_HappyPath(t *testing.T) {
 }
 
 func TestReboot_ErrFromAdbNonZeroExitCode_ReconnectRecovers_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
@@ -64,7 +61,6 @@ func TestReboot_ErrFromAdbNonZeroExitCode_ReconnectRecovers_Success(t *testing.T
 }
 
 func TestReboot_ErrFromAdbNonZeroExitCode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
@@ -78,7 +74,6 @@ func TestReboot_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestUptime_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_Success")
 
@@ -90,7 +85,6 @@ func TestUptime_HappyPath(t *testing.T) {
 }
 
 func TestUptime_ErrOnMalformedUptimeContents(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_MalformedContents")
 
@@ -101,7 +95,6 @@ func TestUptime_ErrOnMalformedUptimeContents(t *testing.T) {
 }
 
 func TestUptime_ErrFromAdbNonZeroExitCode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_Uptime_NonZeroExitCode")
 
@@ -112,7 +105,6 @@ func TestUptime_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestRawProperties_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_Success")
 
@@ -123,7 +115,6 @@ func TestRawProperties_HappyPath(t *testing.T) {
 }
 
 func TestRawProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_NonZeroExitCode")
 
@@ -133,7 +124,6 @@ func TestRawProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestRawProperties_EmptyOutputFromAdb(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_EmptyOutput")
 
@@ -144,7 +134,6 @@ func TestRawProperties_EmptyOutputFromAdb(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -160,7 +149,6 @@ func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_EmptyOutput(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -170,7 +158,6 @@ func Test_FakeExe_AdbShellGetProp_EmptyOutput(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_NonZeroExitCode(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -181,7 +168,6 @@ func Test_FakeExe_AdbShellGetProp_NonZeroExitCode(t *testing.T) {
 }
 
 func TestRawDumpSys_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_RawDumpSysBattery_Success")
 
@@ -192,7 +178,6 @@ func TestRawDumpSys_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysBattery_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -208,7 +193,6 @@ func Test_FakeExe_RawDumpSysBattery_Success(t *testing.T) {
 }
 
 func TestRawDumpSys_ErrOnNonZeroExitCode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_RawDumpSys_NonZeroExitCode")
 
@@ -221,7 +205,6 @@ func TestRawDumpSys_ErrOnNonZeroExitCode(t *testing.T) {
 }
 
 func TestGetState_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Success")
 
@@ -232,7 +215,6 @@ func TestGetState_HappyPath_Success(t *testing.T) {
 }
 
 func TestGetState_Offline_ErrOnOffline(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Offline")
 
@@ -243,7 +225,6 @@ func TestGetState_Offline_ErrOnOffline(t *testing.T) {
 }
 
 func TestGetState_Offline_ErrOnNoDeviceWithNoEmptyReturned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_NoDevice")
 
@@ -254,7 +235,6 @@ func TestGetState_Offline_ErrOnNoDeviceWithNoEmptyReturned(t *testing.T) {
 }
 
 func TestEnsureOnline_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Success")
 
@@ -264,7 +244,6 @@ func TestEnsureOnline_HappyPath_Success(t *testing.T) {
 }
 
 func TestEnsureOnline_Unauthorized_ErrOnUnauthorized(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_NoDevice")
 
@@ -274,7 +253,6 @@ func TestEnsureOnline_Unauthorized_ErrOnUnauthorized(t *testing.T) {
 }
 
 func TestEnsureOnline_OfflineAndReconnectWorks_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
@@ -288,7 +266,6 @@ func TestEnsureOnline_OfflineAndReconnectWorks_Success(t *testing.T) {
 }
 
 func TestEnsureOnline_OfflineAndReconnectFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Offline",
@@ -302,7 +279,6 @@ func TestEnsureOnline_OfflineAndReconnectFails_ReturnsError(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -313,7 +289,6 @@ func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -329,7 +304,6 @@ func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Uptime_NonZeroExitCode(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -340,7 +314,6 @@ func Test_FakeExe_Uptime_NonZeroExitCode(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetUptime_MalformedContents(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -356,7 +329,6 @@ func Test_FakeExe_AdbShellGetUptime_MalformedContents(t *testing.T) {
 }
 
 func Test_FakeExe_AdbReboot_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -370,7 +342,6 @@ func Test_FakeExe_AdbReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -381,7 +352,6 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -396,7 +366,6 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_Offline(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -409,7 +378,6 @@ func Test_FakeExe_AdbGetState_Offline(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_NoDevice(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -423,7 +391,6 @@ func Test_FakeExe_AdbGetState_NoDevice(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -437,7 +404,6 @@ func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_NoDevice(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}

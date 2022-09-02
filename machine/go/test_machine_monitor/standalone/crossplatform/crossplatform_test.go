@@ -6,7 +6,6 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func assertIsaAndBitnessEqual(t *testing.T, arch, expectedIsa, expectedBitness string) {
@@ -17,7 +16,6 @@ func assertIsaAndBitnessEqual(t *testing.T, arch, expectedIsa, expectedBitness s
 }
 
 func TestIsaAndBitness(t *testing.T) {
-	unittest.SmallTest(t)
 	assertIsaAndBitnessEqual(t, "x86_64", "x86", "64")
 	assertIsaAndBitnessEqual(t, "amd64", "x86", "64")
 	assertIsaAndBitnessEqual(t, "aarch64", "arm64", "64")
@@ -31,7 +29,6 @@ func assertCPUModelEqual(t *testing.T, vendor, brandString, expected, failureMes
 }
 
 func TestCPUModel(t *testing.T) {
-	unittest.SmallTest(t)
 	assertCPUModelEqual(
 		t,
 		"GenuineIntel",
@@ -63,7 +60,6 @@ func TestCPUModel(t *testing.T) {
 }
 
 func TestCPUs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	arch, err := host.KernelArch()
 	require.NoError(t, err)
@@ -92,7 +88,6 @@ func TestCPUs(t *testing.T) {
 }
 
 func TestVersionsOfAllPrecisions(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, []string{"Mac", "Mac-12"}, VersionsOfAllPrecisions("Mac", "12"))
 	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4"}, VersionsOfAllPrecisions("Mac", "12.4"))
 	assert.Equal(t, []string{"Mac", "Mac-12", "Mac-12.4", "Mac-12.4.35"}, VersionsOfAllPrecisions("Mac", "12.4.35"))

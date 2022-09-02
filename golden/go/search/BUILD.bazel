@@ -35,7 +35,6 @@ go_test(
     embed = [":search"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//golden/go/expectations",
         "//golden/go/publicparams",
         "//golden/go/search/query",

@@ -12,11 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseNamespaceAllowFilterFlag_MalFormed_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := parseNamespaceAllowFilterFlag([]string{
 		"this flag value contains no colon",
 	})
@@ -24,7 +22,6 @@ func TestParseNamespaceAllowFilterFlag_MalFormed_ReturnsError(t *testing.T) {
 }
 
 func TestParseNamespaceAllowFilterFlag_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	actual, err := parseNamespaceAllowFilterFlag([]string{
 		"gmp-system:rule-evaluator",
 		"gmp-system:collector",
@@ -44,7 +41,6 @@ func TestParseNamespaceAllowFilterFlag_HappyPath(t *testing.T) {
 }
 
 func TestAddMetricForImageAge_NameIsSHA256_UpdatesMetricWithAZeroValue(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	metrics := map[metrics2.Int64Metric]struct{}{}
 	imageNameWithSHA256 := "gcr.io/skia-public/k8s-deployer@sha256:9f506a343f3e63174384d85e4ae75a1c1d16b896122170fe7ecc282bdfbdcf2d"
@@ -60,7 +56,6 @@ func TestAddMetricForImageAge_NameIsSHA256_UpdatesMetricWithAZeroValue(t *testin
 }
 
 func TestAddMetricForImageAge_NameHasDateEncoded_UpdatesMetricWithDaysSinceThatDate(t *testing.T) {
-	unittest.SmallTest(t)
 	imageTime := time.Date(2020, time.January, 1, 1, 1, 0, 0, time.UTC)
 	ctx := now.TimeTravelingContext(imageTime.Add(time.Hour * 49)) // Two days (plus a smidge).
 
@@ -80,7 +75,6 @@ func TestAddMetricForImageAge_NameHasDateEncoded_UpdatesMetricWithDaysSinceThatD
 }
 
 func TestAddMetricForImageAge_NameHasInvalidDateEncoded_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	invalidDate := "gcr.io/skia-public/emailservice:ThisIsNotAValidDateZ-jcgregorio-e0bf15f-clean"
 
 	metrics := map[metrics2.Int64Metric]struct{}{}

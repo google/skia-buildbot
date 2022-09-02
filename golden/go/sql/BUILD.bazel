@@ -23,7 +23,6 @@ go_test(
     embed = [":sql"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
         "//golden/go/types",

@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -57,7 +56,6 @@ func allAvailable(t *testing.T, testData []string) {
 }
 
 func TestAllAvailable(t *testing.T) {
-	unittest.SmallTest(t)
 	allAvailable(t, []string{
 		"fea7de6c1459cb26c9e0a0c72033e9ccaea56530",
 		"4d51f64ff18e2e15c40fec0c374d89879ba273bc",
@@ -96,7 +94,6 @@ func (m *mockVcs) DetailsMulti(ctx context.Context, hashes []string, includeBran
 }
 
 func TestDecimate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	mock := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
@@ -164,7 +161,6 @@ func TestDecimate(t *testing.T) {
 }
 
 func TestCurrent(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	mockRepo := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
@@ -185,7 +181,6 @@ func TestCurrent(t *testing.T) {
 }
 
 func TestCurrentNoBuilds(t *testing.T) {
-	unittest.SmallTest(t)
 	mockRepo := &mockVcs{}
 	testData := []string{}
 	b, cleanup := setupTemp(t, testData, mockRepo)

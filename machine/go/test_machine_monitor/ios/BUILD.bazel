@@ -19,7 +19,6 @@ go_test(
     embed = [":ios"],
     deps = [
         "//go/executil",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

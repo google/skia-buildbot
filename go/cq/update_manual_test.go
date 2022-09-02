@@ -10,11 +10,9 @@ import (
 	"github.com/bazelbuild/buildtools/build"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestWithUpdateCQConfig(t *testing.T) {
-	unittest.ManualTest(t)
 
 	ctx := context.Background()
 

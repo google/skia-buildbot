@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestReducer(t *testing.T) {
-	unittest.SmallTest(t)
 	keys := []string{
 		",config=8888,cpu=x86,res=ms,",
 		",config=565,cpu=x86,res=count,",

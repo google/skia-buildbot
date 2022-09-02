@@ -5,12 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
 )
 
 func TestParseAndValidateFlags_ErrorCases(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, instances, services, canaries []string, errMsg string) {
 		t.Run(name, func(t *testing.T) {
@@ -56,7 +54,6 @@ func TestParseAndValidateFlags_ErrorCases(t *testing.T) {
 }
 
 func TestParseAndValidateFlagsSuccess(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Deployments shared among test cases.
 	angleBaselineServer := makeID(goldpushk.Angle, goldpushk.BaselineServer)

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -34,7 +33,6 @@ spec:
 `
 
 func TestStructs_RoundTripYAMLDocThroughStructs_YAMLDocIsUnchanged(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var deserialized Rules
 	err := yaml.Unmarshal([]byte(original), &deserialized)
@@ -47,7 +45,6 @@ func TestStructs_RoundTripYAMLDocThroughStructs_YAMLDocIsUnchanged(t *testing.T)
 }
 
 func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rules := Rules{
 		Spec: Spec{
@@ -119,7 +116,6 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 }
 
 func TestRules_AddAbsentRules_AlertsOnlyAppearInIncludedClusters(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rules := Rules{
 		Spec: Spec{
@@ -197,7 +193,6 @@ func TestRules_AddAbsentRules_AlertsOnlyAppearInIncludedClusters(t *testing.T) {
 }
 
 func TestRuleSkip_OnlyInClusterAnnotationPresent_ReturnsTrueForMatchingClusterNames(t *testing.T) {
-	unittest.SmallTest(t)
 	rule := Rule{
 		Annotations: map[string]string{
 			onlyInClustersAnnotationKey: "skia-public, skia-corp",
@@ -210,7 +205,6 @@ func TestRuleSkip_OnlyInClusterAnnotationPresent_ReturnsTrueForMatchingClusterNa
 }
 
 func TestRuleSkip_OnlyInClusterAnnotationAbsent_ReturnsTrue(t *testing.T) {
-	unittest.SmallTest(t)
 	rule := Rule{}
 
 	require.True(t, rule.Include("skia-public"))

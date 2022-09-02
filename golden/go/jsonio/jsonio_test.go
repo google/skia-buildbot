@@ -8,12 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestValidate_InvalidData_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, toValidate GoldResults, errFragment string) {
 		t.Run(name, func(t *testing.T) {
@@ -189,7 +187,6 @@ func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 }
 
 func TestValidate_ValidResults_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, toValidate GoldResults) {
 		t.Run(name, func(t *testing.T) {
@@ -298,7 +295,6 @@ func TestValidate_ValidResults_Success(t *testing.T) {
 // TestUpdateLegacyFields_Success tests a variety of valid inputs to make sure our parsing logic
 // does not regress. It handles a variety of legacy and non legacy data.
 func TestUpdateLegacyFields_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := parseUpdateValidate(t, legacySkiaTryjobJSON)
 
 	require.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
@@ -366,7 +362,6 @@ func TestUpdateLegacyFields_Success(t *testing.T) {
 }
 
 func TestUpdateLegacyFields_LexicographicalOrderOfCommitIDsFixed(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(oldID, fixedID string) {
 		t.Run(oldID, func(t *testing.T) {
@@ -385,7 +380,6 @@ func TestUpdateLegacyFields_LexicographicalOrderOfCommitIDsFixed(t *testing.T) {
 }
 
 func TestGenJson(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Test parsing the test JSON.
 	goldResults := parseUpdateValidate(t, legacySkiaTryjobJSON)

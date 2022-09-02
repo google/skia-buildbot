@@ -21,7 +21,6 @@ go_test(
     embed = [":targetconnect"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machine/store/mocks",
         "//machine/go/machine/targetconnect/mocks",

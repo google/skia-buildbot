@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/alogin"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -20,7 +19,6 @@ const (
 )
 
 func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	login, err := New(unknownHeaderName, "", loginURL, logoutURL)
@@ -29,7 +27,6 @@ func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
 }
 
 func TestLoggedInAs_HeaderPresent_ReturnsUserEmail(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
@@ -39,7 +36,6 @@ func TestLoggedInAs_HeaderPresent_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestLoggedInAs_RegexProvided_ReturnsUserEmail(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, "accounts.google.com:"+emailAsString)
@@ -49,7 +45,6 @@ func TestLoggedInAs_RegexProvided_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestLoggedInAs_RegexHasTooManySubGroups_ReturnsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
@@ -59,7 +54,6 @@ func TestLoggedInAs_RegexHasTooManySubGroups_ReturnsEmptyString(t *testing.T) {
 }
 
 func TestNeedsAuthentication_EmitsStatusForbidden(t *testing.T) {
-	unittest.SmallTest(t)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
@@ -70,7 +64,6 @@ func TestNeedsAuthentication_EmitsStatusForbidden(t *testing.T) {
 }
 
 func TestStatus_HeaderPresent_ReturnsUserEmail(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
@@ -85,7 +78,6 @@ func TestStatus_HeaderPresent_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestNew_InvalidRegex_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := New(goodHeaderName, "\\y", loginURL, logoutURL)
 	require.Error(t, err)

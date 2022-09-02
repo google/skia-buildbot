@@ -15,7 +15,6 @@ go_test(
     data = glob(["test/**"]),
     embed = [":sobel"],
     deps = [
-        "//go/testutils/unittest",
         "//gold-client/go/imgmatching/fuzzy",
         "//gold-client/go/mocks",
         "//golden/go/image/text",

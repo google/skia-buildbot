@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -15,14 +14,12 @@ const (
 )
 
 func TestGetStartRange(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, 1, GetStartRange(1, 1000))
 	require.Equal(t, 2001, GetStartRange(3, 1000))
 	require.Equal(t, 41, GetStartRange(3, 20))
 }
 
 func TestGetPathToPyFiles(t *testing.T) {
-	unittest.SmallTest(t)
 	expectedLocalPathSuffix := filepath.Join("ct", "py")
 	expectedSwarmingPathSuffix := "py"
 
@@ -38,7 +35,6 @@ func TestGetPathToPyFiles(t *testing.T) {
 }
 
 func TestGetStrFlagValue(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, "desktop", GetStrFlagValue("--user-agent=desktop", USER_AGENT_FLAG, "default-value"))
 	require.Equal(t, "desktop", GetStrFlagValue("--user-agent desktop", USER_AGENT_FLAG, "default-value"))
 	// Use first value if multiple are specified.
@@ -50,7 +46,6 @@ func TestGetStrFlagValue(t *testing.T) {
 }
 
 func TestGetIntFlagValue(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, 4, GetIntFlagValue("--pageset-repeat=4", PAGESET_REPEAT_FLAG, 1))
 	require.Equal(t, 4, GetIntFlagValue("--pageset-repeat 4", PAGESET_REPEAT_FLAG, 1))
 	// Use first value if multiple are specified.
@@ -62,7 +57,6 @@ func TestGetIntFlagValue(t *testing.T) {
 }
 
 func TestRemoveFlagsFromArgs(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4", PAGESET_REPEAT_FLAG))
 	require.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4 --run-benchmark-timeout=400", PAGESET_REPEAT_FLAG, RUN_BENCHMARK_TIMEOUT_FLAG))
 	require.Equal(t, "--abc", RemoveFlagsFromArgs("--pageset-repeat=4 --pageset-repeat=abc --pageset-repeat --abc", PAGESET_REPEAT_FLAG))

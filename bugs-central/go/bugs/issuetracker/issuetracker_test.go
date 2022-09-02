@@ -10,7 +10,6 @@ import (
 
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -19,7 +18,6 @@ const (
 )
 
 func TestIssueTrackerSearch(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 
 	// The test bucket is a public bucket, so we don't need to worry about authentication.

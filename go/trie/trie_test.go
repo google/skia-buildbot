@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTrie(t *testing.T) {
-	unittest.SmallTest(t)
 	trie := New()
 	trie.Insert([]string{"a", "b", "c"}, "1")
 	trie.Insert([]string{"a", "b"}, "2")
@@ -55,7 +53,6 @@ func TestTrie(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	unittest.SmallTest(t)
 	trie := New()
 	assert.Equal(t, "Trie(Node([], {}))", trie.String())
 	trie.Insert([]string{"a"}, "1")
@@ -72,7 +69,6 @@ func TestString(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	unittest.SmallTest(t)
 	trie := New()
 	assert.Equal(t, 0, trie.Len())
 	trie.Insert([]string{"a"}, "1")

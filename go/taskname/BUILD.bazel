@@ -17,8 +17,5 @@ go_test(
     name = "taskname_test",
     srcs = ["task_name_schema_test.go"],
     embed = [":taskname"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

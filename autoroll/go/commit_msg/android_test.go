@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNamedTemplateAndroid_AllFeatures(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
@@ -52,7 +50,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateAndroid_NoLog(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
@@ -93,7 +90,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateAndroid_NoBugs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
@@ -135,7 +131,6 @@ My-Other-Footer: Blah
 }
 
 func TestNamedTemplateAndroid_Minimal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
@@ -171,7 +166,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 }
 
 func TestNamedTemplateAndroid_NoCR_AllFeatures(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{

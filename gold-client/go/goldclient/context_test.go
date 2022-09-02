@@ -6,13 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/gcsuploader"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
 
 func TestExtractProperties_ValuesSet_ReturnSetValues(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mg := &mocks.GCSUploader{}
 	mh := &mocks.HTTPClient{}
@@ -28,7 +26,6 @@ func TestExtractProperties_ValuesSet_ReturnSetValues(t *testing.T) {
 // In tests, we sometimes mock out the implementations before something later calls WithContext.
 // In those cases, we want the original value instead of the potentially not-mocked version.
 func TestExtractProperties_ValuesSetTwice_ReturnFirstValues(t *testing.T) {
-	unittest.SmallTest(t)
 
 	original := &gcsuploader.DryRunImpl{}
 
@@ -46,7 +43,6 @@ func TestExtractProperties_ValuesSetTwice_ReturnFirstValues(t *testing.T) {
 }
 
 func TestExtractGCSUploader_ValueNotSet_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		extractGCSUploader(context.Background())
@@ -54,7 +50,6 @@ func TestExtractGCSUploader_ValueNotSet_Panics(t *testing.T) {
 }
 
 func TestExtractHTTPClient_ValueNotSet_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		extractHTTPClient(context.Background())
@@ -62,7 +57,6 @@ func TestExtractHTTPClient_ValueNotSet_Panics(t *testing.T) {
 }
 
 func TestExtractImageDownloader_ValueNotSet_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		extractImageDownloader(context.Background())
@@ -70,14 +64,12 @@ func TestExtractImageDownloader_ValueNotSet_Panics(t *testing.T) {
 }
 
 func TestExtractLogWriter_ValueNotSet_ReturnsDefaultValue(t *testing.T) {
-	unittest.SmallTest(t)
 
 	w := extractLogWriter(context.Background())
 	assert.NotNil(t, w)
 }
 
 func TestExtractErrorWriter_ValueNotSet_ReturnsDefaultValue(t *testing.T) {
-	unittest.SmallTest(t)
 
 	w := extractErrorWriter(context.Background())
 	assert.NotNil(t, w)

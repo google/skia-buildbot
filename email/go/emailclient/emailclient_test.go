@@ -8,11 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestClientSendWithMarkup_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	const expectedMessageID = "<the-actual-message-id>"
 	const expected = `From: Alert Manager <alerts@skia.org>
 To: someone@example.org
@@ -45,7 +43,6 @@ In-Reply-To: some-thread-reference
 }
 
 func TestClientSendWithMarkup_HTTPRequestFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 	}))
@@ -56,7 +53,6 @@ func TestClientSendWithMarkup_HTTPRequestFails_ReturnsError(t *testing.T) {
 }
 
 func TestClientSendWithMarkup_DedupRecipients(t *testing.T) {
-	unittest.SmallTest(t)
 	const expectedMessageID = "<the-actual-message-id>"
 	const expected = `From: Alert Manager <alerts@skia.org>
 To: someone@example.org,Someone Else <someone-else@example.org>
@@ -89,7 +85,6 @@ In-Reply-To: some-thread-reference
 }
 
 func TestClientValid(t *testing.T) {
-	unittest.SmallTest(t)
 	require.True(t, NewAt(DefaultEmailServiceURL).Valid())
 	require.True(t, NewAt(NamespacedEmailServiceURL).Valid())
 	require.False(t, NewAt("").Valid())

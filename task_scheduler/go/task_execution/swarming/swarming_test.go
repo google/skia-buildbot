@@ -13,11 +13,9 @@ import (
 	infra_swarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetPendingTasks_LimitsSearchRange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const testPool = "TEST_POOL"
 	fakeNow := time.Date(2022, 04, 3, 2, 1, 0, 0, time.UTC)

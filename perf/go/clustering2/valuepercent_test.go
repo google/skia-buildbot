@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSortValuePercentSlice_TwoKeysTwoValuesEach(t *testing.T) {
-	unittest.SmallTest(t)
 
 	vpSlice := []ValuePercent{
 		{"arch=x86", 80},
@@ -30,13 +28,11 @@ func TestSortValuePercentSlice_TwoKeysTwoValuesEach(t *testing.T) {
 }
 
 func TestSortValuePercentSlice_Empty(t *testing.T) {
-	unittest.SmallTest(t)
 
 	SortValuePercentSlice(nil)
 }
 
 func TestSortValuePercentSlice_OnlyOneValuePerSubSlice(t *testing.T) {
-	unittest.SmallTest(t)
 
 	vpSlice := []ValuePercent{
 		{"config=565", 10},
@@ -54,7 +50,6 @@ func TestSortValuePercentSlice_OnlyOneValuePerSubSlice(t *testing.T) {
 }
 
 func TestSortValuePercentSlice_MultipleKeysWithAllTheSamePercent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	vpSlice := []ValuePercent{
 		{"arch=x86", 100},

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const k8sConfig = `
@@ -163,7 +162,6 @@ spec:
 `
 
 func TestParseK8sConfigFile_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	deployments, statefulSets, cronJobs, daemonSets, err := ParseK8sConfigFile([]byte(k8sConfig))
 	require.NoError(t, err)

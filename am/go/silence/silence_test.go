@@ -9,11 +9,9 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestValidateRegexes(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ps := paramtools.ParamSet{
 		"alertname": []string{"BotQuarantined"},
@@ -32,7 +30,6 @@ func TestValidateRegexes(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
-	unittest.LargeTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.SILENCE_AM)
 	defer cleanup()

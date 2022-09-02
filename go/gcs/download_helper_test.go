@@ -12,11 +12,9 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestDownloadHelper(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")

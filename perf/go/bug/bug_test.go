@@ -4,12 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	perfgit "go.skia.org/infra/perf/go/git"
 )
 
 func TestExpand(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := perfgit.Commit{
 		URL: "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",

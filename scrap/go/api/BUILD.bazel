@@ -22,7 +22,6 @@ go_test(
     deps = [
         "//go/metrics2",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//scrap/go/scrap",
         "//scrap/go/scrap/mocks",
         "@com_github_gorilla_mux//:mux",

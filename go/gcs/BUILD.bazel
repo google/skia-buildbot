@@ -30,7 +30,6 @@ go_test(
     deps = [
         "//go/gcs/mem_gcsclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_storage//:storage",
     ],

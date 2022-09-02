@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -68,7 +67,6 @@ func (*myErrorOnCloseReadWriteCloser) Close() error {
 }
 
 func TestExpand_HappyPathWithHash_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var r myReadWriteCloser
@@ -102,7 +100,6 @@ func TestExpand_HappyPathWithHash_Success(t *testing.T) {
 }
 
 func TestExpand_TemplateFailsToExpand_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var r myReadWriteCloser
@@ -135,7 +132,6 @@ func TestExpand_TemplateFailsToExpand_ReturnsError(t *testing.T) {
 }
 
 func TestExpand_InvalidLang_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 
@@ -144,7 +140,6 @@ func TestExpand_InvalidLang_ReturnsError(t *testing.T) {
 }
 
 func TestLoadScrap_HappyPathWithHash_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var r myReadWriteCloser
@@ -165,7 +160,6 @@ func TestLoadScrap_HappyPathWithHash_Success(t *testing.T) {
 }
 
 func TestLoadScrap_FileReaderFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("FileReader", testutils.AnyContext, fmt.Sprintf("scraps/svg/%s", svgHash)).Return(nil, errMyMockError)
@@ -177,7 +171,6 @@ func TestLoadScrap_FileReaderFails_ReturnsError(t *testing.T) {
 }
 
 func TestLoadScrap_HappyPathWithName_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	// First call GetName
@@ -210,7 +203,6 @@ func TestLoadScrap_HappyPathWithName_Success(t *testing.T) {
 }
 
 func TestLoadScrap_GetNameFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	// First call GetName
@@ -223,7 +215,6 @@ func TestLoadScrap_GetNameFails_ReturnsError(t *testing.T) {
 }
 
 func TestLoadScrap_InvalidType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	_, err = se.LoadScrap(context.Background(), invalidScrapType, scrapName)
@@ -231,7 +222,6 @@ func TestLoadScrap_InvalidType_ReturnsError(t *testing.T) {
 }
 
 func TestLoadScrap_InvalidName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	_, err = se.LoadScrap(context.Background(), SVG, invalidScrapName)
@@ -239,7 +229,6 @@ func TestLoadScrap_InvalidName_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myReadWriteCloser
@@ -272,7 +261,6 @@ func TestCreateScrap_HappyPath_Success(t *testing.T) {
 }
 
 func TestCreateScrap_InvalidScrapType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 	se, err := New(s)
 	require.NoError(t, err)
@@ -285,7 +273,6 @@ func TestCreateScrap_InvalidScrapType_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_TooLargeScrap_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 	se, err := New(s)
 	require.NoError(t, err)
@@ -303,7 +290,6 @@ func TestCreateScrap_TooLargeScrap_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_FileWriterFailsOnWrite_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myErrorReadWriteCloser
@@ -325,7 +311,6 @@ func TestCreateScrap_FileWriterFailsOnWrite_ReturnsError(t *testing.T) {
 }
 
 func TestCreateScrap_FileWriterFailsOnClose_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myErrorOnCloseReadWriteCloser
@@ -347,7 +332,6 @@ func TestCreateScrap_FileWriterFailsOnClose_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_HappyPathWithHash_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("DeleteFile", testutils.AnyContext, fmt.Sprintf("scraps/svg/%s", svgHash)).Return(nil)
@@ -359,7 +343,6 @@ func TestDeleteScrap_HappyPathWithHash_Success(t *testing.T) {
 }
 
 func TestDeleteScrap_HappyPathWithName_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	// First we call GetName.
@@ -387,7 +370,6 @@ func TestDeleteScrap_HappyPathWithName_Success(t *testing.T) {
 }
 
 func TestDeleteScrap_GetNameFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	// First we call GetName.
@@ -400,7 +382,6 @@ func TestDeleteScrap_GetNameFails_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_DeleteNameFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	// First we call GetName.
@@ -424,7 +405,6 @@ func TestDeleteScrap_DeleteNameFails_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_DeleteFileWithHashFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("DeleteFile", testutils.AnyContext, fmt.Sprintf("scraps/svg/%s", svgHash)).Return(errMyMockError)
@@ -436,7 +416,6 @@ func TestDeleteScrap_DeleteFileWithHashFails_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_InvalidType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	err = se.DeleteScrap(context.Background(), invalidScrapType, svgHash)
@@ -444,7 +423,6 @@ func TestDeleteScrap_InvalidType_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteScrap_InvalidName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	err = se.DeleteScrap(context.Background(), SVG, invalidScrapName)
@@ -452,7 +430,6 @@ func TestDeleteScrap_InvalidName_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myReadWriteCloser
@@ -480,7 +457,6 @@ func TestPutName_HappyPath_Success(t *testing.T) {
 }
 
 func TestPutName_InvalidName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	sentName := Name{
@@ -491,7 +467,6 @@ func TestPutName_InvalidName_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_InvalidType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	sentName := Name{
@@ -502,7 +477,6 @@ func TestPutName_InvalidType_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_InvalidHash_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	sentName := Name{
@@ -513,7 +487,6 @@ func TestPutName_InvalidHash_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_FileWriterWriteFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myErrorReadWriteCloser
@@ -533,7 +506,6 @@ func TestPutName_FileWriterWriteFails_ReturnsError(t *testing.T) {
 }
 
 func TestPutName_FileWriterCloseFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var w myErrorOnCloseReadWriteCloser
@@ -553,7 +525,6 @@ func TestPutName_FileWriterCloseFails_ReturnsError(t *testing.T) {
 }
 
 func TestGetName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var r myReadWriteCloser
@@ -574,7 +545,6 @@ func TestGetName_HappyPath_Success(t *testing.T) {
 }
 
 func TestGetName_FileReaderReadFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	var r myErrorReadWriteCloser
@@ -587,7 +557,6 @@ func TestGetName_FileReaderReadFails_ReturnsError(t *testing.T) {
 }
 
 func TestGetName_InvalidScrapName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	_, err = se.GetName(context.Background(), SVG, invalidScrapName)
@@ -595,7 +564,6 @@ func TestGetName_InvalidScrapName_ReturnsError(t *testing.T) {
 }
 
 func TestGetName_InvalidScrapType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	_, err = se.GetName(context.Background(), invalidScrapType, scrapName)
@@ -603,7 +571,6 @@ func TestGetName_InvalidScrapType_ReturnsError(t *testing.T) {
 }
 
 func TestGetName_FileReaderFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 	s.On("FileReader", testutils.AnyContext, fmt.Sprintf("names/svg/%s", scrapName)).Return(nil, errMyMockError)
 	se, err := New(s)
@@ -613,7 +580,6 @@ func TestGetName_FileReaderFails_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteName_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("DeleteFile", testutils.AnyContext, fmt.Sprintf("names/svg/%s", scrapName)).Return(nil)
@@ -625,7 +591,6 @@ func TestDeleteName_HappyPath_Success(t *testing.T) {
 }
 
 func TestDeleteName_DeleteFileFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("DeleteFile", testutils.AnyContext, fmt.Sprintf("names/svg/%s", scrapName)).Return(errMyMockError)
@@ -637,7 +602,6 @@ func TestDeleteName_DeleteFileFails_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteName_InvalidType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	err = se.DeleteName(context.Background(), invalidScrapType, scrapName)
@@ -645,7 +609,6 @@ func TestDeleteName_InvalidType_ReturnsError(t *testing.T) {
 }
 
 func TestDeleteName_InvalidName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	err = se.DeleteName(context.Background(), SVG, invalidScrapName)
@@ -653,7 +616,6 @@ func TestDeleteName_InvalidName_ReturnsError(t *testing.T) {
 }
 
 func TestListNames_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("AllFilesInDirectory", testutils.AnyContext, fmt.Sprintf("names/svg/"), mock.Anything).Run(func(args mock.Arguments) {
@@ -670,7 +632,6 @@ func TestListNames_HappyPath_Success(t *testing.T) {
 }
 
 func TestListNames_AllFilesInDirectoryFailure_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("AllFilesInDirectory", testutils.AnyContext, fmt.Sprintf("names/svg/"), mock.Anything).Return(errMyMockError)
@@ -682,7 +643,6 @@ func TestListNames_AllFilesInDirectoryFailure_ReturnsError(t *testing.T) {
 }
 
 func TestListNames_InvalidType_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	se, err := New(&test_gcsclient.GCSClient{})
 	require.NoError(t, err)
 	_, err = se.ListNames(context.Background(), invalidScrapType)

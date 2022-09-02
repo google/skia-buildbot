@@ -9,12 +9,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
 
 func TestGetWithRetries_OneAttempt_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
@@ -29,8 +27,6 @@ func TestGetWithRetries_OneAttempt_Success(t *testing.T) {
 }
 
 func TestGetWithRetries_MultipleAttempts_Success(t *testing.T) {
-	unittest.LargeTest(t) // Function under test sleeps for several milliseconds before retries.
-
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
@@ -46,8 +42,6 @@ func TestGetWithRetries_MultipleAttempts_Success(t *testing.T) {
 }
 
 func TestGetWithRetries_MultipleAttempts_Error(t *testing.T) {
-	unittest.LargeTest(t) // Function under test sleeps for several milliseconds before retries.
-
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
@@ -61,7 +55,6 @@ func TestGetWithRetries_MultipleAttempts_Error(t *testing.T) {
 }
 
 func TestPost_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
@@ -79,7 +72,6 @@ func TestPost_Success(t *testing.T) {
 }
 
 func TestPost_HttpClientError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
@@ -97,7 +89,6 @@ func TestPost_HttpClientError_ReturnsError(t *testing.T) {
 }
 
 func TestPost_InternalServerError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)

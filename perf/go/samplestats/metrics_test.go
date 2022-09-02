@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingest/parser"
 )
 
 func TestCalculateMetrics_EmptySamples_SuccessWithNaNs(t *testing.T) {
-	unittest.SmallTest(t)
 	m := calculateMetrics(Config{}, parser.Samples{})
 	assert.True(t, math.IsNaN(m.Mean))
 	assert.True(t, math.IsNaN(m.Percent))
@@ -18,7 +16,6 @@ func TestCalculateMetrics_EmptySamples_SuccessWithNaNs(t *testing.T) {
 }
 
 func TestCalculateMetrics_SimpleSamples_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	m := calculateMetrics(Config{}, parser.Samples{
 		Values: []float64{1, 2, 1, 1},
 	})
@@ -28,7 +25,6 @@ func TestCalculateMetrics_SimpleSamples_Success(t *testing.T) {
 }
 
 func TestCalculateMetrics_AlmostOutliersOnTheEdge_OutliersAreNotRemoved(t *testing.T) {
-	unittest.SmallTest(t)
 	// The stats package uses  the interpolation method R8 from Hyndman and Fan
 	// (1996). So the following values: {3, 3, 6, 9, 9, 12, 15, 15}, have
 	// quartiles of: {4.25, 13.75}
@@ -41,7 +37,6 @@ func TestCalculateMetrics_AlmostOutliersOnTheEdge_OutliersAreNotRemoved(t *testi
 }
 
 func TestCalculateMetrics_OutliersOverTheEdge_OutliersAreBothRemoved(t *testing.T) {
-	unittest.SmallTest(t)
 	// The stats package uses  the interpolation method R8 from Hyndman and Fan
 	// (1996). So the following values: {3, 3, 6, 9, 9, 12, 15, 15}, have
 	// quartiles of: {4.25, 13.75}

@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var (
@@ -22,7 +21,6 @@ var (
 )
 
 func TestSearch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock gerrit.
 	g := &mocks.GerritInterface{}
@@ -68,7 +66,6 @@ func TestSearch(t *testing.T) {
 }
 
 func TestRemoveFromCQ(t *testing.T) {
-	unittest.SmallTest(t)
 
 	comment := "SkCQ is no longer looking at this change"
 	notifyReason := "SkCQ run failed."
@@ -124,7 +121,6 @@ func TestRemoveFromCQ(t *testing.T) {
 }
 
 func TestGetSubmittedTogether(t *testing.T) {
-	unittest.SmallTest(t)
 
 	changeID1 := "change1"
 	issue1 := int64(123)
@@ -175,7 +171,6 @@ func TestGetSubmittedTogether(t *testing.T) {
 }
 
 func TestGetEquivalentPatchSetIDs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	changeInfo := &gerrit.ChangeInfo{
 		// Most recent revisions are first.
@@ -227,7 +222,6 @@ func TestGetEquivalentPatchSetIDs(t *testing.T) {
 }
 
 func TestGetChangeRef(t *testing.T) {
-	unittest.SmallTest(t)
 
 	changeInfo := &gerrit.ChangeInfo{
 		Issue: 443102,
@@ -249,7 +243,6 @@ func TestGetChangeRef(t *testing.T) {
 }
 
 func TestGetCQVoters(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock gerrit.
 	g := &mocks.GerritInterface{}

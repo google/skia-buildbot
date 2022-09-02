@@ -23,7 +23,6 @@ go_test(
     deps = [
         ":datakitchensink",
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//golden/go/sql",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

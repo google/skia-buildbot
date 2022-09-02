@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -25,7 +24,6 @@ const (
 )
 
 func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{TileWidth: 3}
 	b.CommitsWithData().
@@ -479,7 +477,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 }
 
 func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.CommitsWithData().
@@ -871,7 +868,6 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.CommitsWithData()
@@ -881,7 +877,6 @@ func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestCommits_InvalidTime_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
@@ -890,7 +885,6 @@ func TestCommits_InvalidTime_Panics(t *testing.T) {
 }
 
 func TestCommits_InsertInAnyOrder_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{TileWidth: 2}
 	b.CommitsWithData().
@@ -957,7 +951,6 @@ func TestCommits_InsertInAnyOrder_Success(t *testing.T) {
 }
 
 func TestSetDigests_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
@@ -967,7 +960,6 @@ func TestSetDigests_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestSetDigests_InvalidData_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
 		b := TablesBuilder{}
@@ -980,7 +972,6 @@ func TestSetDigests_InvalidData_Panics(t *testing.T) {
 }
 
 func TestSetGroupingKeys_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("foo")
@@ -990,7 +981,6 @@ func TestSetGroupingKeys_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestAddTracesWithCommonKeys_MissingSetupCalls_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
@@ -1012,7 +1002,6 @@ func TestAddTracesWithCommonKeys_MissingSetupCalls_Panics(t *testing.T) {
 }
 
 func TestAddTracesWithCommonKeys_ZeroCommitsSpecified_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1024,7 +1013,6 @@ func TestAddTracesWithCommonKeys_ZeroCommitsSpecified_Panics(t *testing.T) {
 }
 
 func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1038,7 +1026,6 @@ func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1059,7 +1046,6 @@ func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
 	})
 }
 func TestHistory_UnknownSymbol_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1072,7 +1058,6 @@ func TestHistory_UnknownSymbol_Panics(t *testing.T) {
 }
 
 func TestKeys_CalledWithoutHistory_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1085,7 +1070,6 @@ func TestKeys_CalledWithoutHistory_Panics(t *testing.T) {
 }
 
 func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1100,7 +1084,6 @@ func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestKeys_IncorrectLength_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1124,7 +1107,6 @@ func TestKeys_IncorrectLength_Panics(t *testing.T) {
 }
 
 func TestKeys_MissingGrouping_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("group1", "group2")
@@ -1139,7 +1121,6 @@ func TestKeys_MissingGrouping_Panics(t *testing.T) {
 }
 
 func TestKeys_IdenticalTraces_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("group1")
@@ -1153,7 +1134,6 @@ func TestKeys_IdenticalTraces_Panics(t *testing.T) {
 }
 
 func TestOptionsPerTrace_CalledWithoutHistory_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1166,7 +1146,6 @@ func TestOptionsPerTrace_CalledWithoutHistory_Panics(t *testing.T) {
 }
 
 func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1181,7 +1160,6 @@ func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1205,7 +1183,6 @@ func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 }
 
 func TestOptionsPerPoint_CorrectDataLinedUp(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1241,7 +1218,6 @@ func TestOptionsPerPoint_CorrectDataLinedUp(t *testing.T) {
 }
 
 func TestIngestedFrom_CalledWithoutHistory_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1254,7 +1230,6 @@ func TestIngestedFrom_CalledWithoutHistory_Panics(t *testing.T) {
 }
 
 func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1269,7 +1244,6 @@ func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
 }
 
 func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1298,7 +1272,6 @@ func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
 }
 
 func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1312,7 +1285,6 @@ func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 }
 
 func TestBuild_IncompleteData_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1339,7 +1311,6 @@ func TestBuild_IncompleteData_Panics(t *testing.T) {
 }
 
 func TestBuild_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1361,7 +1332,6 @@ func TestBuild_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
 }
 
 func TestAddTriageEvent_NoGroupingKeys_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
@@ -1370,7 +1340,6 @@ func TestAddTriageEvent_NoGroupingKeys_Panics(t *testing.T) {
 }
 
 func TestAddTriageEvent_InvalidTime_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1380,7 +1349,6 @@ func TestAddTriageEvent_InvalidTime_Panics(t *testing.T) {
 }
 
 func TestTriage_ReplacingPreviousExpectations_LabelAndRecordOverwritten(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1425,7 +1393,6 @@ func TestTriage_ReplacingPreviousExpectations_LabelAndRecordOverwritten(t *testi
 }
 
 func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1436,7 +1403,6 @@ func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
 }
 
 func TestExpectationsBuilderPositive_InvalidDigest_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1448,7 +1414,6 @@ func TestExpectationsBuilderPositive_InvalidDigest_Panics(t *testing.T) {
 }
 
 func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1460,7 +1425,6 @@ func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
 }
 
 func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 	testDir := testutils.TestDataDir(t)
 
 	b := TablesBuilder{}
@@ -1482,7 +1446,6 @@ func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 }
 
 func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 	testDir := testutils.TestDataDir(t)
 
 	b := TablesBuilder{}
@@ -1497,7 +1460,6 @@ func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 }
 
 func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1511,7 +1473,6 @@ func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 }
 
 func TestAddIgnoreRule_InvalidDate_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
@@ -1521,7 +1482,6 @@ func TestAddIgnoreRule_InvalidDate_Panics(t *testing.T) {
 }
 
 func TestAddIgnoreRule_InvalidQuery_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
@@ -1533,7 +1493,6 @@ func TestAddIgnoreRule_InvalidQuery_Panics(t *testing.T) {
 }
 
 func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1610,7 +1569,6 @@ func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
 }
 
 func TestPatchsetBuilder_TriageSameDigest_FinalLabelCorrect(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1667,7 +1625,6 @@ func TestPatchsetBuilder_TriageSameDigest_FinalLabelCorrect(t *testing.T) {
 }
 
 func TestTablesBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1678,7 +1635,6 @@ func TestTablesBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T) {
 }
 
 func TestChangelistBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1691,7 +1647,6 @@ func TestChangelistBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T
 }
 
 func TestChangelistBuilder_AddTriageEvent_InvalidTriageTime_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
@@ -1703,7 +1658,6 @@ func TestChangelistBuilder_AddTriageEvent_InvalidTriageTime_Panics(t *testing.T)
 }
 
 func TestTablesBuilder_AddIgnoreRule_PanicsIfSameUUIDGenerated(t *testing.T) {
-	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.AddIgnoreRule("ignore_author", "ignore_author", "2021-03-14T15:09:27Z", "note 1",

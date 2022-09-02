@@ -23,7 +23,6 @@ go_test(
     embed = [":continuous"],
     deps = [
         "//android_ingest/go/buildapi",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

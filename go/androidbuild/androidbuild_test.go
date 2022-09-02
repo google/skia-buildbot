@@ -8,13 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestToFromKey(t *testing.T) {
-	unittest.SmallTest(t)
 	k, err := toKey("git_master-skia", "razor-userdebug", "1814540")
 	if err != nil {
 		t.Fatalf("Failed to create key: %s", err)
@@ -72,7 +70,6 @@ func (m mockCommits) List(branch, target, endBuildID string) (map[string]*vcsinf
 }
 
 func TestInfo(t *testing.T) {
-	unittest.MediumTest(t)
 	levelDBDir := filepath.Join(os.TempDir(), "android-leveldb")
 	defer util.RemoveAll(levelDBDir)
 

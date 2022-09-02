@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
@@ -15,7 +14,6 @@ import (
 )
 
 func TestBuildParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 	// Test the empty case first.
 	df := &DataFrame{
 		TraceSet: types.TraceSet{},
@@ -43,7 +41,6 @@ func TestBuildParamSet(t *testing.T) {
 }
 
 func TestFilter(t *testing.T) {
-	unittest.SmallTest(t)
 	df := &DataFrame{
 		TraceSet: types.TraceSet{
 			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
@@ -75,7 +72,6 @@ func TestFilter(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
-	unittest.SmallTest(t)
 	df := &DataFrame{
 		Header: []*ColumnHeader{
 			{Offset: 10},
@@ -133,7 +129,6 @@ func TestSlice(t *testing.T) {
 }
 
 func TestFromTimeRange_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -155,7 +150,6 @@ func TestFromTimeRange_Success(t *testing.T) {
 }
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -169,7 +163,6 @@ func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
 }
 
 func TestMerge(t *testing.T) {
-	unittest.SmallTest(t)
 	// Simple
 	a := []*ColumnHeader{
 		{Offset: 1},
@@ -258,7 +251,6 @@ func TestMerge(t *testing.T) {
 }
 
 func TestJoin(t *testing.T) {
-	unittest.SmallTest(t)
 	a := DataFrame{
 		Header: []*ColumnHeader{
 			{Offset: 1},

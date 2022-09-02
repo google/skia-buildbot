@@ -8,11 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyTaskKey(t *testing.T) {
-	unittest.SmallTest(t)
 	v := TaskKey{
 		RepoState: RepoState{
 			Repo:     "nou.git",
@@ -27,7 +25,6 @@ func TestCopyTaskKey(t *testing.T) {
 // Test that Task.UpdateFromTaskResult returns an error when the input data is
 // invalid.
 func TestUpdateFromTaskResultInvalid(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -68,7 +65,6 @@ func TestUpdateFromTaskResultInvalid(t *testing.T) {
 // Test that Task.UpdateFromTaskResult returns an error when the task "identity"
 // fields do not match.
 func TestUpdateFromTaskResultMismatched(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -132,7 +128,6 @@ func TestUpdateFromTaskResultMismatched(t *testing.T) {
 
 // Test that Task.UpdateFromTaskResult sets the expected fields in an empty Task.
 func TestUpdateFromTaskResultInit(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task1 := &Task{
 		SwarmingTaskId: "E",
@@ -182,7 +177,6 @@ func TestUpdateFromTaskResultInit(t *testing.T) {
 // Test that Task.UpdateFromTaskResult updates the expected fields in an existing
 // Task.
 func TestUpdateFromTaskResultUpdate(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -250,7 +244,6 @@ func TestUpdateFromTaskResultUpdate(t *testing.T) {
 
 // Test that Task.UpdateFromTaskResult updates the Status field correctly.
 func TestUpdateFromTaskResultUpdateStatus(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 
 	testUpdateStatus := func(s *TaskResult, newStatus TaskStatus) {
@@ -318,7 +311,6 @@ func TestUpdateFromTaskResultUpdateStatus(t *testing.T) {
 }
 
 func TestCopyTask(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Now()
 	v := &Task{
 		Attempt:        3,
@@ -352,7 +344,6 @@ func TestCopyTask(t *testing.T) {
 }
 
 func TestValidateTask(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(task *Task, msg string) {
 		err := task.Validate()
@@ -435,7 +426,6 @@ func TestValidateTask(t *testing.T) {
 
 // Test that sort.Sort(TaskSlice(...)) works correctly.
 func TestTaskSort(t *testing.T) {
-	unittest.SmallTest(t)
 	tasks := []*Task{}
 	addTask := func(ts time.Time) {
 		task := &Task{
@@ -459,7 +449,6 @@ func TestTaskSort(t *testing.T) {
 }
 
 func TestCopyTaskSummary(t *testing.T) {
-	unittest.SmallTest(t)
 	v := &TaskSummary{
 		Attempt:        1,
 		Id:             "123",

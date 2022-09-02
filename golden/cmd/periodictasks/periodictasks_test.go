@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -17,7 +16,6 @@ import (
 )
 
 func TestGatherFromPrimaryBranch_NoExistingWork_AllWorkAdded(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -48,7 +46,6 @@ func TestGatherFromPrimaryBranch_NoExistingWork_AllWorkAdded(t *testing.T) {
 }
 
 func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	sentinelTime := ts("2021-02-02T02:15:00Z")
@@ -94,7 +91,6 @@ func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
 }
 
 func TestGatherFromPrimaryBranch_NoNewWork_NothingChanged(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	sentinelTime := ts("2021-02-02T02:15:00Z")
@@ -145,7 +141,6 @@ func TestGatherFromPrimaryBranch_NoNewWork_NothingChanged(t *testing.T) {
 }
 
 func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t *testing.T) {
-	unittest.LargeTest(t)
 	fakeNow := ts("2020-12-13T00:00:00Z")
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 
@@ -206,7 +201,6 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 }
 
 func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
-	unittest.LargeTest(t)
 	fakeNow := ts("2020-12-12T13:13:13Z")
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 
@@ -287,7 +281,6 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 }
 
 func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
-	unittest.LargeTest(t)
 	fakeNow := ts("2021-07-07T07:07:07Z")
 	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 
@@ -335,7 +328,6 @@ func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
 }
 
 func TestGetAllRecentDigests_ReturnsAllRecentDigestsFromPrimaryBranch(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))

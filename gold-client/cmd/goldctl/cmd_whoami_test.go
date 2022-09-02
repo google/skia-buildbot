@@ -10,13 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
 
 func TestWhoami_AuthedWithGSUtil_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -44,8 +42,6 @@ func TestWhoami_AuthedWithGSUtil_Success(t *testing.T) {
 }
 
 func TestWhoami_ReallyPollServer_NotLoggedIn(t *testing.T) {
-	unittest.LargeTest(t) // This test really makes a network request to skia-infra.gold.skia.org
-
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
 

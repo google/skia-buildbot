@@ -13,8 +13,5 @@ go_test(
     name = "loggingsyncbuffer_test",
     srcs = ["loggingsyncbuffer_test.go"],
     embed = [":loggingsyncbuffer"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

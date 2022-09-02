@@ -6,14 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // Smoke-test CPUs(). The interesting (and hopefully thus the error-prone) parts of it have been
 // factored out so they can be tested on any CI platform, but this covers the platform-specific
 // straight line through, determined by the platform the tests are running on.
 func TestCPUs_Smoke(t *testing.T) {
-	unittest.MediumTest(t)
 	cpus, err := CPUs(context.Background())
 	assert.NoError(t, err)
 	if len(cpus) != 2 && len(cpus) != 3 {
@@ -25,7 +23,6 @@ func TestCPUs_Smoke(t *testing.T) {
 }
 
 func TestOSVersions_Smoke(t *testing.T) {
-	unittest.MediumTest(t)
 	versions, err := OSVersions(context.Background())
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(versions), 2, "OSVersions() should return at least PlatformName and PlatformName-SomeVersion.")

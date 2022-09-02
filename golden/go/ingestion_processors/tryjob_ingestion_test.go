@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -33,7 +32,6 @@ import (
 )
 
 func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	configParams := map[string]string{
 		codeReviewSystemsParam: "gerrit,gerrit-internal",
@@ -56,7 +54,6 @@ func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	configParams := map[string]string{
 		codeReviewSystemsParam:     "github",
@@ -81,7 +78,6 @@ func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_LookupCRS_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	configParams := map[string]string{
 		lookupParam:            "buildbucket",
@@ -104,7 +100,6 @@ func TestTryjobSQL_LookupCRS_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -321,7 +316,6 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_UsesRubberstampCRSAndSimpleCIS_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -412,7 +406,6 @@ func TestTryjobSQL_Process_UsesRubberstampCRSAndSimpleCIS_Success(t *testing.T) 
 }
 
 func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -680,7 +673,6 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_TryjobRerunAtSameCLPS_MultipleDatapointsForTraceAtSamePatchset(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -926,7 +918,6 @@ func TestTryjobSQL_Process_TryjobRerunAtSameCLPS_MultipleDatapointsForTraceAtSam
 }
 
 func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1025,7 +1016,6 @@ func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T
 }
 
 func TestTryjobSQL_Process_UnknownCL_ReturnsNonretriableError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1059,7 +1049,6 @@ func TestTryjobSQL_Process_UnknownCL_ReturnsNonretriableError(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_UnknownPS_ReturnsNonretriableError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1103,7 +1092,6 @@ func TestTryjobSQL_Process_UnknownPS_ReturnsNonretriableError(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_UnknownTryjob_ReturnsNonretriableError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -1155,7 +1143,6 @@ func TestTryjobSQL_Process_UnknownTryjob_ReturnsNonretriableError(t *testing.T) 
 }
 
 func TestTryjobSQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -1257,7 +1244,6 @@ func TestTryjobSQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T)
 }
 
 func TestTryjobSQL_Process_CLPSNeedResolution_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -1348,7 +1334,6 @@ func TestTryjobSQL_Process_CLPSNeedResolution_Success(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_CLPSNeedResolution_UsesCache(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
@@ -1389,7 +1374,6 @@ func TestTryjobSQL_Process_CLPSNeedResolution_UsesCache(t *testing.T) {
 }
 
 func TestTryjobSQL_Process_LookupSystemNotConfigured_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -1417,7 +1401,6 @@ func TestTryjobSQL_Process_LookupSystemNotConfigured_ReturnsError(t *testing.T) 
 }
 
 func TestTryjobSQL_Process_LookupReturnsDifferentSystem_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -1449,7 +1432,6 @@ func TestTryjobSQL_Process_LookupReturnsDifferentSystem_ReturnsError(t *testing.
 }
 
 func TestLookupAndCreatePS_PatchsetExistsForAnotherCL_ReturnsNonconflictingPSID(t *testing.T) {
-	unittest.LargeTest(t)
 
 	const gitHash = "000000000000000"
 	ctx := context.Background()

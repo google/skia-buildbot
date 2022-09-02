@@ -23,8 +23,5 @@ go_test(
     name = "generate_elements_sk_scss_imports_test",
     srcs = ["generate_elements_sk_scss_imports_test.go"],
     embed = [":generate_elements_sk_scss_imports_lib"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

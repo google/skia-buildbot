@@ -14,7 +14,6 @@ import (
 )
 
 func TestPrep(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 	opts := &types.Options{
 		Width:  128,
@@ -118,7 +117,6 @@ func testRun(cmd *exec.Command) error {
 }
 
 func TestRun(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := fmt.Fprintln(w, `{"Errors": "Compile Failed."}`)
@@ -136,7 +134,6 @@ func TestRun(t *testing.T) {
 }
 
 func TestValidateOptions(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		value         *types.Options
 		errorExpected bool

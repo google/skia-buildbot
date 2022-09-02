@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 )
 
@@ -20,7 +19,6 @@ const (
 )
 
 func TestParseAndroidProperties_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const adbResponseHappyPath = `
 [ro.product.manufacturer]: [asus]
@@ -37,13 +35,11 @@ func TestParseAndroidProperties_HappyPath(t *testing.T) {
 }
 
 func TestParseAndroidProperties_EmptyStringGivesEmptyMap(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Empty(t, parseAndroidProperties(""))
 }
 
 func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	adbResponse := strings.Join([]string{
 		"[ro.product.manufacturer]: [Google]",      // Ignored
@@ -75,7 +71,6 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 }
 
 func TestDimensionsFromAndroidProperties_AppendIncrementalBuildToDeviceOS(t *testing.T) {
-	unittest.SmallTest(t)
 
 	adbResponse := strings.Join([]string{
 		"[ro.build.id]: [QQ2A.200305.002]",          // device_os
@@ -94,7 +89,6 @@ func TestDimensionsFromAndroidProperties_AppendIncrementalBuildToDeviceOS(t *tes
 }
 
 func TestDimensionsFromAndroidProperties_EmptyFromEmpty(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dimensions := parseAndroidProperties("")
 	assert.Empty(t, dimensionsFromAndroidProperties(dimensions))
@@ -108,7 +102,6 @@ func newProcessorForTest() *ProcessorImpl {
 }
 
 func TestProcess_DetectBadEventType(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	event := machine.Event{
 		EventType: machine.EventType(""),
@@ -121,7 +114,6 @@ func TestProcess_DetectBadEventType(t *testing.T) {
 }
 
 func TestProcess_SwarmingTaskIsRunning(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	event := machine.Event{
 		EventType:           machine.EventTypeRawState,
@@ -136,7 +128,6 @@ func TestProcess_SwarmingTaskIsRunning(t *testing.T) {
 }
 
 func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescription(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	event := machine.Event{
 		EventType:        machine.EventTypeRawState,
@@ -151,7 +142,6 @@ func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescripti
 }
 
 func TestProcess_NewDeviceAttached(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -214,7 +204,6 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 }
 
 func TestProcess_DetectNotInsideDocker(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// The current machine has nothing attached.
@@ -244,7 +233,6 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 }
 
 func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -295,7 +283,6 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 }
 
 func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -350,7 +337,6 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -415,7 +401,6 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 }
 
 func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -475,7 +460,6 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 }
 
 func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testing.T) {
-	unittest.SmallTest(t)
 
 	startRecoveryTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -518,7 +502,6 @@ func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testin
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -599,8 +582,6 @@ Current cooling devices from HAL:
 }
 
 func TestProcess_HandleTempsInMilliCentgrade(t *testing.T) {
-
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -732,7 +713,6 @@ Current cooling devices from HAL:`
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -825,7 +805,6 @@ Current cooling devices from HAL:
 }
 
 func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -868,7 +847,6 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 }
 
 func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -911,7 +889,6 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 }
 
 func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -979,7 +956,6 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 }
 
 func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -1030,7 +1006,6 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 }
 
 func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -1087,7 +1062,6 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 }
 
 func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	battery, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
   level: 94
   scale: 100
@@ -1099,27 +1073,23 @@ func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {
 // It turns out that hammerhead devices separate dumpsys lines with \r\n instead
 // of \n, so test for that.
 func TestBatteryFromAndroidDumpSys_Hammerhead_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	battery, ok := batteryFromAndroidDumpSys("Current Battery Service state:\r\n  AC powered: false\r\n  USB powered: true\r\n  Wireless powered: false\r\n  Max charging current: 0\r\n  status: 5\r\n  health: 2\r\n  present: true\r\n  level: 45\r\n  scale: 100\r\n  voltage: 4189\r\n  temperature: 180\r\n  technology: Li-ion\r\n")
 	assert.True(t, ok)
 	assert.Equal(t, 45, battery)
 }
 
 func TestBatteryFromAndroidDumpSys_FalseOnEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 	_, ok := batteryFromAndroidDumpSys("")
 	assert.False(t, ok)
 }
 
 func TestBatteryFromAndroidDumpSys_FalseIfNoLevel(t *testing.T) {
-	unittest.SmallTest(t)
 	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
   scale: 100
   `)
 	assert.False(t, ok)
 }
 func TestBatteryFromAndroidDumpSys_FalseIfNoScale(t *testing.T) {
-	unittest.SmallTest(t)
 	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
   level: 94
   `)
@@ -1127,7 +1097,6 @@ func TestBatteryFromAndroidDumpSys_FalseIfNoScale(t *testing.T) {
 }
 
 func TestBatteryFromAndroidDumpSys_FailOnBadScale(t *testing.T) {
-	unittest.SmallTest(t)
 	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
   level: 94
   scale: 0
@@ -1136,7 +1105,6 @@ func TestBatteryFromAndroidDumpSys_FailOnBadScale(t *testing.T) {
 }
 
 func TestTemperatureFromAndroid_FindTempInThermalServiceOutput(t *testing.T) {
-	unittest.SmallTest(t)
 	thermalServiceOutput := `IsStatusOverride: false
 ThermalEventListeners:
 	callbacks: 1
@@ -1181,14 +1149,12 @@ Current cooling devices from HAL:
 }
 
 func TestTemperatureFromAndroid_ReturnFalseIfNoOutputFromThermalOrBatteryService(t *testing.T) {
-	unittest.SmallTest(t)
 	a := machine.Android{}
 	_, ok := temperatureFromAndroid(a)
 	assert.False(t, ok)
 }
 
 func TestTemperatureFromAndroid_FindTempInBatteryServiceOutput(t *testing.T) {
-	unittest.SmallTest(t)
 	batteryOutput := `Current Battery Service state:
 	AC powered: true
 	USB powered: false

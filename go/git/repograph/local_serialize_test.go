@@ -11,12 +11,10 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // TestSerializeLocalRepo tests the serialization of localRepoImpl to/from disk.
 func TestSerializeLocalRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	defer g.Cleanup()

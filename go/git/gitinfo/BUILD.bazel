@@ -22,7 +22,6 @@ go_test(
     embed = [":gitinfo"],
     deps = [
         "//go/git",
-        "//go/testutils/unittest",
         "//go/vcsinfo/testutils",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

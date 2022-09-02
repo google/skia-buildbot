@@ -29,7 +29,6 @@ go_test(
         "//go/gerrit",
         "//go/gitiles/mocks",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//skcq/go/codereview/mocks",
         "//task_scheduler/go/specs",
         "@com_github_stretchr_testify//require",

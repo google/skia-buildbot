@@ -8,12 +8,9 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/stretchr/testify/assert"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetMulti_BooleanRepresentsConnectionState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc, fmc := makeClientWithFakeMemcache()
 	_, ok := hc.GetMulti([]string{"whatever"})
@@ -26,7 +23,6 @@ func TestGetMulti_BooleanRepresentsConnectionState(t *testing.T) {
 }
 
 func TestSet_BooleanRepresentsConnectionState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc, fmc := makeClientWithFakeMemcache()
 	assert.True(t, hc.Set(&memcache.Item{}))
@@ -37,7 +33,6 @@ func TestSet_BooleanRepresentsConnectionState(t *testing.T) {
 }
 
 func TestPing_ReturnsErrorOnBadConnection(t *testing.T) {
-	unittest.SmallTest(t)
 
 	hc, fmc := makeClientWithFakeMemcache()
 	assert.NoError(t, hc.Ping())
@@ -48,7 +43,6 @@ func TestPing_ReturnsErrorOnBadConnection(t *testing.T) {
 }
 
 func TestRecovery_ConnectionReattemptedAfterAFewSeconds(t *testing.T) {
-	unittest.LargeTest(t)
 
 	hc, fmc := makeClientWithFakeMemcache()
 	hc.numFailures = 5
@@ -94,7 +88,6 @@ func TestRecovery_ConnectionReattemptedAfterAFewSeconds(t *testing.T) {
 }
 
 func TestRecovery_HealsAfterThirdTry(t *testing.T) {
-	unittest.MediumTest(t)
 
 	const requiredRecoveryAttempts = 3
 	recoveryAttempts := 0

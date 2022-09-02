@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var testTime = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
@@ -16,7 +15,6 @@ var testTime = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
 var testDuration = int32(5) // Seconds
 
 func TestCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	in := Description{
 		Mode:           ModeAvailable,
 		AttachedDevice: AttachedDevice(AttachedDeviceAdb),
@@ -60,7 +58,6 @@ func TestCopy(t *testing.T) {
 }
 
 func TestAsMetricsTags_EmptyDimensions_ReturnsEmptyTags(t *testing.T) {
-	unittest.SmallTest(t)
 	emptyTags := map[string]string{
 		DimID:         "",
 		DimOS:         "",
@@ -70,7 +67,6 @@ func TestAsMetricsTags_EmptyDimensions_ReturnsEmptyTags(t *testing.T) {
 }
 
 func TestAsMetricsTags_NilSlices_ReturnsEmptyTags(t *testing.T) {
-	unittest.SmallTest(t)
 	emptyTags := map[string]string{
 		DimID:         "",
 		DimOS:         "",
@@ -84,7 +80,6 @@ func TestAsMetricsTags_NilSlices_ReturnsEmptyTags(t *testing.T) {
 }
 
 func TestAsMetricsTags_ZeroLengthSlices_ReturnsEmptyTags(t *testing.T) {
-	unittest.SmallTest(t)
 	emptyTags := map[string]string{
 		DimID:         "",
 		DimOS:         "",
@@ -98,7 +93,6 @@ func TestAsMetricsTags_ZeroLengthSlices_ReturnsEmptyTags(t *testing.T) {
 }
 
 func TestAsMetricsTags_MultipleValues_ReturnsTagsWithMostSpecificValues(t *testing.T) {
-	unittest.SmallTest(t)
 	expected := map[string]string{
 		DimID:         "",
 		DimOS:         "iOS-13.6",
@@ -108,12 +102,10 @@ func TestAsMetricsTags_MultipleValues_ReturnsTagsWithMostSpecificValues(t *testi
 }
 
 func TestNewEvent(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, EventTypeRawState, NewEvent().EventType)
 }
 
 func TestNewDescription(t *testing.T) {
-	unittest.SmallTest(t)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 	ctx := now.TimeTravelingContext(serverTime)
 	actual := NewDescription(ctx)

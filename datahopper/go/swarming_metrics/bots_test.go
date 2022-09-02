@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -31,7 +30,6 @@ func getPromClient() metrics2.Client {
 }
 
 func TestDeadQuarantinedBotMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	ms := &mocks.ApiClient{}
@@ -149,7 +147,6 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 }
 
 func TestLastTaskBotMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	ms := &mocks.ApiClient{}
@@ -220,7 +217,6 @@ func TestLastTaskBotMetrics(t *testing.T) {
 }
 
 func TestBotTemperatureMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	ms := &mocks.ApiClient{}
@@ -328,7 +324,6 @@ func TestBotTemperatureMetrics(t *testing.T) {
 }
 
 func TestBotUptimeMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	ms := &mocks.ApiClient{}

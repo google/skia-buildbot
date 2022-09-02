@@ -42,7 +42,6 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/query",
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/git",

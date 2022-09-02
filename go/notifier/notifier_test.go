@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestConfigs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := Config{}
 	require.EqualError(t, c.Validate(), "Either Filter or IncludeMsgTypes is required.")
@@ -97,7 +95,6 @@ func TestConfigs(t *testing.T) {
 }
 
 func TestConfigCopy(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := &Config{
 		Filter:          "info",

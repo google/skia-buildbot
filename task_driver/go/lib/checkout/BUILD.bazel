@@ -26,7 +26,6 @@ go_test(
         "//go/git",
         "//go/git/testutils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//task_driver/go/td",
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//require",

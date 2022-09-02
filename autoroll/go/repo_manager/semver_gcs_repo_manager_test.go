@@ -22,7 +22,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -232,7 +231,6 @@ func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath,
 }
 
 func TestAFDORepoManager(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
@@ -340,7 +338,6 @@ func TestAFDORepoManager(t *testing.T) {
 }
 
 func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()

@@ -9,8 +9,6 @@ import (
 	"path"
 	"strconv"
 	"testing"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const envPortFileBaseName = "port"
@@ -33,7 +31,6 @@ func mustReadPort() int {
 }
 
 func TestOnEnv(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// If this is running via "go test" instead of "bazel test" (e.g. Infra-Experimental-Small-Linux)
 	// then the environment binary is not running, so there is nothing to test.

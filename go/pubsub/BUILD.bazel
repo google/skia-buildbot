@@ -15,7 +15,6 @@ go_test(
     embed = [":pubsub"],
     deps = [
         "//go/emulators",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

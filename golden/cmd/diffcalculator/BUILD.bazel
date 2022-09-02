@@ -45,7 +45,6 @@ go_test(
         "//go/now",
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/diff",
         "//golden/go/diff/mocks",
         "//golden/go/sql/datakitchensink",

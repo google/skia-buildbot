@@ -9,11 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/codesize/go/common"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStore_Index_InvalidJSONMetadataFile_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 	err := store.Index(context.Background(), "kaboom.tsv")
 	require.Error(t, err)
@@ -21,7 +19,6 @@ func TestStore_Index_InvalidJSONMetadataFile_Error(t *testing.T) {
 }
 
 func TestStore_Index_CalledTwiceWithSameFile_FileIndexedOnce(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	require.NoError(t, store.Index(context.Background(), "commit1/Build-Foo/dm.tsv"))
@@ -50,7 +47,6 @@ func TestStore_Index_CalledTwiceWithSameFile_FileIndexedOnce(t *testing.T) {
 }
 
 func TestStore_IndexThenGetMostRecentBinaries_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	// Store is initially empty.
@@ -228,7 +224,6 @@ func TestStore_IndexThenGetMostRecentBinaries_Success(t *testing.T) {
 }
 
 func TestStore_GetBinary_NonExistentBinary_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	assert.Empty(t, store.GetMostRecentBinaries(10))
@@ -237,7 +232,6 @@ func TestStore_GetBinary_NonExistentBinary_Error(t *testing.T) {
 }
 
 func TestStore_IndexThenGetBinary_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	// Store is initially empty.
@@ -293,7 +287,6 @@ func TestStore_IndexThenGetBinary_Success(t *testing.T) {
 }
 
 func TestStore_GetBloatyOutputFileContents_NonExistentBinary_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	_, err := store.GetBloatyOutputFileContents(context.Background(), Binary{
@@ -304,7 +297,6 @@ func TestStore_GetBloatyOutputFileContents_NonExistentBinary_Error(t *testing.T)
 }
 
 func TestStore_IndexThenGetBloatyOutputFileContents_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	// Store is initially empty.
@@ -352,7 +344,6 @@ func TestStore_IndexThenGetBloatyOutputFileContents_Success(t *testing.T) {
 }
 
 func TestStore_GetBloatySizeDiffOutputFileContents_NonExistentBinary_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	_, err := store.GetBloatySizeDiffOutputFileContents(context.Background(), Binary{
@@ -363,7 +354,6 @@ func TestStore_GetBloatySizeDiffOutputFileContents_NonExistentBinary_Error(t *te
 }
 
 func TestStore_GetBloatySizeDiffOutputFileContents_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	store := newStoreForTesting()
 
 	// Store is initially empty.

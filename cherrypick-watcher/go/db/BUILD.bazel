@@ -22,7 +22,6 @@ go_test(
     deps = [
         "//go/firestore/testutils",
         "//go/sktest",
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//require",
     ],

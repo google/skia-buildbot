@@ -5,12 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/proberk/go/types"
 )
 
 func TestProbeSSL_UseDefaultValues_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	probes := &types.Probe{
 		URLs: []string{
 			"https://skia.org",
@@ -27,7 +25,6 @@ func TestProbeSSL_UseDefaultValues_Success(t *testing.T) {
 }
 
 func TestProbeSSL_UseVeryBigExpectedTime_ReturnsError(t *testing.T) {
-	unittest.ManualTest(t)
 	probes := &types.Probe{
 		Expected: []int{7300}, // 20 years - no cert should be valid that long
 		URLs: []string{

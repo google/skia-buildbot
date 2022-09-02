@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/secret/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var once sync.Once
@@ -22,7 +21,6 @@ func loginInit() {
 }
 
 func TestLoginURL(t *testing.T) {
-	unittest.SmallTest(t)
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
@@ -49,7 +47,6 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestLoggedInAs(t *testing.T) {
-	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
 
@@ -85,7 +82,6 @@ func TestLoggedInAs(t *testing.T) {
 }
 
 func TestAuthorizedEmail(t *testing.T) {
-	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
 	// In place of SessionMiddleware function.
@@ -129,7 +125,6 @@ func TestAuthorizedEmail(t *testing.T) {
 }
 
 func TestDomainFromHost(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
 	assert.Equal(t, "skia.org", domainFromHost("skia.org"))
@@ -139,7 +134,6 @@ func TestDomainFromHost(t *testing.T) {
 }
 
 func TestSplitAuthAllowList(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type testCase struct {
 		Input           string
@@ -186,7 +180,6 @@ func TestSplitAuthAllowList(t *testing.T) {
 }
 
 func TestIsAuthorized(t *testing.T) {
-	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveAllowLists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 
@@ -198,7 +191,6 @@ func TestIsAuthorized(t *testing.T) {
 }
 
 func TestIsAuthorized_Gmail(t *testing.T) {
-	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveAllowLists("google.com example@gmail.com")
 
@@ -212,7 +204,6 @@ func TestIsAuthorized_Gmail(t *testing.T) {
 }
 
 func TestNormalizeGmailAddress(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, "example", normalizeGmailAddress(".ex.ampl.e."))
 	assert.Equal(t, "example", normalizeGmailAddress("exa.mple"))
 	assert.Equal(t, "example", normalizeGmailAddress("example+"))
@@ -221,7 +212,6 @@ func TestNormalizeGmailAddress(t *testing.T) {
 }
 
 func TestSessionMiddleware(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Setup.
 	once.Do(loginInit)
@@ -265,7 +255,6 @@ func TestSessionMiddleware(t *testing.T) {
 }
 
 func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	client := &mocks.Client{}

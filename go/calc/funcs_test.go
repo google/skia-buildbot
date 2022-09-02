@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestStdDevFuncImpl_WellKnownStdDeviations_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	// Via the example on https://en.wikipedia.org/wiki/Standard_deviation we
 	// know that {2, 4, 4, 4, 5, 5, 7, 9} has a stddev of 2.
 	//
@@ -29,12 +27,10 @@ func TestStdDevFuncImpl_WellKnownStdDeviations_Success(t *testing.T) {
 }
 
 func TestStdDevFuncImpl_EmptyTraceSet_ReturnsEmptyTrace(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, types.Trace{}, StdDevFuncImpl(types.TraceSet{}))
 }
 
 func TestMaxFuncImpl(t *testing.T) {
-	unittest.SmallTest(t)
 	tr := MaxFuncImpl(types.TraceSet{
 		"a": []float32{e, 0, 1, 2},
 		"b": []float32{e, e, 1, 3},
@@ -43,12 +39,10 @@ func TestMaxFuncImpl(t *testing.T) {
 }
 
 func TestMaxFuncImpl_EmptyTraceSet_ReturnsEmptyTrace(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, types.Trace{}, MaxFuncImpl(types.TraceSet{}))
 }
 
 func TestMinFuncImpl(t *testing.T) {
-	unittest.SmallTest(t)
 	tr := MinFuncImpl(types.TraceSet{
 		"a": []float32{e, 0, 1, 2},
 		"b": []float32{e, e, 1, 3},
@@ -57,6 +51,5 @@ func TestMinFuncImpl(t *testing.T) {
 }
 
 func TestMinFuncImpl_EmptyTraceSet_ReturnsEmptyTrace(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, types.Trace{}, MinFuncImpl(types.TraceSet{}))
 }

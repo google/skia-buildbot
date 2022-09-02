@@ -21,7 +21,6 @@ go_test(
     embed = [":cache"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/testutils/unittest",
         "//go/util",
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/memory",

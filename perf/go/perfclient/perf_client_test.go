@@ -11,12 +11,10 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 func TestHappyCase(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ms := test_gcsclient.NewMockClient()
 	defer ms.AssertExpectations(t)

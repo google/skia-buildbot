@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	changeSinkMocks "go.skia.org/infra/machine/go/machine/change/sink/mocks"
 	"go.skia.org/infra/machine/go/machine/store/mocks"
@@ -82,7 +81,6 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 }
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
@@ -96,7 +94,6 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 }
 
 func TestToggleMode_ChangesModeAndAddsAnnotation(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, desc, _, _, _ := setupForTest(t)
 	desc.Mode = machine.ModeAvailable
 
@@ -112,7 +109,6 @@ func TestToggleMode_ChangesModeAndAddsAnnotation(t *testing.T) {
 }
 
 func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/toggle_mode/", nil)
 
@@ -121,7 +117,6 @@ func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
 }
 
 func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
@@ -133,7 +128,6 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 }
 
 func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/toggle_powercycle/", nil)
 
@@ -143,7 +137,6 @@ func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
 }
 
 func TestTogglePowerCycle_SetsFlagAndAddsAnnotation(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, desc, _, _, _ := setupForTest(t)
 
 	retDesc := togglePowerCycle(ctx, machineID, testUser, desc)
@@ -158,7 +151,6 @@ func TestTogglePowerCycle_SetsFlagAndAddsAnnotation(t *testing.T) {
 }
 
 func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
@@ -176,7 +168,6 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 }
 
 func TestMachineSetAttachedDevice_FailOnInvalidJSON(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), strings.NewReader("not valid json"))
 
@@ -186,7 +177,6 @@ func TestMachineSetAttachedDevice_FailOnInvalidJSON(t *testing.T) {
 }
 
 func TestMachineSetAttachedDevice_FailOnMissingID(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/set_attached_device/", nil)
 
@@ -196,14 +186,12 @@ func TestMachineSetAttachedDevice_FailOnMissingID(t *testing.T) {
 }
 
 func TestSetAttachedDevice_UpdatesAttachedDeviceField(t *testing.T) {
-	unittest.SmallTest(t)
 	_, desc, _, _, _ := setupForTest(t)
 	retDesc := setAttachedDevice(machine.AttachedDeviceIOS, desc)
 	require.Equal(t, machine.AttachedDeviceIOS, retDesc.AttachedDevice)
 }
 
 func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
@@ -221,7 +209,6 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 }
 
 func TestMachineRemoveDevice_FailOnMissingID(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/remove_device/", nil)
 
@@ -231,7 +218,6 @@ func TestMachineRemoveDevice_FailOnMissingID(t *testing.T) {
 }
 
 func TestRemoveDevice(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, desc, _, _, _ := setupForTest(t)
 	retDesc := removeDevice(ctx, machineID, testUser, desc)
 
@@ -248,7 +234,6 @@ func TestRemoveDevice(t *testing.T) {
 }
 
 func TestMachineDeleteMachineHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Delete", testutils.AnyContext, machineID).Return(nil)
@@ -262,7 +247,6 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 }
 
 func TestMachineDeleteMachineHandler_DeleteFails_ReturnsStatusBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Delete", testutils.AnyContext, machineID).Return(myFakeError)
@@ -274,7 +258,6 @@ func TestMachineDeleteMachineHandler_DeleteFails_ReturnsStatusBadRequest(t *test
 }
 
 func TestMachineDeleteMachineHandler_MissingMachineID_ReturnsStatusNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/delete_machine/", nil)
 
@@ -284,7 +267,6 @@ func TestMachineDeleteMachineHandler_MissingMachineID_ReturnsStatusNotFound(t *t
 }
 
 func TestMachineSetNoteHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
@@ -302,7 +284,6 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 }
 
 func TestMachineSetNoteHandler_ReceivesInvalidJSON_ReturnsStatusBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), strings.NewReader("this is not valid json"))
 
@@ -312,7 +293,6 @@ func TestMachineSetNoteHandler_ReceivesInvalidJSON_ReturnsStatusBadRequest(t *te
 }
 
 func TestMachineSetNoteHandler_MissingID_ReturnsStatusNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/set_note/", strings.NewReader("this is not valid json"))
 
@@ -322,7 +302,6 @@ func TestMachineSetNoteHandler_MissingID_ReturnsStatusNotFound(t *testing.T) {
 }
 
 func TestSetNote_AddsAnnotationWithTimestamp(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, desc, _, _, _ := setupForTest(t)
 
@@ -341,7 +320,6 @@ func TestSetNote_AddsAnnotationWithTimestamp(t *testing.T) {
 }
 
 func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	body := testutils.MarshalJSONReader(t,
@@ -360,7 +338,6 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 }
 
 func TestMachineSupplyChromeOSInfoHandler_SSHUserIPMissing_ReturnsStatusBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	body := testutils.MarshalJSONReader(t,
 		rpc.SupplyChromeOSRequest{
@@ -375,7 +352,6 @@ func TestMachineSupplyChromeOSInfoHandler_SSHUserIPMissing_ReturnsStatusBadReque
 }
 
 func TestMachineSupplyChromeOSInfoHandler_MissingMachineID_ReturnsStatusNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", "/_/machine/supply_chromeos/", nil)
 
@@ -384,7 +360,6 @@ func TestMachineSupplyChromeOSInfoHandler_MissingMachineID_ReturnsStatusNotFound
 	require.Equal(t, http.StatusNotFound, w.Code)
 }
 func TestSetChromeOSInfo_SuppliedDimensionsChange(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, desc, _, _, _ := setupForTest(t)
 
 	req := rpc.SupplyChromeOSRequest{
@@ -399,7 +374,6 @@ func TestSetChromeOSInfo_SuppliedDimensionsChange(t *testing.T) {
 }
 
 func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, desc, s, router, w := setupForTest(t)
 
 	storeMock := s.store.(*mocks.Store)
@@ -418,7 +392,6 @@ func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t
 }
 
 func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, desc, s, router, w := setupForTest(t)
 
 	storeMock := s.store.(*mocks.Store)
@@ -432,7 +405,6 @@ func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t
 }
 
 func TestApiMachineDescriptionHandler_NoMachineIDSupplied_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 
 	r := httptest.NewRequest("GET", "/json/v1/machine/description/", nil)
@@ -443,7 +415,6 @@ func TestApiMachineDescriptionHandler_NoMachineIDSupplied_ReturnsNotFound(t *tes
 }
 
 func TestApiPowerCycleListHandler_NoMachinesNeedPowerCycling_ReturnsEmptyList(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 
@@ -462,7 +433,6 @@ func TestApiPowerCycleListHandler_NoMachinesNeedPowerCycling_ReturnsEmptyList(t 
 }
 
 func TestApiPowerCycleListHandler_OneMachineNeedsPowerCycling_ReturnsOneMachineInList(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 
@@ -481,7 +451,6 @@ func TestApiPowerCycleListHandler_OneMachineNeedsPowerCycling_ReturnsOneMachineI
 }
 
 func TestApiPowerCycleListHandler_ListPowerCycleReturnsError_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 
@@ -495,7 +464,6 @@ func TestApiPowerCycleListHandler_ListPowerCycleReturnsError_ReturnsInternalServ
 }
 
 func TestApiPowerCycleCompleteHandler_UpdateSucceeds_ReturnStatusOK(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil)
@@ -509,7 +477,6 @@ func TestApiPowerCycleCompleteHandler_UpdateSucceeds_ReturnStatusOK(t *testing.T
 }
 
 func TestApiPowerCycleCompleteHandler_UpdateFails_ReturnStatusInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
@@ -522,7 +489,6 @@ func TestApiPowerCycleCompleteHandler_UpdateFails_ReturnStatusInternalServerErro
 }
 
 func TestSetPowerCycleFalse_PowerCycleIsTrue_PowerCycleBecomesFalse(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	desc := machine.NewDescription(ctx)
 	desc.PowerCycle = true
@@ -531,7 +497,6 @@ func TestSetPowerCycleFalse_PowerCycleIsTrue_PowerCycleBecomesFalse(t *testing.T
 }
 
 func TestSetPowerCycleStateNotAvailable_PowerCycleStateIsAvailable_PowerCycleStateBecomesNotAvailable(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	desc := machine.NewDescription(ctx)
 	desc.PowerCycleState = machine.Available
@@ -549,7 +514,6 @@ var validUpdatePowerCycleStateRequest = rpc.UpdatePowerCycleStateRequest{
 }
 
 func TestApiPowerCycleStateUpdateHandler_MachineDoesNotExist_TheMachineIsSkippedAndUpdateIsNeverCalled(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, myFakeError)
@@ -562,7 +526,6 @@ func TestApiPowerCycleStateUpdateHandler_MachineDoesNotExist_TheMachineIsSkipped
 }
 
 func TestApiPowerCycleStateUpdateHandler_UpdateFails_ReturnStatusInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
@@ -576,7 +539,6 @@ func TestApiPowerCycleStateUpdateHandler_UpdateFails_ReturnStatusInternalServerE
 }
 
 func TestApiPowerCycleStateUpdateHandler_InvalidJSON_ReturnStatusBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, router, w := setupForTest(t)
 	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, strings.NewReader("this isn't valid json"))
 
@@ -586,7 +548,6 @@ func TestApiPowerCycleStateUpdateHandler_InvalidJSON_ReturnStatusBadRequest(t *t
 }
 
 func TestApiPowerCycleStateUpdateHandler_ValidRequest_DescriptionsAreSuccessfullyUpdated(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil).Once()

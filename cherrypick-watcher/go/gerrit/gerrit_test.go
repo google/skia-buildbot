@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -26,7 +25,6 @@ var (
 )
 
 func TestFindAllOpenCherrypicks_ValidQuery_ReturnsFoundCherryPicks(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// Mock gerrit.
@@ -51,7 +49,6 @@ func TestFindAllOpenCherrypicks_ValidQuery_ReturnsFoundCherryPicks(t *testing.T)
 }
 
 func TestIsCherrypickIn_TargetBranchTwoCherrypicks_ReturnsTrue(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// Mock gerrit.
@@ -75,7 +72,6 @@ func TestIsCherrypickIn_TargetBranchTwoCherrypicks_ReturnsTrue(t *testing.T) {
 }
 
 func TestIsCherrypickIn_TargetBranchNoCherrypicks_ReturnsFalse(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 
 	// Mock gerrit.
@@ -99,7 +95,6 @@ func TestIsCherrypickIn_TargetBranchNoCherrypicks_ReturnsFalse(t *testing.T) {
 }
 
 func TestAddReminderComment_ValidQuery_ReturnsNoErrors(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	testComment := "test comment"
 

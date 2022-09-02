@@ -23,7 +23,6 @@ go_test(
         "//go/sklog",
         "//go/sklog/sklogimpl",
         "//go/sklog/stdlogging",
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_gorilla_mux//:mux",
         "@com_github_stretchr_testify//assert",

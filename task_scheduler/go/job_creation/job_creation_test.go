@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -40,7 +39,6 @@ const (
 
 // Common setup for JobCreator tests.
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.InMemoryDB, *JobCreator, *mockhttpclient.URLMock, *mocks.CAS, func()) {
-	unittest.LargeTest(t)
 
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
@@ -271,7 +269,6 @@ func TestPeriodicJobs(t *testing.T) {
 }
 
 func TestTaskSchedulerIntegration(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, _, d, jc, _, cas, cleanup := setup(t)
 	defer cleanup()

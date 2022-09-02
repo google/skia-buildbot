@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -20,7 +19,6 @@ import (
 )
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repograph.Map, *memory.InMemoryDB, *git_testutils.GitBuilder, func()) {
-	unittest.LargeTest(t)
 	d := memory.NewInMemoryDB()
 
 	ctx := context.Background()

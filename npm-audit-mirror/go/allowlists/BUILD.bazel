@@ -19,7 +19,6 @@ go_test(
     embed = [":allowlists"],
     deps = [
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "//npm-audit-mirror/go/types",
         "@com_github_stretchr_testify//require",
     ],

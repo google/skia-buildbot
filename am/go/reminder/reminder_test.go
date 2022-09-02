@@ -9,11 +9,9 @@ import (
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetDailyNextTickDuration(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fakeNow := time.Date(2011, 11, 30, 16, 0, 0, 0, time.UTC)
 	oneHourLater := time.Date(2011, 11, 30, 17, 0, 0, 0, time.UTC).Hour()
@@ -33,7 +31,6 @@ func TestGetDailyNextTickDuration(t *testing.T) {
 }
 
 func TestGetOwnersToAlerts(t *testing.T) {
-	unittest.SmallTest(t)
 
 	supermanAssignedAlert := incident.Incident{
 		Params: map[string]string{

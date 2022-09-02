@@ -9,13 +9,11 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // TestParseQuery spot checks the parsing of a string and makes sure the object produced
 // is consistent.
 func TestParseQuery(t *testing.T) {
-	unittest.SmallTest(t)
 
 	q := &Search{}
 	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&crs=gerrit-internal&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
@@ -53,7 +51,6 @@ func TestParseQuery(t *testing.T) {
 // TestParseSearchValidList checks a list of queries from live data
 // processes as valid.
 func TestParseSearchValidList(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Load the list of of live queries.
 	contents := testutils.ReadFile(t, "valid_queries.txt")

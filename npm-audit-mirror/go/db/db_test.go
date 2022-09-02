@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -31,7 +30,6 @@ func newDBClientForTesting(ctx context.Context, t sktest.TestingT) *FirestoreDB 
 }
 
 func TestGetFromDB_EmptyResults_NoErrors(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := newDBClientForTesting(ctx, t)
 
@@ -42,7 +40,6 @@ func TestGetFromDB_EmptyResults_NoErrors(t *testing.T) {
 }
 
 func TestPutInDB_OneEntry_ExpectedChangeNum(t *testing.T) {
-	unittest.LargeTest(t)
 	db := newDBClientForTesting(context.Background(), t)
 	ctx := context.Background()
 	created := time.Now().UTC()

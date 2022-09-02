@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -22,7 +21,6 @@ import (
 )
 
 func TestConvertIgnoreRules_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	condition, args := ConvertIgnoreRules(nil)
 	assert.Equal(t, "false", condition)
@@ -52,7 +50,6 @@ OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
 }
 
 func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
-	unittest.LargeTest(t)
 	existingData := dks.Build()
 	// Force these all to be null
 	for i := range existingData.Traces {
@@ -97,7 +94,6 @@ func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
 }
 
 func TestUpdateIgnoredTraces_StartsNotNull_UpdatedToCorrectValues(t *testing.T) {
-	unittest.LargeTest(t)
 	existingData := dks.Build()
 	// Force these all to be a sentinel value
 	for i := range existingData.Traces {
@@ -134,7 +130,6 @@ func TestUpdateIgnoredTraces_StartsNotNull_UpdatedToCorrectValues(t *testing.T) 
 }
 
 func TestUpdateIgnoredTraces_PartiallySet_UpdatedToCorrectValues(t *testing.T) {
-	unittest.LargeTest(t)
 	existingData := dks.Build()
 	// Only ValuesAtHead are incorrectly set, but should be updated anyway
 	for i := range existingData.ValuesAtHead {
@@ -163,7 +158,6 @@ func TestUpdateIgnoredTraces_PartiallySet_UpdatedToCorrectValues(t *testing.T) {
 }
 
 func TestUpdateIgnoredTraces_MultipleBatches_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	const numTraces = 6060 // This is a number bigger than the batch size.
 	traceIDs := makeRandomTraceIDs(numTraces)
@@ -272,7 +266,6 @@ func TestUpdateIgnoredTraces_MultipleBatches_Success(t *testing.T) {
 }
 
 func TestUpdateIgnoredTraces_NullableRules_SetToCorrectValue(t *testing.T) {
-	unittest.LargeTest(t)
 	const whateverTS = "2020-12-01T00:00:00Z"
 	b := databuilder.TablesBuilder{}
 	b.CommitsWithData().

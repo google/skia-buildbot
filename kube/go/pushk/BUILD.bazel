@@ -36,7 +36,6 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":pushk_lib"],
     deps = [
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//assert",
     ],

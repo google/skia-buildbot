@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
@@ -37,7 +36,6 @@ var (
 )
 
 func TestGetSkps_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -59,7 +57,6 @@ func TestGetSkps_Success(t *testing.T) {
 }
 
 func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -81,7 +78,6 @@ func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 }
 
 func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -102,7 +98,6 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 }
 
 func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fr := &FrameRequest{
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
@@ -161,7 +156,6 @@ func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.Data
 }
 
 func TestDoSearch_InvalidQuery_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, fr := frameRequestForTest(t)
 	_, err := fr.doSearch(context.Background(), "http://[::1]a", testTimeBegin, testTimeEnd)
@@ -170,7 +164,6 @@ func TestDoSearch_InvalidQuery_ReturnsError(t *testing.T) {
 }
 
 func TestDoSearch_ValidQueryCompact_ReturnsDataFrameWithQueryResults(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
@@ -181,7 +174,6 @@ func TestDoSearch_ValidQueryCompact_ReturnsDataFrameWithQueryResults(t *testing.
 }
 
 func TestDoSearch_ValidQueryTimeRange_ReturnsDataFrameWithQueryResults(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	fr.request.RequestType = REQUEST_TIME_RANGE
@@ -194,7 +186,6 @@ func TestDoSearch_ValidQueryTimeRange_ReturnsDataFrameWithQueryResults(t *testin
 }
 
 func TestDoKeys_ShortcutStoreReturnsError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, fr := frameRequestForTest(t)
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
@@ -206,7 +197,6 @@ func TestDoKeys_ShortcutStoreReturnsError_ReturnsError(t *testing.T) {
 }
 
 func TestDoKeys_ValidKeyID_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
@@ -228,7 +218,6 @@ func TestDoKeys_ValidKeyID_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) 
 }
 
 func TestDoKeys_ValidKeyIDTimeRange_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
@@ -252,7 +241,6 @@ func TestDoKeys_ValidKeyIDTimeRange_ReturnsDataFrameWithTracesFromShortcut(t *te
 }
 
 func TestDoCalc_InvalidFormulaCompact_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, fr := frameRequestForTest(t)
 	_, err := fr.doCalc(context.Background(), `sum(filter(`, testTimeBegin, testTimeEnd)
@@ -260,7 +248,6 @@ func TestDoCalc_InvalidFormulaCompact_ReturnsError(t *testing.T) {
 }
 
 func TestDoCalc_ValidFormulaInvalidQueryCompact_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, fr := frameRequestForTest(t)
 	_, err := fr.doCalc(context.Background(), `sum(filter("this is not a valid query"))`, testTimeBegin, testTimeEnd)
@@ -268,7 +255,6 @@ func TestDoCalc_ValidFormulaInvalidQueryCompact_ReturnsError(t *testing.T) {
 }
 
 func TestDoCalc_ValidQueryCompact_ReturnsDataFrameWithCalculatedTraces(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
@@ -279,7 +265,6 @@ func TestDoCalc_ValidQueryCompact_ReturnsDataFrameWithCalculatedTraces(t *testin
 }
 
 func TestDoCalc_ValidQueryTimeRange_ReturnsDataFrameWithCalculatedTraces(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 
@@ -293,7 +278,6 @@ func TestDoCalc_ValidQueryTimeRange_ReturnsDataFrameWithCalculatedTraces(t *test
 }
 
 func TestDoCalc_ValidFormulaInvalidShortcutCompact_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, _, fr := frameRequestForTest(t)
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
@@ -304,7 +288,6 @@ func TestDoCalc_ValidFormulaInvalidShortcutCompact_ReturnsError(t *testing.T) {
 }
 
 func TestDoCalc_ValidFormulaValidShortcutCompact_ReturnsDataFrameWithCalculatedTracesFromShortcut(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
@@ -327,7 +310,6 @@ func TestDoCalc_ValidFormulaValidShortcutCompact_ReturnsDataFrameWithCalculatedT
 }
 
 func TestDoCalc_ValidFormulaValidShortcutTimeRange_ReturnsDataFrameWithCalculatedTracesFromShortcut(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 
@@ -353,7 +335,6 @@ func TestDoCalc_ValidFormulaValidShortcutTimeRange_ReturnsDataFrameWithCalculate
 }
 
 func TestRun_QueryAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	fr.request.Pivot = &pivot.Request{
@@ -373,7 +354,6 @@ func TestRun_QueryAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 }
 
 func TestRun_ValidQueryAndThenInvalidPivot_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	fr.request.Pivot = &pivot.Request{
@@ -390,7 +370,6 @@ func TestRun_ValidQueryAndThenInvalidPivot_ReturnsError(t *testing.T) {
 }
 
 func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dfbMock, df, fr := frameRequestForTest(t)
 	fr.request.Pivot = &pivot.Request{
@@ -422,7 +401,6 @@ func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 }
 
 func TestResponseFromDataFrame_NullPivot_ReturnsDisplayModePlot(t *testing.T) {
-	unittest.SmallTest(t)
 	_, df, _ := frameRequestForTest(t)
 	resp, err := ResponseFromDataFrame(context.Background(), nil, df, nil, false, progress.New())
 	require.NoError(t, err)
@@ -430,7 +408,6 @@ func TestResponseFromDataFrame_NullPivot_ReturnsDisplayModePlot(t *testing.T) {
 }
 
 func TestResponseFromDataFrame_ValidPivotRequestForPlot_ReturnsDisplayModePivotPlot(t *testing.T) {
-	unittest.SmallTest(t)
 	_, df, _ := frameRequestForTest(t)
 	pivotRequest := &pivot.Request{
 		GroupBy:   []string{"config"},
@@ -442,7 +419,6 @@ func TestResponseFromDataFrame_ValidPivotRequestForPlot_ReturnsDisplayModePivotP
 }
 
 func TestResponseFromDataFrame_ValidPivotRequestForPivotTable_ReturnsDisplayModePivotTable(t *testing.T) {
-	unittest.SmallTest(t)
 	_, df, _ := frameRequestForTest(t)
 	pivotRequest := &pivot.Request{
 		GroupBy:   []string{"config"},

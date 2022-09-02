@@ -24,8 +24,5 @@ go_test(
     name = "store_test",
     srcs = ["store_test.go"],
     embed = [":store"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

@@ -22,7 +22,6 @@ go_test(
         "//go/gcs",
         "//go/gcs/mem_gcsclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

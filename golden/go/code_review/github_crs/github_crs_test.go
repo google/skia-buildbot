@@ -9,13 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
 )
 
 func TestGetChangelistSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	resp := mockhttpclient.MockGetDialogue([]byte(landedPullRequestResponse))
@@ -37,7 +35,6 @@ func TestGetChangelistSunnyDay(t *testing.T) {
 }
 
 func TestGetChangelistOpen(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	resp := mockhttpclient.MockGetDialogue([]byte(openPullRequestResponse))
@@ -59,7 +56,6 @@ func TestGetChangelistOpen(t *testing.T) {
 }
 
 func TestGetChangelistAbandoned(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	resp := mockhttpclient.MockGetDialogue([]byte(abandonedPullRequestResponse))
@@ -81,7 +77,6 @@ func TestGetChangelistAbandoned(t *testing.T) {
 }
 
 func TestGetChangelistDoesNotExist(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	// By not mocking anything, an error will be returned from GitHub,
@@ -94,7 +89,6 @@ func TestGetChangelistDoesNotExist(t *testing.T) {
 }
 
 func TestGetChangelistInvalidID(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
@@ -107,7 +101,6 @@ const omitPS = ""
 const omitOrder = 0
 
 func TestGetPatchset_OnePageResults_PatchsetExists_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
@@ -151,7 +144,6 @@ func TestGetPatchset_OnePageResults_PatchsetExists_Success(t *testing.T) {
 }
 
 func TestGetPatchset_TwoPageResults_PatchsetsExist_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
@@ -197,7 +189,6 @@ func TestGetPatchset_TwoPageResults_PatchsetsExist_Success(t *testing.T) {
 }
 
 func TestGetPatchset_OnePageResults_PatchsetDoesNotExist_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
@@ -218,7 +209,6 @@ func TestGetPatchset_OnePageResults_PatchsetDoesNotExist_ReturnsNotFound(t *test
 }
 
 func TestGetPatchset_NoPatchsetsReturned_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 
@@ -237,7 +227,6 @@ func TestGetPatchset_NoPatchsetsReturned_ReturnsNotFound(t *testing.T) {
 }
 
 func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	// By not mocking anything, an error will be returned from Git,
@@ -253,7 +242,6 @@ func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
 }
 
 func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
@@ -263,7 +251,6 @@ func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
 }
 
 func TestGetChangelistForCommitSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	resp := mockhttpclient.MockGetDialogue([]byte(landedPullRequestResponse))
@@ -281,7 +268,6 @@ func TestGetChangelistForCommitSunnyDay(t *testing.T) {
 }
 
 func TestGetChangelistForCommitMalformed(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
@@ -296,7 +282,6 @@ func TestGetChangelistForCommitMalformed(t *testing.T) {
 }
 
 func TestCommentOnSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	expectedJSON := []byte(`{"body":"untriaged \"digests\" detected"}`)
@@ -310,7 +295,6 @@ func TestCommentOnSunnyDay(t *testing.T) {
 }
 
 func TestCommentOnError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
 	// By not mocking anything, an error will be returned from GitHub,

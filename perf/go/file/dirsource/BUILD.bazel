@@ -19,7 +19,6 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":dirsource"],
     deps = [
-        "//go/testutils/unittest",
         "//perf/go/file",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

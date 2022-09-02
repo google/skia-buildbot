@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParamsNew(t *testing.T) {
-	unittest.SmallTest(t)
 	p := NewParams(",arch=x86,")
 	assert.Equal(t, Params{"arch": "x86"}, p)
 	p = NewParams(",arch=x86,config=565,")
@@ -17,7 +15,6 @@ func TestParamsNew(t *testing.T) {
 }
 
 func TestAddParamsFromKey(t *testing.T) {
-	unittest.SmallTest(t)
 	p := ParamSet{}
 	p.AddParamsFromKey(",arch=x86,")
 	assert.Equal(t, ParamSet{"arch": []string{"x86"}}, p)
@@ -26,7 +23,6 @@ func TestAddParamsFromKey(t *testing.T) {
 }
 
 func TestParams(t *testing.T) {
-	unittest.SmallTest(t)
 	p := Params{"foo": "1", "bar": "2"}
 	p2 := p.Copy()
 	p["baz"] = "3"
@@ -57,7 +53,6 @@ func TestParams(t *testing.T) {
 }
 
 func TestParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 	p := ParamSet{"foo": []string{"bar", "baz"}}
 	assert.Equal(t, []string{"foo"}, p.Keys())
 
@@ -66,7 +61,6 @@ func TestParamSet(t *testing.T) {
 }
 
 func TestAddParamsToParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		a       ParamSet
 		b       Params
@@ -121,7 +115,6 @@ func TestAddParamsToParamSet(t *testing.T) {
 }
 
 func TestAddParamSetToParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		a       ParamSet
 		b       ParamSet
@@ -176,7 +169,6 @@ func TestAddParamSetToParamSet(t *testing.T) {
 }
 
 func TestParamSetCopy(t *testing.T) {
-	unittest.SmallTest(t)
 	p := ParamSet{
 		"foo": []string{"bar", "baz"},
 		"qux": []string{"quux"},
@@ -190,7 +182,6 @@ func TestParamSetCopy(t *testing.T) {
 }
 
 func TestMatchAny(t *testing.T) {
-	unittest.SmallTest(t)
 	recParams := ParamSet{
 		"foo": {"1", "2"},
 		"bar": {"a", "b", "c"},
@@ -245,7 +236,6 @@ func TestMatchAny(t *testing.T) {
 }
 
 func TestMatchAnyParams(t *testing.T) {
-	unittest.SmallTest(t)
 	recParams := Params{
 		"foo": "1",
 		"bar": "a",
@@ -278,25 +268,21 @@ func TestMatchAnyParams(t *testing.T) {
 // roundTripsEncode tests that an Ord
 
 func TestReadOnlyParamSet_NewNonEmptyParamSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := NewReadOnlyParamSet(Params{"a": "b"}, Params{"a": "c"}, Params{"b": "e"})
 	require.Equal(t, ReadOnlyParamSet{"a": []string{"b", "c"}, "b": []string{"e"}}, ps)
 }
 
 func TestReadOnlyParamSet_NewEmptyParamSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, ReadOnlyParamSet{}, NewReadOnlyParamSet())
 }
 
 func TestParamSet_Freeze_ReturnsReadOnlyParamSet(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := NewParamSet(Params{"a": "b"}, Params{"a": "c"}, Params{"b": "e"})
 
 	require.Equal(t, ReadOnlyParamSet{"a": []string{"b", "c"}, "b": []string{"e"}}, ps.Freeze())
 }
 
 func TestParamSetFrozenCopy_NonEmptyParamSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	p := ParamSet{
 		"foo": []string{"bar", "baz"},
 		"qux": []string{"quux"},
@@ -310,12 +296,10 @@ func TestParamSetFrozenCopy_NonEmptyParamSet_Success(t *testing.T) {
 }
 
 func TestParamSetFrozenCopy_EmptyParamSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, ReadOnlyParamSet{}, ParamSet{}.FrozenCopy())
 }
 
 func TestParamSetAddParamSet_NonEmptyReadOnlyParamSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := NewParamSet()
 	rops := ReadOnlyParamSet{
 		"foo": {"bar", "baz"},
@@ -326,7 +310,6 @@ func TestParamSetAddParamSet_NonEmptyReadOnlyParamSet_Success(t *testing.T) {
 }
 
 func TestParamSetEqual_KeysAndValuesMatch_ReturnsTrue(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.True(t, ParamSet{}.Equal(nil))
 	assert.True(t, ParamSet{
@@ -346,7 +329,6 @@ func TestParamSetEqual_KeysAndValuesMatch_ReturnsTrue(t *testing.T) {
 }
 
 func TestParamSetEqual_KeysAndValuesDoNotMatch_ReturnsFalse(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.False(t, ParamSet{}.Equal(ParamSet{
 		"something": {"something else"},
@@ -418,14 +400,12 @@ func readAllFromChannel(in <-chan Params) []Params {
 }
 
 func TestParamSetCartesianProduct_KeyNotPresent_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := ParamSet{}
 	_, err := ps.CartesianProduct([]string{"key_that_is_not_present_in_ps"})
 	assert.Error(t, err)
 }
 
 func TestParamSetCartesianProduct_OneKey_ReturnsAllValues(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := ParamSet{"arch": []string{"arm", "arm64", "x86", "x86_64"}}
 	pch, err := ps.CartesianProduct([]string{"arch"})
 	all := readAllFromChannel(pch)
@@ -439,7 +419,6 @@ func TestParamSetCartesianProduct_OneKey_ReturnsAllValues(t *testing.T) {
 }
 
 func TestParamSetCartesianProduct_TwoKeys_ReturnsCartesianProduct(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := ParamSet{
 		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
 		"config": []string{"8888", "gles"},

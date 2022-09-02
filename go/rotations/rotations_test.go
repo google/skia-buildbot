@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestFromURL(t *testing.T) {
-	unittest.SmallTest(t)
 
 	url := "rotations.com/fake"
 	test := func(name, content string, expectEmails []string, expectErr string) {

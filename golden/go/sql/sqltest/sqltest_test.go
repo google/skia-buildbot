@@ -10,13 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
 func TestBulkInsertDataTables_ValidData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)
@@ -77,7 +75,6 @@ func TestBulkInsertDataTables_ValidData_Success(t *testing.T) {
 }
 
 func TestBulkInsertDataTables_InvalidForeignKeys_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)
@@ -96,7 +93,6 @@ func TestBulkInsertDataTables_InvalidForeignKeys_ReturnsError(t *testing.T) {
 }
 
 func TestGetAllRows_RowsOrderByDefined_ReturnsInOrder(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)
@@ -123,7 +119,6 @@ func TestGetAllRows_RowsOrderByDefined_ReturnsInOrder(t *testing.T) {
 }
 
 func TestGetAllRows_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)
@@ -148,7 +143,6 @@ func TestGetAllRows_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
 }
 
 func TestGetRowChanges_RowsOrderDefined_ReturnsInOrder(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)
@@ -184,7 +178,6 @@ func TestGetRowChanges_RowsOrderDefined_ReturnsInOrder(t *testing.T) {
 }
 
 func TestGetRowChanges_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(ctx, t)

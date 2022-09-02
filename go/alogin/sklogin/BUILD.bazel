@@ -20,7 +20,6 @@ go_test(
     embed = [":sklogin"],
     deps = [
         "//go/alogin",
-        "//go/testutils/unittest",
         "@com_github_gorilla_mux//:mux",
         "@com_github_stretchr_testify//require",
     ],

@@ -6,11 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCleanup(t *testing.T) {
-	unittest.MediumTest(t)
 
 	interval := 200 * time.Millisecond
 

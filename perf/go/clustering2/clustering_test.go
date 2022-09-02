@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ctrace2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/kmeans"
@@ -18,7 +17,6 @@ import (
 )
 
 func TestNewClusterSummary_RecordsTheTimeTheClusterSummaryWasCreated_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testTime := time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
 	ctx := context.WithValue(context.Background(), now.ContextKey, testTime)
@@ -27,7 +25,6 @@ func TestNewClusterSummary_RecordsTheTimeTheClusterSummaryWasCreated_Success(t *
 }
 
 func TestParamSummaries(t *testing.T) {
-	unittest.SmallTest(t)
 	obs := []kmeans.Clusterable{
 		ctrace2.NewFullTrace(",arch=x86,config=8888,", []float32{1, 2}, 0.001),
 		ctrace2.NewFullTrace(",arch=x86,config=565,", []float32{2, 3}, 0.001),
@@ -46,7 +43,6 @@ func TestParamSummaries(t *testing.T) {
 }
 
 func TestCalcCusterSummaries(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	rand.Seed(1)
@@ -98,7 +94,6 @@ func TestCalcCusterSummaries(t *testing.T) {
 }
 
 func TestCalcCusterSummariesDegenerate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	rand.Seed(1)

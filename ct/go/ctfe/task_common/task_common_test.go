@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGerritURLRegexp(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		cl                string
@@ -36,7 +34,6 @@ func TestGerritURLRegexp(t *testing.T) {
 }
 
 func TestGatherCLData(t *testing.T) {
-	unittest.SmallTest(t)
 
 	detail := clDetail{
 		Project:  "chromium",

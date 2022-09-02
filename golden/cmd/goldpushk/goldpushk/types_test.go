@@ -6,11 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestDeployableUnitIDCanonicalName(t *testing.T) {
-	unittest.SmallTest(t)
 	unit := DeployableUnit{
 		DeployableUnitID: DeployableUnitID{
 			Instance: Chrome,
@@ -21,7 +19,6 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 }
 
 func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	unit := DeployableUnit{
 		DeployableUnitID: DeployableUnitID{
@@ -34,7 +31,6 @@ func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 }
 
 func TestDeployableUnitSetAdd(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := DeployableUnitSet{}
 	s.add(Chrome, DiffCalculator)
@@ -53,7 +49,6 @@ func TestDeployableUnitSetAdd(t *testing.T) {
 }
 
 func TestDeployableUnitSetAddWithOptions(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := DeployableUnitSet{}
 	s.addWithOptions(Chrome, DiffCalculator, DeploymentOptions{internal: true})
@@ -75,7 +70,6 @@ func TestDeployableUnitSetAddWithOptions(t *testing.T) {
 }
 
 func TestDeployableUnitSetOverwriteElements(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := DeployableUnitSet{}
 
@@ -129,7 +123,6 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 }
 
 func TestDeployableUnitSetGet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Item not found.
 	s := DeployableUnitSet{}
@@ -159,7 +152,6 @@ func TestDeployableUnitSetGet(t *testing.T) {
 }
 
 func TestDeployableUnitSetKnownInstances(t *testing.T) {
-	unittest.SmallTest(t)
 	s := DeployableUnitSet{
 		knownInstances: []Instance{Skia, Flutter},
 	}
@@ -167,7 +159,6 @@ func TestDeployableUnitSetKnownInstances(t *testing.T) {
 }
 
 func TestDeployableUnitSetKnownServices(t *testing.T) {
-	unittest.SmallTest(t)
 	s := DeployableUnitSet{
 		knownServices: []Service{BaselineServer, DiffCalculator, Frontend},
 	}
@@ -175,7 +166,6 @@ func TestDeployableUnitSetKnownServices(t *testing.T) {
 }
 
 func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
-	unittest.SmallTest(t)
 	s := DeployableUnitSet{
 		knownInstances: []Instance{Skia, Flutter},
 	}
@@ -185,7 +175,6 @@ func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
 }
 
 func TestDeployableUnitSetIsKnownService(t *testing.T) {
-	unittest.SmallTest(t)
 	s := DeployableUnitSet{
 		knownServices: []Service{BaselineServer, DiffCalculator, Frontend},
 	}

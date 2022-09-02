@@ -21,7 +21,6 @@ go_test(
     embed = [":docsy"],
     deps = [
         "//go/executil",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

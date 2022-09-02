@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func fakeTaskSpec() *TaskSpec {
@@ -75,7 +74,6 @@ func fakeCommitQueueJobConfig() *CommitQueueJobConfig {
 }
 
 func TestCopyTasksCfg(t *testing.T) {
-	unittest.SmallTest(t)
 	v := &TasksCfg{
 		CasSpecs: map[string]*CasSpec{
 			"my-cas": fakeCasSpec(),
@@ -94,25 +92,21 @@ func TestCopyTasksCfg(t *testing.T) {
 }
 
 func TestCopyTaskSpec(t *testing.T) {
-	unittest.SmallTest(t)
 	v := fakeTaskSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyJobSpec(t *testing.T) {
-	unittest.SmallTest(t)
 	v := fakeJobSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyCasSpec(t *testing.T) {
-	unittest.SmallTest(t)
 	v := fakeCasSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCommitQueueJobConfig(t *testing.T) {
-	unittest.SmallTest(t)
 	v := fakeCommitQueueJobConfig()
 	assertdeep.Copy(t, v, v.Copy())
 }
@@ -150,7 +144,6 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) *TasksCfg {
 }
 
 func TestTasksCircularDependency(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type testCase struct {
 		name      string
@@ -275,7 +268,6 @@ func TestTasksCircularDependency(t *testing.T) {
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
-	unittest.SmallTest(t)
 	test := func(name string, dag map[string][]string, jobDeps []string) {
 		t.Run(name, func(t *testing.T) {
 			cfg := makeTasksCfg(t, dag, map[string][]string{
@@ -309,7 +301,6 @@ func TestGetTaskSpecDAG(t *testing.T) {
 }
 
 func TestTasksCfgValidate_NoMixingCDAndNonCD(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type testCase struct {
 		name      string
@@ -473,7 +464,6 @@ func TestTasksCfgValidate_NoMixingCDAndNonCD(t *testing.T) {
 }
 
 func TestTasksCfgValidate_CDJobsAreMainBranchOnly(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name, trigger, expectErr string) {
 		t.Run(name, func(t *testing.T) {

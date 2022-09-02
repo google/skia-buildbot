@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -36,7 +35,6 @@ func setBotSwarmingIDEnvVar(t *testing.T, value string) util.CleanupFunc {
 }
 
 func TestNew_CorrectSwarmingURLForRPIBot(t *testing.T) {
-	unittest.SmallTest(t)
 	cleanup := setBotSwarmingIDEnvVar(t, "skia-rpi-test")
 	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
@@ -50,7 +48,6 @@ func TestNew_CorrectSwarmingURLForRPIBot(t *testing.T) {
 }
 
 func TestNew_CorrectSwarmingURLForInternalBot(t *testing.T) {
-	unittest.SmallTest(t)
 	cleanup := setBotSwarmingIDEnvVar(t, "skia-i-rpi-test")
 	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
@@ -64,7 +61,6 @@ func TestNew_CorrectSwarmingURLForInternalBot(t *testing.T) {
 }
 
 func TestNew_CorrectSwarmingURLForDebugBot(t *testing.T) {
-	unittest.SmallTest(t)
 	cleanup := setBotSwarmingIDEnvVar(t, "skia-d-rpi-test")
 	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
@@ -78,7 +74,6 @@ func TestNew_CorrectSwarmingURLForDebugBot(t *testing.T) {
 }
 
 func TestNew_ErrIfNoSwarmingBotIDEnvVar(t *testing.T) {
-	unittest.SmallTest(t)
 	cleanup := setBotSwarmingIDEnvVar(t, "")
 	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
@@ -157,7 +152,6 @@ func newBotForTestWithSuccessHandlers(t *testing.T) (*Bot, cleanupFunc) {
 }
 
 func TestBootstrap_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	metadataHandler := func(w http.ResponseWriter, r *http.Request) {
 		// Confirm that the flavor header was sent.
 		assert.Equal(t, "Google", r.Header.Get("Metadata-Flavor"))
@@ -183,7 +177,6 @@ func TestBootstrap_Success(t *testing.T) {
 }
 
 func TestBootstrap_ErrOnMetadataRequestFail(t *testing.T) {
-	unittest.SmallTest(t)
 	metadataHandler := func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
@@ -199,7 +192,6 @@ func TestBootstrap_ErrOnMetadataRequestFail(t *testing.T) {
 }
 
 func TestBootstrap_ErrOnMetadataResponseNotJSON(t *testing.T) {
-	unittest.SmallTest(t)
 	metadataHandler := func(w http.ResponseWriter, r *http.Request) {
 		// Confirm that the flavor header was sent.
 		assert.Equal(t, "Google", r.Header.Get("Metadata-Flavor"))
@@ -218,7 +210,6 @@ func TestBootstrap_ErrOnMetadataResponseNotJSON(t *testing.T) {
 }
 
 func TestBootstrap_ErrOnSwarmingRequestFail(t *testing.T) {
-	unittest.SmallTest(t)
 	metadataHandler := func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte(`{"access_token":"123"}`))
 		assert.NoError(t, err)
@@ -237,7 +228,6 @@ func TestBootstrap_ErrOnSwarmingRequestFail(t *testing.T) {
 const swarmingbotFakeStderrOutput = "This is a line of logging output."
 
 func TestRunSwarmingCommand_ReturnsNilOnExitCodeZero(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bot, cleanup := newBotForTestWithSuccessHandlers(t)
 	defer cleanup()
@@ -302,7 +292,6 @@ func fakeExecCommandContext_ExitCodeZero(ctx context.Context, command string, ar
 
 // TestFakeSwarmingExecutable_ExitCodeZero is used by fakeExecCommandContext_ExitCodeZero.
 func TestFakeSwarmingExecutable_ExitCodeZero(t *testing.T) {
-	unittest.SmallTest(t)
 	if os.Getenv("EMULATE_SWARMING_BOT_EXECUTABLE") != "1" {
 		return
 	}
@@ -319,7 +308,6 @@ func TestFakeSwarmingExecutable_ExitCodeZero(t *testing.T) {
 const nonZeroExitCode = 17
 
 func TestRunSwarmingCommand_ReturnsErrorOnNonZeroExitCode(t *testing.T) {
-	unittest.SmallTest(t)
 
 	bot, cleanup := newBotForTestWithSuccessHandlers(t)
 	defer cleanup()
@@ -353,7 +341,6 @@ func fakeExecCommandContext_ExitCodeNonZero(ctx context.Context, command string,
 
 // TestFakeSwarmingExecutable_ExitCodeNonZero is used by fakeExecCommandContext_ExitCodeNonZero.
 func TestFakeSwarmingExecutable_ExitCodeNonZero(t *testing.T) {
-	unittest.SmallTest(t)
 	if os.Getenv("EMULATE_SWARMING_BOT_EXECUTABLE") != "1" {
 		return
 	}
@@ -361,7 +348,6 @@ func TestFakeSwarmingExecutable_ExitCodeNonZero(t *testing.T) {
 }
 
 func TestLaunch_IsCancellable(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Create a new Bot.
 	bot, cleanup := newBotForTestWithSuccessHandlers(t)

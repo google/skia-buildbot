@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const searchResponseBody = `{
@@ -61,7 +60,6 @@ const searchResponseBody = `{
 }`
 
 func TestParse(t *testing.T) {
-	unittest.SmallTest(t)
 
 	var resp CompoundSearchResponse
 	err := json.Unmarshal([]byte(searchResponseBody), &resp)
@@ -72,7 +70,6 @@ func TestParse(t *testing.T) {
 }
 
 func TestCodeSearch_urlForQuery(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		name   string

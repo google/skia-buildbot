@@ -10,7 +10,6 @@ import (
 )
 
 func TestGitStore(t *testing.T) {
-	unittest.LargeTest(t)
 	unittest.RequiresBigTableEmulator(t)
 
 	conf := BTTestConfig()

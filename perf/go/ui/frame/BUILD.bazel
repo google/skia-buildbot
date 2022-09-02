@@ -31,7 +31,6 @@ go_test(
     embed = [":frame"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/dataframe/mocks",

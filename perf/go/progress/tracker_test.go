@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var testDate = time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC)
@@ -27,14 +26,12 @@ func setup(t *testing.T) (*tracker, *progress) {
 }
 
 func TestTracker_NewWithInvalidPath_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := NewTracker("/does/not/end/with/slash")
 	require.Error(t, err)
 }
 
 func TestTracker_Add_ProgressAppearsInCacheAndMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, _ := setup(t)
 	assert.Equal(t, 1, tr.cache.Len())
@@ -45,7 +42,6 @@ func TestTracker_Add_ProgressAppearsInCacheAndMetrics(t *testing.T) {
 }
 
 func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, p := setup(t)
 	p.Finished()
@@ -58,7 +54,6 @@ func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *tes
 }
 
 func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAppearsInCacheAndMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, p := setup(t)
 	p.Finished()
@@ -76,7 +71,6 @@ func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAp
 }
 
 func TestTracker_RequestForNonExistentProgress_HandlerReturns404(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
@@ -88,7 +82,6 @@ func TestTracker_RequestForNonExistentProgress_HandlerReturns404(t *testing.T) {
 }
 
 func TestTracker_RequestForProgress_ReturnsSerializedProgress(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
@@ -108,7 +101,6 @@ func TestTracker_RequestForProgress_ReturnsSerializedProgress(t *testing.T) {
 }
 
 func TestTracker_RequestForProgressWithUnSerializableResult_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)

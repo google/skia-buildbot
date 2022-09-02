@@ -8,7 +8,6 @@ import (
 
 	allowed_mocks "go.skia.org/infra/go/allowed/mocks"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/types"
 )
 
@@ -47,7 +46,6 @@ func setupDryRunVerifierTest(t *testing.T, match bool) (*DryRunAccessListVerifie
 }
 
 func TestVerify_DryRunAccessMatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dryRunVerifier, ci := setupDryRunVerifierTest(t, true)
 	state, _, err := dryRunVerifier.Verify(context.Background(), ci, int64(333))
@@ -56,7 +54,6 @@ func TestVerify_DryRunAccessMatch(t *testing.T) {
 }
 
 func TestVerify_DryRunAccessDoNotMatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dryRunVerifier, ci := setupDryRunVerifierTest(t, false)
 	state, _, err := dryRunVerifier.Verify(context.Background(), ci, int64(333))

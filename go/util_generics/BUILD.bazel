@@ -12,8 +12,5 @@ go_test(
     name = "util_generics_test",
     srcs = ["util_generics_test.go"],
     embed = [":util_generics"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

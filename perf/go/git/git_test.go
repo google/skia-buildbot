@@ -13,14 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestCockroachDB(t *testing.T) {
-	unittest.LargeTest(t)
 
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
@@ -324,7 +322,6 @@ func testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommi
 }
 
 func TestParseGitRevLogStream_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
@@ -344,7 +341,6 @@ Change #9
 }
 
 func TestParseGitRevLogStream_ErrPropagatesWhenCallbackReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
@@ -358,7 +354,6 @@ Change #9
 }
 
 func TestParseGitRevLogStream_SuccessForTwoCommits(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
@@ -381,7 +376,6 @@ Change #8
 }
 
 func TestParseGitRevLogStream_EmptyFile_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader("")
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
 		assert.Fail(t, "Should never get here.")
@@ -391,7 +385,6 @@ func TestParseGitRevLogStream_EmptyFile_Success(t *testing.T) {
 }
 
 func TestParseGitRevLogStream_ErrMissingTimestamp(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
@@ -404,7 +397,6 @@ Change #9`)
 }
 
 func TestParseGitRevLogStream_ErrFailedToParseTimestamp(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
@@ -418,7 +410,6 @@ ooops 1584837780`)
 }
 
 func TestParseGitRevLogStream_ErrMissingSubject(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>`)
@@ -430,7 +421,6 @@ Joe Gregorio <joe@bitworking.org>`)
 }
 
 func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
@@ -441,7 +431,6 @@ func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
 }
 
 func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(
 		`something_not_commit 6079a7810530025d9877916895dd14eb8bb454c0`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
@@ -452,7 +441,6 @@ func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
 }
 
 func TestURLFromParts_DebounceCommitURL_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	const debounceURL = "https://some.other.url.example.org"
 	instanceConfig := &config.InstanceConfig{
@@ -469,7 +457,6 @@ func TestURLFromParts_DebounceCommitURL_Success(t *testing.T) {
 }
 
 func TestURLFromParts_CommitURLSupplied_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	instanceConfig := &config.InstanceConfig{
 		GitRepoConfig: config.GitRepoConfig{
@@ -484,7 +471,6 @@ func TestURLFromParts_CommitURLSupplied_Success(t *testing.T) {
 }
 
 func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	instanceConfig := &config.InstanceConfig{
 		GitRepoConfig: config.GitRepoConfig{
@@ -498,7 +484,6 @@ func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
 }
 
 func TestCommit_Display(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := Commit{
 		CommitNumber: 10223,

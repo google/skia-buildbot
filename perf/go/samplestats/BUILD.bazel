@@ -27,7 +27,6 @@ go_test(
     embed = [":samplestats"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//perf/go/ingest/parser",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

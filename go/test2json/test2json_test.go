@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -376,21 +375,17 @@ func runTestAndCompare(t sktest.TestingT, expectEvents []*Event, content TestCon
 }
 
 func TestEventStreamFail(t *testing.T) {
-	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsFail, ContentFail)
 }
 
 func TestEventStreamPass(t *testing.T) {
-	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsPass, ContentPass)
 }
 
 func TestEventStreamSkip(t *testing.T) {
-	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsSkip, ContentSkip)
 }
 
 func TestEventStreamNested(t *testing.T) {
-	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsNested, ContentNested)
 }

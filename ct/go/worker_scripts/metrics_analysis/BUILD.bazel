@@ -25,8 +25,5 @@ go_test(
     name = "metrics_analysis_test",
     srcs = ["main_test.go"],
     embed = [":metrics_analysis_lib"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

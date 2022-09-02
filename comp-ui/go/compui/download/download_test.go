@@ -11,11 +11,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestUnzipBodyIntoDirectory_InvalidZipFile_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	dir := t.TempDir()
 	body := []byte("not a valid zip file")
 	_, err := unzipBodyIntoDirectory(dir, body)
@@ -23,7 +21,6 @@ func TestUnzipBodyIntoDirectory_InvalidZipFile_ReturnsError(t *testing.T) {
 }
 
 func TestUnzipBodyIntoDirectory_MoreThanOneFileInTheZip_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Create a zip file with two files inside.
 	var b bytes.Buffer
@@ -58,7 +55,6 @@ func createValidZipFile(t *testing.T) []byte {
 }
 
 func TestUnzipBodyIntoDirectory_ValidZipFile_NoError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	dir := t.TempDir()
 	absFilename, err := unzipBodyIntoDirectory(dir, createValidZipFile(t))
@@ -70,7 +66,6 @@ func TestUnzipBodyIntoDirectory_ValidZipFile_NoError(t *testing.T) {
 }
 
 func TestDownloadAndUnzipDriver_ServerReturnsNon200StatusCode_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
@@ -85,7 +80,6 @@ func TestDownloadAndUnzipDriver_ServerReturnsNon200StatusCode_ReturnsError(t *te
 }
 
 func TestDownloadAndUnzipDriver_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	zipFile := createValidZipFile(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

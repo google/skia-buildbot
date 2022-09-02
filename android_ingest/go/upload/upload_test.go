@@ -5,12 +5,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 func TestObjectPath(t *testing.T) {
-	unittest.SmallTest(t)
 	b := &format.BenchData{
 		Hash: "8dcc84f7dc8523dd90501a4feb1f632808337c34",
 		Key: map[string]string{
@@ -24,7 +22,6 @@ func TestObjectPath(t *testing.T) {
 }
 
 func TestLogPath(t *testing.T) {
-	unittest.SmallTest(t)
 	now := time.Date(2016, time.December, 16, 23, 0, 0, 0, time.UTC)
 	path := LogPath("android-ingest/tx_log/", now, []byte("this is the POST body"))
 	assert.Equal(t, "android-ingest/tx_log/2016/12/16/23/caf6a48e3251ed34534aac58b91a877e.json", path)

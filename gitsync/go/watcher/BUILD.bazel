@@ -56,7 +56,6 @@ go_test(
         "//go/mockhttpclient",
         "//go/sklog",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//go/vcsinfo",
         "@com_github_google_uuid//:uuid",

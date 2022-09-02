@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var (
@@ -19,7 +18,6 @@ var (
 )
 
 func TestStartVerdaccioMirror_VerdaccioStartCommandIsCalled_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock the executil call.
 	ctx := executil.FakeTestsContext("Test_FakeExe_Verdaccio_Start_Cmd")
@@ -32,7 +30,6 @@ func TestStartVerdaccioMirror_VerdaccioStartCommandIsCalled_Success(t *testing.T
 }
 
 func TestDownloadedPackageTarballs(t *testing.T) {
-	unittest.SmallTest(t)
 
 	m := &VerdaccioMirror{downloadedPackageTarballs: map[string]interface{}{}}
 	require.False(t, m.IsPackageTarballDownloaded("pkg1.tgz"))
@@ -41,7 +38,6 @@ func TestDownloadedPackageTarballs(t *testing.T) {
 }
 
 func TestGetDownloadedPackageNames(t *testing.T) {
-	unittest.MediumTest(t)
 	storageDir := testutils.TestDataDir(t)
 
 	m := &VerdaccioMirror{verdaccioStorageDir: storageDir}
@@ -51,7 +47,6 @@ func TestGetDownloadedPackageNames(t *testing.T) {
 }
 
 func TestGetTarballsInMirrorStorage(t *testing.T) {
-	unittest.MediumTest(t)
 	storageDir := testutils.TestDataDir(t)
 
 	tarballs, err := GetTarballsInMirrorStorage(storageDir)
@@ -67,7 +62,6 @@ func TestGetTarballsInMirrorStorage(t *testing.T) {
 // This is not a real test, but a fake implementation of the executable in question.
 // By convention, we prefix these with FakeExe to make that clear.
 func Test_FakeExe_Verdaccio_Start_Cmd(t *testing.T) {
-	unittest.FakeExeTest(t)
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {

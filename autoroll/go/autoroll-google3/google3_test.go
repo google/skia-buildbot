@@ -19,11 +19,9 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, func()) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL, ds.KIND_AUTOROLL_STATUS)
 	gb := git_testutils.GitInit(t, ctx)
@@ -237,7 +235,6 @@ func makeRoll(now time.Time) Roll {
 }
 
 func TestRollAsIssue(t *testing.T) {
-	unittest.SmallTest(t)
 
 	expected := makeIssue(1, "rev")
 	now := expected.Created

@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/scrap/go/scrap"
 	"go.skia.org/infra/scrap/go/scrap/mocks"
 )
@@ -84,7 +83,6 @@ func testMethodAndPathReturnExpectedStatusCode(t *testing.T, method string, path
 }
 
 func TestAddHandlers_DoNotEnableProtectedEndpoints_ProtectedEndpointsReturn4xxStatusCodes(t *testing.T) {
-	unittest.SmallTest(t)
 	testMethodAndPathReturnExpectedStatusCode(t, "POST", "/_/scraps/", http.StatusNotFound)
 	testMethodAndPathReturnExpectedStatusCode(t, "DELETE", fmt.Sprintf("/_/scraps/svg/%s", hash), http.StatusMethodNotAllowed)
 	testMethodAndPathReturnExpectedStatusCode(t, "PUT", fmt.Sprintf("/_/names/svg/%s", scrapName), http.StatusMethodNotAllowed)
@@ -92,7 +90,6 @@ func TestAddHandlers_DoNotEnableProtectedEndpoints_ProtectedEndpointsReturn4xxSt
 }
 
 func TestWriteJSON_InvalidJSON_ReportsError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	notSerializable := struct {
 		C complex128
@@ -106,7 +103,6 @@ func TestWriteJSON_InvalidJSON_ReportsError(t *testing.T) {
 }
 
 func TestScrapCreateHandler_InvalidJSON_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	b := bytes.NewBufferString("]This is not valid json[")
 	r := httptest.NewRequest("POST", "/_/scraps/", b)
@@ -117,7 +113,6 @@ func TestScrapCreateHandler_InvalidJSON_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestScrapCreateHandler_WriteSucceeds_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(scrapsCreateCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -137,7 +132,6 @@ func TestScrapCreateHandler_WriteSucceeds_Success(t *testing.T) {
 }
 
 func TestScrapCreateHandler_WriteFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/_/scraps/", validScrapBody(t))
 
@@ -150,7 +144,6 @@ func TestScrapCreateHandler_WriteFails_ReturnsInternalServerError(t *testing.T) 
 }
 
 func TestScrapGetHandler_UnknownType_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/scraps/unknowntype/%s", hash), nil)
 
@@ -161,7 +154,6 @@ func TestScrapGetHandler_UnknownType_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestScrapGetHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(scrapsGetCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -181,7 +173,6 @@ func TestScrapGetHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestScrapGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/scraps/svg/%s", hash), nil)
 
@@ -195,7 +186,6 @@ func TestScrapGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestScrapDeleteHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(scrapsDeleteCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -210,7 +200,6 @@ func TestScrapDeleteHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestScrapDeleteHandler_DeleteFails_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", fmt.Sprintf("/_/scraps/svg/%s", hash), nil)
 
@@ -224,7 +213,6 @@ func TestScrapDeleteHandler_DeleteFails_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestRawGetHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(rawGetCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -245,7 +233,6 @@ func TestRawGetHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestRawGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/raw/svg/%s", hash), nil)
 
@@ -259,7 +246,6 @@ func TestRawGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestTemplateGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/tmpl/svg/%s/js", hash), nil)
 
@@ -273,7 +259,6 @@ func TestTemplateGetHandler_LoadFails_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestTemplateGetHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(templateGetCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -294,7 +279,6 @@ func TestTemplateGetHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestTemplateGetHandler_InvalidLang_ReturnsBadRequest(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/tmpl/svg/%s/unknownlanguage", hash), nil)
 
@@ -307,7 +291,6 @@ func TestTemplateGetHandler_InvalidLang_ReturnsBadRequest(t *testing.T) {
 }
 
 func TestNamePutHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(namesPutCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -322,7 +305,6 @@ func TestNamePutHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestNamePutHandler_PutFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("PUT", fmt.Sprintf("/_/names/svg/%s", scrapName), validScrapName(t))
 
@@ -336,7 +318,6 @@ func TestNamePutHandler_PutFails_ReturnsInternalServerError(t *testing.T) {
 }
 
 func TestNameGetHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(namesGetCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -357,7 +338,6 @@ func TestNameGetHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestNameGetHandler_GetFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/names/svg/%s", scrapName), nil)
 
@@ -371,7 +351,6 @@ func TestNameGetHandler_GetFails_ReturnsInternalServerError(t *testing.T) {
 }
 
 func TestNameDeleteHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(namesDeleteCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -386,7 +365,6 @@ func TestNameDeleteHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestNameDeleteHandler_DeleteNameFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", fmt.Sprintf("/_/names/svg/%s", scrapName), nil)
 
@@ -400,7 +378,6 @@ func TestNameDeleteHandler_DeleteNameFails_ReturnsInternalServerError(t *testing
 }
 
 func TestNameListHandler_HappyPath_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	callMetric := metrics2.GetCounter(namesListCallMetric)
 	callMetric.Reset()
 	w := httptest.NewRecorder()
@@ -423,7 +400,6 @@ func TestNameListHandler_HappyPath_Success(t *testing.T) {
 }
 
 func TestNameListHandler_ListFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/_/names/svg/", nil)
 

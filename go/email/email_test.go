@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -76,7 +75,6 @@ Content-Type: text/html
 var _ http.RoundTripper = (*myTransport)(nil)
 
 func TestGMailSendWithMarkup(t *testing.T) {
-	unittest.SmallTest(t)
 	c := httputils.DefaultClientConfig().Client()
 	// Swap in our mock transport.
 	c.Transport = &myTransport{t: t}
@@ -98,7 +96,6 @@ func TestGMailSendWithMarkup(t *testing.T) {
 }
 
 func TestParseRFC2822Message_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	from, to, subject, body, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
 To:  A Display Name <a@example.com>, B <b@example.org>,,
 Subject: My Stuff
@@ -113,13 +110,11 @@ Hi!
 }
 
 func TestParseRFC2822Message_EmptyInput_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, _, err := ParseRFC2822Message([]byte(``))
 	require.Contains(t, err.Error(), "Failed to find a From: line")
 }
 
 func TestParseRFC2822Message_EmptyToLine_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, _, _, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
 To:  ,,,
 Subject: My Stuff
@@ -130,7 +125,6 @@ Hi!
 }
 
 func TestParseRFC2822Message_MissingSubject_DefaultSubjectIsReturned(t *testing.T) {
-	unittest.SmallTest(t)
 	from, to, subject, body, err := ParseRFC2822Message([]byte(`From: Alerts <alerts@skia.org>
 To: someone@example.org
 
@@ -144,7 +138,6 @@ Hi!
 }
 
 func TestFormatAsRFC2822_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`
 	ref := "<some-reference-id>"
 	messageID := "<foo-bar-baz@skia.org>"
@@ -179,7 +172,6 @@ Message-ID: <foo-bar-baz@skia.org>
 }
 
 func TestFormatAsRFC2822_NoThreadID_MessageDoesNotContainInReplyToOrReferencesHeaders(t *testing.T) {
-	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`
 	ref := ""
 	messageID := "<foo-bar-baz@skia.org>"
@@ -212,7 +204,6 @@ Message-ID: <foo-bar-baz@skia.org>
 }
 
 func TestFormatAsRFC2822_NoThreadIDOrMessageID_MessageDoesNotContainInReplyToOrReferenceOrMessageIDHeaders(t *testing.T) {
-	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`
 	ref := ""
 	messageID := ""
@@ -244,7 +235,6 @@ Content-Type: text/html; charset=UTF-8
 }
 
 func TestFormatAsRFC2822_NoMessageID_MessageDoesNotContainMessageIDHeader(t *testing.T) {
-	unittest.SmallTest(t)
 	body := `<h1>Testing</h1>`
 	ref := "<some-reference-id>"
 	messageID := ""

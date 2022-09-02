@@ -8,11 +8,9 @@ import (
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestBuildbucketLookup_ValidTJID_Success(t *testing.T) {
-	unittest.ManualTest(t)
 
 	client := httputils.DefaultClientConfig().Client()
 	bbClient := buildbucket.NewClient(client)

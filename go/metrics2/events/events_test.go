@@ -9,11 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAggregateMetric(t *testing.T) {
-	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -50,7 +48,6 @@ func TestAggregateMetric(t *testing.T) {
 }
 
 func TestDynamicMetric(t *testing.T) {
-	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)

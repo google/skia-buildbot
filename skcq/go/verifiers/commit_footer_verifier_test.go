@@ -7,13 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 )
 
 func TestVerify_NoFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	commitFooterVerifier := &CommitFooterVerifier{}
@@ -23,7 +21,6 @@ func TestVerify_NoFooter(t *testing.T) {
 }
 
 func TestVerify_CommitFalseFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	commitFooterVerifier := &CommitFooterVerifier{
@@ -37,7 +34,6 @@ func TestVerify_CommitFalseFooter(t *testing.T) {
 }
 
 func TestVerify_CommitTrueFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	commitFooterVerifier := &CommitFooterVerifier{

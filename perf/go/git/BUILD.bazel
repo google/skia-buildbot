@@ -41,7 +41,6 @@ go_test(
     flaky = True,
     deps = [
         "//go/git/testutils",
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/git/gittest",
         "//perf/go/types",

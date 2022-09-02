@@ -8,14 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 	"go.skia.org/infra/npm-audit-mirror/go/types/mocks"
 )
 
 func TestGetPackageDetails(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		packageRequestURL     string
@@ -77,7 +75,6 @@ func TestGetPackageDetails(t *testing.T) {
 }
 
 func TestPerformChecks_NonTarballRequest_ReturnImmediately(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cm := &NpmChecksManager{}
 	checkPassed, result, err := cm.PerformChecks("gensync/-/gensync-1.0.0-beta")
@@ -87,7 +84,6 @@ func TestPerformChecks_NonTarballRequest_ReturnImmediately(t *testing.T) {
 }
 
 func TestPerformChecks_PackageAlreadyDownloaded_ReturnAfterDownloadCheck(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock ProjectMirror.
 	mockProjectMirror := &mocks.ProjectMirror{}
@@ -103,7 +99,6 @@ func TestPerformChecks_PackageAlreadyDownloaded_ReturnAfterDownloadCheck(t *test
 }
 
 func TestPerformChecks_PackageWithTrustedScope_ReturnAfterTrustedScopeCheck(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock ProjectMirror.
 	mockProjectMirror := &mocks.ProjectMirror{}
@@ -121,7 +116,6 @@ func TestPerformChecks_PackageWithTrustedScope_ReturnAfterTrustedScopeCheck(t *t
 }
 
 func TestPerformChecks_PackageInAllowlist_ReturnAfterAllowlistCheck(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock ProjectMirror.
 	mockProjectMirror := &mocks.ProjectMirror{}
@@ -155,7 +149,6 @@ func TestPerformChecks_PackageInAllowlist_ReturnAfterAllowlistCheck(t *testing.T
 }
 
 func TestPerformChecks_RunSecurityChecks(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Mock ProjectMirror.
 	mockProjectMirror := &mocks.ProjectMirror{}

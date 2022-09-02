@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 )
 
@@ -64,7 +63,6 @@ func setupGetSkCQCfg(t *testing.T, match bool, cfgContents []byte, readFileError
 }
 
 func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
@@ -84,7 +82,6 @@ func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
 }
 
 func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
-	unittest.SmallTest(t)
 
 	configReader := setupGetSkCQCfg(t, false, []byte{}, nil, []string{"dir1/*", SkCQCfgPath}, SkCQCfgPath, true)
 	cfg, err := configReader.GetSkCQCfg(context.Background())
@@ -95,7 +92,6 @@ func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
 }
 
 func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
@@ -115,7 +111,6 @@ func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
 }
 
 func TestGetSkCQCfg_NotFound(t *testing.T) {
-	unittest.SmallTest(t)
 
 	configReader := setupGetSkCQCfg(t, true, []byte{}, errors.New("NOT_FOUND"), []string{"dir1/*", "dir2/dir3/DEPS"}, SkCQCfgPath, false)
 	cfg, err := configReader.GetSkCQCfg(context.Background())
@@ -126,7 +121,6 @@ func TestGetSkCQCfg_NotFound(t *testing.T) {
 }
 
 func TestGetSkCQCfg_ValidationFailed(t *testing.T) {
-	unittest.SmallTest(t)
 
 	treeStatusURL := "http://tree-status-url"
 	// Missing CommitterList and DryRunAccessList.
@@ -143,7 +137,6 @@ func TestGetSkCQCfg_ValidationFailed(t *testing.T) {
 }
 
 func TestGetTasksCfg_UpdatedInChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tasksJSONPath := "test/path/tasks.json"
 	tasksJSON := &specs.TasksCfg{}
@@ -157,7 +150,6 @@ func TestGetTasksCfg_UpdatedInChange(t *testing.T) {
 }
 
 func TestGetTasksCfg_NotUpdatedInChange(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tasksJSONPath := "test/path/tasks.json"
 	tasksJSON := &specs.TasksCfg{}

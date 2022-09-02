@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/fiddlek/go/store/mocks"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/scrap/go/scrap"
 	scrapMocks "go.skia.org/infra/scrap/go/scrap/mocks"
 )
@@ -28,7 +27,6 @@ var (
 )
 
 func TestScrapHandler_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()
@@ -61,7 +59,6 @@ func TestScrapHandler_HappyPath(t *testing.T) {
 }
 
 func TestScrapHandler_ScrapExchangeFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()
@@ -83,7 +80,6 @@ func TestScrapHandler_ScrapExchangeFails_ReturnsInternalServerError(t *testing.T
 }
 
 func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()

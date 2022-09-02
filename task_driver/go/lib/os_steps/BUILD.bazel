@@ -17,7 +17,6 @@ go_test(
     srcs = ["os_steps_test.go"],
     embed = [":os_steps"],
     deps = [
-        "//go/testutils/unittest",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//require",
     ],

@@ -18,7 +18,6 @@ go_test(
     embed = [":rotations"],
     deps = [
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

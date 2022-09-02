@@ -7,11 +7,9 @@ import (
 	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParse_Incoming_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := bytes.NewBufferString(incoming)
 	in, err := Parse(r)
 	assert.NoError(t, err)
@@ -26,7 +24,6 @@ func TestParse_Incoming_Success(t *testing.T) {
 }
 
 func TestParse_Incoming2_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := bytes.NewBufferString(incoming2)
 	in, err := Parse(r)
 	assert.NoError(t, err)
@@ -39,7 +36,6 @@ func TestParse_Incoming2_Success(t *testing.T) {
 }
 
 func TestParse_ErrReader_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := Parse(iotest.ErrReader(fmt.Errorf("Failed")))
 	assert.Contains(t, err.Error(), "Failed to decode")
 }
@@ -59,7 +55,6 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 }
 
 func TestConvert_ParseIncoming_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming)
 	benchData, err := c.Convert(r, "")
@@ -75,7 +70,6 @@ func TestConvert_ParseIncoming_Success(t *testing.T) {
 }
 
 func TestConvert_ParseIncoming2_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming2)
 	benchData, err := c.Convert(r, "")
@@ -87,7 +81,6 @@ func TestConvert_ParseIncoming2_Success(t *testing.T) {
 }
 
 func TestConvert_NoMetrics_ReturnsErrIgnorable(t *testing.T) {
-	unittest.SmallTest(t)
 	r := bytes.NewBufferString(nometrics)
 	c := New(lookupMockGood{})
 	_, err := c.Convert(r, "")
@@ -95,7 +88,6 @@ func TestConvert_NoMetrics_ReturnsErrIgnorable(t *testing.T) {
 }
 
 func TestConvert_HashLookupFails_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	c := New(lookupMockBad{})
 	r := bytes.NewBufferString(incoming)
 	_, err := c.Convert(r, "")
@@ -103,7 +95,6 @@ func TestConvert_HashLookupFails_ReturnsError(t *testing.T) {
 }
 
 func TestConvert_IgnorePresubmitResults_ReturnsErrIgnorable(t *testing.T) {
-	unittest.SmallTest(t)
 
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming_presubmit)

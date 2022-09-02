@@ -23,7 +23,6 @@ go_test(
     deps = [
         "//bugs-central/go/bugs",
         "//go/httputils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",

@@ -17,7 +17,6 @@ import (
 )
 
 func TestGNGen(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
@@ -32,7 +31,6 @@ func TestGNGen(t *testing.T) {
 }
 
 func TestGNNinjaBuild(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
@@ -46,7 +44,6 @@ func TestGNNinjaBuild(t *testing.T) {
 }
 
 func TestGNDownloadSkia(t *testing.T) {
-	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
 	mock.SetDelegateRun(git_common.MocksForFindGit)
 	ctx := exec.NewContext(context.Background(), mock.Run)
@@ -88,7 +85,6 @@ func TestGNDownloadSkia(t *testing.T) {
 }
 
 func TestGNNinjaBuildTarget(t *testing.T) {
-	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)

@@ -5,8 +5,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // This file demonstrates the overhead of calling runtime.Caller and runtime.FuncForPC
@@ -16,7 +14,6 @@ import (
 // BenchmarkRuntimeCaller_GetFunction-4   	 2198131	       473 ns/op
 
 func BenchmarkControl(b *testing.B) {
-	unittest.ManualTest(b)
 	for i := 0; i < b.N; i++ {
 		file := getRandomString()
 		if len(file) == 1000 { // prevent return value from being optimized away.
@@ -26,7 +23,6 @@ func BenchmarkControl(b *testing.B) {
 }
 
 func BenchmarkRuntimeCaller_GetFile(b *testing.B) {
-	unittest.ManualTest(b)
 	for i := 0; i < b.N; i++ {
 		_, file, _, ok := runtime.Caller(0)
 		if !ok || len(file) == 1000 { // prevent return value from being optimized away.
@@ -36,7 +32,6 @@ func BenchmarkRuntimeCaller_GetFile(b *testing.B) {
 }
 
 func BenchmarkRuntimeCaller_GetFunction(b *testing.B) {
-	unittest.ManualTest(b)
 	for i := 0; i < b.N; i++ {
 		pc, _, _, ok := runtime.Caller(0)
 		f := runtime.FuncForPC(pc)

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func readAllFromChannel(in <-chan []int) [][]int {
@@ -16,14 +15,12 @@ func readAllFromChannel(in <-chan []int) [][]int {
 }
 
 func TestCartesianProduct_EmptySlice_EmptyChannel(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{}, readAllFromChannel(in))
 }
 
 func TestCartesianProduct_SliceOfLengthOne_ChannelJustCountsDown(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{5})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{
@@ -36,7 +33,6 @@ func TestCartesianProduct_SliceOfLengthOne_ChannelJustCountsDown(t *testing.T) {
 }
 
 func TestCartesianProduct_SliceOfLengthTwoButOneCountIsOne_ChannelJustCountsDown(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{5, 1})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{
@@ -49,7 +45,6 @@ func TestCartesianProduct_SliceOfLengthTwoButOneCountIsOne_ChannelJustCountsDown
 }
 
 func TestCartesianProduct_SliceOfLengthTwoButOtherCountIsOne_ChannelJustCountsDown(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{1, 5})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{
@@ -62,13 +57,11 @@ func TestCartesianProduct_SliceOfLengthTwoButOtherCountIsOne_ChannelJustCountsDo
 }
 
 func TestCartesianProduct_SliceOfLengthTwoButCountIsZero_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := CartesianProduct([]int{1, 0})
 	assert.Error(t, err)
 }
 
 func TestCartesianProduct_SliceOfLengthTwo_ChannelEmitsCartesianProduct(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{3, 2})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{
@@ -82,7 +75,6 @@ func TestCartesianProduct_SliceOfLengthTwo_ChannelEmitsCartesianProduct(t *testi
 }
 
 func TestCartesianProduct_SliceOfLengthThree_ChannelEmitsCartesianProduct(t *testing.T) {
-	unittest.SmallTest(t)
 	in, err := CartesianProduct([]int{2, 2, 3})
 	assert.NoError(t, err)
 	assert.Equal(t, [][]int{

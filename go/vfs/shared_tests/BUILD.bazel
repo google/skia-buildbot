@@ -22,7 +22,6 @@ go_test(
     embed = [":shared_tests"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/testutils/unittest",
         "//go/vfs",
         "//go/vfs/mocks",
         "@com_github_stretchr_testify//mock",

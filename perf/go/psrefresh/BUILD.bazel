@@ -22,7 +22,6 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/psrefresh/mocks",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",

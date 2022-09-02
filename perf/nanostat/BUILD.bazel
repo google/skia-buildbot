@@ -27,7 +27,6 @@ go_test(
     embed = [":nanostat_lib"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

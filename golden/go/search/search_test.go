@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search/query"
@@ -35,7 +34,6 @@ var changelistTSWithMultipleDatapointsPerTrace = time.Date(2020, time.December, 
 var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 31, 32, 0, time.UTC)
 
 func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -63,7 +61,6 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -89,7 +86,6 @@ func TestNewAndUntriagedSummaryForCL_OnePatchsetWithMultipleDatapointsOnSameTrac
 }
 
 func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -127,7 +123,6 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -191,7 +186,6 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -205,7 +199,6 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCounted(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -300,7 +293,6 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 }
 
 func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -383,7 +375,6 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -473,7 +464,6 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 }
 
 func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -511,7 +501,6 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 }
 
 func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -523,7 +512,6 @@ func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 }
 
 func TestChangelistLastUpdated_NonExistentCL_ReturnsZeroTime(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -535,7 +523,6 @@ func TestChangelistLastUpdated_NonExistentCL_ReturnsZeroTime(t *testing.T) {
 }
 
 func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -559,7 +546,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 }
 
 func TestSearch_UntriagedDigestsAtHead_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -806,7 +792,6 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 }
 
 func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -820,7 +805,6 @@ func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
 }
 
 func TestStartMaterializedViews_ViewsGetUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -846,7 +830,6 @@ func assertNumRows(t *testing.T, db *pgxpool.Pool, tableName string, rowCount in
 }
 
 func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -962,7 +945,6 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 }
 
 func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -1053,7 +1035,6 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 }
 
 func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -1345,7 +1326,6 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 }
 
 func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
@@ -1394,7 +1374,6 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 }
 
 func TestMakeTraceGroup_TwoNewTracesInCL_DataAppended(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
@@ -1435,7 +1414,6 @@ func TestMakeTraceGroup_TwoNewTracesInCL_DataAppended(t *testing.T) {
 }
 
 func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
@@ -1506,7 +1484,6 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 }
 
 func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -1532,7 +1509,6 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 }
 
 func TestSearch_FilterLeftSideByKeys_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -1774,7 +1750,6 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 
 func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 	t.Skip("not ready - would need frontend change for searching and removal of old fields")
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -1902,7 +1877,6 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 }
 
 func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -1927,7 +1901,6 @@ func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
 }
 
 func TestSearch_FilteredAcrossAllHistory_WithMaterializedView(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -2326,7 +2299,6 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 }
 
 func TestSearch_AcrossAllHistory_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -2354,7 +2326,6 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 }
 
 func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -2383,7 +2354,6 @@ func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
 }
 
 func TestJoinedTracesStatement_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	statement := joinedTracesStatement([]filterSets{
 		{key: "key1", values: []string{"alpha", "beta"}},
@@ -2435,7 +2405,6 @@ JoinedTraces AS (
 }
 
 func TestJoinedTracesStatement_RemovesBadSQLCharacters(t *testing.T) {
-	unittest.SmallTest(t)
 
 	statement := joinedTracesStatement([]filterSets{
 		{key: "key1", values: []string{"alpha", `beta"' OR 1=1`}},
@@ -2461,7 +2430,6 @@ JoinedTraces AS (
 }
 
 func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -2653,7 +2621,6 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 }
 
 func TestSearch_RespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -2686,7 +2653,6 @@ func TestSearch_RespectsPublicParams_Success(t *testing.T) {
 }
 
 func TestSearch_RespectsPublicParams_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -2849,7 +2815,6 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 }
 
 func TestSearch_RespectsRightSideFilter_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -3017,7 +2982,6 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 }
 
 func TestObservedDigestStatement_ValidInputs_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	statement, err := observedDigestsStatement(nil)
 	require.NoError(t, err)
@@ -3047,7 +3011,6 @@ SELECT trace_id FROM Traces WHERE grouping_id = $1`, statement)
 }
 
 func TestObservedDigestStatement_InvalidInputs_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := observedDigestsStatement(paramtools.ParamSet{
 		"'quote": []string{"a single value"},
@@ -3060,7 +3023,6 @@ func TestObservedDigestStatement_InvalidInputs_ReturnsError(t *testing.T) {
 }
 
 func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -3235,7 +3197,6 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 }
 
 func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoints(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -3509,7 +3470,6 @@ func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoi
 }
 
 func TestMatchingCLTracesStatement_ValidInputs_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	statement, err := matchingCLTracesStatement(paramtools.ParamSet{
 		types.CorpusField: []string{"the corpus"},
@@ -3567,7 +3527,6 @@ MatchingTraces AS (
 }
 
 func TestMatchingCLTracesStatement_InvalidInputs_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := matchingCLTracesStatement(paramtools.ParamSet{
 		"'quote":          []string{"a single value"},
@@ -3590,7 +3549,6 @@ func TestMatchingCLTracesStatement_InvalidInputs_ReturnsError(t *testing.T) {
 }
 
 func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -3834,7 +3792,6 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 }
 
 func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -3966,7 +3923,6 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 }
 
 func TestGetPrimaryBranchParamset_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -3984,7 +3940,6 @@ func TestGetPrimaryBranchParamset_Success(t *testing.T) {
 }
 
 func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4015,7 +3970,6 @@ func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
 }
 
 func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4053,7 +4007,6 @@ func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 }
 
 func TestGetChangelistParamset_InvalidCL_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -4065,7 +4018,6 @@ func TestGetChangelistParamset_InvalidCL_ReturnsError(t *testing.T) {
 }
 
 func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4108,7 +4060,6 @@ func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
 }
 
 func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4120,7 +4071,6 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 }
 
 func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4179,7 +4129,6 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 }
 
 func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4200,7 +4149,6 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 }
 
 func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4353,7 +4301,6 @@ func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse)
 }
 
 func TestSearch_IncludesBlameCommit_MultipleNewTraces_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -4389,7 +4336,6 @@ func TestSearch_IncludesBlameCommit_MultipleNewTraces_Success(t *testing.T) {
 }
 
 func TestGetBlamesForUntriagedDigests_MultipleNewTraces_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -4489,7 +4435,6 @@ func buildMultipleNewTraces() schema.Tables {
 }
 
 func TestSearch_IncludesBlameRange_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4611,7 +4556,6 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 }
 
 func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4719,7 +4663,6 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 }
 
 func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4744,7 +4687,6 @@ func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing
 }
 
 func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -4793,7 +4735,6 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 }
 
 func TestGetBlamesForUntriagedDigests_NoUntriagedDigestsAtHead_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -4807,7 +4748,6 @@ func TestGetBlamesForUntriagedDigests_NoUntriagedDigestsAtHead_Success(t *testin
 }
 
 func TestCombineIntoRanges_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	alphaGrouping := paramtools.Params{types.PrimaryKeyField: "alpha", types.CorpusField: "the_corpus"}
 	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "the_corpus"}
@@ -5667,7 +5607,6 @@ func mustHash(grouping paramtools.Params) schema.MD5Hash {
 }
 
 func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -5748,7 +5687,6 @@ func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
 }
 
 func TestGetCluster_RespectsTriageStatuses_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -5770,7 +5708,6 @@ func TestGetCluster_RespectsTriageStatuses_Success(t *testing.T) {
 }
 
 func TestGetCluster_RespectsFilters_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -5828,7 +5765,6 @@ func TestGetCluster_RespectsFilters_Success(t *testing.T) {
 }
 
 func TestGetCluster_RespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -5892,7 +5828,6 @@ func TestGetCluster_RespectsPublicParams_Success(t *testing.T) {
 }
 
 func TestClusterDataOfInterestStatement_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	statement, err := clusterDataOfInterestStatement(ClusterOptions{
 		Filters: paramtools.ParamSet{
@@ -5960,7 +5895,6 @@ DataOfInterest AS (
 }
 
 func TestClusterDataOfInterestStatement_InvalidInput_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_, err := clusterDataOfInterestStatement(ClusterOptions{
 		Filters: paramtools.ParamSet{
@@ -5978,7 +5912,6 @@ func TestClusterDataOfInterestStatement_InvalidInput_ReturnsError(t *testing.T) 
 }
 
 func TestGetCommitsInWindow_GitCommits_ReturnsAllCommitsWithData(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -5990,7 +5923,6 @@ func TestGetCommitsInWindow_GitCommits_ReturnsAllCommitsWithData(t *testing.T) {
 }
 
 func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6005,7 +5937,6 @@ func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *t
 }
 
 func TestGetDigestsForGrouping_ValidGrouping_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6024,7 +5955,6 @@ func TestGetDigestsForGrouping_ValidGrouping_Success(t *testing.T) {
 }
 
 func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6039,7 +5969,6 @@ func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.
 }
 
 func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6146,7 +6075,6 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 }
 
 func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6187,7 +6115,6 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult
 }
 
 func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6279,7 +6206,6 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 }
 
 func TestGetDigestDetails_ValidDigestAndGroupingOnCL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6384,7 +6310,6 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_OnePatchsetWithMultipleData
 }
 
 func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6406,7 +6331,6 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T
 }
 
 func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6452,7 +6376,6 @@ func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
 }
 
 func TestGetDigestsDiff_UnknownDigests_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6478,7 +6401,6 @@ func TestGetDigestsDiff_UnknownDigests_ReturnsError(t *testing.T) {
 }
 
 func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6524,7 +6446,6 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
 }
 
 func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6575,7 +6496,6 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOn
 }
 
 func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6621,7 +6541,6 @@ func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
 }
 
 func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6638,7 +6557,6 @@ func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
 }
 
 func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6686,7 +6604,6 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 }
 
 func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6737,7 +6654,6 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 }
 
 func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6772,7 +6688,6 @@ func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
 }
 
 func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6792,7 +6707,6 @@ func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
 }
 
 func TestComputeGUIStatus_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -6824,7 +6738,6 @@ func TestComputeGUIStatus_Success(t *testing.T) {
 }
 
 func TestComputeGUIStatus_GitCommitIDsDoNotMatch_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -6859,7 +6772,6 @@ func TestComputeGUIStatus_GitCommitIDsDoNotMatch_Success(t *testing.T) {
 }
 
 func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -6898,7 +6810,6 @@ func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
 }
 
 func TestGetCommits_StandardGitIDs_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	var timeOne = time.Date(2021, time.September, 10, 10, 10, 10, 0, time.UTC)
 	var timeTwo = time.Date(2021, time.September, 11, 11, 11, 11, 0, time.UTC)
@@ -6977,7 +6888,6 @@ func TestGetCommits_StandardGitIDs_Success(t *testing.T) {
 }
 
 func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -7019,7 +6929,6 @@ func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
 }
 
 func TestGetDigestsForGrouping_NoRightTraceKeys_ReturnsDigestsFromTracesOnPrimaryBranch(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -7050,7 +6959,6 @@ func TestGetDigestsForGrouping_NoRightTraceKeys_ReturnsDigestsFromTracesOnPrimar
 }
 
 func TestGetDigestsForGrouping_WithRightTraceKeys_ReturnsDigestsFromThoseTracesOnly(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)

@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 	tree_status_types "go.skia.org/infra/tree_status/go/types"
@@ -34,7 +33,6 @@ func setupTreeStatusVerifier(t *testing.T, treeMsg, treeState string) *TreeStatu
 }
 
 func TestVerify_ClosedTree(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	treeVerifier := setupTreeStatusVerifier(t, "Tree is closed", tree_status_types.ClosedState)
@@ -45,7 +43,6 @@ func TestVerify_ClosedTree(t *testing.T) {
 }
 
 func TestVerify_CautionTree(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	treeVerifier := setupTreeStatusVerifier(t, "Tree is caution", tree_status_types.CautionState)
@@ -56,7 +53,6 @@ func TestVerify_CautionTree(t *testing.T) {
 }
 
 func TestVerify_OpenTree(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	treeVerifier := setupTreeStatusVerifier(t, "Tree is open", tree_status_types.OpenState)
@@ -67,7 +63,6 @@ func TestVerify_OpenTree(t *testing.T) {
 }
 
 func TestVerify_NoTreeChecksFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{Issue: int64(123)}
 	treeVerifier := setupTreeStatusVerifier(t, "Tree is closed", tree_status_types.ClosedState)

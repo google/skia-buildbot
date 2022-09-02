@@ -24,7 +24,6 @@ go_test(
     srcs = ["sql_test.go"],
     deps = [
         ":schema",
-        "//go/testutils/unittest",
         "//golden/go/sql/sqltest",
         "@com_github_stretchr_testify//require",
     ],

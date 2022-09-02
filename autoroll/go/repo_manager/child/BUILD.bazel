@@ -68,7 +68,6 @@ go_test(
         "//go/httputils",
         "//go/mockhttpclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "//go/vfs",
         "@com_github_stretchr_testify//mock",

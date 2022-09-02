@@ -12,7 +12,6 @@ import (
 	"github.com/otiai10/copy"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var alertTarget = AlertTarget{
@@ -21,12 +20,10 @@ var alertTarget = AlertTarget{
 }
 
 func TestAlertTarget_TargetFilename_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Equal(t, "/some/sub-directory/in/the/git/checkout/perf_appgroup_alerts.yml", alertTarget.TargetFilename())
 }
 
 func TestGetAlertTargetsFromFilename_ContainsOneDeploymentInDefaultNamespace_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	got, err := getAlertTargetsFromFilename(filepath.Join(testutils.TestDataDir(t), "deployment.yaml"))
 	require.NoError(t, err)
@@ -42,7 +39,6 @@ func TestGetAlertTargetsFromFilename_ContainsOneDeploymentInDefaultNamespace_Suc
 }
 
 func TestGetAlertTargetsFromFilename_ContainsOneStatefulSetInNonDefaultNamespace_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	got, err := getAlertTargetsFromFilename(filepath.Join(testutils.TestDataDir(t), "statefulset.yml"))
 	require.NoError(t, err)
@@ -58,14 +54,12 @@ func TestGetAlertTargetsFromFilename_ContainsOneStatefulSetInNonDefaultNamespace
 }
 
 func TestGetAlertTargetsFromFilename_FileDoesNotExist_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 
 	_, err := getAlertTargetsFromFilename(filepath.Join(testutils.TestDataDir(t), "the-name-of-a-file-that-does-not-exist.yml"))
 	require.Error(t, err)
 }
 
 func TestGetAllAlertTargetsUnderDir_DirContainsYAMLFilesThatShouldBeSkipped_OnlyTheOneValidFileIsRead(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// The 'fake-checkout' directory has deployment files in this tree:
 	//
@@ -90,12 +84,10 @@ func TestGetAllAlertTargetsUnderDir_DirContainsYAMLFilesThatShouldBeSkipped_Only
 }
 
 func TestAppMain_NoDirectoryFlagSupplied_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	require.Error(t, NewApp().Main([]string{"path/to/exe/goes/here"}))
 }
 
 func TestAppMain_DryRunOverFakeCheckout_PrintsListOfFilesWritten(t *testing.T) {
-	unittest.MediumTest(t)
 
 	// Setup to capture stdout.
 	backup := os.Stdout
@@ -126,7 +118,6 @@ func TestAppMain_DryRunOverFakeCheckout_PrintsListOfFilesWritten(t *testing.T) {
 }
 
 func TestAppMain_RunOverFakeCheckout_CorrectFileContentsAreWritten(t *testing.T) {
-	unittest.MediumTest(t)
 
 	tmpDir := t.TempDir()
 	err := copy.Copy(filepath.Join(testutils.TestDataDir(t), "fake-checkout"), tmpDir)
@@ -165,7 +156,6 @@ spec:
 }
 
 func TestAppMain_UnknownFlagPassedIn_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	require.Equal(t, ErrFlagsParse, NewApp().Main(
 		[]string{
@@ -175,7 +165,6 @@ func TestAppMain_UnknownFlagPassedIn_ReturnsError(t *testing.T) {
 }
 
 func TestReadRulesFromFile_FileDoesNotExist_ReturnsOsErrNotExistError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tmpDir := t.TempDir()
 	_, err := readRulesFromFile(filepath.Join(tmpDir, "this-file-does-not-exist.yaml"))

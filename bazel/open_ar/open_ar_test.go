@@ -9,11 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestExtract_MultipleFilesInArchive(t *testing.T) {
-	unittest.MediumTest(t)
 	outputDir := t.TempDir()
 
 	// We expect to find 3 files in the output directory, called test1, test2, and test3

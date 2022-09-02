@@ -18,12 +18,10 @@ import (
 	"go.skia.org/infra/go/git"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestCIPDInstanceToRevision(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
@@ -63,7 +61,6 @@ func TestCIPDInstanceToRevision(t *testing.T) {
 }
 
 func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
@@ -104,7 +101,6 @@ func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
 }
 
 func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
@@ -144,7 +140,6 @@ func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
 }
 
 func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
@@ -184,7 +179,6 @@ func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
 }
 
 func TestCIPDChild_GetRevision(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	c := &CIPDChild{
@@ -232,7 +226,6 @@ func TestCIPDChild_GetRevision(t *testing.T) {
 }
 
 func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
@@ -314,7 +307,6 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 }
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	ctx := context.Background()
@@ -375,7 +367,6 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 }
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	ctx := context.Background()
@@ -437,7 +428,6 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 }
 
 func TestCIPDChild_Update(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	c := &CIPDChild{
@@ -502,7 +492,6 @@ func TestCIPDChild_Update(t *testing.T) {
 }
 
 func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
-	unittest.SmallTest(t)
 
 	mockCipdClient := &mocks.CIPDClient{}
 	mockGitiles := &gitiles_mocks.GitilesRepo{}

@@ -25,7 +25,6 @@ go_test(
         "//go/gerrit/mocks",
         "//go/skerr",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/vcsinfo",
         "//golden/go/code_review",
         "@com_github_stretchr_testify//assert",

@@ -51,7 +51,6 @@ go_test(
         "//go/now",
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/clstore",
         "//golden/go/code_review/mocks",
         "//golden/go/expectations",

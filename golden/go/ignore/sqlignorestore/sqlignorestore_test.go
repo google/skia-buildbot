@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -22,7 +21,6 @@ import (
 )
 
 func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -86,7 +84,6 @@ func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
 	}}, rules)
 }
 func TestCreate_InvalidQuery_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	store := New(nil)
 	require.Error(t, store.Create(context.Background(), ignore.Rule{
@@ -98,7 +95,6 @@ func TestCreate_InvalidQuery_ReturnsError(t *testing.T) {
 }
 
 func TestCreate_AllIgnoreStatusesNull_TracesMatchingRuleUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -136,7 +132,6 @@ func TestCreate_AllIgnoreStatusesNull_TracesMatchingRuleUpdated(t *testing.T) {
 }
 
 func TestCreate_RuleWithSomeMissingValues_TracesMatchingRuleUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -176,7 +171,6 @@ func TestCreate_RuleWithSomeMissingValues_TracesMatchingRuleUpdated(t *testing.T
 }
 
 func TestCreate_RuleWithMissingKey_NothingUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -266,7 +260,6 @@ func getValuesAtHeadAndStatus(ctx context.Context, t *testing.T, db *pgxpool.Poo
 }
 
 func TestUpdate_ExistingRuleExpanded_AdditionalTracesIgnored(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -324,7 +317,6 @@ func TestUpdate_ExistingRuleExpanded_AdditionalTracesIgnored(t *testing.T) {
 }
 
 func TestUpdate_QueryNotChanged_IgnoreRuleUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -380,7 +372,6 @@ func TestUpdate_QueryNotChanged_IgnoreRuleUpdated(t *testing.T) {
 }
 
 func TestUpdate_ExistingRuleReduced_FewerTracesIgnored(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -438,7 +429,6 @@ func TestUpdate_ExistingRuleReduced_FewerTracesIgnored(t *testing.T) {
 }
 
 func TestUpdate_ExistingRuleChanged_DifferentTracesIgnored(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -512,7 +502,6 @@ func idForRule(rules []schema.IgnoreRuleRow, s string) string {
 }
 
 func TestUpdate_InvalidID_ReturnsErrorAndNothingIsModified(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -552,7 +541,6 @@ func TestUpdate_InvalidID_ReturnsErrorAndNothingIsModified(t *testing.T) {
 }
 
 func TestUpdate_InvalidQuery_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	store := New(nil)
 	require.Error(t, store.Update(context.Background(), ignore.Rule{
@@ -564,7 +552,6 @@ func TestUpdate_InvalidQuery_ReturnsError(t *testing.T) {
 }
 
 func TestDelete_ExistingRule_RuleIsDeleted(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -606,7 +593,6 @@ func TestDelete_ExistingRule_RuleIsDeleted(t *testing.T) {
 }
 
 func TestDelete_MissingID_ErrorReturnedAndNothingIsDeleted(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -632,7 +618,6 @@ func TestDelete_MissingID_ErrorReturnedAndNothingIsDeleted(t *testing.T) {
 }
 
 func TestDelete_NoRulesRemain_NoTracesAreIgnored(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -658,7 +643,6 @@ func TestDelete_NoRulesRemain_NoTracesAreIgnored(t *testing.T) {
 }
 
 func TestDelete_RuleAffectingNothingDeleted_RemainingRuleStillApplies(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -682,7 +666,6 @@ func TestDelete_RuleAffectingNothingDeleted_RemainingRuleStillApplies(t *testing
 }
 
 func TestDelete_RuleAffectingSomethingDeleted_RemainingRuleStillApplies(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -706,7 +689,6 @@ func TestDelete_RuleAffectingSomethingDeleted_RemainingRuleStillApplies(t *testi
 }
 
 func TestList_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)

@@ -25,7 +25,6 @@ go_test(
     embed = [":gcsuploader"],
     deps = [
         "//go/exec",
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

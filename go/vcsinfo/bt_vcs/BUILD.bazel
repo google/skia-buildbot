@@ -24,7 +24,6 @@ go_test(
         "//go/gitstore/bt_gitstore/testutils",
         "//go/gitstore/mocks",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "//go/vcsinfo",
         "//go/vcsinfo/testutils",

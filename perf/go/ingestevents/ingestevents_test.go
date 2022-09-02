@@ -5,11 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCreatePubSubBody(t *testing.T) {
-	unittest.SmallTest(t)
 	tests := []struct {
 		name string
 		args *IngestEvent

@@ -8,7 +8,6 @@ import (
 	"github.com/googleapis/gax-go/v2"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/api/iterator"
 	"google.golang.org/genproto/googleapis/api/monitoredres"
 	monitoringpb "google.golang.org/genproto/googleapis/monitoring/v3"
@@ -61,7 +60,6 @@ func makeTimeSeries(labels map[string]string, points []int64) *monitoringpb.Time
 }
 
 func TestIngestTimeSeries(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// Set up mocks.
 	ctx := context.Background()

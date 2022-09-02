@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func makeChangeInfo() *ChangeInfo {
@@ -14,7 +13,6 @@ func makeChangeInfo() *ChangeInfo {
 }
 
 func testConfig(t *testing.T, cfg *Config) {
-	unittest.SmallTest(t)
 
 	testEmpty(t, cfg)
 	testCqInProgress(t, cfg)

@@ -11,12 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 func TestBuild(t *testing.T) {
-	unittest.MediumTest(t)
 	// Strip our PATH so we find our version of `docker` which is in the
 	// testdata directory. Then add `/bin` to the PATH since we are running a
 	// Bash shell.
@@ -251,7 +249,6 @@ func TestBuild(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mockRun := &exec.CommandCollector{}
@@ -272,7 +269,6 @@ func TestLogin(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mockRun := &exec.CommandCollector{}
@@ -291,7 +287,6 @@ func TestRun(t *testing.T) {
 }
 
 func TestPull(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mockRun := &exec.CommandCollector{}
@@ -311,7 +306,6 @@ func TestPull(t *testing.T) {
 }
 
 func TestPush(t *testing.T) {
-	unittest.SmallTest(t)
 
 	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mockRun := &exec.CommandCollector{}

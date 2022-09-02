@@ -5,11 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetHourlyDirs_LargeTimeSpan_ReturnsSortedList(t *testing.T) {
-	unittest.SmallTest(t)
 	startTS := time.Date(1972, time.November, 29, 13, 45, 20, 67, time.UTC)
 	endTS := time.Date(1982, time.February, 2, 3, 45, 20, 67, time.UTC)
 	folders := GetHourlyDirs("prefix", startTS, endTS)
@@ -21,7 +19,6 @@ func TestGetHourlyDirs_LargeTimeSpan_ReturnsSortedList(t *testing.T) {
 }
 
 func TestGetHourlyDirs_ExactlyOnTheHour_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	startTS := time.Date(1985, time.November, 20, 12, 00, 00, 00, time.UTC)
 	endTS := time.Date(1985, time.November, 20, 15, 00, 00, 00, time.UTC)
 	folders := GetHourlyDirs("prefix", startTS, endTS)
@@ -31,7 +28,6 @@ func TestGetHourlyDirs_ExactlyOnTheHour_Success(t *testing.T) {
 }
 
 func TestGetHourlyDirs_LessThanOneHourApart_ReturnsOneFolder(t *testing.T) {
-	unittest.SmallTest(t)
 	// Test boundaries within an hour.
 	startTS := time.Date(1985, time.November, 20, 13, 00, 00, 00, time.UTC)
 	endTS := time.Date(1985, time.November, 20, 13, 01, 00, 00, time.UTC)
@@ -40,7 +36,6 @@ func TestGetHourlyDirs_LessThanOneHourApart_ReturnsOneFolder(t *testing.T) {
 }
 
 func TestGetHourlyDirs_StartAfterEnd_ReturnsNothing(t *testing.T) {
-	unittest.SmallTest(t)
 	startTS := time.Date(2014, time.November, 20, 13, 00, 00, 00, time.UTC)
 	endTS := time.Date(1985, time.November, 20, 13, 01, 00, 00, time.UTC)
 	folders := GetHourlyDirs("prefix", startTS, endTS)
@@ -48,7 +43,6 @@ func TestGetHourlyDirs_StartAfterEnd_ReturnsNothing(t *testing.T) {
 }
 
 func TestGetHourlyDirs_PrefixEmpty_ReturnValueDoesNotStartWithSlash(t *testing.T) {
-	unittest.SmallTest(t)
 	startTS := time.Date(2022, time.May, 31, 13, 01, 00, 00, time.UTC)
 	endTS := time.Date(2022, time.June, 1, 4, 01, 00, 00, time.UTC)
 	folders := GetHourlyDirs("", startTS, endTS)

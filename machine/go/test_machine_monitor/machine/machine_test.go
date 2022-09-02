@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/noop"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/change/source/mocks"
 	sinkMocks "go.skia.org/infra/machine/go/machine/event/sink/mocks"
@@ -76,7 +75,6 @@ GOOGLE_RELEASE=13729.56.0`
 )
 
 func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -97,7 +95,6 @@ func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
 }
 
 func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne",
 	)
@@ -108,7 +105,6 @@ func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t
 }
 
 func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -128,7 +124,6 @@ func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T)
 }
 
 func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
@@ -160,7 +155,6 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_ExitCodeOne", // pretend LSBRelease failed
@@ -172,7 +166,6 @@ func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(
 }
 
 func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{ssh: ssh.ExeImpl{}}
@@ -181,7 +174,6 @@ func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // pretend uptime fails
 	)
@@ -192,7 +184,6 @@ func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS",
 	)
@@ -203,7 +194,6 @@ func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T
 }
 
 func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // No Android device
 		"Test_FakeExe_ExitCodeOne", // No iOS device
@@ -234,7 +224,6 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 }
 
 func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -278,7 +267,6 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 // Just make sure it can get into tryInterrogatingIOSDevice(), and test success while we're at it.
 // Tests that call tryInterrogatingIOSDevice() directly cover the other cases.
 func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
@@ -319,7 +307,6 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 }
 
 func TestTryInterrogatingIOSDevice_OSVersionAndBatteryFail_StillSucceeds(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_ExitCodeOne", // OS version check goes kaboom.
@@ -336,7 +323,6 @@ func TestTryInterrogatingIOSDevice_OSVersionAndBatteryFail_StillSucceeds(t *test
 }
 
 func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // Device-type check fails.
 	)
@@ -346,7 +332,6 @@ func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t 
 }
 
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
@@ -398,7 +383,6 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 }
 
 func TestRebootDevice_AndroidDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbReboot_Success",
@@ -418,7 +402,6 @@ func TestRebootDevice_AndroidDeviceAttached_Success(t *testing.T) {
 }
 
 func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
@@ -440,7 +423,6 @@ func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 }
 
 func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
@@ -452,7 +434,6 @@ func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
 }
 
 func TestRebootDevice_IOSDeviceAttached_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := executil.FakeTestsContext("Test_FakeExe_IDeviceDiagnosticsReboot_Success")
 
@@ -470,7 +451,6 @@ func TestRebootDevice_IOSDeviceAttached_Success(t *testing.T) {
 }
 
 func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHReboot_Success",
@@ -488,7 +468,6 @@ func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
 }
 
 func TestRebootDevice_ChromeOSDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne",
@@ -506,7 +485,6 @@ func TestRebootDevice_ChromeOSDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) 
 }
 
 func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
@@ -554,7 +532,6 @@ func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T
 }
 
 func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx := context.Background()
 
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
@@ -598,7 +575,6 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 }
 
 func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -612,7 +588,6 @@ func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbState_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -626,7 +601,6 @@ func Test_FakeExe_AdbState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -640,7 +614,6 @@ func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSys_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -650,7 +623,6 @@ func Test_FakeExe_RawDumpSys_Success(t *testing.T) {
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -663,7 +635,6 @@ func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -677,7 +648,6 @@ func Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -691,7 +661,6 @@ func Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysThermal_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -704,7 +673,6 @@ func Test_FakeExe_RawDumpSysThermal_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -715,7 +683,6 @@ func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -726,7 +693,6 @@ func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -737,7 +703,6 @@ func Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceDiagnosticsReboot_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -746,7 +711,6 @@ func Test_FakeExe_IDeviceDiagnosticsReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -761,7 +725,6 @@ func Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -776,7 +739,6 @@ func Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS(t *testing.T) {
 }
 
 func Test_FakeExe_SSHUptime_ReturnsPlaceholder(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -791,7 +753,6 @@ func Test_FakeExe_SSHUptime_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_ExitCodeOne(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -800,7 +761,6 @@ func Test_FakeExe_ExitCodeOne(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -815,7 +775,6 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbReboot_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -829,7 +788,6 @@ func Test_FakeExe_AdbReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -840,7 +798,6 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -854,7 +811,6 @@ func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
 }
 
 func Test_FakeExe_SSHReboot_Success(t *testing.T) {
-	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
@@ -873,7 +829,6 @@ func Test_FakeExe_SSHReboot_Success(t *testing.T) {
 // 'cb' function will be used to serve all requests. A *url.URL is returned with
 // the scheme and host configured to point at the local HTTP server.
 func setupLocalServerWithCallback(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *http.Client) {
-	unittest.MediumTest(t)
 	t.Helper()
 	called := false
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -953,7 +908,6 @@ func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(
 }
 
 func TestStartDescriptionWatch_ChannelIsClosed_FunctionExits(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 

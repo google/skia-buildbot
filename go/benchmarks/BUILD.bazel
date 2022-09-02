@@ -3,5 +3,4 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_test(
     name = "benchmarks_test",
     srcs = ["runtime_test.go"],
-    deps = ["//go/testutils/unittest"],
 )

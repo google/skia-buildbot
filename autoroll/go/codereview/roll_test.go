@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func makeFakeRoll(t *testing.T, cfg *config.GerritConfig, issueNum int64, from, to string, dryRun bool) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue) {
@@ -85,8 +84,6 @@ Tbr: some-reviewer
 
 func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	t.Skip("skbug.com/12357")
-
-	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -381,7 +378,6 @@ func TestGerritAndroidRoll(t *testing.T) {
 }
 
 func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
-	unittest.SmallTest(t)
 
 	now := time.Now()
 
@@ -577,7 +573,6 @@ func TestUpdateFromGerritChangeInfoChromiumNoCQ(t *testing.T) {
 }
 
 func TestUpdateFromGitHubPullRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	now := time.Now()
 

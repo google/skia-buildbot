@@ -34,7 +34,6 @@ go_test(
     embed = [":powercycle"],
     deps = [
         "//go/executil",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/rpc",
         "@com_github_stretchr_testify//assert",

@@ -13,8 +13,5 @@ go_test(
     name = "types_test",
     srcs = ["types_test.go"],
     embed = [":types"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

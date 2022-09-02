@@ -32,7 +32,6 @@ go_test(
     srcs = ["proberk_manual_test.go"],
     embed = [":proberk_lib"],
     deps = [
-        "//go/testutils/unittest",
         "//proberk/go/types",
         "@com_github_stretchr_testify//assert",
     ],

@@ -56,7 +56,6 @@ go_test(
         "//autoroll/go/revision",
         "//go/metrics2/testutils",
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -27,7 +27,6 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/types",

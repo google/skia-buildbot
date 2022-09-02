@@ -17,11 +17,9 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestUploadHandler_ValidJSONFile_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This hash is derived from the contents of the input file.
 	const expectedUploadName = "c54ac366e2c358cab4e6431cb47d6178/lottie.json"
@@ -62,7 +60,6 @@ func TestUploadHandler_ValidJSONFile_Success(t *testing.T) {
 // from the skia repo's //resources/images folder. One of these is a 3x3 png image, which we
 // make sure is uploaded as a valid PNG file.
 func TestUploadHandler_ValidJSONWithAssetZip_FilesInZipUploaded(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This hash is derived from the contents of the input file.
 	const expectedJSONName = "5f0e05cf5594b23cc98a1a31693a377c/lottie.json"

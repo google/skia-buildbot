@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/serial/mocks"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const invalidPingResponseVal byte = pingResponseVal - 1
@@ -28,7 +27,6 @@ func deviceFromFake(p *fakeSerialPort) DLPTH1C {
 }
 
 func TestOpen_InvalidPortName_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	d, err := NewDLPTH1C("<Invalid Serial Port Name>")
 	assert.Nil(t, d)
@@ -36,7 +34,6 @@ func TestOpen_InvalidPortName_ReturnsError(t *testing.T) {
 }
 
 func TestPing_ValidDeviceResponse_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fsp := (&fakeSerialPort{}).setReadData(pingResponseVal)
 	d := deviceFromFake(fsp)
@@ -45,7 +42,6 @@ func TestPing_ValidDeviceResponse_Success(t *testing.T) {
 }
 
 func TestPing_InvalidDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fsp := (&fakeSerialPort{}).setReadData(invalidPingResponseVal)
 	d := deviceFromFake(fsp)
@@ -54,7 +50,6 @@ func TestPing_InvalidDeviceResponse_ReturnsError(t *testing.T) {
 }
 
 func TestConfirmConnection_ValidPingResponse_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, maxPings int) {
 		t.Run(name, func(t *testing.T) {
@@ -70,7 +65,6 @@ func TestConfirmConnection_ValidPingResponse_Success(t *testing.T) {
 }
 
 func TestConfirmConnection_InvalidMaxPingCount_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	p := mocks.NewPort(t)
 	d := deviceFromMock(p)
 	assert.Error(t, d.ConfirmConnection(-1), "negative max pings")
@@ -78,7 +72,6 @@ func TestConfirmConnection_InvalidMaxPingCount_ReturnsError(t *testing.T) {
 }
 
 func TestConfirmConnection_InvalidPingResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, maxPings int) {
 		t.Run(name, func(t *testing.T) {
@@ -94,7 +87,6 @@ func TestConfirmConnection_InvalidPingResponse_ReturnsError(t *testing.T) {
 }
 
 func TestGetTemperature_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedTemp Temperature) {
 		t.Run(name, func(t *testing.T) {
@@ -113,7 +105,6 @@ func TestGetTemperature_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetHumidity_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedHumidity Humidity) {
 		t.Run(name, func(t *testing.T) {
@@ -132,7 +123,6 @@ func TestGetHumidity_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetHumidity_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))
@@ -145,7 +135,6 @@ func TestGetHumidity_NoDeviceResponse_ReturnsError(t *testing.T) {
 }
 
 func TestGetPressure_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))
@@ -158,7 +147,6 @@ func TestGetPressure_NoDeviceResponse_ReturnsError(t *testing.T) {
 }
 
 func TestGetPressure_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedPressure Pressure) {
 		t.Run(name, func(t *testing.T) {
@@ -178,7 +166,6 @@ func TestGetPressure_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetTilt_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedTilt Tilt) {
 		t.Run(name, func(t *testing.T) {
@@ -199,7 +186,6 @@ func TestGetTilt_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetTilt_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))
@@ -213,7 +199,6 @@ func TestGetTilt_NoDeviceResponse_ReturnsError(t *testing.T) {
 
 // The private readFrequencies() function is used by several public functions.
 func TestReadFrequencies_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedFrequencies Frequencies) {
 		t.Run(name, func(t *testing.T) {
@@ -268,7 +253,6 @@ func TestReadFrequencies_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestReadFrequencies_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))
@@ -286,7 +270,6 @@ func TestReadFrequencies_NoDeviceResponse_ReturnsError(t *testing.T) {
 }
 
 func TestGetVibrationX_CorrectCommandSent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This function uses the common readFrequencies() function which
 	// is tested elsewhere. Only verify the correct command is being
@@ -300,7 +283,6 @@ func TestGetVibrationX_CorrectCommandSent(t *testing.T) {
 }
 
 func TestGetVibrationY_CorrectCommandSent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This function uses the common readFrequencies() function which
 	// is tested elsewhere. Only verify the correct command is being
@@ -313,7 +295,6 @@ func TestGetVibrationY_CorrectCommandSent(t *testing.T) {
 }
 
 func TestGetVibrationZ_CorrectCommandSent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This function uses the common readFrequencies() function which
 	// is tested elsewhere. Only verify the correct command is being
@@ -326,7 +307,6 @@ func TestGetVibrationZ_CorrectCommandSent(t *testing.T) {
 }
 
 func TestGetSound_CorrectCommandSent(t *testing.T) {
-	unittest.SmallTest(t)
 
 	// This function uses the common readFrequencies() function which
 	// is tested elsewhere. Only verify the correct command is being
@@ -339,7 +319,6 @@ func TestGetSound_CorrectCommandSent(t *testing.T) {
 }
 
 func TestGetBroadbandSound_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expectedSoundLevel SoundLevel) {
 		t.Run(name, func(t *testing.T) {
@@ -359,7 +338,6 @@ func TestGetBroadbandSound_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetBroadbandSound_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))
@@ -372,7 +350,6 @@ func TestGetBroadbandSound_NoDeviceResponse_ReturnsError(t *testing.T) {
 }
 
 func TestGetLight_ValuesInRange_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(name string, readData []byte, expected LightLevel) {
 		t.Run(name, func(t *testing.T) {
@@ -391,7 +368,6 @@ func TestGetLight_ValuesInRange_Success(t *testing.T) {
 }
 
 func TestGetLight_NoDeviceResponse_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := mocks.NewPort(t)
 	p.On("Read", mock.Anything).Return(0, skerr.Fmt("expected error"))

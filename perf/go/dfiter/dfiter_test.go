@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -87,7 +86,6 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 
@@ -118,7 +116,6 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 
@@ -159,7 +156,6 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 
@@ -180,7 +176,6 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 
@@ -205,7 +200,6 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 
@@ -226,7 +220,6 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
 	defer cleanup()
 

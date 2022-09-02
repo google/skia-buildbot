@@ -6,12 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 )
 
 func TestWatch_StartWatchBeforeMachineExists(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx, cfg := setupForFlakyTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -39,7 +37,6 @@ func TestWatch_StartWatchBeforeMachineExists(t *testing.T) {
 }
 
 func TestWatchForPowerCycle_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -83,7 +80,6 @@ func TestWatchForPowerCycle_Success(t *testing.T) {
 }
 
 func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
@@ -149,7 +145,6 @@ func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 }
 
 func TestWatchForPowerCycle_IsCancellable(t *testing.T) {
-	unittest.ManualTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)

@@ -19,7 +19,6 @@ go_test(
     embed = [":query"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
 )

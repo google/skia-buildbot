@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -17,7 +16,6 @@ const (
 )
 
 func TestNewConstNameProvider(t *testing.T) {
-	unittest.SmallTest(t)
 
 	name, err := NewConstNameProvider(mySubscriptionName).SubName()
 	assert.NoError(t, err)
@@ -25,7 +23,6 @@ func TestNewConstNameProvider(t *testing.T) {
 }
 
 func TestNewRoundRobinNameProvider_LocalIsTrue_SubNameUsesHostName(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rand.Seed(time.Now().Unix())
 	topicName := "events"
@@ -38,7 +35,6 @@ func TestNewRoundRobinNameProvider_LocalIsTrue_SubNameUsesHostName(t *testing.T)
 }
 
 func TestNewRoundRobinNameProvider_LocalIsFalse_SubNameUsesSuffix(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rand.Seed(time.Now().Unix())
 	topicName := "events"
@@ -49,7 +45,6 @@ func TestNewRoundRobinNameProvider_LocalIsFalse_SubNameUsesSuffix(t *testing.T) 
 }
 
 func TestNewBroadcastNameProvider_LocalIsTrue_SubNameDoesNotUseSuffix(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rand.Seed(time.Now().Unix())
 	topicName := "events"
@@ -62,7 +57,6 @@ func TestNewBroadcastNameProvider_LocalIsTrue_SubNameDoesNotUseSuffix(t *testing
 }
 
 func TestNewBroadcastNameProvider_LocalIsFalse_SubNameUsesSuffix(t *testing.T) {
-	unittest.SmallTest(t)
 
 	rand.Seed(time.Now().Unix())
 	topicName := "events"

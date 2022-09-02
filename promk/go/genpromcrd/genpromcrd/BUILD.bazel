@@ -27,7 +27,6 @@ go_test(
     embed = [":genpromcrd"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_otiai10_copy//:copy",
         "@com_github_stretchr_testify//require",
     ],

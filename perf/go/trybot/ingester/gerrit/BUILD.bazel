@@ -23,7 +23,6 @@ go_test(
     embed = [":gerrit"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/file",
         "//perf/go/ingest/parser",

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func testTickMarks(t *testing.T, ts []int64, expected []*Tick) {
@@ -24,7 +22,6 @@ func testTickMarks(t *testing.T, ts []int64, expected []*Tick) {
 }
 
 func TestTickMarks(t *testing.T) {
-	unittest.SmallTest(t)
 	// Test Months.
 	ts := []int64{
 		time.Date(2014, 6, 1, 0, 0, 0, 0, time.UTC).Unix(),
@@ -200,7 +197,6 @@ func TestTickMarks(t *testing.T) {
 }
 
 func TestParseDuration(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		s      string
 		d      time.Duration
@@ -275,7 +271,6 @@ func TestParseDuration(t *testing.T) {
 }
 
 func TestDuration(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		expected string
 		value    time.Duration

@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestVendorAndBrand_StopsAfterExhaustingAllLines(t *testing.T) {
-	unittest.SmallTest(t)
 	_, _, err := VendorAndBrand(strings.NewReader(`processor       : 0
 vendor_id       : GenuineIntel
 `))
@@ -19,7 +17,6 @@ vendor_id       : GenuineIntel
 }
 
 func TestVendorAndBrand_StopsAfterBlankLine(t *testing.T) {
-	unittest.SmallTest(t)
 	vendor, _, err := VendorAndBrand(strings.NewReader(`processor       : 0
 vendor_id       : GenuineIntel
 
@@ -31,7 +28,6 @@ vendor_id: SomeOtherCompany
 }
 
 func TestVendorAndBrand_SkipsLinesWithoutColonsAndToleratesColonsInValues(t *testing.T) {
-	unittest.SmallTest(t)
 	vendor, _, err := VendorAndBrand(strings.NewReader(`vendor_id: Vendor: The Next Generation
 vendor_id
 `))
@@ -42,7 +38,6 @@ vendor_id
 
 func TestVendorAndBrand_HardwareTrimmingAndBrandStringFallbacks(t *testing.T) {
 	// Also test well-formed keys with empty values while we're at it.
-	unittest.SmallTest(t)
 	vendor, brandString, err := VendorAndBrand(strings.NewReader(`wellFormedKeyWithEmptyValue:
 Hardware       : Toaster (Flattened Device Tree)
 `))
@@ -52,7 +47,6 @@ Hardware       : Toaster (Flattened Device Tree)
 }
 
 func TestVendorAndBrand_ReturnsBrandStringWhenVendorIDIsFound(t *testing.T) {
-	unittest.SmallTest(t)
 	vendor, brandString, err := VendorAndBrand(strings.NewReader(`vendor_id       : GenuineIntel
 model name      : Intel(R) Pentium(R) CPU  N3700  @ 1.60GHz
 `))
@@ -62,7 +56,6 @@ model name      : Intel(R) Pentium(R) CPU  N3700  @ 1.60GHz
 }
 
 func TestOSVersions_CapitalizesPlatform(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, []string{"Linux", "Greeb", "Greeb-4", "Greeb-4.3"}, OSVersions("greeb", "4.3"))
 }
 
@@ -76,7 +69,6 @@ func version456(context.Context) string {
 
 func TestGPUs_MultipleGPUsDetectedAndNonGPUDevicesSkipped(t *testing.T) {
 	// Also tests full-length realistic lspci output.
-	unittest.SmallTest(t)
 	gpus, err := GPUs(
 		context.Background(),
 		`00:00.0 "Host bridge [0600]" "Intel Corporation [8086]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Series SoC Transaction Register [2280]" -r21 "Intel Corporation [8086]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Series SoC Transaction Register [2060]"
@@ -93,7 +85,6 @@ func TestGPUs_MultipleGPUsDetectedAndNonGPUDevicesSkipped(t *testing.T) {
 
 func TestGPUs_GPUHasBadVendorFormat_GetsSkipped(t *testing.T) {
 	// This also tests the case in which no GPUs are returned.
-	unittest.SmallTest(t)
 	gpus, err := GPUs(
 		context.Background(),
 		`00:02.0 "VGA compatible controller [0300]" "Karnov [No ID Here]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Integrated Graphics Controller [22b1]"
@@ -106,7 +97,6 @@ func TestGPUs_GPUHasBadVendorFormat_GetsSkipped(t *testing.T) {
 }
 
 func TestGPUs_NonIntelOrNvidiaVendor_OmitsVersion(t *testing.T) {
-	unittest.SmallTest(t)
 	gpus, err := GPUs(
 		context.Background(),
 		`00:02.0 "VGA compatible controller [0300]" "Schlocko Corporation [1111]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Integrated Graphics Controller [3333]"

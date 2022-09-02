@@ -35,7 +35,6 @@ go_test(
         "//go/paramtools",
         "//go/repo_root",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/diff/mocks",
         "//golden/go/sql",
         "//golden/go/sql/databuilder",

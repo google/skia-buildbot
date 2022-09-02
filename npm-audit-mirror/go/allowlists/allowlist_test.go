@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
@@ -84,7 +83,6 @@ func setupAllowlistHttpClient(t *testing.T, dep1PackageUseNonExactVer, dep2Packa
 }
 
 func TestGetDependencies_StartPackageWithExactVerDeps_ReturnsAllDeps(t *testing.T) {
-	unittest.SmallTest(t)
 	mockHttpClient := setupAllowlistHttpClient(t, false, false)
 
 	// All 3 dependencies should be returned.
@@ -100,7 +98,6 @@ func TestGetDependencies_StartPackageWithExactVerDeps_ReturnsAllDeps(t *testing.
 }
 
 func TestGetDependencies_StartPackageWithNonExactVerDeps_ReturnsNoDeps(t *testing.T) {
-	unittest.SmallTest(t)
 	mockHttpClient := setupAllowlistHttpClient(t, false, false)
 
 	// 0 dependencies should be returned because we cannot find the dependencies
@@ -111,7 +108,6 @@ func TestGetDependencies_StartPackageWithNonExactVerDeps_ReturnsNoDeps(t *testin
 }
 
 func TestGetDependencies_Dep2WithNonExactVer_ReturnsAllDeps(t *testing.T) {
-	unittest.SmallTest(t)
 	mockHttpClient := setupAllowlistHttpClient(t, false, true)
 
 	// All 3 dependencies should be returned because dep2 has no dependencies.
@@ -127,7 +123,6 @@ func TestGetDependencies_Dep2WithNonExactVer_ReturnsAllDeps(t *testing.T) {
 }
 
 func TestGetDependencies_Dep1WithNonExactVer_ReturnsTwoDeps(t *testing.T) {
-	unittest.SmallTest(t)
 	mockHttpClient := setupAllowlistHttpClient(t, true, false)
 
 	// pkg1 uses non-exact versioning so we will not be able to find pkg1_1.

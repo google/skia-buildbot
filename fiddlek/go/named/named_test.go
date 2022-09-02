@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/fiddlek/go/store"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type namedMock struct {
@@ -29,7 +28,6 @@ func (n *namedMock) WriteName(name, hash, user, status string) error {
 }
 
 func TestNamed(t *testing.T) {
-	unittest.SmallTest(t)
 	mock := &namedMock{
 		lookup: map[string]string{
 			"star":      "cbb8dee39e9f1576cd97c2d504db8eee",
@@ -106,7 +104,6 @@ func TestNamed(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	unittest.SmallTest(t)
 	mock := &namedMock{
 		lookup: map[string]string{
 			"star":     "cbb8dee39e9f1576cd97c2d504db8eee",

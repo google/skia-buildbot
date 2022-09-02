@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/cmd/gitilesfollower/mocks"
 	"go.skia.org/infra/golden/go/config"
@@ -23,7 +22,6 @@ import (
 )
 
 func TestUpdateCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -98,7 +96,6 @@ func TestUpdateCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
 }
 
 func TestUpdateCycle_CommitsInDB_IncrementalUpdate(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{GitCommits: []schema.GitCommitRow{{
@@ -195,7 +192,6 @@ func TestUpdateCycle_CommitsInDB_IncrementalUpdate(t *testing.T) {
 }
 
 func TestUpdateCycle_NoNewCommits_NothingChanges(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{GitCommits: []schema.GitCommitRow{{
@@ -262,7 +258,6 @@ func TestUpdateCycle_NoNewCommits_NothingChanges(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -330,7 +325,6 @@ func TestCheckForLandedCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_UpToDate_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{
@@ -368,7 +362,6 @@ func TestCheckForLandedCycle_UpToDate_Success(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_UnparsableCL_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
@@ -436,7 +429,6 @@ func TestCheckForLandedCycle_UnparsableCL_Success(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_CLsWithNoExpectationsLand_MarkedAsLanded(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{
@@ -545,7 +537,6 @@ Commit-Queue: User One <user1@google.com>`,
 }
 
 func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := dks.Build()
@@ -692,7 +683,6 @@ func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T
 }
 
 func TestCheckForLandedCycle_ExtractsCLFromSubject_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{
@@ -787,7 +777,6 @@ func TestCheckForLandedCycle_ExtractsCLFromSubject_Success(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_LegacyMode_StatusNotChanged(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{
@@ -883,7 +872,6 @@ func TestCheckForLandedCycle_LegacyMode_StatusNotChanged(t *testing.T) {
 }
 
 func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := dks.Build()

@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/perf-tool/application/mocks"
 )
@@ -34,7 +33,6 @@ func createInstanceConfigFile(t *testing.T) string {
 }
 
 func TestActualMain_ConfigCreatePubSubTopics_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	app := &mocks.Application{}
 	app.On("ConfigCreatePubSubTopics", mock.AnythingOfType("*config.InstanceConfig")).Return(nil)
 

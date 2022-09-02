@@ -15,7 +15,6 @@ import (
 	bb_mocks "go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 	"go.skia.org/infra/skcq/go/config"
 	"go.skia.org/infra/skcq/go/footers"
@@ -28,7 +27,6 @@ var (
 )
 
 func TestVerify_NoTryJobs_TasksCfg(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tv := &TryJobsVerifier{
 		tasksCfg: nil,
@@ -57,7 +55,6 @@ func TestVerify_NoTryJobs_TasksCfg(t *testing.T) {
 }
 
 func TestVerify_NoTryJobs_Footer(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tasksCfg := &specs.TasksCfg{
 		CommitQueue: map[string]*specs.CommitQueueJobConfig{
@@ -98,7 +95,6 @@ func setupTest() (*gerrit.ChangeInfo, string, *specs.TasksCfg) {
 }
 
 func TestVerify_AllSuccessfulTryJobs_InSamePatchSet(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -137,7 +133,6 @@ func TestVerify_AllSuccessfulTryJobs_InSamePatchSet(t *testing.T) {
 }
 
 func TestVerify_AllSuccessfulTryJobs_InEquivalentPatchSets(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID5 := int64(5)
@@ -178,7 +173,6 @@ func TestVerify_AllSuccessfulTryJobs_InEquivalentPatchSets(t *testing.T) {
 }
 
 func TestVerify_AllSuccessfulTryJobs_RetriggerFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -231,7 +225,6 @@ func TestVerify_AllSuccessfulTryJobs_RetriggerFooter(t *testing.T) {
 }
 
 func TestVerify_AllSuccessfulTryJobs_RetriggerFooter_Internal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -285,7 +278,6 @@ func TestVerify_AllSuccessfulTryJobs_RetriggerFooter_Internal(t *testing.T) {
 }
 
 func TestVerify_IncludeTryjobsFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -360,7 +352,6 @@ func TestVerify_IncludeTryjobsFooter(t *testing.T) {
 }
 
 func TestVerify_FailureTryJob_CurrentCQAttempt_WithinQuota(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -412,7 +403,6 @@ func TestVerify_FailureTryJob_CurrentCQAttempt_WithinQuota(t *testing.T) {
 }
 
 func TestVerify_FailureTwoTryJobs_CurrentCQAttempt_WithinQuota(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -467,7 +457,6 @@ func TestVerify_FailureTwoTryJobs_CurrentCQAttempt_WithinQuota(t *testing.T) {
 }
 
 func TestVerify_FailureThreeTryJobs_CurrentCQAttempt_OutsideQuota(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -521,7 +510,6 @@ func TestVerify_FailureThreeTryJobs_CurrentCQAttempt_OutsideQuota(t *testing.T) 
 }
 
 func TestVerify_FailureTryJob_CurrentCQAttempt_OutsideQuotaWithTwoRetries(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -582,7 +570,6 @@ func TestVerify_FailureTryJob_CurrentCQAttempt_OutsideQuotaWithTwoRetries(t *tes
 }
 
 func TestVerify_FailureTryJob_CurrentCQAttempt_AlreadyRetried(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -629,7 +616,6 @@ func TestVerify_FailureTryJob_CurrentCQAttempt_AlreadyRetried(t *testing.T) {
 }
 
 func TestVerify_FailureTryJob_CurrentCQAttempt_RetryFromDifferentAttempt(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -687,7 +673,6 @@ func TestVerify_FailureTryJob_CurrentCQAttempt_RetryFromDifferentAttempt(t *test
 }
 
 func TestVerify_FailureTryJob_NotCurrentCQAttempt(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -739,7 +724,6 @@ func TestVerify_FailureTryJob_NotCurrentCQAttempt(t *testing.T) {
 }
 
 func TestVerify_ExperimentalTryJob(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -787,7 +771,6 @@ func TestVerify_ExperimentalTryJob(t *testing.T) {
 }
 
 func TestVerify_LocationRegex(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -853,7 +836,6 @@ func TestVerify_LocationRegex(t *testing.T) {
 }
 
 func TestVerify_RunningTryJob(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -892,7 +874,6 @@ func TestVerify_RunningTryJob(t *testing.T) {
 }
 
 func TestVerify_RunningTryJob_Experimental(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	latestPatchsetID := int64(5)
@@ -938,7 +919,6 @@ func TestVerify_RunningTryJob_Experimental(t *testing.T) {
 }
 
 func TestCleanup_NoCancelFooter(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci := &gerrit.ChangeInfo{
 		Issue: 123,
@@ -955,7 +935,6 @@ func TestCleanup_NoCancelFooter(t *testing.T) {
 }
 
 func TestCleanup_CleanupMatchesCurrentPS(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	cleanupPatchsetID := int64(5)
@@ -976,7 +955,6 @@ func TestCleanup_CleanupMatchesCurrentPS(t *testing.T) {
 }
 
 func TestCleanup_NoBuildsToCancel(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	cleanupPatchsetID := int64(5)
@@ -1015,7 +993,6 @@ func TestCleanup_NoBuildsToCancel(t *testing.T) {
 }
 
 func TestCleanup_WithBuildsToCancel(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
 	cleanupPatchsetID := int64(5)

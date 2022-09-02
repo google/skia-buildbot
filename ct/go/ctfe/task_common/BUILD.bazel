@@ -31,8 +31,5 @@ go_test(
     name = "task_common_test",
     srcs = ["task_common_test.go"],
     embed = [":task_common"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

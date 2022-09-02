@@ -6,11 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNormURL(t *testing.T) {
-	unittest.SmallTest(t)
 	httpURL := "https://github.com/skia-dev/textfiles.git"
 	normHTTP, err := NormalizeURL(httpURL)
 	require.NoError(t, err)
@@ -28,7 +26,6 @@ func TestNormURL(t *testing.T) {
 }
 
 func TestSplitTrailers(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(commitMsg string, expectBody, expectTrailers []string) {
 		actualBody, actualTrailers := SplitTrailers(commitMsg)
@@ -67,7 +64,6 @@ Bug: 1234, chromium:5678
 }
 
 func TestJoinTrailers(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(body, trailers []string, expect string) {
 		actual := JoinTrailers(body, trailers)
@@ -97,7 +93,6 @@ Trailer-Key: trailer-value`)
 }
 
 func TestAddTrailer(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(commitMsg, trailer, expect, expectErr string) {
 		actual, err := AddTrailer(commitMsg, trailer)
@@ -142,7 +137,6 @@ Trailer-Key: trailer-value`, "")
 }
 
 func TestGetFootersMap(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		commitMsg      string
@@ -172,7 +166,6 @@ func TestGetFootersMap(t *testing.T) {
 }
 
 func TestGetBoolFooterVal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testFooterName := "test-footer-name"
 	tests := []struct {
@@ -234,7 +227,6 @@ func TestGetBoolFooterVal(t *testing.T) {
 }
 
 func TestGetStringFooterVal(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testFooterName := "test-footer-name"
 	tests := []struct {

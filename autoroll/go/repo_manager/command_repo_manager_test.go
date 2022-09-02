@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -53,8 +52,6 @@ func commandsEqual(a, b *exec.Command) bool {
 }
 
 func TestCommandRepoManager(t *testing.T) {
-	unittest.MediumTest(t) // Uses the filesystem
-
 	const tipRev0 = "tipRev0"
 	const pinnedRev0 = "pinnedRev0"
 

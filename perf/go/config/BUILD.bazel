@@ -21,8 +21,5 @@ go_test(
     srcs = ["config_test.go"],
     data = glob(["testdata/**"]) + ["//perf:configs"],
     embed = [":config"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

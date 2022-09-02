@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,7 +17,6 @@ func msg(id DeployableUnitID) string {
 }
 
 func TestProductionDeployableUnitsOnlyContainsKnownInstancesAndServices(t *testing.T) {
-	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		require.True(t, deployableUnitSet.IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
@@ -27,7 +25,6 @@ func TestProductionDeployableUnitsOnlyContainsKnownInstancesAndServices(t *testi
 }
 
 func TestProductionDeployableUnitsContainsAllKnownInstances(t *testing.T) {
-	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 
 	seen := map[Instance]bool{}
@@ -41,7 +38,6 @@ func TestProductionDeployableUnitsContainsAllKnownInstances(t *testing.T) {
 }
 
 func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
-	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 
 	assertHasService := func(i Instance, s Service) {
@@ -59,7 +55,6 @@ func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
 }
 
 func TestIsPublicInstance(t *testing.T) {
-	unittest.SmallTest(t)
 	require.True(t, isPublicInstance(SkiaPublic))
 	require.False(t, isPublicInstance(Skia))
 }

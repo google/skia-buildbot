@@ -18,8 +18,5 @@ go_test(
     name = "k8s_config_test",
     srcs = ["k8s_config_test.go"],
     embed = [":k8s_config"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

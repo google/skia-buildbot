@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type TestInnerConfig struct {
@@ -32,7 +31,6 @@ type TestConfig struct {
 }
 
 func TestDuration(t *testing.T) {
-	unittest.SmallTest(t)
 	type dummy struct {
 		Dur Duration
 	}
@@ -49,7 +47,6 @@ func TestDuration(t *testing.T) {
 }
 
 func TestParseConfigFile(t *testing.T) {
-	unittest.MediumTest(t)
 	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "TestParseConfigFile.json5")
 	parsed := TestConfig{}
@@ -85,7 +82,6 @@ func TestParseConfigFile(t *testing.T) {
 }
 
 func TestParseConfigFileDoesntExist(t *testing.T) {
-	unittest.MediumTest(t)
 	dir := t.TempDir()
 	configFile := filepath.Join(dir, "nonexistent-file.json5")
 	parsed := TestConfig{}
@@ -95,7 +91,6 @@ func TestParseConfigFileDoesntExist(t *testing.T) {
 }
 
 func TestParseConfigFileInvalid(t *testing.T) {
-	unittest.MediumTest(t)
 	dir := t.TempDir()
 	configFile := filepath.Join(dir, "invalid.json5")
 	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))

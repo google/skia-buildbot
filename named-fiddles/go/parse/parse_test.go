@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const goodSample = `// Copyright 2019 Google LLC.
@@ -161,7 +160,6 @@ void draw(SkCanvas* canvas) {
 }  // END FIDDLE`
 
 func TestParse_ValidSamples_InformationExtracted(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc, err := ParseCpp(goodSample)
 	assert.NoError(t, err)
@@ -191,7 +189,6 @@ func TestParse_ValidSamples_InformationExtracted(t *testing.T) {
 }
 
 func TestParse_AnimatedSample_InformationExtracted(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc, err := ParseCpp(animatedSample)
 	assert.NoError(t, err)
@@ -205,7 +202,6 @@ func TestParse_AnimatedSample_InformationExtracted(t *testing.T) {
 }
 
 func TestParse_SRGBSample_InformationExtracted(t *testing.T) {
-	unittest.SmallTest(t)
 
 	fc, err := ParseCpp(srgbSample)
 	assert.NoError(t, err)
@@ -221,27 +217,23 @@ func TestParse_SRGBSample_InformationExtracted(t *testing.T) {
 }
 
 func TestParse_MissingEndFiddle_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := ParseCpp(missingEndSample)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "END FIDDLE")
 }
 
 func TestParse_FiddleIfDeffedOut_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := ParseCpp(inactiveSample)
 	assert.Equal(t, err, ErrorInactiveExample)
 }
 
 func TestParse_MissingRegFiddle_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := ParseCpp(missingRegSample)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to find any REG_FIDDLE*")
 }
 
 func TestParse_MacroBadWidthParam_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := ParseCpp(badMacro)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "parsing width")

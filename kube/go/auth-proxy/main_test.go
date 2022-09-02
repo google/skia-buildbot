@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/kube/go/auth-proxy/auth/mocks"
 )
 
@@ -33,7 +32,6 @@ func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *httptest
 }
 
 func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		// Note that if the header webAuthHeaderName hadn't been set then the value would be nil.
@@ -52,7 +50,6 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 }
 
 func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
@@ -70,7 +67,6 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 }
 
 func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromRequest(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
 	r.Header.Add(webAuthHeaderName, email) // Try to spoof the header.
@@ -86,7 +82,6 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 }
 
 func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
 	authMock := &mocks.Auth{}
@@ -102,7 +97,6 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 }
 
 func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAndSpoofedEmailIsRemoved(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
@@ -120,7 +114,6 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 }
 
 func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithoutEmailHeader(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
@@ -139,7 +132,6 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 }
 
 func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithEmailHeader(t *testing.T) {
-	unittest.SmallTest(t)
 
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
@@ -158,7 +150,6 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 }
 
 func TestValidateFlags_BothFlagsSpecified_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	*criaGroup = "project-angle-committers"
 	*allowedFrom = "google.com"
 
@@ -166,7 +157,6 @@ func TestValidateFlags_BothFlagsSpecified_ReturnsError(t *testing.T) {
 }
 
 func TestValidateFlags_NeitherFlagIsSpecified_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	*criaGroup = ""
 	*allowedFrom = ""
 
@@ -174,7 +164,6 @@ func TestValidateFlags_NeitherFlagIsSpecified_ReturnsError(t *testing.T) {
 }
 
 func TestValidateFlags_OnlyOneFlagIsSpecified_ReturnsNoError(t *testing.T) {
-	unittest.SmallTest(t)
 	*criaGroup = "project-angle-committers"
 	*allowedFrom = ""
 

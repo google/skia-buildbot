@@ -22,7 +22,6 @@ import (
 )
 
 func TestNewSourceFromConfig_DirSource_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	dir, err := ioutil.TempDir("", "perf-builders")
 	require.NoError(t, err)
@@ -44,7 +43,6 @@ func TestNewSourceFromConfig_DirSource_Success(t *testing.T) {
 }
 
 func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx := context.Background()
 	dir, err := ioutil.TempDir("", "perf-builders")
 	require.NoError(t, err)
@@ -95,7 +93,6 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 }
 
 func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -106,7 +103,6 @@ func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -119,7 +115,6 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 }
 
 func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -130,7 +125,6 @@ func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -143,7 +137,6 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 }
 
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -154,7 +147,6 @@ func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 }
 
 func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -167,7 +159,6 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 }
 
 func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -178,7 +169,6 @@ func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
@@ -191,7 +181,6 @@ func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *t
 }
 
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
-	unittest.LargeTest(t)
 	ctx, _, _, hashes, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 

@@ -12,8 +12,5 @@ go_test(
     name = "prom_test",
     srcs = ["prom_test.go"],
     embed = [":prom"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

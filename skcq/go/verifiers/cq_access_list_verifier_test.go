@@ -8,7 +8,6 @@ import (
 
 	allowed_mocks "go.skia.org/infra/go/allowed/mocks"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skcq/go/types"
 )
 
@@ -47,7 +46,6 @@ func setupCQAccessVerifierTest(t *testing.T, match bool) (*CQAccessListVerifier,
 }
 
 func TestVerify_CQAccessMatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cqAccessVerifier, ci := setupCQAccessVerifierTest(t, true)
 	state, _, err := cqAccessVerifier.Verify(context.Background(), ci, int64(333))
@@ -56,7 +54,6 @@ func TestVerify_CQAccessMatch(t *testing.T) {
 }
 
 func TestVerify_CQAccessDoNotMatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	cqAccessVerifier, ci := setupCQAccessVerifierTest(t, false)
 	state, _, err := cqAccessVerifier.Verify(context.Background(), ci, int64(333))

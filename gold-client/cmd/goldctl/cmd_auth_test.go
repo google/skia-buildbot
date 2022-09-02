@@ -10,12 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAuth_WithGSUtil_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 

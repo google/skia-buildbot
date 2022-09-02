@@ -22,7 +22,6 @@ go_test(
         "//autoroll/go/config",
         "//autoroll/go/revision",
         "//go/depot_tools/deps_parser",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

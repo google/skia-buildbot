@@ -6,14 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
 func TestSQLRegressionStore_CockroachDB(t *testing.T) {
-	unittest.LargeTest(t)
 
 	// Common regressiontest tests.
 	for name, subTest := range regressiontest.SubTests {

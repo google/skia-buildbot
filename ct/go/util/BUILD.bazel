@@ -52,7 +52,6 @@ go_test(
         "//go/git",
         "//go/git/testutils",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

@@ -23,7 +23,6 @@ go_test(
     deps = [
         "//go/buildbucket/mocks",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//golden/go/continuous_integration",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_stretchr_testify//assert",

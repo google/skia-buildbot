@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type backingCache struct {
@@ -33,7 +32,6 @@ func (c *backingCache) Delete(ctx context.Context, key string) error {
 }
 
 func TestAtomicMissCache(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 
@@ -136,7 +134,6 @@ func TestAtomicMissCache(t *testing.T) {
 }
 
 func TestAtomicMissCacheLocking(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	wait := make(chan struct{})
@@ -175,7 +172,6 @@ func cacheLen(c *AtomicMissCache) int {
 }
 
 func TestAtomicMissCacheForEach(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	c := New(nil)

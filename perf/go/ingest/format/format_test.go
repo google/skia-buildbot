@@ -8,42 +8,35 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParse_InvalidJSON(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := Parse(bytes.NewReader([]byte("{")))
 	assert.Error(t, err)
 }
 
 func TestParse_GoodVersion(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := Parse(bytes.NewReader([]byte("{\"version\":1}")))
 	assert.NoError(t, err)
 }
 
 func TestParse_BadVersion(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := Parse(bytes.NewReader([]byte("{\"version\":2}")))
 	assert.Error(t, err)
 }
 
 func TestParse_BadVersionNotNumber(t *testing.T) {
-	unittest.SmallTest(t)
 	_, err := Parse(bytes.NewReader([]byte("{\"version\":\"1\"}")))
 	assert.Error(t, err)
 }
 
 func TestValidate_EmptyObject_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader("{}")
 	_, err := Validate(context.Background(), r)
 	require.Error(t, err)
 }
 
 func TestValidate_VersionOnlyIsCorrect_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(`{"version" : 1}`)
 	schemaViolations, err := Validate(context.Background(), r)
 	require.Error(t, err)
@@ -51,7 +44,6 @@ func TestValidate_VersionOnlyIsCorrect_ReturnsError(t *testing.T) {
 }
 
 func TestValidate_MinimumValidVersion_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(`{
 		"version" : 1,
 		"git_hash": "1234567890",
@@ -63,7 +55,6 @@ func TestValidate_MinimumValidVersion_Success(t *testing.T) {
 }
 
 func TestValidate_ExampleWithData_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	r := strings.NewReader(`{
 		"version": 1,
 		"git_hash": "cd5...663",

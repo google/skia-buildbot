@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/psrefresh/mocks"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -19,7 +18,6 @@ var (
 )
 
 func TestRefresher_TwoTiles_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
@@ -43,7 +41,6 @@ func TestRefresher_TwoTiles_Success(t *testing.T) {
 }
 
 func TestRefresher_GetLatestTileReturnsError_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
@@ -56,7 +53,6 @@ func TestRefresher_GetLatestTileReturnsError_ReturnsError(t *testing.T) {
 }
 
 func TestRefresher_MulitpleTiles_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
@@ -75,7 +71,6 @@ func TestRefresher_MulitpleTiles_Success(t *testing.T) {
 }
 
 func TestRefresher_MulitpleTilesFirstTileOKSecondTileFails_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
@@ -96,7 +91,6 @@ func TestRefresher_MulitpleTilesFirstTileOKSecondTileFails_Success(t *testing.T)
 }
 
 func TestRefresher_FailsFirstTile_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)

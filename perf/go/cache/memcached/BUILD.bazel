@@ -20,7 +20,6 @@ go_test(
     srcs = ["memcached_manual_test.go"],
     embed = [":memcached"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

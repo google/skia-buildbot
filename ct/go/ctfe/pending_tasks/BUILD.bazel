@@ -32,7 +32,6 @@ go_test(
         "//ct/go/ctfe/chromium_perf",
         "//ct/go/ctfe/task_common",
         "//go/ds",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

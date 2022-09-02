@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -28,7 +27,6 @@ var (
 )
 
 func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -149,7 +147,6 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 }
 
 func TestCommentOnCLs_NoPatchsetsNeedComments_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -219,7 +216,6 @@ func TestCommentOnCLs_NoPatchsetsNeedComments_Success(t *testing.T) {
 }
 
 func TestCommentOnCLs_OnePatchsetNeedsComment_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -300,7 +296,6 @@ func TestCommentOnCLs_OnePatchsetNeedsComment_Success(t *testing.T) {
 }
 
 func TestCommentOnCLs_NoCLsInWindow_NothingUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -365,7 +360,6 @@ func TestCommentOnCLs_NoCLsInWindow_NothingUpdated(t *testing.T) {
 }
 
 func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -479,7 +473,6 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 // This tests the case where leaving a comment fails. The whole function should not fail, the DB
 // should not be updated so we can try again later. The error should be logged instead.
 func TestCommentOnCLs_CommentingResultsInError_ErrorLoggedNotReturned(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -553,7 +546,6 @@ func TestCommentOnCLs_CommentingResultsInError_ErrorLoggedNotReturned(t *testing
 // TestCommentOnCLs_CLNotFound_NoError does not return an error when a CL is not found, as this
 // can happen if a CL is made private and we don't want to erroring continuously.
 func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)

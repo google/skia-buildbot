@@ -23,7 +23,6 @@ go_test(
     embed = [":config"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

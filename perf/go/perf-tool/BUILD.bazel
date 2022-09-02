@@ -32,7 +32,6 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":perf-tool_lib"],
     deps = [
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/perf-tool/application/mocks",
         "@com_github_stretchr_testify//mock",

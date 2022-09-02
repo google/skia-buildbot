@@ -18,7 +18,6 @@ go_test(
     srcs = ["client_test.go"],
     embed = [":reconnectingmemcached"],
     deps = [
-        "//go/testutils/unittest",
         "@com_github_bradfitz_gomemcache//memcache",
         "@com_github_stretchr_testify//assert",
     ],

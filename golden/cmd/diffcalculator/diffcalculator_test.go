@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diff/mocks"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -27,7 +26,6 @@ import (
 )
 
 func TestComputeDiffsForPrimaryBranch_WorkAvailable_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 
@@ -78,7 +76,6 @@ func TestComputeDiffsForPrimaryBranch_WorkAvailable_Success(t *testing.T) {
 }
 
 func TestComputeDiffsForPrimaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 
@@ -122,7 +119,6 @@ func TestComputeDiffsForPrimaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T) 
 }
 
 func TestComputeDiffsForPrimaryBranch_DiffComputationFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 
@@ -173,7 +169,6 @@ func TestComputeDiffsForPrimaryBranch_DiffComputationFails_ReturnsError(t *testi
 }
 
 func TestComputeDiffsForSecondaryBranch_WorkAvailable_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	expectedDigests := []types.Digest{dks.DigestE02Pos_CL, dks.DigestE03Unt_CL}
@@ -239,7 +234,6 @@ func TestComputeDiffsForSecondaryBranch_WorkAvailable_Success(t *testing.T) {
 }
 
 func TestComputeDiffsForSecondaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	rowsThatShouldBeUnchanged := []schema.SecondaryBranchDiffCalculationRow{
@@ -295,7 +289,6 @@ func TestComputeDiffsForSecondaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T
 }
 
 func TestComputeDiffsForSecondaryBranch_DiffComputationFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	expectedDigests := []types.Digest{dks.DigestE02Pos_CL, dks.DigestE03Unt_CL}
@@ -361,7 +354,6 @@ func TestComputeDiffsForSecondaryBranch_DiffComputationFails_ReturnsError(t *tes
 }
 
 func TestHighContentionSecondaryBranch_WorkAvailable_Success(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	alphaDigests := []types.Digest{dks.DigestC06Pos_CL}
@@ -448,7 +440,6 @@ func TestHighContentionSecondaryBranch_WorkAvailable_Success(t *testing.T) {
 }
 
 func TestHighContentionSecondaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	rowsThatShouldBeUnchanged := []schema.SecondaryBranchDiffCalculationRow{
@@ -505,7 +496,6 @@ func TestHighContentionSecondaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T)
 }
 
 func TestHighContentionSecondaryBranch_DiffComputationFails_ReturnsError(t *testing.T) {
-	unittest.LargeTest(t)
 
 	fakeNow := ts("2021-02-02T02:30:00Z")
 	alphaDigests := []types.Digest{dks.DigestC06Pos_CL}

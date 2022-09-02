@@ -39,7 +39,6 @@ go_test(
         "//go/metrics2",
         "//go/testutils",
         "//go/testutils/noop",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machine/change/source/mocks",
         "//machine/go/machine/event/sink/mocks",

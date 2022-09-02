@@ -13,8 +13,5 @@ go_test(
     name = "vec32_test",
     srcs = ["vec_test.go"],
     embed = [":vec32"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/switchboard/mocks"
 )
@@ -25,7 +24,6 @@ var (
 )
 
 func TestCleanup_ExitsOnCancelledContext(t *testing.T) {
-	unittest.SmallTest(t)
 	s := &mocks.Switchboard{}
 	c := New(s)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -35,7 +33,6 @@ func TestCleanup_ExitsOnCancelledContext(t *testing.T) {
 }
 
 func TestCleanup_ListMeetingPointsFails_ErrorReflectedInMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &mocks.Switchboard{}
@@ -54,7 +51,6 @@ func TestCleanup_ListMeetingPointsFails_ErrorReflectedInMetrics(t *testing.T) {
 }
 
 func TestCleanup_ClearMeetingPointsFails_ErrorReflectedInMetrics(t *testing.T) {
-	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(now.TimeTravelingContext(mockTime))
 
 	s := &mocks.Switchboard{}

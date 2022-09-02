@@ -29,7 +29,6 @@ go_test(
     embed = [":checks"],
     deps = [
         "//go/mockhttpclient",
-        "//go/testutils/unittest",
         "//npm-audit-mirror/go/config",
         "//npm-audit-mirror/go/types",
         "//npm-audit-mirror/go/types/mocks",

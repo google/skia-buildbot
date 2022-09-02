@@ -12,8 +12,5 @@ go_test(
     name = "parsers_test",
     srcs = ["parsers_test.go"],
     embed = [":parsers"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

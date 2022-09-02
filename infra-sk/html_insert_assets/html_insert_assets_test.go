@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const sampleHTML = `
@@ -199,21 +198,18 @@ const expectedHTMLWithoutNonce = `
 `
 
 func TestInsertAssets_WithNonce_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	actualOutput, err := insertAssets(strings.NewReader(sampleHTML), jsPath, cssPath, nonce)
 	require.NoError(t, err)
 	assert.Equal(t, expectedHTMLWithNonce, actualOutput)
 }
 
 func TestInsertAssets_WithoutNonce_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	actualOutput, err := insertAssets(strings.NewReader(sampleHTML), jsPath, cssPath, "" /* =nonce */)
 	require.NoError(t, err)
 	assert.Equal(t, expectedHTMLWithoutNonce, actualOutput)
 }
 
 func TestInsertAssets_MissingEndHeadTag_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	html := `
 	<html>
 		<head>
@@ -228,7 +224,6 @@ func TestInsertAssets_MissingEndHeadTag_Error(t *testing.T) {
 }
 
 func TestInsertAssets_MalformedEndHeadTag_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	html := `
 	<html>
 		<head>
@@ -244,7 +239,6 @@ func TestInsertAssets_MalformedEndHeadTag_Error(t *testing.T) {
 }
 
 func TestInsertAssets_MissingEndBodyTag_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	html := `
 	<html>
 		<head>
@@ -259,7 +253,6 @@ func TestInsertAssets_MissingEndBodyTag_Error(t *testing.T) {
 }
 
 func TestInsertAssets_MalformedEndBodyTag_Error(t *testing.T) {
-	unittest.SmallTest(t)
 	html := `
 	<html>
 		<head>

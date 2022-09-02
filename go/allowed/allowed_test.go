@@ -2,12 +2,9 @@ package allowed
 
 import (
 	"testing"
-
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAllowed(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		allowed  []string
 		value    string

@@ -24,11 +24,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestProgress_AddMessage_MessageAppearsInJSON(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	p.Message("foo", "bar")
 	var buf bytes.Buffer
@@ -37,7 +35,6 @@ func TestProgress_AddMessage_MessageAppearsInJSON(t *testing.T) {
 }
 
 func TestProgress_AddTwoMessages_MessagesAppearInJSONInTheOrderTheyWereAdded(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	p.Message("foo", "bar")
 	p.Message("fizz", "buzz")
@@ -47,7 +44,6 @@ func TestProgress_AddTwoMessages_MessagesAppearInJSONInTheOrderTheyWereAdded(t *
 }
 
 func TestProgress_UpdateAnExistingMessage_MessageIsUpdatedInJSON(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	p.Message("foo", "bar")
 	p.Message("foo", "buzz")
@@ -67,7 +63,6 @@ type testResults struct {
 }
 
 func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	p.FinishedWithResults(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
@@ -81,7 +76,6 @@ func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T)
 }
 
 func TestProgress_CallError_StatusChangesToError(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	const errorMessage = "My error message"
 	p.Error(errorMessage)
@@ -98,7 +92,6 @@ func TestProgress_CallError_StatusChangesToError(t *testing.T) {
 }
 
 func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	p.Results(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
@@ -112,7 +105,6 @@ func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *te
 }
 
 func TestProgress_CallURL_URLIsSet(t *testing.T) {
-	unittest.SmallTest(t)
 	p := New()
 	const url = "/_/next"
 	p.URL(url)
@@ -125,7 +117,6 @@ func TestProgress_CallURL_URLIsSet(t *testing.T) {
 }
 
 func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
@@ -138,7 +129,6 @@ func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing
 }
 
 func TestProgress_FinishProgressTwice_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -147,7 +137,6 @@ func TestProgress_FinishProgressTwice_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenSetMessage_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -157,7 +146,6 @@ func TestProgress_FinishProgressThenSetMessage_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenCallError_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -167,7 +155,6 @@ func TestProgress_FinishProgressThenCallError_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenSetResults_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -177,7 +164,6 @@ func TestProgress_FinishProgressThenSetResults_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenFinishWithResults_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -187,7 +173,6 @@ func TestProgress_FinishProgressThenFinishWithResults_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenURL_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.Finished()
@@ -197,7 +182,6 @@ func TestProgress_FinishProgressThenURL_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishWithResultsThenFinish_Panics(t *testing.T) {
-	unittest.SmallTest(t)
 
 	p := New()
 	p.FinishedWithResults(nil)

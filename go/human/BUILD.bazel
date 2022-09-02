@@ -13,5 +13,4 @@ go_test(
     name = "human_test",
     srcs = ["human_test.go"],
     embed = [":human"],
-    deps = ["//go/testutils/unittest"],
 )

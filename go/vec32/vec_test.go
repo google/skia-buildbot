@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -29,7 +28,6 @@ func vecNear(a, b []float32) bool {
 }
 
 func TestNew(t *testing.T) {
-	unittest.SmallTest(t)
 	v := New(0)
 	assert.Len(t, v, 0)
 
@@ -44,7 +42,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestNorm(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		In  []float32
 		Out []float32
@@ -83,7 +80,6 @@ func TestNorm(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		In  []float32
 		Out []float32
@@ -119,7 +115,6 @@ func TestFill(t *testing.T) {
 }
 
 func TestFillAtErrors(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Idx   int
@@ -146,7 +141,6 @@ func TestFillAtErrors(t *testing.T) {
 }
 
 func TestDup(t *testing.T) {
-	unittest.SmallTest(t)
 	a := []float32{1, 2, MissingDataSentinel, 0}
 	b := Dup(a)
 	assert.Equal(t, a, b)
@@ -159,7 +153,6 @@ func TestDup(t *testing.T) {
 }
 
 func TestMean_ReturnsZeroIfAllMissing(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, float32(1), Mean([]float32{1, 2, e, 0}))
 	assert.Equal(t, float32(0), Mean([]float32{}))
@@ -169,7 +162,6 @@ func TestMean_ReturnsZeroIfAllMissing(t *testing.T) {
 }
 
 func TestMeanE_ReturnsMissingIfAllMissing(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, float32(1), MeanE([]float32{1, 2, e, 0}))
 	assert.Equal(t, float32(e), MeanE([]float32{}))
@@ -179,7 +171,6 @@ func TestMeanE_ReturnsMissingIfAllMissing(t *testing.T) {
 }
 
 func TestSSE(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Base  float32
@@ -214,7 +205,6 @@ func TestSSE(t *testing.T) {
 }
 
 func TestFillMeanMissing(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -250,7 +240,6 @@ func TestFillMeanMissing(t *testing.T) {
 }
 
 func TestFillStdDev(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -286,7 +275,6 @@ func TestFillStdDev(t *testing.T) {
 }
 
 func TestFillCov(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -322,7 +310,6 @@ func TestFillCov(t *testing.T) {
 }
 
 func TestScaleBy(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice    []float32
 		Scale    float32
@@ -354,7 +341,6 @@ func TestScaleBy(t *testing.T) {
 }
 
 func TestFillStep(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Step  []float32
@@ -414,7 +400,6 @@ func TestFillStep(t *testing.T) {
 }
 
 func TestStdDev(t *testing.T) {
-	unittest.SmallTest(t)
 	type args struct {
 		xs   []float32
 		base float32
@@ -491,7 +476,6 @@ func TestStdDev(t *testing.T) {
 }
 
 func TestTwoSidedStdDev(t *testing.T) {
-	unittest.SmallTest(t)
 	tests := []struct {
 		name         string
 		arr          []float32
@@ -558,19 +542,16 @@ func TestTwoSidedStdDev(t *testing.T) {
 }
 
 func TestRemoveMissingDataSentinel_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, []float32{1, 2}, RemoveMissingDataSentinel([]float32{e, 1, e, 2, e}))
 }
 
 func TestRemoveMissingDataSentinel_Empty_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, []float32{}, RemoveMissingDataSentinel([]float32{}))
 }
 
 func TestStdDevRatio(t *testing.T) {
-	unittest.SmallTest(t)
 
 	tests := []struct {
 		name          string
@@ -657,14 +638,12 @@ func TestStdDevRatio(t *testing.T) {
 }
 
 func TestToFloat64(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, []float64{}, ToFloat64(nil))
 	assert.Equal(t, []float64{}, ToFloat64([]float32{}))
 	assert.Equal(t, []float64{1.0, 2.0}, ToFloat64([]float32{1.0, 2.0}))
 }
 
 func TestIQRR(t *testing.T) {
-	unittest.SmallTest(t)
 	tests := []struct {
 		name     string
 		args     []float32
@@ -710,14 +689,12 @@ func TestIQRR(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(0), Sum(nil))
 	assert.Equal(t, float32(0), Sum([]float32{e}))
 	assert.Equal(t, float32(3), Sum([]float32{e, 1, 2}))
 }
 
 func TestGeo_ReturnsZeroIfAllMissing(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(4), Geo([]float32{2, 8}), "4 = sqrt(2*8)")
 	assert.Equal(t, float32(0), Geo([]float32{-2, -8}), "Return 0 on all ignored.")
 	assert.Equal(t, float32(8), Geo([]float32{-2, 8}), "Ignore negative numbers.")
@@ -726,7 +703,6 @@ func TestGeo_ReturnsZeroIfAllMissing(t *testing.T) {
 }
 
 func TestGeoE_ReturnsMissingIfAllMissing(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(4), GeoE([]float32{2, 8}), "4 = sqrt(2*8)")
 	assert.Equal(t, float32(e), GeoE([]float32{-2, -8}), "Return 0 on all ignored.")
 	assert.Equal(t, float32(8), GeoE([]float32{-2, 8}), "Ignore negative numbers.")
@@ -735,7 +711,6 @@ func TestGeoE_ReturnsMissingIfAllMissing(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(0), Count([]float32{}), "Empty returns 0.")
 	assert.Equal(t, float32(0), Count([]float32{e}), "MissingDataSentinels are ignored")
 	assert.Equal(t, float32(2), Count([]float32{1, 3}), "Counts all non-MissingDataSentinels values")
@@ -743,7 +718,6 @@ func TestCount(t *testing.T) {
 }
 
 func TestMin(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(math.MaxFloat32), Min([]float32{}))
 	assert.Equal(t, float32(math.MaxFloat32), Min([]float32{e}))
 	assert.Equal(t, float32(2), Min([]float32{2}))
@@ -751,7 +725,6 @@ func TestMin(t *testing.T) {
 }
 
 func TestMax(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, float32(-math.MaxFloat32), Max([]float32{}))
 	assert.Equal(t, float32(-math.MaxFloat32), Max([]float32{e}))
 	assert.Equal(t, float32(2), Max([]float32{2}))

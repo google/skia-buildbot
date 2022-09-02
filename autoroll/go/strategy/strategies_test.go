@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStrategyBatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := StrategyBatch()
 
@@ -49,7 +47,6 @@ func TestStrategyBatch(t *testing.T) {
 }
 
 func TestStrategyNBatch(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := StrategyNBatch()
 
@@ -82,7 +79,6 @@ func TestStrategyNBatch(t *testing.T) {
 }
 
 func TestStrategySingle(t *testing.T) {
-	unittest.SmallTest(t)
 
 	s := StrategySingle()
 

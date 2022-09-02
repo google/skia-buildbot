@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestFindGit(t *testing.T) {
-	unittest.SmallTest(t)
 
 	execCount := 0
 	mockRun := exec.CommandCollector{}

@@ -9,11 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSunnyDayGetAlerts(t *testing.T) {
-	unittest.SmallTest(t)
 	mc := &mockhttpclient{}
 	defer mc.AssertExpectations(t)
 	client := New(mc, "alert-manager:9000")
@@ -40,7 +38,6 @@ func TestSunnyDayGetAlerts(t *testing.T) {
 }
 
 func TestSunnyDayGetSileces(t *testing.T) {
-	unittest.SmallTest(t)
 	mc := &mockhttpclient{}
 	defer mc.AssertExpectations(t)
 	client := New(mc, "alert-manager:9000")

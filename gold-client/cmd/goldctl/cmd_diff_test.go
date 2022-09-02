@@ -11,14 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 func TestDiff_LegacyTestParamUsed_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -60,7 +58,6 @@ Digest a05a05a05a05a05a05a05a05a05a05a0 was closest (combined metric of 0.207104
 }
 
 func TestDiff_GroupingParamUsed_Success(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
@@ -102,7 +99,6 @@ Digest a05a05a05a05a05a05a05a05a05a05a0 was closest (combined metric of 0.207104
 }
 
 func TestDiff_GroupingAndTestOmitted_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)

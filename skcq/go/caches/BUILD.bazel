@@ -20,7 +20,6 @@ go_test(
     embed = [":caches"],
     deps = [
         "//go/now",
-        "//go/testutils/unittest",
         "//skcq/go/db",
         "//skcq/go/db/mocks",
         "//skcq/go/types",

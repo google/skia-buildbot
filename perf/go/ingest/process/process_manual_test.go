@@ -61,7 +61,6 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 }
 
 func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
-	unittest.ManualTest(t)
 
 	_, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
 	defer cleanup()
@@ -99,7 +98,6 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 }
 
 func TestSendPubSubEvent_Success(t *testing.T) {
-	unittest.ManualTest(t)
 	client, instanceConfig := setupPubSubClient(t)
 	ctx := context.Background()
 

@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vfs"
 	"golang.org/x/oauth2/google"
 )
@@ -19,12 +18,10 @@ import (
 // and move the relevant parts here.
 
 func TestCIPDChild_VCS(t *testing.T) {
-	unittest.LargeTest(t)
 	// This is a manual test because it downloads a real CIPD package from
 	// the production server. A mock isn't going to do us any good, since we
 	// want to ensure that we actually get the correct package version
 	// installed to the correct location.
-	unittest.ManualTest(t)
 
 	// Configuration.
 	const pkgName = "skia/bots/svg"

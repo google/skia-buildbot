@@ -10,11 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetEmail_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	testUserName := "superman"
 	testUserEmail := "superman@krypton.com"
 
@@ -42,7 +40,6 @@ func TestGetEmail_Success(t *testing.T) {
 }
 
 func TestSetOwnerAndAddComment_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	testInstance := "test-project"
 	testOwner := "superman@krypton.com"
 	testComment := "test comment"
@@ -67,7 +64,6 @@ func TestSetOwnerAndAddComment_Success(t *testing.T) {
 }
 
 func TestGetIssue_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	testIssueName := "projects/test-project/issues/10000"
 	testTitle := "Test Title."
 
@@ -97,7 +93,6 @@ func TestGetIssue_Success(t *testing.T) {
 }
 
 func TestMakeIssue_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	instance := skiaMonorailInstance
 	testOwner := "superman@krypton.com"
 	testSummary := "Test Issue Summary"
@@ -144,7 +139,6 @@ func TestMakeIssue_Success(t *testing.T) {
 }
 
 func TestSearchIssuesWithPagination_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	testInstance := "test-project"
 	testQuery := "test-query"
 	testIssue1 := "123"

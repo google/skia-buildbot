@@ -6,11 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestInfraConvert(t *testing.T) {
-	unittest.SmallTest(t)
 	infra := []string{
 		"user:*@google.com",
 		"user:test@example.com",
@@ -55,7 +53,6 @@ const NESTED_GROUP_JSON = `{
 }`
 
 func TestWithClientMock(t *testing.T) {
-	unittest.SmallTest(t)
 	m := mockhttpclient.NewURLMock()
 	m.Mock(fmt.Sprintf(GROUP_URL_TEMPLATE, "test"), mockhttpclient.MockGetDialogue([]byte(JSON)))
 	m.Mock(fmt.Sprintf(GROUP_URL_TEMPLATE, "nested_group"), mockhttpclient.MockGetDialogue([]byte(NESTED_GROUP_JSON)))

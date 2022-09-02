@@ -12,8 +12,5 @@ go_test(
     name = "workerpool_test",
     srcs = ["workerpool_test.go"],
     embed = [":workerpool"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

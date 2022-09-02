@@ -28,7 +28,6 @@ go_test(
         "//go/gcs",
         "//go/gcs/test_gcsclient",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_storage//:storage",

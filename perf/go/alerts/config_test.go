@@ -6,11 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestConfig(t *testing.T) {
-	unittest.SmallTest(t)
 
 	a := NewConfig()
 	assert.Equal(t, "-1", a.IDAsString)
@@ -19,7 +17,6 @@ func TestConfig(t *testing.T) {
 }
 
 func TestStringToID(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, int64(-1), IDAsStringToInt("foo"))
 	assert.Equal(t, int64(12), IDAsStringToInt("12"))
@@ -28,7 +25,6 @@ func TestStringToID(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	unittest.SmallTest(t)
 	a := NewConfig()
 	assert.NoError(t, a.Validate())
 
@@ -57,7 +53,6 @@ func TestValidate(t *testing.T) {
 }
 
 func TestGroupedBy(t *testing.T) {
-	unittest.SmallTest(t)
 	testCases := []struct {
 		value    string
 		expected []string
@@ -97,7 +92,6 @@ func TestGroupedBy(t *testing.T) {
 }
 
 func TestGroupCombinations(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := paramtools.ParamSet{
 		"model":  []string{"nexus4", "nexus6", "nexus6"},
 		"config": []string{"565", "8888", "nvpr"},
@@ -127,7 +121,6 @@ func TestGroupCombinations(t *testing.T) {
 }
 
 func TestQueriesFromParamset(t *testing.T) {
-	unittest.SmallTest(t)
 	ps := paramtools.ParamSet{
 		"model":  []string{"nexus4", "nexus6", "nexus6"},
 		"config": []string{"565", "8888", "nvpr"},
@@ -167,34 +160,29 @@ func TestQueriesFromParamset(t *testing.T) {
 }
 
 func TestConfigStateToInt_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	assert.Equal(t, 0, ConfigStateToInt(ACTIVE))
 	assert.Equal(t, 1, ConfigStateToInt(DELETED))
 	assert.Equal(t, 0, ConfigStateToInt("INVALID STATE"), "Invalid ConfigState value.")
 }
 
 func TestSetIDFromInt64_GoodAlertID_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	cfg := NewConfig()
 	cfg.SetIDFromInt64(12)
 	require.Equal(t, "12", cfg.IDAsString)
 }
 
 func TestSetIDFromInt64_BadAlertID_Success(t *testing.T) {
-	unittest.SmallTest(t)
 	cfg := NewConfig()
 	cfg.SetIDFromInt64(BadAlertID)
 	require.Equal(t, BadAlertIDAsAsString, cfg.IDAsString)
 }
 
 func TestIDAsStringToInt_ValidID_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, int64(12), IDAsStringToInt("12"))
 }
 
 func TestIDAsStringToInt_InvalidID_Success(t *testing.T) {
-	unittest.SmallTest(t)
 
 	assert.Equal(t, BadAlertID, IDAsStringToInt("not-a-number"))
 }

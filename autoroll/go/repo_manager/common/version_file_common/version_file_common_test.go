@@ -9,11 +9,9 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetPinnedRev(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type tc struct {
 		name                string
@@ -54,7 +52,6 @@ func TestGetPinnedRev(t *testing.T) {
 }
 
 func TestSetPinnedRev(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type tc struct {
 		name                string
@@ -101,7 +98,6 @@ func TestSetPinnedRev(t *testing.T) {
 }
 
 func TestUpdateSingleDep(t *testing.T) {
-	unittest.SmallTest(t)
 
 	type tc struct {
 		name                string
@@ -159,7 +155,6 @@ func TestUpdateSingleDep(t *testing.T) {
 }
 
 func TestUpdateDep(t *testing.T) {
-	unittest.SmallTest(t)
 
 	oldContents := map[string]string{
 		deps_parser.DepsFileName: `deps = {

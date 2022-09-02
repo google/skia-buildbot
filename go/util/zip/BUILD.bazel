@@ -14,7 +14,6 @@ go_test(
     embed = [":zip"],
     deps = [
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],
 )

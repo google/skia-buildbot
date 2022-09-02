@@ -19,7 +19,6 @@ go_test(
     embed = [":publicparams"],
     deps = [
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

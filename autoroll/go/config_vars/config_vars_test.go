@@ -11,11 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestVarsValidate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(fn func(*Vars), expectErr string) {
 		v := FakeVars()
@@ -44,7 +42,6 @@ func TestVarsValidate(t *testing.T) {
 }
 
 func TestBranchesValidate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	test := func(fn func(*Branches), expectErr string) {
 		b := FakeVars().Branches
@@ -73,7 +70,6 @@ func TestBranchesValidate(t *testing.T) {
 }
 
 func TestTemplate(t *testing.T) {
-	unittest.SmallTest(t)
 
 	raw := "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}"
 	tmpl, err := NewTemplate(raw)
@@ -118,7 +114,6 @@ func TestTemplate(t *testing.T) {
 }
 
 func TestRegistry(t *testing.T) {
-	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	v := FakeVars()

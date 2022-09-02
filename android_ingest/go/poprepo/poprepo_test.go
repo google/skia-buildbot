@@ -10,11 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAdd(t *testing.T) {
-	unittest.MediumTest(t)
 
 	ctx := context.Background()
 

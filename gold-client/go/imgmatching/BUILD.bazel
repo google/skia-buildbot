@@ -22,7 +22,6 @@ go_test(
     srcs = ["factory_test.go"],
     embed = [":imgmatching"],
     deps = [
-        "//go/testutils/unittest",
         "//gold-client/go/imgmatching/fuzzy",
         "//gold-client/go/imgmatching/sobel",
         "@com_github_stretchr_testify//assert",

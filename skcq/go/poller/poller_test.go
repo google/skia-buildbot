@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 	caches_mocks "go.skia.org/infra/skcq/go/caches/mocks"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 	"go.skia.org/infra/skcq/go/config"
@@ -82,7 +81,6 @@ func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, e
 }
 
 func TestProcessCL_DryRun_FailureOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -93,7 +91,6 @@ func TestProcessCL_DryRun_FailureOverallState(t *testing.T) {
 }
 
 func TestProcessCL_DryRun_SuccessOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -103,7 +100,6 @@ func TestProcessCL_DryRun_SuccessOverallState(t *testing.T) {
 }
 
 func TestProcessCL_DryRun_WaitingOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -114,7 +110,6 @@ func TestProcessCL_DryRun_WaitingOverallState(t *testing.T) {
 }
 
 func TestProcessCL_CQRun_FailureOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -125,7 +120,6 @@ func TestProcessCL_CQRun_FailureOverallState(t *testing.T) {
 }
 
 func TestProcessCL_CQRun_WaitingOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -135,7 +129,6 @@ func TestProcessCL_CQRun_WaitingOverallState(t *testing.T) {
 }
 
 func TestProcessCL_CQRun_SuccessOverallState(t *testing.T) {
-	unittest.SmallTest(t)
 
 	testVerifierStatuses := []*types.VerifierStatus{
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
@@ -145,7 +138,6 @@ func TestProcessCL_CQRun_SuccessOverallState(t *testing.T) {
 }
 
 func TestCleanupCL(t *testing.T) {
-	unittest.SmallTest(t)
 
 	changeID := int64(123)
 	equivalentPatchsetID := int64(5)
