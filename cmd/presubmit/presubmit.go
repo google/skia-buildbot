@@ -85,13 +85,16 @@ func main() {
 		logf(ctx, "Changed files:\n%v\n", changedFiles)
 		logf(ctx, "Deleted files:\n%s\n", deletedFiles)
 	}
-	ok := checkLongLines(ctx, changedFiles)
+	ok := true
 	ok = ok && checkTODOHasOwner(ctx, changedFiles)
 	ok = ok && checkForStrayWhitespace(ctx, changedFiles)
 	ok = ok && checkHasNoTabs(ctx, changedFiles)
 	ok = ok && checkBannedGoAPIs(ctx, changedFiles)
 	ok = ok && checkJSDebugging(ctx, changedFiles)
 	if !*commit {
+		// Long lines are sometimes inevitable. Ideally we would add these long line files to
+		// the excluded list, but sometimes that is hard to do precisely.
+		ok = ok && checkLongLines(ctx, changedFiles)
 		// Give warnings for non-ASCII characters on upload but not commit, since they may
 		// be intentional.
 		ok = ok && checkNonASCII(ctx, changedFiles)
