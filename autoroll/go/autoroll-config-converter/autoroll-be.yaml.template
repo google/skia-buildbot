@@ -41,7 +41,7 @@ spec:
 {{- if and (eq .useWorkloadIdentity "true") (.oldCluster)}}
       serviceAccountName: {{$svcAcct}}
 {{- end}}
-{{ if .kubernetes.disk -}}
+{{- if .kubernetes.disk }}
       initContainers:
         - name: init-autoroll-be-{{.rollerName}}
           image: {{.kubernetes.image}}
