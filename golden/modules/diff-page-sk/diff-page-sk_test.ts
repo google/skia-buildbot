@@ -24,7 +24,7 @@ describe('diff-page-sk', () => {
       left: deepCopy(typicalDetails),
       right: deepCopy(typicalDetails.refDiffs?.pos)!,
     };
-    fetchMock.get('glob:/json/v2/diff*', digestComparison);
+    fetchMock.post('glob:/json/v2/diff*', digestComparison);
 
     // Wait for the above RPCs to complete.
     await eventSequencePromise(['end-task', 'end-task']);

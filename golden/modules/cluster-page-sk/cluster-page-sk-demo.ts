@@ -50,7 +50,7 @@ const digestComparison: DigestComparison = {
   left: leftDetails,
   right: rightDetails,
 };
-fetchMock.get('glob:/json/v2/diff*', delay(digestComparison, fakeRpcDelayMillis));
+fetchMock.post('/json/v2/diff', delay(digestComparison, fakeRpcDelayMillis));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();

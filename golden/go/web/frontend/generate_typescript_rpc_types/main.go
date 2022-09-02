@@ -97,6 +97,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.AddWithName(frontend.Link{}, "ClusterDiffLink")
 	generator.Add(frontend.ClusterDiffResult{})
 
+	// Response for the /json/v2/diff RPC endpoint.
+	generator.Add(frontend.DiffRequest{})
+
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName([]frontend.RefClosest{frontend.PositiveRef, frontend.NegativeRef, frontend.NoRef}, "RefClosest")
 	generator.AddUnionWithName(frontend.AllTriageResponseStatus, "TriageResponseStatus")

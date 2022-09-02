@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -3123,6 +3124,134 @@ func TestPositiveDigestsByGroupingIDHandler_NonExistingGrouping_ReturnsError(t *
 	wh.PositiveDigestsByGroupingIDHandler(w, r)
 	resp := w.Result()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestDiffHandler_InvalidRequest_Error(t *testing.T) {
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+	}
+
+	test := func(name string, req frontend.DiffRequest, expectedError string) {
+		t.Run(name, func(t *testing.T) {
+			reqBytes, err := json.Marshal(req)
+			require.NoError(t, err)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/json/v2/diff", bytes.NewReader(reqBytes))
+			wh.DiffHandler(w, r)
+
+			res := w.Result()
+			resBytes, err := ioutil.ReadAll(w.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+			assert.Contains(t, string(resBytes), expectedError)
+		})
+	}
+
+	test("empty request", frontend.DiffRequest{}, "Grouping cannot be empty.")
+	test(
+		"invalid left digest",
+		frontend.DiffRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     "fake_corpus",
+				types.PrimaryKeyField: "fake_test",
+			},
+			LeftDigest: "invalid digest",
+		},
+		"Invalid left digest.")
+	test(
+		"invalid right digest",
+		frontend.DiffRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     "fake_corpus",
+				types.PrimaryKeyField: "fake_test",
+			},
+			LeftDigest:  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			RightDigest: "invalid digest",
+		},
+		"Invalid right digest.")
+	test(
+		"invalid code review system",
+		frontend.DiffRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     "fake_corpus",
+				types.PrimaryKeyField: "fake_test",
+			},
+			LeftDigest:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			RightDigest:      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			CodeReviewSystem: "invalid code review system",
+			ChangelistID:     "123456",
+		},
+		"Invalid code review system.")
+}
+
+func TestDiffHandler_ValidRequest_Success(t *testing.T) {
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+	}
+
+	test := func(name string, req frontend.DiffRequest) {
+		t.Run(name, func(t *testing.T) {
+			ms := &mock_search.API{}
+			ms.On("GetDigestsDiff", testutils.AnyContext, req.Grouping, req.LeftDigest, req.RightDigest, req.ChangelistID, req.CodeReviewSystem).
+				Return(frontend.DigestComparison{
+					Left:  frontend.LeftDiffInfo{Digest: req.LeftDigest},
+					Right: frontend.SRDiffDigest{Digest: req.RightDigest},
+				}, nil)
+			wh.HandlersConfig.Search2API = ms
+
+			reqBytes, err := json.Marshal(req)
+			require.NoError(t, err)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/json/v2/diff", bytes.NewReader(reqBytes))
+			wh.DiffHandler(w, r)
+
+			expectedResponse := fmt.Sprintf(
+				`{"left":{"test":"","digest":"%s","status":"","triage_history":null,"paramset":null},`+
+					`"right":{"numDiffPixels":0,"combinedMetric":0,"pixelDiffPercent":0,"maxRGBADiffs":[0,0,0,0],"dimDiffer":false,"digest":"%s","status":"","paramset":null}}`,
+				req.LeftDigest,
+				req.RightDigest)
+
+			assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+		})
+	}
+
+	test(
+		"without crs/cl",
+		frontend.DiffRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     dks.CornersCorpus,
+				types.PrimaryKeyField: dks.SquareTest,
+			},
+			LeftDigest:  dks.DigestA01Pos,
+			RightDigest: dks.DigestA02Pos,
+		})
+	test(
+		"with crs/cl",
+		frontend.DiffRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     dks.CornersCorpus,
+				types.PrimaryKeyField: dks.SquareTest,
+			},
+			LeftDigest:       dks.DigestA03Pos,
+			RightDigest:      dks.DigestA04Unt,
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		})
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

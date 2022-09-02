@@ -258,6 +258,14 @@ export interface ClusterDiffResult {
 	paramsetsUnion: ParamSet;
 }
 
+export interface DiffRequest {
+	grouping: Params;
+	left_digest: Digest;
+	right_digest: Digest;
+	changelist_id?: string;
+	crs?: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null } | null;

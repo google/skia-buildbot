@@ -3,8 +3,6 @@ import '../gold-scaffold-sk';
 
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { toObject } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { fakeNow, makeTypicalSearchResult } from '../digest-details-sk/test_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
@@ -12,7 +10,7 @@ import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { DiffPageSk } from './diff-page-sk';
 import { setQueryString } from '../../../infra-sk/modules/test_util';
-import { DigestComparison, LeftDiffInfo } from '../rpc_types';
+import { DiffRequest, DigestComparison, LeftDiffInfo } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
 testOnlySetSettings({
@@ -31,26 +29,19 @@ if (window.location.search.length === 0) {
 
 Date.now = () => fakeNow;
 
-interface UrlParams {
-  test: string;
-  left: string;
-  right: string;
-  changelist_id?: string;
-  crs?: string;
-}
-
 fetchMock.getOnce('/json/v1/groupings', groupingsResponse);
-fetchMock.get('glob:/json/v2/diff*', (url) => {
+fetchMock.post('/json/v2/diff', (url, opts) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {
     return delay(500);
   }
 
   // Make a response based on the URL parameters. This is needed by the Puppeteer test.
-  const hint: UrlParams = {
-    test: '', left: '', right: '', changelist_id: '', crs: '',
-  };
-  const urlParams = toObject(url.split('?')[1], hint as unknown as HintableObject) as unknown as UrlParams;
-  const searchResult = makeTypicalSearchResult(urlParams.test, urlParams.left, urlParams.right);
+  const request: DiffRequest = JSON.parse(opts.body!.toString());
+  const searchResult = makeTypicalSearchResult(
+    request.grouping.name,
+    request.left_digest,
+    request.right_digest,
+  );
   const leftInfo: LeftDiffInfo = {
     test: searchResult.test,
     digest: searchResult.digest,

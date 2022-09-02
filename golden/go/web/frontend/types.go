@@ -686,3 +686,12 @@ type GroupingsResponse struct {
 	// GroupingParamKeysByCorpus contains the param keys that comprise the grouping of each corpus.
 	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
 }
+
+// DiffRequest is the request for the /json/v2/diff RPC.
+type DiffRequest struct {
+	Grouping         paramtools.Params `json:"grouping"`
+	LeftDigest       types.Digest      `json:"left_digest"`
+	RightDigest      types.Digest      `json:"right_digest"`
+	ChangelistID     string            `json:"changelist_id,omitempty"`
+	CodeReviewSystem string            `json:"crs,omitempty"`
+}

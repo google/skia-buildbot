@@ -13,6 +13,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
+  DiffRequest,
   DigestComparison, GroupingsResponse, LeftDiffInfo, Params, SRDiffDigest,
 } from '../rpc_types';
 
@@ -116,14 +117,23 @@ export class DiffPageSk extends ElementSk {
     };
     sendBeginTask(this);
 
-    // TODO(lovisolo): Replace with an RPC that takes groupings rather than test names.
-    const url = `/json/v2/diff?test=${encodeURIComponent(this.grouping.name)}`
-      + `&left=${encodeURIComponent(this.leftDigest)}`
-      + `&right=${encodeURIComponent(this.rightDigest)}`
-      + `&changelist_id=${this.changeListID}&crs=${this.crs}`;
+    const request: DiffRequest = {
+      grouping: this.grouping,
+      left_digest: this.leftDigest,
+      right_digest: this.rightDigest,
+    };
+    if (this.changeListID && this.crs) {
+      request.changelist_id = this.changeListID;
+      request.crs = this.crs;
+    }
 
-    fetch(url, extra)
-      .then(jsonOrThrow)
+    fetch('/json/v2/diff', {
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(jsonOrThrow)
       .then((obj: DigestComparison) => {
         this.leftDetails = obj.left;
         this.rightDetails = obj.right;
