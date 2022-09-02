@@ -5,7 +5,8 @@
 // If any presubmits fail, there will be errors logged to stdout and the exit code will be non-zero.
 //
 // This should be invoked from the root of the repo via Bazel like
-//   bazel run //cmd/presubmit -- --repo_dir=$PWD
+//   bazel run //cmd/presubmit
+// See presubmit.sh for a helper that pipes in the correct value for repo_dir.
 package main
 
 import (
@@ -25,7 +26,8 @@ import (
 
 func main() {
 	var (
-		repoDir  = flag.String("repo_dir", "", "The root directory of the repo.")
+		// https://bazel.build/docs/user-manual#running-executables
+		repoDir  = flag.String("repo_dir", os.Getenv("BUILD_WORKSPACE_DIRECTORY"), "The root directory of the repo. Default set by BUILD_WORKSPACE_DIRECTORY env variable.")
 		upstream = flag.String("upstream", "origin/main", "The upstream repo to diff against.")
 		verbose  = flag.Bool("verbose", false, "If extra logging is desired")
 		upload   = flag.Bool("upload", false, "If true, this will skip any checks that are not suitable for an upload check (may be the empty set).")

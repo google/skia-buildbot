@@ -6,13 +6,11 @@
 
 """Presubmit checks for the Skia infrastructure code."""
 
-import os
-
 USE_PYTHON3 = True
 
 def _RunPresubmitsWithBazelisk(input_api, output_api, extra_arg):
   """Run presubmit.go via bazelisk. Fail if it returns a non-zero exit code."""
-  command = ['bazelisk', 'run', '//cmd/presubmit', '--', '--repo_dir='+os.getcwd(), extra_arg]
+  command = ['bazelisk', 'run', '//cmd/presubmit', '--', extra_arg]
   command_str = ' '.join(command)
   results = []
 

@@ -63,7 +63,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	if err := bazelCmd(ctx, repoPath, "run", "//cmd/presubmit", "--", "--repo_dir="+repoPath); err != nil {
+	if err := bazelCmd(ctx, repoPath, "run", "//cmd/presubmit", "--", "--commit"); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
