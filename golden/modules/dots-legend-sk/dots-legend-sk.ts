@@ -14,7 +14,7 @@ import {
   MAX_UNIQUE_DIGESTS,
 } from '../dots-sk/constants';
 import { detailHref, diffPageHref } from '../common';
-import { DigestStatus, Label } from '../rpc_types';
+import { DigestStatus, Label, Params } from '../rpc_types';
 
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
@@ -34,9 +34,7 @@ export class DotsLegendSk extends ElementSk {
     <a target=_blank class=digest href="${el.digestDetailHref(index)}">${digest.digest}</a>
     ${DotsLegendSk.statusIconTemplate(digest.status)}
     ${index > 0
-    ? html`<a target=_blank class=diff href="${el.digestDiffHref(index)}">
-                 diff
-               </a>`
+    ? html`<a target=_blank class=diff href="${el.digestDiffHref(index)}">diff</a>`
     : html`<span></span>`}
   `;
 
@@ -85,13 +83,13 @@ export class DotsLegendSk extends ElementSk {
     }
   };
 
+  private _grouping: Params = {};
+
   private _digests: DigestStatus[] = [];
 
   private _changeListID = '';
 
   private _crs = '';
-
-  private _test = '';
 
   private _totalDigests = 0;
 
@@ -101,6 +99,14 @@ export class DotsLegendSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
+    this._render();
+  }
+
+  /** Grouping. */
+  get grouping(): Params { return this._grouping; }
+
+  set grouping(grouping: Params) {
+    this._grouping = grouping;
     this._render();
   }
 
@@ -128,14 +134,6 @@ export class DotsLegendSk extends ElementSk {
     this._render();
   }
 
-  /** Test name. */
-  get test(): string { return this._test; }
-
-  set test(test: string) {
-    this._test = test;
-    this._render();
-  }
-
   /**
    * The total number of digests that were seen in this group of traces, which can be more than
    * digests.length, due to the fact that the backend limits the length of digests when it sends it
@@ -149,12 +147,17 @@ export class DotsLegendSk extends ElementSk {
   }
 
   private digestDetailHref(index: number): string {
-    return detailHref(this._test, this._digests[index].digest, this.changeListID, this.crs);
+    return detailHref(this.grouping.name, this._digests[index].digest, this.changeListID, this.crs);
   }
 
   private digestDiffHref(index: number): string {
-    return diffPageHref(this._test, this._digests[0].digest, this._digests[index].digest,
-      this.changeListID, this.crs);
+    return diffPageHref(
+      this._grouping,
+      this._digests[0].digest,
+      this._digests[index].digest,
+      this.changeListID,
+      this.crs,
+    );
   }
 }
 

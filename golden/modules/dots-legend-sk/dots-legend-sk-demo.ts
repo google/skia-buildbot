@@ -24,9 +24,9 @@ function newDotsLegendSk(
 ) {
   const dotsLegendSk = new DotsLegendSk();
   dotsLegendSk.id = id;
+  dotsLegendSk.grouping = { source_type: 'my-corpus', name: test };
   dotsLegendSk.digests = digests;
   dotsLegendSk.changeListID = clID;
-  dotsLegendSk.test = test;
   dotsLegendSk.totalDigests = digests.length;
   document.querySelector(parentSelector)!.appendChild(dotsLegendSk);
 }

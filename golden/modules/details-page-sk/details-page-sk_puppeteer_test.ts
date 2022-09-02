@@ -70,7 +70,7 @@ describe('details-page-sk', () => {
 
       // This link should not have a changelist ID or CRS.
       expect(await detailsPageSkPO.digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?test=My test has spaces'
+        '/diff?grouping=name%3DMy%2520test%2520has%2520spaces%26source_type%3Dinfra'
           + '&left=99c58c7002073346ff55f446d47d6311&right=6246b773851984c726cb2e1cb13510c2',
       );
     });
@@ -91,7 +91,7 @@ describe('details-page-sk', () => {
 
       // The changelist ID and CRS should be reflected in this link.
       expect(await detailsPageSkPO.digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?test=My test has spaces'
+        '/diff?grouping=name%3DMy%2520test%2520has%2520spaces%26source_type%3Dinfra'
           + '&left=99c58c7002073346ff55f446d47d6311&right=6246b773851984c726cb2e1cb13510c2'
           + '&changelist_id=65432&crs=gerrit-internal',
       );

@@ -13,7 +13,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
-  DigestComparison, GroupingsResponse, LeftDiffInfo, SRDiffDigest,
+  DigestComparison, GroupingsResponse, LeftDiffInfo, Params, SRDiffDigest,
 } from '../rpc_types';
 
 export class DiffPageSk extends ElementSk {
@@ -36,7 +36,7 @@ export class DiffPageSk extends ElementSk {
 
   private groupings: GroupingsResponse | null = null;
 
-  private grouping = '';
+  private grouping: Params = {};
 
   private leftDigest = '';
 
@@ -63,7 +63,7 @@ export class DiffPageSk extends ElementSk {
     this._stateChanged = stateReflector(
       /* getState */() => ({
         // provide empty values
-        test: this.grouping, // TODO(kjlubick) rename test -> grouping
+        grouping: this.grouping,
         left: this.leftDigest,
         right: this.rightDigest,
         changelist_id: this.changeListID,
@@ -73,7 +73,7 @@ export class DiffPageSk extends ElementSk {
           return;
         }
         // default values if not specified.
-        this.grouping = newState.test as string || '';
+        this.grouping = newState.grouping as Params || {};
         this.leftDigest = newState.left as string || '';
         this.rightDigest = newState.right as string || '';
         this.changeListID = newState.changelist_id as string || '';
@@ -116,9 +116,8 @@ export class DiffPageSk extends ElementSk {
     };
     sendBeginTask(this);
 
-    const urlBase = '/json/v2/diff';
-
-    const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
+    // TODO(lovisolo): Replace with an RPC that takes groupings rather than test names.
+    const url = `/json/v2/diff?test=${encodeURIComponent(this.grouping.name)}`
       + `&left=${encodeURIComponent(this.leftDigest)}`
       + `&right=${encodeURIComponent(this.rightDigest)}`
       + `&changelist_id=${this.changeListID}&crs=${this.crs}`;

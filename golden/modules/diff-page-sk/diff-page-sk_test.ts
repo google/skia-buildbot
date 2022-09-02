@@ -3,11 +3,9 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from 'common-sk/modules/object';
 import { eventPromise, eventSequencePromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import {
-  DigestComparison, DigestDetails, TriageRequestV3, TriageResponse,
-} from '../rpc_types';
+import { DigestComparison, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
-import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
+import { typicalDetails } from '../digest-details-sk/test_data';
 import { DiffPageSk } from './diff-page-sk';
 import { DiffPageSkPO } from './diff-page-sk_po';
 

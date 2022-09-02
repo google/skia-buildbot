@@ -117,20 +117,37 @@ export class DigestDetailsSk extends ElementSk {
     // TODO(kjlubick) would it be clearer to just tell the user the images differ in size and omit
     //  the (probably useless metrics)? Could we also include the actual dimensions of the two?
 
-    return html`
-      <div class=metrics_and_triage>
+    // We need the digest's grouping to compute a link to the diff page. If the digest has no
+    // params, we'll get an exception when computing the grouping. If we don't catch the exception,
+    // this whole element will fail to render.
+    let maybeGrouping: Params | null = null;
+    try {
+      maybeGrouping = ele.getGrouping();
+    } catch {
+      // Nothing to do.
+    }
+
+    // Only show a link to the diff page if we successfully computed the digest's grouping.
+    const diffPageLinkTemplate = maybeGrouping
+      ? html`
         <div>
           <a href=${diffPageHref(
-      ele._details.test,
-      ele._details.digest,
-      ele.right.digest,
-      ele._changeListID,
-      ele._crs,
-    )}
-             target=_blank rel=noopener class=diffpage_link>
+        ele.getGrouping(),
+        ele._details.digest,
+        ele.right.digest,
+        ele._changeListID,
+        ele._crs,
+      )}
+            target=_blank rel=noopener class=diffpage_link>
             Diff Details
           </a>
         </div>
+      `
+      : '';
+
+    return html`
+      <div class=metrics_and_triage>
+        ${diffPageLinkTemplate}
         <div class=size_warning ?hidden=${!ele.right.dimDiffer}>Images differ in size!</div>
         <div class=metric>
           <span>Diff metric:</span>
@@ -215,10 +232,10 @@ export class DigestDetailsSk extends ElementSk {
             @showblamelist=${ele.showBlamelist}>
         </dots-sk>
         <dots-legend-sk
+            .grouping=${ele.getGrouping()}
             .digests=${ele._details.traces.digests}
             .changeListID=${ele._changeListID}
             .crs=${ele._crs}
-            .test=${ele._details.test}
             .totalDigests=${ele._details.traces.total_digests || 0}>
         </dots-legend-sk>
       </div>
@@ -422,6 +439,39 @@ export class DigestDetailsSk extends ElementSk {
     this.setTriaged(newLabel);
   }
 
+  private getGrouping(): Params {
+    // Extract corpus.
+    const corpusKey = 'source_type';
+    if (!this._details.paramset[corpusKey]) {
+      throw new Error(`Digest is missing key "${corpusKey}".`);
+    }
+    if (this._details.paramset[corpusKey].length !== 1) {
+      throw new Error(
+        `Digest key "${corpusKey}" must have exactly one value;`
+        + `${this._details.paramset[corpusKey].length} values found.`,
+      );
+    }
+    const corpus = this._details.paramset[corpusKey][0];
+
+    // Build grouping.
+    const grouping: Params = {};
+    const groupingKeys = this._groupings.grouping_param_keys_by_corpus![corpus];
+    groupingKeys?.forEach((key) => {
+      if (!this._details.paramset[key]) {
+        throw new Error(`Digest is missing key "${key}"`);
+      }
+      if (this._details.paramset[key].length !== 1) {
+        throw new Error(
+          `Digest key ${key} must have exactly one value;`
+          + `${this._details.paramset[key].length} values found.`,
+        );
+      }
+      grouping[key] = this._details.paramset[key][0];
+    });
+
+    return grouping;
+  }
+
   setTriaged(label: Label): void {
     // We save the label before the triage action because the search page might change the label
     // when it handles the "triage" event, see
@@ -432,38 +482,16 @@ export class DigestDetailsSk extends ElementSk {
       new CustomEvent<Label>('triage', { bubbles: true, detail: label }),
     );
 
-    // Extract corpus.
-    const corpusKey = 'source_type';
-    if (!this._details.paramset[corpusKey]) {
-      errorMessage(`Digest is missing key "${corpusKey}".`);
-      return;
-    }
-    if (this._details.paramset[corpusKey].length !== 1) {
-      errorMessage(
-        `Digest key "${corpusKey}" must have exactly one value;`
-        + `${this._details.paramset[corpusKey].length} values found.`,
-      );
-      return;
-    }
-    const corpus = this._details.paramset[corpusKey][0];
-
-    // Build grouping.
-    const grouping: Params = {};
-    const groupingKeys = this._groupings.grouping_param_keys_by_corpus![corpus];
-    groupingKeys?.forEach((key) => {
-      if (!this._details.paramset[key]) {
-        errorMessage(`Digest is missing key "${key}"`);
+    let grouping: Params;
+    try {
+      grouping = this.getGrouping();
+    } catch (e) {
+      if (e instanceof Error) {
+        errorMessage(e.message);
         return;
       }
-      if (this._details.paramset[key].length !== 1) {
-        errorMessage(
-          `Digest key ${key} must have exactly one value;`
-          + `${this._details.paramset[key].length} values found.`,
-        );
-        return;
-      }
-      grouping[key] = this._details.paramset[key][0];
-    });
+      throw e;
+    }
 
     const triageRequest: TriageRequestV3 = {
       deltas: [

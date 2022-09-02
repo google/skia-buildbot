@@ -24,7 +24,8 @@ testOnlySetSettings({
 if (window.location.search.length === 0) {
   setQueryString(
     '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&'
-      + 'test=This%20is%20a%20test%20with%20spaces&changelist_id=12353&crs=gerrit',
+      + 'grouping=name%3DThis%2520is%2520a%2520test%2520with%2520spaces%26source_type%3Dinfra&'
+      + 'changelist_id=12353&crs=gerrit',
   );
 }
 

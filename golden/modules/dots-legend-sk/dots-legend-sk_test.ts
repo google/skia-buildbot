@@ -22,7 +22,7 @@ describe('dots-legend-sk', () => {
 
   describe('with less than MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
-      dotsLegendSk.test = 'My Test';
+      dotsLegendSk.grouping = { source_type: 'my-corpus', name: 'My Test' };
       dotsLegendSk.digests = [
         { digest: '00000000000000000000000000000000', status: 'untriaged' },
         { digest: '11111111111111111111111111111111', status: 'positive' },
@@ -78,7 +78,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => '/diff?'
+        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
+        + `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -89,7 +91,7 @@ describe('dots-legend-sk', () => {
 
     describe('with CL ID and crs', () => {
       beforeEach(() => {
-        dotsLegendSk.test = 'My Test';
+        dotsLegendSk.grouping = { source_type: 'my-corpus', name: 'My Test' };
         dotsLegendSk.changeListID = '123456';
         dotsLegendSk.crs = 'gerrit';
       });
@@ -106,8 +108,9 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders diff links correctly', async () => {
-        const diffHrefFor = (d: string) => '/diff?test=My Test&left=00000000000000000000000000000000'
-            + `&right=${d}&changelist_id=123456&crs=gerrit`;
+        const diffHrefFor = (d: string) => '/diff?'
+          + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
+          + `left=00000000000000000000000000000000&right=${d}&changelist_id=123456&crs=gerrit`;
         expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
           diffHrefFor('11111111111111111111111111111111'),
           diffHrefFor('22222222222222222222222222222222'),
@@ -120,7 +123,7 @@ describe('dots-legend-sk', () => {
 
   describe('with exactly MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
-      dotsLegendSk.test = 'My Test';
+      dotsLegendSk.grouping = { source_type: 'my-corpus', name: 'My Test' };
       dotsLegendSk.digests = [
         { digest: '00000000000000000000000000000000', status: 'untriaged' },
         { digest: '11111111111111111111111111111111', status: 'positive' },
@@ -180,7 +183,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => '/diff?'
+        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
+        + `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -196,7 +201,7 @@ describe('dots-legend-sk', () => {
 
   describe('with more than MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
-      dotsLegendSk.test = 'My Test';
+      dotsLegendSk.grouping = { source_type: 'my-corpus', name: 'My Test' };
       dotsLegendSk.digests = [
         { digest: '00000000000000000000000000000000', status: 'untriaged' },
         { digest: '11111111111111111111111111111111', status: 'positive' },
@@ -259,7 +264,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => '/diff?'
+        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
+        + `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),

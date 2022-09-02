@@ -58,7 +58,7 @@ describe('digest-details-sk', () => {
 
     it('shows the metrics and the link to the diff page', async () => {
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?test=dots-legend-sk_too-many-digests'
+        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
             + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311',
       );
 
@@ -200,8 +200,9 @@ describe('digest-details-sk', () => {
       ]);
 
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?test=dots-legend-sk_too-many-digests&left=6246b773851984c726cb2e1cb13510c2'
-            + '&right=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
+        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
+        + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311'
+        + '&changelist_id=12345&crs=github',
       );
     });
 

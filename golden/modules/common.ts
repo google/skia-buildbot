@@ -1,3 +1,6 @@
+import { fromObject } from 'common-sk/modules/query';
+import { Params } from './rpc_types';
+
 /**
  * Takes a URL-encoded search query and returns that query with newlines between each of the
  * terms. This returned value should be easier for a human to understand.
@@ -62,12 +65,19 @@ export function detailHref(test: string, digest: string, clID = '', crs = ''): s
  * @param crs Code review system. Optional, omit or use empty string for master branch.
  * @return {string}
  */
-export function diffPageHref(grouping: string, left: string, right: string, clID = '', crs = ''): string {
+export function diffPageHref(
+  grouping: Params,
+  left: string,
+  right: string,
+  clID = '',
+  crs = '',
+): string {
   if (!left || !right) {
     return '';
   }
 
-  const u = `/diff?test=${grouping}&left=${left}&right=${right}`;
+  const u = `/diff?grouping=${encodeURIComponent(fromObject(grouping))}`
+    + `&left=${left}&right=${right}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }

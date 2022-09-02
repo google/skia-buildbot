@@ -59,18 +59,29 @@ describe('detailHref', () => {
 
 describe('diffPageHref', () => {
   it('returns a path with the digests in the expected order', () => {
-    expect(diffPageHref('my-test', aDigest, bDigest)).to.equal(
-      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55',
+    expect(diffPageHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest, bDigest)).to.equal(
+      '/diff?grouping=name%3Dmy-test%26source_type%3Dmy-corpus'
+        + '&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55',
     );
     // order matters
-    expect(diffPageHref('my-test', bDigest, aDigest)).to.equal(
-      '/diff?test=my-test&left=bbb8b07beb4e1247c2cbafdb92b93e55&right=aaab78c9711cb79197d47f448ba51338',
+    expect(diffPageHref({ source_type: 'my-corpus', name: 'my-test' }, bDigest, aDigest)).to.equal(
+      '/diff?grouping=name%3Dmy-test%26source_type%3Dmy-corpus'
+        + '&left=bbb8b07beb4e1247c2cbafdb92b93e55&right=aaab78c9711cb79197d47f448ba51338',
     );
   });
   it('supports an optional changelist id', () => {
-    expect(diffPageHref('my-test', aDigest, bDigest, '123456', 'github')).to.equal(
-      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338'
-      + '&right=bbb8b07beb4e1247c2cbafdb92b93e55&changelist_id=123456&crs=github',
+    expect(
+      diffPageHref(
+        { source_type: 'my-corpus', name: 'my-test' },
+        aDigest,
+        bDigest,
+        '123456',
+        'github',
+      ),
+    ).to.equal(
+      '/diff?grouping=name%3Dmy-test%26source_type%3Dmy-corpus'
+        + '&left=aaab78c9711cb79197d47f448ba51338'
+        + '&right=bbb8b07beb4e1247c2cbafdb92b93e55&changelist_id=123456&crs=github',
     );
   });
 });
