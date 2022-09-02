@@ -6,7 +6,10 @@ go_library(
     srcs = ["windows.go"],
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/windows",
     visibility = ["//visibility:public"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//go/skerr",
+        "//machine/go/test_machine_monitor/standalone/gputable",
+    ],
 )
 
 go_test(
@@ -14,6 +17,7 @@ go_test(
     srcs = ["windows_test.go"],
     embed = [":windows"],
     deps = [
+        "//machine/go/test_machine_monitor/standalone/gputable",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

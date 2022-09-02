@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Smoke-test CPUs(). The interesting (and hopefully thus the error-prone) parts of it have been
@@ -13,7 +14,7 @@ import (
 // straight line through, determined by the platform the tests are running on.
 func TestCPUs_Smoke(t *testing.T) {
 	cpus, err := CPUs(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	if len(cpus) != 2 && len(cpus) != 3 {
 		assert.Fail(t, "Length of CPUs() output should have at least an ISA and a bit-width element.")
 	}
@@ -24,6 +25,20 @@ func TestCPUs_Smoke(t *testing.T) {
 
 func TestOSVersions_Smoke(t *testing.T) {
 	versions, err := OSVersions(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(versions), 2, "OSVersions() should return at least PlatformName and PlatformName-SomeVersion.")
+}
+
+func TestGPUs_Smoke(t *testing.T) {
+	gpus, err := GPUs(context.Background())
+	if err != nil {
+		if strings.Contains(err.Error(), "failed to run lspci") {
+			// This assertion is allowed to fail on Linux CI machines, which may not have lspci
+			// installed.
+			return
+		} else {
+			require.NoError(t, err)
+		}
+	}
+	assert.GreaterOrEqual(t, len(gpus), 1, "GPUs() should return at least 1 dimension ({\"none\"} at worst).")
 }

@@ -4,8 +4,10 @@ package windows
 
 import (
 	"regexp"
+	"strings"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable"
 )
 
 var platformRegex = regexp.MustCompile(`Microsoft Windows ([^ ]+)`)
@@ -32,4 +34,41 @@ func OSVersions(platform, version string) ([]string, error) {
 	// CSDVersion.
 
 	return []string{"Windows", "Windows-" + major, "Windows-" + major + "-" + build}, nil
+}
+
+type GPUQueryResult struct {
+	DriverVersion string
+	PNPDeviceID   string
+}
+
+var gpuVendorRegex = regexp.MustCompile(`VEN_([0-9A-F]{4})`)
+var gpuDeviceRegex = regexp.MustCompile(`DEV_([0-9A-F]{4})`)
+
+func GPUs(results []GPUQueryResult) []string {
+	// Extract the first group of the regex from a raw device ID, returning "UNKNOWN" on failure.
+	extract := func(regex *regexp.Regexp, rawDeviceID string) string {
+		groups := regex.FindStringSubmatch(rawDeviceID)
+		if groups != nil {
+			return strings.ToLower(groups[1])
+		}
+		return "UNKNOWN"
+	}
+
+	var dimensions []string
+	for _, result := range results {
+		vendorID := extract(gpuVendorRegex, result.PNPDeviceID)
+		deviceID := extract(gpuDeviceRegex, result.PNPDeviceID)
+
+		if vendorID == gputable.VMWare {
+			return []string{"none"}
+		}
+		dimensions = append(dimensions, vendorID, vendorID+":"+deviceID)
+		if result.DriverVersion != "" {
+			dimensions = append(dimensions, vendorID+":"+deviceID+"-"+result.DriverVersion)
+		}
+	}
+	if len(dimensions) == 0 {
+		return []string{"none"}
+	}
+	return dimensions
 }

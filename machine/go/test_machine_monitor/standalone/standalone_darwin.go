@@ -30,14 +30,14 @@ func CPUs(ctx context.Context) ([]string, error) {
 }
 
 // GPUs returns Swarming-style descriptions of all the host's GPUs, in various precisions, all
-// flattened into a single array, e.g. ["Intel (8086)", "Intel Broadwell HD Graphics 6000
-// (8086:1626)", "Intel (8086)", "8086:9a49", "8086:9a49-22.0.5"]. At most, an array element may
-// have 4 elements of precision: vendor ID, vendor name, device ID, and device name (in that order).
-// However, the formats of these are device- and OS-dependent.
+// flattened into a single array, e.g. ["8086", "8086:1626", "8086", "8086:9a49",
+// "8086:9a49-22.0.5"]. At most, an array element may have 4 elements of precision: vendor ID,
+// vendor name, device ID, and device name (in that order). However, the formats of these are
+// device- and OS-dependent.
 func GPUs(ctx context.Context) ([]string, error) {
 	xml, err := common.TrimmedCommandOutput(ctx, "system_profiler", "SPDisplaysDataType", "-xml")
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to run System Profiler to get GPU info. Output was '%s'", xml)
+		return nil, skerr.Wrapf(err, "failed to run System Profiler to get GPU info. Output was %q", xml)
 	}
 
 	gpus, err := mac.GPUsFromSystemProfilerXML(xml)

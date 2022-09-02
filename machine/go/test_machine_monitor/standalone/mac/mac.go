@@ -43,9 +43,8 @@ func GPUsFromSystemProfilerXML(xml string) ([]GPU, error) {
 	return profilerOutput[0].GPUs, nil
 }
 
-// DimensionsFromGPUs turns a slice of Mac GPUs into Swarming-style dimensions, e.g. ["Intel
-// (8086)", "Intel Coffee Lake H UHD Graphics 630 (8086:3e9b)"]. If there are no GPUs, return
-// ["none"].
+// DimensionsFromGPUs turns a slice of Mac GPUs into Swarming-style dimensions, e.g. ["8086",
+// "8086:3e9b"]. If there are no GPUs, return ["none"].
 func DimensionsFromGPUs(gpus []GPU) []string {
 	var dimensions []string
 	for _, gpu := range gpus {
@@ -92,8 +91,8 @@ func DimensionsFromGPUs(gpus []GPU) []string {
 		}
 		if vendorID == "" {
 			vendorID = gputable.VendorID("UNKNOWN")
-		} else if vendorID == "15ad" {
-			// This is VMWare, which we consider as not having any GPUs.
+		} else if vendorID == gputable.VMWare {
+			// We consider VMWare as not having any GPUs.
 			return []string{"none"}
 		}
 

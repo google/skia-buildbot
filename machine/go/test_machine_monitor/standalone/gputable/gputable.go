@@ -15,8 +15,11 @@ type vendorNameAndDevices struct {
 	Devices map[string]string
 }
 
-const Nvidia = "10de"
-const Intel = "8086"
+const (
+	Nvidia = "10de"
+	Intel  = "8086"
+	VMWare = "15ad"
+)
 
 // Static lookup tables:
 var vendorMap = map[VendorID]vendorNameAndDevices{
