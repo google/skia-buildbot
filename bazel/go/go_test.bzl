@@ -8,7 +8,7 @@ def go_test(name, srcs, tags = [], args = [], **kwargs):
     The purpose of this macro is to automatically create separate test targets for non-manual and
     manual Go tests. The latter will be tagged as manual in order to exclude them from wildcard
     queries such as "bazel test ...". It assumes that any manual test cases are placed in Go files
-    ending with "_manual_test.go", and that each such test case calls unittest.ManualTest().
+    ending with "_manual_test.go".
 
     In addition, this macro customizes some go_test arguments with better defaults.
 
@@ -62,15 +62,14 @@ def go_test(name, srcs, tags = [], args = [], **kwargs):
                 "omega_manual_test.go",
             ],
             tags = ["manual"],    # Exclude from Bazel wildcards, e.g. "bazel test ...".
-            args = ["--manual"],  # Only run test cases that call unittest.ManualTest().
             ...
         )
     ```
 
     The reason why example_manual_test includes the non-manual tests as well is because they might
-    define auxiliary functions, test data, etc. shared between all tests, including the manual ones.
-    However, non-manual tests are excluded by passing the --manual flag to the test binary, which
-    skips any test cases that do not call unittest.ManualTest().
+    define auxiliary functions, test data, etc. shared between all tests, including the manual
+    ones. Thus, example_manual_test will run both the manual and non-manual tests when invoked with
+    "bazel test ...".
 
     If this macro is invoked without any files ending with "_manual_test.go", it behaves exactly
     like the default go_test rule from the rules_go repository.
@@ -107,10 +106,7 @@ def go_test(name, srcs, tags = [], args = [], **kwargs):
             name = name[:-4] + "manual_test",  # Turn e.g. foo_test into foo_manual_test.
             # Include *_manual_test.go and *_test.go sources as well, because the latter might
             # contain functions, test data, etc. shared between the manual and non-manual tests.
-            # However, non-manual tests will not be executed because we pass the --manual flag to
-            # the test binary.
             srcs = srcs,
             tags = tags + ["manual"],  # Exclude from Bazel wildcards, e.g. "bazel test ...".
-            args = args + ["--manual"],  # Only run test cases that call unittest.ManualTest().
             **kwargs
         )

@@ -192,8 +192,7 @@ docstring for the full details.
 #### Manual Go tests
 
 To mark specific Go test cases as manual, extract them out into a separate file ending with
-`_manual_test.go` within the same directory, and call `unittest.ManualTest(t)` from each test case
-in said file.
+`_manual_test.go` within the same directory.
 
 The `go_test` macro in `//bazel/go/go_test.bzl` places files ending with `_manual_test.go` in a
 separate `go_test` target, which is tagged as manual.

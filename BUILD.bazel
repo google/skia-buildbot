@@ -33,9 +33,8 @@ load("@exec_properties//:constants.bzl", "NETWORK_ON")
 #
 # The custom macro generates separate go_test targets for manual Go tests, which will be tagged as
 # manual. The macro relies on the assumption that any manual test cases will be placed on Go source
-# files ending in "_manual_test.go". This convention is enforced by unittest.ManualTest(). If the
-# test target does not contain any manual test, the custom macro behaves exactly like rules_go's
-# go_test rule.
+# files ending in "_manual_test.go". If the test target does not contain any manual test, the
+# custom macro behaves exactly like rules_go's go_test rule.
 #
 # See the macro's docstring for details.
 #
