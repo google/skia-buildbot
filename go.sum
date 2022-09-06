@@ -697,6 +697,8 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jcgregorio/logger v0.1.2 h1:kHiF857oOObzlUer5ANZ95U08A7k2INjivnss4IyMCg=
 github.com/jcgregorio/logger v0.1.2/go.mod h1:a1MmUykXJr+dI02wwT/CcnJbflFsX/sHP1bAKRPZFsU=
+github.com/jcgregorio/logger v0.1.3 h1:KKKWn4Q0bPpGtLFWEF3Pkv0VtX8Oru3cK0OH0ZozYik=
+github.com/jcgregorio/logger v0.1.3/go.mod h1:bluD21Aj6/H3hUey6bnsZsIUf/IzO880aQ5iwBWWEy4=
 github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900 h1:H8hiPQr5PtkrB5z3Do/9iR5tEwuAFNim68cqcoAlHeY=
 github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900/go.mod h1:YT3uVwwZ2P4vmZcM3xICUNJ6dqBwoiSgVAqxHu3rcoo=
 github.com/jellevandenhooff/dkim v0.0.0-20150330215556-f50fe3d243e1/go.mod h1:E0B/fFc00Y+Rasa88328GlI/XbtyysCtTHZS8h7IrBU=

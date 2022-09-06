@@ -47,7 +47,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jackc/pgtype v1.11.0
 	github.com/jackc/pgx/v4 v4.16.1
-	github.com/jcgregorio/logger v0.1.2
+	github.com/jcgregorio/logger v0.1.3
 	github.com/kisielk/errcheck v1.5.0
 	github.com/miekg/dns v1.1.41
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646

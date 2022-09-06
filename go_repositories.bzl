@@ -1945,8 +1945,8 @@ def go_repositories():
     go_repository(
         name = "com_github_jcgregorio_logger",
         importpath = "github.com/jcgregorio/logger",
-        sum = "h1:kHiF857oOObzlUer5ANZ95U08A7k2INjivnss4IyMCg=",
-        version = "v0.1.2",
+        sum = "h1:KKKWn4Q0bPpGtLFWEF3Pkv0VtX8Oru3cK0OH0ZozYik=",
+        version = "v0.1.3",
     )
 
     go_repository(
