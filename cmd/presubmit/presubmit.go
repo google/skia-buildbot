@@ -109,6 +109,9 @@ func main() {
 	if !runBuildifier(ctx, buildifierPath, changedFiles) {
 		os.Exit(1)
 	}
+	if !runGoimports(ctx, changedFiles, *repoDir) {
+		os.Exit(1)
+	}
 	if !runGofmt(ctx, changedFiles) {
 		os.Exit(1)
 	}
@@ -595,12 +598,14 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 // buildifier output (which has files and line numbers) and return false.
 func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges) bool {
 	args := []string{"-lint=warn", "-mode=fix"}
+	foundAny := false
 	for _, f := range files {
 		if filepath.Base(f.fileName) == "BUILD.bazel" || filepath.Ext(f.fileName) == ".bzl" {
 			args = append(args, f.fileName)
+			foundAny = true
 		}
 	}
-	if len(args) == 2 { // no additional arguments (files) added to check
+	if !foundAny {
 		return true
 	}
 	cmd := exec.CommandContext(ctx, buildifierPath, args...)
@@ -618,18 +623,49 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 	return true
 }
 
+// runGoimports runs goimports on any changed golang files. It returns false if goimports fails or
+// produces any diffs.
+func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot string) bool {
+	// -w means "write", as in, modify the files that need formatting.
+	args := []string{"run", "//:goimports", "--run_under=cd " + workspaceRoot + " &&", "--", "-w"}
+	foundAny := false
+	for _, f := range files {
+		if filepath.Ext(f.fileName) == ".go" {
+			args = append(args, f.fileName)
+			foundAny = true
+		}
+	}
+	if !foundAny {
+		return true
+	}
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "goimports failed!\n")
+		return false
+	}
+
+	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
+		logf(ctx, "goimports caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	return true
+}
+
 // runGofmt runs gofmt on any changed golang files. It returns false if gofmt fails or
 // produces any diffs.
 func runGofmt(ctx context.Context, files []fileWithChanges) bool {
 	// -s means "simplify"
 	// -w means "write", as in, modify the files that need formatting.
 	args := []string{"run", "//:gofmt", "--", "-s", "-w"}
+	foundAny := false
 	for _, f := range files {
 		if filepath.Ext(f.fileName) == ".go" {
 			args = append(args, f.fileName)
 		}
 	}
-	if len(args) == 5 { // no additional arguments (files) added to check
+	if !foundAny {
 		return true
 	}
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
