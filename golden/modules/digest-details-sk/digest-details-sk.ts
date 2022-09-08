@@ -186,10 +186,22 @@ export class DigestDetailsSk extends ElementSk {
   }
 
   private static imageComparisonTemplate = (ele: DigestDetailsSk) => {
+    // We need the digest's grouping to compute a link to the details page. If the digest has no
+    // params, we'll get an exception when computing the grouping. If we don't catch the exception,
+    // this whole element will fail to render.
+    let maybeGrouping: Params | null = null;
+    try {
+      maybeGrouping = ele.getGrouping();
+    } catch {
+      // Nothing to do.
+    }
+
     const left: ImageComparisonData = {
       digest: ele._details.digest,
       title: truncate(ele._details.digest, 15),
-      detail: detailHref(ele._details.test, ele._details.digest, ele._changeListID, ele._crs),
+      detail: maybeGrouping
+        ? detailHref(maybeGrouping, ele._details.digest, ele._changeListID, ele._crs)
+        : '',
     };
     if (!ele.right) {
       const hasOtherDigests = (ele._details.traces?.digests?.length || 0) > 1;
@@ -204,7 +216,9 @@ export class DigestDetailsSk extends ElementSk {
     const right: ImageComparisonData = {
       digest: ele.right.digest,
       title: ele.right.status === 'positive' ? 'Closest Positive' : 'Closest Negative',
-      detail: detailHref(ele._details.test, ele.right.digest, ele._changeListID, ele._crs),
+      detail: maybeGrouping
+        ? detailHref(maybeGrouping, ele.right.digest, ele._changeListID, ele._crs)
+        : '',
     };
     if (ele.overrideRight) {
       right.title = truncate(ele.right.digest, 15);

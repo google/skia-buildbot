@@ -83,8 +83,10 @@ describe('digest-details-sk', () => {
         'Closest Positive',
       ]);
       expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?test=dots-legend-sk_too-many-digests&digest=6246b773851984c726cb2e1cb13510c2',
-        '/detail?test=dots-legend-sk_too-many-digests&digest=99c58c7002073346ff55f446d47d6311',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
+          + 'digest=6246b773851984c726cb2e1cb13510c2',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
+          + 'digest=99c58c7002073346ff55f446d47d6311',
       ]);
       expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.false;
     });
@@ -97,8 +99,10 @@ describe('digest-details-sk', () => {
         'Closest Negative',
       ]);
       expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?test=dots-legend-sk_too-many-digests&digest=6246b773851984c726cb2e1cb13510c2',
-        '/detail?test=dots-legend-sk_too-many-digests&digest=ec3b8f27397d99581e06eaa46d6d5837',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
+          + 'digest=6246b773851984c726cb2e1cb13510c2',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
+          + 'digest=ec3b8f27397d99581e06eaa46d6d5837',
       ]);
       expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.true;
     });
@@ -193,9 +197,9 @@ describe('digest-details-sk', () => {
 
     it('includes changelist id on the appropriate links', async () => {
       expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?test=dots-legend-sk_too-many-digests'
-            + '&digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
-        '/detail?test=dots-legend-sk_too-many-digests&'
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
+            + 'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
             + 'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
       ]);
 
@@ -208,11 +212,11 @@ describe('digest-details-sk', () => {
 
     it('passes changeListID and crs to appropriate subelements', async () => {
       expect(await digestDetailsSkPO.dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
-        '/detail?test=dots-legend-sk_too-many-digests&'
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
             + 'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
-        '/detail?test=dots-legend-sk_too-many-digests&'
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
             + 'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
-        '/detail?test=dots-legend-sk_too-many-digests&'
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
             + 'digest=ec3b8f27397d99581e06eaa46d6d5837&changelist_id=12345&crs=github',
       ]);
     });

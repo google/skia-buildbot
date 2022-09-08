@@ -147,7 +147,7 @@ export class DotsLegendSk extends ElementSk {
   }
 
   private digestDetailHref(index: number): string {
-    return detailHref(this.grouping.name, this._digests[index].digest, this.changeListID, this.crs);
+    return detailHref(this.grouping, this._digests[index].digest, this.changeListID, this.crs);
   }
 
   private digestDiffHref(index: number): string {

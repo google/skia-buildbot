@@ -43,13 +43,13 @@ export function digestDiffImagePath(d1: string, d2: string): string {
 
 /**
  * Returns a link to the details page for a given test-digest pair.
- * @param test Test name.
+ * @param grouping Grouping.
  * @param digest Digest.
  * @param clID CL ID. Optional, omit or use empty string for master branch.
  * @param crs Code review system. Optional, omit or use empty string for master branch.
  */
-export function detailHref(test: string, digest: string, clID = '', crs = ''): string {
-  const u = `/detail?test=${test}&digest=${digest}`;
+export function detailHref(grouping: Params, digest: string, clID = '', crs = ''): string {
+  const u = `/detail?grouping=${encodeURIComponent(fromObject(grouping))}&digest=${digest}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }

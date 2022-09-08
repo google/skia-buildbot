@@ -48,11 +48,13 @@ describe('digestDiffImagePath', () => {
 
 describe('detailHref', () => {
   it('returns a path with and without an changelist id', () => {
-    expect(detailHref('my-test', aDigest)).to.equal(
-      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338',
+    expect(detailHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest)).to.equal(
+      '/detail?grouping=name%3Dmy-test%26source_type%3Dmy-corpus'
+        + '&digest=aaab78c9711cb79197d47f448ba51338',
     );
-    expect(detailHref('my-test', aDigest, '12345', 'gerrit')).to.equal(
-      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338&changelist_id=12345&crs=gerrit',
+    expect(detailHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest, '12345', 'gerrit')).to.equal(
+      '/detail?grouping=name%3Dmy-test%26source_type%3Dmy-corpus'
+        + '&digest=aaab78c9711cb79197d47f448ba51338&changelist_id=12345&crs=gerrit',
     );
   });
 });

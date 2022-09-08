@@ -13,7 +13,9 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../pagination-sk';
-import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
+import {
+  detailHref, sendBeginTask, sendEndTask, sendFetchError,
+} from '../common';
 import {
   TriageDelta, TriageLogEntry, TriageLogResponse,
 } from '../rpc_types';
@@ -71,17 +73,14 @@ export class TriagelogPageSk extends ElementSk {
     <tr class="details details-separator"><td colspan="4"></td></tr>
   `;
 
-  private static detailsEntryTemplate = (el: TriagelogPageSk, delta: TriageDelta) => {
-    let detailHref = `/detail?test=${delta.grouping.name}&digest=${delta.digest}`;
-    if (el.changelistID) {
-      detailHref += `&changelist_id=${el.changelistID}&crs=${el.crs}`;
-    }
-    return html`
+  private static detailsEntryTemplate = (el: TriagelogPageSk, delta: TriageDelta) => html`
       <tr class=details>
         <td></td>
         <td class=test-name title="Grouping ${JSON.stringify(delta.grouping)}">${delta.grouping.name}</td>
         <td class=digest>
-          <a href=${detailHref} target=_blank rel=noopener>
+          <a href=${detailHref(delta.grouping, delta.digest, el.changelistID, el.crs)}
+             target=_blank
+             rel=noopener>
             ${delta.digest}
           </a>
         </td>
@@ -90,7 +89,6 @@ export class TriagelogPageSk extends ElementSk {
         </td>
       </tr>
     `;
-  };
 
   private entries: TriageLogEntry[] = []; // Log entries fetched from the server.
 
