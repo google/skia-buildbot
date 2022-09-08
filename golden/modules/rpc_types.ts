@@ -148,7 +148,7 @@ export interface GroupingsResponse {
 }
 
 export interface TestRollup {
-	test: TestName;
+	grouping: Params;
 	num: number;
 	sample_digest: Digest;
 }

@@ -11,6 +11,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//golden/modules:common_ts_lib",
     ],
     ts_srcs = [
         "byblameentry-sk.ts",

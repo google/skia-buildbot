@@ -295,9 +295,9 @@ type ByBlameEntry struct {
 }
 
 type TestRollup struct {
-	Test         types.TestName `json:"test"`
-	Num          int            `json:"num"`
-	SampleDigest types.Digest   `json:"sample_digest"`
+	Grouping     paramtools.Params `json:"grouping"`
+	Num          int               `json:"num"`
+	SampleDigest types.Digest      `json:"sample_digest"`
 }
 
 // ListTestsQuery encapsulates the inputs to ListTestsHandler.

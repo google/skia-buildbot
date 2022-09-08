@@ -220,7 +220,7 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		var groupings []frontend.TestRollup
 		for _, gr := range sr.AffectedGroupings {
 			groupings = append(groupings, frontend.TestRollup{
-				Test:         types.TestName(gr.Grouping[types.PrimaryKeyField]),
+				Grouping:     gr.Grouping,
 				Num:          gr.UntriagedDigests,
 				SampleDigest: gr.SampleDigest,
 			})

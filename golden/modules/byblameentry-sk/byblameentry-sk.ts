@@ -13,6 +13,7 @@ import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
 import { ByBlameEntry, Commit, TestRollup } from '../rpc_types';
+import { detailHref } from '../common';
 
 const MAX_COMMITS = 10;
 
@@ -24,8 +25,6 @@ const commitHref = (hash: string) => {
   const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+show';
   return `${repo}/${path}/${hash}`;
 };
-
-const detailHref = (test: TestRollup) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
 
 export class ByBlameEntrySk extends ElementSk {
   private static template = (el: ByBlameEntrySk) => html`
@@ -98,10 +97,10 @@ export class ByBlameEntrySk extends ElementSk {
           ${affectedTests.map(
       (test: TestRollup) => html`
                   <tr>
-                    <td class=test>${test.test}</td>
+                    <td class=test>${test.grouping.name}</td>
                     <td class=num-digests>${test.num}</td>
                     <td>
-                      <a href=${detailHref(test)}
+                      <a href=${detailHref(test.grouping, test.sample_digest)}
                          class=example-link
                          target=_blank
                          rel=noopener>

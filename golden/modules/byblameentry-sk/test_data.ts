@@ -7,31 +7,52 @@ export const entry: ByBlameEntry = {
   nDigests: 112,
   nTests: 7,
   affectedTests: [{
-    test: 'aarectmodes',
+    grouping: {
+      name: 'aarectmodes',
+      source_type: 'infra',
+    },
     num: 50,
     sample_digest: 'c6476baec94eb6a5071606575318e4df',
   }, {
-    test: 'aaxfermodes',
+    grouping: {
+      name: 'aaxfermodes',
+      source_type: 'infra',
+    },
     num: 32,
     sample_digest: '4acfd6b3a3943cc5d75cd22e966ae6f1',
   }, {
-    test: 'hairmodes',
+    grouping: {
+      name: 'hairmodes',
+      source_type: 'infra',
+    },
     num: 21,
     sample_digest: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
   }, {
-    test: 'imagefilters_xfermodes',
+    grouping: {
+      name: 'imagefilters_xfermodes',
+      source_type: 'infra',
+    },
     num: 5,
     sample_digest: '47644613317040264fea6fa815af32e8',
   }, {
-    test: 'lattice2',
+    grouping: {
+      name: 'lattice2',
+      source_type: 'infra',
+    },
     num: 2,
     sample_digest: '16e41798ecd59b1523322a57b49cc17f',
   }, {
-    test: 'xfermodes',
+    grouping: {
+      name: 'xfermodes',
+      source_type: 'infra',
+    },
     num: 1,
     sample_digest: '8fbee03f794c455c4e4842ec2736b744',
   }, {
-    test: 'xfermodes3',
+    grouping: {
+      name: 'xfermodes3',
+      source_type: 'infra',
+    },
     num: 1,
     sample_digest: 'fed2ff29abe371fc0ec1b2c65dfb3949',
   }],

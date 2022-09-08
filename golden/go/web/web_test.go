@@ -1197,7 +1197,19 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/byblame?query=source_type%3Dthe_corpus", nil)
 	wh.ByBlameHandler(w, r)
-	const expectedJSON = `{"data":[{"groupID":"000054321:000054322","nDigests":2,"nTests":2,"affectedTests":[{"test":"alpha","num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"test":"beta","num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],"commits":[{"commit_time":12345678000,"id":"000054321","hash":"1234567890abcdef1234567890abcdef12345678","author":"user1@example.com","message":"Probably broke something","cl_url":""},{"commit_time":12345678900,"id":"000054322","hash":"4567890abcdef1234567890abcdef1234567890a","author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
+	const expectedJSON = `{"data":[{"groupID":"000054321:000054322","nDigests":2,"nTests":2,` +
+		`"affectedTests":[` +
+		`{"grouping":{"name":"alpha","source_type":"the_corpus"},` +
+		`"num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},` +
+		`{"grouping":{"name":"beta","source_type":"the_corpus"},` +
+		`"num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],` +
+		`"commits":[` +
+		`{"commit_time":12345678000,"id":"000054321",` +
+		`"hash":"1234567890abcdef1234567890abcdef12345678",` +
+		`"author":"user1@example.com","message":"Probably broke something","cl_url":""},` +
+		`{"commit_time":12345678900,"id":"000054322",` +
+		`"hash":"4567890abcdef1234567890abcdef1234567890a",` +
+		`"author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 

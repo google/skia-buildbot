@@ -15,7 +15,10 @@ export const gm: ByBlameResponse = {
     nDigests: 1,
     nTests: 1,
     affectedTests: [{
-      test: 'complexclip_bw_layer',
+      grouping: {
+        name: 'complexclip_bw_layer',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '457875b610908dde8bfc5f45c907eb62',
     }],
@@ -60,31 +63,52 @@ export const gm: ByBlameResponse = {
     nDigests: 7,
     nTests: 7,
     affectedTests: [{
-      test: 'aarectmodes',
+      grouping: {
+        name: 'aarectmodes',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: 'c6476baec94eb6a5071606575318e4df',
     }, {
-      test: 'aaxfermodes',
+      grouping: {
+        name: 'aaxfermodes',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '4acfd6b3a3943cc5d75cd22e966ae6f1',
     }, {
-      test: 'hairmodes',
+      grouping: {
+        name: 'hairmodes',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
     }, {
-      test: 'imagefilters_xfermodes',
+      grouping: {
+        name: 'imagefilters_xfermodes',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '47644613317040264fea6fa815af32e8',
     }, {
-      test: 'lattice2',
+      grouping: {
+        name: 'lattice2',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '16e41798ecd59b1523322a57b49cc17f',
     }, {
-      test: 'xfermodes',
+      grouping: {
+        name: 'xfermodes',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '8fbee03f794c455c4e4842ec2736b744',
     }, {
-      test: 'xfermodes3',
+      grouping: {
+        name: 'xfermodes3',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: 'fed2ff29abe371fc0ec1b2c65dfb3949',
     }],
@@ -108,7 +132,10 @@ export const gm: ByBlameResponse = {
     nDigests: 41,
     nTests: 1,
     affectedTests: [{
-      test: 'skottie_colorize',
+      grouping: {
+        name: 'skottie_colorize',
+        source_type: 'infra',
+      },
       num: 41,
       sample_digest: '024ce342b014c6fdb000f7c18d6d0775',
     }],
@@ -138,15 +165,24 @@ export const gm: ByBlameResponse = {
     nDigests: 13,
     nTests: 3,
     affectedTests: [{
-      test: 'shadow_utils',
+      grouping: {
+        name: 'shadow_utils',
+        source_type: 'infra',
+      },
       num: 5,
       sample_digest: '134d3c4fd609cd7f2e9cca43d78aa5d3',
     }, {
-      test: 'shadow_utils_gray',
+      grouping: {
+        name: 'shadow_utils_gray',
+        source_type: 'infra',
+      },
       num: 4,
       sample_digest: '292eb1e5b5860ba278ffa73efc9dd7c1',
     }, {
-      test: 'shadow_utils_occl',
+      grouping: {
+        name: 'shadow_utils_occl',
+        source_type: 'infra',
+      },
       num: 4,
       sample_digest: '918df0cc65d1b3ae7b8d8041afa40635',
     }],
@@ -163,7 +199,10 @@ export const gm: ByBlameResponse = {
     nDigests: 1,
     nTests: 1,
     affectedTests: [{
-      test: 'dftext_blob_persp',
+      grouping: {
+        name: 'dftext_blob_persp',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '42a7bfc2d825412dfb82f6e3a12106c2',
     }],
@@ -319,7 +358,10 @@ export const svg: ByBlameResponse = {
     nDigests: 2,
     nTests: 1,
     affectedTests: [{
-      test: 'A_large_blank_world_map_with_oceans_marked_in_blue.svg',
+      grouping: {
+        name: 'A_large_blank_world_map_with_oceans_marked_in_blue.svg',
+        source_type: 'infra',
+      },
       num: 2,
       sample_digest: '3c62b1dd009bb18bbb84d862cbc3652c',
     }],
@@ -336,7 +378,10 @@ export const svg: ByBlameResponse = {
     nDigests: 2,
     nTests: 1,
     affectedTests: [{
-      test: 'ynev.svg',
+      grouping: {
+        name: 'ynev.svg',
+        source_type: 'infra',
+      },
       num: 2,
       sample_digest: '80a7bcb4b51ad1aa876aa2144d0648bb',
     }],
@@ -353,7 +398,10 @@ export const svg: ByBlameResponse = {
     nDigests: 1,
     nTests: 1,
     affectedTests: [{
-      test: 'A_large_blank_world_map_with_oceans_marked_in_blue.svg',
+      grouping: {
+        name: 'A_large_blank_world_map_with_oceans_marked_in_blue.svg',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: '02fc74ad862a6041e9ea35769a67af20',
     }],
@@ -377,7 +425,10 @@ export const svg: ByBlameResponse = {
     nDigests: 1,
     nTests: 1,
     affectedTests: [{
-      test: 'gallardo.svg',
+      grouping: {
+        name: 'gallardo.svg',
+        source_type: 'infra',
+      },
       num: 1,
       sample_digest: 'ed591512ff68fa088ec9aac3bb5d760d',
     }],
