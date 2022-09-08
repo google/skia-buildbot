@@ -89,7 +89,10 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/diff RPC endpoint.
 	generator.Add(frontend.DigestComparison{})
 
-	// Response for the /json/v1/details RPC endpoint.
+	// Request for the /json/v2/details RPC endpoint.
+	generator.Add(frontend.DetailsRequest{})
+
+	// Response for the /json/v2/details RPC endpoint.
 	generator.Add(frontend.DigestDetails{})
 
 	// Response for the /json/v1/clusterdiff RPC endpoint.

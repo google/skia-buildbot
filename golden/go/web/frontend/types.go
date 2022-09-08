@@ -705,3 +705,11 @@ type GroupingForTestRequest struct {
 type GroupingForTestResponse struct {
 	Grouping paramtools.Params `json:"grouping"`
 }
+
+// DetailsRequest is the request for the /json/v2/details RPC.
+type DetailsRequest struct {
+	Grouping         paramtools.Params `json:"grouping"`
+	Digest           types.Digest      `json:"digest"`
+	ChangelistID     string            `json:"changelist_id,omitempty"`
+	CodeReviewSystem string            `json:"crs,omitempty"`
+}

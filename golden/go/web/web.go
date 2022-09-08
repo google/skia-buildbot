@@ -469,35 +469,29 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract: test, digest, issue
-	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
+	req := frontend.DetailsRequest{}
+	if err := parseJSON(r, &req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
 		return
 	}
-	// TODO(kjlubick) require corpus
-	test := r.Form.Get("test")
-	digest := r.Form.Get("digest")
-	if test == "" || !validation.IsValidDigest(digest) {
-		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
+	sklog.Infof("Details request: %#v", req)
+
+	if len(req.Grouping) == 0 {
+		http.Error(w, "Grouping cannot be empty.", http.StatusBadRequest)
 		return
 	}
-	clID := r.Form.Get("changelist_id")
-	crs := r.Form.Get("crs")
-	if clID != "" {
-		if _, ok := wh.getCodeReviewSystem(crs); !ok {
-			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+	if !validation.IsValidDigest(string(req.Digest)) {
+		http.Error(w, "Invalid digest.", http.StatusBadRequest)
+		return
+	}
+	if req.CodeReviewSystem != "" && req.ChangelistID != "" {
+		if _, ok := wh.getCodeReviewSystem(req.CodeReviewSystem); !ok {
+			http.Error(w, "Invalid code review system.", http.StatusBadRequest)
 			return
 		}
-	} else {
-		crs = ""
 	}
 
-	grouping, err := wh.getGroupingForTest(ctx, test)
-	if err != nil {
-		httputils.ReportError(w, err, "could not get grouping", http.StatusInternalServerError)
-		return
-	}
-	ret, err := wh.Search2API.GetDigestDetails(ctx, grouping, types.Digest(digest), clID, crs)
+	ret, err := wh.Search2API.GetDigestDetails(ctx, req.Grouping, types.Digest(req.Digest), req.ChangelistID, req.CodeReviewSystem)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to get digest details.", http.StatusInternalServerError)
 		return

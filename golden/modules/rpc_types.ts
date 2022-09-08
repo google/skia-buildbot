@@ -234,6 +234,13 @@ export interface DigestComparison {
 	right: SRDiffDigest;
 }
 
+export interface DetailsRequest {
+	grouping: Params;
+	digest: Digest;
+	changelist_id?: string;
+	crs?: string;
+}
+
 export interface DigestDetails {
 	digest: SearchResult;
 	commits: Commit[] | null;

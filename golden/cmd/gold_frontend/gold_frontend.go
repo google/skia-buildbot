@@ -499,7 +499,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v2/clusterdiff", handlers.ClusterDiffHandler, "GET")
 	add("/json/v2/commits", handlers.CommitsHandler, "GET")
 	add("/json/v1/positivedigestsbygrouping/{groupingID}", handlers.PositiveDigestsByGroupingIDHandler, "GET")
-	add("/json/v2/details", handlers.DetailsHandler, "GET")
+	add("/json/v2/details", handlers.DetailsHandler, "POST")
 	add("/json/v2/diff", handlers.DiffHandler, "POST")
 	add("/json/v2/digests", handlers.DigestListHandler, "GET")
 	add("/json/v2/latestpositivedigest/{traceID}", handlers.LatestPositiveDigestHandler, "GET")

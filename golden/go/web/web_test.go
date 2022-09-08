@@ -3238,6 +3238,128 @@ func TestGroupingForTestHandler_ValidRequest_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, `{"grouping":{"name":"square","source_type":"corners"}}`, w)
 }
 
+func TestDetailsHandler_InvalidRequest_Error(t *testing.T) {
+	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+	}
+
+	test := func(name string, req frontend.DetailsRequest, expectedError string) {
+		t.Run(name, func(t *testing.T) {
+			reqBytes, err := json.Marshal(req)
+			require.NoError(t, err)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/json/v2/details", bytes.NewReader(reqBytes))
+			wh.DetailsHandler(w, r)
+
+			res := w.Result()
+			resBytes, err := io.ReadAll(w.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+			assert.Contains(t, string(resBytes), expectedError)
+		})
+	}
+
+	test("empty request", frontend.DetailsRequest{}, "Grouping cannot be empty.")
+	test(
+		"invalid digest",
+		frontend.DetailsRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     "fake_corpus",
+				types.PrimaryKeyField: "fake_test",
+			},
+			Digest: "invalid digest",
+		},
+		"Invalid digest.")
+	test(
+		"invalid code review system",
+		frontend.DetailsRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     "fake_corpus",
+				types.PrimaryKeyField: "fake_test",
+			},
+			Digest:           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			CodeReviewSystem: "invalid code review system",
+			ChangelistID:     "123456",
+		},
+		"Invalid code review system.")
+}
+
+func TestDetailsHandler_ValidRequest_Success(t *testing.T) {
+	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+	}
+
+	test := func(name string, req frontend.DetailsRequest, expectedResponse string) {
+		t.Run(name, func(t *testing.T) {
+			ms := &mock_search.API{}
+
+			ms.On("GetDigestDetails", testutils.AnyContext, req.Grouping, req.Digest, req.ChangelistID, req.CodeReviewSystem).
+				Return(frontend.DigestDetails{
+					Result: frontend.SearchResult{
+						Digest: req.Digest,
+						Test:   types.TestName(req.Grouping[types.PrimaryKeyField]),
+					},
+					Commits: []frontend.Commit{},
+				}, nil)
+			wh.HandlersConfig.Search2API = ms
+
+			reqBytes, err := json.Marshal(req)
+			require.NoError(t, err)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/json/v2/details", bytes.NewReader(reqBytes))
+			wh.DetailsHandler(w, r)
+
+			assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+		})
+	}
+
+	test(
+		"without crs/cl",
+		frontend.DetailsRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     dks.CornersCorpus,
+				types.PrimaryKeyField: dks.SquareTest,
+			},
+			Digest: dks.DigestA01Pos,
+		},
+		`{"digest":{"digest":"a01a01a01a01a01a01a01a01a01a01a0","test":"square",`+
+			`"status":"","triage_history":null,"paramset":null,`+
+			`"traces":{"traces":null,"digests":null,"total_digests":0},`+
+			`"refDiffs":null,"closestRef":""},"commits":[]}`)
+	test(
+		"with crs/cl",
+		frontend.DetailsRequest{
+			Grouping: paramtools.Params{
+				types.CorpusField:     dks.RoundCorpus,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+			Digest:           dks.DigestC01Pos,
+			CodeReviewSystem: dks.GerritCRS,
+			ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+		},
+		`{"digest":{"digest":"c01c01c01c01c01c01c01c01c01c01c0","test":"circle",`+
+			`"status":"","triage_history":null,"paramset":null,`+
+			`"traces":{"traces":null,"digests":null,"total_digests":0},`+
+			`"refDiffs":null,"closestRef":""},"commits":[]}`)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
