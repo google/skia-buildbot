@@ -70,42 +70,49 @@ describe('byblameentry-sk', () => {
         byBlameEntrySk,
         [{
           test: 'aarectmodes',
+          corpus: 'infra',
           numDigests: 50,
           exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
           exampleLinkHref: '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra'
             + '&digest=c6476baec94eb6a5071606575318e4df',
         }, {
           test: 'aaxfermodes',
+          corpus: 'infra',
           numDigests: 32,
           exampleLinkText: '4acfd6b3a3943cc5d75cd22e966ae6f1',
           exampleLinkHref: '/detail?grouping=name%3Daaxfermodes%26source_type%3Dinfra'
             + '&digest=4acfd6b3a3943cc5d75cd22e966ae6f1',
         }, {
           test: 'hairmodes',
+          corpus: 'infra',
           numDigests: 21,
           exampleLinkText: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
           exampleLinkHref: '/detail?grouping=name%3Dhairmodes%26source_type%3Dinfra'
             + '&digest=f9e20c63b5ce3b58d9b6a90fa3e7224c',
         }, {
           test: 'imagefilters_xfermodes',
+          corpus: 'infra',
           numDigests: 5,
           exampleLinkText: '47644613317040264fea6fa815af32e8',
           exampleLinkHref: '/detail?grouping=name%3Dimagefilters_xfermodes%26source_type%3Dinfra'
             + '&digest=47644613317040264fea6fa815af32e8',
         }, {
           test: 'lattice2',
+          corpus: 'infra',
           numDigests: 2,
           exampleLinkText: '16e41798ecd59b1523322a57b49cc17f',
           exampleLinkHref: '/detail?grouping=name%3Dlattice2%26source_type%3Dinfra'
             + '&digest=16e41798ecd59b1523322a57b49cc17f',
         }, {
           test: 'xfermodes',
+          corpus: 'infra',
           numDigests: 1,
           exampleLinkText: '8fbee03f794c455c4e4842ec2736b744',
           exampleLinkHref: '/detail?grouping=name%3Dxfermodes%26source_type%3Dinfra'
             + '&digest=8fbee03f794c455c4e4842ec2736b744',
         }, {
           test: 'xfermodes3',
+          corpus: 'infra',
           numDigests: 1,
           exampleLinkText: 'fed2ff29abe371fc0ec1b2c65dfb3949',
           exampleLinkHref: '/detail?grouping=name%3Dxfermodes3%26source_type%3Dinfra'
@@ -234,6 +241,7 @@ describe('byblameentry-sk', () => {
         byBlameEntrySk,
         [{
           test: 'aarectmodes',
+          corpus: 'infra',
           numDigests: 5,
           exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
           exampleLinkHref: '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra'
@@ -290,6 +298,7 @@ const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAf
 
 interface ExpectedRow {
   test: string;
+  corpus: string;
   numDigests: number;
   exampleLinkText: string;
   exampleLinkHref: string;
@@ -301,11 +310,13 @@ const expectAffectedTestsTableEquals = (byBlameEntrySk: ByBlameEntrySk, expected
 
   for (let i = 0; i < expectedRows.length; i++) {
     const test = $$<HTMLElement>('.test', actualRows[i])!.innerText;
+    const corpus = $$<HTMLElement>('.corpus', actualRows[i])!.innerText;
     const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!.innerText;
     const exampleLinkText = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.innerText;
     const exampleLinkHref = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.href;
 
     expect(test).to.contain(expectedRows[i].test);
+    expect(corpus).to.contain(expectedRows[i].corpus);
     expect(numDigests).to.equal(expectedRows[i].numDigests);
     expect(exampleLinkText).to.contain(expectedRows[i].exampleLinkText);
     expect(exampleLinkHref).to.contain(expectedRows[i].exampleLinkHref);

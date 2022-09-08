@@ -89,6 +89,7 @@ export class ByBlameEntrySk extends ElementSk {
         <thead>
           <tr>
             <th>Test</th>
+            <th>Corpus</th>
             <th># Digests</th>
             <th>Example</th>
           </tr>
@@ -98,6 +99,7 @@ export class ByBlameEntrySk extends ElementSk {
       (test: TestRollup) => html`
                   <tr>
                     <td class=test>${test.grouping.name}</td>
+                    <td class=corpus>${test.grouping.source_type}</td>
                     <td class=num-digests>${test.num}</td>
                     <td>
                       <a href=${detailHref(test.grouping, test.sample_digest)}
