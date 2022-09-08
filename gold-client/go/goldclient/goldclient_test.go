@@ -260,7 +260,13 @@ func TestAddResult_Success(t *testing.T) {
 		},
 	}
 
-	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	traceParams, traceID := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	assert.Equal(t, paramtools.Params{
+		types.CorpusField: "my_corpus",
+		"name":            "my_test",
+		"alpha":           "beta",
+		"gamma":           "delta",
+	}, traceParams)
 	assert.Equal(t, []jsonio.Result{
 		{
 			Digest: "9d0568469d206c1aedf1b71f12f474bc",
@@ -274,7 +280,7 @@ func TestAddResult_Success(t *testing.T) {
 			},
 		},
 	}, goldClient.resultState.SharedConfig.Results)
-	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceId)
+	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceID)
 }
 
 func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T) {
@@ -295,7 +301,13 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 		},
 	}
 
-	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	traceParams, traceID := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	assert.Equal(t, paramtools.Params{
+		types.CorpusField: "my_instance",
+		"name":            "my_test",
+		"alpha":           "beta",
+		"gamma":           "delta",
+	}, traceParams)
 	assert.Equal(t, []jsonio.Result{
 		{
 			Digest: "9d0568469d206c1aedf1b71f12f474bc",
@@ -310,7 +322,7 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 			},
 		},
 	}, goldClient.resultState.SharedConfig.Results)
-	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceId)
+	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceID)
 }
 
 // Report an image that does not match any previous digests.
@@ -716,7 +728,7 @@ func TestNewReportPassFail(t *testing.T) {
 
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc&changelist_id=867&crs=gerrit\n", string(b))
+	assert.Equal(t, "https://testing-gold.skia.org/detail?grouping=name%3DTestNotSeenBefore%26source_type%3Dtesting&digest=9d0568469d206c1aedf1b71f12f474bc&changelist_id=867&crs=gerrit\n", string(b))
 }
 
 // TestReportPassFailPassWithCorpus test that when we set the corpus via the initial config
@@ -1054,8 +1066,8 @@ func TestNegativePassFail(t *testing.T) {
 
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, `https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
-https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
+	assert.Equal(t, `https://testing-gold.skia.org/detail?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dtesting&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
+https://testing-gold.skia.org/detail?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dtesting&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
 `, string(b))
 }
 
@@ -1511,7 +1523,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				}),
 			}
 
-			resultKey, traceID := goldClient.makeResultKeyAndTraceId(testName, tc.additionalKeys)
+			resultKey, _, traceID := goldClient.makeResultKeyAndTraceParamsAndID(testName, tc.additionalKeys)
 			assert.Equal(t, tc.expectedResultKey, resultKey)
 			_, tb := sql.SerializeMap(tc.expectedTrace)
 			expectedTraceID := tiling.TraceIDV2(hex.EncodeToString(tb))

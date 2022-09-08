@@ -308,7 +308,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	}
 
 	// Add the result of this test.
-	traceID := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
+	traceParams, traceID := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(); err != nil {
@@ -357,7 +357,18 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 			}
 
 			if !match {
-				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgDigest)
+				// TODO(lovisolo): Compute grouping based on what's returned by the
+				//                 /json/v1/groupings RPC.
+				corpus, ok := traceParams[types.CorpusField]
+				if !ok {
+					return skerr.Fmt("no corpus associated with test %q", name)
+				}
+				grouping := paramtools.Params{
+					types.CorpusField:     corpus,
+					types.PrimaryKeyField: string(name),
+				}
+				link := fmt.Sprintf("%s/detail?grouping=%s&digest=%s", c.resultState.GoldURL, url.QueryEscape(urlEncode(grouping)), imgDigest)
+
 				if c.resultState.SharedConfig.ChangelistID != "" {
 					link += "&changelist_id=" + c.resultState.SharedConfig.ChangelistID
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
@@ -414,7 +425,7 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 		infof(ctx, "Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
-	_, traceID := c.makeResultKeyAndTraceId(name, keys)
+	_, _, traceID := c.makeResultKeyAndTraceParamsAndID(name, keys)
 	match, _, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgHash, optionalKeys)
 	return match, skerr.Wrap(err)
 }
@@ -513,13 +524,14 @@ func (c *CloudClient) getResultStatePath() string {
 	return filepath.Join(c.workDir, stateFile)
 }
 
-// addResult adds the given test to the overall results and returns the ID of the affected trace.
-func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) tiling.TraceIDV2 {
-	key, traceID := c.makeResultKeyAndTraceId(name, additionalKeys)
+// addResult adds the given test to the overall results and returns the params and ID of the
+// affected trace.
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) (paramtools.Params, tiling.TraceIDV2) {
+	resultKey, traceParams, traceID := c.makeResultKeyAndTraceParamsAndID(name, additionalKeys)
 
 	newResult := jsonio.Result{
 		Digest: imgHash,
-		Key:    key,
+		Key:    resultKey,
 
 		// We need to specify this is a png, otherwise the backend will refuse
 		// to ingest it.
@@ -531,11 +543,12 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 
 	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
 
-	return traceID
+	return traceParams, traceID
 }
 
-// makeResultKeyAndTraceId computes the key for a jsonio.Result and its corresponding trace ID.
-func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKeys map[string]string) (map[string]string, tiling.TraceIDV2) {
+// makeResultKeyAndTraceParamsAndID computes the key for a jsonio.Result and the params and ID of
+// the affected trace.
+func (c *CloudClient) makeResultKeyAndTraceParamsAndID(name types.TestName, additionalKeys map[string]string) (map[string]string, paramtools.Params, tiling.TraceIDV2) {
 	// Retrieve the shared keys given the via the "imgtest init" command with the --keys-file flag.
 	// If said command was not previously invoked (e.g. when calling "imgtest check") the shared
 	// config will be nil, in which case we initialize the shared keys as an empty map.
@@ -561,7 +574,7 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 	traceParams := paramtools.Params{}
 	traceParams.Add(sharedKeys, resultKey)
 
-	return resultKey, createTraceIDV2(traceParams)
+	return resultKey, traceParams, createTraceIDV2(traceParams)
 }
 
 // createTraceIDV2 encodes the params to JSON and then hex encodes it to create a traceIDV2.

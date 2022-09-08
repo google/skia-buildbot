@@ -320,12 +320,12 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	logs := output.String()
 	exit.AssertWasCalledWithCode(t, 1, logs)
 	mg.AssertExpectations(t)
-	assert.Contains(t, logs, `Untriaged or negative image: https://my-instance-gold.skia.org/detail?test=pixel-tests&digest=00000000000000000000000000000000`)
+	assert.Contains(t, logs, `Untriaged or negative image: https://my-instance-gold.skia.org/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000`)
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 
 	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
 	require.NoError(t, err)
-	assert.Contains(t, string(fb), "https://my-instance-gold.skia.org/detail?test=pixel-tests&digest=00000000000000000000000000000000")
+	assert.Contains(t, string(fb), "https://my-instance-gold.skia.org/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000")
 }
 
 func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
@@ -397,12 +397,12 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 	logs := output.String()
 	exit.AssertWasCalledWithCode(t, 1, logs)
 	mg.AssertExpectations(t)
-	assert.Contains(t, logs, `Untriaged or negative image: https://my-custom-gold-url.example.com/detail?test=pixel-tests&digest=00000000000000000000000000000000`)
+	assert.Contains(t, logs, `Untriaged or negative image: https://my-custom-gold-url.example.com/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000`)
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 
 	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
 	require.NoError(t, err)
-	assert.Contains(t, string(fb), "https://my-custom-gold-url.example.com/detail?test=pixel-tests&digest=00000000000000000000000000000000")
+	assert.Contains(t, string(fb), "https://my-custom-gold-url.example.com/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000")
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testing.T) {
