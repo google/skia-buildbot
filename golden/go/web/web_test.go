@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -3069,7 +3069,7 @@ func TestDiffHandler_InvalidRequest_Error(t *testing.T) {
 			wh.DiffHandler(w, r)
 
 			res := w.Result()
-			resBytes, err := ioutil.ReadAll(w.Body)
+			resBytes, err := io.ReadAll(w.Body)
 			require.NoError(t, err)
 
 			assert.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -3176,6 +3176,68 @@ func TestDiffHandler_ValidRequest_Success(t *testing.T) {
 		})
 }
 
+func TestGroupingForTestHandler_InvalidRequest_Error(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	test := func(name string, req frontend.GroupingForTestRequest, expectedError string, httpStatusCode int) {
+		t.Run(name, func(t *testing.T) {
+			reqBytes, err := json.Marshal(req)
+			require.NoError(t, err)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/json/v1/groupingfortest", bytes.NewReader(reqBytes))
+			wh.GroupingForTestHandler(w, r)
+
+			res := w.Result()
+			resBytes, err := io.ReadAll(w.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, httpStatusCode, res.StatusCode)
+			assert.Contains(t, string(resBytes), expectedError)
+		})
+	}
+
+	test("empty request", frontend.GroupingForTestRequest{}, "Test name cannot be empty.", http.StatusBadRequest)
+	test(
+		"test not found",
+		frontend.GroupingForTestRequest{
+			TestName: "nosuchtest",
+		},
+		"Test not found.",
+		http.StatusNotFound)
+}
+
+func TestGroupingForTestHandler_ValidRequest_Success(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	reqBytes, err := json.Marshal(frontend.GroupingForTestRequest{
+		TestName: dks.SquareTest,
+	})
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/v1/groupingfortest", bytes.NewReader(reqBytes))
+	wh.GroupingForTestHandler(w, r)
+
+	assertJSONResponseWas(t, http.StatusOK, `{"grouping":{"name":"square","source_type":"corners"}}`, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
@@ -3197,7 +3259,7 @@ func assertJSONResponseAndReturnBody(t *testing.T, expectedStatusCode int, w *ht
 	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
 	assert.Equal(t, allowAllOrigins, resp.Header.Get(accessControlHeader))
 	assert.Equal(t, noSniffContent, resp.Header.Get(contentTypeOptionsHeader))
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	return respBody
 }
@@ -3214,7 +3276,7 @@ func assertJSONResponseWas(t *testing.T, expectedStatusCode int, expectedBody st
 func assertImageResponseWas(t *testing.T, expected []byte, w *httptest.ResponseRecorder) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, expected, respBody)
 }

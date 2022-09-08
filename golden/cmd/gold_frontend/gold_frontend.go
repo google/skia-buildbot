@@ -512,6 +512,8 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v2/triagelog/undo", handlers.TriageUndoHandler, "POST")
 	add("/json/whoami", handlers.Whoami, "GET")
 	add("/json/v1/whoami", handlers.Whoami, "GET")
+	// TODO(lovisolo): Delete once all links to details page include grouping information.
+	add("/json/v1/groupingfortest", handlers.GroupingForTestHandler, "POST")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.

@@ -505,6 +505,39 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, ret)
 }
 
+// GroupingForTestHandler looks up and returns the grouping corresponding to a test. This RPC acts
+// as a bridge for clients that do not have access to grouping information (only Gold's details
+// page at the time of writing.)
+//
+// TODO(lovisolo): Delete this RPC once the details page, and all links to it, include the
+//                 necessary grouping information.
+func (wh *Handlers) GroupingForTestHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_GroupingForTestHandler", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+
+	req := frontend.GroupingForTestRequest{}
+	if err := parseJSON(r, &req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
+		return
+	}
+
+	if req.TestName == "" {
+		http.Error(w, "Test name cannot be empty.", http.StatusBadRequest)
+		return
+	}
+
+	grouping, err := wh.getGroupingForTest(ctx, req.TestName)
+	if err != nil {
+		if skerr.Unwrap(err) == pgx.ErrNoRows {
+			http.Error(w, "Test not found.", http.StatusNotFound)
+			return
+		}
+		httputils.ReportError(w, err, "Unable to get grouping for test.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, frontend.GroupingForTestResponse{Grouping: grouping})
+}
+
 // getGroupingForTest acts as a bridge for RPCs that only take in a test name, when they should
 // be taking in a grouping. It looks up the grouping by test name and returns it.
 // TODO(kjlubick) Migrate all RPCs and remove this function.
