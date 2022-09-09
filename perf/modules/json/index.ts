@@ -127,6 +127,11 @@ export interface AlertUpdateResponse {
 	IDAsString: string;
 }
 
+export interface CIDHandlerResponse {
+	commitSlice: Commit[] | null;
+	logEntry: string;
+}
+
 export interface ClusterStartResponse {
 	id: string;
 }

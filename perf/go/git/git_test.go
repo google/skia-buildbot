@@ -60,6 +60,8 @@ var subTests = map[string]subTestFunction{
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfEnd":          testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfEnd,
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_ResultsWhenBeginEqualsEnd":      testCommitNumbersWhenFileChangesInCommitNumberRange_ResultsWhenBeginEqualsEnd,
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber": testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber,
+	"testLogEntry_Success":                                                               testLogEntry_Success,
+	"testLogEntry_BadCommitId_ReturnsError":                                              testLogEntry_BadCommitId_ReturnsError,
 }
 
 func testUpdate_NewCommitsAreFoundAfterUpdate(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
@@ -319,6 +321,27 @@ func testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommi
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(0), types.CommitNumber(4), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{3}, commits)
+}
+
+func testLogEntry_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	got, err := g.LogEntry(ctx, types.CommitNumber(1))
+	require.NoError(t, err)
+	expected := `commit 881dfc43620250859549bb7e0301b6910d9b8e70
+Author: test <test@google.com>
+Date:   Tue Mar 28 10:41:00 2023 +0000
+
+    501233450539197794
+`
+	require.Equal(t, expected, got)
+}
+
+func testLogEntry_BadCommitId_ReturnsError(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	_, err := g.LogEntry(ctx, types.BadCommitNumber)
+	require.Error(t, err)
 }
 
 func TestParseGitRevLogStream_Success(t *testing.T) {

@@ -49,6 +49,7 @@ import {
   pivot,
   FrameResponseDisplayMode,
   ColumnHeader,
+  CIDHandlerResponse,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -326,6 +327,8 @@ export class ExploreSk extends ElementSk {
 
   private ingestFileLinks: IngestFileLinksSk | null = null;
 
+  private logEntry: HTMLPreElement | null = null;
+
   private paramset: ParamSetSk | null = null;
 
   private percent: HTMLSpanElement | null = null;
@@ -579,12 +582,15 @@ export class ExploreSk extends ElementSk {
             </paramset-sk>
         </div>
         <div id=details>
-          <paramset-sk
-            id=simple_paramset
-            clickable_values
-            @paramset-key-value-click=${ele.paramsetKeyValueClick}
-            >
-          </paramset-sk>
+          <div id=params_and_logentry>
+            <paramset-sk
+              id=simple_paramset
+              clickable_values
+              @paramset-key-value-click=${ele.paramsetKeyValueClick}
+              >
+            </paramset-sk>
+            <code><pre id=logEntry></pre></code>
+          </div>
           <div>
             <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
             <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
@@ -610,6 +616,7 @@ export class ExploreSk extends ElementSk {
     this.formula = this.querySelector('#formula');
     this.jsonsource = this.querySelector('#jsonsource');
     this.ingestFileLinks = this.querySelector('#ingest-file-links');
+    this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
@@ -950,10 +957,11 @@ export class ExploreSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {
-        this.commits!.details = json;
+      .then((json: CIDHandlerResponse) => {
+        this.commits!.details = json.commitSlice || [];
         this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
+        this.logEntry!.textContent = json.logEntry;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;
@@ -970,6 +978,7 @@ export class ExploreSk extends ElementSk {
     // Switch back to the params tab since we are about to hide the details tab.
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.commitsTab!.disabled = true;
+    this.logEntry!.textContent = '';
     this.plot!.highlight = [];
     this.plot!.xbar = -1;
     this.state.selected = defaultPointSelected();

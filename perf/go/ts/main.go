@@ -62,6 +62,7 @@ func main() {
 		frame.FrameRequest{},
 		frame.FrameResponse{},
 		frontend.AlertUpdateResponse{},
+		frontend.CIDHandlerResponse{},
 		frontend.ClusterStartResponse{},
 		frontend.CommitDetailsRequest{},
 		frontend.CountHandlerRequest{},

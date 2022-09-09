@@ -619,6 +619,16 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CIDHandlerResponse is the form of the response from the /_/cid/ endpoint.
+type CIDHandlerResponse struct {
+	// CommitSlice describes all the commits requested.
+	CommitSlice []perfgit.Commit `json:"commitSlice"`
+
+	// LogEntry is the full git log entry for the first commit in the
+	// CommitSlice.
+	LogEntry string `json:"logEntry"`
+}
+
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders, and returns a
 // serialized slice of cid.CommitDetails.
 func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
@@ -629,10 +639,20 @@ func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	resp, err := f.perfGit.CommitSliceFromCommitNumberSlice(ctx, cids)
+	commits, err := f.perfGit.CommitSliceFromCommitNumberSlice(ctx, cids)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
 		return
+	}
+	logEntry, err := f.perfGit.LogEntry(ctx, cids[0])
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get log entry", http.StatusInternalServerError)
+		return
+	}
+
+	resp := CIDHandlerResponse{
+		CommitSlice: commits,
+		LogEntry:    logEntry,
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

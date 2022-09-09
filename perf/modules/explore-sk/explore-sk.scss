@@ -67,7 +67,11 @@ explore-sk {
   }
 
   #simple_paramset {
-    margin: 1em 0 1em 1em;
+    margin: 1em;
+  }
+
+  #params_and_logentry {
+    display: flex;
   }
 
   #percent {

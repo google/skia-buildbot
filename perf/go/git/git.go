@@ -7,6 +7,7 @@ package git
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -661,4 +662,24 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	}
 
 	return ret, nil
+}
+
+// LogEntry returns the full log entry of a commit (minus the diff) as a string.
+func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, error) {
+	hash, err := g.GitHashFromCommitNumber(ctx, commit)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Build the git log command to run.
+	cmd := exec.CommandContext(ctx, g.gitFullPath, "show", "-s", hash)
+	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return "", skerr.Wrapf(err, "Failed running git show.")
+	}
+
+	return out.String(), nil
 }
