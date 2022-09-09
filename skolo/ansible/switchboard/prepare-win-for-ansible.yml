@@ -1,0 +1,15 @@
+# Does the absolute minimum for a Windows box that has sshd turned on.
+#
+# Once this is run then the 'win.yml' playbook can be run to finish/update the
+# machine.
+- hosts: all_win
+  gather_facts: false
+
+  pre_tasks:
+    - name: ensure sshd always starts
+      raw:
+        'Set-Service -Name sshd -StartupType Automatic'
+
+    - name: install python3
+      raw:
+        'winget  install "Python 3.9" --source msstore --accept-package-agreements  --accept-source-agreements'
