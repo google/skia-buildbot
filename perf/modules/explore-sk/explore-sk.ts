@@ -48,6 +48,7 @@ import {
   progress,
   pivot,
   FrameResponseDisplayMode,
+  ColumnHeader,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -115,6 +116,48 @@ const defaultPivotRequest = (): pivot.Request => ({
   summary: [],
 });
 
+// Stores the trace name and commit number of a single point on a trace.
+export interface PointSelected {
+  commit: number
+  name: string
+}
+
+/** Returns true if the PointSelected is valid. */
+export const isValidSelection = (p: PointSelected): boolean => p.name !== '';
+
+/** Converts a PointSelected into a CustomEvent<PlotSimpleSkTraceEventDetails>,
+ * so that it can be passed into traceSelected().
+ *
+ * Note that we need the _dataframe.header to convert the commit back into an
+ * offset. Also note that might fail, in which case the 'x' value will be set to
+ * -1.
+ */
+export const selectionToEvent = (p: PointSelected, header: (ColumnHeader | null)[] | null): CustomEvent<PlotSimpleSkTraceEventDetails> => {
+  let x = -1;
+  if (header !== null) {
+    // Find the index of the ColumnHeader that matches the commit.
+    x = header.findIndex((h: ColumnHeader | null) => {
+      if (h === null) {
+        return false;
+      }
+      return (h.offset === p.commit);
+    });
+  }
+  return new CustomEvent<PlotSimpleSkTraceEventDetails>('', {
+    detail: {
+      x: x,
+      y: 0,
+      name: p.name,
+    },
+  });
+};
+
+/** Returns a default value for PointSelected. */
+export const defaultPointSelected = (): PointSelected => ({
+  commit: 0,
+  name: '',
+});
+
 // State is reflected to the URL via stateReflector.
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -144,6 +187,8 @@ class State {
   sort: string = '' // Pivot table sort order.
 
   summary: boolean = false; // Whether to show the zoom/summary area.
+
+  selected: PointSelected = defaultPointSelected(); // The point on a trace that was clicked on.
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -860,18 +905,28 @@ export class ExploreSk extends ElementSk {
   /** Highlight a trace when it is clicked on. */
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.plot!.highlight = [e.detail.name];
+    this.plot!.xbar = e.detail.x;
     this.commits!.details = [];
 
     const x = e.detail.x;
+
+    if (x < 0) {
+      return;
+    }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commits = [this._dataframe.header![x]?.offset];
+    const commit = this._dataframe.header![x]?.offset;
+    if (!commit) {
+      return;
+    }
+
+    const commits = [commit];
     const trace = this._dataframe.traceset[e.detail.name];
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
         break;
       }
-      commits.push(this._dataframe.header![i]?.offset);
+      commits.push(this._dataframe.header![i]!.offset);
     }
     // Convert the trace id into a paramset to display.
     const params: { [key: string]: string } = toObject(e.detail.name);
@@ -881,6 +936,10 @@ export class ExploreSk extends ElementSk {
     });
 
     this._render();
+
+    this.state.selected.name = e.detail.name;
+    this.state.selected.commit = commit;
+    this._stateHasChanged();
 
     // Request populated commits from the server.
     fetch('/_/cid/', {
@@ -905,6 +964,16 @@ export class ExploreSk extends ElementSk {
         }
       })
       .catch(errorMessage);
+  }
+
+  private clearSelectedState() {
+    // Switch back to the params tab since we are about to hide the details tab.
+    this.detailTab!.selected = PARAMS_TAB_INDEX;
+    this.commitsTab!.disabled = true;
+    this.plot!.highlight = [];
+    this.plot!.xbar = -1;
+    this.state.selected = defaultPointSelected();
+    this._stateHasChanged();
   }
 
   private startStateReflector() {
@@ -1017,6 +1086,16 @@ export class ExploreSk extends ElementSk {
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
       this._render();
+      if (isValidSelection(this.state.selected)) {
+        const e = selectionToEvent(this.state.selected, this._dataframe.header);
+        // If the range has moved to no longer include the selected commit then
+        // clear the selection.
+        if (e.detail.x === -1) {
+          this.clearSelectedState();
+        } else {
+          this.traceSelected(e);
+        }
+      }
     });
   }
 
@@ -1244,6 +1323,7 @@ export class ExploreSk extends ElementSk {
     this.displayMode = 'display_query_only';
     this._render();
     if (!skipHistory) {
+      this.clearSelectedState();
       this._stateHasChanged();
     }
   }
@@ -1279,6 +1359,7 @@ export class ExploreSk extends ElementSk {
       .then((json) => {
         this.state.keys = json.id;
         this.state.queries = [];
+        this.clearSelectedState();
         this._stateHasChanged();
         this._render();
       })

@@ -1,8 +1,10 @@
 /* eslint-disable dot-notation */
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { FrameRequest, progress } from '../json';
-import { calculateRangeChange, ExploreSk } from './explore-sk';
+import { ColumnHeader, progress } from '../json';
+import {
+  calculateRangeChange, defaultPointSelected, ExploreSk, isValidSelection, PointSelected, selectionToEvent,
+} from './explore-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -111,5 +113,71 @@ describe('applyFuncToTraces', () => {
     const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
+  });
+});
+
+describe('PointSelected', () => {
+  it('defaults to not having a name', () => {
+    const p = defaultPointSelected();
+    assert.isEmpty(p.name);
+  });
+
+  it('defaults to being invalid', () => {
+    const p = defaultPointSelected();
+    assert.isFalse(isValidSelection(p));
+  });
+
+  it('becomes a valid event if the commit appears in the header', () => {
+    const header: ColumnHeader[] = [
+      {
+        offset: 99,
+        timestamp: 0,
+      },
+      {
+        offset: 100,
+        timestamp: 0,
+      },
+      {
+        offset: 101,
+        timestamp: 0,
+      },
+    ];
+
+    const p: PointSelected = {
+      commit: 100,
+      name: 'foo',
+    };
+    // selectionToEvent will look up the commit (aka offset) in header and
+    // should return an event where the 'x' value is the index of the matching
+    // ColumnHeader in 'header', i.e. 1.
+    const e = selectionToEvent(p, header);
+    assert.equal(e.detail.x, 1);
+  });
+
+  it('becomes an invalid event if the commit does not appear in the header', () => {
+    const header: ColumnHeader[] = [
+      {
+        offset: 99,
+        timestamp: 0,
+      },
+      {
+        offset: 100,
+        timestamp: 0,
+      },
+      {
+        offset: 101,
+        timestamp: 0,
+      },
+    ];
+
+    const p: PointSelected = {
+      commit: 102,
+      name: 'foo',
+    };
+    // selectionToEvent will look up the commit (aka offset) in header and
+    // should return an event where the 'x' value is -1 since the matching
+    // ColumnHeader in 'header' doesn't exist.
+    const e = selectionToEvent(p, header);
+    assert.equal(e.detail.x, -1);
   });
 });

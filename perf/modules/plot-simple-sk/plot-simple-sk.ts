@@ -960,6 +960,7 @@ export class PlotSimpleSk extends ElementSk {
   removeAll(): void {
     this.lineData = [];
     this.labels = [];
+    this.highlight = [];
     this.hoverPt = {
       x: -1,
       y: -1,
