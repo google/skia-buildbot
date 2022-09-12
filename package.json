@@ -30,7 +30,6 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.22.0",
     "@typescript/lib-dom": "npm:@types/web@^0.0.58",
-    "@webcomponents/custom-elements": "^1.4.1",
     "acorn": "^8.7.0",
     "canvaskit-wasm": "^0.25.1",
     "chai": "^4.3.4",

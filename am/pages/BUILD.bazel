@@ -7,6 +7,5 @@ sk_page(
     nonce = "{% .Nonce %}",
     scss_entry_point = "index.scss",
     sk_element_deps = ["//am/modules/alert-manager-sk"],
-    ts_deps = ["@npm//@webcomponents/custom-elements"],
     ts_entry_point = "index.ts",
 )
