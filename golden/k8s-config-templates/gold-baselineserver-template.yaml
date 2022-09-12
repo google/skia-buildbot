@@ -63,7 +63,7 @@ spec:
       serviceAccountName: gold
       containers:
         - name: gold-{{.INSTANCE_ID}}-baselineserver
-          image: { { .BASELINE_SERVER_IMAGE } }
+          image: '{{.BASELINE_SERVER_IMAGE}}'
           args:
             - '--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5'
             - '--config=/etc/gold-config/{{.INSTANCE_ID}}-baselineserver.json5'
