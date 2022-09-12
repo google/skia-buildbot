@@ -16,6 +16,7 @@
  *       the user.
  * @attr {boolean} hide_regex - If the option to include regex in the query should be made
  *       available to the user.
+ * @attr {boolean} values_only - If true then only display the values selection and hide the key selection.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -133,7 +134,7 @@ export class QuerySk extends ElementSk {
     super(QuerySk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('paramset');
     this._upgradeProperty('key_order');
@@ -206,7 +207,7 @@ export class QuerySk extends ElementSk {
    * Set or clear the invery prefix ('!') on all the values for the given key in
    * this._query, based on the value of 'invert'.
    */
-  private _applyInvert(key: string, invert: boolean) {
+  private _applyInvert(key: string, invert: boolean): void {
     const values = this._query[key];
     if (!values || !values.length) {
       return;
@@ -222,7 +223,7 @@ export class QuerySk extends ElementSk {
     }
   }
 
-  private _keyChange() {
+  private _keyChange(): void {
     if (this._keySelect!.selection === -1) {
       return;
     }
@@ -232,7 +233,7 @@ export class QuerySk extends ElementSk {
     this._render();
   }
 
-  private _recalcKeys() {
+  private _recalcKeys(): void {
     const keys = Object.keys(this._paramset);
     keys.sort();
     // Pull out all the keys that appear in _key_order to be pushed to the front of the list.
@@ -241,7 +242,7 @@ export class QuerySk extends ElementSk {
     this._keys = pre.concat(post);
   }
 
-  private _queryChanged() {
+  private _queryChanged(): void {
     const prev_query = this.current_query;
     this._rationalizeQuery();
     if (prev_query !== this.current_query) {
@@ -267,7 +268,7 @@ export class QuerySk extends ElementSk {
   }
 
   // Rationalize the _query, i.e. remove keys and values that don't exist in the ParamSet.
-  private _rationalizeQuery() {
+  private _rationalizeQuery(): void {
     // We will use this to determine whether we've made any changes to the original query.
     const originalCurrentQuery = this.current_query;
 
@@ -293,7 +294,7 @@ export class QuerySk extends ElementSk {
     }
   }
 
-  private _clear() {
+  private _clear(): void {
     this._query = {};
     this._recalcKeys();
     this._queryChanged();
@@ -301,7 +302,7 @@ export class QuerySk extends ElementSk {
     this._render();
   }
 
-  private _fastFilter() {
+  private _fastFilter(): void {
     const filterString = this._fast!.value.trim();
     const filters = filterString.toLowerCase().split(/\s+/);
 
@@ -341,7 +342,7 @@ export class QuerySk extends ElementSk {
     this._render();
   }
 
-  private _clearFilter() {
+  private _clearFilter(): void {
     this._fast!.value = '';
     this.paramset = this._originalParamset;
     this._filtering = false;
@@ -350,11 +351,11 @@ export class QuerySk extends ElementSk {
   }
 
   /** @prop paramset {Object} A serialized paramtools.ParamSet. */
-  get paramset() {
+  get paramset(): ParamSet {
     return this._paramset;
   }
 
-  set paramset(val) {
+  set paramset(val: ParamSet) {
     // Record the current key so we can restore it later.
     let prevSelectKey = '';
     if (this._keySelect && this._keySelect.selection) {
@@ -380,26 +381,35 @@ export class QuerySk extends ElementSk {
     }
   }
 
+  /** Selects a key as if the user had pressed the given key. */
+  public selectKey(key: string): void {
+    if (!this._keySelect) {
+      return;
+    }
+    this._keySelect.selection = this._keys.indexOf(key);
+    this._keyChange();
+  }
+
   /**
    * The keys in the order they should appear. All keys not in the key order will be present after
    * and in alphabetical order.
    */
-  get key_order() {
+  get key_order(): string[] {
     return this._key_order;
   }
 
-  set key_order(val) {
+  set key_order(val: string[]) {
     this._key_order = val;
     this._recalcKeys();
     this._render();
   }
 
   /** Mirrors the hide_invert attribute.  */
-  get hide_invert() {
+  get hide_invert(): boolean {
     return this.hasAttribute('hide_invert');
   }
 
-  set hide_invert(val) {
+  set hide_invert(val: boolean) {
     if (val) {
       this.setAttribute('hide_invert', '');
     } else {
@@ -409,11 +419,11 @@ export class QuerySk extends ElementSk {
   }
 
   /**  Mirrors the hide_regex attribute.  */
-  get hide_regex() {
+  get hide_regex(): boolean {
     return this.hasAttribute('hide_regex');
   }
 
-  set hide_regex(val) {
+  set hide_regex(val: boolean) {
     if (val) {
       this.setAttribute('hide_regex', '');
     } else {
@@ -423,7 +433,7 @@ export class QuerySk extends ElementSk {
   }
 
   /** Mirrors the current_query attribute.  */
-  get current_query() {
+  get current_query(): string {
     return this.getAttribute('current_query') || '';
   }
 
@@ -431,11 +441,24 @@ export class QuerySk extends ElementSk {
     this.setAttribute('current_query', val);
   }
 
-  static get observedAttributes() {
-    return ['current_query', 'hide_invert', 'hide_regex'];
+  /** Mirrors the values_only attribute.  */
+  get values_only(): boolean {
+    return this.hasAttribute('values_only');
   }
 
-  attributeChangedCallback(name: string, _: string, newValue: string) {
+  set values_only(val: boolean) {
+    if (val) {
+      this.setAttribute('values_only', '');
+    } else {
+      this.removeAttribute('values_only');
+    }
+  }
+
+  static get observedAttributes(): string[] {
+    return ['current_query', 'hide_invert', 'hide_regex', 'values_only'];
+  }
+
+  attributeChangedCallback(name: string, _: string, newValue: string): void {
     if (name === 'current_query') {
       // Convert the current_query string into an object.
       this._query = toParamSet(newValue);

@@ -16,11 +16,6 @@ describe('query-sk', () => {
     await testBed.page.setViewport({ width: 600, height: 1400 });
   });
 
-  it('should render the demo page', async () => {
-    // Smoke test.
-    expect(await testBed.page.$$('query-sk')).to.have.length(4);
-  });
-
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'infra-sk', 'query-sk');

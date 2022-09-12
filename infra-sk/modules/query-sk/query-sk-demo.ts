@@ -62,3 +62,5 @@ const activeFilter = document.querySelector<HTMLInputElement>(
 )!;
 activeFilter.value = 'one';
 activeFilter.dispatchEvent(new InputEvent('input'));
+
+document.querySelector<QuerySk>('#valuesOnly')!.selectKey('type');

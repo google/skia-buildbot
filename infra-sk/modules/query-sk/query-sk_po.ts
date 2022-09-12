@@ -29,29 +29,29 @@ export class QuerySkPO extends PageObject {
     return this.bySelector('select-sk div[selected]');
   }
 
-  async getFilter() { return this.filter.value; }
+  async getFilter(): Promise<string> { return this.filter.value; }
 
-  async setFilter(value: string) { await this.filter.enterValue(value); }
+  async setFilter(value: string): Promise<void> { await this.filter.enterValue(value); }
 
-  async clickClearFilter() { await this.clearFiltersBtn.click(); }
+  async clickClearFilter(): Promise<void> { await this.clearFiltersBtn.click(); }
 
-  async clickClearSelections() { await this.clearSelectionsBtn.click(); }
+  async clickClearSelections(): Promise<void> { await this.clearSelectionsBtn.click(); }
 
-  async getSelectedKey() { return this.selectSkSelectedKey.innerText; }
+  async getSelectedKey(): Promise<string> { return this.selectSkSelectedKey.innerText; }
 
-  async getSelectedValues() { return this.queryValuesSkPO.getSelectedOptions(); }
+  async getSelectedValues(): Promise<string[]> { return this.queryValuesSkPO.getSelectedOptions(); }
 
-  async clickValue(value: string) { await this.queryValuesSkPO.clickOption(value); }
+  async clickValue(value: string): Promise<void> { await this.queryValuesSkPO.clickOption(value); }
 
-  getKeys() { return this.selectSkKeys.map((div) => div.innerText); }
+  getKeys(): Promise<string[]> { return this.selectSkKeys.map((div) => div.innerText); }
 
-  async clickKey(key: string) {
+  async clickKey(key: string): Promise<void> {
     const keyDiv = await this.selectSkKeys.find((div) => div.isInnerTextEqualTo(key));
     await keyDiv?.click();
   }
 
   /** Analogous to the "paramset" property getter. */
-  async getParamSet() {
+  async getParamSet(): Promise<ParamSet> {
     const paramSet: ParamSet = {};
     const keys = await this.getKeys();
 
@@ -65,7 +65,7 @@ export class QuerySkPO extends PageObject {
   }
 
   /** Analogous to the "current_query" property getter. */
-  async getCurrentQuery() {
+  async getCurrentQuery(): Promise<ParamSet> {
     const paramSet: ParamSet = {};
     const keys = await this.getKeys();
 
@@ -81,7 +81,7 @@ export class QuerySkPO extends PageObject {
   }
 
   /** Analogous to the "current_query" property setter. */
-  async setCurrentQuery(query: ParamSet) {
+  async setCurrentQuery(query: ParamSet): Promise<void> {
     for (const key of await this.getKeys()) {
       const values = query[key] || [];
       await this.clickKey(key);

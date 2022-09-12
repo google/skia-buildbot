@@ -66,4 +66,11 @@ query-sk {
   .filtering {
     margin-bottom: 8px;
   }
+
+  &[values_only] {
+    .filtering,
+    .selection {
+      display: none;
+    }
+  }
 }
