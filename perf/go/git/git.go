@@ -676,9 +676,11 @@ func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, 
 	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
 	var out bytes.Buffer
 	cmd.Stdout = &out
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return "", skerr.Wrapf(err, "Failed running git show.")
+		return "", skerr.Wrapf(err, "Failed running %q: stdout: %q  stderr: %q", cmd.String(), out.String(), stderr.String())
 	}
 
 	return out.String(), nil
