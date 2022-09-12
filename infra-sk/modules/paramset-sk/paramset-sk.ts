@@ -2,8 +2,8 @@
  * @module module/paramset-sk
  * @description <h2><code>paramset-sk</code></h2>
  *
- * The paramset-sk element displays a paramset and generates events
- * as the params and labels are clicked.
+ * The paramset-sk element displays a paramset and generates events as the
+ * params and labels are clicked.
  *
  * @evt paramset-key-click - Generated when the key for a paramset is clicked.
  *     The name of the key will be sent in e.detail.key. The value of
@@ -14,10 +14,10 @@
  *        ctrl: false,
  *      }
  *
- * @evt paramset-key-value-click - Generated when one value for a paramset is clicked.
- *     The name of the key will be sent in e.detail.key, the value in
- *     e.detail.value. The value of e.detail.ctrl is true if the control key
- *     was pressed when clicking.
+ * @evt paramset-key-value-click - Generated when one value for a paramset is
+ *     clicked. The name of the key will be sent in e.detail.key, the value in
+ *     e.detail.value. The value of e.detail.ctrl is true if the control key was
+ *     pressed when clicking.
  *
  *      {
  *        key: "arch",
@@ -25,25 +25,44 @@
  *        ctrl: false,
  *      }
  *
- * @attr {string} clickable - If true then keys and values look like they are clickable
- *     i.e. via color, text-decoration, and cursor. If clickable is false
- *     then this element won't generate the events listed below, and the
- *     keys and values are not styled to look clickable. Setting both
- *     clickable and clickable_values is unsupported.
+ * @evt plus-click - Generated when the plus sign is clicked. The element must
+ *     have the 'clickable_plus' attribute set. The details of the event
+ *     contains both the key and the values for the row, for example:
  *
- * @attr {string} clickable_values - If true then only the values are clickable. Setting
- *     both clickable and clickable_values is unsupported.
+ *      {
+ *        key: "arch",
+ *        values" ["x86", "risc-v"],
+ *      }
+ *
+ * @attr {string} clickable - If true then keys and values look like they are
+ *     clickable i.e. via color, text-decoration, and cursor. If clickable is
+ *     false then this element won't generate the events listed below, and the
+ *     keys and values are not styled to look clickable. Setting both clickable
+ *     and clickable_values is unsupported.
+ *
+ * @attr {string} clickable_values - If true then only the values are clickable.
+ *     Setting both clickable and clickable_values is unsupported.
+ *
+ * @attr {string} clickable_plus - If true then a plus sign is added to every
+ * row in the right hand column, that when pressed emits the plus-click event
+ * that contains the key and values for that row.
  *
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { ParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../ElementSk';
+import 'elements-sk/icon/add-icon-sk';
 
 export interface ParamSetSkClickEventDetail {
   readonly key: string;
   readonly value?: string;
   readonly ctrl: boolean;
+}
+
+export interface ParamSetSkPlusClickEventDetail {
+  readonly key: string;
+  readonly values: string[];
 }
 
 export class ParamSetSk extends ElementSk {
@@ -72,9 +91,27 @@ export class ParamSetSk extends ElementSk {
     </tr>`;
 
   private static paramsetValuesTemplate =
-    (ele: ParamSetSk, key: string) => ele._paramsets.map(
-      (p) => html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`,
-    );
+    (ele: ParamSetSk, key: string) => {
+      const ret: TemplateResult[] = [];
+      ele._paramsets.forEach(
+        (p) => ret.push(
+          html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`,
+          ParamSetSk.optionalPlusSign(ele, key, p),
+        ),
+      );
+      return ret;
+    };
+
+  private static optionalPlusSign = (ele: ParamSetSk, key: string, p: ParamSet): TemplateResult => {
+    if (!ele.clickable_plus) {
+      return html``;
+    }
+    return html`
+    <td><add-icon-sk
+      data-key=${key}
+      data-values=${JSON.stringify(p[key])}
+    ></add-icon-sk></td>`;
+  }
 
   private static paramsetValueTemplate =
     (ele: ParamSetSk, key: string, params: string[]) => params.map((value) => html`<div class=${ele._highlighted(key, value)}
@@ -116,7 +153,7 @@ export class ParamSetSk extends ElementSk {
   }
 
   private _click(e: MouseEvent) {
-    if (!this.clickable && !this.clickable_values) {
+    if (!this.clickable && !this.clickable_values && !this.clickable_plus) {
       return;
     }
     const t = e.target as HTMLElement;
@@ -145,11 +182,20 @@ export class ParamSetSk extends ElementSk {
         detail,
         bubbles: true,
       }));
+    } else if (t.nodeName === 'ADD-ICON-SK') {
+      const detail: ParamSetSkPlusClickEventDetail = {
+        key: t.dataset.key,
+        values: JSON.parse(t.dataset.values!) as string[],
+      };
+      this.dispatchEvent(new CustomEvent<ParamSetSkPlusClickEventDetail>('plus-click', {
+        detail,
+        bubbles: true,
+      }));
     }
   }
 
   static get observedAttributes() {
-    return ['clickable', 'clickable_values'];
+    return ['clickable', 'clickable_values', 'clickable_plus'];
   }
 
   /** Mirrors the clickable attribute.  */
@@ -171,6 +217,17 @@ export class ParamSetSk extends ElementSk {
       this.setAttribute('clickable_values', '');
     } else {
       this.removeAttribute('clickable_values');
+    }
+  }
+
+  /** Mirrors the clickable_plus attribute.  */
+  get clickable_plus() { return this.hasAttribute('clickable_plus'); }
+
+  set clickable_plus(val) {
+    if (val) {
+      this.setAttribute('clickable_plus', '');
+    } else {
+      this.removeAttribute('clickable_plus');
     }
   }
 

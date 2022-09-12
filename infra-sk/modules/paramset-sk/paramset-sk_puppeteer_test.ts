@@ -24,11 +24,6 @@ describe('paramset-sk', () => {
     await testBed.page.setViewport({ width: 800, height: 600 });
   });
 
-  it('should render the demo page', async () => {
-    // Smoke test.
-    expect(await testBed.page.$$('paramset-sk')).to.have.length(6);
-  });
-
   describe('screenshots', () => {
     it('has one ParamSet, no titles', async () => {
       const paramSetSk = await testBed.page.$('#one-paramset-no-titles');
@@ -48,6 +43,11 @@ describe('paramset-sk', () => {
     it('has many ParamSets, with titles', async () => {
       const paramSetSk = await testBed.page.$('#many-paramsets-with-titles');
       await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_many-paramsets_with-titles');
+    });
+
+    it('has one ParamSet, with clickable plus and clickable values', async () => {
+      const paramSetSk = await testBed.page.$('#clickable-plus-with-clickable-values');
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_clickable-plus-with-clickable-values');
     });
   });
 

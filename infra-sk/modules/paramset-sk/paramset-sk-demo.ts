@@ -52,6 +52,14 @@ paramSetSk.paramsets = [paramSet1, paramSet2];
 paramSetSk.titles = [title1, title2];
 paramSetSk.clickable = true;
 
+paramSetSk = findParamSetSk('#clickable-plus');
+paramSetSk.paramsets = [paramSet1];
+paramSetSk.titles = [title1];
+
+paramSetSk = findParamSetSk('#clickable-plus-with-clickable-values');
+paramSetSk.paramsets = [paramSet1];
+paramSetSk.titles = [title1];
+
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
@@ -61,6 +69,11 @@ allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-value-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
     document.querySelector<HTMLPreElement>('#key-value-click-event')!.textContent = JSON.stringify(detail, null, '  ');
+  });
+
+  paramSetSk.addEventListener('plus-click', (e) => {
+    const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
+    document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent = JSON.stringify(detail, null, '  ');
   });
 });
 

@@ -3,7 +3,7 @@ import './index';
 import { expect } from 'chai';
 import { ParamSet } from 'common-sk/modules/query';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../test_util';
-import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
+import { ParamSetSk, ParamSetSkClickEventDetail, ParamSetSkPlusClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
 
 const paramSet1: ParamSet = {
@@ -168,6 +168,20 @@ describe('paramset-sk', () => {
         const event = eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-value-click');
         await paramSetSkPO.clickValue({ paramSetIndex: 0, key: 'a', value: 'hello' });
         const expectedDetail: ParamSetSkClickEventDetail = { key: 'a', value: 'hello', ctrl: false };
+        expect((await event).detail).to.deep.equal(expectedDetail);
+      });
+    });
+
+    describe('clicking plus', () => {
+      beforeEach(() => {
+        paramSetSk.clickable_plus = true;
+        paramSetSk.clickable_values = true;
+      });
+
+      it('emits an event when clicking the plus', async () => {
+        const event = eventPromise<CustomEvent<ParamSetSkPlusClickEventDetail>>('plus-click');
+        await paramSetSkPO.clickPlus('a');
+        const expectedDetail: ParamSetSkPlusClickEventDetail = { key: 'a', values: paramSet1.a };
         expect((await event).detail).to.deep.equal(expectedDetail);
       });
     });

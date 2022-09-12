@@ -16,14 +16,20 @@ paramset-sk {
   }
 
   .clickable tr:not(:nth-child(1)) th,
-  .clickable div {
+  .clickable div,
+  add-icon-sk {
     cursor: pointer;
     color: var(--primary, var(--blue));
+    fill: var(--primary, var(--blue));
   }
 
   .clickable tr:not(:nth-child(1)) th:hover,
   .clickable div:hover {
     text-decoration: underline;
+  }
+
+  add-icon-sk:hover {
+    border-bottom: solid 2px var(--primary, var(--blue));
   }
 
   .clickable_values div {

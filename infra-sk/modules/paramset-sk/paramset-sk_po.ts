@@ -32,9 +32,9 @@ export class ParamSetSkPO extends PageObject {
     return this.bySelectorAll('tr:not(:nth-child(1))');
   }
 
-  async getTitles() { return this.titles.map((th) => th.innerText); }
+  async getTitles(): Promise<string[]> { return this.titles.map((th) => th.innerText); }
 
-  async getParamSets() {
+  async getParamSets(): Promise<ParamSet[]> {
     const paramSets: ParamSet[] = [];
 
     await this._forEachParamSetKeyValue(async (pkv) => {
@@ -53,7 +53,7 @@ export class ParamSetSkPO extends PageObject {
     return paramSets;
   }
 
-  async getHighlightedValues() {
+  async getHighlightedValues(): Promise<ParamSetKeyValueTuple[]> {
     const highlighted: Array<ParamSetKeyValueTuple> = [];
 
     await this._forEachParamSetKeyValue(async (pkv, valueDiv) => {
@@ -65,12 +65,12 @@ export class ParamSetSkPO extends PageObject {
     return highlighted;
   }
 
-  async clickKey(key: string) {
+  async clickKey(key: string): Promise<void> {
     const th = await this.keys.find((th) => th.isInnerTextEqualTo(key));
     await th?.click();
   }
 
-  async clickValue(pkv: ParamSetKeyValueTuple) {
+  async clickValue(pkv: ParamSetKeyValueTuple): Promise<void> {
     await this._forEachParamSetKeyValue(async (curPkv, valueDiv) => {
       if (curPkv.paramSetIndex === pkv.paramSetIndex
           && curPkv.key === pkv.key
@@ -80,9 +80,14 @@ export class ParamSetSkPO extends PageObject {
     });
   }
 
+  async clickPlus(key: string): Promise<void> {
+    const addIcon = this.bySelector(`add-icon-sk[data-key="${key}"]`);
+    await addIcon?.click();
+  }
+
   private async _forEachParamSetKeyValue(
     fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement)=> Promise<void>,
-  ) {
+  ): Promise<void> {
     // Iterate over all rows.
     await this.rows.forEach(async (row) => {
       const key = await row.bySelector('th').innerText;
