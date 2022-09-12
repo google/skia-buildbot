@@ -23,7 +23,6 @@
  *
  */
 import { define } from 'elements-sk/define';
-import dialogPolyfill from 'dialog-polyfill';
 import { html, render } from 'lit-html';
 
 import 'elements-sk/styles/buttons';
@@ -51,7 +50,6 @@ export class ConfirmDialogSk extends HTMLElement {
   connectedCallback(): void {
     this.render();
     this.dialog = this.querySelector('dialog');
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   /**

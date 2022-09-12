@@ -9,7 +9,6 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { deepCopy } from 'common-sk/modules/object';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { fromObject, fromParamSet, ParamSet } from 'common-sk/modules/query';
-import dialogPolyfill from 'dialog-polyfill';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
@@ -194,7 +193,7 @@ export class SearchPageSk extends ElementSk {
 
   private static paginationTemplate = (el: SearchPageSk, cssClass: string) => {
     const numResults = el.searchResponse?.size || 0;
-    if (numResults == 0 || numResults <= el.limit) {
+    if (numResults === 0 || numResults <= el.limit) {
       return html``;
     }
     return html`
@@ -319,10 +318,8 @@ export class SearchPageSk extends ElementSk {
     document.addEventListener('keydown', this.keyDownEventHandlerFn);
 
     this.bulkTriageDialog = this.querySelector('dialog.bulk-triage');
-    dialogPolyfill.registerDialog(this.bulkTriageDialog!);
 
     this.helpDialog = this.querySelector('dialog.help');
-    dialogPolyfill.registerDialog(this.helpDialog!);
   }
 
   disconnectedCallback(): void {

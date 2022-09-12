@@ -7,9 +7,7 @@ sk_element(
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@types/dialog-polyfill",
         "@npm//common-sk",
-        "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
     ],

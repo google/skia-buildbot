@@ -12,7 +12,6 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { live } from 'lit-html/directives/live';
-import dialogPolyfill from 'dialog-polyfill';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { ParamSet } from 'common-sk/modules/query';
@@ -146,7 +145,6 @@ export class FilterDialogSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this._dialog = $$('dialog.filter-dialog', this);
-    dialogPolyfill.registerDialog(this._dialog!);
   }
 
   open(paramSet: ParamSet, filters: Filters) {

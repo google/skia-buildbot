@@ -6,9 +6,7 @@ sk_element(
     sass_srcs = ["bot-chooser-sk.scss"],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
-        "@npm//@types/dialog-polyfill",
         "@npm//common-sk",
-        "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
     ],

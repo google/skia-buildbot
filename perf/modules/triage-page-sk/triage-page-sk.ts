@@ -7,7 +7,6 @@
  * TODO(jcgregorio) Needs working demo page and tests.
  *
  */
-import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { equals, deepCopy } from 'common-sk/modules/object';
 import { fromObject } from 'common-sk/modules/query';
@@ -386,7 +385,6 @@ export class TriagePageSk extends ElementSk {
 
     this._render();
     this.dialog = this.querySelector('triage-page-sk > dialog');
-    dialogPolyfill.registerDialog(this.querySelector('dialog')!);
     this.stateHasChanged = stateReflector(
       () => (this.state as unknown) as HintableObject,
       (state) => {

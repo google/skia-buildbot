@@ -46,7 +46,7 @@ export interface QuerySkQueryChangeEventDetail {
  * of all possible valid prefixes with the Go code.
  */
 export const removePrefix = (s: string): string => {
-  if (s.length == 0) {
+  if (s.length === 0) {
     return s;
   }
   if ('~!'.includes(s[0])) {

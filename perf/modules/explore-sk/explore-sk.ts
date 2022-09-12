@@ -9,7 +9,6 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { toParamSet } from 'common-sk/modules/query';
-import dialogPolyfill from 'dialog-polyfill';
 import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
@@ -632,9 +631,7 @@ export class ExploreSk extends ElementSk {
     this.traceID = this.querySelector('#trace_id');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
-    dialogPolyfill.registerDialog(this.queryDialog!);
     this.helpDialog = this.querySelector('#help');
-    dialogPolyfill.registerDialog(this.helpDialog!);
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

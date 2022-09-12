@@ -23,7 +23,6 @@ import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
 
-import dialogPolyfill from 'dialog-polyfill';
 import { diffDate } from 'common-sk/modules/human';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
@@ -261,8 +260,6 @@ export class AlertManagerSk extends HTMLElement {
     this._render();
 
     this.helpDialog = $$('#help', this);
-    dialogPolyfill.registerDialog(this.helpDialog!);
-
     this.spinner = $$('#busy', this) as SpinnerSk;
     this.favicon = $$('#favicon');
 

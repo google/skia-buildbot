@@ -9,7 +9,6 @@
  * </p>
  *
  */
-import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { html, render, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
@@ -43,7 +42,6 @@ export class EmailChooserSk extends HTMLElement {
   connectedCallback(): void {
     this._render();
     this.dialog = $$('dialog', this);
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   /**

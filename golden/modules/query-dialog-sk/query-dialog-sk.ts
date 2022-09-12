@@ -17,7 +17,6 @@
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { $$ } from 'common-sk/modules/dom';
 import { ParamSet, toParamSet } from 'common-sk/modules/query';
 import { QuerySk, QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
@@ -64,7 +63,6 @@ export class QueryDialogSk extends ElementSk {
     this._render();
     this.dialog = $$('dialog', this);
     this.querySk = $$('query-sk', this);
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   open(paramSet: ParamSet, selection: string) {

@@ -10,7 +10,6 @@
 import { $ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/checkbox-sk';
@@ -48,7 +47,6 @@ export class MachineTableColumnsDialogSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.dialog = this.querySelector<HTMLDialogElement>('dialog');
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   edit(hidden: ColumnTitles[]): Promise<ColumnTitles[] | undefined> {

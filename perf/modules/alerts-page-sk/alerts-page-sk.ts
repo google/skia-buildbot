@@ -10,7 +10,6 @@ import 'elements-sk/icon/create-icon-sk';
 import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
-import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
@@ -156,7 +155,6 @@ class AlertsPageSk extends ElementSk {
         this._render();
         this.dialog = this.querySelector<HTMLDialogElement>('dialog');
         this.alertconfig = this.querySelector<AlertConfigSk>('#alertconfig');
-        dialogPolyfill.registerDialog(this.dialog!);
         this.openOnLoad();
       })
       .catch(errorMessage);

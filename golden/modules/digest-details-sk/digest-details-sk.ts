@@ -20,7 +20,6 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject } from 'common-sk/modules/query';
-import dialogPolyfill from 'dialog-polyfill';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -319,7 +318,6 @@ export class DigestDetailsSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    dialogPolyfill.registerDialog(this.querySelector('dialog.blamelist_dialog')!);
   }
 
   /** GroupingsResponse used to derive the correct grouping to use when triaging. */

@@ -13,7 +13,6 @@ import '../day-range-sk';
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -93,7 +92,6 @@ export class CommitDetailPickerSk extends ElementSk {
     this._upgradeProperty('selection');
     this._render();
     this.dialog = this.querySelector('dialog')!;
-    dialogPolyfill.registerDialog(this.dialog);
     this.updateCommitSelections();
   }
 
@@ -138,7 +136,7 @@ export class CommitDetailPickerSk extends ElementSk {
       this.range.begin = cids[cids.length - 1].ts;
       this.range.end = cids[0].ts;
       this._render();
-    } catch (error) {
+    } catch (error: any) {
       errorMessage(error);
     } finally {
       this.updatingCommits = false;

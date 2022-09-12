@@ -10,7 +10,6 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/icon/date-range-icon-sk';
 import '../calendar-sk';
@@ -73,8 +72,6 @@ export class CalendarInputSk extends ElementSk {
     this.dialog = this.querySelector('dialog')!;
     this.calendar = this.querySelector<CalendarSk>('calendar-sk');
     this.input = this.querySelector('input');
-
-    dialogPolyfill.registerDialog(this.dialog);
   }
 
   private inputChangeHandler(e: InputEvent) {

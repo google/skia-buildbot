@@ -1,7 +1,5 @@
 import './index';
 
-import dialogPolyfill from 'dialog-polyfill';
-
 import { $$ } from 'common-sk/modules/dom';
 import { digestDiffImagePath, digestImagePath } from '../common';
 import { diff16x16, left16x16, right16x16 } from './test_data';
@@ -83,7 +81,6 @@ $$<HTMLDivElement>('#base64_nthpixel')!.appendChild(nthPixel);
 
 // This element demonstrates how to use multi-zoom-sk in a dialog. It is not meant for use on
 // puppeteer.
-dialogPolyfill.registerDialog($$('#the_dialog')!);
 $$<MultiZoomSk>('#in_dialog')!.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
   diffImageSrc:

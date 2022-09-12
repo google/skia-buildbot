@@ -5,8 +5,6 @@ sk_element(
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
-        "@npm//@types/dialog-polyfill",
-        "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
     ],

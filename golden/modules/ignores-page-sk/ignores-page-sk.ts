@@ -6,7 +6,6 @@
  */
 
 import * as human from 'common-sk/modules/human';
-import dialogPolyfill from 'dialog-polyfill';
 
 import { classMap } from 'lit-html/directives/class-map';
 import { define } from 'elements-sk/define';
@@ -151,7 +150,6 @@ export class IgnoresPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>('#edit-ignore-rule-dialog')!;
-    dialogPolyfill.registerDialog(this.editIgnoreRuleDialog);
     this.editIgnoreRuleSk = this.querySelector<EditIgnoreRuleSk>('edit-ignore-rule-sk')!;
     this.confirmDialogSk = this.querySelector<ConfirmDialogSk>('confirm-dialog-sk')!;
   }

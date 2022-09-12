@@ -8,7 +8,6 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MultiZoomSk } from '../multi-zoom-sk/multi-zoom-sk';
 
@@ -109,7 +108,6 @@ export class ImageCompareSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    dialogPolyfill.registerDialog(this.querySelector('dialog.zoom_dialog')!);
   }
 
   get isComputingDiffs(): boolean { return this.computingDiffs; }

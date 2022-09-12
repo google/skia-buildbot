@@ -9,7 +9,6 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
-import dialogPolyfill from 'dialog-polyfill';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/checkbox-sk';
 import { SwarmingDimensions } from '../json';
@@ -99,8 +98,6 @@ export class DeviceEditorSk extends ElementSk {
     this._render();
     this.infoDialog = this.querySelector<HTMLDialogElement>('dialog.info');
     this.confirmDialog = this.querySelector<HTMLDialogElement>('dialog.confirm');
-    dialogPolyfill.registerDialog(this.infoDialog!);
-    dialogPolyfill.registerDialog(this.confirmDialog!);
   }
 
   private applyUpdates(): void {

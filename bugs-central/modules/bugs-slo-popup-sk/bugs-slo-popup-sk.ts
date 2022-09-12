@@ -7,7 +7,6 @@
 
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 
 import { $$ } from 'common-sk/modules/dom';
 
@@ -42,7 +41,6 @@ export class BugsSLOPopupSk extends ElementSk {
     this.priToSLOIssues = mapOfIssues;
     this._render();
     this.dialog!.showModal();
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   private displayIssues(): TemplateResult[] {

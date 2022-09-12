@@ -14,8 +14,6 @@ sk_element(
     sass_srcs = ["device-editor-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@types/dialog-polyfill",
-        "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
         "//machine/modules/json:index_ts_lib",

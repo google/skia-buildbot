@@ -9,7 +9,6 @@
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChildShader } from '../json';
 import { childShaderUniformNameRegex } from '../shadernode';
@@ -48,7 +47,6 @@ export class EditChildShaderSk extends ElementSk {
     this.dialog = $$<HTMLDialogElement>('dialog', this);
     this.dialog!.addEventListener('close', () => this.dialogClosed());
     this.input = $$<HTMLInputElement>('input', this);
-    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   /**

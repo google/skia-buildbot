@@ -4,7 +4,6 @@
  *
  *  Allows trying out an alert by clustering over a range of commits.
  */
-import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
@@ -330,8 +329,6 @@ export class ClusterLastNPageSk extends ElementSk {
         this._render();
         this.alertDialog = this.querySelector('#alert-config-dialog');
         this.triageDialog = this.querySelector('#triage-cluster-dialog');
-        dialogPolyfill.registerDialog(this.alertDialog!);
-        dialogPolyfill.registerDialog(this.triageDialog!);
         this.alertConfig = this.querySelector('alert-config-sk');
         this.runSpinner = this.querySelector('#run-spinner');
         this.stateHasChanged = stateReflector(
