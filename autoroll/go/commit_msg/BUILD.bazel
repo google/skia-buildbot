@@ -16,7 +16,6 @@ go_library(
         "//autoroll/go/config_vars",
         "//autoroll/go/revision",
         "//go/skerr",
-        "//go/util",
     ],
 )
 

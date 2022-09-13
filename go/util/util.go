@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -26,11 +25,6 @@ import (
 )
 
 const (
-	PROJECT_CHROMIUM      = "chromium"
-	BUG_PROJECT_DEFAULT   = PROJECT_CHROMIUM
-	BUG_PROJECT_BUGANIZER = "buganizer"
-	BUGS_PATTERN          = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
-
 	// time.RFC3339Nano only uses as many sub-second digits are required to
 	// represent the time, which makes it unsuitable for sorting. This
 	// format ensures that all 9 nanosecond digits are used, padding with
@@ -44,8 +38,6 @@ const (
 )
 
 var (
-	bugsRegex = regexp.MustCompile(BUGS_PATTERN)
-
 	timeUnixZero = time.Unix(0, 0).UTC()
 )
 
@@ -512,38 +504,6 @@ func ChunkIterParallelPool(ctx context.Context, length, chunkSize, poolSize int,
 	}
 	close(chunkChannel)
 	return skerr.Wrap(g.Wait())
-}
-
-// BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
-func BugsFromCommitMsg(msg string) map[string][]string {
-	rv := map[string][]string{}
-	for _, line := range strings.Split(msg, "\n") {
-		m := bugsRegex.FindAllStringSubmatch(line, -1)
-		for _, match := range m {
-			for _, s := range match[1:] {
-				for _, field := range strings.Fields(s) {
-					bugs := strings.Split(field, ",")
-					for _, b := range bugs {
-						b = strings.TrimSpace(b)
-						split := strings.SplitN(strings.Trim(b, " "), ":", 2)
-						project := BUG_PROJECT_DEFAULT
-						bug := split[0]
-						if len(split) > 1 {
-							project = split[0]
-							bug = split[1]
-						} else if strings.HasPrefix(bug, "b/") {
-							project = BUG_PROJECT_BUGANIZER
-							bug = strings.TrimPrefix(bug, "b/")
-						}
-						if bug != "" {
-							rv[project] = append(rv[project], bug)
-						}
-					}
-				}
-			}
-		}
-	}
-	return rv
 }
 
 // IsDirEmpty checks to see if the specified directory has any contents.

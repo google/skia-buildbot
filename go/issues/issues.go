@@ -17,7 +17,7 @@ const (
 	MONORAIL_BASE_URL_TMPL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/%s/issues"
 
 	PROJECT_ANGLE    = "angleproject"
-	PROJECT_CHROMIUM = util.PROJECT_CHROMIUM
+	PROJECT_CHROMIUM = "chromium"
 	PROJECT_PDFIUM   = "pdfium"
 	PROJECT_SKIA     = "skia"
 	PROJECT_WEBRTC   = "webrtc"

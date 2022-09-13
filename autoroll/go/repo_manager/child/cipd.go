@@ -46,12 +46,16 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var gitRepo *gitiles_common.GitilesRepo
-	if c.GitilesRepo != "" {
-		gitRepo, err = gitiles_common.NewGitilesRepo(ctx, &config.GitilesConfig{
+	gitilesConfig := c.SourceRepo
+	if gitilesConfig == nil && c.GitilesRepo != "" {
+		gitilesConfig = &config.GitilesConfig{
 			Branch:  "branch is unused",
 			RepoUrl: c.GitilesRepo,
-		}, reg, client)
+		}
+	}
+	var gitilesRepo *gitiles_common.GitilesRepo
+	if gitilesConfig != nil {
+		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, client)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -61,7 +65,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 		name:                  c.Name,
 		root:                  workdir,
 		tag:                   c.Tag,
-		gitRepo:               gitRepo,
+		gitRepo:               gitilesRepo,
 		revisionIdTag:         c.RevisionIdTag,
 		revisionIdTagStripKey: c.RevisionIdTagStripKey,
 	}, nil
@@ -227,7 +231,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription,
 			if len(split) == 2 {
 				rev.Bugs[split[0]] = append(rev.Bugs[split[0]], split[1])
 			} else if strings.HasPrefix(val, cipdBuganizerPrefix) {
-				rev.Bugs[util.BUG_PROJECT_BUGANIZER] = append(rev.Bugs[util.BUG_PROJECT_BUGANIZER], val[len(cipdBuganizerPrefix):])
+				rev.Bugs[revision.BugProjectBuganizer] = append(rev.Bugs[revision.BugProjectBuganizer], val[len(cipdBuganizerPrefix):])
 			} else {
 				sklog.Errorf("Invalid format for \"bug\" tag: %s", tag.Tag)
 			}

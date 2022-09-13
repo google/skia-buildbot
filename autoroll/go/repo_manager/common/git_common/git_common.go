@@ -23,10 +23,11 @@ const (
 // Checkout provides common functionality for git checkouts.
 type Checkout struct {
 	*git.Checkout
-	Branch       *config_vars.Template
-	Dependencies []*config.VersionFileConfig
-	RepoURL      string
-	RevLinkTmpl  string
+	Branch            *config_vars.Template
+	defaultBugProject string
+	Dependencies      []*config.VersionFileConfig
+	RepoURL           string
+	RevLinkTmpl       string
 }
 
 // NewCheckout returns a Checkout instance.
@@ -59,11 +60,12 @@ func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_v
 		return nil, skerr.Wrap(err)
 	}
 	return &Checkout{
-		Checkout:     co,
-		Branch:       branch,
-		Dependencies: c.Dependencies,
-		RepoURL:      c.RepoUrl,
-		RevLinkTmpl:  c.RevLinkTmpl,
+		Checkout:          co,
+		Branch:            branch,
+		defaultBugProject: c.DefaultBugProject,
+		Dependencies:      c.Dependencies,
+		RepoURL:           c.RepoUrl,
+		RevLinkTmpl:       c.RevLinkTmpl,
 	}, nil
 }
 
@@ -73,7 +75,7 @@ func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revisi
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	rev := revision.FromLongCommit(c.RevLinkTmpl, details)
+	rev := revision.FromLongCommit(c.RevLinkTmpl, c.defaultBugProject, details)
 	if len(c.Dependencies) > 0 {
 		deps, err := version_file_common.GetPinnedRevs(ctx, c.Dependencies, func(ctx context.Context, path string) (string, error) {
 			return c.GetFile(ctx, path, rev.Id)

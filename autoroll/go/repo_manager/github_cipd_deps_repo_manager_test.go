@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -346,8 +345,8 @@ func TestGithubCipdDEPSRepoManagerGetRevision(t *testing.T) {
 	// Bugs.
 	expect = getExpect(githubCipdNotRolled2)
 	expect.Bugs = map[string][]string{
-		util.BUG_PROJECT_BUGANIZER: {"1234"},
-		"chromium":                 {"456", "789"},
+		revision.BugProjectBuganizer: {"1234"},
+		"chromium":                   {"456", "789"},
 	}
 	test(githubCipdNotRolled2, []string{"bug:b/1234", "bug:chromium:456", "bug:chromium:789"}, expect)
 

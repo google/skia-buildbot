@@ -239,6 +239,7 @@ export interface AndroidRepoManagerConfig {
   includeAuthorsAsReviewers: boolean;
   preUploadCommands?: PreUploadConfig;
   autoApproverSecret: string;
+  defaultBugProject: string;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -254,6 +255,7 @@ interface AndroidRepoManagerConfigJSON {
   include_authors_as_reviewers?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
   auto_approver_secret?: string;
+  default_bug_project?: string;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {
@@ -430,12 +432,14 @@ export interface GitilesConfig {
   branch: string;
   repoUrl: string;
   dependencies?: VersionFileConfig[];
+  defaultBugProject: string;
 }
 
 interface GitilesConfigJSON {
   branch?: string;
   repo_url?: string;
   dependencies?: VersionFileConfigJSON[];
+  default_bug_project?: string;
 }
 
 export interface DEPSLocalParentConfig {
@@ -484,6 +488,7 @@ export interface CIPDChildConfig {
   gitilesRepo: string;
   revisionIdTag: string;
   revisionIdTagStripKey: boolean;
+  sourceRepo?: GitilesConfig;
 }
 
 interface CIPDChildConfigJSON {
@@ -492,6 +497,7 @@ interface CIPDChildConfigJSON {
   gitiles_repo?: string;
   revision_id_tag?: string;
   revision_id_tag_strip_key?: boolean;
+  source_repo?: GitilesConfigJSON;
 }
 
 export interface FuchsiaSDKChildConfig {
@@ -671,6 +677,7 @@ export interface GitCheckoutConfig {
   repoUrl: string;
   revLinkTmpl: string;
   dependencies?: VersionFileConfig[];
+  defaultBugProject: string;
 }
 
 interface GitCheckoutConfigJSON {
@@ -678,6 +685,7 @@ interface GitCheckoutConfigJSON {
   repo_url?: string;
   rev_link_tmpl?: string;
   dependencies?: VersionFileConfigJSON[];
+  default_bug_project?: string;
 }
 
 export interface BuildbucketRevisionFilterConfig {

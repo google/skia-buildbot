@@ -55,6 +55,7 @@ export function GetFakeConfig(): Config {
         gitiles: {
           branch: 'master',
           repoUrl: 'https://skia.googlesource.com/skiabot-test.git',
+          defaultBugProject: 'skia',
         },
         dep: {
           primary: {
@@ -72,6 +73,7 @@ export function GetFakeConfig(): Config {
         gitiles: {
           branch: 'master',
           repoUrl: 'https://skia.googlesource.com/skia.git',
+          defaultBugProject: 'skia',
         },
         path: '',
       },

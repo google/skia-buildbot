@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -165,7 +164,7 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 			vars.Bugs = make([]string, 0, len(bugMap))
 			for bug := range bugMap {
 				bugStr := fmt.Sprintf("%s:%s", c.BugProject, bug)
-				if c.BugProject == util.BUG_PROJECT_BUGANIZER {
+				if c.BugProject == revision.BugProjectBuganizer {
 					bugStr = fmt.Sprintf("b/%s", bug)
 				}
 				vars.Bugs = append(vars.Bugs, bugStr)

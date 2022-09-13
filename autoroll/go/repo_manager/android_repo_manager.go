@@ -62,6 +62,7 @@ type androidRepoManager struct {
 	androidRemoteName         string
 	autoApproverGerrit        gerrit.GerritInterface
 	childRepoURL              string
+	defaultBugProject         string
 	parentRepoURL             string
 	repoToolPath              string
 	includeAuthorsAsReviewers bool
@@ -178,6 +179,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.Metadata,
 		childRepoURL:              c.ChildRepoUrl,
+		defaultBugProject:         c.DefaultBugProject,
 		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
 
 		childBranch:      childBranch,
@@ -202,7 +204,7 @@ func (r *androidRepoManager) GetRevision(ctx context.Context, id string) (*revis
 	if err != nil {
 		return nil, err
 	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
+	return revision.FromLongCommit(r.childRevLinkTmpl, r.defaultBugProject, details), nil
 }
 
 // Helper function for updating the Android checkout.
@@ -312,7 +314,7 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 		}
 		notRolled = append(notRolled, detail)
 	}
-	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
+	return revision.FromLongCommits(r.childRevLinkTmpl, r.defaultBugProject, notRolled), nil
 }
 
 // getLastRollRev returns the last-completed DEPS roll Revision.
@@ -325,7 +327,7 @@ func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revi
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
+	return revision.FromLongCommit(r.childRevLinkTmpl, r.defaultBugProject, details), nil
 }
 
 // abortMerge aborts the current merge in the child repo.
@@ -588,5 +590,5 @@ func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision,
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
+	return revision.FromLongCommit(r.childRevLinkTmpl, r.defaultBugProject, details), nil
 }

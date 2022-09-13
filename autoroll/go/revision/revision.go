@@ -10,8 +10,16 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
+const (
+	projectChromium     = "chromium"
+	bugProjectDefault   = projectChromium
+	BugProjectBuganizer = "buganizer"
+	bugsPattern         = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
+)
+
 var (
-	testsRe = regexp.MustCompile("(?m)^Test: *(.*) *$")
+	bugsRegex = regexp.MustCompile(bugsPattern)
+	testsRe   = regexp.MustCompile("(?m)^Test: *(.*) *$")
 )
 
 // Revision is a struct containing information about a given revision.
@@ -100,7 +108,7 @@ func (r *Revision) String() string {
 
 // FromLongCommit converts a vcsinfo.LongCommit to a Revision. If revLinkTmpl is
 // not provided, the Revision will have no URL.
-func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
+func FromLongCommit(revLinkTmpl, defaultBugProject string, c *vcsinfo.LongCommit) *Revision {
 	revLink := ""
 	if revLinkTmpl != "" {
 		revLink = fmt.Sprintf(revLinkTmpl, c.Hash)
@@ -113,7 +121,7 @@ func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
 	return &Revision{
 		Id:          c.Hash,
 		Author:      author,
-		Bugs:        util.BugsFromCommitMsg(c.Body),
+		Bugs:        bugsFromCommitMsg(c.Body, defaultBugProject),
 		Description: c.Subject,
 		Details:     c.Body,
 		Display:     c.Hash[:12],
@@ -125,10 +133,10 @@ func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
 
 // FromLongCommits converts a slice of vcsinfo.LongCommits to a slice of
 // Revisions. If revLinkTmpl is not provided, the Revisions will have no URL.
-func FromLongCommits(revLinkTmpl string, commits []*vcsinfo.LongCommit) []*Revision {
+func FromLongCommits(revLinkTmpl, defaultBugProject string, commits []*vcsinfo.LongCommit) []*Revision {
 	rv := make([]*Revision, 0, len(commits))
 	for _, c := range commits {
-		rv = append(rv, FromLongCommit(revLinkTmpl, c))
+		rv = append(rv, FromLongCommit(revLinkTmpl, defaultBugProject, c))
 	}
 	return rv
 }
@@ -140,4 +148,36 @@ func parseTests(details string) []string {
 		tests = append(tests, match)
 	}
 	return tests
+}
+
+// bugsFromCommitMsg parses BUG= tags from a commit message and returns them.
+func bugsFromCommitMsg(msg, defaultBugProject string) map[string][]string {
+	rv := map[string][]string{}
+	for _, line := range strings.Split(msg, "\n") {
+		m := bugsRegex.FindAllStringSubmatch(line, -1)
+		for _, match := range m {
+			for _, s := range match[1:] {
+				for _, field := range strings.Fields(s) {
+					bugs := strings.Split(field, ",")
+					for _, b := range bugs {
+						b = strings.TrimSpace(b)
+						split := strings.SplitN(strings.Trim(b, " "), ":", 2)
+						project := defaultBugProject
+						bug := split[0]
+						if len(split) > 1 {
+							project = split[0]
+							bug = split[1]
+						} else if strings.HasPrefix(bug, "b/") {
+							project = BugProjectBuganizer
+							bug = strings.TrimPrefix(bug, "b/")
+						}
+						if bug != "" {
+							rv[project] = append(rv[project], bug)
+						}
+					}
+				}
+			}
+		}
+	}
+	return rv
 }

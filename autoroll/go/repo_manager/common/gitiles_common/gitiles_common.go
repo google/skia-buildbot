@@ -18,8 +18,9 @@ import (
 // GitilesRepo provides helpers for dealing with repos which use Gitiles.
 type GitilesRepo struct {
 	gitiles.GitilesRepo
-	branch *config_vars.Template
-	deps   []*config.VersionFileConfig
+	branch            *config_vars.Template
+	defaultBugProject string
+	deps              []*config.VersionFileConfig
 }
 
 // NewGitilesRepo returns a GitilesRepo instance.
@@ -36,9 +37,10 @@ func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, reg *config_va
 	}
 	repo := gitiles.NewRepo(c.RepoUrl, client)
 	return &GitilesRepo{
-		GitilesRepo: repo,
-		branch:      branch,
-		deps:        c.Dependencies,
+		GitilesRepo:       repo,
+		branch:            branch,
+		deps:              c.Dependencies,
+		defaultBugProject: c.DefaultBugProject,
 	}, nil
 }
 
@@ -55,7 +57,8 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to retrieve revision %q", id)
 	}
-	rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, r.GitilesRepo.URL(), "%s"), details)
+	revLinkTmpl := fmt.Sprintf(gitiles.CommitURL, r.GitilesRepo.URL(), "%s")
+	rev := revision.FromLongCommit(revLinkTmpl, r.defaultBugProject, details)
 
 	// Optionally load any dependencies.
 	if len(r.deps) > 0 {

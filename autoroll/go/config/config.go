@@ -885,6 +885,11 @@ func (c *CIPDChildConfig) Validate() error {
 	if c.Tag == "" {
 		return skerr.Fmt("Tag is required.")
 	}
+	if c.SourceRepo != nil {
+		if err := c.SourceRepo.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
 	return nil
 }
 

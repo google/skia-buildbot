@@ -56,3 +56,182 @@ here
 	testLines = parseTests(bodyWithNoTestLines)
 	require.Equal(t, 0, len(testLines))
 }
+
+func TestBugsFromCommitMsg(t *testing.T) {
+	cases := []struct {
+		in  string
+		out map[string][]string
+	}{
+		{
+			in: "BUG=skia:1234",
+			out: map[string][]string{
+				"skia": {"1234"},
+			},
+		},
+		{
+			in: "BUG=skia:1234,skia:4567",
+			out: map[string][]string{
+				"skia": {"1234", "4567"},
+			},
+		},
+		{
+			in: "BUG=skia:1234,skia:4567,skia:8901",
+			out: map[string][]string{
+				"skia": {"1234", "4567", "8901"},
+			},
+		},
+		{
+			in: "BUG=1234",
+			out: map[string][]string{
+				"chromium": {"1234"},
+			},
+		},
+		{
+			in: "BUG=skia:1234, 456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: "BUG=skia:1234,456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+Quisque feugiat, mi et tristique dignissim, sapien risus tristique mi, non dignissim nibh erat ut ex.
+
+BUG=1234, skia:5678
+`,
+			out: map[string][]string{
+				"chromium": {"1234"},
+				"skia":     {"5678"},
+			},
+		},
+		{
+			in: "Bug: skia:1234",
+			out: map[string][]string{
+				"skia": {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,skia:4567",
+			out: map[string][]string{
+				"skia": {"1234", "4567"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,skia:4567,skia:8901",
+			out: map[string][]string{
+				"skia": {"1234", "4567", "8901"},
+			},
+		},
+		{
+			in: "Bug: 1234",
+			out: map[string][]string{
+				"chromium": {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234, 456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: "Bug: 1234,456",
+			out: map[string][]string{
+				"chromium": {"1234", "456"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: `asdf
+Bug: skia:1234,456
+BUG=skia:888
+`,
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234", "888"},
+			},
+		},
+		{
+			in: "Bug: skia:123 chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123, chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123,chromium:",
+			out: map[string][]string{
+				"skia": {"123"},
+			},
+		},
+		{
+			in: "Bug: b/123",
+			out: map[string][]string{
+				BugProjectBuganizer: {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123,b/456",
+			out: map[string][]string{
+				"skia":              {"123"},
+				BugProjectBuganizer: {"456"},
+			},
+		},
+		{
+			in: `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=b/123
+Bug: b/234`,
+			out: map[string][]string{
+				"skia":              {"123", "456"},
+				BugProjectBuganizer: {"123", "234"},
+			},
+		},
+		{
+			in: `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=ba/123
+Bug: bb/234`,
+			out: map[string][]string{
+				"skia": {"123", "456"},
+			},
+		},
+	}
+	for _, tc := range cases {
+		result := bugsFromCommitMsg(tc.in, bugProjectDefault)
+		require.Equal(t, tc.out, result)
+	}
+}
