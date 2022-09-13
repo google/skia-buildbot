@@ -38,6 +38,22 @@ type transitiveDepUpdate struct {
 	Dep         string
 	RollingFrom string
 	RollingTo   string
+	LogURL      string
+}
+
+func (t *transitiveDepUpdate) String() string {
+	if t.LogURL != "" {
+		return t.LogURL
+	}
+	shortRollingFrom := t.RollingFrom
+	if len(shortRollingFrom) > 12 {
+		shortRollingFrom = shortRollingFrom[:12]
+	}
+	shortRollingTo := t.RollingTo
+	if len(shortRollingTo) > 12 {
+		shortRollingTo = shortRollingTo[:12]
+	}
+	return fmt.Sprintf("%s from %s to %s", t.Dep, shortRollingFrom, shortRollingTo)
 }
 
 // Builder is a helper used to build commit messages.
@@ -243,11 +259,23 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 			return nil, skerr.Fmt("Transitive dependency %q is missing from revision %s", td.Child.Id, to.Id)
 		}
 		if oldRev != newRev {
-			transitiveUpdates = append(transitiveUpdates, &transitiveDepUpdate{
+			update := &transitiveDepUpdate{
 				Dep:         td.Parent.Id,
 				RollingFrom: oldRev,
 				RollingTo:   newRev,
-			})
+			}
+			if td.LogUrlTmpl != "" {
+				logURLTmpl, err := parseCommitMsgTemplate(nil, td.Child.Id, td.LogUrlTmpl)
+				if err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				var buf bytes.Buffer
+				if err := logURLTmpl.Execute(&buf, vars); err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				update.LogURL = buf.String()
+			}
+			transitiveUpdates = append(transitiveUpdates, update)
 		}
 	}
 	vars.TransitiveDeps = transitiveUpdates

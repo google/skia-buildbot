@@ -51,7 +51,7 @@ var (
 {{ end -}}
 {{ if len .TransitiveDeps -}}
 Also rolling transitive DEPS:
-{{ range .TransitiveDeps }}  {{ .Dep }} from {{ substr .RollingFrom 0 12 }} to {{ substr .RollingTo 0 12 }}
+{{ range .TransitiveDeps }}  {{ .String }}
 {{ end }}
 {{- end }}`))
 

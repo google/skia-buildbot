@@ -643,11 +643,13 @@ interface ThrottleConfigJSON {
 export interface TransitiveDepConfig {
   child?: VersionFileConfig;
   parent?: VersionFileConfig;
+  logUrlTmpl: string;
 }
 
 interface TransitiveDepConfigJSON {
   child?: VersionFileConfigJSON;
   parent?: VersionFileConfigJSON;
+  log_url_tmpl?: string;
 }
 
 export interface VersionFileConfig {

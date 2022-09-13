@@ -674,6 +674,9 @@ message TransitiveDepConfig {
     VersionFileConfig child = 1;
     // parent dependency information.
     VersionFileConfig parent = 2;
+    // log_url_tmpl is a template for constructing a URL which displays the log
+    // between two revisions.
+    string log_url_tmpl = 3;
 }
 
 // VersionFileConfig provides configuration for a dependency whose version is
