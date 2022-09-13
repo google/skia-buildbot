@@ -646,8 +646,8 @@ func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logEntry, err := f.perfGit.LogEntry(ctx, cids[0])
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to get log entry", http.StatusInternalServerError)
-		return
+		logEntry = "<<< Failed to load >>>"
+		sklog.Errorf("Failed to get log entry: %s", err)
 	}
 
 	resp := CIDHandlerResponse{
