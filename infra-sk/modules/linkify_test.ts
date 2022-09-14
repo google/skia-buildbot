@@ -21,6 +21,8 @@ describe('formatAndLinkify', () => {
     test('chromium:123456789101112',
       '<a href="http://crbug.com/123456789101112" target="_blank" rel="noopener">'
          + 'chromium:123456789101112</a>');
+    test('v8:42',
+      '<a href="http://crbug.com/v8/42" target="_blank" rel="noopener">v8:42</a>');
     test('See skia:1234 and skia:456',
       'See <a href="http://skbug.com/1234" target="_blank" rel="noopener">skia:1234</a> '
       + 'and <a href="http://skbug.com/456" target="_blank" rel="noopener">skia:456</a>');

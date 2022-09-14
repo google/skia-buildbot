@@ -1,8 +1,8 @@
 /** @module infra-sk/modules/linkify */
 
 /**
- * Given a string (usually given by an untrustworthy user), this returns a lit-html Part
- * which contains the string contents with the following "improvements":
+ * Given a string (usually given by an untrustworthy user), this returns a new
+ * one which contains the string contents with the following "improvements":
  *   * Any HTML is escaped ("<" and ">" become "&lt;", "&gt;", etc.).
  *   * URLs are wrapped in anchor tags.
  *   * Line breaks are replaced with <br>.
@@ -10,12 +10,9 @@
  *
  * Example usage:
  *
- *   html`user input: ${escapeAndLinkify(untrustedUserInput)}`;
+ *   const escapedContent = escapeAndLinkify(untrustedUserInput);
  */
-export function escapeAndLinkify(s: string): HTMLDivElement | string {
-  if (!s) {
-    return '';
-  }
+export function escapeAndLinkifyToString(s: string): string {
   // sanitize the incoming string, so we aren't vulnerable to XSS.
   s = s.replace(/</g, '&lt');
   s = s.replace(/>/g, '&gt');
@@ -38,8 +35,26 @@ export function escapeAndLinkify(s: string): HTMLDivElement | string {
                                   target=_blank rel=noopener>${foundBug}</a>`);
     }
   }
+
+  return s
+}
+
+/**
+ *
+ * Same as `escapeAndLinkifyToString`, but returns a lit-html part.
+ *
+ * Example usage:
+ *
+ *   html`user input: ${escapeAndLinkify(untrustedUserInput)}`;
+ */
+export function escapeAndLinkify(s: string): HTMLDivElement | string {
+  if (!s) {
+    return '';
+  }
+
+  const new_string = escapeAndLinkifyToString(s);
   const div = document.createElement('div');
-  div.innerHTML = s;
+  div.innerHTML = new_string;
   return div;
 }
 
@@ -50,4 +65,7 @@ const supportedIssueTrackers = [
   }, {
     re: /skia:[0-9]+/g,
     url: 'http://skbug.com/',
+  }, {
+    re: /v8:[0-9]+/g,
+    url: 'http://crbug.com/v8/',
   }];

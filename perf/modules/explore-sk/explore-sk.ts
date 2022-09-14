@@ -15,6 +15,7 @@ import { HintableObject } from 'common-sk/modules/hintable';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -958,7 +959,7 @@ export class ExploreSk extends ElementSk {
         this.commits!.details = json.commitSlice || [];
         this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
-        this.logEntry!.textContent = json.logEntry;
+        this.logEntry!.innerHTML = escapeAndLinkifyToString(json.logEntry);
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;
