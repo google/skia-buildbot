@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -305,7 +307,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests.
-	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
+	ctx, output, exit = testContext(mg, mh, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -326,6 +328,59 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
 	require.NoError(t, err)
 	assert.Contains(t, string(fb), "https://my-instance-gold.skia.org/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000")
+}
+
+func TestImgTest_InitAdd_StreamingPassFail_NoCorpusSpecified_NonzeroExitCodeAndNothingUploadedToGCS(t *testing.T) {
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td := testutils.TestDataDir(t)
+
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes (both empty).
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		// No corpus specified.
+		gitHash:         "1234567890123456789012345678901234567890",
+		instanceID:      "my-instance",
+		passFailStep:    true,
+		failureFile:     filepath.Join(workDir, "failures.txt"),
+		workDir:         workDir,
+		testKeysStrings: []string{"os:Android"},
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	// Note that there is no mock GCSUploader: this test expects that nothing gets uploaded to GCS.
+	ctx, output, exit = testContext(nil, mh, nil, &timeOne)
+
+	// Now call imgtest add with the following flags. This is simulating a test uploading a single
+	// result for a test called pixel-tests.
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:angler"},
+		testOptionalKeysStrings: []string{"some_option:is optional"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 1, logs)
+
+	// We did not specify a corpus, so goldctl defaulted to the instance's name as the corpus, i.e.
+	// "my-instance". However, the /json/v1/groupings RPC does not return an entry for said corpus.
+	assert.Contains(t, logs, `grouping params for corpus "my-instance" are unknown`)
+
+	// No failures file is generated.
+	_, err := os.Stat(filepath.Join(workDir, "failures.txt"))
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, os.ErrNotExist))
 }
 
 func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
@@ -382,7 +437,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests.
-	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
+	ctx, output, exit = testContext(mg, mh, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -406,7 +461,6 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testing.T) {
-
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
 	td := testutils.TestDataDir(t)
@@ -451,7 +505,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests. The digest has already been triaged positive.
-	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
+	ctx, output, exit = testContext(mg, mh, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -513,7 +567,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests. The digest has already been triaged positive.
-	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
+	ctx, output, exit = testContext(mg, mh, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -549,7 +603,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440520000000000.json`).Return(nil)
 
 	// Call imgtest add for a second device running the same test as above.
-	ctx, output, exit = testContext(mg, nil, nil, &timeTwo)
+	ctx, output, exit = testContext(mg, mh, nil, &timeTwo)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -646,7 +700,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 
 	// Now call imgtest add with the following flags. This is simulating adding a result for
 	// a test called pixel-tests. The digest has been triaged positive for this test.
-	ctx, output, exit = testContext(nil, nil, nil, nil)
+	ctx, output, exit = testContext(nil, mh, nil, nil)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -662,7 +716,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 	exit.AssertWasCalledWithCode(t, 0, logs)
 
 	// Call imgtest add for a second device running the same test as above.
-	ctx, output, exit = testContext(nil, nil, nil, nil)
+	ctx, output, exit = testContext(nil, mh, nil, nil)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -746,7 +800,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 
 	// Now call imgtest add with the following flags. This is simulating adding a result for
 	// a test called pixel-tests. The digest has not been seen before.
-	ctx, output, exit = testContext(mg, nil, nil, nil)
+	ctx, output, exit = testContext(mg, mh, nil, nil)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -763,7 +817,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 
 	// Call imgtest add for a second device running the same test as above.
 	// TODO(kjlubick) Append to the known digests to prevent a duplicate upload.
-	ctx, output, exit = testContext(mg, nil, nil, nil)
+	ctx, output, exit = testContext(mg, mh, nil, nil)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -988,6 +1042,9 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
 
+	groupingsResp := httpResponse(`{"grouping_param_keys_by_corpus": {"my_corpus": ["name", "source_type"]}}`, "200 OK", http.StatusOK)
+	mh.On("Get", r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
+
 	return mh
 }
 
@@ -1017,6 +1074,9 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 		mh.On("Get", url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
+
+	groupingsResp := httpResponse(`{"grouping_param_keys_by_corpus": {"my_corpus": ["name", "source_type"]}}`, "200 OK", http.StatusOK)
+	mh.On("Get", r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
 
 	return mh
 }

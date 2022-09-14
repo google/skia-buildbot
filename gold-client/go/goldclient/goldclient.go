@@ -139,6 +139,9 @@ type CloudClient struct {
 
 	// these functions are overwritable by tests
 	loadAndHashImage func(path string) ([]byte, types.Digest, error)
+
+	// groupingParamKeysByCorpus are the param keys by which digests on each corpus are grouped.
+	groupingParamKeysByCorpus map[string][]string
 }
 
 // GoldClientConfig is a config structure to configure GoldClient instances
@@ -310,6 +313,15 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	// Add the result of this test.
 	traceParams, traceID := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
 
+	// Check that the trace params include the keys needed by the corpus' grouping, and fail early
+	// if they do not.
+	//
+	// We will use the returned grouping to generate links to the digest details page if necessary.
+	grouping, err := c.groupingForTrace(ctx, traceParams)
+	if err != nil {
+		return false, skerr.Wrapf(err, "computing grouping for test %q", name)
+	}
+
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(); err != nil {
 		return false, skerr.Wrapf(err, "invalid test config")
@@ -357,18 +369,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 			}
 
 			if !match {
-				// TODO(lovisolo): Compute grouping based on what's returned by the
-				//                 /json/v1/groupings RPC.
-				corpus, ok := traceParams[types.CorpusField]
-				if !ok {
-					return skerr.Fmt("no corpus associated with test %q", name)
-				}
-				grouping := paramtools.Params{
-					types.CorpusField:     corpus,
-					types.PrimaryKeyField: string(name),
-				}
 				link := fmt.Sprintf("%s/detail?grouping=%s&digest=%s", c.resultState.GoldURL, url.QueryEscape(urlEncode(grouping)), imgDigest)
-
 				if c.resultState.SharedConfig.ChangelistID != "" {
 					link += "&changelist_id=" + c.resultState.SharedConfig.ChangelistID
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
@@ -399,6 +400,52 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 		return false, err
 	}
 	return ret, nil
+}
+
+// groupingForTrace returns the grouping for the given trace. It fails if the trace params do not
+// include all the keys needed by the corpus' grouping.
+func (c *CloudClient) groupingForTrace(ctx context.Context, traceParams paramtools.Params) (paramtools.Params, error) {
+	corpus, ok := traceParams[types.CorpusField]
+	if !ok {
+		return nil, skerr.Fmt("trace params must include key %q, got: %v", types.CorpusField, traceParams)
+	}
+	groupings, err := c.getGroupings(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "retrieving groupings")
+	}
+	groupingParams, ok := groupings[corpus]
+	if !ok {
+		return nil, skerr.Fmt("grouping params for corpus %q are unknown", corpus)
+	}
+	grouping := paramtools.Params{}
+	for _, param := range groupingParams {
+		grouping[param], ok = traceParams[param]
+		if !ok {
+			return nil, skerr.Fmt("trace params must include key %q, got: %v", param, traceParams)
+		}
+	}
+	return grouping, nil
+}
+
+// getGroupings returns the param keys by which digests on each corpus are grouped.
+func (c *CloudClient) getGroupings(ctx context.Context) (map[string][]string, error) {
+	if c.groupingParamKeysByCorpus == nil {
+		endpointUrl := c.resultState.GoldURL + "/json/v1/groupings"
+
+		jsonBytes, err := getWithRetries(ctx, endpointUrl)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "making request to %s", endpointUrl)
+		}
+
+		groupingsResponse := frontend.GroupingsResponse{}
+		if err := json.Unmarshal(jsonBytes, &groupingsResponse); err != nil {
+			return nil, skerr.Wrapf(err, "unmarshalling JSON response from %s", endpointUrl)
+		}
+
+		c.groupingParamKeysByCorpus = groupingsResponse.GroupingParamKeysByCorpus
+	}
+
+	return c.groupingParamKeysByCorpus, nil
 }
 
 // Check implements the GoldClient interface.
