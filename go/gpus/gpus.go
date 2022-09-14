@@ -1,7 +1,10 @@
-// Package gputable provides a table of GPU vendor information, ported from Swarming's gpu.py.
-package gputable
+// Package gpus provides a table of GPU vendor information, ported from Swarming:
+// https://github.com/luci/luci-py/blob/887c873be30051f382da8b6aa8076a7467c80388/appengine/swarming/swarming_bot/api/platforms/gpu.py
+// https://github.com/luci/luci-py/blob/887c873be30051f382da8b6aa8076a7467c80388/appengine/swarming/swarming_bot/api/platforms/win.py#L405
+package gpus
 
 import (
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/go/util_generics"
@@ -122,12 +125,38 @@ func VendorNameToID(name string) VendorID {
 	return util_generics.Get(vendorNamesToIDs, strings.ToLower(name), "")
 }
 
-// VendorIDToName returns the vendor name corresponding to the given ID, falling back to
-// fallbackName if the ID is not found.
-func VendorIDToName(id VendorID, fallbackName string) string {
-	vendor, found := vendorMap[id]
-	if found {
-		return vendor.Name
+// IDsToNames turns a vendor ID and device ID into human-readable names if possible, falling back to
+// passed-in defaults for each one where it isn't.
+func IDsToNames(vendorID VendorID, fallbackVendorName, deviceID, fallbackDeviceName string) (vendorName, deviceName string) {
+	vendorID = VendorID(strings.ToLower(string(vendorID)))
+	deviceID = strings.ToLower(deviceID)
+
+	vendorDevices, ok := vendorMap[vendorID]
+	if !ok {
+		return fallbackVendorName, fallbackDeviceName
 	}
-	return fallbackName
+
+	deviceName = util_generics.Get(vendorDevices.Devices, deviceID, fallbackDeviceName)
+
+	return vendorDevices.Name, deviceName
+}
+
+// extract pulls out the lowercased first group of the regex from a raw device ID, returning
+// "UNKNOWN" on failure.
+func extract(regex *regexp.Regexp, rawDeviceID string) string {
+	// Raw device ID looks like CI\VEN_15AD&DEV_0405&SUBSYS_040515AD&REV_00\3&2B8E0B4B&0&78.
+	groups := regex.FindStringSubmatch(rawDeviceID)
+	if groups != nil {
+		return strings.ToLower(groups[1])
+	}
+	return "UNKNOWN"
+}
+
+var gpuVendorRegex = regexp.MustCompile(`VEN_([0-9A-F]{4})`)
+var gpuDeviceRegex = regexp.MustCompile(`DEV_([0-9A-F]{4})`)
+
+// WindowsVendorAndDeviceID extracts the vendor ID and device ID from a Windows plug-and-play device
+// ID string. If either is not found, it returns "UNKNOWN" for it.
+func WindowsVendorAndDeviceID(pnpDeviceID string) (VendorID, string) {
+	return VendorID(extract(gpuVendorRegex, pnpDeviceID)), extract(gpuDeviceRegex, pnpDeviceID)
 }

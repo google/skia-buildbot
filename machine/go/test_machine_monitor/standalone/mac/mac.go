@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/gpus"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable"
 	"howett.net/plist"
 )
 
@@ -45,22 +45,22 @@ func GPUsFromSystemProfilerXML(xml string) ([]GPU, error) {
 
 // DimensionsFromGPUs turns a slice of Mac GPUs into Swarming-style dimensions, e.g. ["8086",
 // "8086:3e9b"]. If there are no GPUs, return ["none"].
-func DimensionsFromGPUs(gpus []GPU) []string {
+func DimensionsFromGPUs(gpuSlice []GPU) []string {
 	var dimensions []string
-	for _, gpu := range gpus {
+	for _, gpu := range gpuSlice {
 		if gpu.ID == "" {
 			continue
 		}
 		gpuID := strings.TrimPrefix(gpu.ID, "0x")
-		var vendorID gputable.VendorID
+		var vendorID gpus.VendorID
 		if gpu.VendorID != "" {
 			// NVidia
-			vendorID = gputable.VendorID(strings.TrimPrefix(gpu.VendorID, "0x"))
+			vendorID = gpus.VendorID(strings.TrimPrefix(gpu.VendorID, "0x"))
 		} else if gpu.Vendor != "" {
 			// Intel and ATI
 			re := regexp.MustCompile(`\(0x([0-9a-f]{4})\)`)
 			if matches := re.FindStringSubmatch(gpu.Vendor); matches != nil {
-				vendorID = gputable.VendorID(matches[1])
+				vendorID = gpus.VendorID(matches[1])
 			}
 		}
 
@@ -80,18 +80,18 @@ func DimensionsFromGPUs(gpus []GPU) []string {
 		// macOS 10.13 stopped including the vendor ID in the spdisplays_vendor string. Infer it
 		// from the vendor name instead.
 		if vendorID == "" {
-			vendorID = gputable.VendorNameToID(vendorName)
+			vendorID = gpus.VendorNameToID(vendorName)
 		}
 		if vendorID == "" && gpu.Vendor != "" {
 			re := regexp.MustCompile(`sppci_vendor_([a-z]+)$`)
 			if matches := re.FindStringSubmatch(gpu.Vendor); matches != nil {
 				vendorName = matches[1]
-				vendorID = gputable.VendorNameToID(vendorName)
+				vendorID = gpus.VendorNameToID(vendorName)
 			}
 		}
 		if vendorID == "" {
-			vendorID = gputable.VendorID("UNKNOWN")
-		} else if vendorID == gputable.VMWare {
+			vendorID = gpus.VendorID("UNKNOWN")
+		} else if vendorID == gpus.VMWare {
 			// We consider VMWare as not having any GPUs.
 			return []string{"none"}
 		}

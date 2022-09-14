@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable"
+	"go.skia.org/infra/go/gpus"
 )
 
 func TestOSVersions_HappyPath(t *testing.T) {
@@ -71,7 +71,7 @@ func TestGPUsSeesVMWare_ReturnsNone(t *testing.T) {
 			[]GPUQueryResult{
 				{
 					DriverVersion: "1.2.3",
-					PNPDeviceID:   `PCI\VEN_` + strings.ToUpper(gputable.VMWare) + `&DEV_3E9B&SUBSYS_20898086&REV_00\3&11583659&1&10`,
+					PNPDeviceID:   `PCI\VEN_` + strings.ToUpper(gpus.VMWare) + `&DEV_3E9B&SUBSYS_20898086&REV_00\3&11583659&1&10`,
 				},
 			},
 		),

@@ -7,8 +7,8 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/windows",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/gpus",
         "//go/skerr",
-        "//machine/go/test_machine_monitor/standalone/gputable",
     ],
 )
 
@@ -17,7 +17,7 @@ go_test(
     srcs = ["windows_test.go"],
     embed = [":windows"],
     deps = [
-        "//machine/go/test_machine_monitor/standalone/gputable",
+        "//go/gpus",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

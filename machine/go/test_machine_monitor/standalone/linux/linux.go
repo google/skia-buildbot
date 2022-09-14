@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	shell "github.com/kballard/go-shellquote"
+	"go.skia.org/infra/go/gpus"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
-	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable"
 )
 
 // VendorAndBrand returns the vendor and brand string of the first encountered CPU in the provided
@@ -123,14 +123,14 @@ func GPUs(ctx context.Context, lspciOutput string, nvidiaVersionGetter func() st
 		deviceID := groups[2]
 
 		version := ""
-		if vendorID == gputable.Nvidia {
+		if vendorID == gpus.Nvidia {
 			version = nvidiaVersionGetter()
-		} else if vendorID == gputable.Intel {
+		} else if vendorID == gpus.Intel {
 			version = intelVersionGetter(ctx)
 		}
 
 		// Prefer vendor name from table.
-		vendorName = gputable.VendorIDToName(gputable.VendorID(vendorID), vendorName)
+		vendorName, _ = gpus.IDsToNames(gpus.VendorID(vendorID), vendorName, "dummy", "dummy")
 
 		ret = append(ret, vendorID, vendorID+":"+deviceID)
 		if version != "" {

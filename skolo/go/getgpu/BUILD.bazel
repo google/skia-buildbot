@@ -5,10 +5,15 @@ go_library(
     srcs = ["getgpu.go"],
     importpath = "go.skia.org/infra/skolo/go/getgpu",
     visibility = ["//visibility:private"],
+    deps = [
+        "//go/gpus",
+        "@com_github_yusufpapurcu_wmi//:wmi",
+    ],
 )
 
 go_binary(
     name = "getgpu",
     embed = [":getgpu_lib"],
+    target_compatible_with = ["@platforms//os:windows"],
     visibility = ["//visibility:public"],
 )

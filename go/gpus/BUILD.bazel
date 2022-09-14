@@ -2,16 +2,16 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
-    name = "gputable",
-    srcs = ["gputable.go"],
-    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/gputable",
+    name = "gpus",
+    srcs = ["gpus.go"],
+    importpath = "go.skia.org/infra/go/gpus",
     visibility = ["//visibility:public"],
     deps = ["//go/util_generics"],
 )
 
 go_test(
-    name = "gputable_test",
-    srcs = ["gputable_test.go"],
-    embed = [":gputable"],
+    name = "gpus_test",
+    srcs = ["gpus_test.go"],
+    embed = [":gpus"],
     deps = ["@com_github_stretchr_testify//assert"],
 )

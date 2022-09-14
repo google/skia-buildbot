@@ -1,4 +1,4 @@
-package gputable
+package gpus
 
 import (
 	"testing"

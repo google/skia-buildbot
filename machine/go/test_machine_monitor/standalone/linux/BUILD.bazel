@@ -7,10 +7,10 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/standalone/linux",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/gpus",
         "//go/skerr",
         "//go/util",
         "//machine/go/test_machine_monitor/standalone/crossplatform",
-        "//machine/go/test_machine_monitor/standalone/gputable",
         "@com_github_kballard_go_shellquote//:go-shellquote",
     ],
 )
