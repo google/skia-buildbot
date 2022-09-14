@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: gold-{{.INSTANCE_ID}}-diffcalculator
 spec:
-  replicas: '{{.K8S_REPLICAS}}'
+  replicas: {{.K8S_REPLICAS}}
   selector:
     matchLabels:
       app: gold-{{.INSTANCE_ID}}-diffcalculator
