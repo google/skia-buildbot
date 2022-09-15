@@ -106,7 +106,11 @@
         "--patch_set",
         "<(PATCHSET)",
         "--patch_server",
-        "<(CODEREVIEW_SERVER)"
+        "<(CODEREVIEW_SERVER)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -216,6 +220,10 @@
         "--ref",
         "latest",
         "--rbe",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache",
         "--target",
         "//infra/bots/task_drivers/canary:canary",
         "--include_path",
@@ -280,6 +288,10 @@
         "--ref",
         "latest",
         "--rbe",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache",
         "--target",
         "//sk/go/sk:sk",
         "--include_path",
@@ -344,6 +356,10 @@
         "--ref",
         "latest",
         "--rbe",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache",
         "--target",
         "//infra/bots/task_drivers/validate_autoroll_configs:validate_autoroll_configs",
         "--include_path",
@@ -682,7 +698,11 @@
         "--patch_set",
         "<(PATCHSET)",
         "--patch_server",
-        "<(CODEREVIEW_SERVER)"
+        "<(CODEREVIEW_SERVER)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -747,6 +767,10 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache",
         "--rbe"
       ],
       "dependencies": [
@@ -823,7 +847,11 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--buildbucket_build_id",
-        "<(BUILDBUCKET_BUILD_ID)"
+        "<(BUILDBUCKET_BUILD_ID)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -900,6 +928,10 @@
         "<(CODEREVIEW_SERVER)",
         "--buildbucket_build_id",
         "<(BUILDBUCKET_BUILD_ID)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--bazel_repo_cache_dir",
+        "/mnt/pd0/bazel_repo_cache",
         "--rbe"
       ],
       "dependencies": [

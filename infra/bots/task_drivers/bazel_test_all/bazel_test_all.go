@@ -31,6 +31,8 @@ var (
 	rbe                = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 	rbeKey             = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 	ramdiskSizeGb      = flag.Int("ramdisk_gb", 40, "Size of ramdisk to use, in GB.")
+	bazelCacheDir      = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
+	bazelRepoCacheDir  = flag.String("bazel_repo_cache_dir", "", "Path to the Bazel repository cache directory.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -76,7 +78,11 @@ func main() {
 		// CockroachDB "disk stall detected" errors on GCE VMs due to slow I/O.
 		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
 	} else {
-		bzl, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+		opts := bazel.BazelOptions{
+			CachePath:           *bazelCacheDir,
+			RepositoryCachePath: *bazelRepoCacheDir,
+		}
+		bzl, err = bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
 		bzlCleanup = func() {}
 	}
 	if err != nil {

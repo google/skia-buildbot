@@ -158,6 +158,8 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"--patch_issue", specs.PLACEHOLDER_ISSUE,
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+		"--bazel_cache_dir", "/dev/shm/bazel_cache",
+		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 
 	t := &specs.TaskSpec{
@@ -280,6 +282,8 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_issue", specs.PLACEHOLDER_ISSUE,
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+		"--bazel_cache_dir", "/dev/shm/bazel_cache",
+		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 	if rbe {
 		cmd = append(cmd, "--rbe")
@@ -317,6 +321,8 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
+		"--bazel_cache_dir", "/dev/shm/bazel_cache",
+		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 	if rbe {
 		cmd = append(cmd, "--rbe")
@@ -356,6 +362,8 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		"--tag", "git_revision:" + specs.PLACEHOLDER_REVISION,
 		"--ref", "latest",
 		"--rbe",
+		"--bazel_cache_dir", "/dev/shm/bazel_cache",
+		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 	for _, target := range targets {
 		cmd = append(cmd, "--target", target)

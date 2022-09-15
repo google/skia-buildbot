@@ -37,6 +37,9 @@ var (
 	platformsList = common.NewMultiStringFlag("platform", nil, "Pairs of Bazel build platform and CIPD platform in <bazel platform>=<cipd platform> format.")
 	includePaths  = common.NewMultiStringFlag("include_path", nil, "Paths to include, relative to //_bazel_bin.  Use [.exe] for optional suffix, eg. \"program[.exe]\"")
 
+	bazelCacheDir     = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
+	bazelRepoCacheDir = flag.String("bazel_repo_cache_dir", "", "Path to the Bazel repository cache directory.")
+
 	// Optional flags.
 	buildDir       = flag.String("build_dir", ".", "Directory containing the Bazel workspace to build.")
 	cipdServiceURL = flag.String("cipd_service_url", cipd.DefaultServiceURL, "CIPD service URL.")
@@ -124,7 +127,11 @@ func main() {
 
 	// Perform the build(s).
 	if err := td.Do(ctx, td.Props("Build"), func(ctx context.Context) (rvErr error) {
-		bzl, err := bazel.New(ctx, *buildDir, *local, *rbeKey)
+		opts := bazel.BazelOptions{
+			CachePath:           *bazelCacheDir,
+			RepositoryCachePath: *bazelRepoCacheDir,
+		}
+		bzl, err := bazel.New(ctx, *buildDir, *rbeKey, opts)
 		if err != nil {
 			return err
 		}

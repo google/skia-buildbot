@@ -3,7 +3,9 @@ package bazel
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/skerr"
 
@@ -15,7 +17,6 @@ import (
 // Bazel provides a Task Driver API for working with Bazel (via the Bazelisk launcher, see
 // https://github.com/bazelbuild/bazelisk).
 type Bazel struct {
-	local             bool
 	rbeCredentialFile string
 	workspace         string
 }
@@ -41,12 +42,17 @@ func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile str
 	//
 	// Using the ramdisk's mount point directly as the Bazel cache causes Bazel to fail with a file
 	// permission error. Using a directory within the ramdisk as the Bazel cache prevents this error.
-	cacheDir := filepath.Join(ramdiskDir, "bazel_cache")
-	if err := os_steps.MkdirAll(ctx, cacheDir); err != nil {
+	cachePath := filepath.Join(ramdiskDir, "bazel_cache")
+	if err := os_steps.MkdirAll(ctx, cachePath); err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	repositoryCachePath := filepath.Join(ramdiskDir, "bazel_repo_cache")
+	if err := os_steps.MkdirAll(ctx, repositoryCachePath); err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
 	opts := BazelOptions{
-		CachePath: filepath.Join(ramdiskDir, "bazel_cache"),
+		CachePath:           cachePath,
+		RepositoryCachePath: repositoryCachePath,
 	}
 	if err := EnsureBazelRCFile(ctx, opts); err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -79,57 +85,39 @@ func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile str
 }
 
 type BazelOptions struct {
-	CachePath string
+	CachePath           string
+	RepositoryCachePath string
 }
-
-// https://docs.bazel.build/versions/main/guide.html#where-are-the-bazelrc-files
-// We go for the user's .bazelrc file instead of the system one because the swarming user does
-// not have access to write to /etc/bazel.bazelrc
-const (
-	userBazelRCLocation = "/home/chrome-bot/.bazelrc"
-
-	defaultBazelCachePath = "/dev/shm/bazel_cache"
-
-	repositoryCache = "/mnt/pd0/bazel_repo_cache"
-)
 
 // EnsureBazelRCFile makes sure the user .bazelrc file exists and matches the provided
 // configuration. This makes it easy for all subsequent calls to Bazel use the right command
 // line args, even if Bazel is not invoked directly from task_driver (e.g. from a Makefile).
 func EnsureBazelRCFile(ctx context.Context, bazelOpts BazelOptions) error {
-	c := ""
+	var bazelRCLines []string
 	if bazelOpts.CachePath != "" {
 		// https://docs.bazel.build/versions/main/output_directories.html#current-layout
-		//
+		bazelRCLines = append(bazelRCLines, fmt.Sprintf("startup --output_user_root=%s", bazelOpts.CachePath))
+	}
+	if bazelOpts.RepositoryCachePath != "" {
 		// Also keep the repository cache on disk so that it survives reboots.
 		// https://bazel.build/docs/build#repository-cache
-		c = fmt.Sprintf(`
-startup --output_user_root=%s
-build --repository_cache=%s
-`, bazelOpts.CachePath, repositoryCache)
+		bazelRCLines = append(bazelRCLines, fmt.Sprintf("build --repository_cache=%s", bazelOpts.RepositoryCachePath))
 	}
-	return os_steps.WriteFile(ctx, userBazelRCLocation, []byte(c), 0666)
 
+	// https://docs.bazel.build/versions/main/guide.html#where-are-the-bazelrc-files
+	// We go for the user's .bazelrc file instead of the system one because the
+	// swarming user does not have access to write to /etc/bazel.bazelrc
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	userBazelRCLocation := filepath.Join(homeDir, ".bazelrc")
+	bazelRCContent := strings.Join(bazelRCLines, "\n")
+	return os_steps.WriteFile(ctx, userBazelRCLocation, []byte(bazelRCContent), 0666)
 }
 
 // New returns a new Bazel instance.
-func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, error) {
-	// We cannot use the default Bazel cache location ($HOME/.cache/bazel)
-	// because:
-	//
-	//  - The cache can be large (>10G).
-	//  - Swarming bots have limited storage space on the root partition (15G).
-	//  - Because the above, the Bazel build fails with a "no space left on
-	//    device" error.
-	//
-	// We are ok re-using the same Bazel cache from run to run as Bazel should be smart enough
-	// to invalidate certain cached items when they change.
-	opts := BazelOptions{
-		CachePath: defaultBazelCachePath,
-	}
-	if local {
-		opts.CachePath = "/tmp/bazel_cache"
-	}
+func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOptions) (*Bazel, error) {
 	if err := EnsureBazelRCFile(ctx, opts); err != nil {
 		return nil, skerr.Wrap(err)
 	}

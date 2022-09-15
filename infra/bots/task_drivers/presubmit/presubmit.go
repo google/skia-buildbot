@@ -12,11 +12,13 @@ import (
 
 var (
 	// Required properties for this task.
-	projectID   = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskID      = flag.String("task_id", "", "ID of this task.")
-	taskName    = flag.String("task_name", "", "Name of the task.")
-	workDirFlag = flag.String("workdir", ".", "Working directory.")
-	rbeKey      = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	projectID         = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID            = flag.String("task_id", "", "ID of this task.")
+	taskName          = flag.String("task_name", "", "Name of the task.")
+	workDirFlag       = flag.String("workdir", ".", "Working directory.")
+	rbeKey            = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	bazelCacheDir     = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
+	bazelRepoCacheDir = flag.String("bazel_repo_cache_dir", "", "Path to the Bazel repository cache directory.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -50,7 +52,11 @@ func main() {
 	}
 
 	// Set up Bazel.
-	bzl, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	opts := bazel.BazelOptions{
+		CachePath:           *bazelCacheDir,
+		RepositoryCachePath: *bazelRepoCacheDir,
+	}
+	bzl, err := bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
