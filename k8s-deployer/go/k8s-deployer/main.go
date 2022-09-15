@@ -119,17 +119,14 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 
 		// Ensure that the file matches any provided regular expressions.
 		if len(configFileRegexes) > 0 {
-			sklog.Infof("Match: %q ?", file)
 			match := false
 			for _, re := range configFileRegexes {
 				if re.MatchString(file) {
-					sklog.Infof("  Matched %q", re.String())
 					match = true
 					break
 				}
 			}
 			if !match {
-				sklog.Infof("  No match.")
 				continue
 			}
 		}
