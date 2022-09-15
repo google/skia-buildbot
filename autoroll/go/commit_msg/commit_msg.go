@@ -270,7 +270,7 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 					return nil, skerr.Wrap(err)
 				}
 				var buf bytes.Buffer
-				if err := logURLTmpl.Execute(&buf, vars); err != nil {
+				if err := logURLTmpl.Execute(&buf, update); err != nil {
 					return nil, skerr.Wrap(err)
 				}
 				update.LogURL = buf.String()
@@ -356,6 +356,7 @@ var fakeTransitiveDeps = []*config.TransitiveDepConfig{
 			Id:   "parent/dep1",
 			Path: "DEPS",
 		},
+		LogUrlTmpl: "https://fake-dep1/+log/{{.RollingFrom}}..{{.RollingTo}}",
 	},
 	{
 		Child: &config.VersionFileConfig{
@@ -366,6 +367,7 @@ var fakeTransitiveDeps = []*config.TransitiveDepConfig{
 			Id:   "parent/dep2",
 			Path: "DEPS",
 		},
+		LogUrlTmpl: "https://fake-dep2/+log/{{.RollingFrom}}..{{.RollingTo}}",
 	},
 	{
 		Child: &config.VersionFileConfig{

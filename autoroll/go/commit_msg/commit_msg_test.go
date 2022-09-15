@@ -137,6 +137,7 @@ func TestMakeVars(t *testing.T) {
 				Dep:         "parent/dep1",
 				RollingFrom: "dddddddddddddddddddddddddddddddddddddddd",
 				RollingTo:   "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+				LogURL:      "https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 			}, vars.TransitiveDeps[0])
 			assertdeep.Equal(t, &transitiveDepUpdate{
 				Dep:         "parent/dep3",

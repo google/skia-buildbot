@@ -23,7 +23,7 @@ https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
 2020-04-16 b@google.com Commit B
 
 Also rolling transitive DEPS:
-  parent/dep1 from dddddddddddd to eeeeeeeeeeee
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 If this roll has caused a breakage, revert this CL and stop the roller
@@ -63,7 +63,7 @@ func TestNamedTemplateAndroid_NoLog(t *testing.T) {
 https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
 
 Also rolling transitive DEPS:
-  parent/dep1 from dddddddddddd to eeeeeeeeeeee
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 If this roll has caused a breakage, revert this CL and stop the roller
@@ -106,7 +106,7 @@ https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
 2020-04-16 b@google.com Commit B
 
 Also rolling transitive DEPS:
-  parent/dep1 from dddddddddddd to eeeeeeeeeeee
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 If this roll has caused a breakage, revert this CL and stop the roller
@@ -181,7 +181,7 @@ https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
 2020-04-16 b@google.com Commit B
 
 Also rolling transitive DEPS:
-  parent/dep1 from dddddddddddd to eeeeeeeeeeee
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 Please enable autosubmit on changes if possible when approving them.
