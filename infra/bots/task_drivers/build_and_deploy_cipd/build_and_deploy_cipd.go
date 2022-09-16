@@ -220,7 +220,7 @@ func main() {
 		// get applied to all packages or none. Otherwise it's possible for some
 		// platforms to be missing when querying by ref or tag.
 		for _, pkg := range pkgs {
-			if err := td.Do(ctx, td.Props(fmt.Sprintf("Attach %s", pkg.cipdPlatform)), func(ctx context.Context) error {
+			if err := td.Do(ctx, td.Props(fmt.Sprintf("Attach %s %s", pkg.cipdPlatform, pkg.pin.String())), func(ctx context.Context) error {
 				// If any of the provided tags is already attached to a
 				// different instance, stop and return an error.
 				for _, tag := range *tags {
