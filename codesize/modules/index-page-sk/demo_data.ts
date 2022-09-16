@@ -19,6 +19,7 @@ export const fakeMostRecentBinariesRPCResponse: MostRecentBinariesRPCResponse = 
         binary_name: 'dm',
         bloaty_cipd_version: 'version:1',
         bloaty_args: ['build/dm', '-d', 'compileunits,symbols', '-n', '0', '--tsv'],
+        bloaty_diff_args: ['build/dm', '--', 'build_nopatch/dm'],
         patch_issue: '',
         patch_server: '',
         patch_set: '',

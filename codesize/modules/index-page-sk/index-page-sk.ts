@@ -24,7 +24,7 @@ export class IndexPageSk extends ElementSk {
       const metadata = binariesFromCommitOrPatchset.binaries[0].metadata;
 
       const isTryJob = metadata.patch_issue || metadata.patch_set;
-      const hasDiff = isTryJob && metadata.bloaty_diff_args;
+      const hasDiff = metadata.bloaty_diff_args;
 
       const commitOrCLAnchorText = isTryJob
         ? `Issue ${metadata.patch_issue}, PS ${metadata.patch_set}`
@@ -58,14 +58,19 @@ export class IndexPageSk extends ElementSk {
         return `/binary?${new URLSearchParams(params).toString()}`;
       };
 
-      // Only available for tryjobs.
       const hrefForBinaryDiff = (output: Binary) => {
         const params: Record<string, string> = {
           binary_name: output.metadata.binary_name,
           compile_task_name: output.metadata.compile_task_name,
-          patch_issue: output.metadata.patch_issue,
-          patch_set: output.metadata.patch_set,
         };
+        if (output.metadata.patch_issue) {
+            // Tryjob data is identified by CL and PS
+            params.patch_issue = output.metadata.patch_issue;
+            params.patch_set = output.metadata.patch_set;
+        } else {
+            // Primary branch data is identified by git revision.
+            params.commit = output.metadata.revision;
+        }
         return `/binary_diff?${new URLSearchParams(params).toString()}`;
       };
 

@@ -10,12 +10,18 @@ import '../../../infra-sk/modules/human-date-sk';
 
 export class BinaryDiffPageSk extends ElementSk {
   private static template = (el: BinaryDiffPageSk) => {
-    if (el.metadata === null) {
+    if (!el.metadata) {
       return html`<p>Loading...</p>`;
     }
 
-    const clAnchorText = `Issue ${el.metadata?.patch_issue}, PS ${el.metadata?.patch_set}`;
-    const clAnchorHref = `https://review.skia.org/${el.metadata?.patch_issue}/${el.metadata?.patch_set}`;
+    const isTryJob = el.metadata.patch_issue || el.metadata.patch_set;
+
+    const anchorText = isTryJob
+        ? `Issue ${el.metadata.patch_issue}, PS ${el.metadata.patch_set}`
+        : el.metadata.revision.substring(0, 7);
+    const anchorHref = isTryJob
+        ? `https://review.skia.org/${el.metadata.patch_issue}/${el.metadata.patch_set}`
+        : `https://skia.googlesource.com/skia/+/${el.metadata.revision}`;
 
     const compileTaskNameHref = `https://task-scheduler.skia.org/task/${el.metadata?.task_id}`;
     return html`
@@ -29,7 +35,7 @@ export class BinaryDiffPageSk extends ElementSk {
       </h2>
 
       <p>
-        <a href="${clAnchorHref}">${clAnchorText}</a>
+        <a href="${anchorHref}">${anchorText}</a>
         ${el.metadata?.subject}
         <br/>
         <span class="author-and-timestamp">
