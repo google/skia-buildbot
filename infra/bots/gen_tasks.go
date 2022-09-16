@@ -43,14 +43,13 @@ var (
 		"Infra-PerCommit-Build-Bazel-RBE": &cqWithDefaults,
 		"Infra-PerCommit-Test-Bazel-RBE":  &cqWithDefaults,
 
-		"Housekeeper-PerCommit-CIPD-Canary":                  noCQ,
-		"Housekeeper-PerCommit-CIPD-SK":                      noCQ,
-		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": noCQ,
-		"Housekeeper-Weekly-UpdateCIPDPackages":              noCQ,
-		"Infra-Experimental-Small-Linux":                     noCQ,
-		"Infra-Experimental-Small-Win":                       noCQ,
-		"Infra-PerCommit-Build-Bazel-Local":                  noCQ,
-		"Infra-PerCommit-Test-Bazel-Local":                   noCQ,
+		"Housekeeper-PerCommit-CIPD-Canary":     noCQ,
+		"Housekeeper-PerCommit-CIPD-SK":         noCQ,
+		"Housekeeper-Weekly-UpdateCIPDPackages": noCQ,
+		"Infra-Experimental-Small-Linux":        noCQ,
+		"Infra-Experimental-Small-Win":          noCQ,
+		"Infra-PerCommit-Build-Bazel-Local":     noCQ,
+		"Infra-PerCommit-Test-Bazel-Local":      noCQ,
 	}
 
 	// cqWithDefaults means this is a non-experimental CQ job (if it fails, the submission will
@@ -404,10 +403,6 @@ func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
 	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel_bin/sk/go/sk/sk_/sk[.exe]"})
 }
 
-func buildAndDeployValidateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
-	return buildAndDeployCIPD(b, name, "skia/tools/validate_autoroll_configs", []string{"//infra/bots/task_drivers/validate_autoroll_configs:validate_autoroll_configs"}, []string{"_bazel_bin/infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs_/validate_autoroll_configs[.exe]"})
-}
-
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJobConfig) {
 	var priority float64 // Leave as default for most jobs.
@@ -431,8 +426,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, buildAndDeployCanary(b, name))
 	} else if name == "Housekeeper-PerCommit-CIPD-SK" {
 		deps = append(deps, buildAndDeploySK(b, name))
-	} else if name == "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs" {
-		deps = append(deps, buildAndDeployValidateAutorollConfigs(b, name))
 	} else {
 		if strings.Contains(name, "Presubmit") {
 			priority = 1
