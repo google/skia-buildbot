@@ -87,9 +87,15 @@ func main() {
 	// Create directories for each of the build platforms.
 	pkgs := make([]*pkgSpec, 0, len(*platformsList))
 	var ts oauth2.TokenSource
+	var cipdClient cipd.CIPDClient
 	if err := td.Do(ctx, td.Props("Setup").Infra(), func(ctx context.Context) error {
 		var err error
 		ts, err = auth_steps.Init(ctx, *local, auth.ScopeUserinfoEmail)
+		if err != nil {
+			return err
+		}
+		httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		cipdClient, err = cipd.NewClient(httpClient, ".", *cipdServiceURL)
 		if err != nil {
 			return err
 		}
@@ -196,12 +202,6 @@ func main() {
 	// TODO(borenet): See if we can use the CIPD Go code directly, rather than
 	// having to ship a separate binary.
 	if err := td.Do(ctx, td.Props("Upload to CIPD"), func(ctx context.Context) error {
-		httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-		cipdClient, err := cipd.NewClient(httpClient, ".", *cipdServiceURL)
-		if err != nil {
-			return err
-		}
-
 		// Upload all of the package instances.
 		for _, pkg := range pkgs {
 			if err := td.Do(ctx, td.Props(fmt.Sprintf("Upload %s", pkg.cipdPlatform)), func(ctx context.Context) error {
