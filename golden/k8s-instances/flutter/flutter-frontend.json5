@@ -2,6 +2,8 @@
   authorized_users: [
     "google.com",
     "flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-staging-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-try-builder@chops-service-accounts.iam.gserviceaccount.com",
     // Note: gmail accounts should be in "normalized" form, that is no dots and no pluses.
     "ianhickson@gmail.com",
     "lavidalovett@gmail.com",
