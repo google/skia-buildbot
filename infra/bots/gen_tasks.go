@@ -39,12 +39,9 @@ const (
 var (
 	// jobsToCQStatus lists all infra Jobs and their CQ config to run at each commit.
 	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
-		"Housekeeper-OnDemand-Presubmit":  &cqWithDefaults,
-		"Infra-PerCommit-Build-Bazel-RBE": &cqWithDefaults,
-		"Infra-PerCommit-Test-Bazel-RBE":  &cqWithDefaults,
-
-		"Housekeeper-PerCommit-CIPD-Canary":     noCQ,
-		"Housekeeper-PerCommit-CIPD-SK":         noCQ,
+		"Housekeeper-OnDemand-Presubmit":        &cqWithDefaults,
+		"Infra-PerCommit-Build-Bazel-RBE":       &cqWithDefaults,
+		"Infra-PerCommit-Test-Bazel-RBE":        &cqWithDefaults,
 		"Housekeeper-Weekly-UpdateCIPDPackages": noCQ,
 		"Infra-Experimental-Small-Linux":        noCQ,
 		"Infra-Experimental-Small-Win":          noCQ,
@@ -345,64 +342,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	return name
 }
 
-func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targets, includePaths []string) string {
-	pkgs := []*specs.CipdPackage{
-		b.MustGetCipdPackageFromAsset("bazelisk"),
-	}
-
-	cmd := []string{
-		"./build_and_deploy_cipd",
-		"--project_id", "skia-swarming-bots",
-		"--task_id", specs.PLACEHOLDER_TASK_ID,
-		"--task_name", name,
-		"--build_dir", "buildbot",
-		"--package_name", packageName,
-		"--metadata", "git_repo:" + specs.PLACEHOLDER_REPO,
-		"--tag", "git_revision:" + specs.PLACEHOLDER_REVISION,
-		"--ref", "latest",
-		"--rbe",
-		"--bazel_cache_dir", "/dev/shm/bazel_cache",
-		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
-	}
-	for _, target := range targets {
-		cmd = append(cmd, "--target", target)
-	}
-	for _, includePath := range includePaths {
-		cmd = append(cmd, "--include_path", includePath)
-	}
-	cmd = append(cmd, cipdPlatforms...)
-	t := &specs.TaskSpec{
-		CasSpec:      casWholeRepo,
-		CipdPackages: pkgs,
-		Command:      cmd,
-		Dependencies: []string{
-			buildTaskDrivers(b, "Linux", "x86_64"),
-			// We don't use any outputs of the Test job, we just want to make sure that we
-			// do not upload to CIPD if our tests are failing.
-			"Infra-PerCommit-Test-Bazel-RBE",
-		},
-		Dimensions: linuxGceDimensions(machineTypeLarge),
-		EnvPrefixes: map[string][]string{
-			"PATH": {
-				"cipd_bin_packages",
-				"cipd_bin_packages/bin",
-				"bazelisk",
-			},
-		},
-		ServiceAccount: cipdUploaderServiceAccount,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
-func buildAndDeployCanary(b *specs.TasksCfgBuilder, name string) string {
-	return buildAndDeployCIPD(b, name, "skia/tools/canary", []string{"//infra/bots/task_drivers/canary:canary"}, []string{"_bazel_bin/infra/bots/task_drivers/canary/canary_/canary[.exe]"})
-}
-
-func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
-	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel_bin/sk/go/sk/sk_/sk[.exe]"})
-}
-
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJobConfig) {
 	var priority float64 // Leave as default for most jobs.
@@ -422,10 +361,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, bazelTest(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Test-Bazel-RBE") {
 		deps = append(deps, bazelTest(b, name, true /* =rbe */))
-	} else if name == "Housekeeper-PerCommit-CIPD-Canary" {
-		deps = append(deps, buildAndDeployCanary(b, name))
-	} else if name == "Housekeeper-PerCommit-CIPD-SK" {
-		deps = append(deps, buildAndDeploySK(b, name))
 	} else {
 		if strings.Contains(name, "Presubmit") {
 			priority = 1
