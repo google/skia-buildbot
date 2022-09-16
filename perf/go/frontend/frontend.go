@@ -81,6 +81,9 @@ const (
 
 	// longRunningRequestTimeout is a limit on long running processes.
 	longRunningRequestTimeout = 20 * time.Minute
+
+	// How often to update the git repo from origin.
+	gitRepoUpdatePeriod = time.Minute
 )
 
 // Frontend is the server for the Perf web UI.
@@ -341,6 +344,18 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
+
+	// Update the git repo periodically since perfGit.LogEntry does interrogate
+	// the git repo itself instead of using the SQL backend.
+	//
+	// TODO(jcgregorio) Remove once perfgit stores full commit messages.
+	go func() {
+		for range time.Tick(gitRepoUpdatePeriod) {
+			if err := f.perfGit.Update(ctx); err != nil {
+				sklog.Errorf("Failed to update git repo: %s", err)
+			}
+		}
+	}()
 
 	sklog.Info("About to build dfbuilder.")
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore, f.flags.NumParamSetsForQueries)
