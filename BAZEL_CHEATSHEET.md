@@ -609,3 +609,23 @@ build --experimental_execution_log_file=yourLogFile.log
 2. Run `bazel clean --expunge`. We want all actions to get executed, so nothing cached.
 3. Look at the yourLogFile.log, it will contain a record of every action bazel executed,
 environment variables, command line, input files, and output files of every action.
+
+### Querying
+
+[Bazel has a query feature](https://bazel.build/query/quickstart) that lets one extract
+information from the build graph.
+
+There's a `query` and `cquery` variant that lets one query for the maximal set of information
+or the information in one specific case, respectively.
+
+For example:
+```
+# Show all possible build flags (e.g. defines, copts) and other information about a label
+bazel query 'kind("rule", //:skia_public)' --output xml
+
+# Show the build flags for this specific build configuration (release)
+bazel cquery 'kind("rule", //:skia_public)' --output jsonproto --config=release
+```
+
+This type of [querying is used extensively to generate .gni and CMakefiles](
+https://github.com/google/skia/blob/cf1fad655769f3e1a47a7b6d876efb0d7c5e0efa/bazel/exporter/bazel_query_command.go#L76-L116).
