@@ -1,0 +1,16 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "cd_container",
+    base_image = "@cd-base//image",
+    default_user = "root",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//cd/go/build-images:build-images",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/cd",
+)

@@ -323,6 +323,15 @@ container_pull(
     repository = "skia-public/base-cipd",
 )
 
+# Pulls the gcr.io/skia-public/cd-base container, needed by some apps that use the
+# skia_app_container macro.
+container_pull(
+    name = "cd-base",
+    digest = "sha256:96e80a7bd78ae573155416853dcfbb1c00f997d4aef3c53d5e7058fb9df8946f",
+    registry = "gcr.io",
+    repository = "skia-public/cd-base",
+)
+
 # Pulls the gcr.io/skia-public/skia-build-tools container, needed by some apps that
 # build skia.
 container_pull(

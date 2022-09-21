@@ -3,7 +3,7 @@
 
 set -x -e
 
-APPNAME=cd
+APPNAME=cd-base
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
@@ -12,7 +12,6 @@ INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile                  ${ROOT}/Dockerfile
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/recipes.cfg
-${INSTALL} --mode=755 -T ../_bazel_bin/cd/go/build-images/build-images_/build-images ${ROOT}/build-images
 }
 
 source ../bash/docker_build.sh
