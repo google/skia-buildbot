@@ -55,6 +55,7 @@ FROM base AS final
 ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
 COPY --from=install_pkgs ${CIPD_ROOT} ${CIPD_ROOT}
+COPY ./build-images /bin/build-images
 ENV GOPATH=/go
 RUN mkdir -p ${GOPATH}
 ENV PATH="${CIPD_ROOT}/bin:${CIPD_ROOT}/go/bin:${CIPD_ROOT}:${GOPATH}/bin:${PATH}"

@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "build-images_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cd/go/build-images",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/git",
+        "//task_driver/go/td",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "build-images",
+    embed = [":build-images_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "build-images_test",
+    srcs = ["main_test.go"],
+    embed = [":build-images_lib"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
