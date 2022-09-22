@@ -170,7 +170,7 @@ func readBuildImagesJSON(ctx context.Context, workspace string) (*buildImagesJSO
 
 // writeBuildImagesJSON writes the buildImagesJSONFile.
 func writeBuildImagesJSON(ctx context.Context, workspace string, imageInfo *buildImagesJSON) error {
-	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Read %s", buildImagesJSONFile)))
+	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Write %s", buildImagesJSONFile)))
 	defer td.EndStep(ctx)
 
 	f := filepath.Join(workspace, buildImagesJSONFile)

@@ -60,7 +60,7 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 		louhiImageTag := fmt.Sprintf("louhi_ws/%s:%s", imagePath, imageTag)
 		imageInfo.Images = append(imageInfo.Images, SingleImageInfo{
 			Image: imagePath,
-			Tag:   louhiImageTag,
+			Tag:   imageTag,
 		})
 		eg.Go(func() error {
 			return bazelRun(ctx, checkoutDir, bazelTarget, louhiImageTag, rbe)
