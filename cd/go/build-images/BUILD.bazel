@@ -3,14 +3,23 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "build-images_lib",
-    srcs = ["main.go"],
+    srcs = [
+        "build.go",
+        "main.go",
+        "update-refs.go",
+    ],
     importpath = "go.skia.org/infra/cd/go/build-images",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common",
         "//go/exec",
+        "//go/gerrit/rubberstamper",
         "//go/git",
+        "//go/gitauth",
+        "//go/skerr",
+        "//go/util",
+        "//task_driver/go/lib/git_steps",
         "//task_driver/go/td",
+        "@com_github_urfave_cli_v2//:cli",
         "@org_golang_x_sync//errgroup",
     ],
 )
