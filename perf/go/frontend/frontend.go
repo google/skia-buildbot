@@ -654,6 +654,13 @@ func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
+
+	// If alerts.DefaultSparse is true then we only respond with information
+	// about the very first commit.
+	if alerts.DefaultSparse {
+		cids = cids[:1]
+	}
+
 	commits, err := f.perfGit.CommitSliceFromCommitNumberSlice(ctx, cids)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)

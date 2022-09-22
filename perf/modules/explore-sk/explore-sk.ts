@@ -926,13 +926,32 @@ export class ExploreSk extends ElementSk {
     }
 
     const commits = [commit];
+
+    // Find all the commit ids between the commit that was clicked on, and the
+    // previous commit on the display, inclusive of the commit that was clicked,
+    // and non-inclusive of the previous commit.
+
+    // We always do this, but the response may not contain all the commit info
+    // if alerts.DefaultSparse==true, in which case only info for the first
+    // commit is returned.
+
+    // First skip back to the next point with data.
     const trace = this._dataframe.traceset[e.detail.name];
+    let prevCommit = -1;
     for (let i = x - 1; i >= 0; i--) {
-      if (trace![i] !== MISSING_DATA_SENTINEL) {
+      // plot-simple converts all MISSING_DATA_SENTINEL's to NaNs, so we have to check for NaNs here.
+      if (!Number.isNaN(trace![i])) {
+        prevCommit = this._dataframe.header![i]!.offset;
         break;
       }
-      commits.push(this._dataframe.header![i]!.offset);
     }
+
+    if (prevCommit !== -1) {
+      for (let c = commit - 1; c > prevCommit; c--) {
+        commits.push(c);
+      }
+    }
+
     // Convert the trace id into a paramset to display.
     const params: { [key: string]: string } = toObject(e.detail.name);
     const paramset: ParamSet = {};
@@ -1569,7 +1588,7 @@ export class ExploreSk extends ElementSk {
       }
       line = [`"${traceId}"`];
       this._dataframe.traceset[traceId]!.forEach((f) => {
-        if (f !== MISSING_DATA_SENTINEL) {
+        if (!Number.isNaN(f)) {
           line.push(f);
         } else {
           line.push('');
