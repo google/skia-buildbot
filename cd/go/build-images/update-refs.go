@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -46,7 +50,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email string) er
 		if len(split) != 2 {
 			return td.FailStep(ctx, skerr.Fmt("Failed to obtain sha256 sum for %s; expected <image>@<sha256> but got %q", image.Image, output))
 		}
-		image.Sha256 = split[1]
+		image.Sha256 = strings.TrimSuffix(strings.TrimPrefix(split[1], "sha256:"), "'")
 	}
 
 	// Create a shallow clone of the repo.
@@ -65,10 +69,44 @@ func updateRefs(ctx context.Context, repo, workspace, username, email string) er
 	}
 
 	// Find-and-replace each of the image references.
-	for _, image := range imageInfo.Images {
-		if _, err := exec.RunCwd(ctx, checkoutDir, "find", "./", "-type", "f", "-exec", "sed", "-r", "-i", fmt.Sprintf("s;%s@sha256:[a-f0-9]+;%s@sha256:%s;g", image.Image, image.Image, image.Sha256), "{}", "\\;"); err != nil {
-			return td.FailStep(ctx, err)
+	if err := td.Do(ctx, td.Props("Update Image References"), func(ctx context.Context) error {
+		imageRegexes := make([]*regexp.Regexp, 0, len(imageInfo.Images))
+		imageReplace := make([]string, 0, len(imageInfo.Images))
+		for _, image := range imageInfo.Images {
+			imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
+			imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, image.Sha256))
 		}
+		return filepath.WalkDir(checkoutDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			} else if d.IsDir() {
+				if d.Name() == ".git" {
+					return fs.SkipDir
+				} else {
+					return nil
+				}
+			}
+			// Read the file.
+			contents, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			contentsStr := string(contents)
+
+			// Replace all instances of the old image specification with the new.
+			for idx, re := range imageRegexes {
+				contentsStr = re.ReplaceAllString(contentsStr, imageReplace[idx])
+			}
+
+			// Write out the updated file.
+			contents = []byte(contentsStr)
+			if err := ioutil.WriteFile(path, contents, d.Type().Perm()); err != nil {
+				return err
+			}
+			return nil
+		})
+	}); err != nil {
+		return td.FailStep(ctx, err)
 	}
 
 	// Did we change anything?

@@ -51,14 +51,14 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 
 	// Perform the builds concurrently.
 	imageInfo := &buildImagesJSON{
-		Images: make([]SingleImageInfo, 0, len(bazelTargetToImagePath)),
+		Images: make([]*SingleImageInfo, 0, len(bazelTargetToImagePath)),
 	}
 	eg, ctx := errgroup.WithContext(ctx)
 	for bazelTarget, imagePath := range bazelTargetToImagePath {
 		// https://golang.org/doc/faq#closures_and_goroutines
 		bazelTarget := bazelTarget
 		louhiImageTag := fmt.Sprintf("louhi_ws/%s:%s", imagePath, imageTag)
-		imageInfo.Images = append(imageInfo.Images, SingleImageInfo{
+		imageInfo.Images = append(imageInfo.Images, &SingleImageInfo{
 			Image: imagePath,
 			Tag:   imageTag,
 		})

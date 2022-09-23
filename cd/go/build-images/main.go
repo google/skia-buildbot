@@ -144,7 +144,7 @@ const (
 
 // buildImagesJSON describes the structure of buildImagesJSONFile.
 type buildImagesJSON struct {
-	Images []SingleImageInfo `json:"images"`
+	Images []*SingleImageInfo `json:"images"`
 }
 
 type SingleImageInfo struct {
