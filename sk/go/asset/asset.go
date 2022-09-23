@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	os_exec "os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -24,7 +25,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/luciauth"
@@ -370,15 +370,11 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 				rvErr = err
 			}
 		}()
-		cmd := &exec.Command{
-			Name:      "python",
-			Args:      []string{"-u", creationScript, "-t", src},
-			Dir:       ".",
-			LogStdout: true,
-			LogStderr: true,
-		}
-		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Name, strings.Join(cmd.Args, " ")))
-		if err := exec.Run(ctx, cmd); err != nil {
+		cmd := os_exec.CommandContext(ctx, "python", "-u", creationScript, "-t", src)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Path, strings.Join(cmd.Args, " ")))
+		if err := cmd.Run(); err != nil {
 			return skerr.Wrap(err)
 		}
 		fmt.Println("Finished running asset creation script.")

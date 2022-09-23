@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/auth",
         "//go/cipd",
-        "//go/exec",
         "//go/git",
         "//go/httputils",
         "//go/luciauth",
