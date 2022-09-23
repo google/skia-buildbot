@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"golang.org/x/sync/errgroup"
 )
 
 func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, rbe bool) error {
@@ -53,7 +52,6 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	imageInfo := &buildImagesJSON{
 		Images: make([]*SingleImageInfo, 0, len(bazelTargetToImagePath)),
 	}
-	eg, ctx := errgroup.WithContext(ctx)
 	for bazelTarget, imagePath := range bazelTargetToImagePath {
 		// https://golang.org/doc/faq#closures_and_goroutines
 		bazelTarget := bazelTarget
@@ -62,12 +60,9 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 			Image: imagePath,
 			Tag:   imageTag,
 		})
-		eg.Go(func() error {
-			return bazelRun(ctx, checkoutDir, bazelTarget, louhiImageTag, rbe)
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return td.FailStep(ctx, err)
+		if err := bazelRun(ctx, checkoutDir, bazelTarget, louhiImageTag, rbe); err != nil {
+			return td.FailStep(ctx, err)
+		}
 	}
 	return writeBuildImagesJSON(ctx, workspace, imageInfo)
 }
