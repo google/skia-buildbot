@@ -848,18 +848,29 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	case S_CURRENT_ROLL_MISSING:
 		return S_NORMAL_IDLE, nil
 	case S_TOO_MANY_CLS:
-		lastNRevs := s.a.GetLastNRollRevs(1)
-		if len(lastNRevs) > 0 && s.a.GetNextRollRev().Id == lastNRevs[0] {
-			return S_TOO_MANY_CLS, nil
-		} else if s.a.GetMode() == modes.ModeDryRun {
-			return S_DRY_RUN_IDLE, nil
-		} else if s.a.GetMode() == modes.ModeStopped {
+		// Switching to stopped or offline mode overrides this state.
+		if s.a.GetMode() == modes.ModeStopped {
 			return S_STOPPED, nil
 		} else if s.a.GetMode() == modes.ModeOffline {
 			return S_OFFLINE, nil
+		}
+
+		current := s.a.GetCurrentRev()
+		next := s.a.GetNextRollRev()
+		lastNRevs := s.a.GetLastNRollRevs(1)
+		if current.Id != next.Id && len(lastNRevs) > 0 && next.Id == lastNRevs[0] {
+			// If we're not up-to-date and we still want the same next-roll-rev,
+			// we remain in this state.
+			return S_TOO_MANY_CLS, nil
 		} else {
-			// Default case.
-			return S_NORMAL_IDLE, nil
+			// If we're up to date (eg. someone landed a manual roll), or if
+			// there are new revisions to roll, we no longer need to be in this
+			// state.
+			if s.a.GetMode() == modes.ModeDryRun {
+				return S_DRY_RUN_IDLE, nil
+			} else {
+				return S_NORMAL_IDLE, nil
+			}
 		}
 	case S_OFFLINE:
 		if desiredMode == modes.ModeRunning {

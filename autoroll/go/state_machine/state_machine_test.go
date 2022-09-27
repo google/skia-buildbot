@@ -984,6 +984,25 @@ func TestTooManyRollCLs(t *testing.T) {
 	r.SetNextRollRev("HEAD+2")
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
+
+	// Verify that stopping or offline-ing the roller, or a manual roll landing
+	// gets us out of this state.
+	for i := 0; i < maxRollCLsToSameRevision; i++ {
+		failCL()
+	}
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetMode(ctx, modes.ModeStopped)
+	checkNextState(t, sm, S_STOPPED)
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetCurrentRev("HEAD+2")
+	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
 func TestTooManyRollCLsDryRun(t *testing.T) {
