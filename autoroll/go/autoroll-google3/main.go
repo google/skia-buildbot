@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"flag"
 	"io"
 	"io/ioutil"
@@ -27,6 +28,7 @@ import (
 
 // flags
 var (
+	configContents    = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
 	configFile        = flag.String("config_file", "", "Configuration file to use.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -47,17 +49,25 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
+	// Decode the config.
+	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
+		sklog.Fatal("Exactly one of --config or --config_file is required.")
+	}
+	var configBytes []byte
+	var err error
+	if *configContents != "" {
+		configBytes, err = base64.StdEncoding.DecodeString(*configContents)
+	} else {
+		err = util.WithReadFile(*configFile, func(f io.Reader) error {
+			configBytes, err = ioutil.ReadAll(f)
+			return err
+		})
+	}
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	var cfg config.Config
-	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-		configBytes, err := ioutil.ReadAll(f)
-		if err != nil {
-			return err
-		}
-		if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
 		sklog.Fatal(err)
 	}
 
