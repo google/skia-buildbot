@@ -9,12 +9,6 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/autoroll/configs": [
-            [
-                "//autoroll/config:google3_config",
-                "0644",
-            ],
-        ],
     },
     repository = "skia-public/autoroll-google3",
     run_commands_root = [
