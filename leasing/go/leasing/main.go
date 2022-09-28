@@ -10,8 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -61,8 +59,6 @@ var (
 	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
 	artifactsDir               = flag.String("artifacts_dir", "", "The directory to find leasing server's artifacts.")
 	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
-	emailClientSecretFile      = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile        = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
 	serviceAccountFile         = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 	poolDetailsUpdateFrequency = flag.Duration("pool_details_update_freq", 5*time.Minute, "How often to call swarming API to refresh the details of supported pools.")
 
@@ -96,32 +92,6 @@ func New() (baseapp.App, error) {
 	}
 
 	// Initialize mailing library.
-	var cfg ClientSecretJSON
-	err := util.WithReadFile(*emailClientSecretFile, func(f io.Reader) error {
-		return json.NewDecoder(f).Decode(&cfg)
-	})
-	if err != nil {
-		sklog.Fatalf("Failed to read client secrets from %q: %s", *emailClientSecretFile, err)
-	}
-	// Create a copy of the token cache file since mounted secrets are read-only
-	// and the access token will need to be updated for the oauth2 flow.
-	if !*baseapp.Local {
-		fout, err := ioutil.TempFile("", "")
-		if err != nil {
-			sklog.Fatalf("Unable to create temp file %q: %s", fout.Name(), err)
-		}
-		err = util.WithReadFile(*emailTokenCacheFile, func(fin io.Reader) error {
-			_, err := io.Copy(fout, fin)
-			if err != nil {
-				err = fout.Close()
-			}
-			return err
-		})
-		if err != nil {
-			sklog.Fatalf("Failed to write token cache file from %q to %q: %s", *emailTokenCacheFile, fout.Name(), err)
-		}
-		*emailTokenCacheFile = fout.Name()
-	}
 	MailInit()
 
 	var allow allowed.Allow
@@ -142,6 +112,7 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
 	}
 
+	var err error
 	poolToDetails, err = GetDetailsOfAllPools(ctx)
 	if err != nil {
 		sklog.Fatalf("Could not get details of all pools: %s", err)
