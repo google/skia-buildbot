@@ -47,9 +47,13 @@ type OutputItem struct {
 	FileSize int
 }
 
-// expectedHeaderLine is the header line we expect to find in a Bloaty output file. We use this to
-// ensure that Bloaty was invoked with the expected command-line flags.
-const expectedHeaderLine = "compileunits\tsymbols\tvmsize\tfilesize"
+const (
+	// expectedHeaderLine is the header line we expect to find in a Bloaty output file. We use
+	// this to ensure that Bloaty was invoked with the expected command-line flags.
+	expectedHeaderLine = "compileunits\tsymbols\tvmsize\tfilesize"
+
+	androidBuildPrefix = "/buildbot/src/android/"
+)
 
 // ParseTSVOutput parses the TSV output of Bloaty.
 //
@@ -63,7 +67,7 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 
 	var items []OutputItem
 
-	for i, line := range strings.Split(strings.TrimSpace(string(bloatyOutput)), "\n") {
+	for i, line := range strings.Split(strings.TrimSpace(bloatyOutput), "\n") {
 		errOnLine := func(msg string, args ...interface{}) error {
 			allArgs := append([]interface{}{i + 1}, args...)
 			return skerr.Fmt("on line %d: "+msg, allArgs...)
@@ -110,6 +114,11 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 			// to have duplicate symbols which makes the treemap sad.
 			item.Symbol += " " + item.CompileUnit
 		}
+		// In arm outputs, we see sections show up, which causes cycles in the treemap.
+		// Thus, we skip them. They seem pretty small too.
+		if strings.HasPrefix(item.Symbol, "[section") {
+			continue
+		}
 
 		var err error
 		item.VirtualMemorySize, err = strconv.Atoi(cols[2])
@@ -132,10 +141,13 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 			item.CompileUnit = strings.TrimPrefix(item.CompileUnit, "skia/")
 		}
 
-		// Files in third_party sometimes have absolute paths. Strip those.
+		// Files in third_party and from the NDK sometimes have absolute paths. Strip those.
 		if path.IsAbs(item.CompileUnit) {
+			item.CompileUnit = path.Clean(item.CompileUnit)
 			if idx := strings.Index(item.CompileUnit, "third_party"); idx != -1 {
 				item.CompileUnit = item.CompileUnit[idx:]
+			} else if strings.HasPrefix(item.CompileUnit, androidBuildPrefix) {
+				item.CompileUnit = strings.TrimPrefix(item.CompileUnit, androidBuildPrefix)
 			} else {
 				return nil, errOnLine("unexpected absolute path %q", line)
 			}

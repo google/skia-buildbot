@@ -47,6 +47,7 @@ var sampleBloatyOutput = `compileunits	symbols	vmsize	filesize
 ../../dm/DMSrcSink.cpp	DM::CodecSrc::draw()	7307	7382
 ../../src/sksl/SkSLCompiler.cpp	(anonymous namespace)::TLSCurrentObjects::Get()::objects	0	16
 ../../../../../../skia/third_party/externals/libwebp/src/enc/vp8l_enc.c	EncodeStreamHook	7656	7656
+/mnt/pd0/s/w/ir/skia/third_party/externals/zlib/cpu_features.c	Cr_z_cpu_check_features	1567	2994
 [section .rodata]	[section .rodata]	10425940	10425940
 [section .rodata]	propsVectorsTrie_index	62456	62456
 [section .text]	png_create_read_struct_2	75	75
@@ -65,12 +66,6 @@ func TestParseBloatyOutput_Success(t *testing.T) {
 			Symbol:            "(anonymous namespace)::TLSCurrentObjects::Get()::objects",
 			VirtualMemorySize: 0,
 			FileSize:          13,
-		},
-		{
-			CompileUnit:       "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Symbol:            "[section .debug_info]",
-			VirtualMemorySize: 0,
-			FileSize:          4213071,
 		},
 		{
 			CompileUnit:       "dm/DMSrcSink.cpp",
@@ -95,6 +90,12 @@ func TestParseBloatyOutput_Success(t *testing.T) {
 			Symbol:            "EncodeStreamHook",
 			VirtualMemorySize: 7656,
 			FileSize:          7656,
+		},
+		{
+			CompileUnit:       "third_party/externals/zlib/cpu_features.c",
+			Symbol:            "Cr_z_cpu_check_features",
+			VirtualMemorySize: 1567,
+			FileSize:          2994,
 		},
 		{
 			CompileUnit:       "[section .rodata]",
@@ -128,6 +129,57 @@ func TestParseBloatyOutput_Success(t *testing.T) {
 		},
 	},
 		items)
+}
+
+func TestParseTSVOutput_HandlesAndroidNDKFiles(t *testing.T) {
+	// If a symbol is a "section", it should be omitted. We should also clean up the file paths
+
+	const testData = `compileunits	symbols	vmsize	filesize
+/buildbot/src/android/ndk-release-r21/external/libcxx/src/locale.cpp	std::__ndk1::num_put<>::do_put()	6504	6504
+/buildbot/src/android/ndk-release-r21/external/libcxx/../../external/libunwind_llvm/src/UnwindRegistersSave.S	[section .text]	48	48
+/buildbot/src/android/ndk-release-r21/external/libcxx/../../external/libunwind_llvm/src/UnwindRegistersSave.S	[section .dynsym]	16	16
+/buildbot/src/android/ndk-release-r21/external/libcxx/../../external/libunwind_llvm/src/UnwindRegistersSave.S	[section .dynstr]	15	15
+/mnt/pd0/s/w/ir/skia/third_party/externals/dng_sdk/source/dng_abort_sniffer.cpp	_GLOBAL__sub_I_dng_abort_sniffer.cpp	43	43
+/mnt/pd0/s/w/ir/skia/third_party/externals/dng_sdk/source/dng_abort_sniffer.cpp	dng_abort_sniffer::SniffForAbort()	35	35
+/mnt/pd0/s/w/ir/skia/third_party/externals/dng_sdk/source/dng_abort_sniffer.cpp	[section .text]	1	1
+/mnt/pd0/s/w/ir/skia/third_party/externals/harfbuzz/src/hb-ot-layout.cc	OT::HeadlessArrayOf<>::operator[]()	84	84
+../../../../../../skia/src/sksl/ir/SkSLType.cpp	std::__ndk1::unique_ptr<>::~unique_ptr()	9	9
+`
+
+	rv, err := ParseTSVOutput(testData)
+	require.NoError(t, err)
+	assert.Equal(t, []OutputItem{
+		{
+			CompileUnit:       "ndk-release-r21/external/libcxx/src/locale.cpp",
+			Symbol:            "std::__ndk1::num_put<>::do_put()",
+			VirtualMemorySize: 6504,
+			FileSize:          6504,
+		},
+		{
+			CompileUnit:       "third_party/externals/dng_sdk/source/dng_abort_sniffer.cpp",
+			Symbol:            "_GLOBAL__sub_I_dng_abort_sniffer.cpp",
+			VirtualMemorySize: 43,
+			FileSize:          43,
+		},
+		{
+			CompileUnit:       "third_party/externals/dng_sdk/source/dng_abort_sniffer.cpp",
+			Symbol:            "dng_abort_sniffer::SniffForAbort()",
+			VirtualMemorySize: 35,
+			FileSize:          35,
+		},
+		{
+			CompileUnit:       "third_party/externals/harfbuzz/src/hb-ot-layout.cc",
+			Symbol:            "OT::HeadlessArrayOf<>::operator[]()",
+			VirtualMemorySize: 84,
+			FileSize:          84,
+		},
+		{
+			CompileUnit:       "skia/src/sksl/ir/SkSLType.cpp",
+			Symbol:            "std::__ndk1::unique_ptr<>::~unique_ptr()",
+			VirtualMemorySize: 9,
+			FileSize:          9,
+		},
+	}, rv)
 }
 
 func TestGenTreeMapDataTable_AllRowsCreatedInSpecifiedOrder(t *testing.T) {
@@ -259,16 +311,6 @@ func TestGenTreeMapDataTable_AllRowsCreatedInSpecifiedOrder(t *testing.T) {
 			Size:   13,
 		},
 		{
-			Name:   "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Parent: "third_party/externals/harfbuzz/src",
-			Size:   0,
-		},
-		{
-			Name:   "[section .debug_info]",
-			Parent: "third_party/externals/harfbuzz/src/hb-subset.cc",
-			Size:   4213071,
-		},
-		{
 			Name:   "third_party/externals/libwebp",
 			Parent: "third_party/externals",
 			Size:   0,
@@ -292,6 +334,21 @@ func TestGenTreeMapDataTable_AllRowsCreatedInSpecifiedOrder(t *testing.T) {
 			Name:   "EncodeStreamHook",
 			Parent: "third_party/externals/libwebp/src/enc/vp8l_enc.c",
 			Size:   7656,
+		},
+		{
+			Name:   "third_party/externals/zlib",
+			Parent: "third_party/externals",
+			Size:   0,
+		},
+		{
+			Name:   "third_party/externals/zlib/cpu_features.c",
+			Parent: "third_party/externals/zlib",
+			Size:   0,
+		},
+		{
+			Name:   "Cr_z_cpu_check_features",
+			Parent: "third_party/externals/zlib/cpu_features.c",
+			Size:   2994,
 		},
 	},
 		rows)

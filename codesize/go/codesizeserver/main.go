@@ -189,6 +189,9 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 
 	n := now.Now(ctx).UTC()
 	dirs := fileutil.GetHourlyDirs("", n.Add(-daysToPreload*24*time.Hour), n)
+	if *baseapp.Local {
+		dirs = fileutil.GetHourlyDirs("", n.Add(-8*time.Hour), n)
+	}
 	sklog.Debugf("Preloading data, starting in folder %s", dirs[0])
 	for _, dir := range dirs {
 		err := s.gcsClient.AllFilesInDirectory(ctx, dir, func(item *storage.ObjectAttrs) error {
