@@ -57,6 +57,7 @@ import {
   ColumnHeader,
   Alert,
   StepDetection,
+  CIDHandlerResponse,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
@@ -206,7 +207,7 @@ export class ClusterSummary2Sk extends ElementSk {
    * @param An array of CommitNumbers.
    * @returns A Promise that resolves the cids and returns an Array of serialized perfgit.Commit.
    */
-  static lookupCids(cids: CommitNumber[]): Promise<Commit[]> {
+  static lookupCids(cids: CommitNumber[]): Promise<CIDHandlerResponse> {
     return fetch('/_/cid/', {
       method: 'POST',
       body: JSON.stringify(cids),
@@ -337,7 +338,7 @@ export class ClusterSummary2Sk extends ElementSk {
     const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
     ClusterSummary2Sk.lookupCids([commitNumber!])
       .then((json) => {
-        this.commits!.details = json;
+        this.commits!.details = json.commitSlice || [];
       })
       .catch(errorMessage);
   }
@@ -429,8 +430,8 @@ export class ClusterSummary2Sk extends ElementSk {
       // details for the xbar location.
       if (step && step.offset > 0) {
         ClusterSummary2Sk.lookupCids([step.offset])
-          .then((json: Commit[]) => {
-            this.commits!.details = json;
+          .then((json) => {
+            this.commits!.details = json.commitSlice || [];
           })
           .catch(errorMessage);
       }
@@ -448,11 +449,11 @@ export class ClusterSummary2Sk extends ElementSk {
         ];
         // Run those through cid lookup to get the hashes.
         ClusterSummary2Sk.lookupCids(cids)
-          .then((json) => {
+          .then((json: CIDHandlerResponse) => {
             // Create the URL.
             let url = window.sk.perf.commit_range_url;
-            url = url.replace('{begin}', json[0].hash);
-            url = url.replace('{end}', json[1].hash);
+            url = url.replace('{begin}', json.commitSlice![0].hash);
+            url = url.replace('{end}', json.commitSlice![1].hash);
             // Now populate link, including text and href.
             this.rangelink!.href = url;
             this.rangelink!.innerText = 'Commits At Step';

@@ -19,17 +19,20 @@ window.Login = Promise.resolve({
 });
 
 ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
-  resolve([
-    {
-      hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
-      offset: 24748,
-      author: 'msarett@google.com',
-      message: 'Safely handle unsupported color xforms in SkCodec',
-      url:
+  resolve({
+    commitSlice: [
+      {
+        hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
+        offset: 24748,
+        author: 'msarett@google.com',
+        message: 'Safely handle unsupported color xforms in SkCodec',
+        url:
           'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
-      ts: 1476984695,
-    },
-  ]);
+        ts: 1476984695,
+      },
+    ],
+    logEntry: '',
+  });
 });
 
 const alert: Alert = {
