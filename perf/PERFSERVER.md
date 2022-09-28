@@ -41,10 +41,6 @@ The main web UI.
 
 **--do_clustering**: If true then run continuous clustering over all the alerts.
 
-**--email_client_secret_file**="": OAuth client secret JSON file for sending email. (default: client_secret.json)
-
-**--email_token_cache_file**="": OAuth token cache file for sending email. (default: client_token.json)
-
 **--event_driven_regression_detection**: If true then regression detection is done based on PubSub events.
 
 **--interesting**="": The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements. (default: 50.000000)
@@ -110,10 +106,6 @@ Run the regression detection process.
 **--display_group_by**: Show the Group By section of Alert configuration.
 
 **--do_clustering**: If true then run continuous clustering over all the alerts.
-
-**--email_client_secret_file**="": OAuth client secret JSON file for sending email. (default: client_secret.json)
-
-**--email_token_cache_file**="": OAuth token cache file for sending email. (default: client_token.json)
 
 **--event_driven_regression_detection**: If true then regression detection is done based on PubSub events.
 

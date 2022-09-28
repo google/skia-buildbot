@@ -250,8 +250,6 @@ type FrontendFlags struct {
 	DefaultSparse                  bool
 	DoClustering                   bool
 	NoEmail                        bool
-	EmailClientSecretFile          string
-	EmailTokenCacheFile            string
 	EventDrivenRegressionDetection bool
 	Interesting                    float64
 	InternalOnly                   bool
@@ -317,18 +315,6 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "noemail",
 			Value:       false,
 			Usage:       "Do not send emails.",
-		},
-		&cli.StringFlag{
-			Destination: &flags.EmailClientSecretFile,
-			Name:        "email_client_secret_file",
-			Value:       "client_secret.json",
-			Usage:       "OAuth client secret JSON file for sending email.",
-		},
-		&cli.StringFlag{
-			Destination: &flags.EmailTokenCacheFile,
-			Name:        "email_token_cache_file",
-			Value:       "client_token.json",
-			Usage:       "OAuth token cache file for sending email.",
 		},
 		&cli.BoolFlag{
 			Destination: &flags.EventDrivenRegressionDetection,
