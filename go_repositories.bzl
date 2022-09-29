@@ -2049,12 +2049,6 @@ def go_repositories():
         sum = "h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=",
         version = "v1.4.0",
     )
-    go_repository(
-        name = "com_github_jimmidyson_configmap_reload",
-        importpath = "github.com/jimmidyson/configmap-reload",
-        sum = "h1:4TxcpV/ExX7mBae+T+KCV2M42wb0FKNrehs4I6Ro9TA=",
-        version = "v0.7.1",
-    )
 
     go_repository(
         name = "com_github_jinzhu_inflection",
