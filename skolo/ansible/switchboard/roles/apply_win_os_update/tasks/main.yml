@@ -1,0 +1,201 @@
+- name: Fail if system is not Windows.
+  fail:
+    msg: This role is Windows-only.
+  when: ansible_facts['system']|lower not in ['win32nt']
+
+- name: Get OS version before update
+  ansible.windows.win_powershell:
+    script: |
+      $Major=[System.Environment]::OSVersion.Version.Major
+      $Minor=[System.Environment]::OSVersion.Version.Minor
+      $Build=[System.Environment]::OSVersion.Version.Build
+      $Revision=[System.Environment]::OSVersion.Version.Revision
+      $Sep="."
+      echo $Major$Sep$Minor$Sep$Build$Sep$Revision
+  register: get_os_version_before_update
+
+- name: Set os_version_before_update variable
+  set_fact:
+    os_version_before_update: '{{ get_os_version_before_update.output[0] }}'
+
+- name: Print OS version before update
+  debug:
+    msg: OS version before update is "{{ os_version_before_update }}".
+
+# If the machine is already running the latest OS version, the Windows 10 Update Assistant seems to
+# linger indefinitely and never exit or trigger a reboot. Such a state is confusing to handle from
+# Ansible, so we simply skip the rest of this role if the machine is already running the target OS
+# version.
+- name: Is an OS update needed?
+  debug:
+    msg: |
+      The machine is already running Windows version "{{ expected_os_version_after_update }}".
+      Skipping the rest of this role as there is nothing to do.
+  when: os_version_before_update == expected_os_version_after_update
+
+- when: os_version_before_update != expected_os_version_after_update
+  block:
+    - name: Create C:\Temp
+      win_file:
+        path: C:\Temp
+        state: directory
+
+    - name: Copy the Windows 10 Update Assistant
+      win_copy:
+        src: '{{ win_package_src }}/{{ win_10_update_assistant_exe }}'
+        dest: 'C:\Temp\{{ win_10_update_assistant_exe }}'
+
+    - name: Copy over set_up_sshd.ps1.
+      copy:
+        src: files/set_up_sshd.ps1
+        dest: C:\Temp\set_up_sshd.ps1
+
+    # Recursively kill[1] test_machine_monitor and all child processes (namely Swarming). This is
+    # necessary to prevent test_machine_monitor or Swarming from rebooting the system while the
+    # Windows 10 Update Assistant is running.
+    #
+    # This step succeeds even if test_machine_monitor is not running.
+    #
+    # [1] https://stackoverflow.com/a/55942155.
+    - name: Kill test_machine_monitor and Swarming if running (to prevent reboots during OS update)
+      ansible.windows.win_powershell:
+        script: |
+          function Kill-Tree {
+            Param([int]$ppid)
+            Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { Kill-Tree $_.ProcessId }
+            Stop-Process -Id $ppid
+          }
+
+          Get-Process -Name "test_machine_monitor" | ForEach-Object { Kill-Tree $_.Id }
+
+    # Sometimes updating the OS causes the sshd to cease to start on system boot. To prevent locking
+    # ourselves out of the machine, we will schedule the set_up_sshd.ps1 PowerShell script to launch
+    # on logon, exactly like we do with the test_machine_monitor.ps1 script. The set_up_sshd.ps1
+    # script launches sshd and schedules it to start on system boot.
+    #
+    # This task is based on
+    # https://skia.googlesource.com/buildbot/+/f5f1cf7927e862236b2a6d235e9609cb1b674567/skolo/ansible/switchboard/roles/install_test_machine_monitor/tasks/win.yml#32.
+    - name: Schedule set_up_sshd.ps1 for startup.
+      community.windows.win_scheduled_task:
+        name: set_up_sshd
+        description: Run set_up_sshd.ps1.
+        actions:
+          - path: '{{ ansible_env.SHELL }}'
+            arguments:
+              -executionpolicy bypass "C:\\Temp\\set_up_sshd.ps1"
+        triggers:
+          - type: logon
+        logon_type: interactive_token
+        enabled: true
+        username: '{{ skolo_account }}'
+        hidden: false
+        # 2 ->  Will not start a new instance if another is running.
+        multiple_instances: 2
+        state: present
+        path: \Skia
+        restart_count: 1000
+        # ISO 8601 Duration format for one minute.
+        restart_interval: PT1M
+        # ISO 8601 Duration format for no limit.
+        execution_time_limit: PT0S
+        # Necessary because this script launches and manages a service (sshd), which fails if
+        # run_level is set to its default value of "limited".
+        run_level: highest
+
+    # Launch the Windows 10 Update Assistant as a background process[1] in headless mode[2].
+    #
+    # When the Windows 10 Update Assistant binary is invoked from a PowerShell session, it is
+    # launched as a child process of the PowerShell session, and it returns immediately to the
+    # PowerShell prompt. When this happens, Ansible thinks the command is finished, and exits the
+    # PowerShell session. Unfortunately, this kills not only the PowerShell session, but all child
+    # processes as well, including the Windows 10 Update Assistant. To prevent it from getting
+    # killed, we launch it as a separate process, completely detached from the PowerShell process.
+    #
+    # An alternative approach that does not work is to launch the Windows 10 Update Assistant and
+    # wait for it to complete before dropping back into the PowerShell prompt. For example:
+    #
+    #     Start-Process -Wait
+    #                   C:\Temp\Windows10Upgrade9252.exe
+    #                   -ArgumentList "/quietinstall /skipeula /auto upgrade"
+    #
+    # After executing the above PowerShell command, the Windows 10 Update Assistant eventually
+    # finishes and reboots the computer. Unfortunately, Ansible thinks the process is still running
+    # long after the machine has rebooted, and hangs indefinitely (lovisolo@ did not wait long
+    # enough to see if Ansible eventually realizes that the SSH session is dead). Thus, this
+    # approach does not work.
+    #
+    # [1] https://stackoverflow.com/questions/8515359/how-can-i-start-a-background-job-in-powershell-that-outlives-its-parent.
+    # [2] https://community.spiceworks.com/topic/2301187-windows-10-update-assistant-command-line-switches.
+    - name: Run Windows 10 Update Assistant as a background process in headless mode (takes ~1 hour, should trigger a reboot)
+      win_shell: 'Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList "C:\Temp\{{ win_10_update_assistant_exe }} /quietinstall /skipeula /auto upgrade"'
+
+    - name: Wait {{ wait_for_reboot_seconds }} seconds for the update to complete and for the machine to reboot.
+      wait_for_connection:
+        delay: '{{ wait_for_reboot_seconds }}'
+
+    - name: Get OS version after update
+      ansible.windows.win_powershell:
+        script: |
+          $Major=[System.Environment]::OSVersion.Version.Major
+          $Minor=[System.Environment]::OSVersion.Version.Minor
+          $Build=[System.Environment]::OSVersion.Version.Build
+          $Revision=[System.Environment]::OSVersion.Version.Revision
+          $Sep="."
+          echo $Major$Sep$Minor$Sep$Build$Sep$Revision
+      register: get_os_version_after_update
+
+    - name: Set os_version_after_update variable
+      set_fact:
+        os_version_after_update: '{{ get_os_version_after_update.output[0] }}'
+
+    - name: Print OS version after update
+      debug:
+        msg: OS version after update is "{{ os_version_after_update }}".
+
+    - name: Fail if the OS version after updating is not "{{ expected_os_version_after_update }}"
+      fail:
+        msg: |
+          Error: After waiting for {{ wait_for_reboot_seconds }} seconds for the Windows 10 Update
+          Assistant to complete and reboot, the machine's current OS version is
+          "{{ os_version_after_update }}", but we expected version
+          "{{ expected_os_version_after_update }}". The machine's OS version before launching the
+          Windows 10 Update Assistant was "{{ os_version_before_update }}".
+
+          Potential causes:
+
+            1. The Windows 10 Update Assistant might still be running and the machine did not yet
+               reboot. To confirm, check if Windows10UpgradeApp.exe is still running (SSH into the
+               machine and run "Get-Process", or RDP / VNC into the machine and launch Task
+               Manager). If this is the case, just wait for the update process to reboot the
+               machine, and consider increasing the wait_for_reboot_seconds variable appropriately
+               for future runs of this Ansible role.
+
+            2. [Hypothetical; we don't know if this could ever happen] The Windows 10 Update
+               Assistant finished successfully, but it updated the OS to a version different than
+               "{{ expected_os_version_after_update }}". If the updated OS version is more recent,
+               and this version is acceptable, consider updating the
+               expected_os_version_after_update variable and run this role on all Windows machines
+               to ensure that they are running the same OS version. If the OS version is older,
+               please investigate.
+      when: os_version_after_update != expected_os_version_after_update
+
+    # If the previous step fails, it will abort the role and skip the below cleanup steps. This is
+    # on purpose: if the previous step failed because the update is taking longer than expected,
+    # the machine will still reboot when the update eventually finishes, in which case we DO NOT
+    # want to deschedule set_up_sshd.ps1, as that would lock us out of the machine if the update
+    # disables the sshd service, as it sometimes does.
+    - name: Deschedule set_up_sshd.ps1 for startup.
+      community.windows.win_scheduled_task:
+        name: set_up_sshd
+        path: \Skia
+        state: absent
+
+    - name: Cleanup set_up_sshd.ps1
+      win_file:
+        path: C:\Temp\set_up_sshd.ps1
+        state: absent
+
+    - name: Cleanup Windows 10 Update Assistant
+      win_file:
+        path: 'C:\Temp\{{ win_10_update_assistant_exe }}'
+        state: absent

@@ -1,0 +1,22 @@
+# Name of the Windows 10 Update Assistant binary found under
+# gs://skia-buildbots/skolo/win/win_package_src.
+#
+# This binary was downloaded on 2022-09-26 from
+# https://www.microsoft.com/en-us/software-download/windows10 using Microsoft Edge on a Windows 10
+# machine. Note that this website only offers the Windows 10 Update Assistant binary for download
+# when browsing from a Windows machine. If you open said website from a non-Windows machine, you
+# will only be offered a .iso file to perform a fresh Windows install.
+win_10_update_assistant_exe: Windows10Upgrade9252.exe
+
+# The Windows 10 version we expect after the update is complete.
+#
+# Note that this is determined by the Windows 10 Update Assistant binary downloaded from
+# microsoft.com. A more recent binary might update to a different OS version. Please update this
+# variable as needed when updating to a more recent Windows 10 Update Assistant binary.
+expected_os_version_after_update: '10.0.19044.0'
+
+# How long to wait for the update to finish and for the machine to reboot.
+#
+# When lovisolo@ updated skia-e-win-[260-265], the process took around 40 minutes. The choice of
+# 3600 seconds seems safe, considering that older machines could be slower.
+wait_for_reboot_seconds: 3600

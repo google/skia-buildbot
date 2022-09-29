@@ -1,0 +1,7 @@
+# Applies Windows 10 feature updates (i.e. OS version updates) via the Windows 10 Update Assistant.
+- hosts: all_win
+  user: chrome-bot
+  gather_facts: true
+
+  roles:
+  - role: apply_win_os_update
