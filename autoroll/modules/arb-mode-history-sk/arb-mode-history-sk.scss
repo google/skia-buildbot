@@ -1,0 +1,19 @@
+@import '../colors';
+
+arb-mode-history-sk {
+    :host {
+      font-family: sans-serif;
+    }
+    .big {
+      font-size: 1.3em;
+    }
+    .small {
+      font-size: 0.8em;
+    }
+    .hidden {
+      display: none;
+    }
+    .nowrap {
+      white-space: nowrap;
+    }
+  }

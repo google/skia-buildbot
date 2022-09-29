@@ -46,20 +46,34 @@ func (_m *StrategyHistory) CurrentStrategy() *strategy.StrategyChange {
 	return r0
 }
 
-// GetHistory provides a mock function with given fields:
-func (_m *StrategyHistory) GetHistory() []*strategy.StrategyChange {
-	ret := _m.Called()
+// GetHistory provides a mock function with given fields: ctx, offset
+func (_m *StrategyHistory) GetHistory(ctx context.Context, offset int) ([]*strategy.StrategyChange, int, error) {
+	ret := _m.Called(ctx, offset)
 
 	var r0 []*strategy.StrategyChange
-	if rf, ok := ret.Get(0).(func() []*strategy.StrategyChange); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context, int) []*strategy.StrategyChange); ok {
+		r0 = rf(ctx, offset)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*strategy.StrategyChange)
 		}
 	}
 
-	return r0
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, int) int); ok {
+		r1 = rf(ctx, offset)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, int) error); ok {
+		r2 = rf(ctx, offset)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Update provides a mock function with given fields: ctx

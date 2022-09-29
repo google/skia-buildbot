@@ -1,0 +1,37 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "arb-strategy-history-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//autoroll/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["arb-strategy-history-sk.scss"],
+    ts_deps = [
+        "//autoroll/modules/rpc:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "arb-strategy-history-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "arb-strategy-history-sk-demo",
+    html_file = "arb-strategy-history-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":arb-strategy-history-sk",
+    ],
+    ts_deps = ["//autoroll/modules/rpc-mock:index_ts_lib"],
+    ts_entry_point = "arb-strategy-history-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":arb-strategy-history-sk-demo",
+)

@@ -29,11 +29,9 @@ ts_library(
     srcs = ["index.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        ":fake-config_ts_lib",
         ":fake-ministatuses_ts_lib",
         ":fake-status_ts_lib",
         "//autoroll/modules/rpc:index_ts_lib",
-        "//autoroll/modules/rpc:rpc_ts_lib",
         "@npm//common-sk",
     ],
 )

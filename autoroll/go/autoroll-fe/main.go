@@ -68,9 +68,11 @@ var (
 		"showy-dashboards@prod.google.com",
 	}
 
-	mainTemplate   *template.Template = nil
-	rollerTemplate *template.Template = nil
-	configTemplate *template.Template = nil
+	mainTemplate            *template.Template = nil
+	rollerTemplate          *template.Template = nil
+	configTemplate          *template.Template = nil
+	modeHistoryTemplate     *template.Template = nil
+	strategyHistoryTemplate *template.Template = nil
 
 	srv *rpc.AutoRollServer
 
@@ -111,6 +113,12 @@ func reloadTemplates() {
 	configTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "config.html"),
 	))
+	modeHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "mode-history.html"),
+	))
+	strategyHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "strategy-history.html"),
+	))
 }
 
 func getRoller(w http.ResponseWriter, r *http.Request) *config.Config {
@@ -144,6 +152,48 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 		Roller:     cfg.RollerName,
 	}
 	if err := rollerTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
+	}
+}
+
+func modeHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	cfg := getRoller(w, r)
+	if cfg == nil {
+		return // Errors are handled by getRoller.
+	}
+	page := struct {
+		ChildName  string
+		ParentName string
+		Roller     string
+	}{
+		ChildName:  cfg.ChildDisplayName,
+		ParentName: cfg.ParentDisplayName,
+		Roller:     cfg.RollerName,
+	}
+	if err := modeHistoryTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
+	}
+}
+
+func strategyHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	cfg := getRoller(w, r)
+	if cfg == nil {
+		return // Errors are handled by getRoller.
+	}
+	page := struct {
+		ChildName  string
+		ParentName string
+		Roller     string
+	}{
+		ChildName:  cfg.ChildDisplayName,
+		ParentName: cfg.ParentDisplayName,
+		Roller:     cfg.RollerName,
+	}
+	if err := strategyHistoryTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 	}
 }
@@ -302,6 +352,8 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/config", configJSONHandler)
+	rollerRouter.HandleFunc("/mode-history", modeHistoryHandler)
+	rollerRouter.HandleFunc("/strategy-history", strategyHistoryHandler)
 	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(addCorsMiddleware(srv))
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)

@@ -1,12 +1,14 @@
 import { AutoRollStatus } from '../rpc';
 import {
-  Mode,
-  Strategy,
   AutoRollCL_Result,
-  TryJob_Status,
-  TryJob_Result,
   ManualRoll_Result,
   ManualRoll_Status,
+  Mode,
+  ModeChange,
+  Strategy,
+  StrategyChange,
+  TryJob_Result,
+  TryJob_Status,
 } from '../rpc/rpc';
 
 export function GetFakeStatus(): AutoRollStatus {
@@ -49,13 +51,7 @@ export function GetFakeStatus(): AutoRollStatus {
         url: 'https://chromium-review.googlesource.com/c/2621713',
       },
     ],
-    mode: {
-      rollerId: 'skia-skiabot-test-autoroll',
-      message: 'resume running',
-      mode: Mode.RUNNING,
-      user: 'borenet@google.com',
-      time: new Date(1574425975 * 1000).toString(),
-    },
+    mode: GetModeHistory()[0],
     notRolledRevisions: [
       {
         description: '[PartitionAlloc] More (UN)LIKELY annotations.',
@@ -66,13 +62,7 @@ export function GetFakeStatus(): AutoRollStatus {
           'https://chromium.googlesource.com/chromium/src.git/+show/d489e255b1e9d0a1cab1f7d1f043761399617f9b',
       },
     ],
-    strategy: {
-      rollerId: 'skia-skiabot-test-autoroll',
-      message: 'set strategy',
-      strategy: Strategy.SINGLE,
-      user: 'borenet@google.com',
-      time: new Date(1570552276 * 1000).toString(),
-    },
+    strategy: GetStrategyHistory()[0],
     error: '',
     currentRoll: {
       id: '303900',
@@ -429,4 +419,84 @@ export function GetFakeStatus(): AutoRollStatus {
     ],
     throttledUntil: '0001-01-01T00:00:00Z',
   };
+}
+
+export function GetModeHistory(): ModeChange[] {
+  return [
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'resume running',
+      mode: Mode.RUNNING,
+      user: 'borenet@google.com',
+      time: new Date(1574425975 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'stop the roller',
+      mode: Mode.STOPPED,
+      user: 'borenet@google.com',
+      time: new Date(1574424000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'change to dry run mode',
+      mode: Mode.DRY_RUN,
+      user: 'borenet@google.com',
+      time: new Date(1574423000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'stop the roller',
+      mode: Mode.STOPPED,
+      user: 'borenet@google.com',
+      time: new Date(1574422000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'Setting initial mode',
+      mode: Mode.RUNNING,
+      user: 'borenet@google.com',
+      time: new Date(1574421000 * 1000).toString(),
+    }
+  ];
+}
+
+export function GetStrategyHistory(): StrategyChange[] {
+  return [
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'set strategy',
+      strategy: Strategy.SINGLE,
+      user: 'borenet@google.com',
+      time: new Date(1570552276 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'back to normal batch',
+      strategy: Strategy.SINGLE,
+      user: 'borenet@google.com',
+      time: new Date(1570552000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'lets do limited batches',
+      strategy: Strategy.N_BATCH,
+      user: 'borenet@google.com',
+      time: new Date(1570552000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'set to single strategy',
+      strategy: Strategy.SINGLE,
+      user: 'borenet@google.com',
+      time: new Date(1570552000 * 1000).toString(),
+    },
+    {
+      rollerId: 'skia-skiabot-test-autoroll',
+      message: 'setting initial strategy',
+      strategy: Strategy.BATCH,
+      user: 'borenet@google.com',
+      time: new Date(1570552000 * 1000).toString(),
+    }
+  ];
 }

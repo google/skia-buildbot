@@ -465,6 +465,40 @@ const JSONToSetModeResponse = (m: SetModeResponseJSON): SetModeResponse => {
   };
 };
 
+export interface GetModeHistoryRequest {
+  rollerId: string;
+  offset: number;
+}
+
+interface GetModeHistoryRequestJSON {
+  roller_id?: string;
+  offset?: number;
+}
+
+const GetModeHistoryRequestToJSON = (m: GetModeHistoryRequest): GetModeHistoryRequestJSON => {
+  return {
+    roller_id: m.rollerId,
+    offset: m.offset,
+  };
+};
+
+export interface GetModeHistoryResponse {
+  history?: ModeChange[];
+  nextOffset: number;
+}
+
+interface GetModeHistoryResponseJSON {
+  history?: ModeChangeJSON[];
+  next_offset?: number;
+}
+
+const JSONToGetModeHistoryResponse = (m: GetModeHistoryResponseJSON): GetModeHistoryResponse => {
+  return {
+    history: m.history && m.history.map(JSONToModeChange),
+    nextOffset: m.next_offset || 0,
+  };
+};
+
 export interface SetStrategyRequest {
   rollerId: string;
   strategy: Strategy;
@@ -496,6 +530,40 @@ interface SetStrategyResponseJSON {
 const JSONToSetStrategyResponse = (m: SetStrategyResponseJSON): SetStrategyResponse => {
   return {
     status: m.status && JSONToAutoRollStatus(m.status),
+  };
+};
+
+export interface GetStrategyHistoryRequest {
+  rollerId: string;
+  offset: number;
+}
+
+interface GetStrategyHistoryRequestJSON {
+  roller_id?: string;
+  offset?: number;
+}
+
+const GetStrategyHistoryRequestToJSON = (m: GetStrategyHistoryRequest): GetStrategyHistoryRequestJSON => {
+  return {
+    roller_id: m.rollerId,
+    offset: m.offset,
+  };
+};
+
+export interface GetStrategyHistoryResponse {
+  history?: StrategyChange[];
+  nextOffset: number;
+}
+
+interface GetStrategyHistoryResponseJSON {
+  history?: StrategyChangeJSON[];
+  next_offset?: number;
+}
+
+const JSONToGetStrategyHistoryResponse = (m: GetStrategyHistoryResponseJSON): GetStrategyHistoryResponse => {
+  return {
+    history: m.history && m.history.map(JSONToStrategyChange),
+    nextOffset: m.next_offset || 0,
   };
 };
 
@@ -563,7 +631,9 @@ export interface AutoRollService {
   getMiniStatus: (getMiniStatusRequest: GetMiniStatusRequest) => Promise<GetMiniStatusResponse>;
   getStatus: (getStatusRequest: GetStatusRequest) => Promise<GetStatusResponse>;
   setMode: (setModeRequest: SetModeRequest) => Promise<SetModeResponse>;
+  getModeHistory: (getModeHistoryRequest: GetModeHistoryRequest) => Promise<GetModeHistoryResponse>;
   setStrategy: (setStrategyRequest: SetStrategyRequest) => Promise<SetStrategyResponse>;
+  getStrategyHistory: (getStrategyHistoryRequest: GetStrategyHistoryRequest) => Promise<GetStrategyHistoryResponse>;
   createManualRoll: (createManualRollRequest: CreateManualRollRequest) => Promise<CreateManualRollResponse>;
   unthrottle: (unthrottleRequest: UnthrottleRequest) => Promise<UnthrottleResponse>;
 }
@@ -642,6 +712,21 @@ export class AutoRollServiceClient implements AutoRollService {
     });
   }
 
+  getModeHistory(getModeHistoryRequest: GetModeHistoryRequest): Promise<GetModeHistoryResponse> {
+    const url = this.hostname + this.pathPrefix + "GetModeHistory";
+    let body: GetModeHistoryRequest | GetModeHistoryRequestJSON = getModeHistoryRequest;
+    if (!this.writeCamelCase) {
+      body = GetModeHistoryRequestToJSON(getModeHistoryRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetModeHistoryResponse);
+    });
+  }
+
   setStrategy(setStrategyRequest: SetStrategyRequest): Promise<SetStrategyResponse> {
     const url = this.hostname + this.pathPrefix + "SetStrategy";
     let body: SetStrategyRequest | SetStrategyRequestJSON = setStrategyRequest;
@@ -654,6 +739,21 @@ export class AutoRollServiceClient implements AutoRollService {
       }
 
       return resp.json().then(JSONToSetStrategyResponse);
+    });
+  }
+
+  getStrategyHistory(getStrategyHistoryRequest: GetStrategyHistoryRequest): Promise<GetStrategyHistoryResponse> {
+    const url = this.hostname + this.pathPrefix + "GetStrategyHistory";
+    let body: GetStrategyHistoryRequest | GetStrategyHistoryRequestJSON = getStrategyHistoryRequest;
+    if (!this.writeCamelCase) {
+      body = GetStrategyHistoryRequestToJSON(getStrategyHistoryRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetStrategyHistoryResponse);
     });
   }
 

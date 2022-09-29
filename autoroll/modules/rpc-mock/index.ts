@@ -3,25 +3,35 @@ import {
   AutoRollService,
   AutoRollStatus,
   CreateManualRollRequest,
-  GetRollersRequest,
+  CreateManualRollResponse,
   GetMiniStatusRequest,
+  GetMiniStatusResponse,
+  GetModeHistoryRequest,
+  GetModeHistoryResponse,
+  GetRollersRequest,
+  GetRollersResponse,
   GetStatusRequest,
+  GetStatusResponse,
+  GetStrategyHistoryRequest,
+  GetStrategyHistoryResponse,
+  ManualRoll_Result,
+  ManualRoll_Status,
   ManualRoll,
+  MockRPCsForTesting,
+  Mode,
   ModeChange,
   SetModeRequest,
+  SetModeResponse,
   SetStrategyRequest,
+  SetStrategyResponse,
+  Strategy,
   StrategyChange,
   UnthrottleRequest,
   UnthrottleResponse,
-  MockRPCsForTesting,
 } from '../rpc';
 
-import { GetFakeStatus } from './fake-status';
+import { GetFakeStatus, GetModeHistory, GetStrategyHistory } from './fake-status';
 import { GetFakeMiniStatuses } from './fake-ministatuses';
-import {
-  GetRollersResponse, Mode, Strategy, ManualRoll_Status, GetStatusResponse, GetMiniStatusResponse, SetModeResponse, SetStrategyResponse, CreateManualRollResponse, ManualRoll_Result,
-} from '../rpc/rpc';
-import { GetFakeConfig } from './fake-config';
 
 export * from './fake-status';
 
@@ -89,13 +99,38 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
+  getModeHistory(req: GetModeHistoryRequest): Promise<GetModeHistoryResponse> {
+    const entriesPerRequest = 2;
+    return new Promise((resolve, reject) => {
+      const history = GetModeHistory()
+      if (req.offset >= history.length) {
+        resolve({
+          history: [],
+          nextOffset: 0,
+        });
+      }
+      let start = req.offset;
+      let end = req.offset + entriesPerRequest;
+      if (end > history.length) {
+        end = history.length;
+      }
+      let nextOffset = end;
+      if (nextOffset >= history.length) {
+        nextOffset = 0;
+      }
+      resolve({
+        history: history.slice(start, end),
+        nextOffset: nextOffset,
+      });
+    });
+  }
+
   setStrategy(req: SetStrategyRequest): Promise<SetStrategyResponse> {
     return new Promise((resolve, reject) => {
       const validStrategies = Object.keys(Strategy);
       const validStrategy = validStrategies.indexOf(req.strategy);
       if (validStrategy < 0) {
-        reject(`Invalid strategy: ${req.strategy}; valid strategies: ${
-          validStrategies}`);
+        reject(`Invalid strategy: ${req.strategy}; valid strategies: ${validStrategies}`);
         return;
       }
       const sc: StrategyChange = {
@@ -108,6 +143,15 @@ class FakeAutoRollService implements AutoRollService {
       this.status.strategy = sc;
       resolve({
         status: this.status,
+      });
+    });
+  }
+
+  getStrategyHistory(req: GetStrategyHistoryRequest): Promise<GetStrategyHistoryResponse> {
+    return new Promise((resolve, reject) => {
+      resolve({
+        history: GetStrategyHistory(),
+        nextOffset: 0,
       });
     });
   }

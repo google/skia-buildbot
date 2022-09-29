@@ -32,3 +32,25 @@ sk_page(
     ],
     ts_entry_point = "roller.ts",
 )
+
+sk_page(
+    name = "mode-history",
+    assets_serving_path = "/dist",
+    html_file = "mode-history.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-scaffold-sk",
+        "//autoroll/modules/arb-mode-history-sk",
+    ],
+    ts_entry_point = "mode-history.ts",
+)
+
+sk_page(
+    name = "strategy-history",
+    assets_serving_path = "/dist",
+    html_file = "strategy-history.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-scaffold-sk",
+        "//autoroll/modules/arb-strategy-history-sk",
+    ],
+    ts_entry_point = "strategy-history.ts",
+)

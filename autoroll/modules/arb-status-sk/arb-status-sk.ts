@@ -123,6 +123,7 @@ export class ARBStatusSk extends ElementSk {
         ? html`: ${ele.status.mode.message}`
         : html``
       }
+            <a href="/r/${ele.roller}/mode-history" class="small">(history)</a>
           </td>
         </tr>
         <tr>
@@ -364,6 +365,7 @@ export class ARBStatusSk extends ElementSk {
         ? html`: ${ele.status.strategy.message}`
         : html``
       }
+            <a href="/r/${ele.roller}/strategy-history" class="small">(history)</a>
           </td>
         </tr>
       </table>

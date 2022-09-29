@@ -14,8 +14,12 @@ service AutoRollService {
   rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
   // SetMode sets the mode for a roller.
   rpc SetMode(SetModeRequest) returns (SetModeResponse);
+  // GetModeHistory retrieves mode change history for a roller.
+  rpc GetModeHistory(GetModeHistoryRequest) returns (GetModeHistoryResponse);
   // SetStrategy sets the strategy for a roller.
   rpc SetStrategy(SetStrategyRequest) returns (SetStrategyResponse);
+  // GetStrategyHistory retrieves strategy change history for a roller.
+  rpc GetStrategyHistory(GetStrategyHistoryRequest) returns (GetStrategyHistoryResponse);
   // CreateManualRoll initiates the creation of a manual roll.
   rpc CreateManualRoll(CreateManualRollRequest) returns (CreateManualRollResponse);
   // Unthrottle clears any throttling of the roller, allowing it to roll again.
@@ -367,6 +371,18 @@ message SetModeResponse {
   AutoRollStatus status = 1;
 }
 
+// GetModeHistoryRequest is a request to GetModeHistory.
+message GetModeHistoryRequest {
+  string roller_id = 1;
+  int32 offset = 2;
+}
+
+// GetModeHistoryResponse is a response returned by GetModeHistory.
+message GetModeHistoryResponse {
+  repeated ModeChange history = 1;
+  int32 next_offset = 2;
+}
+
 // SetStrategyRequest is a request to SetStrategy.
 message SetStrategyRequest {
   // roller_id is the unique identifier of the autoroller whose strategy is to
@@ -382,6 +398,18 @@ message SetStrategyRequest {
 message SetStrategyResponse {
   // status is the updated status of the autoroller after changing its strategy.
   AutoRollStatus status = 1;
+}
+
+// GetStrategyHistoryRequest is a request to GetStrategyHistory.
+message GetStrategyHistoryRequest {
+  string roller_id = 1;
+  int32 offset = 2;
+}
+
+// GetStrategyHistoryResponse is a response returned by GetStrategyHistory.
+message GetStrategyHistoryResponse {
+  repeated StrategyChange history = 1;
+  int32 next_offset = 2;
 }
 
 // CreateManualRollRequest is a request to CreateManualRoll.

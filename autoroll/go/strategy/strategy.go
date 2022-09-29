@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -54,14 +55,14 @@ type StrategyHistory interface {
 	// StrategyChange.
 	CurrentStrategy() *StrategyChange
 	// GetHistory returns a slice of the most recent StrategyChanges, most recent first.
-	GetHistory() []*StrategyChange
+	GetHistory(ctx context.Context, offset int) ([]*StrategyChange, int, error)
 	// Update refreshes the strategy history from the datastore.
 	Update(ctx context.Context) error
 }
 
 // DatastoreStrategyHistory is a struct used for storing and retrieving strategy change history.
 type DatastoreStrategyHistory struct {
-	history         []*StrategyChange
+	current         *StrategyChange
 	mtx             sync.RWMutex
 	roller          string
 	validStrategies []string
@@ -113,44 +114,40 @@ func (sh *DatastoreStrategyHistory) put(ctx context.Context, s *StrategyChange) 
 func (sh *DatastoreStrategyHistory) CurrentStrategy() *StrategyChange {
 	sh.mtx.RLock()
 	defer sh.mtx.RUnlock()
-	if len(sh.history) > 0 {
-		return sh.history[0].Copy()
+	if sh.current != nil {
+		return sh.current.Copy()
 	}
 	return nil
 }
 
 // GetHistory returns a slice of the most recent StrategyChanges, most recent first.
-func (sh *DatastoreStrategyHistory) GetHistory() []*StrategyChange {
-	sh.mtx.RLock()
-	defer sh.mtx.RUnlock()
-	rv := make([]*StrategyChange, 0, len(sh.history))
-	for _, s := range sh.history {
-		elem := new(StrategyChange)
-		*elem = *s
-		rv = append(rv, elem)
-	}
-	return rv
-}
-
-// getHistory retrieves recent strategy changes from the datastore.
-func (sh *DatastoreStrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, error) {
-	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(StrategyHistoryLength)
+func (sh *DatastoreStrategyHistory) GetHistory(ctx context.Context, offset int) ([]*StrategyChange, int, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(StrategyHistoryLength).Offset(offset)
 	var history []*StrategyChange
 	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
-		return nil, fmt.Errorf("Failed to GetAll: %s", err)
+		return nil, offset, skerr.Wrap(err)
 	}
-	return history, nil
+	nextOffset := offset + len(history)
+	if len(history) < StrategyHistoryLength {
+		nextOffset = 0
+	}
+	return history, nextOffset, nil
 }
 
 // Update refreshes the strategy history from the datastore.
 func (sh *DatastoreStrategyHistory) Update(ctx context.Context) error {
-	history, err := sh.getHistory(ctx)
-	if err != nil {
-		return err
+	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(1)
+	var history []*StrategyChange
+	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
+		return skerr.Wrap(err)
 	}
 	sh.mtx.Lock()
 	defer sh.mtx.Unlock()
-	sh.history = history
+	if len(history) > 0 {
+		sh.current = history[0]
+	} else {
+		sh.current = nil
+	}
 	return nil
 }
 

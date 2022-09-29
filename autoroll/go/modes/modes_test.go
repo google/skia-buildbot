@@ -2,6 +2,7 @@ package modes
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,8 +10,8 @@ import (
 	"go.skia.org/infra/go/ds/testutil"
 )
 
-// TestModeHistory verifies that we correctly track mode history.
-func TestModeHistory(t *testing.T) {
+// TestGetHistory verifies that we correctly track mode history.
+func TestGetHistory(t *testing.T) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_MODE)
 
@@ -26,7 +27,9 @@ func TestModeHistory(t *testing.T) {
 		require.Equal(t, e.Roller, a.Roller)
 		require.Equal(t, e.User, a.User)
 	}
-	checkSlice := func(expect, actual []*ModeChange) {
+	checkGetHistory := func(expect []*ModeChange, mh ModeHistory) {
+		actual, _, err := mh.GetHistory(ctx, 0)
+		require.NoError(t, err)
 		require.Equal(t, len(expect), len(actual))
 		for i, e := range expect {
 			check(e, actual[i])
@@ -42,8 +45,10 @@ func TestModeHistory(t *testing.T) {
 		require.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
 		require.Equal(t, mc.Mode, mh.CurrentMode().Mode)
 		expect[mc.Roller] = append([]*ModeChange{mc}, expect[mc.Roller]...)
-		checkSlice(expect[mc.Roller], mh.GetHistory())
+		checkGetHistory(expect[mc.Roller], mh)
 	}
+
+	// Set the initial mode.
 	mc0 := &ModeChange{
 		Message: "Setting initial mode.",
 		Mode:    ModeRunning,
@@ -84,11 +89,28 @@ func TestModeHistory(t *testing.T) {
 	require.NoError(t, mh2.Add(ctx, mc0_2.Mode, mc0_2.User, mc0_2.Message))
 	check(mc0_2, mh2.CurrentMode())
 	expect[rollerName2] = []*ModeChange{mc0_2}
-	checkSlice(expect[rollerName2], mh2.GetHistory())
+	checkGetHistory(expect[rollerName2], mh2)
 
 	require.NoError(t, mh.Update(ctx))
 	require.NoError(t, mh2.Update(ctx))
 
-	checkSlice(expect[rollerName], mh.GetHistory())
-	checkSlice(expect[rollerName2], mh2.GetHistory())
+	checkGetHistory(expect[rollerName], mh)
+	checkGetHistory(expect[rollerName2], mh2)
+
+	// Add a bunch of mode changes and check pagination.
+	for i := 0; i < ModeHistoryLength*2; i++ {
+		require.NoError(t, mh.Add(ctx, ModeRunning, "test@google.com", fmt.Sprintf("Mode change %d", i)))
+	}
+	history, nextOffset, err := mh.GetHistory(ctx, 0)
+	require.NoError(t, err)
+	require.Len(t, history, ModeHistoryLength)
+	require.Equal(t, ModeHistoryLength, nextOffset)
+	history, nextOffset, err = mh.GetHistory(ctx, nextOffset)
+	require.NoError(t, err)
+	require.Len(t, history, ModeHistoryLength)
+	require.Equal(t, ModeHistoryLength*2, nextOffset)
+	history, nextOffset, err = mh.GetHistory(ctx, nextOffset)
+	require.NoError(t, err)
+	require.Len(t, history, 3)
+	require.Equal(t, 0, nextOffset)
 }

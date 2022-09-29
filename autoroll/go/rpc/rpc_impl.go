@@ -291,6 +291,34 @@ func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*Set
 	}, nil
 }
 
+// GetModeHistory implements AutoRollRPCs.
+func (s *AutoRollServer) GetModeHistory(ctx context.Context, req *GetModeHistoryRequest) (*GetModeHistoryResponse, error) {
+	// Verify that the user has view access.
+	if _, err := s.GetViewer(ctx); err != nil {
+		return nil, err
+	}
+	roller, err := s.GetRoller(req.RollerId)
+	if err != nil {
+		return nil, err
+	}
+	history, nextOffset, err := roller.Mode.GetHistory(ctx, int(req.Offset))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	historyConv := make([]*ModeChange, 0, len(history))
+	for _, entry := range history {
+		mc, err := convertModeChange(entry)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		historyConv = append(historyConv, mc)
+	}
+	return &GetModeHistoryResponse{
+		History:    historyConv,
+		NextOffset: int32(nextOffset),
+	}, nil
+}
+
 // SetStrategy implements AutoRollRPCs.
 func (s *AutoRollServer) SetStrategy(ctx context.Context, req *SetStrategyRequest) (*SetStrategyResponse, error) {
 	// Verify that the user has edit access.
@@ -322,6 +350,34 @@ func (s *AutoRollServer) SetStrategy(ctx context.Context, req *SetStrategyReques
 	}
 	return &SetStrategyResponse{
 		Status: st,
+	}, nil
+}
+
+// GetStrategyHistory implements AutoRollRPCs.
+func (s *AutoRollServer) GetStrategyHistory(ctx context.Context, req *GetStrategyHistoryRequest) (*GetStrategyHistoryResponse, error) {
+	// Verify that the user has view access.
+	if _, err := s.GetViewer(ctx); err != nil {
+		return nil, err
+	}
+	roller, err := s.GetRoller(req.RollerId)
+	if err != nil {
+		return nil, err
+	}
+	history, nextOffset, err := roller.Strategy.GetHistory(ctx, int(req.Offset))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	historyConv := make([]*StrategyChange, 0, len(history))
+	for _, entry := range history {
+		mc, err := convertStrategyChange(entry)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		historyConv = append(historyConv, mc)
+	}
+	return &GetStrategyHistoryResponse{
+		History:    historyConv,
+		NextOffset: int32(nextOffset),
 	}, nil
 }
 
