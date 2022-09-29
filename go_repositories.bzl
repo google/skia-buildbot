@@ -2673,8 +2673,8 @@ def go_repositories():
     go_repository(
         name = "com_github_oklog_run",
         importpath = "github.com/oklog/run",
-        sum = "h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=",
-        version = "v1.0.0",
+        sum = "h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=",
+        version = "v1.1.0",
     )
 
     go_repository(

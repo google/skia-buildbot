@@ -6,7 +6,7 @@ go_library(
         "auth.go",
         "impl.go",
     ],
-    importpath = "go.skia.org/infra/kube/go/auth-proxy/auth",
+    importpath = "go.skia.org/infra/kube/go/authproxy/auth",
     visibility = ["//visibility:public"],
     deps = [
         "//go/allowed",

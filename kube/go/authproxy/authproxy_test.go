@@ -1,20 +1,23 @@
-package main
+package authproxy
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/kube/go/auth-proxy/auth/mocks"
+	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/kube/go/authproxy/auth/mocks"
 )
 
 const email = "nobody@example.org"
 
 func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *httptest.ResponseRecorder, *http.Request) {
-	*allowPost = false
-	*passive = false
 	called := false
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cb(w, r)
@@ -38,11 +41,10 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
 		require.Equal(t, []string(nil), r.Header.Values("X-SOME-UNSET-HEADER"))
 	})
-	*allowPost = true
 	authMock := &mocks.Auth{}
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, true, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -59,7 +61,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 	authMock.On("LoggedInAs", r).Return(email)
 	authMock.On("IsViewer", r).Return(true)
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -74,7 +76,7 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 	authMock.On("LoggedInAs", r).Return("")
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -88,7 +90,7 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 	authMock.On("LoggedInAs", r).Return(email)
 	authMock.On("IsViewer", r).Return(false)
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -106,7 +108,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	authMock.On("LoggedInAs", r).Return(email)
 	authMock.On("IsViewer", r).Return(true)
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -119,12 +121,11 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
 	})
 
-	*passive = true
 	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := &mocks.Auth{}
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, true)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -137,12 +138,11 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
 	})
 
-	*passive = true
 	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := &mocks.Auth{}
 	authMock.On("LoggedInAs", r).Return(email)
 
-	proxy := newProxy(u, authMock)
+	proxy := newProxy(u, authMock, false, true)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -150,27 +150,67 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 }
 
 func TestValidateFlags_BothFlagsSpecified_ReturnsError(t *testing.T) {
-	*criaGroup = "project-angle-committers"
-	*allowedFrom = "google.com"
+	app := &App{
+		criaGroup:   "project-angle-committers",
+		allowedFrom: "google.com",
+	}
 
-	require.Error(t, validateFlags())
+	require.Error(t, app.validateFlags())
 }
 
 func TestValidateFlags_NeitherFlagIsSpecified_ReturnsError(t *testing.T) {
-	*criaGroup = ""
-	*allowedFrom = ""
+	app := &App{
+		criaGroup:   "",
+		allowedFrom: "",
+	}
 
-	require.Error(t, validateFlags())
+	require.Error(t, app.validateFlags())
 }
 
 func TestValidateFlags_OnlyOneFlagIsSpecified_ReturnsNoError(t *testing.T) {
-	*criaGroup = "project-angle-committers"
-	*allowedFrom = ""
 
-	require.NoError(t, validateFlags())
+	app := &App{
+		criaGroup:   "project-angle-committers",
+		allowedFrom: "",
+	}
 
-	*criaGroup = ""
-	*allowedFrom = "google.com"
+	require.NoError(t, app.validateFlags())
 
-	require.NoError(t, validateFlags())
+	app = &App{
+		criaGroup:   "",
+		allowedFrom: "google.com",
+	}
+
+	require.NoError(t, app.validateFlags())
+}
+
+func TestAppRun_ContextIsCancelled_ReturnsNil(t *testing.T) {
+	// Construct minimal App.
+	target, err := url.Parse("http://my-service")
+	require.NoError(t, err)
+	app := &App{
+		target:   target,
+		port:     ":0",
+		promPort: ":0",
+	}
+	app.registerCleanup()
+
+	var w sync.WaitGroup
+	w.Add(1)
+	go func() {
+		err := app.Run(context.Background())
+		assert.NoError(t, err)
+		w.Done()
+	}()
+
+	// Ensure the server has been started.
+	for app.server == nil {
+		time.Sleep(time.Millisecond)
+	}
+
+	// Force a cleanup.
+	cleanup.Cleanup()
+	w.Wait()
+
+	// Test will fail by timeout if the app.Run() didn't return.
 }

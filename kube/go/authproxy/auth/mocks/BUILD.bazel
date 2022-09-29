@@ -6,7 +6,7 @@ go_library(
         "Auth.go",
         "generate.go",
     ],
-    importpath = "go.skia.org/infra/kube/go/auth-proxy/auth/mocks",
+    importpath = "go.skia.org/infra/kube/go/authproxy/auth/mocks",
     visibility = ["//visibility:public"],
     deps = [
         "//go/allowed",

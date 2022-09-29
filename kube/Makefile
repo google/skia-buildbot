@@ -12,7 +12,7 @@ release_configmap_reload:
 	$(BAZEL) run //kube:configmap_reload_container
 
 release_auth_proxy:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/auth-proxy
+	CGO_ENABLED=0 GOOS=linux go install -a ./cmd/auth-proxy
 	./build_auth_proxy_release
 
 release_basealpine:
