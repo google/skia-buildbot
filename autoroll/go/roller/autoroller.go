@@ -895,10 +895,12 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		} else {
 			to, err = r.getRevision(ctx, req.Revision)
 			if err != nil {
+				err := skerr.Wrapf(err, "failed to resolve revision %q", req.Revision)
 				req.Status = manual.STATUS_COMPLETE
 				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = fmt.Sprintf("Failed to obtain revision: %s", err)
+				req.ResultDetails = err.Error()
 				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
 				if err := r.manualRollDB.Put(req); err != nil {
 					return skerr.Wrapf(err, "Failed to update manual roll request")
 				}
@@ -912,10 +914,12 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			// Avoid creating rolls to the current revision.
 			from := r.GetCurrentRev()
 			if to.Id == from.Id {
+				err := skerr.Fmt("Alaredy at revision %q", from.Id)
 				req.Status = manual.STATUS_COMPLETE
 				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = fmt.Sprintf("Already at revision %s", from.Id)
+				req.ResultDetails = err.Error()
 				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
 				if err := r.manualRollDB.Put(req); err != nil {
 					return skerr.Wrapf(err, "Failed to update manual roll request")
 				}
@@ -933,10 +937,12 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 
 			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun, req.Canary)
 			if err != nil {
+				err := skerr.Wrapf(err, "failed to create manual roll for %s", req.Id)
 				req.Status = manual.STATUS_COMPLETE
 				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = fmt.Sprintf("Failed to create manual roll for %s: %s", req.Id, err)
+				req.ResultDetails = err.Error()
 				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
 				if err := r.manualRollDB.Put(req); err != nil {
 					return skerr.Wrapf(err, "Failed to update manual roll request")
 				}

@@ -601,6 +601,7 @@ message NotifierConfig {
         SAFETY_THROTTLE = 6;
         STRATEGY_CHANGE = 7;
         SUCCESS_THROTTLE = 8;
+        MANUAL_ROLL_CREATION_FAILED = 9;
     }
 
     // log_level allows all messages at and above the given severity to be

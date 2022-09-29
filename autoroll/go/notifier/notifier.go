@@ -18,19 +18,23 @@ import (
 const (
 	// Types of notification message sent by the roller. These can be
 	// selected via notifier.Config.IncludeMsgTypes.
-	MSG_TYPE_ISSUE_UPDATE         = "issue update"
-	MSG_TYPE_LAST_N_FAILED        = "last n failed"
-	MSG_TYPE_MODE_CHANGE          = "mode change"
-	MSG_TYPE_NEW_FAILURE          = "new failure"
-	MSG_TYPE_NEW_SUCCESS          = "new success"
-	MSG_TYPE_ROLL_CREATION_FAILED = "cl creation failed"
-	MSG_TYPE_SAFETY_THROTTLE      = "safety throttle"
-	MSG_TYPE_STRATEGY_CHANGE      = "strategy change"
-	MSG_TYPE_SUCCESS_THROTTLE     = "success throttle"
-	MSG_TYPE_TOO_MANY_CLS         = "too many CLs"
+	MSG_TYPE_ISSUE_UPDATE                = "issue update"
+	MSG_TYPE_LAST_N_FAILED               = "last n failed"
+	MSG_TYPE_MANUAL_ROLL_CREATION_FAILED = "manual roll cl creation failed"
+	MSG_TYPE_MODE_CHANGE                 = "mode change"
+	MSG_TYPE_NEW_FAILURE                 = "new failure"
+	MSG_TYPE_NEW_SUCCESS                 = "new success"
+	MSG_TYPE_ROLL_CREATION_FAILED        = "cl creation failed"
+	MSG_TYPE_SAFETY_THROTTLE             = "safety throttle"
+	MSG_TYPE_STRATEGY_CHANGE             = "strategy change"
+	MSG_TYPE_SUCCESS_THROTTLE            = "success throttle"
+	MSG_TYPE_TOO_MANY_CLS                = "too many CLs"
 
 	// Templates for messages sent by the roller.
 	subjectIssueUpdate = "The {{.ChildName}} into {{.ParentName}} AutoRoller has uploaded issue {{.IssueID}}"
+
+	bodyManualRollCreationFailed    = "The roller failed to create a manual roll CL requested by {{.User}} to revision \"{{.Revision}}\" with:\n{{.Message}}"
+	subjectManualRollCreationFailed = "The {{.ChildName}} into {{.ParentName}} AutoRoller failed to create a manual roll CL"
 
 	bodyModeChange    = "{{.User}} changed the mode to \"{{.Mode}}\" with message: {{.Message}}"
 	subjectModeChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller mode was changed"
@@ -63,6 +67,9 @@ const (
 var (
 	subjectTmplIssueUpdate = template.Must(template.New("subjectIssueUpdate").Parse(subjectIssueUpdate))
 
+	bodyTmplManualRollCreationFailed    = template.Must(template.New("bodyManualRollCreationFailed").Parse(bodyManualRollCreationFailed))
+	subjectTmplManualRollCreationFailed = template.Must(template.New("subjectManualRollCreationFailed").Parse(subjectManualRollCreationFailed))
+
 	subjectTmplModeChange = template.Must(template.New("subjectModeChange").Parse(subjectModeChange))
 	bodyTmplModeChange    = template.Must(template.New("bodyModeChange").Parse(bodyModeChange))
 
@@ -91,26 +98,28 @@ var (
 	footerTmpl = template.Must(template.New("footer").Parse(footer))
 
 	protoToMsgType = map[config.NotifierConfig_MsgType]string{
-		config.NotifierConfig_ISSUE_UPDATE:         MSG_TYPE_ISSUE_UPDATE,
-		config.NotifierConfig_LAST_N_FAILED:        MSG_TYPE_LAST_N_FAILED,
-		config.NotifierConfig_MODE_CHANGE:          MSG_TYPE_MODE_CHANGE,
-		config.NotifierConfig_NEW_FAILURE:          MSG_TYPE_NEW_FAILURE,
-		config.NotifierConfig_NEW_SUCCESS:          MSG_TYPE_NEW_SUCCESS,
-		config.NotifierConfig_ROLL_CREATION_FAILED: MSG_TYPE_ROLL_CREATION_FAILED,
-		config.NotifierConfig_SAFETY_THROTTLE:      MSG_TYPE_SAFETY_THROTTLE,
-		config.NotifierConfig_STRATEGY_CHANGE:      MSG_TYPE_STRATEGY_CHANGE,
-		config.NotifierConfig_SUCCESS_THROTTLE:     MSG_TYPE_SUCCESS_THROTTLE,
+		config.NotifierConfig_ISSUE_UPDATE:                MSG_TYPE_ISSUE_UPDATE,
+		config.NotifierConfig_LAST_N_FAILED:               MSG_TYPE_LAST_N_FAILED,
+		config.NotifierConfig_MODE_CHANGE:                 MSG_TYPE_MODE_CHANGE,
+		config.NotifierConfig_NEW_FAILURE:                 MSG_TYPE_NEW_FAILURE,
+		config.NotifierConfig_NEW_SUCCESS:                 MSG_TYPE_NEW_SUCCESS,
+		config.NotifierConfig_ROLL_CREATION_FAILED:        MSG_TYPE_ROLL_CREATION_FAILED,
+		config.NotifierConfig_MANUAL_ROLL_CREATION_FAILED: MSG_TYPE_MANUAL_ROLL_CREATION_FAILED,
+		config.NotifierConfig_SAFETY_THROTTLE:             MSG_TYPE_SAFETY_THROTTLE,
+		config.NotifierConfig_STRATEGY_CHANGE:             MSG_TYPE_STRATEGY_CHANGE,
+		config.NotifierConfig_SUCCESS_THROTTLE:            MSG_TYPE_SUCCESS_THROTTLE,
 	}
 	msgTypeToProto = map[string]config.NotifierConfig_MsgType{
-		MSG_TYPE_ISSUE_UPDATE:         config.NotifierConfig_ISSUE_UPDATE,
-		MSG_TYPE_LAST_N_FAILED:        config.NotifierConfig_LAST_N_FAILED,
-		MSG_TYPE_MODE_CHANGE:          config.NotifierConfig_MODE_CHANGE,
-		MSG_TYPE_NEW_FAILURE:          config.NotifierConfig_NEW_FAILURE,
-		MSG_TYPE_NEW_SUCCESS:          config.NotifierConfig_NEW_SUCCESS,
-		MSG_TYPE_ROLL_CREATION_FAILED: config.NotifierConfig_ROLL_CREATION_FAILED,
-		MSG_TYPE_SAFETY_THROTTLE:      config.NotifierConfig_SAFETY_THROTTLE,
-		MSG_TYPE_STRATEGY_CHANGE:      config.NotifierConfig_STRATEGY_CHANGE,
-		MSG_TYPE_SUCCESS_THROTTLE:     config.NotifierConfig_SUCCESS_THROTTLE,
+		MSG_TYPE_ISSUE_UPDATE:                config.NotifierConfig_ISSUE_UPDATE,
+		MSG_TYPE_LAST_N_FAILED:               config.NotifierConfig_LAST_N_FAILED,
+		MSG_TYPE_MODE_CHANGE:                 config.NotifierConfig_MODE_CHANGE,
+		MSG_TYPE_NEW_FAILURE:                 config.NotifierConfig_NEW_FAILURE,
+		MSG_TYPE_NEW_SUCCESS:                 config.NotifierConfig_NEW_SUCCESS,
+		MSG_TYPE_ROLL_CREATION_FAILED:        config.NotifierConfig_ROLL_CREATION_FAILED,
+		MSG_TYPE_MANUAL_ROLL_CREATION_FAILED: config.NotifierConfig_MANUAL_ROLL_CREATION_FAILED,
+		MSG_TYPE_SAFETY_THROTTLE:             config.NotifierConfig_SAFETY_THROTTLE,
+		MSG_TYPE_STRATEGY_CHANGE:             config.NotifierConfig_STRATEGY_CHANGE,
+		MSG_TYPE_SUCCESS_THROTTLE:            config.NotifierConfig_SUCCESS_THROTTLE,
 	}
 
 	// Note that these really belong in the go/notifier package, but it doesn't
@@ -193,7 +202,7 @@ func (a *AutoRollNotifier) Router() *notifier.Router {
 }
 
 // Send a message.
-func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity, msgType string) {
+func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity, msgType string, extraRecipients []string) {
 	vars.ChildName = a.childName
 	vars.ParentName = a.parentName
 	vars.ServerURL = a.serverURL
@@ -213,10 +222,11 @@ func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl
 	}
 	sklog.Infof("Sending notification (%s; %s): %s\n\n%s", severity.String(), msgType, subjectBytes.String(), bodyBytes.String())
 	if err := a.n.Send(ctx, &notifier.Message{
-		Subject:  subjectBytes.String(),
-		Body:     bodyBytes.String(),
-		Severity: severity,
-		Type:     msgType,
+		Subject:         subjectBytes.String(),
+		Body:            bodyBytes.String(),
+		Severity:        severity,
+		Type:            msgType,
+		ExtraRecipients: extraRecipients,
 	}); err != nil {
 		// We don't want to block the roller on failure to send
 		// notifications. Log the error and move on.
@@ -234,7 +244,16 @@ func (a *AutoRollNotifier) SendIssueUpdate(ctx context.Context, id, url, msg str
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplIssueUpdate, bodyTmpl, notifier.SEVERITY_INFO, MSG_TYPE_ISSUE_UPDATE)
+	}, subjectTmplIssueUpdate, bodyTmpl, notifier.SEVERITY_INFO, MSG_TYPE_ISSUE_UPDATE, nil)
+}
+
+// Send a notification that creation of a manual roll failed.
+func (a *AutoRollNotifier) SendManualRollCreationFailed(ctx context.Context, requester, revision string, err error) {
+	a.send(ctx, &tmplVars{
+		Message:  err.Error(),
+		Revision: revision,
+		User:     requester,
+	}, subjectTmplManualRollCreationFailed, bodyTmplManualRollCreationFailed, notifier.SEVERITY_ERROR, MSG_TYPE_MANUAL_ROLL_CREATION_FAILED, []string{requester})
 }
 
 // Send a mode change message.
@@ -243,14 +262,14 @@ func (a *AutoRollNotifier) SendModeChange(ctx context.Context, user, mode, messa
 		Message: message,
 		Mode:    mode,
 		User:    user,
-	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING, MSG_TYPE_MODE_CHANGE)
+	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING, MSG_TYPE_MODE_CHANGE, nil)
 }
 
 // Send a notification that creation of a roll failed.
 func (a *AutoRollNotifier) SendRollCreationFailed(ctx context.Context, err error) {
 	a.send(ctx, &tmplVars{
 		Message: err.Error(),
-	}, subjectTmplRollCreationFailed, bodyTmplRollCreationFailed, notifier.SEVERITY_ERROR, MSG_TYPE_ROLL_CREATION_FAILED)
+	}, subjectTmplRollCreationFailed, bodyTmplRollCreationFailed, notifier.SEVERITY_ERROR, MSG_TYPE_ROLL_CREATION_FAILED, nil)
 }
 
 // Send a strategy change message.
@@ -259,21 +278,21 @@ func (a *AutoRollNotifier) SendStrategyChange(ctx context.Context, user, strateg
 		Message:  message,
 		Strategy: strategy,
 		User:     user,
-	}, subjectTmplStrategyChange, bodyTmplStrategyChange, notifier.SEVERITY_WARNING, MSG_TYPE_STRATEGY_CHANGE)
+	}, subjectTmplStrategyChange, bodyTmplStrategyChange, notifier.SEVERITY_WARNING, MSG_TYPE_STRATEGY_CHANGE, nil)
 }
 
 // Send a notification that the roller is safety-throttled.
 func (a *AutoRollNotifier) SendSafetyThrottled(ctx context.Context, until time.Time) {
 	a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
-	}, subjectTmplThrottled, bodyTmplSafetyThrottled, notifier.SEVERITY_ERROR, MSG_TYPE_SAFETY_THROTTLE)
+	}, subjectTmplThrottled, bodyTmplSafetyThrottled, notifier.SEVERITY_ERROR, MSG_TYPE_SAFETY_THROTTLE, nil)
 }
 
 // Send a notification that the roller is success-throttled.
 func (a *AutoRollNotifier) SendSuccessThrottled(ctx context.Context, until time.Time) {
 	a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
-	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_INFO, MSG_TYPE_SUCCESS_THROTTLE)
+	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_INFO, MSG_TYPE_SUCCESS_THROTTLE, nil)
 }
 
 // Send a notification that the most recent roll succeeded when the roll before
@@ -282,7 +301,7 @@ func (a *AutoRollNotifier) SendNewSuccess(ctx context.Context, id, url string) {
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplNewSuccess, bodyTmplNewSuccess, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_SUCCESS)
+	}, subjectTmplNewSuccess, bodyTmplNewSuccess, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_SUCCESS, nil)
 }
 
 // Send a notification that the most recent roll failed when the roll before
@@ -291,7 +310,7 @@ func (a *AutoRollNotifier) SendNewFailure(ctx context.Context, id, url string) {
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplNewFailure, bodyTmplNewFailure, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_FAILURE)
+	}, subjectTmplNewFailure, bodyTmplNewFailure, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_FAILURE, nil)
 }
 
 // Send a notification that the last N roll attempts have failed.
@@ -299,7 +318,7 @@ func (a *AutoRollNotifier) SendLastNFailed(ctx context.Context, n int, url strin
 	a.send(ctx, &tmplVars{
 		IssueURL: url,
 		N:        n,
-	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR, MSG_TYPE_LAST_N_FAILED)
+	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR, MSG_TYPE_LAST_N_FAILED, nil)
 }
 
 // Send a notification that too many CLs have been created to roll to the same
@@ -308,7 +327,7 @@ func (a *AutoRollNotifier) SendTooManyCLs(ctx context.Context, numCLs int, rev s
 	a.send(ctx, &tmplVars{
 		N:        numCLs,
 		Revision: rev,
-	}, subjectTmplTooManyCLs, bodyTmplTooManyCLs, notifier.SEVERITY_ERROR, MSG_TYPE_TOO_MANY_CLS)
+	}, subjectTmplTooManyCLs, bodyTmplTooManyCLs, notifier.SEVERITY_ERROR, MSG_TYPE_TOO_MANY_CLS, nil)
 }
 
 // ConfigToProto converts a notifier.Config to a config.NotifierConfig.

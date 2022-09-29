@@ -24,6 +24,9 @@ type Message struct {
 	// Type of message. This is used with the optional IncludeMsgTypes to
 	// send only specific types of messages.
 	Type string
+	// ExtraRecipients who should also be sent this Message. Not supported for
+	// all types of notification.
+	ExtraRecipients []string
 }
 
 // Validate the Message.

@@ -172,8 +172,9 @@ func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) er
 	}
 	// Replace all newlines with <br/> since gmail uses HTML format.
 	body := strings.ReplaceAll(msg.Body, "\n", "<br/>")
-	sklog.Infof("Sending email to %s: %s", strings.Join(n.to, ","), subject)
-	_, err := n.emailer.SendWithMarkup("", n.from, n.to, subject, body, n.markup, "")
+	recipients := append(util.CopyStringSlice(n.to), msg.ExtraRecipients...)
+	sklog.Infof("Sending email to %s: %s", strings.Join(recipients, ","), subject)
+	_, err := n.emailer.SendWithMarkup("", n.from, recipients, subject, body, n.markup, "")
 	return err
 }
 
