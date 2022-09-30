@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/config",
+        "//autoroll/go/repo_manager/common/pyl",
         "//autoroll/go/revision",
         "//go/depot_tools/deps_parser",
         "//go/skerr",

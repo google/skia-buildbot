@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pyl",
+    srcs = ["pyl.go"],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/common/pyl",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_go_python_gpython//ast",
+        "@com_github_go_python_gpython//parser",
+    ],
+)
+
+go_test(
+    name = "pyl_test",
+    srcs = ["pyl_test.go"],
+    embed = [":pyl"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

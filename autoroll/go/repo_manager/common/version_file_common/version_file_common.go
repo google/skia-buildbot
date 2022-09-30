@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/pyl"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/skerr"
@@ -18,6 +19,8 @@ func GetPinnedRev(dep *config.VersionFileConfig, contents string) (string, error
 			return "", skerr.Wrap(err)
 		}
 		return depsEntry.Version, nil
+	} else if strings.HasSuffix(dep.Path, ".pyl") {
+		return pyl.Get(contents, dep.Id)
 	}
 	return strings.TrimSpace(contents), nil
 }
@@ -54,6 +57,8 @@ func SetPinnedRev(dep *config.VersionFileConfig, newVersion, oldContents string)
 	if dep.Path == deps_parser.DepsFileName {
 		newContents, err := deps_parser.SetDep(oldContents, dep.Id, newVersion)
 		return newContents, skerr.Wrap(err)
+	} else if strings.HasSuffix(dep.Path, ".pyl") {
+		return pyl.Set(oldContents, dep.Id, newVersion)
 	}
 	// Various tools expect a newline at the end of the file.
 	// TODO(borenet): This should probably be configurable.
