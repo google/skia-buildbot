@@ -24,8 +24,8 @@ export type CorpusRendererFn<T extends Object> = (corpus: T)=> string;
  * An element that allows the user to select a corpus from a list of available corpora.
  *
  * Corpora are objects of the generic type T, and are transformed to text to be displayed in the UI
- * using T#toString(). This behavior can be overriden by providing a custom CorpusRendererFn<T> via
- * the customRendererFn property.
+ * using T#toString(). This behavior can be overridden by providing a custom CorpusRendererFn<T>
+ * via the customRendererFn property.
  */
 export class CorpusSelectorSk<T extends Object> extends ElementSk {
   private static template =

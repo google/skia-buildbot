@@ -98,7 +98,7 @@ aside {
       color: var(--on-primary);
       fill: var(--on-primary);
 
-      // Inherited color of the underline needs to be overriden so we don't end up with e.g. black
+      // Inherited color of the underline needs to be overridden so we don't end up with e.g. black
       // text with white underline.
       .value {
         background-color: var(--surface);
