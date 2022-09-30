@@ -70,6 +70,8 @@ skia_app_container(
                 "index",
                 "config",
                 "roller",
+                "mode-history",
+                "strategy-history",
             ]
             for ext in [
                 "css",
