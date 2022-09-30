@@ -1,6 +1,11 @@
 {
     "URL": "https://flutter-engine-perf.skia.org/",
     "contact": "https://mail.google.com/chat/u/0/?zx=s88snihcl7ie#chat/space/AAAAm69vf-M",
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER",
+        "login_url": "https://skia.org/login/",
+        "logout_url": "https://skia.org/logout/"
+    },
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_engine2?sslmode=disable",
