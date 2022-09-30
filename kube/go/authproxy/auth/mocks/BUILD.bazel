@@ -8,8 +8,5 @@ go_library(
     ],
     importpath = "go.skia.org/infra/kube/go/authproxy/auth/mocks",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/allowed",
-        "@com_github_stretchr_testify//mock",
-    ],
+    deps = ["@com_github_stretchr_testify//mock"],
 )

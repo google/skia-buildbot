@@ -8,8 +8,5 @@ go_library(
     ],
     importpath = "go.skia.org/infra/kube/go/authproxy/auth",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/allowed",
-        "//go/login",
-    ],
+    deps = ["//go/login"],
 )

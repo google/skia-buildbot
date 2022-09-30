@@ -1,0 +1,16 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "roles",
+    srcs = ["roles.go"],
+    importpath = "go.skia.org/infra/go/roles",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "roles_test",
+    srcs = ["roles_test.go"],
+    embed = [":roles"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

@@ -1,15 +1,16 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
-	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/login"
 )
 
 // authImpl implements Auth using the login package.
 type authImpl struct{}
 
+// New returns a new authImpl.
 func New() authImpl {
 	return authImpl{}
 }
@@ -29,6 +30,14 @@ func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
 	return login.LoginURL(w, r)
 }
 
-func (l authImpl) SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
-	login.SimpleInitWithAllow(port, local, admin, edit, view)
+func (l authImpl) Init(port string, local bool) error {
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
+	if !local {
+		redirectURL = login.DEFAULT_REDIRECT_URL
+	}
+
+	return login.Init(redirectURL, login.DEFAULT_ALLOWED_DOMAINS, "")
 }
+
+// Confirm authImpl implements Auth.
+var _ Auth = authImpl{}

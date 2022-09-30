@@ -11,6 +11,7 @@ go_library(
         "//go/cleanup",
         "//go/common",
         "//go/httputils",
+        "//go/roles",
         "//go/skerr",
         "//go/sklog",
         "//kube/go/authproxy/auth",
@@ -23,7 +24,10 @@ go_test(
     srcs = ["authproxy_test.go"],
     embed = [":authproxy"],
     deps = [
+        "//go/allowed",
         "//go/cleanup",
+        "//go/mockhttpclient",
+        "//go/roles",
         "//kube/go/authproxy/auth/mocks",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
