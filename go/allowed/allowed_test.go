@@ -18,6 +18,12 @@ func TestAllowed(t *testing.T) {
 			message:  "empty",
 		},
 		{
+			allowed:  []string{AnyDomain},
+			value:    "test@example.org",
+			expected: true,
+			message:  "AnyDomain",
+		},
+		{
 			allowed:  []string{""},
 			value:    "test@",
 			expected: false,

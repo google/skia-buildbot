@@ -7,6 +7,9 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// AnyDomain is the value to use if any domain is allowed.
+const AnyDomain = "*"
+
 // Allow is used to enforce additional restrictions on who has access to a site,
 // eg. members of a group.
 type Allow interface {
@@ -60,6 +63,10 @@ func (a *AllowedFromList) Member(email string) bool {
 	}
 	if parts[1] == "" {
 		return false
+	}
+
+	if a.domains[AnyDomain] {
+		return true
 	}
 
 	if a.domains[parts[1]] || a.emails[email] {
