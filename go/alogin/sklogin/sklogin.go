@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -45,20 +45,22 @@ func (_ *sklogin) NeedsAuthentication(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
 }
 
-// RegisterHandlers implements alogin.Login.
-func (_ *sklogin) RegisterHandlers(router *mux.Router) {
-	router.HandleFunc(loginPath, login.LoginHandler)
-	router.HandleFunc(logoutPath, login.LogoutHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-}
-
 func (s *sklogin) Status(r *http.Request) alogin.Status {
 	return alogin.Status{
 		EMail:     s.LoggedInAs(r),
 		LoginURL:  loginPath,
 		LogoutURL: logoutPath,
 	}
+}
+
+// All the authorized Roles for a user.
+func (s *sklogin) Roles(r *http.Request) roles.Roles {
+	panic("sklogin does not support Roles.")
+}
+
+// Returns true if the currently logged in user has the given Role.
+func (s *sklogin) HasRole(r *http.Request, role roles.Role) bool {
+	panic("sklogin does not support Roles.")
 }
 
 // Assert sklogin implements alogin.Login.

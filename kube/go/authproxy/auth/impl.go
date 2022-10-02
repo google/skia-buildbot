@@ -36,7 +36,10 @@ func (l authImpl) Init(port string, local bool) error {
 		redirectURL = login.DEFAULT_REDIRECT_URL
 	}
 
-	return login.Init(redirectURL, login.DEFAULT_ALLOWED_DOMAINS, "")
+	return login.Init(redirectURL,
+		"", /* Empty means accept all signed in domain. */
+		"", /* Get secrets from Secret Manager*/
+	)
 }
 
 // Confirm authImpl implements Auth.

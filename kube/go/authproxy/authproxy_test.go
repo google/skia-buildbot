@@ -32,8 +32,8 @@ var commonAllowed = map[roles.Role]allowed.Allow{
 
 func assertValidEmailAndRole(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, []string{viewerEmail}, r.Header.Values(webAuthHeaderName))
-		require.Equal(t, []string{string(roles.Viewer)}, r.Header.Values(webAuthRoleHeaderName))
+		require.Equal(t, []string{viewerEmail}, r.Header.Values(WebAuthHeaderName))
+		require.Equal(t, []string{string(roles.Viewer)}, r.Header.Values(WebAuthRoleHeaderName))
 	}
 }
 
@@ -57,7 +57,7 @@ func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *httptest
 func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptyString(t *testing.T) {
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		// Note that if the header webAuthHeaderName hadn't been set then the value would be nil.
-		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
+		require.Equal(t, []string{""}, r.Header.Values(WebAuthHeaderName))
 		require.Equal(t, []string(nil), r.Header.Values("X-SOME-UNSET-HEADER"))
 	})
 	authMock := mocks.NewAuth(t)
@@ -83,8 +83,8 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 
 func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIsIncludedInRequest(t *testing.T) {
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, []string{viewerEmail}, r.Header.Values(webAuthHeaderName))
-		receivedRoles := strings.Split(r.Header.Get(webAuthRoleHeaderName), ",")
+		require.Equal(t, []string{viewerEmail}, r.Header.Values(WebAuthHeaderName))
+		receivedRoles := strings.Split(r.Header.Get(WebAuthRoleHeaderName), ",")
 		sort.Strings(receivedRoles)
 		expectedRoles := []string{
 			string(roles.Editor),
@@ -108,7 +108,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIs
 
 func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromRequest(t *testing.T) {
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
-	r.Header.Add(webAuthHeaderName, viewerEmail) // Try to spoof the header.
+	r.Header.Add(WebAuthHeaderName, viewerEmail) // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
@@ -133,7 +133,7 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 
 func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAndSpoofedEmailIsRemoved(t *testing.T) {
 	u, called, w, r := setupForTest(t, assertValidEmailAndRole(t))
-	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
@@ -145,11 +145,11 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 
 func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithoutEmailHeader(t *testing.T) {
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
-		require.Equal(t, []string{""}, r.Header.Values(webAuthRoleHeaderName))
+		require.Equal(t, []string{""}, r.Header.Values(WebAuthHeaderName))
+		require.Equal(t, []string{""}, r.Header.Values(WebAuthRoleHeaderName))
 	})
 
-	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 
@@ -162,7 +162,7 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithEmailHeader(t *testing.T) {
 	u, called, w, r := setupForTest(t, assertValidEmailAndRole(t))
 
-	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 

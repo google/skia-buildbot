@@ -1476,7 +1476,6 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
-	f.loginProvider.RegisterHandlers(router)
 
 	// JSON handlers.
 

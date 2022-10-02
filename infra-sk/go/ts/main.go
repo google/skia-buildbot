@@ -10,6 +10,7 @@ import (
 
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -19,7 +20,10 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
-	generator.AddToNamespace(alogin.Status{}, "alogin")
+	generator.Add(alogin.Status{})
+	generator.AddMultipleUnion(
+		roles.AllRoles,
+	)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

@@ -5,5 +5,5 @@ go_library(
     srcs = ["login.go"],
     importpath = "go.skia.org/infra/go/alogin",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_gorilla_mux//:mux"],
+    deps = ["//go/roles"],
 )

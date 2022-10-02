@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/kube/go/authproxy"
 )
 
 const (
@@ -19,7 +21,6 @@ const (
 )
 
 func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
-
 	r := httptest.NewRequest("GET", "/", nil)
 	login, err := New(unknownHeaderName, "", loginURL, logoutURL)
 	require.NoError(t, err)
@@ -27,7 +28,6 @@ func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
 }
 
 func TestLoggedInAs_HeaderPresent_ReturnsUserEmail(t *testing.T) {
-
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
 	login, err := New(goodHeaderName, "", loginURL, logoutURL)
@@ -36,7 +36,6 @@ func TestLoggedInAs_HeaderPresent_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestLoggedInAs_RegexProvided_ReturnsUserEmail(t *testing.T) {
-
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, "accounts.google.com:"+emailAsString)
 	login, err := New(goodHeaderName, "accounts.google.com:(.*)", loginURL, logoutURL)
@@ -45,7 +44,6 @@ func TestLoggedInAs_RegexProvided_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestLoggedInAs_RegexHasTooManySubGroups_ReturnsEmptyString(t *testing.T) {
-
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
 	login, err := New(goodHeaderName, "(too)(many)(subgroups)", loginURL, logoutURL)
@@ -54,7 +52,6 @@ func TestLoggedInAs_RegexHasTooManySubGroups_ReturnsEmptyString(t *testing.T) {
 }
 
 func TestNeedsAuthentication_EmitsStatusForbidden(t *testing.T) {
-
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
 	login, err := New(goodHeaderName, "", loginURL, logoutURL)
@@ -64,7 +61,6 @@ func TestNeedsAuthentication_EmitsStatusForbidden(t *testing.T) {
 }
 
 func TestStatus_HeaderPresent_ReturnsUserEmail(t *testing.T) {
-
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set(goodHeaderName, emailAsString)
 	expected := alogin.Status{
@@ -78,7 +74,36 @@ func TestStatus_HeaderPresent_ReturnsUserEmail(t *testing.T) {
 }
 
 func TestNew_InvalidRegex_ReturnsError(t *testing.T) {
-
 	_, err := New(goodHeaderName, "\\y", loginURL, logoutURL)
 	require.Error(t, err)
+}
+
+func TestRoles_HeaderPresent_ReturnAllRoles(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set(authproxy.WebAuthRoleHeaderName, roles.AllValidRoles.ToHeader())
+	login, err := New(goodHeaderName, "", loginURL, logoutURL)
+	require.NoError(t, err)
+	require.Equal(t, roles.AllValidRoles, login.Roles(r))
+}
+
+func TestRoles_HeaderMissing_ReturnsEmptyListOfRoles(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	login, err := New(goodHeaderName, "", loginURL, logoutURL)
+	require.NoError(t, err)
+	require.Empty(t, login.Roles(r))
+}
+
+func TestHasRoles_HeaderPresent_ReturnsTrue(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set(authproxy.WebAuthRoleHeaderName, roles.AllValidRoles.ToHeader())
+	login, err := New(goodHeaderName, "", loginURL, logoutURL)
+	require.NoError(t, err)
+	require.True(t, login.HasRole(r, roles.Admin))
+}
+
+func TestHasRoles_HeaderMissingPresent_ReturnsFalse(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	login, err := New(goodHeaderName, "", loginURL, logoutURL)
+	require.NoError(t, err)
+	require.False(t, login.HasRole(r, roles.Admin))
 }

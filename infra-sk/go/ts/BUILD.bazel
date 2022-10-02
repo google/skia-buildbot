@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/alogin",
+        "//go/roles",
         "//go/sklog",
         "//go/util",
         "@com_github_skia_dev_go2ts//:go2ts",

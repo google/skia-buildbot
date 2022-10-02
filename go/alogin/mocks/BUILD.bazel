@@ -10,7 +10,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/alogin",
-        "@com_github_gorilla_mux//:mux",
+        "//go/roles",
         "@com_github_stretchr_testify//mock",
     ],
 )

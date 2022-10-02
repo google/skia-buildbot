@@ -13,7 +13,7 @@ import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
-import { alogin } from '../json';
+import { Status } from '../json';
 
 const defaultStatusURL = '/_/login/status';
 
@@ -21,7 +21,7 @@ const defaultStatusURL = '/_/login/status';
  * Returns a Promise that resolves when we have received the login status, and
  * rejects if there was an error retrieving the login status.
  */
-const loggedIn = async (url: string = defaultStatusURL): Promise<alogin.Status> => {
+const loggedIn = async (url: string = defaultStatusURL): Promise<Status> => {
   const resp = await fetch(url);
   if (!resp.ok) {
     await errorMessage(`Failed to load login status: ${resp.statusText}`);
@@ -30,16 +30,18 @@ const loggedIn = async (url: string = defaultStatusURL): Promise<alogin.Status> 
   return resp.json();
 };
 
-const defaultStatus: alogin.Status = {
+const defaultStatus: Status = {
   email: '',
   login: '',
   logout: '',
+  roles: [],
 };
 
-const fakeStatus: alogin.Status = {
+const fakeStatus: Status = {
   email: 'test@example.com',
   login: '/login/',
   logout: '/logout/',
+  roles: ['viewer'],
 };
 
 export class AloginSk extends ElementSk {
@@ -48,9 +50,9 @@ export class AloginSk extends ElementSk {
    *
    * The value of this may be altered by the 'testing_offline' attribute.
    */
-  statusPromise: Promise<alogin.Status> = Promise.resolve(defaultStatus);
+  statusPromise: Promise<Status> = Promise.resolve(defaultStatus);
 
-  private status: alogin.Status = defaultStatus;
+  private status: Status = defaultStatus;
 
   constructor() {
     super(AloginSk.template);

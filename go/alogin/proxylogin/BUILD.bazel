@@ -8,9 +8,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/alogin",
+        "//go/roles",
         "//go/skerr",
         "//go/sklog",
-        "@com_github_gorilla_mux//:mux",
+        "//kube/go/authproxy",
     ],
 )
 
@@ -20,6 +21,8 @@ go_test(
     embed = [":proxylogin"],
     deps = [
         "//go/alogin",
+        "//go/roles",
+        "//kube/go/authproxy",
         "@com_github_stretchr_testify//require",
     ],
 )

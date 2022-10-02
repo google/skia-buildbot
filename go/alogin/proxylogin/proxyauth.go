@@ -7,10 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/kube/go/authproxy"
 )
 
 // proxyLogin implements alogin.Login by relying on a reverse proxy doing the
@@ -82,17 +83,27 @@ func (p *proxyLogin) NeedsAuthentication(w http.ResponseWriter, r *http.Request)
 	http.Error(w, "Forbidden", http.StatusForbidden)
 }
 
-// RegisterHandlers implements alogin.Login.
-func (p *proxyLogin) RegisterHandlers(router *mux.Router) {
-	// Noop.
-}
-
 func (p *proxyLogin) Status(r *http.Request) alogin.Status {
 	return alogin.Status{
 		EMail:     p.LoggedInAs(r),
 		LoginURL:  p.loginURL,
 		LogoutURL: p.logoutURL,
 	}
+}
+
+// All the authorized Roles for a user.
+func (p *proxyLogin) Roles(r *http.Request) roles.Roles {
+	return roles.FromHeader(r.Header.Get(authproxy.WebAuthRoleHeaderName))
+}
+
+// Returns true if the currently logged in user has the given Role.
+func (p *proxyLogin) HasRole(r *http.Request, wantedRole roles.Role) bool {
+	for _, role := range p.Roles(r) {
+		if role == wantedRole {
+			return true
+		}
+	}
+	return false
 }
 
 // Assert proxyLogin implements alogin.Login.

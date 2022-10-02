@@ -56,9 +56,9 @@ const (
 	// of authentication from the core of the app. See
 	// https://grafana.com/blog/2015/12/07/grafana-authproxy-have-it-your-way/ for
 	// how Grafana uses this to support almost any authentication handler.
-	webAuthHeaderName = "X-WEBAUTH-USER"
+	WebAuthHeaderName = "X-WEBAUTH-USER"
 
-	webAuthRoleHeaderName = "X-ROLES"
+	WebAuthRoleHeaderName = "X-ROLES"
 )
 
 type proxy struct {
@@ -81,8 +81,8 @@ func newProxy(target *url.URL, authProvider auth.Auth, allowedRules map[roles.Ro
 
 func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	email := p.authProvider.LoggedInAs(r)
-	r.Header.Del(webAuthHeaderName)
-	r.Header.Add(webAuthHeaderName, email)
+	r.Header.Del(WebAuthHeaderName)
+	r.Header.Add(WebAuthHeaderName, email)
 
 	authorizedRoles := roles.Roles{}
 	for role, allowed := range p.allowedRoles {
@@ -91,8 +91,8 @@ func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	r.Header.Del(webAuthRoleHeaderName)
-	r.Header.Add(webAuthRoleHeaderName, authorizedRoles.ToHeader())
+	r.Header.Del(WebAuthRoleHeaderName)
+	r.Header.Add(WebAuthRoleHeaderName, authorizedRoles.ToHeader())
 
 	if r.Method == "POST" && p.allowPost {
 		p.reverseProxy.ServeHTTP(w, r)
