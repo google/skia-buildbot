@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/alogin",
         "//go/alogin/proxylogin",
-        "//go/alogin/sklogin",
         "//go/auditlog",
         "//go/calc",
         "//go/email",
@@ -16,6 +15,7 @@ go_library(
         "//go/metrics2",
         "//go/paramtools",
         "//go/query",
+        "//go/roles",
         "//go/skerr",
         "//go/sklog",
         "//go/sklog/sklogimpl",

@@ -25,7 +25,6 @@ import (
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
-	"go.skia.org/infra/go/alogin/sklogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/email"
@@ -33,6 +32,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
@@ -289,20 +289,13 @@ func (f *Frontend) initialize() {
 	cfg := config.Config
 
 	// Configure login.
-	if f.flags.ProxyLogin {
-		f.loginProvider, err = proxylogin.New(
-			cfg.AuthConfig.HeaderName,
-			cfg.AuthConfig.EmailRegex,
-			cfg.AuthConfig.LoginURL,
-			cfg.AuthConfig.LogoutURL)
-		if err != nil {
-			sklog.Fatalf("Failed to initialize login: %s", err)
-		}
-	} else {
-		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
-		if err != nil {
-			sklog.Fatalf("Failed to initialize the login system: %s", err)
-		}
+	f.loginProvider, err = proxylogin.New(
+		cfg.AuthConfig.HeaderName,
+		cfg.AuthConfig.EmailRegex,
+		cfg.AuthConfig.LoginURL,
+		cfg.AuthConfig.LogoutURL)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize login: %s", err)
 	}
 
 	ctx := context.Background()
@@ -820,6 +813,16 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (f *Frontend) isEditor(w http.ResponseWriter, r *http.Request, action string, body interface{}) bool {
+	user := f.loginProvider.LoggedInAs(r)
+	if f.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to complete this action.", http.StatusInternalServerError)
+		return false
+	}
+	auditlog.LogWithUser(r, user.String(), "triage", body)
+	return true
+}
+
 // TriageRequest is used in triageHandler.
 type TriageRequest struct {
 	Cid         types.CommitNumber      `json:"cid"`
@@ -840,17 +843,14 @@ type TriageResponse struct {
 func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
-	user := f.loginProvider.LoggedInAs(r)
-	if user == alogin.NotLoggedIn {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
-		return
-	}
 	tr := &TriageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.LogWithUser(r, user.String(), "triage", tr)
+	if !f.isEditor(w, r, "triage", tr) {
+		return
+	}
 	detail, err := f.perfGit.CommitFromCommitNumber(ctx, tr.Cid)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
@@ -1294,18 +1294,17 @@ type AlertUpdateResponse struct {
 
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user := f.loginProvider.LoggedInAs(r)
-	if user == alogin.NotLoggedIn {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to edit alerts.", http.StatusInternalServerError)
-		return
-	}
 
 	cfg := &alerts.Alert{}
 	if err := json.NewDecoder(r.Body).Decode(cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.LogWithUser(r, user.String(), "alert-update", cfg)
+
+	if !f.isEditor(w, r, "alert-update", cfg) {
+		return
+	}
+
 	if err := f.alertStore.Save(r.Context(), cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
@@ -1319,18 +1318,17 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user := f.loginProvider.LoggedInAs(r)
-	if user == alogin.NotLoggedIn {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.", http.StatusInternalServerError)
-		return
-	}
 
 	sid := mux.Vars(r)["id"]
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
 	}
-	auditlog.LogWithUser(r, user.String(), "alert-delete", sid)
+
+	if !f.isEditor(w, r, "alert-delete", sid) {
+		return
+	}
+
 	if err := f.alertStore.Delete(r.Context(), int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
@@ -1349,18 +1347,17 @@ type TryBugResponse struct {
 
 func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user := f.loginProvider.LoggedInAs(r)
-	if user == alogin.NotLoggedIn {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.", http.StatusInternalServerError)
-		return
-	}
 
 	req := &TryBugRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.LogWithUser(r, user.String(), "alert-bug-try", req)
+
+	if !f.isEditor(w, r, "alert-bug-try", req) {
+		return
+	}
+
 	resp := &TryBugResponse{
 		URL: bug.ExampleExpand(req.BugURITemplate),
 	}
@@ -1371,18 +1368,17 @@ func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user := f.loginProvider.LoggedInAs(r)
-	if user == alogin.NotLoggedIn {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.", http.StatusInternalServerError)
-		return
-	}
 
 	req := &alerts.Alert{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.LogWithUser(r, user.String(), "alert-notify-try", req)
+
+	if !f.isEditor(w, r, "alert-notify-try", req) {
+		return
+	}
+
 	if err := f.notifier.ExampleSend(r.Context(), req); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
 	}
@@ -1414,24 +1410,6 @@ func oldClustersHandler(w http.ResponseWriter, r *http.Request) {
 
 func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
-}
-
-var internalOnlyExceptions = []string{
-	"/oauth2callback/",
-	"/_/reg/count",
-}
-
-// internalOnlyHandler wraps the handler with a handler that only allows
-// authenticated access, with the exception of the endpoints listed in
-// internalOnlyExceptions.
-func (f *Frontend) internalOnlyHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if util.In(r.URL.Path, internalOnlyExceptions) || f.loginProvider.LoggedInAs(r) != alogin.NotLoggedIn {
-			h.ServeHTTP(w, r)
-		} else {
-			f.loginProvider.NeedsAuthentication(w, r)
-		}
-	})
 }
 
 // Serve content on the configured endpoints.Serve.
@@ -1510,9 +1488,6 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/login/status", f.loginStatus).Methods("GET")
 
 	var h http.Handler = router
-	if f.flags.InternalOnly {
-		h = f.internalOnlyHandler(h)
-	}
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {
 		h = httputils.HealthzAndHTTPS(h)

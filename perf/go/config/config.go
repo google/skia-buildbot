@@ -243,7 +243,7 @@ type GitRepoConfig struct {
 
 // FrontendFlags are the command-line flags for the web UI.
 type FrontendFlags struct {
-	AuthBypassList                 string
+	AuthBypassList                 string // TODO(jcgregorio) Remove after migrating to Roles.
 	ConfigFilename                 string
 	ConnectionString               string
 	CommitRangeURL                 string
@@ -252,7 +252,7 @@ type FrontendFlags struct {
 	NoEmail                        bool
 	EventDrivenRegressionDetection bool
 	Interesting                    float64
-	InternalOnly                   bool
+	InternalOnly                   bool // TODO(jcgregorio) Remove after migrating to Roles.
 	KeyOrder                       string
 	Local                          bool
 	NumContinuous                  int
@@ -266,7 +266,7 @@ type FrontendFlags struct {
 	Radius                         int
 	StepUpOnly                     bool
 	DisplayGroupBy                 bool
-	ProxyLogin                     bool
+	ProxyLogin                     bool // TODO(jcgregorio) Remove after migrating to Roles.
 }
 
 // AsCliFlags returns a slice of cli.Flag.
