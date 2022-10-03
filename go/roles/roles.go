@@ -52,7 +52,7 @@ func RoleFromString(s string) Role {
 // Roles is a slice of Role.
 type Roles []Role
 
-// ToHeader converts Roles to a string, formatted for the X-ROLES header.
+// ToHeader converts Roles to a string, formatted for an HTTP header.
 func (r Roles) ToHeader() string {
 	var b strings.Builder
 	last := len(r) - 1
@@ -65,7 +65,7 @@ func (r Roles) ToHeader() string {
 	return b.String()
 }
 
-// FromHeader parses the X-ROLES header value and returns Roles found.
+// FromHeader parses a Roles header value and returns Roles found.
 func FromHeader(s string) Roles {
 	var ret Roles
 	for _, part := range strings.Split(s, ",") {

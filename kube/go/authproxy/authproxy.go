@@ -58,7 +58,7 @@ const (
 	// how Grafana uses this to support almost any authentication handler.
 	WebAuthHeaderName = "X-WEBAUTH-USER"
 
-	WebAuthRoleHeaderName = "X-ROLES"
+	WebAuthRoleHeaderName = "X-WEBAUTH-ROLES"
 )
 
 type proxy struct {
