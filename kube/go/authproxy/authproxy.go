@@ -238,7 +238,7 @@ func (a *App) populateAllowedRoles(criaClient *http.Client) error {
 				return skerr.Fmt("Failed parsing --role flag: %q : %s", roleFlag, err)
 			}
 		} else {
-			allow = allowed.NewAllowedFromList(strings.Split(allowedRuleAsString, ","))
+			allow = allowed.NewAllowedFromList(strings.Split(allowedRuleAsString, " "))
 		}
 		if existing, ok := a.allowedRoles[rolename]; ok {
 			a.allowedRoles[rolename] = allowed.UnionOf(existing, allow)

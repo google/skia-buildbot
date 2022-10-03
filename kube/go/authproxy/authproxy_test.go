@@ -363,3 +363,27 @@ func TestAppPopulateAllowedRoles_BadFlagFormat_ReturnsError(t *testing.T) {
 	err := a.populateAllowedRoles(m)
 	require.Contains(t, err.Error(), "Invalid format")
 }
+
+func TestAppPopulateAllowedRoles_CommaSeparatedRoles_RoleContainsUnionOfAllows(t *testing.T) {
+	m := mockCriaClient(t)
+	a := newEmptyApp()
+	a.roleFlags = []string{
+		"viewer=google.com chromium.org",
+	}
+
+	err := a.populateAllowedRoles(m)
+	require.NoError(t, err)
+	require.True(t, a.allowedRoles[roles.Viewer].Member("fred@chromium.org"))
+	require.True(t, a.allowedRoles[roles.Viewer].Member("barney@google.com"))
+}
+
+func TestAppPopulateAllowedRoles_TestMultiFlagParsing(t *testing.T) {
+	a := newEmptyApp()
+	err := a.Flagset().Parse([]string{"--role=viewer=google.com chromium.org", "--role=editor=google.com chromium.org"})
+	require.NoError(t, err)
+	expected := []string{
+		"viewer=google.com chromium.org",
+		"editor=google.com chromium.org",
+	}
+	require.Equal(t, expected, a.roleFlags)
+}
