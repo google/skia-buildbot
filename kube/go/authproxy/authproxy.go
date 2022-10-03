@@ -240,7 +240,12 @@ func (a *App) populateAllowedRoles(criaClient *http.Client) error {
 		} else {
 			allow = allowed.NewAllowedFromList(strings.Split(allowedRuleAsString, ","))
 		}
-		a.allowedRoles[rolename] = allow
+		if existing, ok := a.allowedRoles[rolename]; ok {
+			a.allowedRoles[rolename] = allowed.UnionOf(existing, allow)
+		} else {
+			a.allowedRoles[rolename] = allow
+		}
+
 	}
 	return nil
 }

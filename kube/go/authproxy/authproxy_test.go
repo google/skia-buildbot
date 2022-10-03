@@ -316,6 +316,20 @@ func TestAppPopulateAllowedRoles_MultipleGroups_Success(t *testing.T) {
 	require.True(t, a.allowedRoles[roles.Admin].Member("barney@google.com"))
 }
 
+func TestAppPopulateAllowedRoles_MultipleGroupsSameRoles_RoleContainsUnionOfAllows(t *testing.T) {
+	m := mockCriaClient(t)
+	a := newEmptyApp()
+	a.roleFlags = []string{
+		"editor=cria_group:" + testCriaGroupName,
+		"editor=google.com",
+	}
+
+	err := a.populateAllowedRoles(m)
+	require.NoError(t, err)
+	require.True(t, a.allowedRoles[roles.Editor].Member("fred@chromium.org"))
+	require.True(t, a.allowedRoles[roles.Editor].Member("barney@google.com"))
+}
+
 func TestAppPopulateAllowedRoles_InvalidCriaGroup_ReturnsError(t *testing.T) {
 	m := mockCriaClient(t)
 	a := newEmptyApp()
