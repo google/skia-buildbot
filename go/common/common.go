@@ -130,21 +130,34 @@ func newMultiString(target *[]string, defaults []string) *multiString {
 	}
 }
 
+// FSNewMultiStringFlag returns a []string flag, loaded with the given
+// defaults, usage string and name.
+func FSNewMultiStringFlag(fs *flag.FlagSet, name string, defaults []string, usage string) *[]string {
+	var values []string
+	m := newMultiString(&values, defaults)
+	fs.Var(m, name, usage)
+	return &values
+}
+
+// FSMultiStringFlagVar defines a MultiString flag with the specified name,
+// defaults, and usage string. The argument target points to a []string
+// variable in which to store the values of the flag.
+func FSMultiStringFlagVar(fs *flag.FlagSet, target *[]string, name string, defaults []string, usage string) {
+	m := newMultiString(target, defaults)
+	fs.Var(m, name, usage)
+}
+
 // NewMultiStringFlag returns a []string flag, loaded with the given
 // defaults, usage string and name.
 func NewMultiStringFlag(name string, defaults []string, usage string) *[]string {
-	var values []string
-	m := newMultiString(&values, defaults)
-	flag.Var(m, name, usage)
-	return &values
+	return FSNewMultiStringFlag(flag.CommandLine, name, defaults, usage)
 }
 
 // MultiStringFlagVar defines a MultiString flag with the specified name,
 // defaults, and usage string. The argument target points to a []string
 // variable in which to store the values of the flag.
 func MultiStringFlagVar(target *[]string, name string, defaults []string, usage string) {
-	m := newMultiString(target, defaults)
-	flag.Var(m, name, usage)
+	FSNewMultiStringFlag(flag.CommandLine, name, defaults, usage)
 }
 
 // String() returns the current values of multiString, as a comma separated list

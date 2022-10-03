@@ -140,7 +140,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.BoolVar(&a.allowPost, "allow_post", false, "Allow POST requests to bypass auth.")
 	fs.StringVar(&a.allowedFrom, "allowed_from", "", "A comma separated list of of domains and email addresses that are allowed to access the site. Example: 'google.com'")
 	fs.BoolVar(&a.passive, "passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
-	common.MultiStringFlagVar(&a.roleFlags, "role", []string{}, "Define a role and the group (CRIA, domain, email list) that defines who gets that role via flags. For example: --role=viewer=@google.com OR --role=triager=cria_group:project-angle-committers")
+	common.FSMultiStringFlagVar(fs, &a.roleFlags, "role", []string{}, "Define a role and the group (CRIA, domain, email list) that defines who gets that role via flags. For example: --role=viewer=@google.com OR --role=triager=cria_group:project-angle-committers")
 
 	return fs
 }
@@ -292,10 +292,10 @@ func (a *App) validateFlags() error {
 	if len(a.roleFlags) > 0 && (a.criaGroup != "" || a.allowedFrom != "") {
 		return fmt.Errorf("Can not mix --role and [--auth_group, --allowed_from] flags.")
 	}
-	if a.criaGroup != "" && a.allowedFrom != "" {
+	if len(a.roleFlags) == 0 && (a.criaGroup != "" && a.allowedFrom != "") {
 		return fmt.Errorf("Only one of the flags in [--auth_group, --allowed_from] can be specified.")
 	}
-	if a.criaGroup == "" && a.allowedFrom == "" {
+	if len(a.roleFlags) == 0 && (a.criaGroup == "" && a.allowedFrom == "") {
 		return fmt.Errorf("At least one of the flags in [--auth_group, --allowed_from] must be specified.")
 	}
 

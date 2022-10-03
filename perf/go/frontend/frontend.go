@@ -815,8 +815,8 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) isEditor(w http.ResponseWriter, r *http.Request, action string, body interface{}) bool {
 	user := f.loginProvider.LoggedInAs(r)
-	if f.loginProvider.HasRole(r, roles.Editor) {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to complete this action.", http.StatusInternalServerError)
+	if !f.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return false
 	}
 	auditlog.LogWithUser(r, user.String(), "triage", body)

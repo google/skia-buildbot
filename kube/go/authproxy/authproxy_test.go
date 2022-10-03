@@ -179,7 +179,7 @@ func TestValidateFlags_OnlyRolesFlagsSpecified_ReturnsNoError(t *testing.T) {
 		allowedFrom: "",
 	}
 
-	require.Error(t, app.validateFlags())
+	require.NoError(t, app.validateFlags())
 }
 
 func TestValidateFlags_BothLegacyAndRolesFlagsSpecified_ReturnsError(t *testing.T) {
