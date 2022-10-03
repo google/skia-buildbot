@@ -103,7 +103,13 @@ func main() {
 
 	router := mux.NewRouter()
 	if !*local && *dologin {
-		login.SimpleInitMust(*port, *local)
+		err := login.Init(login.DEFAULT_REDIRECT_URL,
+			"", /* Empty means accept all signed in domain. */
+			"", /* Get secrets from Secret Manager*/
+		)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 		router.HandleFunc("/login/", login.LoginHandler)
 		router.HandleFunc("/logout/", login.LogoutHandler)
 		router.HandleFunc("/loginstatus/", login.StatusHandler)
