@@ -23,7 +23,7 @@ describe('alert-config-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk');
     });
-    it('does not show group_by if window.sk.perf.display_group_by is false', async () => {
+    it('does not show group_by if window.perf.display_group_by is false', async () => {
       await testBed.page.click('#hide_group_by');
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-group-by');
     });

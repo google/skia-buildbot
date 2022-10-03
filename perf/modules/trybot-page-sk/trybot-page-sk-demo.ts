@@ -6,19 +6,15 @@ import 'elements-sk/error-toast-sk';
 import { CommitDetailPickerSk } from '../commit-detail-picker-sk/commit-detail-picker-sk';
 import { QuerySk } from '../../../infra-sk/modules/query-sk/query-sk';
 
-import { TrybotPageSk } from './trybot-page-sk';
-
-window.sk = {
-  perf: {
-    commit_range_url: '',
-    key_order: ['config'],
-    demo: true,
-    radius: 7,
-    num_shift: 10,
-    interesting: 25,
-    step_up_only: false,
-    display_group_by: true,
-  },
+window.perf = {
+  commit_range_url: '',
+  key_order: ['config'],
+  demo: true,
+  radius: 7,
+  num_shift: 10,
+  interesting: 25,
+  step_up_only: false,
+  display_group_by: true,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

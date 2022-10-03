@@ -86,7 +86,7 @@ export class ClusterLastNPageSk extends ElementSk {
 
   constructor() {
     super(ClusterLastNPageSk.template);
-    if (window.sk.perf.demo) {
+    if (window.perf.demo) {
       this.domain.end = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
     }
   }
@@ -96,7 +96,7 @@ export class ClusterLastNPageSk extends ElementSk {
       <alert-config-sk
         .config=${ele.state}
         .paramset=${ele.paramset}
-        .key_order=${window.sk.perf.key_order}
+        .key_order=${window.perf.key_order}
       ></alert-config-sk>
       <div class="buttons">
         <button @click=${ele.alertClose}>Cancel</button>

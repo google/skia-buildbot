@@ -119,7 +119,7 @@ export class DomainPickerSk extends ElementSk {
         <input
           @change=${ele.numChanged}
           type="number"
-          .value="${ele._state.num_commits}"
+          .value="${ele._state.num_commits.toString()}"
           min="1"
           max="5000"
           list="defaultNumbers"

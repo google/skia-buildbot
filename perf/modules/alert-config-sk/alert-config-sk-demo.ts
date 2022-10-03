@@ -3,10 +3,9 @@ import { $, $$ } from 'common-sk/modules/dom';
 import { AlertConfigSk } from './alert-config-sk';
 import { Alert } from '../json';
 
-window.sk = window.sk || {};
-window.sk.perf = window.sk.perf || {};
-window.sk.perf.key_order = [];
-window.sk.perf.display_group_by = true;
+window.perf = window.perf || {};
+window.perf.key_order = [];
+window.perf.display_group_by = true;
 
 // Force all the alert-config-sk controls on the page to re-render.
 const refreshControls = () => {
@@ -17,11 +16,11 @@ const refreshControls = () => {
 };
 
 $$('#display_group_by')!.addEventListener('click', () => {
-  window.sk.perf.display_group_by = true;
+  window.perf.display_group_by = true;
   refreshControls();
 });
 $$('#hide_group_by')!.addEventListener('click', () => {
-  window.sk.perf.display_group_by = false;
+  window.perf.display_group_by = false;
   refreshControls();
 });
 

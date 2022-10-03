@@ -94,7 +94,6 @@ customElements.whenDefined('cluster-lastn-page-sk').then(() => {
     );
 });
 
-window.sk = window.sk || {};
-window.sk.perf = window.sk.perf || {};
-window.sk.perf.key_order = [];
-window.sk.perf.demo = true;
+window.perf = window.perf || {};
+window.perf.key_order = [];
+window.perf.demo = true;

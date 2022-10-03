@@ -191,7 +191,7 @@ func (f *Frontend) loadTemplates() {
 }
 
 // SkPerfConfig is the configuration data that will appear
-// in Javascript under the sk.perf variable.
+// in Javascript under the window.perf variable.
 type SkPerfConfig struct {
 	Radius         int      `json:"radius"`           // The number of commits when doing clustering.
 	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query-sk elements.
@@ -218,7 +218,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
-			sklog.Errorf("Failed to JSON encode sk.perf context: %s", err)
+			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
 		if err := f.templates.ExecuteTemplate(w, name, map[string]template.JS{"context": template.JS(string(b))}); err != nil {
 			sklog.Error("Failed to expand template:", err)

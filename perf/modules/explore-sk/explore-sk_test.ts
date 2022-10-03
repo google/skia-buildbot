@@ -70,17 +70,16 @@ describe('calculateRangeChange', () => {
 });
 
 describe('applyFuncToTraces', () => {
-  window.sk = {
-    perf: {
-      radius: 2,
-      key_order: null,
-      num_shift: 50,
-      interesting: 2,
-      step_up_only: false,
-      commit_range_url: '',
-      demo: true,
-      display_group_by: false,
-    },
+  window.perf = {
+    radius: 2,
+    key_order: null,
+    num_shift: 50,
+    interesting: 2,
+    step_up_only: false,
+    commit_range_url: '',
+    demo: true,
+    display_group_by: false,
+
   };
 
   // Create a common element-sk to be used by all the tests.

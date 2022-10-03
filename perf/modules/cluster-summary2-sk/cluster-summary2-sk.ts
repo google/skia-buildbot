@@ -437,7 +437,7 @@ export class ClusterSummary2Sk extends ElementSk {
       }
 
       // Populate rangelink.
-      if (window.sk.perf.commit_range_url !== '') {
+      if (window.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
         let prevCommit = xbar - 1;
         while (prevCommit > 0 && this.summary!.centroid![prevCommit] === 1e32) {
@@ -451,7 +451,7 @@ export class ClusterSummary2Sk extends ElementSk {
         ClusterSummary2Sk.lookupCids(cids)
           .then((json: CIDHandlerResponse) => {
             // Create the URL.
-            let url = window.sk.perf.commit_range_url;
+            let url = window.perf.commit_range_url;
             url = url.replace('{begin}', json.commitSlice![0].hash);
             url = url.replace('{end}', json.commitSlice![1].hash);
             // Now populate link, including text and href.

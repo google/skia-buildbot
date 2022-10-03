@@ -2,9 +2,7 @@
 import { SkPerfConfig } from '../json';
 
 declare global {
-    interface Window {
-      sk: {
-        perf: SkPerfConfig;
-      };
-    }
+  interface Window {
+      perf: SkPerfConfig;
   }
+}

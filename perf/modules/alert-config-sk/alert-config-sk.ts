@@ -30,7 +30,6 @@ import {
   ConfigState,
   TryBugRequest,
   TryBugResponse,
-  SkPerfConfig,
 } from '../json';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
@@ -342,7 +341,7 @@ export class AlertConfigSk extends ElementSk {
   `;
 
   private static _groupBy = (ele: AlertConfigSk): TemplateResult => {
-    if (!window.sk?.perf?.display_group_by) {
+    if (!window.perf?.display_group_by) {
       return html``;
     }
     return html`
@@ -374,8 +373,8 @@ export class AlertConfigSk extends ElementSk {
     super.connectedCallback();
     this._upgradeProperty('config');
     this._upgradeProperty('paramset');
-    if (window.sk?.perf?.key_order) {
-      this._key_order = window.sk.perf.key_order;
+    if (window.perf?.key_order) {
+      this._key_order = window.perf.key_order;
     }
     this._render();
     this.bugSpinner = this.querySelector('#bugSpinner');
@@ -481,10 +480,10 @@ export class AlertConfigSk extends ElementSk {
     }
     this._config = val;
     if (this._config.interesting === 0) {
-      this._config.interesting = window.sk?.perf?.interesting || 0;
+      this._config.interesting = window.perf?.interesting || 0;
     }
     if (this._config.radius === 0) {
-      this._config.radius = window.sk?.perf?.radius || 0;
+      this._config.radius = window.perf?.radius || 0;
     }
     this._render();
   }

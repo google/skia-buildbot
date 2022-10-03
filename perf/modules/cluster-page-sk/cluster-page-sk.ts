@@ -52,7 +52,7 @@ class State {
 
   offset: number = -1;
 
-  radius: number = window.sk.perf.radius;
+  radius: number = window.perf.radius;
 
   query: string = '';
 
@@ -60,12 +60,12 @@ class State {
 
   algo: ClusterAlgo = 'kmeans';
 
-  interesting: number = window.sk.perf.interesting;
+  interesting: number = window.perf.interesting;
 
   sparse: boolean = false;
 
   constructor() {
-    if (window.sk.perf.demo) {
+    if (window.perf.demo) {
       this.begin = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
       this.end = Math.floor(new Date(2020, 5, 1).valueOf() / 1000);
     }
@@ -119,7 +119,7 @@ export class ClusterPageSk extends ElementSk {
     <div class="query-action">
       <query-sk
         @query-change=${ele.queryChanged}
-        .key_order=${window.sk.perf.key_order}
+        .key_order=${window.perf.key_order}
         .paramset=${ele.paramset}
         current_query=${ele.state.query}
       ></query-sk>
@@ -364,7 +364,7 @@ export class ClusterPageSk extends ElementSk {
           });
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       this.catch(error);
     } finally {
       this.requestId = '';

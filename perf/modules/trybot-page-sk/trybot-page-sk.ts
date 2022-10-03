@@ -289,7 +289,7 @@ export class TrybotPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.query = this.querySelector('#query');
-    this.query!.key_order = window.sk.perf.key_order || [];
+    this.query!.key_order = window.perf.key_order || [];
     this.queryCount = this.querySelector('#query-count');
     this.spinner = this.querySelector('#run-spinner');
     this.individualPlot = this.querySelector('#individual-plot');
@@ -309,7 +309,7 @@ export class TrybotPageSk extends ElementSk {
 
       // From this point on reflect the state to the URL.
       this.startStateReflector();
-    } catch (error) {
+    } catch (error: any) {
       errorMessage(error);
     }
   }
@@ -328,7 +328,7 @@ export class TrybotPageSk extends ElementSk {
       } else {
         throw new Error(messagesToErrorString(prog.messages));
       }
-    } catch (error) {
+    } catch (error: any) {
       errorMessage(error, 0);
     }
   }

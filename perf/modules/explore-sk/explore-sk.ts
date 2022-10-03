@@ -305,7 +305,7 @@ export class ExploreSk extends ElementSk {
   // is no pending request.
   private _requestId = '';
 
-  private _numShift = window.sk.perf.num_shift;
+  private _numShift = window.perf.num_shift;
 
   // The id of the interval timer if we are refreshing.
   private _refreshId = -1;
@@ -652,7 +652,7 @@ export class ExploreSk extends ElementSk {
           request_type: this.state.requestType,
         };
 
-        this.query!.key_order = window.sk.perf.key_order || [];
+        this.query!.key_order = window.perf.key_order || [];
         this.query!.paramset = json.dataframe.paramset;
         this.pivotControl!.paramset = json.dataframe.paramset;
 
