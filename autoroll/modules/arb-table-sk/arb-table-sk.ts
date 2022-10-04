@@ -18,13 +18,13 @@ import {
   AutoRollService,
   GetAutoRollService,
   GetRollersResponse,
+  Mode,
 } from '../rpc';
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
   <div>
-    Filter: <input id="filter" type="text" @input="${
-      ele.updateFiltered
+    Filter: <input id="filter" type="text" @input="${ele.updateFiltered
     }"></input>
   </div>
   <table>
@@ -42,7 +42,7 @@ export class ARBTableSk extends ElementSk {
               >${st.childName} into ${st.parentName}</a
             >
           </td>
-          <td>${st.mode.toLowerCase()}</td>
+          <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
           <td>${st.numBehind}</td>
           <td>${st.numFailed}</td>
         </tr>
@@ -67,6 +67,19 @@ export class ARBTableSk extends ElementSk {
     this.reload();
   }
 
+  private modeClass(mode: Mode) {
+    switch (mode) {
+      case Mode.RUNNING:
+        return "fg-running";
+      case Mode.DRY_RUN:
+        return "fg-dry-run";
+      case Mode.STOPPED:
+        return "fg-stopped";
+      case Mode.OFFLINE:
+        return "fg-offline";
+    }
+  }
+
   private reload() {
     this.rpc.getRollers({}).then((resp: GetRollersResponse) => {
       this.rollers = resp.rollers!;
@@ -81,8 +94,8 @@ export class ARBTableSk extends ElementSk {
       const regex = new RegExp(filterInput!.value);
       this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => (
         st.rollerId.match(regex)
-          || st.childName.match(regex)
-          || st.parentName.match(regex)
+        || st.childName.match(regex)
+        || st.parentName.match(regex)
       ));
     }
     this._render();
