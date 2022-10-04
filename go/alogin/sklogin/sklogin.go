@@ -25,9 +25,6 @@ func New(port string, local bool, authBypassList string) (*sklogin, error) {
 	if !local {
 		redirectURL = login.DEFAULT_REDIRECT_URL
 	}
-	if authBypassList == "" {
-		authBypassList = login.DEFAULT_ALLOWED_DOMAINS
-	}
 	if err := login.Init(redirectURL, authBypassList, ""); err != nil {
 		return nil, skerr.Wrap(err)
 	}
