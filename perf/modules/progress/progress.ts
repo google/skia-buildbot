@@ -1,7 +1,7 @@
 // A module to start and monitor the progress of long running server tasks.
 
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { progress } from '../json';
+import { progress } from '../json/all';
 
 export type callback = (arg: progress.SerializedProgress)=> void;
 

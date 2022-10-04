@@ -1,7 +1,7 @@
 // Program to generate TypeScript definition files for Golang structs that are
 // serialized to JSON for the web UI.
 //
-//go:generate bazelisk run //:go -- run . -o ../../modules/json/index.ts
+//go:generate bazelisk run //:go -- run .
 package main
 
 import (
@@ -40,7 +40,6 @@ func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) {
 }
 
 func main() {
-	var outputPath = flag.String("o", "", "Path to the output TypeScript file.")
 	flag.Parse()
 
 	generator := go2ts.New()
@@ -106,7 +105,7 @@ func main() {
 
 	generator.AddToNamespace(format.Format{}, "ingest")
 
-	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
+	err := util.WithWriteFile("../../modules/json/all.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})
 	if err != nil {

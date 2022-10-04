@@ -5,7 +5,7 @@ import fetchMock from 'fetch-mock';
 import { StatusSk } from './status-sk';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { AlertsStatus } from '../../../perf/modules/json/index';
+import { AlertsStatus } from '../../../perf/modules/json/all';
 import { incrementalResponse0, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';

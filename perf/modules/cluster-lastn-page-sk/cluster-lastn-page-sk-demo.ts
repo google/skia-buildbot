@@ -1,7 +1,7 @@
 import './index';
 import 'elements-sk/error-toast-sk';
 import fetchMock from 'fetch-mock';
-import { Alert } from '../json';
+import { Alert } from '../json/all';
 
 const paramSet = {
   arch: ['WASM', 'arm', 'arm64', 'asmjs', 'wasm', 'x86', 'x86_64'],

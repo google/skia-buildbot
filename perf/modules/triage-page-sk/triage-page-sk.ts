@@ -28,7 +28,7 @@ import {
   Current,
   TriageRequest,
   TriageResponse,
-} from '../json';
+} from '../json/all';
 
 import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';

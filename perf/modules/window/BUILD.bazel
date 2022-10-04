@@ -4,5 +4,5 @@ ts_library(
     name = "window_ts_lib",
     srcs = ["window.ts"],
     visibility = ["//visibility:public"],
-    deps = ["//perf/modules/json:index_ts_lib"],
+    deps = ["//perf/modules/json:all_ts_lib"],
 )

@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { Status } from '../json';
+import { Status } from '../json/all';
 import { TriageSk } from './triage2-sk';
 
 const container = document.createElement('div');

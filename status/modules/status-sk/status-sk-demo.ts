@@ -2,7 +2,7 @@ import './index';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { getAutorollerStatusesResponse, incrementalResponse0, SetupMocks } from '../rpc-mock';
-import { AlertsStatus } from '../../../perf/modules/json/index';
+import { AlertsStatus } from '../../../perf/modules/json/all';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
 import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';

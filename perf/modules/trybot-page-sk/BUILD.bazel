@@ -21,7 +21,6 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
         "//perf/modules/trybot:calcs_ts_lib",
@@ -29,6 +28,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -47,10 +47,10 @@ sk_page(
         ":trybot-page-sk",
     ],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//fetch-mock",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "trybot-page-sk-demo.ts",
 )

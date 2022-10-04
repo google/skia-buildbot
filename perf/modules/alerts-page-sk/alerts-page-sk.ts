@@ -21,7 +21,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import {
   FrameResponse, ParamSet, Alert, ConfigState,
-} from '../json';
+} from '../json/all';
 import { validate } from '../alert';
 
 const okOrThrow = async (resp: Response) => {

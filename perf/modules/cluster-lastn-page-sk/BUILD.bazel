@@ -17,11 +17,11 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "cluster-lastn-page-sk.ts",
@@ -36,9 +36,9 @@ sk_page(
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":cluster-lastn-page-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "@npm//elements-sk",
         "@npm//fetch-mock",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "cluster-lastn-page-sk-demo.ts",
 )

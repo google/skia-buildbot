@@ -17,11 +17,11 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules:login_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",
@@ -34,7 +34,7 @@ sk_page(
     name = "cluster-summary2-sk-demo",
     html_file = "cluster-summary2-sk-demo.html",
     sk_element_deps = [":cluster-summary2-sk"],
-    ts_deps = ["//perf/modules/json:index_ts_lib"],
+    ts_deps = ["//perf/modules/json:all_ts_lib"],
     ts_entry_point = "cluster-summary2-sk-demo.ts",
 )
 

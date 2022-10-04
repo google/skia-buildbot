@@ -20,7 +20,7 @@ import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/styles/buttons';
-import { Status } from '../json';
+import { Status } from '../json/all';
 
 // TODO(jcgregorio) Maybe go2ts could emit isFoo guard functions?
 function isStatus(value: string): value is Status {

@@ -2,7 +2,7 @@ import './index';
 import { ClusterSummary2Sk } from './cluster-summary2-sk';
 import {
   FullSummary, ClusterSummary, TriageStatus, Alert, FrameResponse,
-} from '../json';
+} from '../json/all';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 

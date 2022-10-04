@@ -50,7 +50,7 @@ import {
   FrameResponseDisplayMode,
   ColumnHeader,
   CIDHandlerResponse,
-} from '../json';
+} from '../json/all';
 import {
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,

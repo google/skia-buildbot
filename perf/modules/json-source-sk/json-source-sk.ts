@@ -14,7 +14,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CommitDetailsRequest, CommitNumber } from '../json';
+import { CommitDetailsRequest, CommitNumber } from '../json/all';
 
 import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';

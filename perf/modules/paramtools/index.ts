@@ -3,7 +3,7 @@
 //
 // All the validation is done on the server, so these functions do less checking
 // on the validity of structured keys and Params.
-import { Params, ParamSet } from '../json';
+import { Params, ParamSet } from '../json/all';
 
 /** Create a structured key from a Params. */
 export function makeKey(params: Params): string {

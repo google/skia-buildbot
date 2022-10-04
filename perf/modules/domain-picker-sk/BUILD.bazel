@@ -12,9 +12,9 @@ sk_element(
     sk_element_deps = ["//perf/modules/calendar-input-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "domain-picker-sk.ts",

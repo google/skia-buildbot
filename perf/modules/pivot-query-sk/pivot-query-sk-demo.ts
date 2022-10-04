@@ -1,5 +1,5 @@
 import { $$ } from 'common-sk/modules/dom';
-import { ParamSet, pivot } from '../json';
+import { ParamSet, pivot } from '../json/all';
 import './index';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from './pivot-query-sk';
 

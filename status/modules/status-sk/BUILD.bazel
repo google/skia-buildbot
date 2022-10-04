@@ -48,12 +48,12 @@ sk_page(
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//status/modules/rpc-mock:index_ts_lib",
         "//status/modules/tree-status-sk:test_data_ts_lib",
         "//status/modules:settings_ts_lib",
         "@npm//common-sk",
         "@npm//fetch-mock",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "status-sk-demo.ts",
 )
@@ -77,7 +77,7 @@ karma_test(
         "//bugs-central/modules/json:index_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/json:all_ts_lib",
         "//status/modules:settings_ts_lib",
         "//status/modules/rpc-mock:index_ts_lib",
         "//status/modules/tree-status-sk:test_data_ts_lib",

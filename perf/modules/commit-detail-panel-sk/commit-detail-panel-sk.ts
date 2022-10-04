@@ -30,7 +30,7 @@ import { html } from 'lit-html';
 import { findParent } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../commit-detail-sk';
-import { Commit } from '../json';
+import { Commit } from '../json/all';
 
 export interface CommitDetailPanelSkCommitSelectedDetails {
   selected: number;

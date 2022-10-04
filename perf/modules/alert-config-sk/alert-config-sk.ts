@@ -30,7 +30,7 @@ import {
   ConfigState,
   TryBugRequest,
   TryBugResponse,
-} from '../json';
+} from '../json/all';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 

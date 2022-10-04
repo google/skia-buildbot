@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { pivot } from '../json';
+import { pivot } from '../json/all';
 import { validateAsPivotTable, validatePivotRequest } from './index';
 
 describe('validatePivotRequest', () => {

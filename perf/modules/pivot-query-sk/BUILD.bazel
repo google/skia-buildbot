@@ -16,8 +16,8 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "pivot-query-sk.ts",
@@ -32,8 +32,8 @@ sk_page(
     scss_entry_point = "pivot-query-sk-demo.scss",
     sk_element_deps = [":pivot-query-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "pivot-query-sk-demo.ts",
 )
@@ -55,7 +55,7 @@ karma_test(
     deps = [
         ":pivot-query-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/json:all_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//common-sk",

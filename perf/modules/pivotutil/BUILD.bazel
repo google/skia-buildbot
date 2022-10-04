@@ -4,7 +4,7 @@ ts_library(
     name = "index_ts_lib",
     srcs = ["index.ts"],
     visibility = ["//visibility:public"],
-    deps = ["//perf/modules/json:index_ts_lib"],
+    deps = ["//perf/modules/json:all_ts_lib"],
 )
 
 karma_test(
@@ -12,7 +12,7 @@ karma_test(
     src = "index_test.ts",
     deps = [
         ":index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/json:all_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
     ],

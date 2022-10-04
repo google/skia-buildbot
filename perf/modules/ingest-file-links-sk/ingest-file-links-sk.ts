@@ -14,7 +14,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
+import { CommitDetailsRequest, CommitNumber, ingest } from '../json/all';
 
 export class IngestFileLinksSk extends ElementSk {
   private links: { [key: string]: string } | null = null;

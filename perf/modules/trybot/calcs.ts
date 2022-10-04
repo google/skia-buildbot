@@ -1,6 +1,6 @@
 // Utility functions for trybot results.
 
-import { TryBotResponse } from '../json';
+import { TryBotResponse } from '../json/all';
 
 // The average stddevRatio across all traces with the given keyValue.
 export interface AveForParam {

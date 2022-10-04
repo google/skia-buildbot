@@ -17,7 +17,7 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { toParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { pivot, DataFrame, TraceSet } from '../json';
+import { pivot, DataFrame, TraceSet } from '../json/all';
 import { operationDescriptions, validateAsPivotTable } from '../pivotutil';
 
 import '../../../infra-sk/modules/paramset-sk';

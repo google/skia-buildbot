@@ -16,10 +16,10 @@ sk_element(
         "//infra-sk/modules:login_ts_lib",
         "//perf/modules/alert:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "alerts-page-sk.ts",

@@ -4,7 +4,7 @@ import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PerfStatusSk } from './perf-status-sk';
-import { AlertsStatus } from '../../../perf/modules/json';
+import { AlertsStatus } from '../../../perf/modules/json/all';
 
 describe('perf-status-sk', () => {
   const newInstance = setUpElementUnderTest<PerfStatusSk>('perf-status-sk');

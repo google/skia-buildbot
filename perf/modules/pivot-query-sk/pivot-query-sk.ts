@@ -9,7 +9,7 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { ParamSet, pivot } from '../json';
+import { ParamSet, pivot } from '../json/all';
 import 'elements-sk/multi-select-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/styles/select';

@@ -28,7 +28,7 @@ import {
   TryBotRequest,
   TryBotResponse,
   Params,
-} from '../json';
+} from '../json/all';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 
 import '../../../infra-sk/modules/query-sk';
