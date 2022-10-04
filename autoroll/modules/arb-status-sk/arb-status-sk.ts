@@ -10,7 +10,7 @@
 import { html } from 'lit-html';
 
 import { $$ } from 'common-sk/modules/dom';
-import { diffDate, localeTime } from 'common-sk/modules/human';
+import { localeTime } from 'common-sk/modules/human';
 
 import { define } from 'elements-sk/define';
 import 'elements-sk/styles/buttons';
@@ -22,6 +22,7 @@ import 'elements-sk/tabs-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LoginTo } from '../../../infra-sk/modules/login';
 import { truncate } from '../../../infra-sk/modules/string';
+import '../../../infra-sk/modules/human-date-sk';
 
 import {
   AutoRollConfig,
@@ -104,49 +105,25 @@ export class ARBStatusSk extends ElementSk {
         : html``
       }
         <tr>
-          <td class="nowrap">Current Mode:</td>
+          <td class="nowrap">Mode:</td>
           <td class="nowrap unknown">
-            <span class="big">${ele.status.mode?.mode
-        .toLowerCase()
-        .replace('_', ' ')}</span>
-          </td>
-        </tr>
-        <tr>
-          <td class="nowrap">Set By:</td>
-          <td class="nowrap unknown">
-            ${ele.status.mode?.user}
+            <span class="big">${ele.status.mode?.mode.toLowerCase().replace('_', ' ')}</span>
+            <br/>
+            Set by ${ele.status.mode?.user}
             ${ele.status.mode
-        ? `at ${localeTime(new Date(ele.status.mode!.time!))}`
+        ? html`(<human-date-sk .date="${ele.status.mode?.time}" .diff="${true}"></human-date-sk>)`
         : html``
       }
-            ${ele.status.mode?.message
+                  ${ele.status.mode?.message
         ? html`: ${ele.status.mode.message}`
         : html``
       }
-            <a href="/r/${ele.roller}/mode-history" class="small">(history)</a>
-          </td>
-        </tr>
-        <tr>
-          <td class="nowrap">Change Mode:</td>
-          <td class="nowrap">
-            ${Object.keys(Mode).map((mode: string) => (mode === ele.status?.mode?.mode
-        ? ''
-        : html`
-                    <button
-                      @click="${() => {
-            ele.modeButtonPressed(mode);
-          }}"
-                      ?disabled="${!ele.editRights || ele.modeChangePending}"
-                      title="${ele.editRights
-            ? ele.modeTooltip(Mode[mode as keyof typeof Mode])
-            : ele.pleaseLoginMsg}"
-                      value="${mode}"
-                    >
-                      ${ele.status?.mode?.mode
-            ? ele.getModeButtonLabel(ele.status.mode.mode, mode)
-            : ''}
-                    </button>
-                  `))}
+            <br/>
+            <a href="/r/${ele.roller}/mode-history" class="small"><button>History</button></a>
+            <button
+                @click="${() => { ele.modeChangeDialog() }}"
+                ?disabled="${!ele.editRights || ele.modeChangePending}"
+                >Update</button>
           </td>
         </tr>
         <tr>
@@ -311,7 +288,7 @@ export class ARBStatusSk extends ElementSk {
                         >${roll.subject}</a
                       >
                     </td>
-                    <td>${diffDate(roll.timestamp)} ago</td>
+                    <td><human-date-sk .date="${roll.timestamp}" .diff="${true}"></human-date-sk></td>
                     <td>
                       <span class="${roll.class}">${roll.result}</span>
                     </td>
@@ -330,42 +307,25 @@ export class ARBStatusSk extends ElementSk {
           </td>
         </tr>
         <tr>
-          <td class="nowrap">Strategy for choosing next roll revision:</td>
-          <td class="nowrap">
-            <select
-                id="strategySelect"
-                ?disabled="${!ele.editRights || ele.strategyChangePending}"
-                title="${ele.editRights
-        ? 'Change the strategy for choosing the next revision to roll.'
-        : ele.pleaseLoginMsg
-      }"
-                @change="${ele.selectedStrategyChanged}">
-              ${Object.keys(Strategy).map(
-        (strategy: string) => html`
-                  <option
-                    value="${strategy}"
-                    ?selected="${strategy === ele.status?.strategy?.strategy}"
-                  >
-                    ${strategy.toLowerCase().replace('_', ' ')}
-                  </option>
-                `,
-      )}
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="nowrap">Set By:</td>
+          <td class="nowrap">Strategy for choosing next roll revision:</</td>
           <td class="nowrap unknown">
-            ${ele.status.strategy?.user}
-            ${ele.status.strategy
-        ? `at ${localeTime(new Date(ele.status.strategy!.time!))}`
+            <span class="big">${ele.status.strategy?.strategy.toLowerCase().replace('_', ' ')}</span>
+            <br/>
+            Set by ${ele.status.strategy?.user}
+            ${ele.status.mode
+        ? html`(<human-date-sk .date="${ele.status.strategy?.time}" .diff="${true}"></human-date-sk>)`
         : html``
       }
-            ${ele.status.strategy?.message
+                  ${ele.status.strategy?.message
         ? html`: ${ele.status.strategy.message}`
         : html``
       }
-            <a href="/r/${ele.roller}/strategy-history" class="small">(history)</a>
+            <br/>
+            <a href="/r/${ele.roller}/strategy-history" class="small"><button>History</button></a>
+            <button
+                @click="${() => { ele.strategyChangeDialog() }}"
+                ?disabled="${!ele.editRights || ele.strategyChangePending}"
+                >Update</button>
           </td>
         </tr>
       </table>
@@ -530,8 +490,32 @@ export class ARBStatusSk extends ElementSk {
     </div>
   </tabs-panel-sk>
   <dialog id="modeChangeDialog" class=surface-themes-sk>
-    <h2>Enter a message:</h2>
-    <input type="text" id="modeChangeMsgInput"></input>
+    <h2>Update Mode</h2>
+    <table>
+      <tr>
+        <td>Mode:</td>
+        <td>
+          <select id="modeSelect">
+            ${Object.keys(Mode).map((mode: string) => html`
+              <option
+                value="${mode}"
+                ?selected="${mode === ele.status?.mode?.mode}"
+                title="${ele.modeTooltip(Mode[<keyof typeof Mode>mode])}"
+              >
+                ${mode.toLowerCase().replace('_', ' ')}
+              </option>
+              `,
+      )}
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Message:</td>
+        <td>
+          <textarea id="modeChangeMsgInput" rows="4" cols="50"></textarea>
+        </td>
+      </tr>
+    </table>
     <button @click="${() => {
         ele.changeMode(false);
       }}">Cancel</button>
@@ -540,8 +524,32 @@ export class ARBStatusSk extends ElementSk {
       }}">Submit</button>
   </dialog>
   <dialog id="strategyChangeDialog" class=surface-themes-sk>
-    <h2>Enter a message:</h2>
-    <input type="text" id="strategyChangeMsgInput"></input>
+    <h2>Update Strategy</h2>
+    <table>
+      <tr>
+        <td>Strategy:</td>
+        <td>
+          <select id="strategySelect">
+            ${Object.keys(Strategy).map((strategy: string) => html`
+              <option
+                value="${strategy}"
+                ?selected="${strategy === ele.status?.strategy?.strategy}"
+                title="${ele.strategyTooltip(Strategy[<keyof typeof Strategy>strategy])}"
+              >
+                ${strategy.toLowerCase().replace('_', ' ')}
+              </option>
+              `,
+      )}
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Message:</td>
+        <td>
+          <textarea id="strategyChangeMsgInput" rows="4" cols="50"></textarea>
+        </td>
+      </tr>
+    </table>
     <button @click="${() => {
         ele.changeStrategy(false);
       }}">Cancel</button>
@@ -568,8 +576,6 @@ export class ARBStatusSk extends ElementSk {
   private rollWindowStart: Date = new Date(0);
 
   private rpc: AutoRollService = GetAutoRollService(this);
-
-  private selectedMode: string = '';
 
   private status: AutoRollStatus | null = null;
 
@@ -601,32 +607,28 @@ export class ARBStatusSk extends ElementSk {
     this.reload();
   }
 
-  private modeButtonPressed(mode: string) {
-    if (mode === this.status?.mode?.mode) {
-      return;
-    }
-    this.selectedMode = mode;
+  private modeChangeDialog() {
     $$<HTMLDialogElement>('#modeChangeDialog', this)!.showModal();
   }
 
   private changeMode(submit: boolean) {
     $$<HTMLDialogElement>('#modeChangeDialog', this)!.close();
+    const modeChangeSelect = <HTMLSelectElement>($$('#modeSelect'));
+    const modeChangeMsgInput = <HTMLInputElement>($$('#modeChangeMsgInput', this));
     if (!submit) {
-      this.selectedMode = '';
+      if (!!modeChangeSelect && !!this.status?.mode) {
+        modeChangeSelect.value = this.status?.mode.mode;
+      }
       return;
     }
-    const modeChangeMsgInput = <HTMLInputElement>(
-      $$('#modeChangeMsgInput', this)
-    );
-    if (!modeChangeMsgInput) {
+    if (!modeChangeMsgInput || !modeChangeSelect) {
       return;
     }
     this.modeChangePending = true;
-
     this.rpc
       .setMode({
         message: modeChangeMsgInput.value,
-        mode: Mode[<keyof typeof Mode>this.selectedMode],
+        mode: Mode[<keyof typeof Mode>modeChangeSelect.options[modeChangeSelect.selectedIndex].value],
         rollerId: this.roller,
       })
       .then(
@@ -640,6 +642,10 @@ export class ARBStatusSk extends ElementSk {
           this._render();
         },
       );
+  }
+
+  private strategyChangeDialog() {
+    $$<HTMLDialogElement>('#strategyChangeDialog', this)!.showModal();
   }
 
   private changeStrategy(submit: boolean) {
@@ -823,47 +829,6 @@ export class ARBStatusSk extends ElementSk {
     return '';
   }
 
-  private getModeButtonLabel(currentMode: Mode, mode: string) {
-    switch (currentMode) {
-      case Mode.RUNNING:
-        switch (mode) {
-          case Mode.STOPPED:
-            return 'stop';
-          case Mode.DRY_RUN:
-            return 'switch to dry run';
-          case Mode.OFFLINE:
-            return 'turn off';
-        }
-      case Mode.STOPPED:
-        switch (mode) {
-          case Mode.RUNNING:
-            return 'resume';
-          case Mode.DRY_RUN:
-            return 'switch to dry run';
-          case Mode.OFFLINE:
-            return 'turn off';
-        }
-      case Mode.DRY_RUN:
-        switch (mode) {
-          case Mode.RUNNING:
-            return 'switch to normal mode';
-          case Mode.STOPPED:
-            return 'stop';
-          case Mode.OFFLINE:
-            return 'turn off';
-        }
-      case Mode.OFFLINE:
-        switch (mode) {
-          case Mode.RUNNING:
-            return 'switch to normal mode';
-          case Mode.DRY_RUN:
-            return 'switch to dry run';
-          case Mode.STOPPED:
-            return 'turn back on in stopped mode';
-        }
-    }
-  }
-
   private modeTooltip(mode: Mode) {
     switch (mode) {
       case Mode.RUNNING:
@@ -874,6 +839,17 @@ export class ARBStatusSk extends ElementSk {
         return 'STOPPED prevents the autoroller from uploading any CLs. The roller will continue to update any local checkouts to prevent them from getting too far out of date, and any requested manual rolls will be fulfilled.';
       case Mode.OFFLINE:
         return 'OFFLINE is similar to STOPPED, but the roller does not update its checkouts and requests for manual rolls are ignored.';
+    }
+  }
+
+  private strategyTooltip(strategy: Strategy) {
+    switch (strategy) {
+      case Strategy.BATCH:
+        return 'BATCH rolls all new revisions in a single CL';
+      case Strategy.N_BATCH:
+        return 'N_BATCH rolls multiple new revisions in a single CL with a limit on the number of revisions';
+      case Strategy.SINGLE:
+        return 'SINGLE rolls one revision per CL';
     }
   }
 
@@ -1035,16 +1011,6 @@ export class ARBStatusSk extends ElementSk {
       offline: 'fg-failure',
     };
     return statusClassMap[status] || '';
-  }
-
-  private selectedStrategyChanged() {
-    if (
-      $$<HTMLSelectElement>('#strategySelect', this)!.value
-      === this.status?.strategy?.strategy
-    ) {
-      return;
-    }
-    $$<HTMLDialogElement>('#strategyChangeDialog', this)!.showModal();
   }
 
   private trybotClass(tryjob: TryJob) {

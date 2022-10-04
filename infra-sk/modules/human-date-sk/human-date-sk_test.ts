@@ -51,7 +51,7 @@ describe('human-date-sk', () => {
         el.date = 'September 22, 2020 04:21:52';
         el.diff = true;
       });
-      expect($$('span', element)).to.have.property('innerText', '6h');
+      expect($$('span', element)).to.have.property('innerText', '6h ago');
     });
   });
 });

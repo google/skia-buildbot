@@ -12,6 +12,8 @@ import { define } from 'elements-sk/define';
 import 'elements-sk/styles/table';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../infra-sk/modules/human-date-sk';
+
 import {
   AutoRollService,
   GetAutoRollService,
@@ -32,7 +34,7 @@ export class ARBModeHistorySk extends ElementSk {
     </tr>
     ${ele.history.map((entry: ModeChange) => html`
         <tr>
-          <td>${entry.time?.toString()}</td>
+          <td><human-date-sk .date="${entry.time!}" .diff="${true}"></human-date-sk></td>
           <td>${entry.mode?.toString()}</td>
           <td>${entry.user?.toString()}</td>
           <td>${entry.message}</td>

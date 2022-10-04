@@ -17,7 +17,7 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty';
 import { ElementSk } from '../ElementSk';
 
 export class HumanDateSk extends ElementSk {
-  private static template = (el: HumanDateSk) => html`<span>${el.humanDate()}</span>`;
+  private static template = (el: HumanDateSk) => html`<span title="${el.humanDate(false)}">${el.humanDate(el.diff)}</span>`;
 
   private _date: string | number = 0;
 
@@ -37,7 +37,7 @@ export class HumanDateSk extends ElementSk {
     this._render();
   }
 
-  humanDate() {
+  humanDate(diff: boolean) {
     let millis: number = 0;
     // Take the input and convert it to milliseconds.
     if (typeof this._date === 'number') {
@@ -49,8 +49,8 @@ export class HumanDateSk extends ElementSk {
       millis = new Date(this._date).getTime();
     }
 
-    if (this.diff) {
-      return diffDate(millis);
+    if (diff) {
+      return diffDate(millis) + " ago";
     }
     const d = new Date(millis);
     return `${d.toLocaleDateString()}, ${d.toLocaleTimeString()}`;
