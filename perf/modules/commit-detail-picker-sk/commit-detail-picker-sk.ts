@@ -16,7 +16,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Commit, CommitNumber, RangeRequest } from '../json/all';
+import { Commit, CommitNumber, RangeRequest } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
 

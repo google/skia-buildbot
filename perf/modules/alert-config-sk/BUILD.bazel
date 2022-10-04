@@ -15,11 +15,11 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "alert-config-sk.ts",
@@ -33,8 +33,8 @@ sk_page(
     html_file = "alert-config-sk-demo.html",
     sk_element_deps = [":alert-config-sk"],
     ts_deps = [
+        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "alert-config-sk-demo.ts",
 )

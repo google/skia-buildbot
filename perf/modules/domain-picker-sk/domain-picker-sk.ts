@@ -13,7 +13,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { RequestType } from '../json/all';
+import { RequestType } from '../json';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/styles/buttons';

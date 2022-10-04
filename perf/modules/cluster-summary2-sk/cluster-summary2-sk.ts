@@ -58,7 +58,7 @@ import {
   Alert,
   StepDetection,
   CIDHandlerResponse,
-} from '../json/all';
+} from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';

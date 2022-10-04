@@ -5,7 +5,7 @@ karma_test(
     src = "progress_test.ts",
     deps = [
         ":progress_ts_lib",
-        "//perf/modules/json:all_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//elements-sk",
@@ -18,7 +18,7 @@ ts_library(
     srcs = ["progress.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//perf/modules/json:all_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "@npm//elements-sk",
     ],
 )

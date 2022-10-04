@@ -32,7 +32,7 @@ import {
   RegressionDetectionRequest,
   AlertUpdateResponse,
   progress,
-} from '../json/all';
+} from '../json';
 import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';

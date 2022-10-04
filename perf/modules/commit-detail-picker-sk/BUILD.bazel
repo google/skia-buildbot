@@ -14,10 +14,10 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "commit-detail-picker-sk.ts",
@@ -32,9 +32,9 @@ sk_page(
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":commit-detail-picker-sk"],
     ts_deps = [
+        "//perf/modules/json:index_ts_lib",
         "@npm//elements-sk",
         "@npm//fetch-mock",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "commit-detail-picker-sk-demo.ts",
 )

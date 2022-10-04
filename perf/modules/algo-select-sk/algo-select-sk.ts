@@ -15,7 +15,7 @@ import { html } from 'lit-html';
 import { $ } from 'common-sk/modules/dom';
 import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { ClusterAlgo } from '../json/all';
+import { ClusterAlgo } from '../json';
 
 function toClusterAlgo(s: string): ClusterAlgo {
   const allowed = ['kmeans', 'stepfit'];

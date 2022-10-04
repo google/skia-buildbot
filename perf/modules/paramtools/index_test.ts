@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { ParamSet } from '../json/all';
+import { ParamSet } from '../json';
 import { addParamsToParamSet, fromKey, makeKey } from './index';
 
 describe('paramtooms', () => {

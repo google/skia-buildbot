@@ -4,7 +4,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { PivotQueryChangedEventDetail, PivotQueryChangedEventName, PivotQuerySk } from './pivot-query-sk';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { ParamSet, pivot } from '../json/all';
+import { ParamSet, pivot } from '../json';
 
 describe('pivot-query-sk', () => {
   const newInstance = setUpElementUnderTest<PivotQuerySk>('pivot-query-sk');

@@ -9,7 +9,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { AlertsStatus } from '../../../perf/modules/json/all';
+import { AlertsStatus } from '../../../perf/modules/json';
 
 export class PerfStatusSk extends ElementSk {
   private resp: AlertsStatus = { alerts: 0 };

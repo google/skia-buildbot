@@ -11,7 +11,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Commit } from '../json/all';
+import { Commit } from '../json';
 
 export class CommitDetailSk extends ElementSk {
   private _cid: Commit;

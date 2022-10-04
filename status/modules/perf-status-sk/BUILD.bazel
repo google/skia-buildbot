@@ -14,10 +14,10 @@ sk_element(
     sass_srcs = ["perf-status-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -34,8 +34,8 @@ sk_page(
         ":perf-status-sk",
     ],
     ts_deps = [
+        "//perf/modules/json:index_ts_lib",
         "@npm//fetch-mock",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_entry_point = "perf-status-sk-demo.ts",
 )
@@ -57,7 +57,7 @@ karma_test(
     deps = [
         ":perf-status-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "//perf/modules/json:all_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//common-sk",

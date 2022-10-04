@@ -1,7 +1,7 @@
 import 'elements-sk/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { CommitDetailPickerSk } from './commit-detail-picker-sk';
-import { Commit } from '../json/all';
+import { Commit } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 

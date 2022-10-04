@@ -1,7 +1,7 @@
 import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { AlertConfigSk } from './alert-config-sk';
-import { Alert } from '../json/all';
+import { Alert } from '../json';
 
 window.perf = window.perf || {};
 window.perf.key_order = [];

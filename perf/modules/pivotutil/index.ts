@@ -1,4 +1,4 @@
-import { pivot } from '../json/all';
+import { pivot } from '../json';
 
 /** Maps pivot.Operations to human readable names. */
 export const operationDescriptions: {[key in pivot.Operation]: string} = {

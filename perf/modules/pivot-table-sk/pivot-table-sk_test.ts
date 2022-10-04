@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { DataFrame, pivot, TraceSet } from '../json/all';
+import { DataFrame, pivot, TraceSet } from '../json';
 import {
   KeyValues,
   keyValuesFromTraceSet, PivotTableSk, PivotTableSkChangeEventDetail, SortHistory, SortSelection,

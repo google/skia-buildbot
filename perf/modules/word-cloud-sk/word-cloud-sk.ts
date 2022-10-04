@@ -10,7 +10,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { ValuePercent } from '../json/all';
+import { ValuePercent } from '../json';
 
 export class WordCloudSk extends ElementSk {
   private _items: ValuePercent[];

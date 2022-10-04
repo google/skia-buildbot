@@ -1,7 +1,7 @@
 /* eslint-disable dot-notation */
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { ColumnHeader, progress } from '../json/all';
+import { ColumnHeader, progress } from '../json';
 import {
   calculateRangeChange, defaultPointSelected, ExploreSk, isValidSelection, PointSelected, selectionToEvent,
 } from './explore-sk';

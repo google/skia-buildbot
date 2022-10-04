@@ -37,7 +37,7 @@ import {
   FullSummary,
   RegressionDetectionResponse,
   progress,
-} from '../json/all';
+} from '../json';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';

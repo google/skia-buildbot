@@ -13,8 +13,8 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
-        "//perf/modules/json:all_ts_lib",
     ],
     ts_srcs = [
         "ingest-file-links-sk.ts",

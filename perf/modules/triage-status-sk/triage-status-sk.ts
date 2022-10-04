@@ -14,7 +14,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { FullSummary, TriageStatus, Alert } from '../json/all';
+import { FullSummary, TriageStatus, Alert } from '../json';
 
 export type ClusterType = 'high' | 'low';
 

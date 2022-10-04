@@ -1,4 +1,4 @@
-import { Alert } from '../json/all';
+import { Alert } from '../json';
 
 /**
  * validate returns the empty string if the Alert is valid, otherwise it
