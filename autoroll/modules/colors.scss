@@ -41,3 +41,16 @@ a.visited {
 :disabled {
   opacity: var(--text-intensity-medium);
 }
+
+.fg-running {
+  color: #{'rgba(var(--result-color-lightgreen), 0.7)'};
+}
+.fg-dry-run {
+  color: var(--result-color-lightorange);
+}
+.fg-stopped {
+  color: var(--result-color-redorange);
+}
+.fg-offline {
+  color: var(--result-color-purple);
+}

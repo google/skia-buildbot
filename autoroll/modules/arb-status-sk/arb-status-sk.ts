@@ -107,7 +107,7 @@ export class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Mode:</td>
           <td class="nowrap unknown">
-            <span class="big">${ele.status.mode?.mode.toLowerCase().replace('_', ' ')}</span>
+            <span class="big ${ele.modeClass(ele.status.mode!.mode)}">${ele.status.mode?.mode.toLowerCase().replace('_', ' ')}</span>
             <br/>
             Set by ${ele.status.mode?.user}
             ${ele.status.mode
@@ -993,6 +993,19 @@ export class ARBStatusSk extends ElementSk {
     return 'unknown';
   }
 
+  private modeClass(mode: Mode) {
+    switch (mode) {
+      case Mode.RUNNING:
+        return "fg-running";
+      case Mode.DRY_RUN:
+        return "fg-dry-run";
+      case Mode.STOPPED:
+        return "fg-stopped";
+      case Mode.OFFLINE:
+        return "fg-offline";
+    }
+  }
+
   private statusClass(status: string) {
     // TODO(borenet): Status could probably be an enum.
     const statusClassMap: { [key: string]: string } = {
@@ -1007,8 +1020,8 @@ export class ARBStatusSk extends ElementSk {
       'dry run success; leaving open': 'fg-success',
       'dry run failure': 'fg-failure',
       'dry run throttled': 'fg-failure',
-      stopped: 'fg-failure',
-      offline: 'fg-failure',
+      stopped: 'fg-stopped',
+      offline: 'fg-offline',
     };
     return statusClassMap[status] || '';
   }

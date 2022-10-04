@@ -18,6 +18,7 @@ import {
   AutoRollService,
   GetAutoRollService,
   GetModeHistoryResponse,
+  Mode,
   ModeChange,
 } from '../rpc';
 
@@ -35,7 +36,7 @@ export class ARBModeHistorySk extends ElementSk {
     ${ele.history.map((entry: ModeChange) => html`
         <tr>
           <td><human-date-sk .date="${entry.time!}" .diff="${true}"></human-date-sk></td>
-          <td>${entry.mode?.toString()}</td>
+          <td class="${ele.modeClass(entry.mode!)}">${entry.mode?.toString()}</td>
           <td>${entry.user?.toString()}</td>
           <td>${entry.message}</td>
         </tr>
@@ -79,6 +80,19 @@ export class ARBModeHistorySk extends ElementSk {
     this.currentOffset = 0;
     this.nextOffset = 0;
     this.load(0);
+  }
+
+  private modeClass(mode: Mode) {
+    switch (mode) {
+      case Mode.RUNNING:
+        return "fg-running";
+      case Mode.DRY_RUN:
+        return "fg-dry-run";
+      case Mode.STOPPED:
+        return "fg-stopped";
+      case Mode.OFFLINE:
+        return "fg-offline";
+    }
   }
 
   private load(offset: number) {
