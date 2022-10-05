@@ -9,7 +9,7 @@ test:
 	go test ./go/...
 
 release:
-	$(BAZEL) run //docker_pushes_watcher:push_docker_pushes_watcher_container
+	$(BAZEL) run --config=mayberemote //docker_pushes_watcher:push_docker_pushes_watcher_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout docker_pushes_watcher
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout docker_pushes_watcher

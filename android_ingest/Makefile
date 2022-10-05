@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
-	$(BAZEL) build //android_ingest/go/...
+	$(BAZEL) build --config=mayberemote //android_ingest/go/...
 
 .PHONY: test
 test:
@@ -10,11 +10,11 @@ test:
 
 .PHONY: release
 release: build
-	$(BAZEL) run //android_ingest:push_android_ingest_container
+	$(BAZEL) run --config=mayberemote //android_ingest:push_android_ingest_container
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout androidingest
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout androidingest
 
 # Get the exact service account key, so we know that it has access to the API.
 service-account.json:

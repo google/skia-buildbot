@@ -1,7 +1,7 @@
 include ../make/bazel.mk
 
 build:
-	$(BAZEL) build ...
+	$(BAZEL) build --config=mayberemote ...
 
 generate:
 	go generate ./go/...
@@ -12,13 +12,13 @@ serve:
 	@echo "bazel run modules/machine-server-sk:demo_page_server"
 
 testjs:
-	$(BAZEL) test modules/...
+	$(BAZEL) test --config=mayberemote modules/...
 
 release:
-	$(BAZEL) run //machine:push_machineserver
+	$(BAZEL) run --config=mayberemote //machine:push_machineserver
 
 push:
-	$(BAZEL) run //machine:pushk_machineserver
+	$(BAZEL) run --config=mayberemote //machine:pushk_machineserver
 
 # Make our own firestore emulator image.
 # https://issuetracker.google.com/issues/153087269
@@ -32,8 +32,8 @@ start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
 
-build-remote:
-	$(BAZEL) build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
+build:
+	$(BAZEL) build --config=mayberemote //machine/go/machineserver:machineserver
 
 run-local-instance: build
 	../_bazel_bin/machine/go/machineserver/machineserver_/machineserver --local --resources_dir ../_bazel_bin/machine/pages/development
@@ -98,7 +98,7 @@ release_test_machine_monitor: build_and_upload_test_machine_monitor
 
 .PHONY: build generate serve testjs release push push_bazel \
     release_firestore_emulator start_firestore_emulator start_pubsub_emulator \
-    build-remote run-local-instance build \
+    build run-local-instance build \
     build_test_machine_monitor_for_all_archs \
     build_and_upload_test_machine_monitor \
     build_test_machine_monitor_for_all_archs release_test_machine_monitor \

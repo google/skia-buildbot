@@ -2,11 +2,11 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build-placeholders
-	$(BAZEL) build //skottie/...
+	$(BAZEL) build --config=mayberemote //skottie/...
 
 .PHONY: release
 release: get_latest_skia
-	$(BAZEL) run //skottie:push_skottie_container
+	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container
 	$(MAKE) build-placeholders
 
 .PHONY: get_latest_skia
@@ -43,7 +43,7 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the wasm files in //skottie/wasm_libs/local_build"
-	$(BAZEL) build //skottie/... --skottie_local_canvaskit
+	$(BAZEL) build --config=mayberemote //skottie/... --skottie_local_canvaskit
 	../_bazel_bin/skottie/go/skottie/skottie_/skottie \
 		--config ./local_config.json5
 

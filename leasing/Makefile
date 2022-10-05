@@ -4,7 +4,7 @@ generate:
 	go generate ./go/...
 
 build: generate
-	$(BAZEL) build ...
+	$(BAZEL) build --config=mayberemote ...
 
 run-local-instance: build
 	# Run "bazel build //leasing/..." after making any frontend changes
@@ -13,10 +13,10 @@ run-local-instance: build
 
 frontend:
 	# Makes sure all the frontend pages and tests compile.
-	$(BAZEL) build modules/... pages/...
+	$(BAZEL) build --config=mayberemote modules/... pages/...
 
 release: build
-	$(BAZEL) run //leasing:push_leasing_container
+	$(BAZEL) run --config=mayberemote //leasing:push_leasing_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout leasing
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout leasing

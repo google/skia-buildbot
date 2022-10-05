@@ -1,13 +1,13 @@
 include ../make/bazel.mk
 
 build:
-	$(BAZEL) build go/hashtag/... modules/... pages/...
+	$(BAZEL) build --config=mayberemote go/hashtag/... modules/... pages/...
 
 release: build
-	$(BAZEL) run //hashtag:push_hashtag_container
+	$(BAZEL) run --config=mayberemote //hashtag:push_hashtag_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout hashtag
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout hashtag
 
 run-local-instance: build
 	# Run "bazel build //hashtag/..." after making any frontend changes

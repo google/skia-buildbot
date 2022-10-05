@@ -7,7 +7,7 @@ release: build
 	${BAZEL} run //switchboard:push_switchboard_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout switch-pod
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout switch-pod
 
 test:
 	go test ./go/...

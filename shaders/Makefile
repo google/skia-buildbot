@@ -2,11 +2,11 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build-placeholders
-	$(BAZEL) build //shaders/...
+	$(BAZEL) build --config=mayberemote //shaders/...
 
 .PHONY: release
 release: wasm_libs
-	$(BAZEL) run //shaders:push_shaders_container
+	$(BAZEL) run --config=mayberemote //shaders:push_shaders_container
 	$(MAKE) build-placeholders
 
 .PHONY: wasm_libs
@@ -47,7 +47,7 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the wasm files in //shaders/wasm_libs/local_build and an in-memory scrapexchange"
-	$(BAZEL) build //shaders/... --shaders_local_canvaskit
+	$(BAZEL) build --config=mayberemote //shaders/... --shaders_local_canvaskit
 	../_bazel_bin/shaders/go/shaders/shaders_/shaders --local \
 		--resources_dir ../_bazel_bin/shaders/pages/development \
 		--fake_scrapexchange \

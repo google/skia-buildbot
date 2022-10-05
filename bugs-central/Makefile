@@ -17,14 +17,14 @@ run-local-instance: build
 	../_bazel_bin/bugs-central/go/bugs-central/bugs-central_/bugs-central --local --resources_dir ../_bazel_bin/bugs-central/pages/development --fs_namespace=bugs-central-staging
 
 testjs:
-	$(BAZEL) test modules/...
+	$(BAZEL) test --config=mayberemote modules/...
 
 build: generate
-	$(BAZEL) build go/bugs-central/... modules/... pages/...
+	$(BAZEL) build --config=mayberemote go/bugs-central/... modules/... pages/...
 
 release: build
-	$(BAZEL) run //bugs-central:push_bugs_central_container
+	$(BAZEL) run --config=mayberemote //bugs-central:push_bugs_central_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout bugs-central
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout bugs-central
 

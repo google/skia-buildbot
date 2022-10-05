@@ -19,28 +19,28 @@ run-local-instance-am: build-am
 	# to pick up the change without restarting the golang server.
 	../_bazel_bin/am/go/alert-manager/alert-manager_/alert-manager --local --resources_dir ../_bazel_bin/am/pages/development --namespace=am-localhost-jcgregorio
 testjs:
-	$(BAZEL) test modules/...
+	$(BAZEL) test --config=mayberemote modules/...
 
 build-am: generate
-	$(BAZEL) build //am:alert-manager
+	$(BAZEL) build --config=mayberemote //am:alert-manager
 
 release-am: build-am
-	$(BAZEL) run //am:push_alert-manager
+	$(BAZEL) run --config=mayberemote //am:push_alert-manager
 
 push-am: release-am
-	$(BAZEL) run //am:pushk_alert-manager
+	$(BAZEL) run --config=mayberemote //am:pushk_alert-manager
 
 
 # ALERT-TO-PUBSUB TARGETS
 
 build-atp:
-	$(BAZEL) build //am:alert-to-pubsub
+	$(BAZEL) build --config=mayberemote //am:alert-to-pubsub
 
 release-atp:
-	$(BAZEL) run //am:push_alert-to-pubsub
+	$(BAZEL) run --config=mayberemote //am:push_alert-to-pubsub
 
 push-atp:
-	$(BAZEL) run //am:pushk_alert-to-pubsub
+	$(BAZEL) run --config=mayberemote //am:pushk_alert-to-pubsub
 
 VERSION := $(shell ../bash/release_tag.sh)
 

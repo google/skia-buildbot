@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
-	$(BAZEL) build ...
+	$(BAZEL) build --config=mayberemote ...
 
 .PHONY: run-local-instance
 run-local-instance: build
@@ -13,7 +13,7 @@ watch-local-instance:
 	find . -type f | entr -r -s "bazel build //codesize/... && ../_bazel_bin/codesize/go/codesizeserver/codesizeserver_/codesizeserver --local --resources_dir ../_bazel_bin/codesize/pages/development"
 
 release:
-	$(BAZEL) run //codesize:push_codesizeserver
+	$(BAZEL) run --config=mayberemote //codesize:push_codesizeserver
 
 push: release
-	$(BAZEL) run //codesize:pushk_codesizeserver
+	$(BAZEL) run --config=mayberemote //codesize:pushk_codesizeserver

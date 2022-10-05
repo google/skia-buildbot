@@ -1,19 +1,19 @@
 include ../make/bazel.mk
 
 build:
-	$(BAZEL) build //docsyserver/go/...
+	$(BAZEL) build --config=mayberemote //docsyserver/go/...
 
 build-local-image: build
-	$(BAZEL) run //docsyserver:docsyserver_container
+	$(BAZEL) run --config=mayberemote //docsyserver:docsyserver_container
 
 test:
 	go test -cover ./go/...
 
 release: build
-	$(BAZEL) run //docsyserver:push_docsyserver_container
+	$(BAZEL) run --config=mayberemote //docsyserver:push_docsyserver_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout docsyserver
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout docsyserver
 
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.

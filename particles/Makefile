@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build-placeholders
-	$(BAZEL) build //particles/...
+	$(BAZEL) build --config=mayberemote //particles/...
 
 .PHONY: wasm_libs
 wasm_libs:
@@ -18,7 +18,7 @@ wasm_libs:
 
 .PHONY: release
 release: wasm_libs
-	$(BAZEL) run //particles:push_particles_container
+	$(BAZEL) run --config=mayberemote //particles:push_particles_container
 	$(MAKE) build-placeholders
 
 .PHONY: push
@@ -46,7 +46,7 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the wasm files in //particles/wasm_libs/local_build"
-	$(BAZEL) build //particles/... --particles_local_canvaskit
+	$(BAZEL) build --config=mayberemote //particles/... --particles_local_canvaskit
 	../_bazel_bin/particles/go/particles/particles_/particles --local \
 		--resources_dir ../_bazel_bin/particles/pages/development \
 		--scrapexchange=http://localhost:9000

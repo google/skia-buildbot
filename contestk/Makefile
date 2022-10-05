@@ -8,4 +8,4 @@ release: build
 	${BAZEL} run //contestk:push_contest_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout contest
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout contest

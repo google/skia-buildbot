@@ -2,15 +2,15 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
-	$(BAZEL) build //task_driver/...
+	$(BAZEL) build --config=mayberemote //task_driver/...
 
 .PHONY: release
 release: build
-	$(BAZEL) run //task_driver:push_task_driver_container
+	$(BAZEL) run --config=mayberemote //task_driver:push_task_driver_container
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-driver-server
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-driver-server
 
 .PHONY: serve
 serve:

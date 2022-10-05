@@ -1,5 +1,5 @@
 push:
-	$(BAZEL) run //comp-ui:pushk_comp-ui-gitcron
+	$(BAZEL) run --config=mayberemote //comp-ui:pushk_comp-ui-gitcron
 
 
 export VERSION:=$(shell ../bash/release_tag.sh)

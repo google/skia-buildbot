@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build docs release push
 build:
-	$(BAZEL) build //jsdoc/go/...
+	$(BAZEL) build --config=mayberemote //jsdoc/go/...
 
 release: build
 	# Populate infra-sk directory.
@@ -27,13 +27,13 @@ release: build
 	cp /tmp/elements-sk/dist/* elements-sk/;
 
 	# Create the docker container.
-	$(BAZEL) run //jsdoc:push_jsdoc_container
+	$(BAZEL) run --config=mayberemote //jsdoc:push_jsdoc_container
 
 	# Cleanup.
 	git clean -fxq docs/* elements-sk/* infra-sk/*
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout jsdoc
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout jsdoc
 
 # Set DOCKER_IMAGE to the image you want to run locally.
 run-local:

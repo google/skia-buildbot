@@ -7,7 +7,7 @@ release: build
 	${BAZEL} run //scrap:push_scrapexchange_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout scrapexchange
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout scrapexchange
 
 testgo:
 	go test ./go/...

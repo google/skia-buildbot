@@ -2,12 +2,12 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build
-	$(BAZEL) build //datahopper/...
+	$(BAZEL) build --config=mayberemote //datahopper/...
 
 .PHONY: release
 release: build
-	$(BAZEL) run //datahopper:push_datahopper_container
+	$(BAZEL) run --config=mayberemote //datahopper:push_datahopper_container
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout datahopper
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout datahopper

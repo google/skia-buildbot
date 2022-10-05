@@ -2,11 +2,11 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build-placeholders
-	$(BAZEL) build //debugger-app/...
+	$(BAZEL) build --config=mayberemote //debugger-app/...
 
 .PHONY: release
 release: get_latest_skia
-	$(BAZEL) run //debugger-app:push_debugger_container
+	$(BAZEL) run --config=mayberemote //debugger-app:push_debugger_container
 	$(MAKE) build-placeholders
 
 .PHONY: get_latest_skia
@@ -48,7 +48,7 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the debugger files in //debugger-app/wasm_libs/local_build"
-	$(BAZEL) build //debugger-app/... --with_local_debugger
+	$(BAZEL) build --config=mayberemote //debugger-app/... --with_local_debugger
 	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
         --resources_dir ../_bazel_bin/debugger-app/pages/development \
         --port ${DEBUGGER_LOCAL_PORT}

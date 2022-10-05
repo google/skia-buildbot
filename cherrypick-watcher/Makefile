@@ -6,10 +6,10 @@ build:
 	go install -v ./go/cherrypick-watcher
 
 release:
-	$(BAZEL) run //cherrypick-watcher:push_cherrypick_watcher_container
+	$(BAZEL) run --config=mayberemote //cherrypick-watcher:push_cherrypick_watcher_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout cherrypick-watcher
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout cherrypick-watcher
 
 testgo:
 	go test ./go/...

@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
-	$(BAZEL) build //gitsync/...
+	$(BAZEL) build --config=mayberemote //gitsync/...
 
 .PHONY: btgit
 btgit:
@@ -10,8 +10,8 @@ btgit:
 
 .PHONY: release
 release: build
-	$(BAZEL) run //gitsync:push_gitsync_container
+	$(BAZEL) run --config=mayberemote //gitsync:push_gitsync_container
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout gitsync
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout gitsync

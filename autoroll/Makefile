@@ -18,15 +18,15 @@ $(rpcOutputFiles): $(rpcDependentFiles)
 
 .PHONY: autoroll-fe
 autoroll-fe:
-	$(BAZEL) build //autoroll/...
+	$(BAZEL) build --config=mayberemote //autoroll/...
 
 .PHONY: autoroll-be
 autoroll-be:
-	$(BAZEL) build //autoroll/go/autoroll-be/...
+	$(BAZEL) build --config=mayberemote //autoroll/go/autoroll-be/...
 
 .PHONY: autoroll-google3
 autoroll-google3:
-	$(BAZEL) build //autoroll/go/autoroll-google3/...
+	$(BAZEL) build --config=mayberemote //autoroll/go/autoroll-google3/...
 
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3
@@ -56,15 +56,15 @@ setup-internal-config-repo:
 # These targets build kubernetes releases.
 .PHONY: release-be
 release-be: autoroll-be setup-internal-config-repo
-	$(BAZEL) run //autoroll:push_autoroll_be_container
+	$(BAZEL) run --config=mayberemote //autoroll:push_autoroll_be_container
 
 .PHONY: release-fe
 release-fe: autoroll-fe
-	$(BAZEL) run //autoroll:push_autoroll_fe_container
+	$(BAZEL) run --config=mayberemote //autoroll:push_autoroll_fe_container
 
 .PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo
-	$(BAZEL) run //autoroll:push_autoroll_google3_container
+	$(BAZEL) run --config=mayberemote //autoroll:push_autoroll_google3_container
 	# Cleanup the config directory.
 	git clean -fxq config/*
 

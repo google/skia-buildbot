@@ -4,10 +4,10 @@ generate:
 	go generate ./go/...
 
 testgo:
-	$(BAZEL) test go/...
+	$(BAZEL) test --config=mayberemote go/...
 
 testpy:
-	$(BAZEL) test py/...
+	$(BAZEL) test --config=mayberemote py/...
 
 testjs:
 	${BAZEL} test modules/...
@@ -23,11 +23,11 @@ run-local-instance: build
 	../_bazel_bin/ct/go/ctfe/ctfe_/ctfe --local --resources_dir ../_bazel_bin/ct/pages/development --namespace=cluster-telemetry-staging
 
 build: generate
-	$(BAZEL) build go/ctfe/... modules/... pages/...
+	$(BAZEL) build --config=mayberemote go/ctfe/... modules/... pages/...
 
 release: build
-	$(BAZEL) run //ct:push_ctfe_container
+	$(BAZEL) run --config=mayberemote //ct:push_ctfe_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout ctfe
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout ctfe
 

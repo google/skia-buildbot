@@ -2,7 +2,7 @@ include ../make/bazel.mk
 
 .PHONY: build
 build: build-placeholders
-	$(BAZEL) build //jsfiddle/...
+	$(BAZEL) build --config=mayberemote //jsfiddle/...
 
 .PHONY: push
 push: release
@@ -10,7 +10,7 @@ push: release
 
 .PHONY: release
 release: wasm_libs
-	$(BAZEL) run //jsfiddle:push_jsfiddle_container
+	$(BAZEL) run --config=mayberemote //jsfiddle:push_jsfiddle_container
 	$(MAKE) build-placeholders
 
 .PHONY: wasm_libs
@@ -41,7 +41,7 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the wasm files in //jsfiddle/wasm_libs/local_build"
-	$(BAZEL) build //jsfiddle/... --with_local_wasm
+	$(BAZEL) build --config=mayberemote //jsfiddle/... --with_local_wasm
 	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle \
         --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
 

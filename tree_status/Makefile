@@ -4,7 +4,7 @@ generate:
 	go generate ./go/...
 
 build: generate
-	$(BAZEL) build ...
+	$(BAZEL) build --config=mayberemote ...
 
 serve:
 	@echo "Bazel doesn't have a serve-all option."
@@ -18,10 +18,10 @@ run-local-instance: build
 
 frontend:
 	# Makes sure all the frontend pages and tests compile.
-	$(BAZEL) build modules/... pages/...
+	$(BAZEL) build --config=mayberemote modules/... pages/...
 
 release: build
-	$(BAZEL) run //tree_status:push_tree_status_container
+	$(BAZEL) run --config=mayberemote //tree_status:push_tree_status_container
 
 push: release
 	pushk tree_status

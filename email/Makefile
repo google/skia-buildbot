@@ -9,11 +9,11 @@ send-from-local-instance:
 
 .PHONY: release
 release:
-	$(BAZEL) run //email:push_emailservice
+	$(BAZEL) run --config=mayberemote //email:push_emailservice
 
 .PHONY: push
 push:
-	$(BAZEL) run //email:pushk_emailservice
+	$(BAZEL) run --config=mayberemote //email:pushk_emailservice
 
 rotate-skia-corp-service-account-key:
 	../kube/secrets/rotate-keys-for-skia-corp-sa.sh skia-public skia-emailservice deployment/emailservice

@@ -7,16 +7,16 @@ serve:
 	@echo "bazel run //status/modules/autoroller-status-sk:demo_page_server"
 
 testgo:
-	$(BAZEL) test //status/go/...
+	$(BAZEL) test --config=mayberemote //status/go/...
 
 testjs:
-	$(BAZEL) test //status/modules/...
+	$(BAZEL) test --config=mayberemote //status/modules/...
 
 build:
-	$(BAZEL) build //status/...
+	$(BAZEL) build --config=mayberemote //status/...
 
 release: build
-	$(BAZEL) run //status:push_status_container
+	$(BAZEL) run --config=mayberemote //status:push_status_container
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout status
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout status

@@ -10,10 +10,10 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 	go generate ./go/...
 
 fiddle_secwrap:
-	$(BAZEL) build //fiddlek/cpp:fiddle_secwrap
+	$(BAZEL) build --config=mayberemote //fiddlek/cpp:fiddle_secwrap
 
 build: ./modules/json/index.ts fiddle_secwrap
-	$(BAZEL) build go/... modules/... pages/...
+	$(BAZEL) build --config=mayberemote go/... modules/... pages/...
 
 serve:
 	@echo "Bazel doesn't have a serve-all option."
@@ -21,7 +21,7 @@ serve:
 	@echo "bazel run modules/fiddle-embed-sk:demo_page_server"
 
 release-fiddle: build
-	$(BAZEL) run //fiddlek:push_fiddle_container
+	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddle_container
 
 build-fiddler:
 	docker pull gcr.io/skia-public/skia-release:prod
@@ -32,7 +32,7 @@ build-fiddler:
 	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/"
 
 release-fiddler: build build-fiddler
-	$(BAZEL) run //fiddlek:push_fiddler_container
+	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddler_container
 	# Cleanup the build directory.
 	git checkout build/*
 
@@ -49,13 +49,13 @@ release-fiddler-ci: build
 	git checkout build/*
 
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddle fiddler
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle fiddler
 
 push_fiddle: release-fiddle
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddle
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle
 
 push_fiddler: release-fiddler
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddler
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddler
 
 cli:
 	go install -v ./go/fiddlecli
@@ -63,7 +63,7 @@ cli:
 test: testgo testcpp testjs
 
 testjs:
-	$(BAZEL) test modules/...
+	$(BAZEL) test --config=mayberemote modules/...
 
 testgo:
 	go test -v ./...

@@ -2,9 +2,9 @@ include ../make/bazel.mk
 
 .PHONY: build
 build:
-	$(BAZEL) build //test-service/go/...
+	$(BAZEL) build --config=mayberemote //test-service/go/...
 
 .PHONY: release
 release: build
-	$(BAZEL) run //test-service:push_test_service_container
+	$(BAZEL) run --config=mayberemote //test-service:push_test_service_container
 

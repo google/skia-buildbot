@@ -6,8 +6,8 @@ trybot_updater:
 
 .PHONY: release
 release:
-	$(BAZEL) run //trybot_updater:push_trybot_updater_container
+	$(BAZEL) run --config=mayberemote //trybot_updater:push_trybot_updater_container
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout trybot-updater
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout trybot-updater
