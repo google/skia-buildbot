@@ -22,22 +22,22 @@ buildall:
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	$(BAZEL) run //:gazelle -- update ./
+	$(BAZEL) run --config=mayberemote //:gazelle -- update ./
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	$(BAZEL) run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
+	$(BAZEL) run --config=mayberemote //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
 
 .PHONY: buildifier
 buildifier:
-	$(BAZEL) run //:buildifier
+	$(BAZEL) run --config=mayberemote //:buildifier
 
 .PHONY: gofmt
 gofmt:
-	$(BAZEL) run //:gofmt -- -s -w .
+	$(BAZEL) run --config=mayberemote //:gofmt -- -s -w .
 
 .PHONY: bazel-build
 bazel-build:
