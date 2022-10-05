@@ -627,7 +627,7 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 // produces any diffs.
 func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot string) bool {
 	// -w means "write", as in, modify the files that need formatting.
-	args := []string{"run", "//:goimports", "--run_under=cd " + workspaceRoot + " &&", "--", "-w"}
+	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=cd " + workspaceRoot + " &&", "--", "-w"}
 	foundAny := false
 	for _, f := range files {
 		if filepath.Ext(f.fileName) == ".go" {
@@ -658,7 +658,7 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot st
 func runGofmt(ctx context.Context, files []fileWithChanges) bool {
 	// -s means "simplify"
 	// -w means "write", as in, modify the files that need formatting.
-	args := []string{"run", "//:gofmt", "--", "-s", "-w"}
+	args := []string{"run", "--config=mayberemote", "//:gofmt", "--", "-s", "-w"}
 	foundAny := false
 	for _, f := range files {
 		if filepath.Ext(f.fileName) == ".go" {
@@ -717,7 +717,7 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 		return true
 	}
 	if regenEverything {
-		cmd := exec.CommandContext(ctx, "bazelisk", "run", "//:gazelle", "--", "update-repos",
+		cmd := exec.CommandContext(ctx, "bazelisk", "run", "--config=mayberemote", "//:gazelle", "--", "update-repos",
 			"-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -727,7 +727,7 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 		}
 	}
 
-	args := []string{"run", "//:gazelle", "--", "update"}
+	args := []string{"run", "--config=mayberemote", "//:gazelle", "--", "update"}
 	if regenEverything {
 		// Reminder: we have changed directory into the repo root
 		args = append(args, "./")
