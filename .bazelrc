@@ -135,4 +135,51 @@ build --flag_alias=shaders_local_canvaskit=no//shaders/wasm_libs:use_canvaskit_f
 build --flag_alias=skottie_local_canvaskit=no//skottie/wasm_libs:use_canvaskit_from_container
 
 # Import user-specific Bazel configuration file if it exists. This file is gitignored.
+#
+# One of the purposes of this file is to override the "mayberemote" configuration so that it
+# actually produces remote builds on RBE. See below for more on the "mayberemote" configuration.
 try-import %workspace%/bazel/user/bazelrc
+
+# The "mayberemote" config is used for scripted actions that *may* perform RBE builds with Bazel.
+# For example, take the following Makefile:
+#
+#     .PHONY: foo
+#     foo:
+#         bazel build --config=mayberemote //path/to:foo
+#
+# By default, --config=mayberemote does nothing, i.e. the above Makefile is equivalent to:
+#
+#     .PHONY: foo
+#     foo:
+#         bazel build //path/to:foo
+#
+# If you want --config=mayberemote to be equivalent to --config=remote, please add the following
+# line to your //bazel/user/bazelrc file:
+#
+#     build:mayberemote --config=remote
+#
+# Then, the above Makefile will be equivalent to:
+#
+#     .PHONY: foo
+#     foo:
+#         bazel build --config=remote //path/to:foo
+#
+# Some good example uses of --config=mayberemote are the "gazelle" and "buildifier" Make targets
+# defined in //Makefile, which some Skia Infrastructure engineers use on an almost daily basis.
+#
+# Rationale:
+#
+#  - Makefiles, or any other scripted action, should never use --config=remote directly, as such
+#    Bazel invocations are impossible to run for users without RBE credentials, users working
+#    offline (e.g. on an airplane without WiFi), etc.
+#
+#  - Scripted actions should not force local builds either (unless absolutely necessary), as that
+#    causes Bazel to discard its analysis cache if the user normally runs remote builds, which
+#    makes Bazel take longer.
+#
+#  - As an alternative, a user could make all builds remote by default by adding a line such as
+#    "build --config=remote" to their //bazel/user/bazelrc file. However, this is limiting because
+#    there might be legitimate cases where one would want to run a local build.
+#
+# Bazel complains if --config=mayberemote is undefined, so a default "no-op" definition is needed.
+build:mayberemote --color=auto # Does nothing: --color is "auto" by default.
