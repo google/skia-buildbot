@@ -1,4 +1,4 @@
-//go:generate bazelisk run //:go -- run . -o ../../../../modules/rpc_types.ts
+//go:generate bazelisk run --config=mayberemote //:go -- run . -o ../../../../modules/rpc_types.ts
 
 package main
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//go:generate bazelisk run //:go -- run gen_schema.go
+//go:generate bazelisk run --config=mayberemote //:go -- run gen_schema.go
 
 // TaskNameParser parses a builder/task name into its constituent parts
 // See https://skia.googlesource.com/skia/+show/master/infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json

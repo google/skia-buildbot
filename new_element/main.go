@@ -2,7 +2,7 @@
 // in the directory 'modules'.
 //
 //go:generate rm -rf modules/example-control-sk
-//go:generate bazelisk run //:go -- run main.go --element-name example-control-sk --app-name example-app-name
+//go:generate bazelisk run --config=mayberemote //:go -- run main.go --element-name example-control-sk --app-name example-app-name
 //
 package main
 

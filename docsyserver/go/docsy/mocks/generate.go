@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate bazelisk run //:mockery -- --name Docsy  --srcpkg=go.skia.org/infra/docsyserver/go/docsy --output ${PWD}
+//go:generate bazelisk run --config=mayberemote //:mockery -- --name Docsy  --srcpkg=go.skia.org/infra/docsyserver/go/docsy --output ${PWD}

@@ -8,7 +8,7 @@
 // file.
 //
 //
-//    //go:generate bazelisk run //:go -- run .
+//    //go:generate bazelisk run --config=mayberemote //:go -- run .
 //    package main
 //
 //    import (

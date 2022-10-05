@@ -1,6 +1,6 @@
 // Program to generate JSON Schema definitions for the Probe struct.
 //
-//go:generate bazelisk run //:go -- run .
+//go:generate bazelisk run --config=mayberemote //:go -- run .
 package main
 
 import (

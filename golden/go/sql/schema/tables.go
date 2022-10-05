@@ -121,7 +121,7 @@ const (
 // Note: If a table is added/removed/renamed, it is important to re-run //golden/cmd/sqlinit
 // for all instances to make sure the backup schedules continue to work (they will fail if a table
 // is missing or silently not backup new tables).
-//go:generate bazelisk run //:go -- run ../exporter/tosql --output_file sql.go --output_pkg schema
+//go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file sql.go --output_pkg schema
 type Tables struct {
 	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
 	CommitsWithData                    []CommitWithDataRow                 `sql_backup:"daily"`

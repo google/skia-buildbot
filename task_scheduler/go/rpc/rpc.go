@@ -23,12 +23,12 @@ import (
 )
 
 // Generate the go code from the protocol buffer definitions.
-//go:generate bazelisk run //:protoc -- --go_opt=paths=source_relative --twirp_out=. --go_out=. ./rpc.proto
+//go:generate bazelisk run --config=mayberemote //:protoc -- --go_opt=paths=source_relative --twirp_out=. --go_out=. ./rpc.proto
 //go:generate mv ./go.skia.org/infra/task_scheduler/go/rpc/rpc.twirp.go ./rpc.twirp.go
 //go:generate rm -rf ./go.skia.org
-//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w rpc.pb.go
-//go:generate bazelisk run //:goimports "--run_under=cd $PWD &&" -- -w rpc.twirp.go
-//go:generate bazelisk run //:protoc -- --twirp_typescript_out=../../modules/rpc ./rpc.proto
+//go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w rpc.pb.go
+//go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w rpc.twirp.go
+//go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.
 func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) http.Handler {
