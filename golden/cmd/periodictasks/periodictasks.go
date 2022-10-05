@@ -707,7 +707,7 @@ func startKnownDigestsSync(ctx context.Context, db *pgxpool.Pool, ptc periodicTa
 	})
 
 	storageClient, err := storage.NewGCSClient(ctx, nil, storage.GCSClientOptions{
-		Bucket:             "skia-infra-testdata",
+		Bucket:             ptc.GCSBucket,
 		KnownHashesGCSPath: ptc.KnownHashesGCSPath,
 	})
 	if err != nil {
