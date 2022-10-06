@@ -1,0 +1,11 @@
+syntax = "proto3";
+package authproxy.rpc;
+option go_package = "go.skia.org/infra/kube/go/authproxy/protoheader";
+
+// Authorized users may be passed to the server via protobuf serialized into a
+// header. We use this proto to extract the email address of the authorized
+// user.
+message Header {
+  // email address of the logged in user.
+  string email = 2;
+}

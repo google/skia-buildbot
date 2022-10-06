@@ -1,5 +1,5 @@
-// auth-proxy is a reverse proxy that runs in front of applications and takes
-// care of authentication.
+// Package authproxy is a reverse proxy that runs in front of applications and
+// takes care of authentication.
 //
 // This is useful for applications like Promentheus that doesn't handle
 // authentication itself, so we can run it behind auth-proxy to restrict access.
@@ -38,9 +38,11 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy/auth"
+	"go.skia.org/infra/kube/go/authproxy/protoheader"
 	"golang.org/x/oauth2/google"
 )
 
@@ -56,8 +58,13 @@ const (
 	// of authentication from the core of the app. See
 	// https://grafana.com/blog/2015/12/07/grafana-authproxy-have-it-your-way/ for
 	// how Grafana uses this to support almost any authentication handler.
+
+	// WebAuthHeaderName is the name of the header sent to the application that
+	// contains the users email address.
 	WebAuthHeaderName = "X-WEBAUTH-USER"
 
+	// WebAuthRoleHeaderName is the name of the header sent to the application
+	// that contains the users Roles.
 	WebAuthRoleHeaderName = "X-WEBAUTH-ROLES"
 )
 
@@ -111,6 +118,34 @@ func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p.reverseProxy.ServeHTTP(w, r)
 }
 
+// AuthType represents the types of authentication auth-proxy can handle.
+type AuthType string
+
+const (
+	// OAuth2 uses the legacy OAuth 2.0 flow.
+	OAuth2 AuthType = "oauth2"
+
+	// ProtoHeader uses an incoming HTTP header with a serialized proto.
+	ProtoHeader AuthType = "protoheader"
+
+	// Invalid represents an invalid authentication scheme.
+	Invalid AuthType = ""
+)
+
+// AllValidAuthTypes is a list of all valid AuthTypes.
+var AllValidAuthTypes = []AuthType{OAuth2, ProtoHeader}
+
+// ToAuthType converts a string to AuthType, returning Invalid if it is not a
+// valid type.
+func ToAuthType(s string) AuthType {
+	for _, t := range AllValidAuthTypes {
+		if s == string(t) {
+			return t
+		}
+	}
+	return Invalid
+}
+
 // App is the auth-proxy application.
 type App struct {
 	port        string
@@ -122,6 +157,7 @@ type App struct {
 	allowedFrom string
 	passive     bool
 	roleFlags   []string
+	authType    string
 
 	target       *url.URL
 	authProvider auth.Auth
@@ -141,6 +177,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.StringVar(&a.allowedFrom, "allowed_from", "", "A comma separated list of of domains and email addresses that are allowed to access the site. Example: 'google.com'")
 	fs.BoolVar(&a.passive, "passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
 	common.FSMultiStringFlagVar(fs, &a.roleFlags, "role", []string{}, "Define a role and the group (CRIA, domain, email list) that defines who gets that role via flags. For example: --role=viewer=@google.com OR --role=triager=cria_group:project-angle-committers")
+	fs.StringVar(&a.authType, "authtype", string(OAuth2), fmt.Sprintf("The type of authentication to do. Choose from: %q", AllValidAuthTypes))
 
 	return fs
 }
@@ -186,7 +223,23 @@ func New(ctx context.Context) (*App, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	authInstance := auth.New()
+	var authInstance auth.Auth
+	switch ToAuthType(ret.authType) {
+	case ProtoHeader:
+		secretClient, err := secret.NewClient(ctx)
+		if err != nil {
+			return ret, skerr.Wrap(err)
+		}
+		authInstance, err = protoheader.New(ctx, secretClient)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	case OAuth2:
+		authInstance = auth.New()
+	case Invalid:
+		return nil, skerr.Fmt("Invalid value for --authtype flag: %q", ret.authType)
+	}
+
 	err = authInstance.Init(ret.port, ret.local)
 	if err != nil {
 		return nil, skerr.Wrap(err)

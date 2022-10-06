@@ -316,22 +316,16 @@ func getSession(r *http.Request) (*Session, error) {
 func LoggedInAs(r *http.Request) string {
 	var email string
 	if s, err := getSession(r); err == nil {
-		sklog.Infof("Is in getSession %#v", s)
 		email = s.Email
 	} else {
-		sklog.Infof("Could not get email from session %s", err)
 		if e, err := ViaBearerToken(r); err == nil {
-			sklog.Infof("Got email via bearer token %s", e)
 			email = e
-		} else {
-			sklog.Infof("Could not get email from bearer token %s", err)
 		}
 	}
 	if isAuthorized(email) {
 		return email
 	}
 
-	sklog.Debugf("User %q is logged in but not on the list of allowed users.", email)
 	return ""
 }
 
@@ -942,7 +936,7 @@ func ViaBearerToken(r *http.Request) (string, error) {
 }
 
 // ValidateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
-// Authorization: Bearer ya29.Elj...
+// Authorization: Bearer <value>
 // and polls a Google HTTP endpoint to see if is valid. This is fine in low-volumne
 // situations, but another solution may be needed if this goes higher than a few QPS.
 func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {

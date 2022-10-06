@@ -28,20 +28,6 @@ func (_m *Auth) Init(port string, local bool) error {
 	return r0
 }
 
-// IsViewer provides a mock function with given fields: r
-func (_m *Auth) IsViewer(r *http.Request) bool {
-	ret := _m.Called(r)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(*http.Request) bool); ok {
-		r0 = rf(r)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // LoggedInAs provides a mock function with given fields: r
 func (_m *Auth) LoggedInAs(r *http.Request) string {
 	ret := _m.Called(r)

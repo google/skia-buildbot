@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "protoheader",
+    srcs = [
+        "generate.go",
+        "header.go",
+        "header.pb.go",
+    ],
+    importpath = "go.skia.org/infra/kube/go/authproxy/protoheader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/secret",
+        "//go/skerr",
+        "//go/sklog",
+        "//kube/go/authproxy/auth",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_test(
+    name = "protoheader_test",
+    srcs = ["header_test.go"],
+    embed = [":protoheader"],
+    deps = [
+        "//go/secret",
+        "//go/secret/mocks",
+        "//go/testutils",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_stretchr_testify//require",
+    ],
+)

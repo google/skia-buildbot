@@ -21,11 +21,6 @@ func (l authImpl) LoggedInAs(r *http.Request) string {
 }
 
 // LoggedInAs implements Auth.
-func (l authImpl) IsViewer(r *http.Request) bool {
-	return login.IsViewer(r)
-}
-
-// LoggedInAs implements Auth.
 func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
 	return login.LoginURL(w, r)
 }

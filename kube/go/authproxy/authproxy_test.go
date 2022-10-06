@@ -387,3 +387,13 @@ func TestAppPopulateAllowedRoles_TestMultiFlagParsing(t *testing.T) {
 	}
 	require.Equal(t, expected, a.roleFlags)
 }
+
+func TestToAuthType_ValidType_ReturnsTypeUnchanged(t *testing.T) {
+	for _, typ := range AllValidAuthTypes {
+		require.Equal(t, typ, ToAuthType(string(typ)))
+	}
+}
+
+func TestToAuthType_UnknownTypes_ReturnsInvalid(t *testing.T) {
+	require.Equal(t, Invalid, ToAuthType("this is not a valid auth type"))
+}

@@ -12,9 +12,11 @@ go_library(
         "//go/common",
         "//go/httputils",
         "//go/roles",
+        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "//kube/go/authproxy/auth",
+        "//kube/go/authproxy/protoheader",
         "@org_golang_x_oauth2//google",
     ],
 )
