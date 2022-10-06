@@ -23,14 +23,12 @@ import (
 	"go.skia.org/infra/android_ingest/go/parser"
 	"go.skia.org/infra/android_ingest/go/recent"
 	"go.skia.org/infra/android_ingest/go/upload"
-	"go.skia.org/infra/go/allowed"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -224,11 +222,6 @@ type IndexContext struct {
 // indexHandler displays the main page with the last MAX_RECENT Requests.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	user := login.LoggedInAs(r)
-	if !*local && user == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
-		return
-	}
 	if *local {
 		loadTemplates()
 	}
@@ -313,9 +306,6 @@ func main() {
 	}
 	if *repoURL == "" {
 		sklog.Fatal("The --repo_url flag must be supplied.")
-	}
-	if !*local {
-		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 	}
 
 	initialize()
