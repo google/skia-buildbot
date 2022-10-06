@@ -243,7 +243,6 @@ type GitRepoConfig struct {
 
 // FrontendFlags are the command-line flags for the web UI.
 type FrontendFlags struct {
-	AuthBypassList                 string // TODO(jcgregorio) Remove after migrating to Roles.
 	ConfigFilename                 string
 	ConnectionString               string
 	CommitRangeURL                 string
@@ -252,7 +251,6 @@ type FrontendFlags struct {
 	NoEmail                        bool
 	EventDrivenRegressionDetection bool
 	Interesting                    float64
-	InternalOnly                   bool // TODO(jcgregorio) Remove after migrating to Roles.
 	KeyOrder                       string
 	Local                          bool
 	NumContinuous                  int
@@ -266,7 +264,6 @@ type FrontendFlags struct {
 	Radius                         int
 	StepUpOnly                     bool
 	DisplayGroupBy                 bool
-	ProxyLogin                     bool // TODO(jcgregorio) Remove after migrating to Roles.
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -274,12 +271,6 @@ type FrontendFlags struct {
 // If clustering is true then this set of flags is for Clustering, as opposed to Frontend.
 func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 	return []cli.Flag{
-		&cli.StringFlag{
-			Destination: &flags.AuthBypassList,
-			Name:        "auth_bypass_list",
-			Value:       "",
-			Usage:       "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.",
-		},
 		&cli.StringFlag{
 			Destination: &flags.ConfigFilename,
 			Name:        "config_filename",
@@ -327,12 +318,6 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "interesting",
 			Value:       50.0,
 			Usage:       "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.",
-		},
-		&cli.BoolFlag{
-			Destination: &flags.InternalOnly,
-			Name:        "internal_only",
-			Value:       false,
-			Usage:       "Require the user to be logged in to see any page.",
 		},
 		&cli.StringFlag{
 			Destination: &flags.KeyOrder,
@@ -411,12 +396,6 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "display_group_by",
 			Value:       false,
 			Usage:       "Show the Group By section of Alert configuration.",
-		},
-		&cli.BoolFlag{
-			Destination: &flags.ProxyLogin,
-			Name:        "proxy-login",
-			Value:       false,
-			Usage:       "Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.",
 		},
 	}
 }
