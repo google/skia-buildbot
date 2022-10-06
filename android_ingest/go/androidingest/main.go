@@ -311,11 +311,11 @@ func main() {
 	initialize()
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
 	r.HandleFunc("/upload", UploadHandler).Methods("POST")
-	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
-	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
-	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler).Methods("GET")
+	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler).Methods("GET")
+	r.HandleFunc("/", indexHandler).Methods("GET")
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
