@@ -2,6 +2,7 @@ package common
 
 import (
 	"flag"
+	"os"
 	"reflect"
 	"testing"
 
@@ -70,4 +71,17 @@ func TestMultiString(t *testing.T) {
 		z = reflect.Zero(typ)
 	}
 	require.Equal(t, "", z.Interface().(flag.Value).String())
+}
+
+const (
+	testFlagName = "my-test-flag"
+)
+
+func TestMultiStringFlagVar_FlagProvided_FlagValuesOverwriteDefaults(t *testing.T) {
+	target := []string{}
+	defaults := []string{"foo", "bar"}
+	MultiStringFlagVar(&target, testFlagName, defaults, "")
+	os.Args = []string{"exe", "--my-test-flag=baz"}
+	flag.Parse()
+	require.Equal(t, []string{"baz"}, target)
 }

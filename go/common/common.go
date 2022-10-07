@@ -157,7 +157,7 @@ func NewMultiStringFlag(name string, defaults []string, usage string) *[]string 
 // defaults, and usage string. The argument target points to a []string
 // variable in which to store the values of the flag.
 func MultiStringFlagVar(target *[]string, name string, defaults []string, usage string) {
-	FSNewMultiStringFlag(flag.CommandLine, name, defaults, usage)
+	FSMultiStringFlagVar(flag.CommandLine, target, name, defaults, usage)
 }
 
 // String() returns the current values of multiString, as a comma separated list
