@@ -35,14 +35,6 @@
     src: templates/oauth2_access_token_config.json
     dest: C:\swarming_config\oauth2_access_token_config.json
 
-- name: Add metadata server to hosts file.
-  # This shouldn't be necessary, but I ran into
-  # https://superuser.com/questions/495759/why-is-ping-unable-to-resolve-a-name-when-nslookup-works-fine
-  # and none of the solutions worked.
-  win_lineinfile:
-    path: c:\Windows\System32\Drivers\etc\hosts
-    line: '192.168.1.20 metadata'
-
 - name: Stop Swarming from running on its own.
   win_environment:
     name: SWARMING_EXTERNAL_BOT_SETUP

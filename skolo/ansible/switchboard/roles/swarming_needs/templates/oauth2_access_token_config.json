@@ -1,5 +1,5 @@
 {
-    "url": "http://metadata:{{ all.metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token",
+    "url": "http://metadata.:{{ all.metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token",
     "headers": {
         "Metadata-Flavor": "Google"
     }
