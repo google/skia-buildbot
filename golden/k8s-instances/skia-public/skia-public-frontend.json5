@@ -20,9 +20,9 @@
   site_url: "https://public-gold.skia.org",
 
   // These values affect the k8s deployment; they are not read in by the binary.
-  K8S_CPU: 2,
+  K8S_CPU: 1,
   K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
-  K8S_MEMORY: "8Gi",
+  K8S_MEMORY: "2Gi",
 
   is_public_view: true,
   publicly_allowed_params: {

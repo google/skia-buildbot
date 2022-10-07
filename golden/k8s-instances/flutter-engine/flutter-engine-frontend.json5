@@ -16,7 +16,7 @@
   resources_path: "/usr/local/share/frontend/dist",
 
   // These values affect the k8s deployment; they are not read in by the binary.
-  K8S_CPU: 4,
+  K8S_CPU: "100mi",
   K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
-  K8S_MEMORY: "4Gi",
+  K8S_MEMORY: "200Mi"
 }
