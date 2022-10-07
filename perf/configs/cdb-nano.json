@@ -21,7 +21,8 @@
       "sources": [
         "gs://skia-perf/nano-json-v1",
         "gs://skia-perf/task-duration",
-        "gs://skia-perf/buildstats-json-v1"
+        "gs://skia-perf/buildstats-json-v1",
+        "gs://skia-perf/gold-summary-v1"
       ]
     },
     "branches": [],
