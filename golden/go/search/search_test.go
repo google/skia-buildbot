@@ -4095,7 +4095,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.WindowsDriverUpdateCommitID,
+				CommitRange:           string(dks.WindowsDriverUpdateCommitID),
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -4136,7 +4136,7 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 	s := New(db, 100)
 
 	res, err := s.Search(ctx, &query.Search{
-		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
 		Sort:         query.SortDescending,
 		TraceValues: paramtools.ParamSet{
 			types.CorpusField: []string{dks.RoundCorpus},
@@ -4157,7 +4157,7 @@ func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
 	res, err := s.Search(ctx, &query.Search{
-		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
 		Sort:         query.SortDescending,
 		TraceValues: paramtools.ParamSet{
 			types.CorpusField: []string{dks.RoundCorpus},
@@ -4670,7 +4670,7 @@ func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing
 	s := New(db, 100)
 
 	res, err := s.Search(ctx, &query.Search{
-		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
 		Sort:         query.SortDescending,
 		TraceValues: paramtools.ParamSet{
 			types.CorpusField: []string{dks.CornersCorpus},
@@ -4716,7 +4716,7 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.WindowsDriverUpdateCommitID,
+				CommitRange:           string(dks.WindowsDriverUpdateCommitID),
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{

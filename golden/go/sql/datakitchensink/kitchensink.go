@@ -27,7 +27,7 @@ func RawBuilder() databuilder.TablesBuilder {
 	// Intentionally put these commits such that they straddle a tile.
 	// Commits with ids 103-105 have no data to help test sparse data.
 	b.CommitsWithData().
-		Insert("0000000098", UserOne, "commit 98", "2020-12-01T00:00:00Z").
+		Insert(OldestCommitID, UserOne, "commit 98", "2020-12-01T00:00:00Z").
 		Insert("0000000099", UserTwo, "commit 99", "2020-12-02T00:00:00Z").
 		Insert("0000000100", UserThree, "commit 100", "2020-12-03T00:00:00Z").
 		Insert(WindowsDriverUpdateCommitID, UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
@@ -36,7 +36,7 @@ func RawBuilder() databuilder.TablesBuilder {
 		Insert("0000000107", UserThree, "Add taimen device [flaky]", "2020-12-08T00:00:00Z").
 		Insert(IOSFixTriangleTestsBreakCircleTestsCommitID, UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
 		Insert("0000000109", UserOne, "Enable autotriage of walleye", "2020-12-10T00:00:00Z").
-		Insert("0000000110", UserTwo, "commit 110", "2020-12-11T00:00:00Z")
+		Insert(MostRecentCommitID, UserTwo, "commit 110", "2020-12-11T00:00:00Z")
 
 	b.CommitsWithNoData().
 		Insert("0000000103", "0103010301030103010301030103010301030103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
@@ -708,12 +708,17 @@ const (
 	//"f4412901bfb130a8774c0c719450d1450845f471",
 	//"0111011101110111011101110111011101110111",
 
+	OldestCommitID = schema.CommitID("0000000098")
+
 	// The windows driver was updated on the 4th commit with data.
-	WindowsDriverUpdateCommitID = "0000000101"
+	WindowsDriverUpdateCommitID = schema.CommitID("0000000101")
 
 	// The triangle tests were fixed for IOS on the 8th commit with data. This had the side effect
 	// of breaking the circle tests.
-	IOSFixTriangleTestsBreakCircleTestsCommitID = "0000000108"
+	IOSFixTriangleTestsBreakCircleTestsCommitID = schema.CommitID("0000000108")
+
+	// MostRecentCommitID is the most recent commit id with data
+	MostRecentCommitID = schema.CommitID("0000000110")
 )
 
 // These are the computed trace ids for the tests in the example data. Their values are validated

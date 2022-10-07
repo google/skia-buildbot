@@ -3,22 +3,24 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
+	gstorage "cloud.google.com/go/storage"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -37,6 +39,9 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/perf/go/ingest/format"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -65,6 +70,10 @@ type periodicTasksConfig struct {
 	// untriaged digests and comment on them if appropriate.
 	CommentOnCLsPeriod config.Duration `json:"comment_on_cls_period" optional:"true"`
 
+	// PerfSummaries configures summary data (e.g. triage status, ignore count) that is fed into
+	// a GCS bucket which an instance of Perf can ingest from.
+	PerfSummaries *perfSummariesConfig `json:"perf_summaries" optional:"true"`
+
 	// PrimaryBranchDiffPeriod is how often to look at the most recent window of commits and
 	// tabulate diffs between all groupings based on the digests produced on the primary branch.
 	// The diffs are not calculated in this service, but sent via Pub/Sub to the appropriate workers.
@@ -72,6 +81,15 @@ type periodicTasksConfig struct {
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"update_traces_ignore_period"` // TODO(kjlubick) change JSON
+}
+
+type perfSummariesConfig struct {
+	AgeOutCommits      int             `json:"age_out_commits"`
+	CorporaToSummarize []string        `json:"corpora_to_summarize"`
+	GCSBucket          string          `json:"perf_gcs_bucket"`
+	KeysToSummarize    []string        `json:"keys_to_summarize"`
+	Period             config.Duration `json:"period"`
+	ValuesToIgnore     []string        `json:"values_to_ignore"`
 }
 
 func main() {
@@ -127,6 +145,9 @@ func main() {
 	startDiffWorkMetrics(ctx, db)
 	startBackupStatusCheck(ctx, db, ptc)
 	startKnownDigestsSync(ctx, db, ptc)
+	if ptc.PerfSummaries != nil {
+		startPerfSummarization(ctx, db, ptc.PerfSummaries)
+	}
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -776,4 +797,360 @@ ORDER BY 1
 		rv = append(rv, d)
 	}
 	return rv, nil
+}
+
+// startPerfSummarization starts the process that will summarize gold traces and upload them to
+// Perf. It assumes the config is non-nil, and will panic if the minimally set data is not done so.
+// It starts a go routine that will immediately being summarizing and then repeat the process at
+// the configured time period.
+func startPerfSummarization(ctx context.Context, db *pgxpool.Pool, sCfg *perfSummariesConfig) {
+	sklog.Infof("Perf summary config %+v", *sCfg)
+	if sCfg.AgeOutCommits <= 0 {
+		panic("Must have a positive, non-zero age_out_commits")
+	}
+	if len(sCfg.KeysToSummarize) == 0 {
+		panic("Must specify at least one key")
+	}
+	if len(sCfg.CorporaToSummarize) == 0 {
+		panic("Must specify at least one corpus")
+	}
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "PerfSummarization",
+	})
+
+	sc, err := gstorage.NewClient(ctx)
+	if err != nil {
+		panic("Could not make google storage client " + err.Error())
+	}
+	storageClient := gcsclient.New(sc, sCfg.GCSBucket)
+
+	go util.RepeatCtx(ctx, sCfg.Period.Duration, func(ctx context.Context) {
+		sklog.Infof("Tabulating all perf data for keys %s and corpora %s", sCfg.KeysToSummarize, sCfg.CorporaToSummarize)
+
+		if err := summarizeTraces(ctx, db, sCfg, storageClient); err != nil {
+			sklog.Errorf("Could not summarize traces using config %+v: %s", sCfg, err)
+			return
+		}
+		liveness.Reset()
+		sklog.Infof("Done tabulating all perf data")
+	})
+}
+
+// summarizeTraces loops through all tuples of keys that match the given configuration (and do not
+// include any ignored values), counting how many traces are triaged to one of the three states and
+// how many are ignored. This data is uploaded to Perf's GCS bucket in a streaming fashion, that is
+// each tuple's data is uploaded on its own, not as one big blob. The entire process could take
+// a while, as the summarization may involve full table scans.
+func summarizeTraces(ctx context.Context, db *pgxpool.Pool, cfg *perfSummariesConfig, client gcs.GCSClient) error {
+	oldestCommitID, latestCommitID, err := getWindowCommitBounds(ctx, db, cfg.AgeOutCommits)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	tuples, err := getTuplesOfKeysToQuery(ctx, db, cfg.KeysToSummarize, cfg.ValuesToIgnore, cfg.CorporaToSummarize)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	idToGitHash := map[schema.CommitID]string{}
+
+	for _, tuple := range tuples {
+		perfData, err := getTriageStatus(ctx, db, tuple, oldestCommitID)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		perfData.IgnoredTraces, err = getIgnoredCount(ctx, db, tuple, oldestCommitID)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		// If the traces had no actual data (e.g. are too old or just on CLs), there is nothing to
+		// upload to Perf.
+		if perfData.NegativeTraces == 0 && perfData.UntriagedTraces == 0 && perfData.PositiveTraces == 0 && perfData.IgnoredTraces == 0 {
+			sklog.Infof("No data for tuple %v; consider ignoring it", tuple)
+			continue
+		}
+		if perfData.CommitID == "" {
+			// It could happen that all traces for this set of keys is ignored. If that is the case,
+			// we will pretend this is happening at the latest commit
+			perfData.CommitID = latestCommitID
+		}
+		// We need to turn commitIDs into GitHashes, since perf only speaks the latter.
+		hash, ok := idToGitHash[perfData.CommitID]
+		if ok {
+			perfData.GitHash = hash
+		} else {
+			hash, err := getCommitHashForID(ctx, db, perfData.CommitID)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			idToGitHash[perfData.CommitID] = hash
+			perfData.GitHash = hash
+		}
+		if err := uploadDataToPerf(ctx, tuple, perfData, client); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+// getWindowCommitBounds finds the current oldest and newest commit that make up windowSize commits.
+func getWindowCommitBounds(ctx context.Context, db *pgxpool.Pool, windowSize int) (schema.CommitID, schema.CommitID, error) {
+	ctx, span := trace.StartSpan(ctx, "getWindowCommitBounds")
+	defer span.End()
+	const statement = `
+WITH
+RecentCommits AS (
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+)
+SELECT MIN(commit_id), MAX(commit_id) FROM RecentCommits
+`
+	row := db.QueryRow(ctx, statement, windowSize)
+	var oldestCommitID schema.CommitID
+	var newestCommitID schema.CommitID
+	if err := row.Scan(&oldestCommitID, &newestCommitID); err != nil {
+		return "", "", skerr.Wrap(err)
+	}
+	return oldestCommitID, newestCommitID, nil
+}
+
+type pair struct {
+	Key   string
+	Value string
+}
+
+type summaryTuple struct {
+	Corpus    string
+	KeyValues []pair
+}
+
+// getTuplesOfKeysToQuery finds all combinations of the non-null values associated with the provided
+// keys for the provided corpora that exist in the Traces table (that is, have seen at least one
+// data point at some point in Gold's history). Any trace which has a value in the ignoreValues
+// slice will be dropped (e.g. Ignoring very old hardware that we haven't tested on in a long time
+// could help speed up this process by skipping those models/gpus).
+func getTuplesOfKeysToQuery(ctx context.Context, db *pgxpool.Pool, keys, ignoreValues, corpora []string) ([]summaryTuple, error) {
+	ctx, span := trace.StartSpan(ctx, "getTuplesOfKeysToQuery")
+	defer span.End()
+	// Build a statement like:
+	// SELECT DISTINCT keys->>'source_type',keys->>'os',keys->>'model'
+	// FROM Traces ORDER BY 1, 2, 3, 4
+	statement := `SELECT DISTINCT keys->>'source_type'`
+	for _, key := range keys {
+		// These keys are provided by the maintainer of Gold, not arbitrary input. Thus, we do not
+		// need to pass them in as a prepared statement (which is a bit trickier to get right).
+		statement += fmt.Sprintf(",keys->>'%s'", sql.Sanitize(key))
+	}
+	statement += " FROM TRACES WHERE keys->>'source_type' IN "
+	statement += sql.ValuesPlaceholders(len(corpora), 1)
+	statement += " ORDER BY 1"
+	for i := range keys {
+		statement += fmt.Sprintf(",%d", i+2)
+	}
+	var args []interface{}
+	for _, corpus := range corpora {
+		args = append(args, corpus)
+	}
+
+	rows, err := db.Query(ctx, statement, args...)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Using statement:\n%s", statement)
+	}
+	defer rows.Close()
+	var rv []summaryTuple
+nextRow:
+	for rows.Next() {
+		var corpus string
+		// We have a variable number of columns being returned. Thus, we need to make a slice of
+		// that length, using pgtype.Text because the columns can be null ...
+		values := make([]pgtype.Text, len(keys))
+		// ... and then put pointers to those types into an args slice...
+		args := []interface{}{&corpus}
+		for i := range values {
+			args = append(args, &values[i])
+		}
+		// ... so we can pass that in as variadic arguments to Scan.
+		if err := rows.Scan(args...); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		tuple := summaryTuple{Corpus: corpus}
+		for i := range keys {
+			v := values[i]
+			if v.Status == pgtype.Null {
+				continue nextRow
+			}
+			// This is easiest to handle here and not in the SQL statement; Otherwise the SQL
+			// statement gets more unruly than it already is.
+			if util.In(v.String, ignoreValues) {
+				continue nextRow
+			}
+			tuple.KeyValues = append(tuple.KeyValues, pair{Key: keys[i], Value: v.String})
+		}
+		rv = append(rv, tuple)
+	}
+	return rv, nil
+}
+
+// summaryData is the data that will be uploaded to perf. Each integer represents a count of traces
+// that produced positive, negative, or untriaged digests. Ignored traces do not have their digests
+// included in the triage count (and are typically untriaged anyway), so those are a separate count.
+// If multiple traces produce the same output digest, they will be counted independently, since we
+// are counting "traces that produced positive digests" not "number of positive digests produced".
+type summaryData struct {
+	PositiveTraces  int
+	NegativeTraces  int
+	UntriagedTraces int
+	IgnoredTraces   int
+
+	CommitID schema.CommitID
+	GitHash  string
+}
+
+// getTriageStatus takes a given tuple of keys and corpus and returns how many traces are triaged
+// positive, negative, or not at all. This data is at head unless the "latest" commit for that
+// trace is older than oldestCommitID. If two traces produce the same digest, those will be counted
+// individually as 2, not combined as 1. It also returns the newest commitID that any of the traces
+// which match the tuple produced data, simplifying data collection by assuming all data matching
+// this tuple was produced at the same commit.
+func getTriageStatus(ctx context.Context, db *pgxpool.Pool, tuple summaryTuple, oldestCommitID schema.CommitID) (summaryData, error) {
+	ctx, span := trace.StartSpan(ctx, "getTriageStatus")
+	defer span.End()
+	statement := "WITH\n" + joinedTracesStatement(tuple)
+	statement += `
+),
+TracesGroupingDigests AS (
+    SELECT JoinedTraces.trace_id, grouping_id, digest, most_recent_commit_id
+    FROM JoinedTraces
+    JOIN ValuesAtHead on JoinedTraces.trace_id = ValuesAtHead.trace_id
+    WHERE most_recent_commit_id >= $1 and matches_any_ignore_rule = False and corpus = $2
+)
+SELECT label, COUNT(*), MAX(most_recent_commit_id) FROM TracesGroupingDigests
+JOIN
+Expectations ON TracesGroupingDigests.grouping_id = Expectations.grouping_id AND
+                TracesGroupingDigests.digest = Expectations.digest
+GROUP BY label`
+	rows, err := db.Query(ctx, statement, oldestCommitID, tuple.Corpus)
+	if err != nil {
+		return summaryData{}, skerr.Wrapf(err, "Error running statement:\n%s", statement)
+	}
+	defer rows.Close()
+	var rv summaryData
+	for rows.Next() {
+		var label schema.ExpectationLabel
+		var count int
+		var mostRecentCommitID schema.CommitID
+		if err := rows.Scan(&label, &count, &mostRecentCommitID); err != nil {
+			return summaryData{}, skerr.Wrap(err)
+		}
+		switch label {
+		case schema.LabelPositive:
+			rv.PositiveTraces = count
+		case schema.LabelNegative:
+			rv.NegativeTraces = count
+		case schema.LabelUntriaged:
+			rv.UntriagedTraces = count
+		}
+		rv.CommitID = mostRecentCommitID
+	}
+	return rv, nil
+}
+
+// joinedTracesStatement creates a subquery named JoinedTraces that has all the trace ids matching
+// all the key-value pairs and the corpus from the passed in tuple. Experimental testing showed that
+// this approach with many INTERSECTs was much faster than using the JSON @> syntax, probably due to
+// better use of the keys index. The statement is left open should any callers want to add an
+// additional clause.
+func joinedTracesStatement(tuple summaryTuple) string {
+	statement := "JoinedTraces AS ("
+	for _, kv := range tuple.KeyValues {
+		statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'",
+			sql.Sanitize(kv.Key), sql.Sanitize(kv.Value))
+		statement += "\n\tINTERSECT"
+	}
+	statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'",
+		types.CorpusField, sql.Sanitize(tuple.Corpus))
+	return statement
+}
+
+// getIgnoredCount counts how many traces produced data more recently than oldestCommitID and match
+// one or more ignore rules.
+func getIgnoredCount(ctx context.Context, db *pgxpool.Pool, tuple summaryTuple, oldestCommitID schema.CommitID) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "getIgnoredCount")
+	defer span.End()
+	statement := "WITH\n" + joinedTracesStatement(tuple)
+	statement += `
+	INTERSECT
+	SELECT trace_id FROM Traces where matches_any_ignore_rule = true
+)
+SELECT count(*) FROM JoinedTraces
+JOIN ValuesAtHead ON JoinedTraces.trace_id = ValuesAtHead.trace_id
+WHERE most_recent_commit_id > $1`
+
+	row := db.QueryRow(ctx, statement, oldestCommitID)
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return count, nil
+}
+
+// getCommitHashForID looks up the githash associated with a commit id.
+func getCommitHashForID(ctx context.Context, db *pgxpool.Pool, id schema.CommitID) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "getCommitHashForID")
+	defer span.End()
+	row := db.QueryRow(ctx, `SELECT git_hash FROM GitCommits WHERE commit_id = $1`, id)
+	var gitHash string
+	if err := row.Scan(&gitHash); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return gitHash, nil
+}
+
+// uploadDataToPerf creates a JSON object in the format expected by Perf that contains all the
+// tabulated summaryData and uploads it to the Perf GCS bucket.
+func uploadDataToPerf(ctx context.Context, tuple summaryTuple, data summaryData, client gcs.GCSClient) error {
+	valueStr := tuple.Corpus
+	key := map[string]string{types.CorpusField: tuple.Corpus}
+	for _, p := range tuple.KeyValues {
+		valueStr += "-" + p.Value
+		key[p.Key] = p.Value
+	}
+	n := now.Now(ctx)
+	// We want to make the data easy to find but unlikely to have name collisions. Thus we use
+	// the UnixNano of the current time as the filename and build the folder name based on the
+	// time and the values of the data.
+	perfPath := fmt.Sprintf("gold-summary-v1/%d/%d/%d/%d/%s/%d.json",
+		n.Year(), n.Month(), n.Day(), n.Hour(), valueStr, n.UnixNano())
+	opts := gcs.FileWriteOptions{
+		ContentType: "application/json",
+	}
+
+	f := format.Format{
+		Version: 1,
+		GitHash: data.GitHash,
+		Key:     key,
+		Results: []format.Result{{
+			Key:         map[string]string{"count": "gold_triaged_positive", "unit": "traces"},
+			Measurement: float32(data.PositiveTraces),
+		}, {
+			Key:         map[string]string{"count": "gold_triaged_negative", "unit": "traces"},
+			Measurement: float32(data.NegativeTraces),
+		}, {
+			Key:         map[string]string{"count": "gold_untriaged", "unit": "traces"},
+			Measurement: float32(data.UntriagedTraces),
+		}, {
+			Key:         map[string]string{"count": "gold_ignored", "unit": "traces"},
+			Measurement: float32(data.IgnoredTraces),
+		}},
+	}
+	jsonBytes, err := json.MarshalIndent(f, "", "\t")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := client.SetFileContents(ctx, perfPath, opts, jsonBytes); err != nil {
+		return skerr.Wrap(err)
+	}
+	sklog.Infof("Uploaded summary to perf %s", perfPath)
+	return nil
 }
