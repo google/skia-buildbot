@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	os_exec "os/exec"
 	"path/filepath"
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/httputils/progress"
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -290,7 +292,7 @@ func cmdRemove(ctx context.Context, name string) error {
 }
 
 // getCIPDClient creates and returns a cipd.CIPDClient.
-func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDClient, error) {
+func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDClient, *progress.ProgressTracker, *progress.ProgressTracker, error) {
 	var ts oauth2.TokenSource
 	var err error
 	if local {
@@ -299,19 +301,29 @@ func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDCl
 		ts, err = luciauth.NewLUCIContextTokenSource(auth.ScopeUserinfoEmail)
 	}
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not get token source. \nTry running 'gcloud auth application-default login'\n")
+		return nil, nil, nil, skerr.Wrapf(err, "Could not get token source. \nTry running 'gcloud auth application-default login'\n")
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	cipdClient, err := cipd.NewClient(httpClient, rootDir, cipd.DefaultServiceURL)
+	authenticatedClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	anonymousClient, uploadTracker, downloadTracker := progress.ProgressTrackingClient(http.DefaultClient)
+	opts := cipd_api.ClientOptions{
+		ServiceURL:          cipd.DefaultServiceURL,
+		Root:                rootDir,
+		AuthenticatedClient: authenticatedClient,
+		// The CIPD client uses the provided AnonymousClient to perform the
+		// actual uploads/downloads, not the AuthenticatedClient. Reusing the
+		// authenticated http.Client results in a 403.
+		AnonymousClient: anonymousClient,
+	}
+	cipdClientInner, err := cipd_api.NewClient(opts)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, nil, nil, skerr.Wrap(err)
 	}
-	return cipdClient, nil
+	return &cipd.Client{Client: cipdClientInner}, uploadTracker, downloadTracker, nil
 }
 
 // cmdDownload implements the "download" subcommand.
 func cmdDownload(ctx context.Context, name, dest string, local bool) error {
-	cipdClient, err := getCIPDClient(ctx, dest, local)
+	cipdClient, _, downloadTracker, err := getCIPDClient(ctx, dest, local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -325,6 +337,9 @@ func cmdDownload(ctx context.Context, name, dest string, local bool) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	fmt.Println(fmt.Sprintf("Downloading %s", pin.String()))
+	downloadTracker.Start()
+	defer downloadTracker.Stop()
 	if err := cipdClient.FetchAndDeployInstance(ctx, "", pin, 0); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -346,7 +361,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		return skerr.Wrap(err)
 	}
 
-	cipdClient, err := getCIPDClient(ctx, ".", local)
+	cipdClient, uploadTracker, _, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -408,6 +423,9 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		tagProject,
 	}, extraTags...)
 	packagePath := fmt.Sprintf(cipdPackageNameTmpl, name)
+	fmt.Println(fmt.Sprintf("Uploading %s", packagePath))
+	uploadTracker.Start()
+	defer uploadTracker.Stop()
 	if _, err := cipdClient.Create(ctx, packagePath, src, settings.InstallMode, skipFilesRegex, refs, tags, nil); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -422,7 +440,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 
 // cmdSetVersion implements the "set-version" sub-command.
 func cmdSetVersion(ctx context.Context, name string, version int, local bool) error {
-	cipdClient, err := getCIPDClient(ctx, ".", local)
+	cipdClient, _, _, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -463,7 +481,7 @@ func cmdSetVersion(ctx context.Context, name string, version int, local bool) er
 
 // cmdListVersions implements the "list-versions" subcommand.
 func cmdListVersions(ctx context.Context, name string, local bool) error {
-	cipdClient, err := getCIPDClient(ctx, ".", local)
+	cipdClient, _, _, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

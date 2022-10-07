@@ -1,0 +1,24 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "progress",
+    srcs = ["progress.go"],
+    importpath = "go.skia.org/infra/go/httputils/progress",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/now",
+        "@com_github_dustin_go_humanize//:go-humanize",
+    ],
+)
+
+go_test(
+    name = "progress_test",
+    srcs = ["progress_test.go"],
+    embed = [":progress"],
+    deps = [
+        "//go/mockhttpclient",
+        "//go/now/mocks",
+        "@com_github_stretchr_testify//require",
+    ],
+)

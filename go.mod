@@ -29,6 +29,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cockroachdb/cockroach-go/v2 v2.1.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dustin/go-humanize v1.0.0
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/go-python/gpython v0.0.3

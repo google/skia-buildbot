@@ -100,3 +100,31 @@ func (t *TimeTravelCtx) WithContext(ctx context.Context) *TimeTravelCtx {
 	t.Context = context.WithValue(ctx, ContextKey, NowProvider(t.now))
 	return t
 }
+
+// TimeTicker provides an interface around time.Ticker so that it can be mocked.
+type TimeTicker interface {
+	C() <-chan time.Time
+	Reset(d time.Duration)
+	Stop()
+}
+
+// TimeTickerImpl implements TimeTicker using a real time.Ticker.
+type TimeTickerImpl struct {
+	*time.Ticker
+}
+
+// C implements TimeTicker.
+func (t *TimeTickerImpl) C() <-chan time.Time {
+	return t.Ticker.C
+}
+
+// NewTimeTicker returns a TimeTicker which wraps a real time.Ticker.
+func NewTimeTicker(d time.Duration) TimeTicker {
+	return &TimeTickerImpl{
+		Ticker: time.NewTicker(d),
+	}
+}
+
+// NewTimeTickerFunc is a function which takes a time.Duration and returns a
+// TimeTicker.
+type NewTimeTickerFunc func(time.Duration) TimeTicker
