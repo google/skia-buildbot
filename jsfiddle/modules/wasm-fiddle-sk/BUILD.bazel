@@ -1,20 +1,13 @@
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "sk_element")
-
-sass_library(
-    name = "code_mirror_styles",
-    srcs = [
-        "@npm//:node_modules/codemirror/lib/codemirror.css",  # keep
-        "@npm//:node_modules/codemirror/theme/ambiance.css",  # keep
-        "@npm//:node_modules/codemirror/theme/base16-light.css",  # keep
-    ],
-)
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "wasm-fiddle-sk",
     sass_deps = [
         "//infra-sk:elements-sk_scss",
-        ":code_mirror_styles",  # keep
         "//infra-sk:themes_sass_lib",
+        "@npm//:node_modules/codemirror/lib/codemirror.css",
+        "@npm//:node_modules/codemirror/theme/ambiance.css",
+        "@npm//:node_modules/codemirror/theme/base16-light.css",
     ],
     sass_srcs = ["wasm-fiddle-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],

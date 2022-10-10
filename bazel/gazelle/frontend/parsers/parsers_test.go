@@ -136,6 +136,10 @@ func TestParseSassImports_Success(t *testing.T) {
 @import url(theme);
 @import "landscape.css" screen and (orientation: landscape);
 
+// Depending on a CSS file with @use or @forward is allowed.
+@use "path/to/q.css"
+@forward "path/to/r.css";
+
 // Duplicate imports should be ignored.
 @import 'path/to/a';
 
@@ -158,10 +162,10 @@ func TestParseSassImports_Success(t *testing.T) {
 .this-will-be-ignored {} /*
 @import 'block-comment/d';
 @use 'block-comment/e';
-@forward 'block-comment/f'; */ @import 'path/to/q';  // This import should NOT be ignored.
+@forward 'block-comment/f'; */ @import 'path/to/s';  // This import should NOT be ignored.
 
 // A block comment that starts and ends on the same line.
-@import /* 'block-comment/g' */ 'path/to/r':
+@import /* 'block-comment/g' */ 'path/to/t':
 `
 
 	expected := []string{
@@ -181,8 +185,10 @@ func TestParseSassImports_Success(t *testing.T) {
 		"path/to/n",
 		"path/to/o",
 		"path/to/p",
-		"path/to/q",
-		"path/to/r",
+		"path/to/q.css",
+		"path/to/r.css",
+		"path/to/s",
+		"path/to/t",
 	}
 
 	require.Equal(t, expected, ParseSassImports(source))

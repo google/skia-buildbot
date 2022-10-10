@@ -1,6 +1,5 @@
 load(
     "//infra-sk:index.bzl",
-    "sass_library",
     "sk_demo_page_server",
     "sk_element",
     "sk_element_puppeteer_test",
@@ -23,18 +22,11 @@ sk_demo_page_server(
     },
 )
 
-sass_library(
-    name = "json_editor_styles",
-    srcs = [
-        "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",  # keep
-    ],
-)
-
 sk_element(
     name = "particles-sk",
     sass_deps = [
         "//infra-sk:elements-sk_scss",
-        ":json_editor_styles",  # keep
+        "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",
     ],
     sass_srcs = ["particles-sk.scss"],
     sk_element_deps = [

@@ -112,8 +112,8 @@ func ParseTSImports(source string) []string {
 //
 // See https://sass-lang.com/documentation/at-rules.
 var sassImportRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`^\s*@(import|use|forward)\s*'(?P<path>[\w~_/\.\-]+)'`), // Single quotes.
-	regexp.MustCompile(`^\s*@(import|use|forward)\s*"(?P<path>[\w~_/\.\-]+)"`), // Double quotes.
+	regexp.MustCompile(`^\s*@(?P<rule>import|use|forward)\s*'(?P<path>[\w~_/\.\-]+)'`), // Single quotes.
+	regexp.MustCompile(`^\s*@(?P<rule>import|use|forward)\s*"(?P<path>[\w~_/\.\-]+)"`), // Double quotes.
 }
 
 // ParseSassImports takes the contents of a Sass source file and extracts the verbatim paths of any
@@ -128,10 +128,11 @@ func ParseSassImports(source string) []string {
 		for _, re := range sassImportRegexps {
 			match := re.FindStringSubmatch(line)
 			if len(match) != 0 {
-				importPath := match[len(match)-1] // The path is the last capture group on all regexps.
+				rule := match[1] // Either "import", "use", or "forward".
+				importPath := match[2]
 				// Filter out plain CSS imports. See
 				// https://sass-lang.com/documentation/at-rules/import#plain-css-imports.
-				if strings.HasSuffix(importPath, ".css") {
+				if rule == "import" && strings.HasSuffix(importPath, ".css") {
 					continue
 				}
 				importsSet[importPath] = true

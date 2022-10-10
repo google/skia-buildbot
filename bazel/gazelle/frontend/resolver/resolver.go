@@ -352,6 +352,66 @@ func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.L
 		}
 	}
 
+	// Sass and CSS imports from NPM are handled as a special case. Assumptions made:
+	//
+	// - All Sass/CSS imports from NPM are prefixed with "node_modules/". For example, a Sass
+	//   import such as "@use 'node_modules/some-npm-package/dist/styles.css';" refers to file
+	//   "dist/styles.css" within the "some-npm-package" NPM package.
+	//
+	// - There is a Bazel repository called "npm" with a "node_modules" directory where all NPM
+	//   packages are found. This can be enforced in the //WORKSPACE file.
+	//
+	// Sass/CSS dependencies from NPM are resolved via a label with the following format:
+	// "@npm//:node_modules/<NPM package name>/<path to .scss or .css file>", for example
+	// "@npm//:node_modules/some-npm-package/dist/styles.css".
+	//
+	// Known limitation: Transitive @imports in Sass files from NPM packages are not automatically
+	// added by this Gazelle extension. The following scenario illustrates this limitation:
+	//
+	// - File //myapp/modules/foo.scss contains the following line:
+	//
+	//       @import 'node_modules/some-npm-package/dist/styles.scss';
+	//
+	// - This Gazelle extension parses file //myapp/modules/myapp.scss and generates the following
+	//   sass_library rule inside //myapp/modules/BUILD.bazel:
+	//
+	//       sass_library(
+	//           name = "myapp_sass_lib",
+	//           srcs = ["myapp.scss"],
+	//           deps = ["@npm//:node_modules/some-npm-package/dist/styles.scss"],
+	//       )
+	//
+	// - File dist/styles.scss inside the some-npm-package NPM package contains the following line:
+	//
+	//       @import 'foo.scss';
+	//
+	// - The //:myapp_sass_lib target fails to build because the Sass compiler cannot find file
+	//   foo.scss.
+	//
+	// The cause of this limitation is that this Gazelle extension does not recursively parse
+	// imports from Sass or TypeScript files. To work around this limitation, manually add any
+	// transitive imports to the "deps" attribute with a #keep comment, e.g.:
+	//
+	//     sass_library(
+	//         name = "myapp_sass_lib",
+	//         srcs = ["myapp.scss"],
+	//         deps = [
+	//             "@npm//:node_modules/some-npm-package/dist/styles.scss",
+	//             "@npm//:node_modules/some-npm-package/dist/foo.scss", #keep
+	//         ],
+	//     )
+	//
+	// Or alternatively, explicitly import the transitive dependency from your Sass file, e.g.:
+	//
+	//     @import 'node_modules/some-npm-package/dist/styles.scss';
+	//     @import 'node_modules/some-npm-package/dist/foo.scss';
+	if strings.HasPrefix(importPath, "node_modules/") {
+		return ruleKindAndLabel{
+			kind:  "sass_library", // The rule kind does not matter.
+			label: label.New("npm", "", importPath),
+		}
+	}
+
 	// Sass always resolves imports relative to the current file first, so we normalize the import
 	// path relative to the current directory, e.g. "../bar" imported from "myapp/foo" becomes
 	// "myapp/bar".

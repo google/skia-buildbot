@@ -153,7 +153,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 	//   - Rules generated:
 	//     - One ts_library rule for each *.ts file that does not end with "_test.ts".
 	//     - One nodejs_test rule for each file ending with "_nodejs_test.ts".
-	//     - One kara_test rule for each file ending with "_test.ts" and not "_nodejs_test.ts".
+	//     - One karma_test rule for each file ending with "_test.ts" and not "_nodejs_test.ts".
 	//     - One sass_library rule for each *.scss file.
 	//
 	// - Directories with a custom element:

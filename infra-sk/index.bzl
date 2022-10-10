@@ -2,13 +2,14 @@
 
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
 load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
 load(":ts_library.bzl", _ts_library = "ts_library")
+load(":sass_library.bzl", _sass_library = "sass_library")
 
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
@@ -44,7 +45,8 @@ def sk_element(
       ts_srcs: TypeScript source files.
       sass_srcs: Sass source files.
       ts_deps: Any ts_library dependencies.
-      sass_deps: Any sass_library dependencies.
+      sass_deps: Any sass_library dependencies. This can include .css or .scss files from NPM
+        modules, e.g. "npm//:node_modules/some-module/hello.scss".
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to ts_deps and sass_deps, respectively.
       visibility: Visibility of the generated ts_library and sass_library targets.
@@ -361,7 +363,8 @@ def sk_page(
       ts_entry_point: TypeScript file used as the entry point for the JavaScript bundles.
       scss_entry_point: Sass file used as the entry point for the CSS bundles.
       ts_deps: Any ts_library dependencies.
-      sass_deps: Any sass_library dependencies.
+      sass_deps: Any sass_library dependencies. This can include .css or .scss files from NPM
+        modules, e.g. "npm//:node_modules/some-module/hello.scss".
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to deps and sass_deps, respectively.
       assets_serving_path: Path prefix for the inserted <script> and <link> tags.
@@ -698,7 +701,7 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
         **kwargs
     )
 
-def bool_flag(flag_name, default = True, name = ""):
+def bool_flag(flag_name, default = True, name = ""):  # buildifier: disable=unused-variable
     """Create a boolean flag and corresponding config_settings.
 
     bool_flag is a Bazel Macro that defines a boolean flag with the given name two config_settings,

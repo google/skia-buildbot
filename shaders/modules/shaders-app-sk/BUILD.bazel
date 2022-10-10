@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -14,21 +14,14 @@ sk_demo_page_server(
     },
 )
 
-sass_library(
-    name = "code_mirror_styles",
-    srcs = [
-        "@npm//:node_modules/codemirror/lib/codemirror.css",  # keep
-        "@npm//:node_modules/codemirror/theme/ambiance.css",  # keep
-        "@npm//:node_modules/codemirror/theme/base16-light.css",  # keep
-    ],
-)
-
 sk_element(
     name = "shaders-app-sk",
     sass_deps = [
         "//infra-sk:elements-sk_scss",
         "//shaders/modules/themes:themes_sass_lib",
-        ":code_mirror_styles",  # keep
+        "@npm//:node_modules/codemirror/lib/codemirror.css",
+        "@npm//:node_modules/codemirror/theme/ambiance.css",
+        "@npm//:node_modules/codemirror/theme/base16-light.css",
     ],
     sass_srcs = ["shaders-app-sk.scss"],
     sk_element_deps = [
