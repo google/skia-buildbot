@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "pivot-table-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["pivot-table-sk.scss"],

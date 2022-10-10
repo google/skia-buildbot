@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "confirm-dialog-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
         "@npm//elements-sk",
@@ -18,7 +17,6 @@ sk_element(
 sk_page(
     name = "confirm-dialog-sk-demo",
     html_file = "confirm-dialog-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":confirm-dialog-sk"],
     ts_deps = [
         "@npm//common-sk",

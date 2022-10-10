@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "skottie-performance-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["skottie-performance-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "resources-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["resources-sk.scss"],
     sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
     ts_deps = [

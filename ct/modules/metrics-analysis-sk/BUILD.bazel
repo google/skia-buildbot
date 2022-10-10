@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "metrics-analysis-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//ct/modules/input-sk",
         "//ct/modules/patch-sk",
@@ -33,7 +32,6 @@ sk_element(
 sk_page(
     name = "metrics-analysis-sk-demo",
     html_file = "metrics-analysis-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":metrics-analysis-sk",

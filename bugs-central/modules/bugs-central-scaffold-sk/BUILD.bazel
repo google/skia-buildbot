@@ -4,7 +4,7 @@ sk_element(
     name = "bugs-central-scaffold-sk",
     sass_deps = [
         "//bugs-central/modules:style_sass_lib",
-        "//infra-sk:elements-sk_scss",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["bugs-central-scaffold-sk.scss"],
     sk_element_deps = [

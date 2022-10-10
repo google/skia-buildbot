@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
-@import '~elements-sk/themes/themes';
+@import 'node_modules/elements-sk/themes/color-palette.scss';
+@import 'node_modules/elements-sk/themes/themes.scss';
 body {
   font-family: Roboto, sans-serif;
   font-size: 12px;

@@ -14,7 +14,9 @@ sk_demo_page_server(
 
 sk_element(
     name = "last-commit-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/colors.scss",
+    ],
     sass_srcs = ["last-commit-sk.scss"],
     ts_deps = [
         "//golden/modules:rpc_types_ts_lib",

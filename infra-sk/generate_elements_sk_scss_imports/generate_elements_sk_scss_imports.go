@@ -67,8 +67,8 @@ func elementsSkStylesheetsFromTsImport(tsImport string) []string {
 	//
 	// Expected Sass imports:
 	//
-	//     @import '~elements-sk/checkbox-sk/checkbox-sk';
-	//     @import '~elements-sk/styles/buttons/buttons';
+	//     @import 'node_modules/elements-sk/checkbox-sk/checkbox-sk.scss';
+	//     @import 'node_modules/elements-sk/styles/buttons/buttons.scss';
 	for _, stylesheet := range knownStylesheets {
 		// Exclude top-level stylesheets (e.g. "elements-sk/colors.scss").
 		if filepath.Dir(stylesheet) == "elements-sk" {
@@ -112,8 +112,7 @@ func main() {
 		// Map each TypeScript import to zero or more elements-sk Sass imports.
 		for _, tsImport := range tsImports {
 			for _, stylesheet := range elementsSkStylesheetsFromTsImport(tsImport) {
-				stylesheet = strings.TrimSuffix(stylesheet, filepath.Ext(stylesheet))
-				outputSassImports = append(outputSassImports, fmt.Sprintf("@import '~%s';", stylesheet))
+				outputSassImports = append(outputSassImports, fmt.Sprintf("@import 'node_modules/%s';", stylesheet))
 			}
 		}
 	}

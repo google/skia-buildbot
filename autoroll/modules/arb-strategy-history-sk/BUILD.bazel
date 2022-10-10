@@ -3,7 +3,6 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 sk_element(
     name = "arb-strategy-history-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//autoroll/modules:colors_sass_lib",
     ],
     sass_srcs = ["arb-strategy-history-sk.scss"],

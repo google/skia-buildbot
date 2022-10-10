@@ -4,7 +4,6 @@ sk_element(
     name = "incident-sk",
     sass_deps = [
         "//am/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["incident-sk.scss"],
     sk_element_deps = ["//am/modules/silence-sk"],

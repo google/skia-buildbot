@@ -4,7 +4,7 @@ sk_element(
     name = "arb-scaffold-sk",
     sass_deps = [
         "//autoroll/modules:colors_sass_lib",
-        "//infra-sk:elements-sk_scss",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["arb-scaffold-sk.scss"],
     sk_element_deps = [

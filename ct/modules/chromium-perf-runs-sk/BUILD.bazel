@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "chromium-perf-runs-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = ["//ct/modules/pagination-sk"],
     ts_deps = [
         "//ct/modules/json:index_ts_lib",

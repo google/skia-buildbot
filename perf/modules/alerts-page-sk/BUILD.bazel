@@ -4,7 +4,6 @@ sk_element(
     name = "alerts-page-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["alerts-page-sk.scss"],
     sk_element_deps = [
@@ -31,7 +30,6 @@ sk_element(
 sk_page(
     name = "alerts-page-sk-demo",
     html_file = "alerts-page-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":alerts-page-sk"],
     ts_deps = [
         "@npm//elements-sk",

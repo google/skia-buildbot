@@ -8,8 +8,8 @@ sk_demo_page_server(
 sk_element(
     name = "ignores-page-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//golden/modules:colors_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["ignores-page-sk.scss"],
     sk_element_deps = [

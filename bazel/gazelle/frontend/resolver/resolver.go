@@ -289,17 +289,6 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 					tsDeps = append(tsDeps, ruleKindAndLabel.label)
 				}
 			}
-			// Heuristic: If this is an elements-sk TypeScript import, then we probably need the
-			// elements-sk styles as well. This is necessary to support the "ghost" stylesheet mechanism
-			// in the sk_element and sk_page macros which includes automatically generated Sass imports
-			// for the stylesheets of any elements-sk modules imported from the TypeScript sources.
-			if importPath == "elements-sk" || strings.HasPrefix(importPath, "elements-sk/") {
-				elementsSkScssLabel, err := label.Parse("//infra-sk:elements-sk_scss")
-				if err != nil {
-					log.Fatal(err)
-				}
-				sassDeps = append(sassDeps, elementsSkScssLabel)
-			}
 		}
 		for _, importPath := range importsFromRuleSources.GetSassImports() {
 			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
@@ -342,16 +331,6 @@ func setDeps(r *rule.Rule, l label.Label, depsAttr string, deps []label.Label) {
 
 // resolveDepForSassImport returns the label of the rule that resolves the given Sass import.
 func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.Label, importPath string) ruleKindAndLabel {
-	// The elements-sk styles are a special case because they come from a genrule that copies them
-	// from //node_modules/elements-sk into //_bazel_bin/~elements-sk. These styles can be accessed
-	// via the //infra-sk:elements-sk_scss sass_library.
-	if strings.HasPrefix(importPath, "~elements-sk") {
-		return ruleKindAndLabel{
-			kind:  "sass_library",
-			label: label.New("", "infra-sk", "elements-sk_scss"),
-		}
-	}
-
 	// Sass and CSS imports from NPM are handled as a special case. Assumptions made:
 	//
 	// - All Sass/CSS imports from NPM are prefixed with "node_modules/". For example, a Sass

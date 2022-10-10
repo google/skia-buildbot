@@ -15,7 +15,6 @@ ts_library(
 sk_element(
     name = "tree-status-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//status/modules:styles_sass_lib",
     ],
     sass_srcs = ["tree-status-sk.scss"],

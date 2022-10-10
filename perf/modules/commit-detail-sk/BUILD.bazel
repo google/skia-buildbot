@@ -3,8 +3,8 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 sk_element(
     name = "commit-detail-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//perf/modules/themes:themes_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["commit-detail-sk.scss"],
     ts_deps = [

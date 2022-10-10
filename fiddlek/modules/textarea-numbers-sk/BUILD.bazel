@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "textarea-numbers-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//fiddlek/modules/themes:themes_sass_lib",
         "@npm//:node_modules/codemirror5/addon/fold/foldgutter.css",
         "@npm//:node_modules/codemirror5/lib/codemirror.css",

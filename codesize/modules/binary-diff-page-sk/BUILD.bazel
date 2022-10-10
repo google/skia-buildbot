@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "binary-diff-page-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["binary-diff-page-sk.scss"],
     sk_element_deps = [
         "//codesize/modules/codesize-scaffold-sk",

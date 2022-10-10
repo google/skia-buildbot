@@ -9,7 +9,6 @@ sk_element(
     name = "note-editor-sk",
     sass_deps = [
         "//machine/modules/theme:theme_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["note-editor-sk.scss"],
     ts_deps = [

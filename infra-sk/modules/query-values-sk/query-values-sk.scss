@@ -1,5 +1,7 @@
-@import '~elements-sk/checkbox-sk/checkbox-sk';
-@import '~elements-sk/multi-select-sk/multi-select-sk';
+@import 'node_modules/elements-sk/themes/color-palette.scss';
+@import 'node_modules/elements-sk/themes/themes.scss';
+@import 'node_modules/elements-sk/checkbox-sk/checkbox-sk.scss';
+@import 'node_modules/elements-sk/multi-select-sk/multi-select-sk.scss';
 
 query-values-sk {
   #regex ~ #values,

@@ -5,7 +5,10 @@ sk_page(
     assets_serving_path = "/dist",
     html_file = "index.html",
     nonce = "{% .Nonce %}",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
     scss_entry_point = "index.scss",
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [

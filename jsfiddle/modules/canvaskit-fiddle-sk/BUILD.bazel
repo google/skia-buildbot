@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "canvaskit-fiddle-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         "//jsfiddle/modules/wasm-fiddle-sk",

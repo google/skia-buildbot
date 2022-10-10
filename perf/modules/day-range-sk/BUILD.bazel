@@ -4,7 +4,6 @@ sk_element(
     name = "day-range-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["day-range-sk.scss"],
     sk_element_deps = ["//perf/modules/calendar-input-sk"],

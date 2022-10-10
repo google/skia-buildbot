@@ -8,8 +8,8 @@ sk_demo_page_server(
 sk_element(
     name = "triage2-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//perf/modules/themes:themes_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["triage2-sk.scss"],
     ts_deps = [

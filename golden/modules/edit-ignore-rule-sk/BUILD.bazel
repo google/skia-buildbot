@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "edit-ignore-rule-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["edit-ignore-rule-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/query-sk"],
     ts_deps = [

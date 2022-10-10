@@ -60,6 +60,16 @@ def sk_element(
         scss_output_file = name + "__generated_elements_sk_deps.scss",
     )
 
+    # Add all elements-sk styles as dependencies to satisfy the imports from the Sass stylesheet
+    # generated in the previous step.
+    elements_sk_scss_label = "//infra-sk:elements-sk_scss"
+    if elements_sk_scss_label not in sass_deps:
+        # We cannot use sass_deps.append() or sass_deps += [...] because that causes the following
+        # Starlark error:
+        #
+        #     Error: trying to mutate a frozen list value
+        sass_deps = sass_deps + [elements_sk_scss_label]
+
     # Generate a "ghost" Sass entry-point stylesheet with import statements for the following
     # files:
     #
@@ -432,6 +442,16 @@ def sk_page(
         ts_srcs = [ts_entry_point],
         scss_output_file = name + "__generated_elements_sk_deps.scss",
     )
+
+    # Add all elements-sk styles as dependencies to satisfy the imports from the Sass stylesheet
+    # generated in the previous step.
+    elements_sk_scss_label = "//infra-sk:elements-sk_scss"
+    if elements_sk_scss_label not in sass_deps:
+        # We cannot use sass_deps.append() or sass_deps += [...] because that causes the following
+        # Starlark error:
+        #
+        #     Error: trying to mutate a frozen list value
+        sass_deps = sass_deps + [elements_sk_scss_label]
 
     # Create a sass_library including the scss_entry_point file, and all the Sass dependencies.
     sass_library(

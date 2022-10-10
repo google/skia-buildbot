@@ -1,6 +1,5 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
-load("//:elements-sk-scss.bzl", "generate_tilde_prefixed_elements_sk_scss_files")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
@@ -123,12 +122,6 @@ sh_binary(
 ##################
 # Miscellaneous. #
 ##################
-
-# Generate a copy of the elements-sk SCSS stylesheets under //_bazel_bin/~elements-sk for
-# compatibility with Webpack-style tilde-prefixed SCSS imports. See the macro docstring for details.
-generate_tilde_prefixed_elements_sk_scss_files(
-    name = "~elements-sk",
-)
 
 # This rule is a convenient way to build all the task drivers and copy them all into a single
 # place as a tar folder. Otherwise, we would need to run many separate bazel build commands and

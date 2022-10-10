@@ -9,7 +9,6 @@ sk_element(
     name = "triage-page-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["triage-page-sk.scss"],
     sk_element_deps = [

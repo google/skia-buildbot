@@ -4,8 +4,8 @@ sk_element(
     name = "ct-scaffold-sk",
     sass_deps = [
         "//ct/modules:style_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "//ct/modules:colors_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["ct-scaffold-sk.scss"],
     sk_element_deps = [

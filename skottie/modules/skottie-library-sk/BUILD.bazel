@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "skottie-library-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["skottie-library-sk.scss"],
     sk_element_deps = ["//skottie/modules/skottie-player-sk"],
     ts_deps = [

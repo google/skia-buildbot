@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "patch-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//ct/modules:colors_sass_lib",
     ],
     sass_srcs = ["patch-sk.scss"],

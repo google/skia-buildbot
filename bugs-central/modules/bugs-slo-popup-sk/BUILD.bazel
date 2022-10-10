@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "bugs-slo-popup-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["bugs-slo-popup-sk.scss"],
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",

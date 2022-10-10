@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "device-editor-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//machine/modules/theme:theme_sass_lib",
     ],
     sass_srcs = ["device-editor-sk.scss"],

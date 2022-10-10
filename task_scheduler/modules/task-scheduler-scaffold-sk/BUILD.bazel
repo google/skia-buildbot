@@ -8,8 +8,8 @@ sk_demo_page_server(
 sk_element(
     name = "task-scheduler-scaffold-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//task_scheduler/modules:colors_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["task-scheduler-scaffold-sk.scss"],
     sk_element_deps = [

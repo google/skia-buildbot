@@ -8,8 +8,8 @@ sk_demo_page_server(
 sk_element(
     name = "query-chooser-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//perf/modules/themes:themes_sass_lib",
+        "@npm//:node_modules/elements-sk/colors.scss",
     ],
     sass_srcs = ["query-chooser-sk.scss"],
     sk_element_deps = [

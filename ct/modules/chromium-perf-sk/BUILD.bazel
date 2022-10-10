@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "chromium-perf-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//ct/modules/input-sk",
         "//ct/modules/pageset-selector-sk",
@@ -29,7 +28,6 @@ sk_element(
 sk_page(
     name = "chromium-perf-sk-demo",
     html_file = "chromium-perf-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":chromium-perf-sk",

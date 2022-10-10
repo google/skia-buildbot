@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "cycler-button-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     ts_deps = [
         "//debugger-app/modules:events_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",

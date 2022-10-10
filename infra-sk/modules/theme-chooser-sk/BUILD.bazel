@@ -8,8 +8,8 @@ sk_demo_page_server(
 sk_element(
     name = "theme-chooser-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//infra-sk:themes_sass_lib",
+        "@npm//:node_modules/elements-sk/icon/icon-sk.scss",
     ],
     sass_srcs = ["theme-chooser-sk.scss"],
     ts_deps = [
@@ -28,7 +28,6 @@ sk_page(
     name = "theme-chooser-sk-demo",
     html_file = "theme-chooser-sk-demo.html",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//infra-sk:themes_sass_lib",
     ],
     scss_entry_point = "theme-chooser-sk-demo.scss",

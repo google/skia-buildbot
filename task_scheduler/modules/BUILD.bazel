@@ -4,5 +4,8 @@ sass_library(
     name = "colors_sass_lib",
     srcs = ["colors.scss"],
     visibility = ["//visibility:public"],
-    deps = ["//infra-sk:elements-sk_scss"],
+    deps = [
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
 )

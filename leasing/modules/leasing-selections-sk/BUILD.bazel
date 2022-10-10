@@ -2,7 +2,9 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "leasing-selections-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/colors.scss",
+    ],
     sass_srcs = ["leasing-selections-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/login-sk"],
     ts_deps = [

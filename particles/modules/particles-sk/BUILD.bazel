@@ -25,7 +25,6 @@ sk_demo_page_server(
 sk_element(
     name = "particles-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",
     ],
     sass_srcs = ["particles-sk.scss"],

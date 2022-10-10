@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "edit-child-shader-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//shaders/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["edit-child-shader-sk.scss"],

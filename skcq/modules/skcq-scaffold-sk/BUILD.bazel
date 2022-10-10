@@ -8,7 +8,6 @@ sk_demo_page_server(
 sk_element(
     name = "skcq-scaffold-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//skcq/modules:colors_sass_lib",
         "//skcq/modules:style_sass_lib",
     ],

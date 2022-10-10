@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "task-queue-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     ts_deps = [
         "//ct/modules/json:index_ts_lib",
         "//ct/modules:ctfe_utils_ts_lib",

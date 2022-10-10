@@ -3,7 +3,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "admin-tasks-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//ct/modules:colors_sass_lib",
     ],
     sass_srcs = ["admin-tasks-sk.scss"],
@@ -31,7 +30,6 @@ sk_element(
 sk_page(
     name = "admin-tasks-sk-demo",
     html_file = "admin-tasks-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":admin-tasks-sk",

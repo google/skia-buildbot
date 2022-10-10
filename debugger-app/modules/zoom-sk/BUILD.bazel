@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "zoom-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["zoom-sk.scss"],
     sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
     ts_deps = [

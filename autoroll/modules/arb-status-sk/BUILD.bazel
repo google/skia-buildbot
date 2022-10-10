@@ -3,7 +3,6 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 sk_element(
     name = "arb-status-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//autoroll/modules:colors_sass_lib",
         "//infra-sk/modules:results_sass_lib",
     ],
@@ -28,7 +27,6 @@ sk_element(
 sk_page(
     name = "arb-status-sk-demo",
     html_file = "arb-status-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",

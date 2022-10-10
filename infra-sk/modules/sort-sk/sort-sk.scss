@@ -1,6 +1,7 @@
-@import '~elements-sk/colors';
+@import 'node_modules/elements-sk/colors.scss';
 
-@import '~elements-sk/themes/themes';
+@import 'node_modules/elements-sk/themes/color-palette.scss';
+@import 'node_modules/elements-sk/themes/themes.scss';
 
 sort-sk {
   display: flex;

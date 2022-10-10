@@ -7,7 +7,9 @@ sk_demo_page_server(
 
 sk_element(
     name = "list-page-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+    ],
     sass_srcs = ["list-page-sk.scss"],
     sk_element_deps = [
         "//golden/modules/corpus-selector-sk",

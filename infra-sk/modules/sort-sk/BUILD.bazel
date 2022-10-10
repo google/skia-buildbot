@@ -7,7 +7,11 @@ sk_demo_page_server(
 
 sk_element(
     name = "sort-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/colors.scss",
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
     sass_srcs = ["sort-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -24,7 +28,6 @@ sk_element(
 sk_page(
     name = "sort-sk-demo",
     html_file = "sort-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":sort-sk"],
     ts_deps = [
         "@npm//common-sk",

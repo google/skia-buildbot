@@ -4,7 +4,6 @@ sk_element(
     name = "commit-detail-panel-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["commit-detail-panel-sk.scss"],
     sk_element_deps = ["//perf/modules/commit-detail-sk"],

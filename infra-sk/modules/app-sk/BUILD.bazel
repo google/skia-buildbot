@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "app-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
     sass_srcs = ["app-sk.scss"],
     ts_deps = ["@npm//elements-sk"],
     ts_srcs = [
@@ -15,7 +18,6 @@ sk_element(
 sk_page(
     name = "app-sk-demo",
     html_file = "app-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     scss_entry_point = "app-sk-demo.scss",
     sk_element_deps = [
         "//infra-sk/modules/login-sk",

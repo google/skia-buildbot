@@ -5,7 +5,8 @@
 
     @import '../colors';
 */
-@import '~elements-sk/themes/themes';
+@import 'node_modules/elements-sk/themes/color-palette.scss';
+@import 'node_modules/elements-sk/themes/themes.scss';
 
 :root {
   --primary: var(--blue-grey-600);

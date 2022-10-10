@@ -3,7 +3,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "commits-table-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//status/modules:styles_sass_lib",
     ],
     sass_srcs = ["commits-table-sk.scss"],
@@ -32,7 +31,6 @@ sk_element(
 sk_page(
     name = "commits-table-sk-demo",
     html_file = "commits-table-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":commits-table-sk",

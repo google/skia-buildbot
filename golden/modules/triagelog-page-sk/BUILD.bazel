@@ -21,7 +21,9 @@ ts_library(
 
 sk_element(
     name = "triagelog-page-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/colors.scss",
+    ],
     sass_srcs = ["triagelog-page-sk.scss"],
     sk_element_deps = ["//golden/modules/pagination-sk"],
     ts_deps = [

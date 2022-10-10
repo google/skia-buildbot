@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "debugger-page-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["debugger-page-sk.scss"],
     sk_element_deps = [
         "//debugger-app/modules/android-layers-sk",

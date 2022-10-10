@@ -7,7 +7,10 @@ sk_demo_page_server(
 
 sk_element(
     name = "expandable-textarea-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
     sass_srcs = ["expandable-textarea-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/autogrow-textarea-sk"],
     ts_deps = [

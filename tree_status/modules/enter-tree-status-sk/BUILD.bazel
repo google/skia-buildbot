@@ -2,7 +2,6 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "enter-tree-status-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["enter-tree-status-sk.scss"],
     sk_element_deps = ["//tree_status/modules/list-autorollers-sk"],
     ts_deps = [

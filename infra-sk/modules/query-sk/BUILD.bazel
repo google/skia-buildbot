@@ -7,7 +7,13 @@ sk_demo_page_server(
 
 sk_element(
     name = "query-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "@npm//:node_modules/elements-sk/colors.scss",
+        "@npm//:node_modules/elements-sk/select-sk/select-sk.scss",
+        "@npm//:node_modules/elements-sk/styles/buttons/buttons.scss",
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+    ],
     sass_srcs = ["query-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/query-values-sk"],
     ts_deps = [

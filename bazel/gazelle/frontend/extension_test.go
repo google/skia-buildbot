@@ -48,7 +48,6 @@ func TestGazelle_NewSourceFilesAdded_GeneratesBuildRules(t *testing.T) {
 @import 'b/charlie';                                // Resolves to a/b/charlie.scss.
 @import '../c/delta';                               // Resolves to c/delta.scss.
 @import '../d_sass_lib/d';                          // Resolves to d_sass_lib/d.scss.
-@import '~elements-sk/colors';                      // Resolves to //infra-sk:elements-sk_scss.
 @use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
 `,
 		},
@@ -132,7 +131,6 @@ import 'net'                                  // Built-in Node.js module.
 @import 'wobble/wubble';                            // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
 @import '../golf-sk/golf-sk';                       // Resolves to myapp/modules/golf-sk/golf-sk.scss.
 @import '../../../d_sass_lib/d';                    // Resolves to d_sass_lib/d.scss.
-@import '~elements-sk/colors';                      // Resolves to //infra-sk:elements-sk_scss.
 @use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
 
 `,
@@ -162,7 +160,6 @@ import 'net'                                  // Built-in Node.js module.
 @import 'wobble/wubble';                            // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
 @import '../golf-sk/golf-sk';                       // Resolves to myapp/modules/golf-sk/golf-sk.scss.
 @import '../../../d_sass_lib/d';                    // Resolves to d_sass_lib/d.scss.
-@import '~elements-sk/colors';                      // Resolves to //infra-sk:elements-sk_scss.
 @use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
 
 `,
@@ -229,7 +226,6 @@ import 'net'                                  // Built-in Node.js module.
 			Path: "myapp/modules/golf-sk/golf-sk.ts",
 			Content: `
 import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.
-import 'elements-sk/checkbox-sk'; // This should add //infra-sk:elements-sk_scss as a sass_dep.
 `,
 		},
 		{Path: "myapp/modules/golf-sk/golf-sk-demo.html"},
@@ -299,7 +295,6 @@ sass_library(
         "//a/b:charlie_sass_lib",
         "//c:delta_sass_lib",
         "//d_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
 )
@@ -455,7 +450,6 @@ sk_element(
     name = "foxtrot-sk",
     sass_deps = [
         "//d_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
         ":wibble_sass_lib",
         "@npm//:node_modules/codemirror5/lib/codemirror.css",
@@ -487,7 +481,6 @@ sk_page(
     html_file = "foxtrot-sk-demo.html",
     sass_deps = [
         "//d_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
         ":wibble_sass_lib",
         "@npm//:node_modules/codemirror5/lib/codemirror.css",
@@ -589,10 +582,8 @@ sk_demo_page_server(
 
 sk_element(
     name = "golf-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["golf-sk.scss"],
     sk_element_deps = ["//myapp/modules/hotel-sk"],
-    ts_deps = ["@npm//elements-sk"],
     ts_srcs = ["golf-sk.ts"],
     visibility = ["//visibility:public"],
 )
@@ -776,7 +767,6 @@ sass_library(
 			Content: `
 @import 'charlie';                                  // Existing import.
 @import 'delta';                                    // New import. Gazelle should add this dep.
-@import '~elements-sk/colors';                      // New import. Gazelle should add this dep.
 @use 'node_modules/codemirror5/theme/ambiance.css'; // New import. Gazelle should add this dep.
 `,
 		},
@@ -843,7 +833,6 @@ sk_page(
     sass_deps = [
         "//a:alfa_sass_lib",  # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
         "//a:bravo_sass_lib",
-        "//infra-sk:elements_scss",  # No elements-sk imports. Gazelle should remove this dep.
         # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
         "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
@@ -1032,7 +1021,6 @@ sass_library(
     deps = [
         ":charlie_sass_lib",
         ":delta_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "@npm//:node_modules/codemirror5/theme/ambiance.css",
     ],
 )
@@ -1086,7 +1074,6 @@ sk_element(
     sass_deps = [
         "//a:bravo_sass_lib",
         "//a:charlie_sass_lib",
-        "//infra-sk:elements-sk_scss",
         "@npm//:node_modules/codemirror5/theme/ambiance.css",
     ],
     sass_srcs = ["echo-sk.scss"],

@@ -4,7 +4,6 @@ sk_element(
     name = "commit-detail-picker-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["commit-detail-picker-sk.scss"],
     sk_element_deps = [
@@ -29,7 +28,6 @@ sk_element(
 sk_page(
     name = "commit-detail-picker-sk-demo",
     html_file = "commit-detail-picker-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":commit-detail-picker-sk"],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",

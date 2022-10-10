@@ -4,7 +4,6 @@ sk_element(
     name = "cluster-page-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["cluster-page-sk.scss"],
     sk_element_deps = [
@@ -37,7 +36,6 @@ sk_element(
 sk_page(
     name = "cluster-page-sk-demo",
     html_file = "cluster-page-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":cluster-page-sk"],
     ts_deps = [
         "@npm//elements-sk",

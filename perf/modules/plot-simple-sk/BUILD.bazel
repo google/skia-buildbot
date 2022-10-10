@@ -24,7 +24,6 @@ ts_library(
 sk_element(
     name = "plot-simple-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["plot-simple-sk.scss"],
@@ -49,7 +48,6 @@ sk_element(
 sk_page(
     name = "plot-simple-sk-demo",
     html_file = "plot-simple-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":plot-simple-sk",

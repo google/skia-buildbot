@@ -3,7 +3,6 @@ load("//infra-sk:index.bzl", "sk_element", "ts_library")
 sk_element(
     name = "skottie-text-editor-sk",
     sass_deps = [
-        "//infra-sk:elements-sk_scss",
         "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["skottie-text-editor-sk.scss"],

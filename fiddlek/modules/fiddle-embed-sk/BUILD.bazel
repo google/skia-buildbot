@@ -9,7 +9,6 @@ sk_element(
     name = "fiddle-embed-sk",
     sass_deps = [
         "//fiddlek/modules/themes:themes_sass_lib",
-        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["fiddle-embed-sk.scss"],
     sk_element_deps = ["//fiddlek/modules/fiddle-sk"],

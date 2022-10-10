@@ -7,7 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "auto-refresh-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["auto-refresh-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

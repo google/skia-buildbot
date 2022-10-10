@@ -1,6 +1,8 @@
-@import '~elements-sk/colors';
-@import '~elements-sk/select-sk/select-sk';
-@import '~elements-sk/styles/buttons/buttons';
+@import 'node_modules/elements-sk/colors.scss';
+@import 'node_modules/elements-sk/themes/color-palette.scss';
+@import 'node_modules/elements-sk/themes/themes.scss';
+@import 'node_modules/elements-sk/select-sk/select-sk.scss';
+@import 'node_modules/elements-sk/styles/buttons/buttons.scss';
 
 query-sk {
   display: block;

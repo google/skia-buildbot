@@ -11,8 +11,9 @@ sass_library(
     srcs = ["styles.scss"],
     visibility = ["//visibility:public"],
     deps = [
-        "//infra-sk:elements-sk_scss",
         "//infra-sk:themes_sass_lib",
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
     ],
 )
 
