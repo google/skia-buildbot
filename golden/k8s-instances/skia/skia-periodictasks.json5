@@ -4,5 +4,18 @@
   tracing_proportion: 0.1,
   update_traces_ignore_period: "20m",
   prom_port: ":20000",
-  ready_port: ":8000"
+  ready_port: ":8000",
+
+  perf_summaries: {
+    age_out_commits: 50,
+    perf_gcs_bucket: "skia-perf",
+    period: "24h",
+
+    corpora_to_summarize: ["gm"],
+    keys_to_summarize: ["os", "model", "cpu_or_gpu_value", "config"],
+    values_to_ignore: ["iPhone6"],
+  },
+
+  K8S_CPU: "300m",
+  K8S_MEMORY: "100Mi"
 }

@@ -61,8 +61,8 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "100Mi"
-              cpu: "10m"
+              memory: "{{.K8S_MEMORY}}"
+              cpu: "{{.K8S_CPU}}"
               ephemeral-storage: '32M'
           readinessProbe:
             httpGet:
