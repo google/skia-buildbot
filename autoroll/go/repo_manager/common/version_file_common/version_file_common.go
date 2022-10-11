@@ -89,6 +89,9 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVers
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
+		if newContents == oldContents {
+			return "", skerr.Fmt("Failed to update dependency %s from %s to %s in %s; new contents identical to old contents:\n%s", dep.Id, oldVersion, newVersion, dep.Path, oldContents)
+		}
 		changes[dep.Path] = newContents
 	}
 	return oldVersion, nil
