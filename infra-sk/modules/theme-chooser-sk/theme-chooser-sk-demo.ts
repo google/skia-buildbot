@@ -1,4 +1,3 @@
-import './theme-chooser-sk-demo.scss';
 import { render, html, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { DARKMODE_LOCALSTORAGE_KEY } from './theme-chooser-sk';

@@ -1,5 +1,4 @@
 import './index';
-import './skottie-sk-demo.css';
 
 import fetchMock from 'fetch-mock';
 import { $$ } from 'common-sk/modules/dom';

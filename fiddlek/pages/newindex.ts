@@ -1,5 +1,3 @@
-import './newindex.scss';
-import '../modules/themes/themes.scss';
 import '../modules/fiddle-sk';
 import { FiddleSk, FiddleSkFiddleSuccessEventDetail } from '../modules/fiddle-sk/fiddle-sk';
 import { FiddleContext } from '../modules/json';

@@ -1,5 +1,4 @@
 import './index';
-import './particles-config-sk-demo.css';
 import { $$ } from 'common-sk/modules/dom';
 import { ParticlesConfigSk } from './particles-config-sk';
 

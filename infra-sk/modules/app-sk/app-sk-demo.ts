@@ -5,4 +5,3 @@ import './index';
 import 'elements-sk/error-toast-sk';
 import '../theme-chooser-sk';
 
-import './app-sk-demo.scss';

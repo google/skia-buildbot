@@ -6,7 +6,6 @@ import '../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/styles/buttons';
 
 // Move to after theme-chooser-sk since that uses infra-sk styles right now.
-import './index.scss';
 
 // Handle the form action for toggling the 'hidden' state of any Artifact.
 document.addEventListener('submit', (e) => {

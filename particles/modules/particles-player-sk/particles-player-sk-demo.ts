@@ -1,5 +1,4 @@
 import './index';
-import './particles-player-sk-demo.css';
 import { $$ } from 'common-sk/modules/dom';
 import { ParticlesPlayerSk } from './particles-player-sk';
 

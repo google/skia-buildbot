@@ -1,6 +1,5 @@
 import '../modules/task-scheduler-scaffold-sk';
 import '../modules/task-sk';
-import '../modules/colors.css';
 import { TaskSk } from '../modules/task-sk/task-sk';
 import { GetTaskSchedulerService } from '../modules/rpc';
 
