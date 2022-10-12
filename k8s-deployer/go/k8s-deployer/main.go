@@ -12,6 +12,11 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/oauth2/google"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -21,7 +26,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -30,6 +34,7 @@ const (
 )
 
 func main() {
+	autoDeleteCrashingStatefulSetPods := flag.Bool("auto_delete_crashing_statefulset_pods", false, "If set, delete out-of-date and crashing StatefulSet pods after applying changes.")
 	configRepo := flag.String("config_repo", "https://skia.googlesource.com/k8s-config.git", "Repo containing Kubernetes configurations.")
 	configSubdir := flag.String("config_subdir", "", "Subdirectory within the config repo to apply to this cluster.")
 	configFiles := common.NewMultiStringFlag("config_file", nil, "Individual config files to apply. Supports regex. Incompatible with --prune.")
@@ -78,15 +83,39 @@ func main() {
 	// Gitiles repo.
 	repo := gitiles.NewRepo(*configRepo, httpClient)
 
+	// Kubernetes API client.
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		sklog.Fatalf("Failed to get in-cluster config: %s", err)
+	}
+	sklog.Infof("Auth username: %s", config.Username)
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
+	}
+
 	// Apply configurations in a loop.  Note that we could respond directly to
 	// commits in the repo via GitStore and PubSub, but that would require
 	// access to BigTable, and with a relatively small interval we won't notice
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, configFileRegexes, *prune); err != nil {
+		applyErr := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, configFileRegexes, *prune, clientset)
+		if applyErr != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", err)
-		} else {
+		}
+
+		// Delete any outdated and crash-looping StatefulSet pods.  These do not
+		// get updated via "kubectl apply" and must be deleted explicitly in
+		// order to be updated.
+		var deleteErr error
+		if *autoDeleteCrashingStatefulSetPods {
+			deleteErr = deleteCrashingStatefulSetPods(ctx, clientset)
+			if deleteErr != nil {
+				sklog.Errorf("Failed to delete crashing StatefulSet pods: %s", err)
+			}
+		}
+		if applyErr == nil && deleteErr == nil {
 			liveness.Reset()
 		}
 	})
@@ -95,7 +124,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, configFileRegexes []*regexp.Regexp, prune bool) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, configFileRegexes []*regexp.Regexp, prune bool, clientset *kubernetes.Clientset) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
@@ -193,6 +222,62 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	sklog.Info("Output from kubectl")
 	for _, line := range strings.Split(output, "\n") {
 		sklog.Info(line)
+	}
+	return deleteCrashingStatefulSetPods(ctx, clientset)
+}
+
+// deleteCrashingStatefulSetPods finds all pods which are crash-looping and are
+// owned by a StatefulSet which is outdated and deletes them.  This should
+// prevent needing to manually run "kubectl delete pod" when a fix has landed
+// for a StatefulSet but the new pod hasn't started because the old pod is
+// crash-looping.
+func deleteCrashingStatefulSetPods(ctx context.Context, clientset *kubernetes.Clientset) error {
+	namespaces, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return skerr.Wrapf(err, "failed to retrieve namespaces")
+	}
+	for _, namespace := range namespaces.Items {
+		pods, err := clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return skerr.Wrapf(err, "failed to retrieve pods in namespace %q", namespace.Name)
+		}
+		for _, pod := range pods.Items {
+			// Find the StatefulSet that owns this pod, if any.
+			statefulSetName := ""
+			for _, ownerRef := range pod.ObjectMeta.OwnerReferences {
+				if ownerRef.Kind == "StatefulSet" {
+					statefulSetName = ownerRef.Name
+					break
+				}
+			}
+			if statefulSetName == "" {
+				continue
+			}
+
+			// Is any container in the pod crashing?
+			isCrashing := false
+			for _, containerStatus := range pod.Status.ContainerStatuses {
+				if containerStatus.State.Waiting != nil && containerStatus.State.Waiting.Reason == "CrashLoopBackOff" {
+					isCrashing = true
+				}
+			}
+			if !isCrashing {
+				continue
+			}
+
+			// Does the StatefulSet have a pending update?
+			statefulSet, err := clientset.AppsV1().StatefulSets(namespace.Name).Get(ctx, statefulSetName, metav1.GetOptions{})
+			if err != nil {
+				return skerr.Wrapf(err, "failed to retrieve statefulset %q in namespace %q", statefulSetName, namespace.Name)
+			}
+			if statefulSet.Status.CurrentRevision != statefulSet.Status.UpdateRevision {
+				// Delete the pod.
+				sklog.Infof("Deleting crash-looping and outdated pod %q in namespace %q", pod.Name, namespace.Name)
+				if err := clientset.CoreV1().Pods(namespace.Name).Delete(ctx, pod.Name, metav1.DeleteOptions{}); err != nil {
+					return skerr.Wrapf(err, "failed to delete pod %q in namespace %q", pod.Name, namespace.Name)
+				}
+			}
+		}
 	}
 	return nil
 }
