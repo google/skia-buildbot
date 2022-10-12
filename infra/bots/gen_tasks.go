@@ -105,6 +105,14 @@ func winGceDimensions(machineType string) []string {
 	}
 }
 
+func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
+	t.CipdPackages = append(t.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk"))
+	if t.EnvPrefixes == nil {
+		t.EnvPrefixes = map[string][]string{}
+	}
+	t.EnvPrefixes["PATH"] = append(t.EnvPrefixes["PATH"], "bazelisk")
+}
+
 // buildTaskDrivers generates the task which compiles the task driver code to run on the specified
 // the platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
@@ -120,28 +128,25 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		"x86_64": "amd64",
 	}[arch]
 	name := fmt.Sprintf("%s-%s-%s", buildTaskDriversName, os, arch)
-	b.MustAddTask(name, &specs.TaskSpec{
-		CasSpec:      casWholeRepo,
-		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("bazelisk")},
+	t := &specs.TaskSpec{
+		CasSpec: casWholeRepo,
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 			goos + "_" + goarch,
 		},
 		Dimensions: linuxGceDimensions(machineTypeMedium),
-		EnvPrefixes: map[string][]string{
-			"PATH": {"bazelisk"},
-		},
 		// This task is idempotent but unlikely to ever be deduped
 		// because it depends on the entire repo...
 		Idempotent: true,
-	})
+	}
+	usesBazelisk(b, t)
+	b.MustAddTask(name, t)
 	return name
 }
 
 // Run the presubmit.
 func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
 
 	cmd := []string{
 		"./presubmit",
@@ -165,11 +170,12 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineTypeMedium),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "bazelisk"},
+			"PATH": {"cipd_bin_packages"},
 		},
 		ServiceAccount: compileServiceAccount,
 		MaxAttempts:    1,
 	}
+	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -259,13 +265,13 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		},
 		ServiceAccount: recreateSKPsServiceAccount,
 	}
+	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name
 }
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
 
 	cmd := []string{
 		"./bazel_build_all",
@@ -292,10 +298,11 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "bazelisk"},
+			"PATH": {"cipd_bin_packages"},
 		},
 		ServiceAccount: compileServiceAccount,
 	}
+	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -303,7 +310,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
 
 	cmd := []string{
 		"./bazel_test_all",
@@ -333,11 +339,11 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
-				"bazelisk",
 			},
 		},
 		ServiceAccount: compileServiceAccount,
 	}
+	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name
 }

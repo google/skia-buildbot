@@ -203,6 +203,11 @@
           "version": "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc"
         },
         {
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
+        },
+        {
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:16"
@@ -255,7 +260,8 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "go/go/bin"
+          "go/go/bin",
+          "bazelisk"
         ]
       },
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
