@@ -102,7 +102,7 @@ func main() {
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
 		applyErr := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, configFileRegexes, *prune, clientset)
 		if applyErr != nil {
-			sklog.Errorf("Failed to apply configs to cluster: %s", err)
+			sklog.Errorf("Failed to apply configs to cluster: %s", applyErr)
 		}
 
 		// Delete any outdated and crash-looping StatefulSet pods.  These do not
@@ -112,7 +112,7 @@ func main() {
 		if *autoDeleteCrashingStatefulSetPods {
 			deleteErr = deleteCrashingStatefulSetPods(ctx, clientset)
 			if deleteErr != nil {
-				sklog.Errorf("Failed to delete crashing StatefulSet pods: %s", err)
+				sklog.Errorf("Failed to delete crashing StatefulSet pods: %s", deleteErr)
 			}
 		}
 		if applyErr == nil && deleteErr == nil {
