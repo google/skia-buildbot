@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/go/firestore",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/emulators",
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
