@@ -560,15 +560,7 @@ func extractImportsFromTypeScriptFile(path string) []string {
 	if err != nil {
 		log.Panicf("Error reading file %q: %v", path, err)
 	}
-
-	// Ignore CSS / Sass imports from TypeScript files (Webpack idiom).
-	var imports []string
-	for _, imp := range parsers.ParseTSImports(string(b[:])) {
-		if !strings.HasSuffix(imp, ".css") && !strings.HasSuffix(imp, ".scss") {
-			imports = append(imports, imp)
-		}
-	}
-	return imports
+	return parsers.ParseTSImports(string(b[:]))
 }
 
 // generateEmptyRules returns a list of rules that cannot be built with the files found in the
