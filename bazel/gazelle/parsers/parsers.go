@@ -6,15 +6,16 @@ import (
 	"strings"
 )
 
-// SplitLinesAndRemoveComments deletes "// line comments" and "/* block comments */" from the given
-// source, and splits the results into lines.
+// SplitLinesAndRemoveComments takes a multiline string, splits it into lines, and returns two
+// equal-length arrays of strings: one with the original lines, and another one with the original
+// lines minus any "// line comments" and "/* block comments */".
 //
-// This works for any language that uses that style of comments, including Typescript, Sass, C++.
-func SplitLinesAndRemoveComments(source string) []string {
-	lines := strings.Split(source, "\n")
-	lines = stripBlockComments(lines)
-	lines = stripCommentedOutLines(lines)
-	return lines
+// This should work for any language that uses C++-style comments, including TypeScript and Sass.
+func SplitLinesAndRemoveComments(source string) ([]string, []string) {
+	verbatim := strings.Split(source, "\n")
+	noComments := stripBlockComments(verbatim)
+	noComments = stripCommentedOutLines(noComments)
+	return verbatim, noComments
 }
 
 var (
@@ -36,7 +37,9 @@ var (
 	blockCommentEndRegexp = regexp.MustCompile(`\*/(?P<uncommented>.*)`)
 )
 
-// stripBlockComments strips /* block comments */ from the given lines of code.
+// stripBlockComments strips /* block comments */ from the given lines of code. Any commented-out
+// lines are replaced by blank lines. Thus, the returned array has the same length as the input
+// array.
 func stripBlockComments(lines []string) []string {
 	var outputLines []string
 	blockComment := false // Keeps track of whether we're currently inside a /* block comment */.
@@ -44,7 +47,7 @@ func stripBlockComments(lines []string) []string {
 	for _, line := range lines {
 		if !blockComment {
 			// We are not currently inside a /* block comment */. Does this line have one or more
-			// single-line block comment?
+			// single-line block comments?
 			match := singleLineBlockCommentRegexp.FindStringSubmatch(line)
 			for len(match) > 0 {
 				// Remove the single-line block-comment and proceed as if it was never there.
@@ -72,8 +75,9 @@ func stripBlockComments(lines []string) []string {
 				blockComment = false
 				outputLines = append(outputLines, match[1])
 			} else {
-				// We are still inside a block comment. The entire line can be discarded, so we
-				// do nothing.
+				// We are still inside a block comment. The current line is replaced with a blank
+				// line.
+				outputLines = append(outputLines, "")
 			}
 		}
 	}
@@ -84,11 +88,14 @@ func stripBlockComments(lines []string) []string {
 // commentedOutLineRegexp matches lines that are commented out via a single-line comment.
 var commentedOutLineRegexp = regexp.MustCompile(`^\s*//`)
 
-// stripCommentedOutLines strips out any lines that begin with a "//" single-line comment.
+// stripCommentedOutLines replaces any lines beginning with a "//" comment with an empty line. The
+// returned array has the same length as the input array.
 func stripCommentedOutLines(lines []string) []string {
 	var outputLines []string
 	for _, line := range lines {
-		if !commentedOutLineRegexp.MatchString(line) {
+		if commentedOutLineRegexp.MatchString(line) {
+			outputLines = append(outputLines, "")
+		} else {
 			outputLines = append(outputLines, line)
 		}
 	}

@@ -2,7 +2,7 @@
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
-import type { CanvasKit, CanvasKitInit as CKInit } from '../../wasm_libs/types/canvaskit';
+import type { CanvasKit, CanvasKitInit as CKInit } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,

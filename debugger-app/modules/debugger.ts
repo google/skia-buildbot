@@ -3,7 +3,7 @@
 import type {
   CanvasKit,
   Surface
-} from '../wasm_libs/types/canvaskit';
+} from '../wasm_libs/types/canvaskit'; // gazelle:ignore
 
 export interface Debugger extends CanvasKit {
   SkpFilePlayer(ab: ArrayBuffer): SkpFilePlayerResult;

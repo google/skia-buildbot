@@ -31,42 +31,79 @@ import (
 // TypeScript source file.
 var tsImportRegexps = []*regexp.Regexp{
 	// Matches the following styles of imports:
+	//
 	//     import * from 'foo';
 	//     export * from 'foo';
 	//     import * as bar from 'foo';
 	//     import { bar, baz } from 'foo';
 	//     import { bar, baz as qux } from 'foo';
+	//
+	// All of the above imports can be ignored with a "gazelle:ignore" comment, e.g.:
+	//
+	//     import * from 'foo'; // gazelle:ignore
 	regexp.MustCompile(`^\s*(import|export)\s*(\*|[[:alnum:]]|_|\$|,|\{|\}|\s)*\s*from\s*'(?P<path>.*)'`), // Single quotes.
 	regexp.MustCompile(`^\s*(import|export)\s*(\*|[[:alnum:]]|_|\$|,|\{|\}|\s)*\s*from\s*"(?P<path>.*)"`), // Double quotes.
 
 	// Matches multiline imports, e.g.:
+	//
 	//     import {
 	//       bar,
 	//       baz as qux,
 	//     } from 'foo';
+	//
+	// Multiline imports can also be ignored with a "gazelle:ignore" comment, e.g.:
+	//
+	//     import {
+	//       bar,
+	//       baz as qux,
+	//     } from 'foo'; // gazelle:ignore
 	regexp.MustCompile(`^\s*}?\s*from\s*'(?P<path>.*)'`), // Single quotes.
 	regexp.MustCompile(`^\s*}?\s*from\s*"(?P<path>.*)"`), // Double quotes.
 
 	// Matches imports for side-effects only, e.g.:
+	//
 	//     import 'foo';
+	//
+	// These can also be ignored via a "gazelle:ignore" comment, e.g.:
+	//
+	//     import 'foo'; // gazelle:ignore
 	regexp.MustCompile(`^\s*import\s*'(?P<path>.*)'`), // Single quotes.
 	regexp.MustCompile(`^\s*import\s*"(?P<path>.*)"`), // Double quotes.
 }
 
+// tsGazelleIgnoreCommentRegexps matches "gazelle:ignore" comments.
+var tsGazelleIgnoreCommentRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`.*//.*gazelle:ignore.*`),       // Line comment.
+	regexp.MustCompile(`.*/\*.*gazelle:ignore.*\*/.*`), // Single-line block comment.
+}
+
 // ParseTSImports takes the contents of a TypeScript source file and extracts the verbatim paths of
-// any imported modules.
+// any imported modules. Import statements ending with a "gazelle:ignore" comment are ignored.
 func ParseTSImports(source string) []string {
 	// Remove comments from the source file.
-	lines := parsers.SplitLinesAndRemoveComments(source)
+	verbatimLines, linesWithCommentsRemoved := parsers.SplitLinesAndRemoveComments(source)
 
 	// Extract all imports.
 	importsSet := map[string]bool{}
-	for _, line := range lines {
-		for _, re := range tsImportRegexps {
-			match := re.FindStringSubmatch(line)
+	for i, line := range linesWithCommentsRemoved {
+		for _, importRegexp := range tsImportRegexps {
+			match := importRegexp.FindStringSubmatch(line)
 			if len(match) != 0 {
-				importPath := match[len(match)-1] // The path is the last capture group on all regexps.
-				importsSet[importPath] = true
+				importPath := match[len(match)-1] // The path is the last capture group on all TS import regexps.
+
+				// Is this import statement ignored via a "gazelle:ignored" comment?
+				isIgnored := false
+				for _, ignoreRegexp := range tsGazelleIgnoreCommentRegexps {
+					// We need to test against the verbatim line, as it preserves all comments.
+					match := ignoreRegexp.FindStringSubmatch(verbatimLines[i])
+					if len(match) != 0 {
+						isIgnored = true
+					}
+				}
+
+				if !isIgnored {
+					importsSet[importPath] = true
+				}
 			}
 		}
 	}
@@ -110,11 +147,11 @@ var sassImportRegexps = []*regexp.Regexp{
 // imported modules.
 func ParseSassImports(source string) []string {
 	// Remove comments from the source file.
-	lines := parsers.SplitLinesAndRemoveComments(source)
+	_, linesWithCommentsRemoved := parsers.SplitLinesAndRemoveComments(source)
 
 	// Extract all imports.
 	importsSet := map[string]bool{}
-	for _, line := range lines {
+	for _, line := range linesWithCommentsRemoved {
 		for _, re := range sassImportRegexps {
 			match := re.FindStringSubmatch(line)
 			if len(match) != 0 {

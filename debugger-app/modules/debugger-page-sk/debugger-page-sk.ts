@@ -50,7 +50,7 @@ import type {
   CanvasKitInitOptions,
   Paint,
   Surface,
-} from '../../wasm_libs/types/canvaskit';
+} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {
   Debugger,
   Matrix3x3,

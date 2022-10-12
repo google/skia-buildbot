@@ -32,6 +32,32 @@ import {                                           // This comment should be ign
   bar,                                             // This comment should be ignored.
 } from "path/to/p";                                // This comment should be ignored.
 
+// These imports should be ignored (typical use case: Bazel-generated TS files, e.g. WASM builds).
+import 'path/to/generated-module-a';                   //gazelle:ignore
+import 'path/to/generated-module-b';                   // gazelle:ignore
+import 'path/to/generated-module-c';                   /*gazelle:ignore*/
+import 'path/to/generated-module-d';                   /* gazelle:ignore */
+import { foo, bar } from 'path/to/generated-module-e'; //gazelle:ignore
+import { foo, bar } from 'path/to/generated-module-f'; // gazelle:ignore
+import { foo, bar } from 'path/to/generated-module-g'; /*gazelle:ignore*/
+import { foo, bar } from 'path/to/generated-module-h'; /* gazelle:ignore */
+import {
+  foo,
+  bar,
+} from 'path/to/generated-module-i'; //gazelle:ignore
+import {
+  foo,
+  bar,
+} from 'path/to/generated-module-j'; // gazelle:ignore
+import {
+  foo,
+  bar,
+} from 'path/to/generated-module-k'; /*gazelle:ignore*/
+import {
+  foo,
+  bar,
+} from 'path/to/generated-module-l'; /* gazelle:ignore */
+
 // Duplicate imports should be ignored.
 import 'path/to/a';
 

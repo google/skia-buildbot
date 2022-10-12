@@ -18,7 +18,7 @@ import type {
   CanvasKitInit as CKInit,
   Paint,
   Surface,
-} from '../../wasm_libs/types/canvaskit';
+} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 import 'elements-sk/error-toast-sk';

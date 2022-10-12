@@ -111,7 +111,11 @@ func (rslv *Resolver) findRuleThatProvidesImport(lang string, importPath string,
 	}
 
 	if len(candidates) == 0 {
-		log.Printf("Could not find any rules that satisfy import %q from %s (%s)", importPath, fromRuleLabel, fromRuleKind)
+		gazelleIgnoreMsg := ""
+		if lang == "ts" {
+			gazelleIgnoreMsg = `; if this is expected, add "// gazelle:ignore" at the end of the import statement to make this warning go away`
+		}
+		log.Printf("Could not find any rules that satisfy import %q from %s (%s)%s", importPath, fromRuleLabel, fromRuleKind, gazelleIgnoreMsg)
 		return noRuleKindAndLabel
 	}
 
