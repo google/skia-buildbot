@@ -224,6 +224,14 @@ type queryParam struct {
 	reg         *regexp.Regexp // The regexp to match against, if a regexp search.
 }
 
+// Key returns the parameter key, removing the leading "," and trailing "=".
+func (q queryParam) Key() string {
+	if len(q.keyMatch) <= 2 {
+		return ""
+	}
+	return q.keyMatch[1 : len(q.keyMatch)-1]
+}
+
 // Query represents a query against a key, i.e. Query.Matches can return true
 // or false if a given key matches the query. For example, this query will find all
 // keys that have a value of 565 for 'config' and true for 'debug':
@@ -455,36 +463,32 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 //
 func (q *Query) QueryPlan(ps paramtools.ReadOnlyParamSet) (paramtools.ParamSet, error) {
 	ret := paramtools.NewParamSet()
-	// Loop over KeyOrder, we don't care about the q.params order.
-	for key := range ps {
-		for _, part := range q.params {
-			// Strip the , and = from part.keyMatch.
-			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
-			if partKey == key {
-				// WildCard, Regex and Negative are all mutually exclusive.
-				values := ps[key]
-				var err error = nil
-				if part.isWildCard {
-					ret[key] = append([]string{}, ps[key]...)
-				} else if part.isRegex {
-					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
-						return part.reg.MatchString(value)
-					})
-				} else if part.isNegative {
-					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
-						return !util.In(value, part.values)
-					})
-				} else {
-					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
-						return util.In(value, part.values)
-					})
-				}
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
+	for _, part := range q.params {
+		partKey := part.Key()
+		values, ok := ps[partKey]
+		if !ok {
+			return nil, skerr.Fmt("Unknown key for paramset: %s", partKey)
 		}
+		var err error = nil
+		if part.isWildCard {
+			ret[partKey] = append([]string{}, ps[partKey]...)
+		} else if part.isRegex {
+			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
+				return part.reg.MatchString(value)
+			})
+		} else if part.isNegative {
+			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
+				return !util.In(value, part.values)
+			})
+		} else {
+			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
+				return util.In(value, part.values)
+			})
+		}
+		if err != nil {
+			return nil, err
+		}
+		continue
 	}
 	return ret, nil
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 )
 
@@ -516,9 +517,10 @@ func TestQueryPlan(t *testing.T) {
 			reason: "Simple AND",
 		},
 		{
-			query:  url.Values{"fizz": []string{"buzz"}},
-			want:   paramtools.ParamSet{},
-			reason: "Unknown param",
+			query:    url.Values{"fizz": []string{"buzz"}},
+			want:     paramtools.ParamSet{},
+			reason:   "Unknown param",
+			hasError: true,
 		},
 		{
 			query:    url.Values{"config": []string{"buzz"}},
@@ -532,9 +534,10 @@ func TestQueryPlan(t *testing.T) {
 			reason: "Wildcard param value match",
 		},
 		{
-			query:  url.Values{"fizz": []string{"*"}},
-			want:   paramtools.ParamSet{},
-			reason: "Wildcard param value missing",
+			query:    url.Values{"fizz": []string{"*"}},
+			want:     paramtools.ParamSet{},
+			reason:   "Wildcard param value missing",
+			hasError: true,
 		},
 		{
 			query:  url.Values{"foo": []string{"*"}},
@@ -606,4 +609,12 @@ func TestValidateParamSet(t *testing.T) {
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"": []string{}}))
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"); DROP TABLE": []string{}}))
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"good": []string{"); DROP TABLE"}}))
+}
+
+func TestQueryParamKey_HappyPath(t *testing.T) {
+	require.Equal(t, "arch", queryParam{keyMatch: ",arch="}.Key())
+}
+
+func TestQueryParamKey_EmptyKey_ReturnsEmptyString(t *testing.T) {
+	require.Empty(t, queryParam{keyMatch: ",="}.Key())
 }
