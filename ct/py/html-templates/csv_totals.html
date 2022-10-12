@@ -60,8 +60,9 @@
         <th>#Webpages</th>
         <th>Total</th>
         <th>Total with Patch</th>
-        <th>Percentage Change</th>
-        <th>Percentage Difference</th>
+        <th>%-</th>
+        <th>%𝚫</th>
+        <th>%𝚫 95% CI</th>
       </tr>
       {% for fieldname, fieldname_values in sorted_fieldnames_totals_items %}
         <tr>
@@ -69,8 +70,9 @@
           <td>{{ fieldname_values.total_webpages_reported }}</td>
           <td>{{ fieldname_values.value1|floatformat:"-3" }}</td>
           <td>{{ fieldname_values.value2|floatformat:"-3" }}</td>
-          <td {% if fieldname_values.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
           <td {% if fieldname_values.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.perc_change <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.within_ci  %}class="withinci"{% else %}class="outsideci"{% endif %} >[{{ fieldname_values.lower_ci|floatformat:"-3" }}, {{ fieldname_values.upper_ci|floatformat:"-3" }}]%</td>
         </tr>
       {% endfor %}
     </table>
