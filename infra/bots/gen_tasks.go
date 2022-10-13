@@ -43,8 +43,6 @@ var (
 		"Infra-PerCommit-Build-Bazel-RBE":       &cqWithDefaults,
 		"Infra-PerCommit-Test-Bazel-RBE":        &cqWithDefaults,
 		"Housekeeper-Weekly-UpdateCIPDPackages": noCQ,
-		"Infra-Experimental-Small-Linux":        noCQ,
-		"Infra-Experimental-Small-Win":          noCQ,
 		"Infra-PerCommit-Build-Bazel-Local":     noCQ,
 		"Infra-PerCommit-Test-Bazel-Local":      noCQ,
 	}
@@ -180,59 +178,6 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func experimental(b *specs.TasksCfgBuilder, name string) string {
-	var pkgs []*specs.CipdPackage
-	if strings.Contains(name, "Win") {
-		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
-		pkgs = append(pkgs, specs.Python3WindowsAMD64CIPDPackages()...)
-	} else {
-		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-		pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
-	}
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("node"))
-
-	machineType := machineTypeMedium
-	var deps []string
-	var dims []string
-	if strings.Contains(name, "Win") {
-		goPkg := b.MustGetCipdPackageFromAsset("go_win")
-		goPkg.Path = "go"
-		pkgs = append(pkgs, goPkg)
-		deps = append(deps, buildTaskDrivers(b, "Win", "x86_64"))
-		dims = winGceDimensions(machineType)
-	} else if strings.Contains(name, "Linux") {
-		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
-		dims = linuxGceDimensions(machineType)
-	}
-	t := &specs.TaskSpec{
-		Caches:       goCaches,
-		CasSpec:      casWholeRepo,
-		CipdPackages: pkgs,
-		Command: []string{
-			"./infra_tests",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-		},
-		Dependencies: deps,
-		Dimensions:   dims,
-		EnvPrefixes: map[string][]string{
-			"PATH": {
-				"cipd_bin_packages",
-				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython3",
-				"cipd_bin_packages/cpython3/bin",
-				"go/go/bin",
-			},
-		},
-		ServiceAccount: compileServiceAccount,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
@@ -353,10 +298,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	var priority float64 // Leave as default for most jobs.
 	var deps []string
 
-	if strings.Contains(name, "Experimental") {
-		// Experimental recipe-less tasks.
-		deps = append(deps, experimental(b, name))
-	} else if strings.Contains(name, "UpdateCIPDPackages") {
+	if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "Build-Bazel-Local") {
