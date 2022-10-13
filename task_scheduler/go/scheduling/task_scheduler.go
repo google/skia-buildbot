@@ -1245,7 +1245,7 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCa
 		if err != nil {
 			errStr := err.Error()
 			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-			errs = multierror.Append(errs, skerr.Wrapf(err, "Failed to merge CAS inputs"))
+			errs = multierror.Append(errs, skerr.Wrapf(err, "failed to merge CAS inputs for %s @ %s", c.Name, c.RepoState.String()))
 			continue
 		}
 		c.CasInput = digest

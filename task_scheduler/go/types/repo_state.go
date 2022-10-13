@@ -150,3 +150,12 @@ func (s RepoState) RowKey() string {
 	}
 	return strings.Join([]string{BT_ROW_KEY_VERSION, s.Revision, repo, s.Patch.RowKey()}, "#")
 }
+
+// String returns a human-readable string representation of the RepoState.
+func (s RepoState) String() string {
+	rv := fmt.Sprintf("%s@%s", s.Repo, s.Revision)
+	if !s.Patch.Empty() {
+		rv += "+" + s.Patch.GetPatchRef()
+	}
+	return rv
+}
