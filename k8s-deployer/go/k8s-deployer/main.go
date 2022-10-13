@@ -84,14 +84,17 @@ func main() {
 	repo := gitiles.NewRepo(*configRepo, httpClient)
 
 	// Kubernetes API client.
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		sklog.Fatalf("Failed to get in-cluster config: %s", err)
-	}
-	sklog.Infof("Auth username: %s", config.Username)
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
+	var clientset *kubernetes.Clientset
+	if *autoDeleteCrashingStatefulSetPods {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			sklog.Fatalf("Failed to get in-cluster config: %s", err)
+		}
+		sklog.Infof("Auth username: %s", config.Username)
+		clientset, err = kubernetes.NewForConfig(config)
+		if err != nil {
+			sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
+		}
 	}
 
 	// Apply configurations in a loop.  Note that we could respond directly to
