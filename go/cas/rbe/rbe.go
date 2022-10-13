@@ -206,27 +206,23 @@ type directoryNode struct {
 // makeTree creates a tree of directoryNodes using the given Directories. It
 // assumes that the list of Directories is complete and maps exactly to the
 // sub-Directories of each of the Directories, in order.
-func makeTree(dirs []*remoteexecution.Directory) (*directoryNode, []*remoteexecution.Directory, error) {
-	if len(dirs) == 0 {
-		// If there are no directories left in the passed-in list, the list is
-		// incomplete. Return an error.
-		return nil, nil, skerr.Fmt("failed to makeTree; passed-in list of Directory is incomplete")
+func makeTree(dirsByDigest map[digest.Digest]*remoteexecution.Directory, d digest.Digest) (*directoryNode, error) {
+	dir, ok := dirsByDigest[d]
+	if !ok {
+		return nil, skerr.Fmt("no information provided for digest %s", d.String())
 	}
 	rv := &directoryNode{
-		Directory: dirs[0],
-		Children:  map[string]*directoryNode{},
+		Directory: dir,
+		Children:  make(map[string]*directoryNode, len(dir.Directories)),
 	}
-	dirs = dirs[1:]
 	for _, childDir := range rv.Directories {
-		var childNode *directoryNode
-		var err error
-		childNode, dirs, err = makeTree(dirs)
+		childNode, err := makeTree(dirsByDigest, digest.NewFromProtoUnvalidated(childDir.Digest))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		rv.Children[childDir.Name] = childNode
 	}
-	return rv, dirs, nil
+	return rv, nil
 }
 
 // mergeTrees merges the given trees of directoryNodes into a new directoryNode.
@@ -408,9 +404,22 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		tree, _, err := makeTree(dirs)
+		dirsByDigest := make(map[digest.Digest]*remoteexecution.Directory, len(dirs))
+		rootDigest, err := digest.NewFromMessage(dirs[0])
 		if err != nil {
-			return "", skerr.Wrapf(err, "failed merging digest %q", casDigest)
+			return "", skerr.Wrapf(err, "failed to create digest for root dir: %+v", dirs[0])
+		}
+		dirsByDigest[rootDigest] = dirs[0]
+		for _, dir := range dirs[1:] {
+			d, err := digest.NewFromMessage(dir)
+			if err != nil {
+				return "", skerr.Wrapf(err, "failed to create digest for dir: %+v", dir)
+			}
+			dirsByDigest[d] = dir
+		}
+		tree, err := makeTree(dirsByDigest, rootDigest)
+		if err != nil {
+			return "", skerr.Wrapf(err, "failed to create tree for digest %q", casDigest)
 		}
 		trees = append(trees, tree)
 	}
