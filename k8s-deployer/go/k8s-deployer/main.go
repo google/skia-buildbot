@@ -223,7 +223,7 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	for _, line := range strings.Split(output, "\n") {
 		sklog.Info(line)
 	}
-	return deleteCrashingStatefulSetPods(ctx, clientset)
+	return nil
 }
 
 // deleteCrashingStatefulSetPods finds all pods which are crash-looping and are
