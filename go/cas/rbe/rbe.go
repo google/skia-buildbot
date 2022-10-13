@@ -206,7 +206,12 @@ type directoryNode struct {
 // makeTree creates a tree of directoryNodes using the given Directories. It
 // assumes that the list of Directories is complete and maps exactly to the
 // sub-Directories of each of the Directories, in order.
-func makeTree(dirs []*remoteexecution.Directory) (*directoryNode, []*remoteexecution.Directory) {
+func makeTree(dirs []*remoteexecution.Directory) (*directoryNode, []*remoteexecution.Directory, error) {
+	if len(dirs) == 0 {
+		// If there are no directories left in the passed-in list, the list is
+		// incomplete. Return an error.
+		return nil, nil, skerr.Fmt("failed to makeTree; passed-in list of Directory is incomplete")
+	}
 	rv := &directoryNode{
 		Directory: dirs[0],
 		Children:  map[string]*directoryNode{},
@@ -214,10 +219,14 @@ func makeTree(dirs []*remoteexecution.Directory) (*directoryNode, []*remoteexecu
 	dirs = dirs[1:]
 	for _, childDir := range rv.Directories {
 		var childNode *directoryNode
-		childNode, dirs = makeTree(dirs)
+		var err error
+		childNode, dirs, err = makeTree(dirs)
+		if err != nil {
+			return nil, nil, err
+		}
 		rv.Children[childDir.Name] = childNode
 	}
-	return rv, dirs
+	return rv, dirs, nil
 }
 
 // mergeTrees merges the given trees of directoryNodes into a new directoryNode.
@@ -399,7 +408,10 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		tree, _ := makeTree(dirs)
+		tree, _, err := makeTree(dirs)
+		if err != nil {
+			return "", skerr.Wrapf(err, "failed merging digest %q", casDigest)
+		}
 		trees = append(trees, tree)
 	}
 
