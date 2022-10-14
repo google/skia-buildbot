@@ -33,7 +33,7 @@ var cfg = config.DataStoreConfig{
 	TileSize: testTileSize,
 }
 
-func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
+func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
 	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
 
@@ -44,12 +44,13 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 		populatedTestDB(t, ctx, store)
 	}
 
-	return ctx, store, cleanup
+	t.Cleanup(cleanup)
+
+	return ctx, store
 }
 
 func TestUpdateSourceFile(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, false)
 
 	// Do each update twice to ensure the IDs don't change.
 	id, err := s.updateSourceFile(ctx, "foo.txt")
@@ -68,8 +69,7 @@ func TestUpdateSourceFile(t *testing.T) {
 }
 
 func TestReadTraces(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -92,8 +92,7 @@ func TestReadTraces(t *testing.T) {
 }
 
 func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=x86,config='); DROP TABLE TraceValues,",
@@ -108,8 +107,7 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 }
 
 func TestReadTraces_NoResults(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=unknown,",
@@ -123,8 +121,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 }
 
 func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -141,8 +138,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -158,8 +154,7 @@ func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -174,9 +169,68 @@ func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
 	}, ts)
 }
 
+func TestRestrictByCounting_EmptyPlan_ReturnsEmptyRestrictClause(t *testing.T) {
+	ctx, s := commonTestSetup(t, true)
+
+	const emptyTileNumber = types.TileNumber(1)
+	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, paramtools.NewParamSet())
+	require.Empty(t, key)
+	require.Empty(t, clause)
+	require.Equal(t, runnable, planDisposition)
+}
+
+func TestRestrictByCounting_OneKeyInPlan_ReturnsEmptyRestrictClause(t *testing.T) {
+	ctx, s := commonTestSetup(t, true)
+
+	const emptyTileNumber = types.TileNumber(1)
+	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, paramtools.ParamSet{"arch": []string{"x86"}})
+	require.Empty(t, key)
+	require.Empty(t, clause)
+	require.Equal(t, runnable, planDisposition)
+}
+
+func TestRestrictByCounting_TwoKeysInPlan_ReturnsNonEmptyRestrictClause(t *testing.T) {
+	ctx, s := commonTestSetup(t, true)
+
+	const emptyTileNumber = types.TileNumber(1)
+
+	plan := paramtools.ParamSet{
+		"config": []string{"565"}, // Matches one trace.
+		"arch":   []string{"x86"}, // Matches two traces.
+	}
+
+	// Should return 'config' as the key with the least matches.
+	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, plan)
+	require.Equal(t, "config", key)
+	expectedClause := `
+    AND trace_ID IN
+    (
+            '\x277262a9236d571883d47dab102070bc'
+    )`
+
+	require.Equal(t, expectedClause, clause)
+	require.Equal(t, runnable, planDisposition)
+}
+
+func TestRestrictByCounting_TwoKeysInPlanButOneKeyDoesNotMatchAnything_ReturnsSkippableDisposition(t *testing.T) {
+	ctx, s := commonTestSetup(t, true)
+
+	const emptyTileNumber = types.TileNumber(1)
+
+	plan := paramtools.ParamSet{
+		"unknownKey": []string{"blah-blah-blah"}, // Matches one trace.
+		"arch":       []string{"x86"},            // Matches two traces.
+	}
+
+	// Should return 'config' as the key with the least matches.
+	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, plan)
+	require.Equal(t, "", key)
+	require.Equal(t, "", clause)
+	require.Equal(t, skippable, planDisposition)
+}
+
 func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("")
@@ -198,8 +252,7 @@ func paramSetFromParamsChan(ch <-chan paramtools.Params) paramtools.ParamSet {
 }
 
 func TestQueryTracesIDOnly_EmptyTileReturnsEmptyParamset(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -210,8 +263,7 @@ func TestQueryTracesIDOnly_EmptyTileReturnsEmptyParamset(t *testing.T) {
 }
 
 func TestQueryTracesIDOnly_MatchesOneTrace(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -225,9 +277,26 @@ func TestQueryTracesIDOnly_MatchesOneTrace(t *testing.T) {
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
 }
 
+func TestQueryTracesIDOnly_QueryThatTriggersUserOfARestrictClause_Success(t *testing.T) {
+	ctx, s := commonTestSetup(t, true)
+	s.queryUsesRestrictClause.Reset()
+
+	// "config=565" Matches one trace. "arch=x86" Matches two traces. So the
+	// query will use a restrict clause to speed up the query.
+	q, err := query.NewFromString("arch=x86&config=565")
+	require.NoError(t, err)
+	ch, err := s.QueryTracesIDOnly(ctx, 0, q)
+	require.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"565"},
+	}
+	assert.Equal(t, expected, paramSetFromParamsChan(ch))
+	assert.Equal(t, int64(1), s.queryUsesRestrictClause.Get())
+}
+
 func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
@@ -242,8 +311,7 @@ func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTrace(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -256,8 +324,7 @@ func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 }
 
 func TestQueryTraces_NegativeQuery(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query with a negative match that matches one trace.
 	q, err := query.NewFromString("config=!565")
@@ -270,8 +337,7 @@ func TestQueryTraces_NegativeQuery(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
@@ -284,8 +350,7 @@ func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
@@ -299,8 +364,7 @@ func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -311,8 +375,7 @@ func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
 }
 
 func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, false)
 
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -323,8 +386,7 @@ func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 }
 
 func TestTraceCount(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	count, err := s.TraceCount(ctx, 0)
 	assert.NoError(t, err)
@@ -340,8 +402,7 @@ func TestTraceCount(t *testing.T) {
 }
 
 func TestParamSetForTile(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	ps, err := s.paramSetForTile(ctx, 1)
 	assert.NoError(t, err)
@@ -353,8 +414,7 @@ func TestParamSetForTile(t *testing.T) {
 }
 
 func TestParamSetForTile_Empty(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, false)
 
 	// Test the empty case where there is no data in the store.
 	ps, err := s.paramSetForTile(ctx, 1)
@@ -363,8 +423,7 @@ func TestParamSetForTile_Empty(t *testing.T) {
 }
 
 func TestGetLatestTile(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	tileNumber, err := s.GetLatestTile(ctx)
 	assert.NoError(t, err)
@@ -372,8 +431,7 @@ func TestGetLatestTile(t *testing.T) {
 }
 
 func TestGetLatestTile_Empty(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, false)
 
 	// Test the empty case where there is no data in datastore.
 	tileNumber, err := s.GetLatestTile(ctx)
@@ -382,8 +440,7 @@ func TestGetLatestTile_Empty(t *testing.T) {
 }
 
 func TestGetParamSet(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	tileNumber := types.TileNumber(1)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
@@ -400,8 +457,7 @@ func TestGetParamSet(t *testing.T) {
 }
 
 func TestGetParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	_, s := commonTestSetup(t, true)
 
 	tileNumber := types.TileNumber(0)
 
@@ -411,8 +467,7 @@ func TestGetParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
 }
 
 func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	tileNumber := types.TileNumber(0)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
@@ -460,8 +515,7 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 }
 
 func TestGetParamSet_Empty(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, false)
 
 	// Test the empty case where there is no data in datastore.
 	ps, err := s.GetParamSet(ctx, 1)
@@ -470,8 +524,7 @@ func TestGetParamSet_Empty(t *testing.T) {
 }
 
 func TestGetSource(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	filename, err := s.GetSource(ctx, types.CommitNumber(2), ",arch=x86,config=8888,")
 	require.NoError(t, err)
@@ -479,8 +532,7 @@ func TestGetSource(t *testing.T) {
 }
 
 func TestGetSource_Empty(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	// Confirm the call works with an empty tracestore.
 	filename, err := s.GetSource(ctx, types.CommitNumber(5), ",arch=x86,config=8888,")
@@ -489,16 +541,14 @@ func TestGetSource_Empty(t *testing.T) {
 }
 
 func TestSQLTraceStore_TileNumber(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	_, s := commonTestSetup(t, false)
 
 	assert.Equal(t, types.TileNumber(0), s.TileNumber(types.CommitNumber(1)))
 	assert.Equal(t, types.TileNumber(1), s.TileNumber(types.CommitNumber(9)))
 }
 
 func TestSQLTraceStore_TileSize(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
+	_, s := commonTestSetup(t, false)
 
 	assert.Equal(t, testTileSize, s.TileSize())
 }
@@ -590,8 +640,7 @@ func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
 }
 
 func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	sources, err := s.GetLastNSources(ctx, ",arch=x86,config=8888,", 2)
 	require.NoError(t, err)
@@ -609,8 +658,7 @@ func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 }
 
 func TestGetLsatNSources_LessCommitsMatchThanAreAskedFor_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	sources, err := s.GetLastNSources(ctx, ",arch=x86,config=8888,", 4)
 	require.NoError(t, err)
@@ -632,8 +680,7 @@ func TestGetLsatNSources_LessCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 }
 
 func TestGetLsatNSources_NoMatchesForTraceID_ReturnsEmptySlice(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	sources, err := s.GetLastNSources(ctx, ",this=key,does=not,match=anything,", 4)
 	require.NoError(t, err)
@@ -642,8 +689,7 @@ func TestGetLsatNSources_NoMatchesForTraceID_ReturnsEmptySlice(t *testing.T) {
 }
 
 func TestGetTraceIDsBySource_SourceInSecondTile_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	secondTile := types.TileNumber(1)
 	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/2020/02/08/13/testdata.json", secondTile)
@@ -653,8 +699,7 @@ func TestGetTraceIDsBySource_SourceInSecondTile_Success(t *testing.T) {
 }
 
 func TestGetTraceIDsBySource_LookForSourceThatDoesNotExist_ReturnsEmptySlice(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, true)
-	defer cleanup()
+	ctx, s := commonTestSetup(t, true)
 
 	secondTile := types.TileNumber(1)
 	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/this-file-does-not-exist.json", secondTile)
