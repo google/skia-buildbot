@@ -8,7 +8,6 @@
 
 import csv
 import datetime
-import math
 import optparse
 import os
 import re
@@ -285,23 +284,6 @@ class CsvComparer(object):
     for fieldname, values in fieldnames_to_page_values.items():
       fieldnames_to_totals[fieldname].total_webpages_reported = len(values)
 
-    # Set the 95% confidence interval.
-    for fieldname, pageValues in fieldnames_to_page_values.items():
-      lower_ci, upper_ci = find95ConfidenceInterval(pageValues)
-      fieldnames_to_totals[fieldname].lower_ci = lower_ci
-      fieldnames_to_totals[fieldname].upper_ci = upper_ci
-
-      # Calculate whether the perc_change value is within the confidence
-      # interval. If any of the bounds in the interval are 0 then we do not
-      # consider the interval.
-      if lower_ci == 0 or upper_ci == 0:
-        fieldnames_to_totals[fieldname].within_ci = False
-      else:
-        fieldnames_to_totals[fieldname].within_ci = (
-            fieldnames_to_totals[fieldname].perc_change >= lower_ci and
-            fieldnames_to_totals[fieldname].perc_change <= upper_ci)
-
-
     # Done processing. Output the HTML.
     self.OutputToHTML(fieldnames_to_totals, fieldnames_to_page_values,
                       fieldnames_to_discards, self._output_html_dir)
@@ -365,44 +347,6 @@ class CsvComparer(object):
           os.path.join(self._output_html_dir,
           'fieldname%s.html' % fieldname_count), 'w') as fieldname_html:
         fieldname_html.write(rendered)
-
-
-def find95ConfidenceInterval(pageValues):
-  """ Finds the confidence interval of %-changes with 95% confidence level.
-
-  Args:
-    page_values = List of PageValues objects.
-
-  Returns:
-    A tuple containing (lower_internal, upper_internal) of the CI.
-  """
-  # Step1: Find the number of samples.
-  total_count = len(pageValues)
-
-  # Step2: Find the mean of % changes.
-  sum_perc_change = 0
-  for pv in pageValues:
-    sum_perc_change += pv.perc_change
-  mean_perc_change = sum_perc_change/total_count
-
-  # Step3: Find the standard deviation.
-  sumOfSquares = 0
-  for pv in pageValues:
-    sumOfSquares += math.pow(pv.perc_change - mean_perc_change, 2)
-  standard_dev = math.sqrt(sumOfSquares/total_count)
-
-  # Step 4: Find the Z value for the confidence internal.
-  # The Z value for 95% confidence internval is 1.960
-  z_value = 1.960
-
-  # Step 5: Calculate the confidence interval.
-  # CI = mean += z_value(std_deviation/sqr_root(total_count))
-  # Calculate the z_value(std_deviation/sqr_root(total_count)) part of
-  # the formula first.
-  right_side_formula = z_value * (standard_dev / math.sqrt(total_count))
-  lower_interval = mean_perc_change - right_side_formula
-  upper_interval = mean_perc_change + right_side_formula
-  return lower_interval, upper_interval
 
 
 if '__main__' == __name__:
