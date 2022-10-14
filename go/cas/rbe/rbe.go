@@ -2,6 +2,7 @@ package rbe
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/chunker"
@@ -59,8 +60,17 @@ func DigestToString(hash string, size int64) string {
 
 // Client is a struct used to interact with RBE-CAS.
 type Client struct {
-	client   *client.Client
+	client   RBEClient
 	instance string
+}
+
+// RBEClient is an abstraction of client.Client which enables mocks for testing.
+type RBEClient interface {
+	Close() error
+	ComputeMerkleTree(execRoot string, is *command.InputSpec, chunkSize int, cache filemetadata.Cache) (root digest.Digest, inputs []*chunker.Chunker, stats *client.TreeStats, err error)
+	DownloadDirectory(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache) (map[string]*client.TreeOutput, error)
+	GetDirectoryTree(ctx context.Context, d *remoteexecution.Digest) (result []*remoteexecution.Directory, err error)
+	UploadIfMissing(ctx context.Context, data ...*chunker.Chunker) ([]digest.Digest, error)
 }
 
 // NewClient returns a Client instance.
@@ -225,6 +235,36 @@ func makeTree(dirsByDigest map[digest.Digest]*remoteexecution.Directory, d diges
 	return rv, nil
 }
 
+// printTree returns a string representation of the tree rooted at the given
+// directoryNode. Useful for debugging.
+func printTree(node *directoryNode, name, indent string) string {
+	d, err := digest.NewFromMessage(node.Directory)
+	if err != nil {
+		panic(err)
+	}
+	rv := fmt.Sprintf("%s%s: (d) %s\n", indent, name, d.String())
+
+	for _, file := range node.Files {
+		d := digest.NewFromProtoUnvalidated(file.Digest)
+		rv += fmt.Sprintf("%s%s: (f) %s\n", indent, file.Name, d.String())
+	}
+
+	for _, symlink := range node.Symlinks {
+		rv += fmt.Sprintf("%s%s: (s) -> %s\n", indent, symlink.Name, symlink.Target)
+	}
+
+	childDirs := make([]string, 0, len(node.Children))
+	for name := range node.Children {
+		childDirs = append(childDirs, name)
+	}
+	subIndent := indent + "| "
+	sort.Strings(childDirs)
+	for _, name := range childDirs {
+		rv += printTree(node.Children[name], name, subIndent)
+	}
+	return rv
+}
+
 // mergeTrees merges the given trees of directoryNodes into a new directoryNode.
 // Returns an error if the two trees are incompatible, eg. trees that contain
 // files with the same name but different digests.
@@ -250,9 +290,14 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 			filesMap[file.Name] = file
 		}
 	}
+	fileNames := make([]string, 0, len(filesMap))
+	for name := range filesMap {
+		fileNames = append(fileNames, name)
+	}
+	sort.Strings(fileNames)
 	files := make([]*remoteexecution.FileNode, 0, len(filesMap))
-	for _, file := range filesMap {
-		files = append(files, file)
+	for _, fileName := range fileNames {
+		files = append(files, filesMap[fileName])
 	}
 
 	// Symlinks.
@@ -270,9 +315,14 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 			symlinksMap[symlink.Name] = symlink
 		}
 	}
+	symlinkNames := make([]string, 0, len(symlinksMap))
+	for name := range symlinksMap {
+		symlinkNames = append(symlinkNames, name)
+	}
+	sort.Strings(symlinkNames)
 	symlinks := make([]*remoteexecution.SymlinkNode, 0, len(symlinksMap))
-	for _, symlink := range symlinksMap {
-		symlinks = append(symlinks, symlink)
+	for _, symlinkName := range symlinkNames {
+		symlinks = append(symlinks, symlinksMap[symlinkName])
 	}
 
 	// Directories.
@@ -305,9 +355,14 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 			children[dir.Name] = b.Children[dir.Name]
 		}
 	}
+	dirNames := make([]string, 0, len(dirsMap))
+	for name := range dirsMap {
+		dirNames = append(dirNames, name)
+	}
+	sort.Strings(dirNames)
 	dirs := make([]*remoteexecution.DirectoryNode, 0, len(dirsMap))
-	for _, dir := range dirsMap {
-		dirs = append(dirs, dir)
+	for _, dirName := range dirNames {
+		dirs = append(dirs, dirsMap[dirName])
 	}
 
 	// Properties.
@@ -402,7 +457,7 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		}
 		dirs, err := c.client.GetDirectoryTree(ctx, d.ToProto())
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", skerr.Wrapf(err, "failed retrieving %s", d.String())
 		}
 		dirsByDigest := make(map[digest.Digest]*remoteexecution.Directory, len(dirs))
 		rootDigest, err := digest.NewFromMessage(dirs[0])

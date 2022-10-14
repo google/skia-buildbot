@@ -24,11 +24,18 @@ go_library(
 
 go_test(
     name = "rbe_test",
-    srcs = ["rbe_manual_test.go"],
+    srcs = [
+        "rbe_manual_test.go",
+        "rbe_test.go",
+    ],
     embed = [":rbe"],
     deps = [
+        "//go/cas/rbe/mocks",
         "//go/deepequal/assertdeep",
         "//go/testutils",
+        "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest:go_default_library",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_x_oauth2//google",
