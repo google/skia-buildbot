@@ -21,6 +21,7 @@ go_test(
     srcs = ["vfs_test.go"],
     embed = [":testutils"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/git",
         "//go/gitiles",
         "//go/mockhttpclient",

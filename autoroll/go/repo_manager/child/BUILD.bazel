@@ -56,6 +56,7 @@ go_test(
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/gitiles_common",
         "//autoroll/go/revision",
+        "//bazel/external/cipd/git",
         "//go/auth",
         "//go/chrome_branch/mocks",
         "//go/cipd/mocks",

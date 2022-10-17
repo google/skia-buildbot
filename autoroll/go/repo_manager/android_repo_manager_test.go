@@ -69,6 +69,8 @@ func androidCfg() *config.AndroidRepoManagerConfig {
 func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
+	// We do not actually want to shell out to git, as that would require having an actual
+	// git checkout. Instead, we intercept the calls to all binaries...
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if err := git_common.MocksForFindGit(ctx, cmd); err != nil {
@@ -126,7 +128,12 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 		}
 		return nil
 	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	// ... and use a fake git path instead of needing the git binary brought in from CIPD.
+	fakeGitFinder := func() (string, error) {
+		return "/fake/path/to/git", nil
+	}
+	ctx := git_common.WithGitFinder(context.Background(), fakeGitFinder)
+	ctx = exec.NewContext(ctx, mockRun.Run)
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 	}

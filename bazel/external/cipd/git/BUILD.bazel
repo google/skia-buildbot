@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/go/bazel",
+        "//go/git/git_common",
         "//go/skerr",
     ],
 )

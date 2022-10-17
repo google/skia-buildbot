@@ -27,6 +27,7 @@ go_test(
     srcs = ["pubsub_test.go"],
     embed = [":pubsub"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/repograph",

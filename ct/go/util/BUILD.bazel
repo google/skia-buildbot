@@ -49,6 +49,7 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":util"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/git",
         "//go/git/testutils",
         "//go/testutils",

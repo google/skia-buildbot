@@ -64,6 +64,7 @@ go_test(
         "//autoroll/go/repo_manager/child",
         "//autoroll/go/repo_manager/parent",
         "//autoroll/go/revision",
+        "//bazel/external/cipd/git",
         "//bazel/go/bazel",
         "//go/chrome_branch/mocks",
         "//go/cipd/mocks",

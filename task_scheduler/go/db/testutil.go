@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
@@ -1435,7 +1436,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 }
 
 func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	now := time.Now()
 	timeWindow := 24 * time.Hour
 	// Offset commit timestamps for different repos to ensure that we get
@@ -1444,7 +1445,6 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 	curOffset := repoOffset
 	f := "somefile"
 	setup := func(numCommits int) (string, *repograph.Graph, func()) {
-		ctx := context.Background()
 		gb := git_testutils.GitInit(t, ctx)
 		repoUrl := gb.RepoUrl()
 		t0 := now.Add(-timeWindow).Add(curOffset)

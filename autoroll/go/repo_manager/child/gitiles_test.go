@@ -6,9 +6,11 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -40,7 +42,7 @@ func setupRegistry(t *testing.T) *config_vars.Registry {
 // which do not modify the configured path.
 func TestGitilesChildPathFilter(t *testing.T) {
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	repo := git_testutils.GitInit(t, ctx)
 	commits := []string{}
 

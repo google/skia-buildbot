@@ -1,10 +1,12 @@
 package git
 
 import (
+	"context"
 	"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -19,4 +21,8 @@ func FindGit() (string, error) {
 		return filepath.Join(bazel.RunfilesDir(), "external", "git_linux", "bin", "git"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
+}
+
+func UseGitFinder(ctx context.Context) context.Context {
+	return git_common.WithGitFinder(ctx, FindGit)
 }

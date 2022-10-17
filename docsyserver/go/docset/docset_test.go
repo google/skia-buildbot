@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/docsyserver/go/codereview"
 	crmocks "go.skia.org/infra/docsyserver/go/codereview/mocks"
 	"go.skia.org/infra/docsyserver/go/docsy/mocks"
@@ -34,7 +35,8 @@ var myFakeError = fmt.Errorf("My fake error")
 // full path to the destination, a mock for Docsy, a mock for CoreReview, and a
 // constructed docSet.
 func setupForTest(t *testing.T) (context.Context, string, string, string, *mocks.Docsy, *crmocks.CodeReview, *docSet) {
-	ctx := context.WithValue(context.Background(), now.ContextKey, mockTime)
+	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx = context.WithValue(ctx, now.ContextKey, mockTime)
 
 	// Create a test repo to work with.
 	gb := gittestutils.GitInit(t, ctx)

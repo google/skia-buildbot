@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -22,7 +23,7 @@ const (
 )
 
 func TestCommitToSyntheticRepo(t *testing.T) {
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a test repo.
 	gb := git_testutils.GitInitWithDefaultBranch(t, ctx, git.MainBranch)

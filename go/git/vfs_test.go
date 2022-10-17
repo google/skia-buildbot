@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/vfs/shared_tests"
 )
 
 func TestFS(t *testing.T) {
-
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	tmp := shared_tests.MakeTestFiles(t)
 	gd := GitDir(tmp)
 	_, err := gd.Git(ctx, "init")

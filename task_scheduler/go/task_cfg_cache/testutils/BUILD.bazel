@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils",
     visibility = ["//visibility:public"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/bt/testutil",
         "//go/git/testutils",
         "//go/sktest",

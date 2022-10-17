@@ -25,6 +25,7 @@ go_test(
     srcs = ["gitiles_test.go"],
     embed = [":gitiles"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/testutils",

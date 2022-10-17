@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -56,7 +57,8 @@ func TestCommandRepoManager(t *testing.T) {
 	const pinnedRev0 = "pinnedRev0"
 
 	// Setup.
-	ctx := context.Background()
+	// We do actually want to call git for some commands, so we need to use the git from CIPD.
+	ctx := cipd_git.UseGitFinder(context.Background())
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
@@ -115,7 +117,7 @@ func TestCommandRepoManager(t *testing.T) {
 		SetPinnedRev: setPinnedRev,
 	}
 
-	// Mock all commands. If the command is one of the three special commands
+	// Spy on all commands. If the command is one of the three special commands
 	// for this repo manager, verify that it matches expectations.
 	lastUpload := new(vcsinfo.LongCommit)
 	mockRun := &exec.CommandCollector{}

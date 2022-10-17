@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -82,7 +83,7 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t, ctx)

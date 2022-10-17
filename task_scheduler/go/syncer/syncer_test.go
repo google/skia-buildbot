@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -26,7 +27,7 @@ var (
 )
 
 func tempGitRepoSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 	gb.Add(ctx, "codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
 PROJECT: skia`)
@@ -35,11 +36,10 @@ PROJECT: skia`)
 	return ctx, gb, c1, c2
 }
 
-func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
+func tempGitRepoGclientTests(ctx context.Context, t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	ctx := context.Background()
 	// Skip download-topics in gclient calls to avoid that network call.
 	ctx = context.WithValue(ctx, SkipDownloadTopicsKey, true)
 	cacheDir := path.Join(tmp, "cache")
@@ -82,7 +82,7 @@ func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 }
 
 func TestTempGitRepo(t *testing.T) {
-	_, gb, c1, c2 := tempGitRepoSetup(t)
+	ctx, gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
 	cases := map[types.RepoState]error{
@@ -95,7 +95,7 @@ func TestTempGitRepo(t *testing.T) {
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoGclientTests(t, cases)
+	tempGitRepoGclientTests(ctx, t, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
@@ -118,7 +118,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoGclientTests(t, cases)
+	tempGitRepoGclientTests(ctx, t, cases)
 }
 
 func TestTempGitRepoParallel(t *testing.T) {

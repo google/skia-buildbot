@@ -19,6 +19,7 @@ go_test(
     srcs = ["bt_vcs_test.go"],
     embed = [":bt_vcs"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/git",
         "//go/gitstore",
         "//go/gitstore/bt_gitstore/testutils",

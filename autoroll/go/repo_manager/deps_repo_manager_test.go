@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -89,7 +90,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	require.NoError(t, err)
 
 	// Create child and parent repos.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	child := git_testutils.GitInit(t, ctx)
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)

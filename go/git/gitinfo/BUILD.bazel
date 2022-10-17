@@ -21,6 +21,7 @@ go_test(
     srcs = ["gitinfo_test.go"],
     embed = [":gitinfo"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/git",
         "//go/vcsinfo/testutils",
         "@com_github_stretchr_testify//assert",

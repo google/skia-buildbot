@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -21,7 +23,7 @@ import (
 func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repograph.Map, *memory.InMemoryDB, *git_testutils.GitBuilder, func()) {
 	d := memory.NewInMemoryDB()
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 	c0 := gb.CommitGen(ctx, "placeholder")
 	workdir, err := ioutil.TempDir("", "")

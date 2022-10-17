@@ -12,6 +12,7 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/db",
     visibility = ["//visibility:public"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/common",
         "//go/deepequal/assertdeep",
         "//go/firestore",

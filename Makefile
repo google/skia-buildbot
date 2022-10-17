@@ -67,4 +67,8 @@ bazel-test-rbe-nocache:
 eslint:
 	-npx eslint --fix .
 
+.PHONY: errcheck
+errcheck:
+	bazel run //:errcheck -- -ignore :Close go.skia.org/infra/...
+
 include make/npm.mk

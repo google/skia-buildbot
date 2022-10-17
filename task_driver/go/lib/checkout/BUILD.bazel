@@ -21,6 +21,7 @@ go_test(
     srcs = ["checkout_test.go"],
     embed = [":checkout"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/common",
         "//go/exec",
         "//go/git",

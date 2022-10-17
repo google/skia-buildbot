@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/git"
@@ -23,7 +25,7 @@ import (
 
 func TestInitialIngestCommitBatch(t *testing.T) {
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	ri := repograph.NewMemCacheRepoImpl(nil, nil)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
 	require.NoError(t, err)

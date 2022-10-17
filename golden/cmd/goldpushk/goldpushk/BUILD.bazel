@@ -29,6 +29,7 @@ go_test(
     ],
     embed = [":goldpushk"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/exec",
         "//go/git",
         "//go/git/testutils",

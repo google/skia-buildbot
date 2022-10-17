@@ -1,39 +1,33 @@
-package git_common
+package git_common_test
 
 import (
 	"context"
 	"testing"
 
+	"go.skia.org/infra/go/git/git_common"
+
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 )
 
 func TestFindGit(t *testing.T) {
-
 	execCount := 0
-	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+	gitFinder := func() (string, error) {
 		execCount++
-		return exec.DefaultRun(ctx, cmd)
-	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
+		return cipd_git.FindGit()
+	}
+	ctx := git_common.WithGitFinder(context.Background(), gitFinder)
 
 	check := func() {
-		git, major, minor, err := FindGit(ctx)
+		git, major, minor, err := git_common.FindGit(ctx)
 		require.NoError(t, err)
 		require.NotEqual(t, "", git)
 		require.NotEqual(t, "git", git)
 		require.NotEqual(t, 0, major)
 		require.NotEqual(t, 0, minor)
-		// TODO(borenet): We want to ensure that we get Git from CIPD
-		// on all bots and servers, but we don't want to impose that
-		// restriction on developers.
-		//require.True(t, IsFromCIPD(git))
+		require.True(t, git_common.IsFromCIPD(git))
 	}
-	check()
-	require.Equal(t, 1, execCount)
-
-	// Ensure that we cached the results.
 	check()
 	require.Equal(t, 1, execCount)
 }

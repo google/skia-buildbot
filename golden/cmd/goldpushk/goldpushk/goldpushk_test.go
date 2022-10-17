@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
@@ -48,7 +49,7 @@ func TestNew(t *testing.T) {
 func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a fake k8s-config repository (i.e. "git init" a temp directory).
 	fakeK8sConfig := createFakeK8sConfigRepo(t, ctx)
@@ -177,7 +178,7 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a fake k8s-config repository (i.e. "git init" a temp directory).
 	fakeK8sConfig := createFakeK8sConfigRepo(t, ctx)
@@ -217,7 +218,7 @@ func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
 func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a fake k8s-config repository (i.e. "git init" a temp directory).
 	fakeK8sConfig := createFakeK8sConfigRepo(t, ctx)
@@ -260,7 +261,7 @@ func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
 func TestGoldpushk_CommitConfigFiles_FlagNoCommitSet_DoesNotCommit(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a fake k8s-config repository (i.e. "git init" a temp directory).
 	fakeK8sConfig := createFakeK8sConfigRepo(t, ctx)
@@ -298,7 +299,7 @@ func TestGoldpushk_CommitConfigFiles_FlagNoCommitSet_DoesNotCommit(t *testing.T)
 func TestGoldpushk_CommitConfigFiles_FlagDryRunSet_DoesNotCommit(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a fake k8s-config repository (i.e. "git init" a temp directory).
 	fakeK8sConfig := createFakeK8sConfigRepo(t, ctx)

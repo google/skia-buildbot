@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -33,9 +35,8 @@ func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string
 }
 
 func TestIncrementalCommits(t *testing.T) {
-
 	// Setup.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	c0 := gb.CommitGen(ctx, "file1")

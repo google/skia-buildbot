@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/go/git/git_common",
     visibility = ["//visibility:public"],
     deps = [
-        "//bazel/external/cipd/git",
         "//bazel/go/bazel",
         "//go/exec",
         "//go/metrics2",
@@ -19,9 +18,9 @@ go_library(
 go_test(
     name = "git_common_test",
     srcs = ["git_common_test.go"],
-    embed = [":git_common"],
     deps = [
-        "//go/exec",
+        ":git_common",
+        "//bazel/external/cipd/git",
         "@com_github_stretchr_testify//require",
     ],
 )

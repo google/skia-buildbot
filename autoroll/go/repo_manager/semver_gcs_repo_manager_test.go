@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -95,7 +96,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create child and parent repos.
 	parent := git_testutils.GitInit(t, ctx)

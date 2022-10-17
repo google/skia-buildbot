@@ -12,15 +12,16 @@ import (
 	"testing"
 	"time"
 
-	cipd_api "go.chromium.org/luci/cipd/client/cipd"
-
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
+	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -88,7 +89,7 @@ func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 

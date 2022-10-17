@@ -25,6 +25,7 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":docset"],
     deps = [
+        "//bazel/external/cipd/git",
         "//docsyserver/go/codereview",
         "//docsyserver/go/codereview/mocks",
         "//docsyserver/go/docsy/mocks",

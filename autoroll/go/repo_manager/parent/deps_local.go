@@ -50,7 +50,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	// Set up depot tools.
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "setting up depot tools in %s", workdir)
 	}
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
 	depotToolsEnv = append(depotToolsEnv, "GIT_TRACE=1")

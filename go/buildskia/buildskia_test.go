@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
@@ -46,7 +47,8 @@ func TestGNNinjaBuild(t *testing.T) {
 func TestGNDownloadSkia(t *testing.T) {
 	mock := exec.CommandCollector{}
 	mock.SetDelegateRun(git_common.MocksForFindGit)
-	ctx := exec.NewContext(context.Background(), mock.Run)
+	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx = exec.NewContext(ctx, mock.Run)
 
 	checkout, err := ioutil.TempDir("", "download-test")
 	require.NoError(t, err)
@@ -69,17 +71,26 @@ func TestGNDownloadSkia(t *testing.T) {
 		"fetch skia",
 		fmt.Sprintf("%s --version", gitExec),
 		fmt.Sprintf("%s show-ref", gitExec),
+		fmt.Sprintf("%s --version", gitExec),
 		fmt.Sprintf("%s rev-list --max-parents=0 --first-parent HEAD", gitExec),
+		fmt.Sprintf("%s --version", gitExec),
 		fmt.Sprintf("%s reset --hard aabbccddeeff", gitExec),
 		"gclient sync",
 		"fetch-gn",
+		fmt.Sprintf("%s --version", gitExec),
 		gitExec + " log -n 1 --format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b aabbccddeeff",
+		fmt.Sprintf("%s --version", gitExec),
 	}
-	require.Equal(t, len(expectedCommands), len(mock.Commands()))
+	if len(expectedCommands) != len(mock.Commands()) {
+		fmt.Println("Actual commands:")
+		for _, cmd := range mock.Commands() {
+			fmt.Printf("\t%s\n", exec.DebugString(cmd))
+		}
+	}
 	for i, want := range expectedCommands {
 		got := exec.DebugString(mock.Commands()[i])
 		if !strings.HasSuffix(got, want) {
-			t.Errorf("Failed: Command %q doesn't end with %q", got, want)
+			t.Errorf("Failed: Command %d (%q) doesn't end with %q", i, got, want)
 		}
 	}
 }

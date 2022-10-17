@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -18,9 +19,8 @@ const (
 )
 
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
-
 	// Create a local git repo to play with.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	g := git_testutils.GitInit(t, ctx)
 	commits := make([]string, 10)
 	for i := 0; i < 10; i++ {

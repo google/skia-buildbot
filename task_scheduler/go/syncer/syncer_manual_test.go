@@ -22,7 +22,7 @@ func TestTempGitRepoBadRev(t *testing.T) {
 	// encounters "transient" errors. I'm not sure why it thinks "fatal:
 	// couldn't find remote ref" is transient, but these retries cause the
 	// test to time out.
-	_, gb, _, _ := tempGitRepoSetup(t)
+	ctx, gb, _, _ := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
 	cases := map[types.RepoState]error{
@@ -31,7 +31,7 @@ func TestTempGitRepoBadRev(t *testing.T) {
 			Revision: "bogusRev",
 		}: ERR_DONT_CARE,
 	}
-	tempGitRepoGclientTests(t, cases)
+	tempGitRepoGclientTests(ctx, t, cases)
 }
 
 func TestTempGitRepoErr(t *testing.T) {

@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/buildbucket/mocks"
 	cas_mocks "go.skia.org/infra/go/cas/mocks"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
@@ -41,7 +42,7 @@ import (
 
 const (
 	repoBaseName = "skia.git"
-	test         = `a"` + `b` + `c"`
+	test         = `a"bc"`
 
 	testTasksCfg = `{
   "casSpecs": {
@@ -108,9 +109,10 @@ var (
 // TryJobIntegrator instance, and URLMock instance.
 func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, *mocks.BuildBucketInterface, func()) {
 
-	ctx := now.TimeTravelingContext(ts)
+	ctx := context.WithValue(context.Background(), now.ContextKey, ts)
+	ctx = cipd_git.UseGitFinder(ctx)
 	// Skip download-topics in gclient calls to avoid that network call.
-	ctx = ctx.WithContext(context.WithValue(ctx.Context, syncer.SkipDownloadTopicsKey, true))
+	ctx = context.WithValue(ctx, syncer.SkipDownloadTopicsKey, true)
 	// Set up the test Git repo.
 	gb := git_testutils.GitInit(t, ctx)
 	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))

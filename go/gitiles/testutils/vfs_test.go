@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -14,8 +16,7 @@ import (
 // Ideally, this would be in the go/gitiles package, but we want to use the
 // mocks in this package.
 func TestFS(t *testing.T) {
-
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	repoURL := "https://fake.repo.git"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := gitiles.NewRepo(repoURL, urlMock.Client())

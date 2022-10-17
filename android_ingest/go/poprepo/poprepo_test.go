@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
 )
 
 func TestAdd(t *testing.T) {
-
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create a test repo.
 	gb := testutils.GitInitWithDefaultBranch(t, ctx, git.MainBranch)

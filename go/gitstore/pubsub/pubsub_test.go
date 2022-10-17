@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -95,7 +96,8 @@ loop:
 func TestUpdateUsingPubSub(t *testing.T) {
 	unittest.RequiresPubSubEmulator(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// Create the git repo and graph.

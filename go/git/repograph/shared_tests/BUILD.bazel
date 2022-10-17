@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/git/repograph/shared_tests",
     visibility = ["//visibility:public"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/repograph",

@@ -32,6 +32,7 @@ go_test(
     ],
     embed = [":repograph"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/repograph/shared_tests",

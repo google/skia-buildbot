@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -73,7 +74,7 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 	require.NoError(t, err)
 
 	// Create child and parent repos.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	cfg := copyCfg(t)
 	child := git_testutils.GitInit(t, ctx)
 	childCommits := make([]string, 0, 10)

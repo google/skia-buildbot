@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -37,7 +38,8 @@ var (
 //
 // The hashes for each commit are going to be random and so are returned also.
 func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig, CleanupFunc) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	// Create a git repo for testing purposes.
 	gb := testutils.GitInit(t, ctx)

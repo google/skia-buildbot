@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	gs_testutils "go.skia.org/infra/go/gitstore/bt_gitstore/testutils"
@@ -20,23 +21,23 @@ import (
 )
 
 func TestVCSSuite(t *testing.T) {
-	vcs, _, cleanup := setupVCSLocalRepo(t, git.MasterBranch)
+	ctx, vcs, _, cleanup := setupVCSLocalRepo(t, git.MasterBranch)
 	defer cleanup()
 
 	// Run the VCS test suite.
-	vcs_testutils.TestByIndex(t, vcs)
-	vcs_testutils.TestDisplay(t, vcs)
-	vcs_testutils.TestFrom(t, vcs)
-	vcs_testutils.TestIndexOf(t, vcs)
-	vcs_testutils.TestLastNIndex(t, vcs)
-	vcs_testutils.TestRange(t, vcs)
+	vcs_testutils.TestByIndex(ctx, t, vcs)
+	vcs_testutils.TestDisplay(ctx, t, vcs)
+	vcs_testutils.TestFrom(ctx, t, vcs)
+	vcs_testutils.TestIndexOf(ctx, t, vcs)
+	vcs_testutils.TestLastNIndex(ctx, t, vcs)
+	vcs_testutils.TestRange(ctx, t, vcs)
 }
 
 func TestBranchInfo(t *testing.T) {
-	vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore.ALL_BRANCHES)
+	ctx, vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore.ALL_BRANCHES)
 	defer cleanup()
 
-	branchPointers, err := gitStore.GetBranches(context.Background())
+	branchPointers, err := gitStore.GetBranches(ctx)
 	require.NoError(t, err)
 	branches := []string{}
 	for branchName := range branchPointers {
@@ -45,7 +46,7 @@ func TestBranchInfo(t *testing.T) {
 		}
 	}
 
-	vcs_testutils.TestBranchInfo(t, vcs, branches)
+	vcs_testutils.TestBranchInfo(ctx, t, vcs, branches)
 }
 
 // TestConcurrentUpdate verifies that BigTableVCS.Update() behaves correctly
@@ -163,15 +164,15 @@ func TestDetailsMultiCaching(t *testing.T) {
 }
 
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
-func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
+func setupVCSLocalRepo(t *testing.T, branch string) (context.Context, vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo(t)
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)
 	vcs, err := New(ctx, btgs, branch)
 	require.NoError(t, err)
-	return vcs, btgs, func() {
+	return ctx, vcs, btgs, func() {
 		util.RemoveAll(wd)
 		cleanup()
 	}

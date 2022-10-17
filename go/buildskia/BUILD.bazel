@@ -33,6 +33,7 @@ go_test(
     ],
     embed = [":buildskia"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/exec",
         "//go/git",
         "//go/git/git_common",

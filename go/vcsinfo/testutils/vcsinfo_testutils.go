@@ -23,8 +23,7 @@ func InitTempRepo(t sktest.TestingT) (string, func()) {
 	return tr.Dir, tr.Cleanup
 }
 
-func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
-	ctx := context.Background()
+func TestDisplay(ctx context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	testCases := []struct {
 		hash    string
@@ -56,7 +55,7 @@ func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
+func TestFrom(_ context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	// The two commits in the main branch of the repo have timestamps:
 	// 1406721715 and 1406721642.
@@ -89,9 +88,8 @@ func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
+func TestByIndex(ctx context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
-	ctx := context.Background()
 	commit, err := vcs.ByIndex(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", commit.Hash)
@@ -104,7 +102,7 @@ func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	require.Error(t, err)
 }
 
-func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
+func TestLastNIndex(_ context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	c1 := &vcsinfo.IndexCommit{
 		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
@@ -144,9 +142,8 @@ func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
+func TestIndexOf(ctx context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
-	ctx := context.Background()
 	idx, err := vcs.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
 	require.NoError(t, err)
 	require.Equal(t, 0, idx)
@@ -157,7 +154,7 @@ func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
 	require.Error(t, err)
 }
 
-func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
+func TestRange(_ context.Context, t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	ts1 := time.Unix(1406721642, 0).UTC()
 	ts2 := time.Unix(1406721715, 0).UTC()
@@ -222,9 +219,8 @@ func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestBranchInfo(t require.TestingT, vcs vcsinfo.VCS, branches []string) {
+func TestBranchInfo(ctx context.Context, t require.TestingT, vcs vcsinfo.VCS, branches []string) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
-	ctx := context.Background()
 	require.Equal(t, 2, len(branches))
 
 	// The timestamps of the three commits commits in the entire repository start

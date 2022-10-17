@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -88,7 +89,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	cfg := fuchsiaCfg()
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent

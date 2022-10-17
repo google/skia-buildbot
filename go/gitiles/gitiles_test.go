@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -19,7 +22,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
-	"golang.org/x/time/rate"
 )
 
 func TestLog(t *testing.T) {
@@ -47,7 +49,7 @@ func TestLog(t *testing.T) {
 		|
 		* commit c0
 	*/
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 	now := time.Now()
 	c0 := gb.CommitGenAt(ctx, "file1", now)
@@ -577,7 +579,7 @@ func TestLogOptionsToQuery(t *testing.T) {
 func TestDetails(t *testing.T) {
 
 	// Setup.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	repoURL := "https://skia.googlesource.com/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := NewRepo(repoURL, urlMock.Client())

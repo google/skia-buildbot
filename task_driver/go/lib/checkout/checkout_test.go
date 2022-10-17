@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -21,7 +23,7 @@ import (
 func TestEnsureGitCheckout(t *testing.T) {
 
 	// Setup.
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	f := "myfile.txt"
 	gb := git_testutils.GitInit(t, ctx)
 	c1 := gb.CommitGen(ctx, f)

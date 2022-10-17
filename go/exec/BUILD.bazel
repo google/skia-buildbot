@@ -7,6 +7,7 @@ go_library(
         "context.go",
         "exec.go",
         "exec_linux.go",
+        "exec_mac.go",
         "exec_testutil.go",
         "exec_windows.go",
     ],

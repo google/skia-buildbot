@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sktest"
@@ -149,7 +150,7 @@ var (
 // Returns the GitBuilder instance for the test repo, along with the commit
 // hashes for c1 and c2.
 func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder, string, string) {
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 
 	// Commit 1.

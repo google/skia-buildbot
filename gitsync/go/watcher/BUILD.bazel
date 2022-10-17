@@ -42,6 +42,7 @@ go_test(
     ],
     embed = [":watcher"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/gcs/mem_gcsclient",
         "//go/git",

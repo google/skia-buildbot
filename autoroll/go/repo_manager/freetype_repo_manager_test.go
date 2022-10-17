@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -42,7 +43,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := cipd_git.UseGitFinder(context.Background())
 
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t, ctx)

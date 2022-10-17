@@ -20,6 +20,7 @@ go_test(
     srcs = ["git_builder_test.go"],
     embed = [":testutils"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/exec",
         "//go/git/git_common",
         "@com_github_stretchr_testify//require",

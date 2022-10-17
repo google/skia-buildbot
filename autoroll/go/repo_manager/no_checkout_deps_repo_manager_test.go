@@ -10,8 +10,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
+	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -28,7 +30,8 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 	require.NoError(t, err)
 
 	// Create child and parent repos.
-	child := git_testutils.GitInit(t, context.Background())
+	ctx := cipd_git.UseGitFinder(context.Background())
+	child := git_testutils.GitInit(t, ctx)
 	child.Add(context.Background(), "DEPS", `deps = {
   "child/dep": "https://grandchild-in-child@def4560000def4560000def4560000def4560000",
 }`)
@@ -51,8 +54,6 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 	parent.Commit(context.Background())
 
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
-
-	ctx := context.Background()
 
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 

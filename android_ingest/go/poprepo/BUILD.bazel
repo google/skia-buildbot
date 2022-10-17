@@ -19,6 +19,7 @@ go_test(
     srcs = ["poprepo_test.go"],
     embed = [":poprepo"],
     deps = [
+        "//bazel/external/cipd/git",
         "//go/git",
         "//go/git/testutils",
         "@com_github_stretchr_testify//assert",
