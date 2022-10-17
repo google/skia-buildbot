@@ -121,6 +121,8 @@ export class QueryCountSk extends ElementSk {
 
   set current_query(val: string) {
     this.setAttribute('current_query', val);
+    this._count = '';
+    this._render();
   }
 }
 

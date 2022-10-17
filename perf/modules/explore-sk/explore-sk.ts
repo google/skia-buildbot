@@ -8,7 +8,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import { toParamSet } from 'common-sk/modules/query';
+import { toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
@@ -60,6 +60,7 @@ import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
+  ParamSetSkPlusClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import {
   QuerySk,
@@ -67,12 +68,12 @@ import {
 } from '../../../infra-sk/modules/query-sk/query-sk';
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
-import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
+import { fromKey, paramsToParamSet } from '../paramtools';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -198,27 +199,6 @@ function _matches(key: string, paramName: string, paramValue: string): boolean {
   return key.indexOf(`,${paramName}=${paramValue},`) >= 0;
 }
 
-// TODO(jcgregorio) Move to a 'key' module.
-// Parses the structured key and returns a populated object with all
-// the param names and values.
-function toObject(key: string): { [key: string]: string } {
-  const ret: { [key: string]: string } = {};
-  key.split(',').forEach((s, i) => {
-    if (i === 0) {
-      return;
-    }
-    if (s === '') {
-      return;
-    }
-    const parts = s.split('=');
-    if (parts.length !== 2) {
-      return;
-    }
-    ret[parts[0]] = parts[1];
-  });
-  return ret;
-}
-
 interface RangeChange {
   /**
    * If true then do a range change with the provided offsets, otherwise just
@@ -305,13 +285,13 @@ export class ExploreSk extends ElementSk {
   // is no pending request.
   private _requestId = '';
 
-  private _numShift = window.perf.num_shift;
-
   // The id of the interval timer if we are refreshing.
   private _refreshId = -1;
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
+
+  private fromParamsKey: string = '';
 
   private _initialized: boolean = false;
 
@@ -337,6 +317,10 @@ export class ExploreSk extends ElementSk {
 
   private query: QuerySk | null = null;
 
+  private fromParamsQuery: QuerySk | null = null;
+
+  private fromParamsQueryCount: QueryCountSk | null = null;
+
   private queryCount: QueryCountSk | null = null;
 
   private range: DomainPickerSk | null = null;
@@ -358,6 +342,8 @@ export class ExploreSk extends ElementSk {
   private pivotDisplayButton: HTMLButtonElement | null = null;
 
   private queryDialog: HTMLDialogElement | null = null;
+
+  private fromParamsQueryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
 
@@ -545,6 +531,35 @@ export class ExploreSk extends ElementSk {
       </div>
     </dialog>
 
+    <!--
+    This is the quick-add dialog that appears when you click the '+' sign on any of
+    the Params rows displayed in the details tab (See #simple_paramset).
+    -->
+    <dialog id='from-params-query-dialog'>
+      <h2>Query</h2>
+      <div class=query-parts>
+        <query-sk
+          id=from-params-query
+          values_only
+          hide_invert
+          hide_regex
+          >
+        </query-sk>
+      </div>
+      <div class=query-counts>
+        Matches: <query-count-sk
+          id=from-params-query-count
+          url='/_/count/'
+          @paramset-changed=${ele.fromParamsParamsetChanged}
+        >
+        </query-count-sk>
+      </div>
+      <div class=footer>
+        <button class=action @click=${ele.fromParamsOKQueryDialog}>Plot</button>
+        <button @click=${ele.fromParamsCloseQueryDialog}>Close</button>
+      </div>
+    </dialog>
+
     <dialog id=help>
       <h2>Perf Help</h2>
       <table>
@@ -585,8 +600,10 @@ export class ExploreSk extends ElementSk {
           <div id=params_and_logentry>
             <paramset-sk
               id=simple_paramset
+              clickable_plus
               clickable_values
               @paramset-key-value-click=${ele.paramsetKeyValueClick}
+              @plus-click=${ele.plusClick}
               >
             </paramset-sk>
             <code><pre id=logEntry></pre></code>
@@ -624,6 +641,8 @@ export class ExploreSk extends ElementSk {
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
     this.query = this.querySelector('#query');
+    this.fromParamsQueryCount = this.querySelector('#from-params-query-count');
+    this.fromParamsQuery = this.querySelector('#from-params-query');
     this.queryCount = this.querySelector('query-count-sk');
     this.range = this.querySelector('#range');
     this.simpleParamset = this.querySelector('#simple_paramset');
@@ -632,6 +651,7 @@ export class ExploreSk extends ElementSk {
     this.traceID = this.querySelector('#trace_id');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
+    this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
 
     // Populate the query element.
@@ -867,9 +887,59 @@ export class ExploreSk extends ElementSk {
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
-    this.query!.paramset = e.detail as CommonSkParamSet;
+    this.query!.paramset = e.detail;
     this.pivotControl!.paramset = e.detail;
     this._render();
+  }
+
+  /** Called when the query-count-sk element has finished querying the server
+   * for an updated ParamSet. */
+  private fromParamsParamsetChanged(e: CustomEvent<ParamSet>) {
+    this.fromParamsQuery!.paramset = e.detail;
+    this.fromParamsQuery!.selectKey(this.fromParamsKey);
+    this._render();
+  }
+
+  private fromParamsCloseQueryDialog() {
+    this.fromParamsQueryDialog!.close();
+  }
+
+  private fromParamsOKQueryDialog() {
+    // This query only contains the key this.fromParamsKey and it's values, so we need
+    // to construct the full query using the traceID.
+    const updatedParamValues: ParamSet = toParamSet(this.fromParamsQuery!.current_query);
+    const traceIDAsQuery: ParamSet = paramsToParamSet(fromKey(this.state.selected.name));
+
+    // Merge the two ParamSets.
+    const newQuery: ParamSet = Object.assign(traceIDAsQuery, updatedParamValues);
+    this.addFromQueryOrFormula(false, 'query', fromParamSet(newQuery), '');
+    this.fromParamsQueryDialog!.close();
+  }
+
+  /** Handles clicks on the '+' icons on the Details tab Params. */
+  plusClick(e: CustomEvent<ParamSetSkPlusClickEventDetail>): void {
+    // Record the Params key that was clicked on.
+    this.fromParamsKey = e.detail.key;
+
+    // Convert the traceID into a ParamSet.
+    const keyAsParamSet: ParamSet = paramsToParamSet(fromKey(this.state.selected.name));
+
+    // And remove the Params key that was clicked on.
+    keyAsParamSet[this.fromParamsKey] = [];
+
+    // Convert the ParamSet back into a query to pass to
+    // this.fromParamsQueryCount, which will query the server for the number of
+    // traces that match the new query, and also return a ParamSet we can use to
+    // populate the query-sk control.
+    this.fromParamsQueryCount!.current_query = fromParamSet(keyAsParamSet);
+
+    // To avoid the dialog displaying state data we populate the ParamSet
+    // and select our key which will display and empty set of value choices
+    // until this.fromParamsQueryCount is done.
+    this.fromParamsQuery!.paramset = keyAsParamSet;
+    this.fromParamsQuery!.selectKey(this.fromParamsKey);
+
+    this.fromParamsQueryDialog?.showModal();
   }
 
   private queryChangeDelayedHandler(
@@ -898,7 +968,7 @@ export class ExploreSk extends ElementSk {
 
   /** Reflect the focused trace in the paramset. */
   private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    this.paramset!.highlight = toObject(e.detail.name);
+    this.paramset!.highlight = fromKey(e.detail.name);
     this.traceID!.textContent = e.detail.name;
   }
 
@@ -953,7 +1023,7 @@ export class ExploreSk extends ElementSk {
     }
 
     // Convert the trace id into a paramset to display.
-    const params: { [key: string]: string } = toObject(e.detail.name);
+    const params: { [key: string]: string } = fromKey(e.detail.name);
     const paramset: ParamSet = {};
     Object.keys(params).forEach((key) => {
       paramset[key] = [params[key]];
@@ -1269,9 +1339,22 @@ export class ExploreSk extends ElementSk {
    * @param plotType - The type of traces being added.
    */
   private add(replace: boolean, plotType: addPlotType) {
-    this.queryDialog!.close();
     const q = this.query!.current_query;
     const f = this.formula!.value;
+    this.addFromQueryOrFormula(replace, plotType, q, f);
+  }
+
+  /**
+   * Plot the traces that match either the given query or the given formula,
+   * depending on the value of plotType.
+   *
+   * @param replace - If true then replace all the traces with ones that match
+   * this query, otherwise add them to the current traces being displayed.
+   *
+   * @param plotType - The type of traces being added.
+   */
+  private addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
+    this.queryDialog!.close();
 
     if (plotType === 'query') {
       if (!q || q.trim() === '') {

@@ -41,3 +41,12 @@ export function addParamsToParamSet(ps: ParamSet, p: Params): void {
     ps[key] = values;
   });
 }
+
+export function paramsToParamSet(p: Params): ParamSet {
+  const ret: ParamSet = { };
+
+  Object.entries(p).forEach((value: [string, string]) => {
+    ret[value[0]] = [value[1]];
+  });
+  return ret;
+}

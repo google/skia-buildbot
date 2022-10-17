@@ -29,6 +29,7 @@ sk_element(
         "@npm//lit-html",
         "//perf/modules/pivotutil:index_ts_lib",
         "//infra-sk/modules:linkify_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
     ts_srcs = [
         "explore-sk.ts",
