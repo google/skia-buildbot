@@ -888,7 +888,7 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 	postData := map[string]interface{}{
 		"message": message,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/abandon", issue.ChangeId), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/abandon", FullChangeId(issue)), postData)
 }
 
 // get retrieves the given sub URL and populates 'rv' with the result.
