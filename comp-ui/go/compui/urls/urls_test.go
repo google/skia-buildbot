@@ -24,7 +24,7 @@ func TestDownloadURLs_ValidOSAndArch_ReturnsValidDownload(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "https://chromedriver.storage.googleapis.com/LATEST_RELEASE", urls.LatestURL())
 	require.Equal(t, "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/LAST_CHANGE", urls.LatestCanaryURL())
-	require.Equal(t, "https://chromedriver.storage.googleapis.com/some-version-number/chromedriver_mac64_m1.zip", urls.DriverURL("some-version-number"))
+	require.Equal(t, "https://chromedriver.storage.googleapis.com/some-version-number/chromedriver_mac_arm64.zip", urls.DriverURL("some-version-number"))
 	require.Equal(t, "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/some-version-number/chromedriver_mac64.zip", urls.CanaryDriverURL("some-version-number"))
 }
 

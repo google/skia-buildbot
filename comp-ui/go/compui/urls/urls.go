@@ -31,7 +31,7 @@ type DownloadURLs struct {
 
 var downloadURLsLookup = map[string]DownloadURLs{
 	"darwin/amd64": {prefix: "Mac", filename: "chromedriver_mac64.zip", canaryFilename: "chromedriver_mac64.zip"},
-	"darwin/arm64": {prefix: "Mac_Arm", filename: "chromedriver_mac64_m1.zip", canaryFilename: "chromedriver_mac64.zip"},
+	"darwin/arm64": {prefix: "Mac_Arm", filename: "chromedriver_mac_arm64.zip", canaryFilename: "chromedriver_mac64.zip"},
 	"linux/amd64":  {prefix: "Linux_x64", filename: "chromedriver_linux64.zip", canaryFilename: "chromedriver_linux64.zip"},
 }
 
