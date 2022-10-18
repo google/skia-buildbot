@@ -389,7 +389,7 @@ func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDri
 
 		That version value can then be used to construct the URL of file to download:
 
-			$ curl https://chromedriver.storage.googleapis.com/102.0.5005.61/chromedriver_mac64_m1.zip --output /tmp/chr.zip
+			$ curl https://chromedriver.storage.googleapis.com/102.0.5005.61/chromedriver_mac_arm64.zip --output /tmp/chr.zip
 			$ unzip chr.zip
 			Archive:  chr.zip
 			  inflating: chromedriver
@@ -414,7 +414,7 @@ func driverFilenames(downloadDrivers bool, chromeDriverFilename, chromeCanaryDri
 
 			chromedriver_linux64.zip
 			chromedriver_mac64.zip
-			chromedriver_mac64_m1.zip
+			chromedriver_mac_arm64.zip
 
 		There's also a Win version, but we ignore that for now.
 	*/
