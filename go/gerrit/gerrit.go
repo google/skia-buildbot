@@ -836,7 +836,7 @@ func (g *Gerrit) AddCC(ctx context.Context, issue *ChangeInfo, ccList []string) 
 	}
 	postData := map[string]interface{}{"reviewers": ccs}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", FullChangeId(issue), latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
@@ -1287,7 +1287,7 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
-	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
+	return g.post(ctx, fmt.Sprintf("/changes/%s/submit", FullChangeId(ci)), []byte("{}"))
 }
 
 // The SubmittedTogetherInfo entity contains information about submitted
@@ -1303,7 +1303,7 @@ type SubmittedTogetherInfo struct {
 // non_visible_changes will be > 0.
 func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*ChangeInfo, int, error) {
 	var submittedTogetherInfo *SubmittedTogetherInfo
-	if err := g.get(ctx, fmt.Sprintf("/changes/%d/submitted_together?o=NON_VISIBLE_CHANGES", ci.Issue), &submittedTogetherInfo, nil); err != nil {
+	if err := g.get(ctx, fmt.Sprintf("/changes/%s/submitted_together?o=NON_VISIBLE_CHANGES", FullChangeId(ci)), &submittedTogetherInfo, nil); err != nil {
 		return nil, -1, fmt.Errorf("Failed to retrieve submitted_together issues: %s", err)
 	}
 	return submittedTogetherInfo.Changes, submittedTogetherInfo.NonVisibleChanges, nil
@@ -1341,7 +1341,7 @@ func (g *Gerrit) Rebase(ctx context.Context, ci *ChangeInfo, base string, allowC
 		"base":            base,
 		"allow_conflicts": allowConflicts,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/changes/%d/rebase", ci.Issue), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/rebase", FullChangeId(ci)), postData)
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if

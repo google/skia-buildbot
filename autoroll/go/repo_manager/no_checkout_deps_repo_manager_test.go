@@ -256,7 +256,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.Parent
 	}
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~test-branch~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
-		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
+		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~test-branch~123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
