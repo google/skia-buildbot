@@ -213,9 +213,10 @@ type directoryNode struct {
 	Children map[string]*directoryNode
 }
 
-// makeTree creates a tree of directoryNodes using the given Directories. It
-// assumes that the list of Directories is complete and maps exactly to the
-// sub-Directories of each of the Directories, in order.
+// makeTree builds a tree of directoryNodes using the given Directories.
+// Requires that the map of Directories is complete, ie. each of the
+// subdirectory digests referenced by each of the Directories is itself present
+// in the map.
 func makeTree(dirsByDigest map[digest.Digest]*remoteexecution.Directory, d digest.Digest) (*directoryNode, error) {
 	dir, ok := dirsByDigest[d]
 	if !ok {
@@ -448,9 +449,10 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		return digests[0], nil
 	}
 
-	// Obtain the contents of each of the digests.
+	// Build an in-memory directory tree for each of the given digests.
 	var trees []*directoryNode
 	for _, casDigest := range digests {
+		// Normalize the digest and retrieve the directory tree from the API.
 		d, err := digest.NewFromString(casDigest)
 		if err != nil {
 			return "", skerr.Wrap(err)
@@ -459,6 +461,10 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		if err != nil {
 			return "", skerr.Wrapf(err, "failed retrieving %s", d.String())
 		}
+
+		// Start by creating a map of Directory digest to Directory, so that we
+		// don't have to rely on the ordering of the Directories returned by
+		// GetDirectoryTree.
 		dirsByDigest := make(map[digest.Digest]*remoteexecution.Directory, len(dirs))
 		rootDigest, err := digest.NewFromMessage(dirs[0])
 		if err != nil {
@@ -472,6 +478,8 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 			}
 			dirsByDigest[d] = dir
 		}
+
+		// Build the in-memory tree representation.
 		tree, err := makeTree(dirsByDigest, rootDigest)
 		if err != nil {
 			return "", skerr.Wrapf(err, "failed to create tree for digest %q", casDigest)
@@ -479,7 +487,7 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 		trees = append(trees, tree)
 	}
 
-	// Merge the contents.
+	// Merge the trees.
 	root := trees[0]
 	for _, tree := range trees[1:] {
 		var err error
