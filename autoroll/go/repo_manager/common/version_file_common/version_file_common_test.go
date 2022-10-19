@@ -17,6 +17,7 @@ func TestGetPinnedRev(t *testing.T) {
 		name                string
 		depId               string
 		versionFilePath     string
+		regex               string
 		versionFileContents string
 		expectRev           string
 	}
@@ -39,11 +40,37 @@ func TestGetPinnedRev(t *testing.T) {
 			`,
 			expectRev: "my-rev",
 		},
+		{
+			name:            "Regex",
+			depId:           "my-dep",
+			versionFilePath: "regex-file",
+			regex:           `"my-dep@([a-zA-Z_-]+)"`,
+			versionFileContents: `deps = {
+				"my-dep-path": "my-dep@my-rev",
+			}`,
+			expectRev: "my-rev",
+		},
+		{
+			// Verify that the regex takes precedence over DEPS parsing.
+			name:            "Regex in DEPS",
+			depId:           "my-dep",
+			versionFilePath: deps_parser.DepsFileName,
+			regex:           `'some-var': '([a-zA-Z_-]+)',`,
+			versionFileContents: `
+			vars = {
+				'some-var': 'my-other-rev',
+			}
+			deps = {
+				"my-dep-path": "my-dep@my-rev",
+			}`,
+			expectRev: "my-other-rev",
+		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			actual, err := GetPinnedRev(&config.VersionFileConfig{
-				Id:   c.depId,
-				Path: c.versionFilePath,
+				Id:    c.depId,
+				Path:  c.versionFilePath,
+				Regex: c.regex,
 			}, c.versionFileContents)
 			require.NoError(t, err)
 			require.Equal(t, c.expectRev, actual)

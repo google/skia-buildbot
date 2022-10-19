@@ -422,6 +422,11 @@ func (c *VersionFileConfig) Validate() error {
 	if c.Path == "" {
 		return skerr.Fmt("Path is required.")
 	}
+	if c.Regex != "" {
+		if _, err := regexp.Compile(c.Regex); err != nil {
+			return skerr.Wrapf(err, "Invalid Regex")
+		}
+	}
 	return nil
 }
 

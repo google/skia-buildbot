@@ -61,6 +61,7 @@ export function GetFakeConfig(): Config {
           primary: {
             id: 'https://skia.googlesource.com/skia.git',
             path: 'DEPS',
+            regex: 'un(used)'
           },
         },
         gerrit: {

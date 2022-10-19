@@ -685,8 +685,35 @@ message TransitiveDepConfig {
 message VersionFileConfig {
     // id of the dependency to be rolled, eg. a repo URL.
     string id = 1;
-    // path within the repo of the file which pins the dependency.
+    // path within the repo of the file which pins the dependency. The name of
+    // the file dictates how we read and write the revision pin:
+    //   - If `regex` is set, the name of this file is ignored.
+    //   - `DEPS`: we parse the file as a DEPS file using a Python parser.
+    //   - `*.pyl`: we assume the file contains a Python literal composed of
+    //     dictionaries and lists. In this case, the `id` field must be a dot-
+    //     separated path from the root of the object to the field which
+    //     specifies the revision, where each element is either a dictionary key
+    //     or a selector which matches a key+value of a given list element. For
+    //     example, the id `key1.key2.id=my-dependency-id.revision` would
+    //     traverse the following literal to find the revision ID:
+    //
+    //         {
+    //           "key1": {
+    //             "key2": [
+    //               {
+    //                 "id": "my-dependency-id",
+    //                 "revision": "12345",
+    //               },
+    //             ],
+    //           },
+    //         }
+    //
+    //    - Otherwise, we assume that the file's sole contents are the revision
+    //      ID and we read or write the entirety of the file.
     string path = 2;
+    // regex which is used to extract the existing revision of the dependency
+    // and to update the pin to the new revision. Optional.
+    string regex = 3;
 }
 
 // DependencyConfig provides configuration for a dependency whose version is

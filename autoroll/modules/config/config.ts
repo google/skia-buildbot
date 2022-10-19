@@ -656,11 +656,13 @@ interface TransitiveDepConfigJSON {
 export interface VersionFileConfig {
   id: string;
   path: string;
+  regex: string;
 }
 
 interface VersionFileConfigJSON {
   id?: string;
   path?: string;
+  regex?: string;
 }
 
 export interface DependencyConfig {

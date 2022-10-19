@@ -2,6 +2,7 @@ package version_file_common
 
 import (
 	"context"
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -11,9 +12,35 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+func getUsingRegex(dep *config.VersionFileConfig, contents string) (string, string, error) {
+	re, err := regexp.Compile(dep.Regex)
+	if err != nil {
+		// We check the regex when we validate the config, so in theory we
+		// shouldn't run into this.
+		return "", "", skerr.Wrap(err)
+	}
+	match := re.FindStringSubmatch(contents)
+	if match == nil {
+		return "", "", skerr.Fmt("no match found for regex `%s` in:\n%s", dep.Regex, contents)
+	}
+	// We expect the regex to contain exactly one capture group, so the
+	// match slice should contain two elements: entire matched text, and the
+	// contents of the capture group.
+	if len(match) != 2 {
+		return "", "", skerr.Fmt("wrong number of matches found for regex `%s`; expected two; Contents:\n%s", dep.Regex, contents)
+	}
+	return match[0], match[1], nil
+}
+
 // GetPinnedRev reads the given file contents to find the pinned revision.
 func GetPinnedRev(dep *config.VersionFileConfig, contents string) (string, error) {
-	if dep.Path == deps_parser.DepsFileName {
+	if dep.Regex != "" {
+		_, revision, err := getUsingRegex(dep, contents)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return revision, nil
+	} else if dep.Path == deps_parser.DepsFileName {
 		depsEntry, err := deps_parser.GetDep(contents, dep.Id)
 		if err != nil {
 			return "", skerr.Wrap(err)
@@ -21,8 +48,9 @@ func GetPinnedRev(dep *config.VersionFileConfig, contents string) (string, error
 		return depsEntry.Version, nil
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
 		return pyl.Get(contents, dep.Id)
+	} else {
+		return strings.TrimSpace(contents), nil
 	}
-	return strings.TrimSpace(contents), nil
 }
 
 // GetPinnedRevs reads files using the given GetFileFunc to retrieve the given
@@ -54,15 +82,27 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 // SetPinnedRev updates the given dependency pin in the given file, returning
 // the new contents.
 func SetPinnedRev(dep *config.VersionFileConfig, newVersion, oldContents string) (string, error) {
-	if dep.Path == deps_parser.DepsFileName {
+	if dep.Regex != "" {
+		fullMatch, oldVersion, err := getUsingRegex(dep, oldContents)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		// Replace the full string matched by the regex instead of just the
+		// revision ID itself, in case the same string appears more than once in
+		// the file.
+		repl := strings.Replace(fullMatch, oldVersion, newVersion, 1)
+		newContents := strings.Replace(oldContents, fullMatch, repl, 1)
+		return newContents, nil
+	} else if dep.Path == deps_parser.DepsFileName {
 		newContents, err := deps_parser.SetDep(oldContents, dep.Id, newVersion)
 		return newContents, skerr.Wrap(err)
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
 		return pyl.Set(oldContents, dep.Id, newVersion)
+	} else {
+		// Various tools expect a newline at the end of the file.
+		// TODO(borenet): This should probably be configurable.
+		return newVersion + "\n", nil
 	}
-	// Various tools expect a newline at the end of the file.
-	// TODO(borenet): This should probably be configurable.
-	return newVersion + "\n", nil
 }
 
 // GetFileFunc is a function which retrieves the contents of a file.
