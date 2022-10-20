@@ -101,7 +101,7 @@ func main() {
 			m := m // https://golang.org/doc/faq#closures_and_goroutines
 			eg.Go(func() error {
 				branchName := fmt.Sprintf("m%d", m.Milestone)
-				ref := fmt.Sprintf("chromium/%d", m.Milestone)
+				ref := fmt.Sprintf("refs/heads/chromium/%d", m.Number)
 				if m.Number == 0 {
 					branchName = "main"
 					ref = "refs/heads/main"
