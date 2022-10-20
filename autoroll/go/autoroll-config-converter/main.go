@@ -13,24 +13,27 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
 	// Parent repo name for Google3 rollers.
-	GOOGLE3_PARENT_NAME = "Google3"
+	google3ParentName = "Google3"
 )
 
 var (
@@ -44,11 +47,6 @@ var (
 	//go:embed autoroll-ns.yaml.template
 	namespaceTemplate string
 
-	oldClusters = []string{
-		"skia-corp",
-		"skia-public",
-	}
-
 	// protoMarshalOptions are used when writing configs in text proto format.
 	protoMarshalOptions = prototext.MarshalOptions{
 		Multiline: true,
@@ -60,8 +58,11 @@ var (
 )
 
 func main() {
+	// Flags.
 	src := flag.String("src", "", "Source directory.")
 	dst := flag.String("dst", "", "Destination directory. Outputs will mimic the structure of the source.")
+	privacySandboxAndroidRepoURL := flag.String("privacy_sandbox_android_repo_url", "", "Repo URL for privacy sandbox on Android.")
+	privacySandboxAndroidVersionsPath := flag.String("privacy_sandbox_android_versions_path", "", "Path to the file containing the versions of privacy sandbox on Android.")
 
 	flag.Parse()
 
@@ -75,8 +76,8 @@ func main() {
 		sklog.Fatal("internal error; embedded template is empty.")
 	}
 
+	// Set up auth, load config variables.
 	ctx := context.Background()
-
 	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
 	if err != nil {
 		sklog.Fatal(err)
@@ -86,8 +87,60 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	vars := reg.Vars()
+	vars := &TemplateVars{
+		Vars: reg.Vars(),
+	}
 
+	// Load the privacy sandbox versions for each of the active milestones.
+	if *privacySandboxAndroidRepoURL != "" && *privacySandboxAndroidVersionsPath != "" {
+		var eg errgroup.Group
+		repo := gitiles.NewRepo(*privacySandboxAndroidRepoURL, client)
+		var mtx sync.Mutex
+		milestones := append(vars.Branches.ActiveMilestones, vars.Branches.Chromium.Main)
+		for _, m := range milestones {
+			m := m // https://golang.org/doc/faq#closures_and_goroutines
+			eg.Go(func() error {
+				branchName := fmt.Sprintf("m%d", m.Milestone)
+				ref := fmt.Sprintf("chromium/%d", m.Milestone)
+				if m.Number == 0 {
+					branchName = "main"
+					ref = "refs/heads/main"
+				}
+				sklog.Infof("Reading privacy sandbox versions at milestone: %+v", m)
+				contents, err := repo.ReadFileAtRef(ctx, *privacySandboxAndroidVersionsPath, ref)
+				if err != nil {
+					if strings.Contains(err.Error(), "NOT_FOUND") {
+						sklog.Warningf("%s not found in %s", *privacySandboxAndroidVersionsPath, ref)
+						return nil
+					}
+					return skerr.Wrapf(err, "failed to load privacy sandbox version for %s", ref)
+				}
+				var psVersions []*PrivacySandboxVersion
+				if err := json.Unmarshal(contents, &psVersions); err != nil {
+					return skerr.Wrapf(err, "failed to parse privacy sandbox version for %s from %s", ref, string(contents))
+				}
+				for _, v := range psVersions {
+					v.BranchName = branchName
+					v.Ref = ref
+				}
+				mtx.Lock()
+				defer mtx.Unlock()
+				vars.PrivacySandboxVersions = append(vars.PrivacySandboxVersions, psVersions...)
+				return nil
+			})
+		}
+		if err := eg.Wait(); err != nil {
+			sklog.Fatal(err)
+		}
+	}
+	b, err := json.MarshalIndent(vars, "", "  ")
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Using variables: %s", string(b))
+
+	// Walk through the autoroller config directory. Create roller configs from
+	// templates and convert roller configs to k8s configs.
 	fsys := os.DirFS(*src)
 	if err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -109,6 +162,7 @@ func main() {
 			}
 		} else if strings.HasSuffix(d.Name(), ".tmpl") {
 			tmplPath := filepath.Join(*src, path)
+			sklog.Infof("Processing %s", tmplPath)
 			tmplContents, err := ioutil.ReadFile(tmplPath)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to read template file %s", tmplPath)
@@ -129,6 +183,21 @@ func main() {
 	}
 }
 
+// PrivacySandboxVersion tracks a single version of the privacy sandbox.
+type PrivacySandboxVersion struct {
+	BranchName    string `json:"BranchName"`
+	Ref           string `json:"Ref"`
+	PylFile       string `json:"PylFile"`
+	PylTargetPath string `json:"PylTargetPath"`
+	CipdPackage   string `json:"CipdPackage"`
+	CipdTag       string `json:"CipdTag"`
+}
+
+type TemplateVars struct {
+	*config_vars.Vars
+	PrivacySandboxVersions []*PrivacySandboxVersion
+}
+
 func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string) error {
 	// Decode the config file.
 	var cfg config.Config
@@ -136,7 +205,7 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 		return skerr.Wrapf(err, "failed to parse roller config")
 	}
 	// Google3 uses a different type of backend.
-	if cfg.ParentDisplayName == GOOGLE3_PARENT_NAME {
+	if cfg.ParentDisplayName == google3ParentName {
 		return nil
 	}
 
@@ -169,13 +238,17 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 	b, err := prototext.MarshalOptions{
 		AllowPartial: true,
 		EmitUnknown:  true,
+		// This causes the emitted config to be pretty-printed. It isn't needed
+		// by the roller itself, but it's helpful for a human to debug issues
+		// related to the config. Remove this if we start getting errors about
+		// command lines being too long.
+		Indent: "  ",
 	}.Marshal(&cfg)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to encode roller config as text proto")
 	}
 	cfgFileBase64 := base64.StdEncoding.EncodeToString(b)
 	cfgMap["configBase64"] = cfgFileBase64
-	cfgMap["oldCluster"] = false
 
 	// Run kube-conf-gen to generate the backend config file.
 	relDir, baseName := filepath.Split(relPath)
@@ -199,7 +272,7 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 }
 
 // processTemplate converts a single template into at least one config.
-func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *config_vars.Vars) (map[string][]byte, error) {
+func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *TemplateVars) (map[string][]byte, error) {
 	// Read and execute the template.
 	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(funcMap).Parse(tmplContents)
 	if err != nil {

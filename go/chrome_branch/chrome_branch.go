@@ -48,7 +48,7 @@ type Branch struct {
 	Number int `json:"number"`
 	// Fully-qualified ref for this branch.
 	Ref string `json:"ref"`
-	// Correnspoding V8 ref (calculated)
+	// Corresponding V8 ref (calculated)
 	V8Branch string
 }
 

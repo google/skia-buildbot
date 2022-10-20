@@ -1,21 +1,9 @@
 {{- $svcAcctSplit := .serviceAccount | split "@" -}}{{- $svcAcct := $svcAcctSplit._0 -}}
-{{- if and (eq .useWorkloadIdentity "true") (.oldCluster) -}}
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  annotations:
-    iam.gke.io/gcp-service-account: {{.serviceAccount}}
-  name: {{$svcAcct}}
-  namespace: default
----
-{{- end}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: autoroll-be-{{.rollerName}}
-{{- if not .oldCluster}}
   namespace: {{$svcAcct}}
-{{- end}}
 spec:
   serviceName: "autoroll-be-{{.rollerName}}"
   replicas: 1
@@ -38,9 +26,6 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000 # aka skia
-{{- if and (eq .useWorkloadIdentity "true") (.oldCluster)}}
-      serviceAccountName: {{$svcAcct}}
-{{- end}}
 {{- if .kubernetes.disk }}
       initContainers:
         - name: init-autoroll-be-{{.rollerName}}
@@ -60,11 +45,7 @@ spec:
           args:
             - "context"
             - "-service-account-json"
-{{- if or (eq .useWorkloadIdentity "true") (not .oldCluster)}}
             - ":gce"
-{{- else}}
-            - "/var/secrets/google/key.json"
-{{- end}}
             - "--"
             - "/usr/local/bin/autoroll-be"
             - "--config={{.configBase64}}"
@@ -74,7 +55,7 @@ spec:
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
             {{range .kubernetes.extraFlags}}- "{{.}}"
-            {{end}}{{if not .oldCluster}}- "--namespaced-email-service"{{end}}
+            {{end}}- "--namespaced-email-service"
           ports:
             - containerPort: 8000
             - containerPort: 20000
@@ -82,15 +63,7 @@ spec:
           volumeMounts:{{if .kubernetes.disk}}
             - name: autoroll-be-{{.rollerName}}-storage
               mountPath: /data{{end}}
-{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
-            - name: autoroll-be-{{$svcAcct}}-sa
-              mountPath: /var/secrets/google
-{{- end}}
           env:
-{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/key.json
-{{- end}}
             - name: TMPDIR
               value: {{if .kubernetes.disk}}/data{{end}}/tmp
           resources:
@@ -106,11 +79,6 @@ spec:
             periodSeconds: {{.kubernetes.readinessPeriodSeconds}}
             failureThreshold: {{.kubernetes.readinessFailureThreshold}}
       volumes:
-{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
-        - name: autoroll-be-{{$svcAcct}}-sa
-          secret:
-            secretName: {{$svcAcct}}
-{{- end}}
 {{- if .kubernetes.disk}}
   volumeClaimTemplates:
     - metadata:
