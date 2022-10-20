@@ -708,6 +708,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: numNotRolled,
+			Timestamp:           time.Now().UTC(),
 		},
 		ChildName:          r.cfg.ChildDisplayName,
 		CurrentRoll:        r.recent.CurrentRoll(),

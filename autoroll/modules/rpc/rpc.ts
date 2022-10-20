@@ -56,6 +56,7 @@ export interface AutoRollMiniStatus {
   lastRollRev: string;
   numFailed: number;
   numBehind: number;
+  timestamp?: string;
 }
 
 interface AutoRollMiniStatusJSON {
@@ -67,6 +68,7 @@ interface AutoRollMiniStatusJSON {
   last_roll_rev?: string;
   num_failed?: number;
   num_behind?: number;
+  timestamp?: string;
 }
 
 const JSONToAutoRollMiniStatus = (m: AutoRollMiniStatusJSON): AutoRollMiniStatus => {
@@ -79,6 +81,7 @@ const JSONToAutoRollMiniStatus = (m: AutoRollMiniStatusJSON): AutoRollMiniStatus
     lastRollRev: m.last_roll_rev || "",
     numFailed: m.num_failed || 0,
     numBehind: m.num_behind || 0,
+    timestamp: m.timestamp,
   };
 };
 

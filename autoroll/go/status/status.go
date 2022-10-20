@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -71,6 +72,7 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 			LastRollRev:         s.LastRollRev,
 			NumFailedRolls:      s.NumFailedRolls,
 			NumNotRolledCommits: s.NumNotRolledCommits,
+			Timestamp:           s.Timestamp,
 		},
 		ChildHead:          s.ChildHead,
 		ChildName:          s.ChildName,
@@ -116,6 +118,9 @@ type AutoRollMiniStatus struct {
 
 	// The number of commits which have not been rolled.
 	NumNotRolledCommits int `json:"numBehind"`
+
+	// Timestamp is the time at which the roller last reported its status.
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // DB tracks the status of the autoroller.

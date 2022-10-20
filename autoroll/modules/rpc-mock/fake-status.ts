@@ -22,6 +22,7 @@ export function GetFakeStatus(): AutoRollStatus {
       lastRollRev: '1860aed6436d5a39021c9f3da1a654893b232e21',
       numBehind: 1,
       numFailed: 0,
+      timestamp: new Date(1595225046 * 1000).toString(),
     },
     status: 'waiting for roll window',
     config: {

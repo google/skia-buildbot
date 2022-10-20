@@ -18,7 +18,7 @@ export function GetAutoRollService(ele: HTMLElement): AutoRollService {
   const handler = {
     get(target: any, propKey: any, receiver: any) {
       const origMethod = target[propKey];
-      return function(...args: any[]) {
+      return function (...args: any[]) {
         ele.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
         return origMethod.apply(rpcClient, args).then((v: any) => {
           ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));

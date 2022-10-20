@@ -452,6 +452,7 @@ func convertMiniStatus(inp *status.AutoRollMiniStatus, roller, mode, childName, 
 		ParentName:     parentName,
 		NumFailed:      int32(inp.NumFailedRolls),
 		NumBehind:      int32(inp.NumNotRolledCommits),
+		Timestamp:      timestamppb.New(inp.Timestamp),
 	}, nil
 }
 

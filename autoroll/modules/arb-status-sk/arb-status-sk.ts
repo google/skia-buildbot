@@ -25,25 +25,26 @@ import { truncate } from '../../../infra-sk/modules/string';
 import '../../../infra-sk/modules/human-date-sk';
 
 import {
-  AutoRollConfig,
   AutoRollCL,
+  AutoRollCL_Result,
+  AutoRollConfig,
   AutoRollService,
   AutoRollStatus,
   CreateManualRollResponse,
   GetAutoRollService,
+  GetStatusResponse,
   ManualRoll,
   ManualRoll_Result,
   ManualRoll_Status,
   Mode,
   Revision,
-  Strategy,
-  TryJob,
   SetModeResponse,
   SetStrategyResponse,
-  GetStatusResponse,
-  AutoRollCL_Result,
+  Strategy,
+  TryJob,
   TryJob_Result,
 } from '../rpc';
+import { LastCheckInSpan } from '../utils';
 
 interface RollCandidate {
   revision: Revision;
@@ -154,6 +155,7 @@ export class ARBStatusSk extends ElementSk {
         ? html` <span>until ${localeTime(ele.rollWindowStart)}</span> `
         : html``
       }
+            ${LastCheckInSpan(ele.status?.miniStatus)}
           </td>
         </tr>
         ${ele.editRights && ele.status.error

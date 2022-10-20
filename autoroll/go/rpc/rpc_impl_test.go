@@ -137,6 +137,7 @@ func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 			LastRollRev:         "abc123",
 			NumFailedRolls:      1,
 			NumNotRolledCommits: 2,
+			Timestamp:           currentTime,
 		},
 		Status:         "rolling",
 		ChildHead:      "def456",
@@ -331,6 +332,7 @@ func TestGetMiniStatus(t *testing.T) {
 			LastRollRev:    "abc123",
 			NumFailed:      1,
 			NumBehind:      2,
+			Timestamp:      timestamppb.New(currentTime),
 		},
 	}, res)
 }
@@ -569,6 +571,7 @@ func TestConvertMiniStatus(t *testing.T) {
 		ParentName:     st.ParentName,
 		NumFailed:      int32(st.NumFailedRolls),
 		NumBehind:      int32(st.NumNotRolledCommits),
+		Timestamp:      timestamppb.New(currentTime),
 	}, actual)
 }
 

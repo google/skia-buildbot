@@ -20,6 +20,7 @@ import {
   GetRollersResponse,
   Mode,
 } from '../rpc';
+import { LastCheckInSpan } from '../utils';
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
@@ -33,6 +34,7 @@ export class ARBTableSk extends ElementSk {
       <th>Current Mode</th>
       <th>Num Behind</th>
       <th>Num Failed</th>
+      <th></th>
     </tr>
     ${ele.filtered.map(
       (st) => html`
@@ -45,6 +47,7 @@ export class ARBTableSk extends ElementSk {
           <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
           <td>${st.numBehind}</td>
           <td>${st.numFailed}</td>
+          <td>${LastCheckInSpan(st)}</td>
         </tr>
       `,
     )}

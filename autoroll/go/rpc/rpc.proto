@@ -79,6 +79,8 @@ message AutoRollMiniStatus {
   int32 num_failed = 7;
   // num_behind is the number of not-yet-rolled revisions.
   int32 num_behind = 8;
+  // timestamp is the time at which the roller last reported its status.
+  google.protobuf.Timestamp timestamp = 9;
 }
 
 message TryJob {

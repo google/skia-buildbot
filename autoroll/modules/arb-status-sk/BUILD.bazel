@@ -16,6 +16,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//autoroll/modules:utils_ts_lib",
     ],
     ts_srcs = [
         "arb-status-sk.ts",
