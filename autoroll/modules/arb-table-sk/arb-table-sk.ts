@@ -20,7 +20,14 @@ import {
   GetRollersResponse,
   Mode,
 } from '../rpc';
-import { LastCheckInSpan } from '../utils';
+import { GetLastCheckInTime, LastCheckInSpan } from '../utils';
+
+/**
+ * hideOutdatedRollersThreshold is the threshold at which we'll stop displaying
+ * a roller in the table by default. It can still be found if the user provides
+ * their own filter or if they visit the roller's status page directly.
+ */
+const hideOutdatedRollersThreshold = 7 * 24 * 60 * 60 * 1000; // 7 days.
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
@@ -92,14 +99,27 @@ export class ARBTableSk extends ElementSk {
 
   private updateFiltered() {
     this.filtered = this.rollers;
+
     const filterInput = $$<HTMLInputElement>('#filter', this);
     if (!!filterInput && !!filterInput.value) {
+      // If a filter was provided in the text box, use that.
       const regex = new RegExp(filterInput!.value);
       this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => (
         st.rollerId.match(regex)
         || st.childName.match(regex)
         || st.parentName.match(regex)
       ));
+    } else {
+      // If no filter was provided, filter out any rollers which have not
+      // checked in for longer than hideOutdatedRollersThreshold.
+      this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => {
+        const lastCheckedIn = GetLastCheckInTime(st).getTime();
+        const now = new Date().getTime()
+        if (now - lastCheckedIn > hideOutdatedRollersThreshold) {
+          return false;
+        }
+        return true;
+      });
     }
     this._render();
   }
