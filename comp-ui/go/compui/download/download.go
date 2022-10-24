@@ -65,8 +65,19 @@ func unzipBodyIntoDirectory(dir string, body []byte) (string, error) {
 		return "", err
 	}
 
-	if len(r.File) != 1 {
-		return "", fmt.Errorf("Archives are expected to only have one file, found: %d", len(r.File))
+	// Find the first filename that has a Base of "chromedriver".
+	var filename = ""
+	var allFilenames = make([]string, len(r.File))
+	for i, file := range r.File {
+		allFilenames[i] = file.Name
+		if filepath.Base(file.Name) == "chromedriver" {
+			filename = file.Name
+			break
+		}
+	}
+
+	if filename == "" {
+		return "", fmt.Errorf("could not find 'chromedriver' file in archive: %q", allFilenames)
 	}
 
 	f := r.File[0]

@@ -20,7 +20,7 @@ func TestUnzipBodyIntoDirectory_InvalidZipFile_ReturnsError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestUnzipBodyIntoDirectory_MoreThanOneFileInTheZip_ReturnsError(t *testing.T) {
+func TestUnzipBodyIntoDirectory_NoChromeDriverFoundInTheZip_ReturnsError(t *testing.T) {
 
 	// Create a zip file with two files inside.
 	var b bytes.Buffer
@@ -39,14 +39,14 @@ func TestUnzipBodyIntoDirectory_MoreThanOneFileInTheZip_ReturnsError(t *testing.
 
 	dir := t.TempDir()
 	_, err = unzipBodyIntoDirectory(dir, b.Bytes())
-	require.Contains(t, err.Error(), "Archives are expected to only have one file")
+	require.Contains(t, err.Error(), "could not find 'chromedriver'")
 }
 
 func createValidZipFile(t *testing.T) []byte {
 	// Create a zip with a single file.
 	var b bytes.Buffer
 	zw := zip.NewWriter(&b)
-	fw, err := zw.Create("myfiles/foo.txt")
+	fw, err := zw.Create("myfiles/chromedriver")
 	require.NoError(t, err)
 	_, err = fmt.Fprintf(fw, "foo")
 	require.NoError(t, err)
@@ -59,7 +59,7 @@ func TestUnzipBodyIntoDirectory_ValidZipFile_NoError(t *testing.T) {
 	dir := t.TempDir()
 	absFilename, err := unzipBodyIntoDirectory(dir, createValidZipFile(t))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(dir, "myfiles", "foo.txt"), absFilename)
+	require.Equal(t, filepath.Join(dir, "myfiles", "chromedriver"), absFilename)
 	body, err := os.ReadFile(absFilename)
 	require.NoError(t, err)
 	require.Equal(t, "foo", string(body))
@@ -98,6 +98,6 @@ func TestDownloadAndUnzipDriver_HappyPath(t *testing.T) {
 		return ts.URL
 	})
 	require.NoError(t, err)
-	require.Contains(t, filename, "myfiles/foo.txt")
+	require.Contains(t, filename, "myfiles/chromedriver")
 	require.NoError(t, cleanup())
 }
