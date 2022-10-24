@@ -4,6 +4,7 @@
     "chromium.org",
     "microsoft.com",
     "intel.com",
+    "jongmok.kim@navercorp.com"
   ],
   cl_comment_template: "<ignored>",
   client_secret_file: "/etc/skia.org/login.json",
