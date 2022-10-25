@@ -464,7 +464,7 @@ export class SearchPageSk extends ElementSk {
       this._render();
       sendEndTask(this);
     } catch (e) {
-      sendFetchError(this, e, 'fetching the available digest parameters');
+      sendFetchError(this, e, 'fetching the search results');
     }
   }
 

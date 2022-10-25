@@ -1981,7 +1981,8 @@ func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []e
 	statement := "SELECT grouping_id, digest, label FROM Expectations WHERE " + whereClause
 	rows, err := s.db.Query(ctx, statement, whereArgs...)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Warningf("Error for triage delta infos %+v", triageDeltaInfos)
+		return nil, skerr.Wrapf(err, "with statement %s", statement)
 	}
 	defer rows.Close()
 	for rows.Next() {
