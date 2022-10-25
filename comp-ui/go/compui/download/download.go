@@ -66,21 +66,20 @@ func unzipBodyIntoDirectory(dir string, body []byte) (string, error) {
 	}
 
 	// Find the first filename that has a Base of "chromedriver".
-	var filename = ""
+	var f *zip.File = nil
 	var allFilenames = make([]string, len(r.File))
 	for i, file := range r.File {
 		allFilenames[i] = file.Name
 		if filepath.Base(file.Name) == "chromedriver" {
-			filename = file.Name
+			f = file
 			break
 		}
 	}
 
-	if filename == "" {
+	if f == nil {
 		return "", fmt.Errorf("could not find 'chromedriver' file in archive: %q", allFilenames)
 	}
 
-	f := r.File[0]
 	outputFilename := filepath.Join(dir, filepath.FromSlash(f.Name))
 	rc, err := f.Open()
 	if err != nil {

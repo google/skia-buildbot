@@ -30,7 +30,7 @@ func TestUnzipBodyIntoDirectory_NoChromeDriverFoundInTheZip_ReturnsError(t *test
 	_, err = fmt.Fprintf(fw, "foo")
 	require.NoError(t, err)
 
-	bw, err := zw.Create("bar.txt")
+	bw, err := zw.Create("bar/LICENSE.chromedriver")
 	require.NoError(t, err)
 	_, err = fmt.Fprintf(bw, "bar")
 	require.NoError(t, err)
@@ -46,10 +46,17 @@ func createValidZipFile(t *testing.T) []byte {
 	// Create a zip with a single file.
 	var b bytes.Buffer
 	zw := zip.NewWriter(&b)
-	fw, err := zw.Create("myfiles/chromedriver")
+
+	fw, err := zw.Create("myfiles/LICENSE.chromedriver")
+	require.NoError(t, err)
+	_, err = fmt.Fprintf(fw, "bar")
+	require.NoError(t, err)
+
+	fw, err = zw.Create("myfiles/chromedriver")
 	require.NoError(t, err)
 	_, err = fmt.Fprintf(fw, "foo")
 	require.NoError(t, err)
+
 	zw.Close()
 	return b.Bytes()
 }
