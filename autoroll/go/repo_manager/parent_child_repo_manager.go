@@ -57,6 +57,8 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {
 		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), reg, client, serverURL)
+	} else if c.GetGoModGerritParent() != nil {
+		parentRM, err = parent.NewGoModGerritParent(ctx, c.GetGoModGerritParent(), reg, client, workdir, cr)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -700,6 +700,9 @@ func (c *ParentChildRepoManagerConfig) Validate() error {
 	if c.GetGitilesParent() != nil {
 		parents = append(parents, c.GetGitilesParent())
 	}
+	if c.GetGoModGerritParent() != nil {
+		parents = append(parents, c.GetGoModGerritParent())
+	}
 	if len(parents) != 1 {
 		return skerr.Fmt("Exactly one Parent is required.")
 	}
@@ -845,6 +848,42 @@ func (c *GitilesParentConfig) Validate() error {
 	}
 	if err := c.Gerrit.Validate(); err != nil {
 		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// Validate implements util.Validator.
+func (c *GoModGerritParentConfig) Validate() error {
+	if c.Gerrit == nil {
+		return skerr.Fmt("Gerrit is required.")
+	}
+	if err := c.Gerrit.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if c.GoMod == nil {
+		return skerr.Fmt("GoMod is required.")
+	}
+	if err := c.GoMod.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// Validate implements util.Validator.
+func (c *GoModParentConfig) Validate() error {
+	if c.GitCheckout == nil {
+		return skerr.Fmt("GitCheckout is required.")
+	}
+	if err := c.GitCheckout.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if c.ModulePath == "" {
+		return skerr.Fmt("ModulePath is required.")
+	}
+	for _, step := range c.PreUploadSteps {
+		if err := step.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 	return nil
 }

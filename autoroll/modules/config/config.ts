@@ -327,6 +327,7 @@ export interface ParentChildRepoManagerConfig {
   depsLocalGerritParent?: DEPSLocalGerritParentConfig;
   gitCheckoutGithubFileParent?: GitCheckoutGitHubFileParentConfig;
   gitilesParent?: GitilesParentConfig;
+  goModGerritParent?: GoModGerritParentConfig;
   cipdChild?: CIPDChildConfig;
   fuchsiaSdkChild?: FuchsiaSDKChildConfig;
   gitCheckoutChild?: GitCheckoutChildConfig;
@@ -343,6 +344,7 @@ interface ParentChildRepoManagerConfigJSON {
   deps_local_gerrit_parent?: DEPSLocalGerritParentConfigJSON;
   git_checkout_github_file_parent?: GitCheckoutGitHubFileParentConfigJSON;
   gitiles_parent?: GitilesParentConfigJSON;
+  go_mod_gerrit_parent?: GoModGerritParentConfigJSON;
   cipd_child?: CIPDChildConfigJSON;
   fuchsia_sdk_child?: FuchsiaSDKChildConfigJSON;
   git_checkout_child?: GitCheckoutChildConfigJSON;
@@ -441,6 +443,32 @@ interface GitilesConfigJSON {
   repo_url?: string;
   dependencies?: VersionFileConfigJSON[];
   default_bug_project?: string;
+}
+
+export interface GoModGerritParentConfig {
+  goMod?: GoModParentConfig;
+  gerrit?: GerritConfig;
+}
+
+interface GoModGerritParentConfigJSON {
+  go_mod?: GoModParentConfigJSON;
+  gerrit?: GerritConfigJSON;
+}
+
+export interface GoModParentConfig {
+  gitCheckout?: GitCheckoutConfig;
+  modulePath: string;
+  findAndReplace?: string[];
+  preUploadSteps?: PreUploadStep[];
+  preUploadCommands?: PreUploadConfig;
+}
+
+interface GoModParentConfigJSON {
+  git_checkout?: GitCheckoutConfigJSON;
+  module_path?: string;
+  find_and_replace?: string[];
+  pre_upload_steps?: string[];
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface DEPSLocalParentConfig {

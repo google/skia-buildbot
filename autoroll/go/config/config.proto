@@ -338,6 +338,7 @@ message ParentChildRepoManagerConfig {
         DEPSLocalGerritParentConfig deps_local_gerrit_parent = 3;
         GitCheckoutGitHubFileParentConfig git_checkout_github_file_parent = 4;
         GitilesParentConfig gitiles_parent = 5;
+        GoModGerritParentConfig go_mod_gerrit_parent = 14;
     }
     // child is the entity which is depended on by the parent and is rolled.
     oneof child {
@@ -423,6 +424,28 @@ message GitilesConfig {
     // default_bug_project indicates the Monorail project used when no project
     // is specified in "Bug: 123" lines in commit messages.
     string default_bug_project = 4;
+}
+
+// GoModGerritParentConfig provides configuration for a Parent which uses Go
+// modules and uploads pull requests to Gerrit.
+message GoModGerritParentConfig {
+    GoModParentConfig go_mod = 1;
+    GerritConfig gerrit = 2;
+}
+
+// GoModParentConfig provides configuration for a Parent which uses Go modules.
+message GoModParentConfig {
+    GitCheckoutConfig git_checkout = 1;
+    // module_path is the Go module path of the dependency.
+    string module_path = 2;
+    // find_and_replace lists additional files in which all instances of the
+    // previous primary revision ID should be replaced with the new primary
+    // revision ID.
+    repeated string find_and_replace = 3;
+    // pre_upload_steps are steps to run before uploading the CL.
+    repeated PreUploadStep pre_upload_steps = 4;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 5;
 }
 
 // DEPSLocalConfig provides configuration for a Parent which uses a local

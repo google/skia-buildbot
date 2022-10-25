@@ -93,7 +93,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 
 	gc, ok := GerritConfigs[cfg.Config]
 	require.True(t, ok)
-	g := gerrit_testutils.NewGerritWithConfig(t, gc, tmp)
+	g := gerrit_testutils.NewGerritWithConfig(t, gc)
 	ctx := context.Background()
 	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
 	require.NoError(t, err)
@@ -133,7 +133,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 
 	// Add a comment.
 	msg := "Here's a comment"
-	g.MockAddComment(ci, msg)
+	g.MockAddComment(ci, msg, nil)
 	require.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
 	require.False(t, issue.IsDryRun)
@@ -143,7 +143,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.False(t, gr.IsDryRunSuccess())
 
 	// Set dry run.
-	g.MockPost(ci, "Mode was changed to dry run", gc.SetDryRunLabels)
+	g.MockPost(ci, "Mode was changed to dry run", gc.SetDryRunLabels, nil)
 	gerrit.SetLabels(ci, gc.SetDryRunLabels)
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
@@ -158,7 +158,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.False(t, gr.IsDryRunSuccess())
 
 	// Set normal.
-	g.MockPost(ci, "Mode was changed to normal", gc.SetCqLabels)
+	g.MockPost(ci, "Mode was changed to normal", gc.SetCqLabels, nil)
 	gerrit.SetLabels(ci, gc.SetCqLabels)
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
@@ -280,7 +280,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", gc.SetDryRunLabels)
+	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", gc.SetDryRunLabels, nil)
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
@@ -299,7 +299,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", gc.SetCqLabels)
+	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", gc.SetCqLabels, nil)
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)

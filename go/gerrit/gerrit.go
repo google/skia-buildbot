@@ -763,7 +763,7 @@ func (g *Gerrit) GetFilesToContent(ctx context.Context, issue int64, revision st
 	return filesToContent, err
 }
 
-type reviewer struct {
+type Reviewer struct {
 	Reviewer string `json:"reviewer"`
 }
 type NotifyInfo struct {
@@ -808,9 +808,9 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 	}
 
 	if len(reviewers) > 0 {
-		revs := make([]*reviewer, 0, len(reviewers))
+		revs := make([]*Reviewer, 0, len(reviewers))
 		for _, r := range reviewers {
-			revs = append(revs, &reviewer{
+			revs = append(revs, &Reviewer{
 				Reviewer: r,
 			})
 		}
