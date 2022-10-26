@@ -39,8 +39,7 @@ type Status struct {
 	Roles roles.Roles `json:"roles"`
 }
 
-// Login is an abstraction of the functionality we use out of the go/login
-// package.
+// Login provides information about the logged in status of http.Requests.
 type Login interface {
 	// LoggedInAs returns the email of the logged in user, or the empty string
 	// of they are not logged in.

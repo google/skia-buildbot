@@ -1,7 +1,7 @@
 include ../make/bazel.mk
 
 build:
-	$(BAZEL) build --config=mayberemote ...
+	$(BAZEL) build --config=mayberemote //machine/...
 
 generate:
 	go generate ./go/...
@@ -31,9 +31,6 @@ start_firestore_emulator:
 start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
-
-build:
-	$(BAZEL) build --config=mayberemote //machine/go/machineserver:machineserver
 
 run-local-instance: build
 	../_bazel_bin/machine/go/machineserver/machineserver_/machineserver --local --resources_dir ../_bazel_bin/machine/pages/development

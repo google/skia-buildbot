@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,8 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/kube/go/authproxy"
 	"go.skia.org/infra/machine/go/machine"
 	changeSinkMocks "go.skia.org/infra/machine/go/machine/change/sink/mocks"
 	"go.skia.org/infra/machine/go/machine/store/mocks"
@@ -26,7 +30,7 @@ import (
 var (
 	fakeTime = time.Date(2021, time.September, 1, 2, 3, 4, 0, time.UTC)
 
-	myFakeError = errors.New("my fake error")
+	errFake = errors.New("my fake error")
 
 	suppliedDimensions = machine.SwarmingDimensions{
 		"mykey": []string{"myvalue"},
@@ -59,17 +63,13 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 	desc.SuppliedDimensions = suppliedDimensions.Copy()
 	desc.SSHUserIP = sshUserIP
 
-	storeMock := &mocks.Store{}
-	changeSinkMock := &changeSinkMocks.Sink{}
-
-	t.Cleanup(func() {
-		mock.AssertExpectationsForObjects(t, storeMock, changeSinkMock)
-
-	})
+	storeMock := mocks.NewStore(t)
+	changeSinkMock := changeSinkMocks.NewSink(t)
 
 	s := &server{
 		store:      storeMock,
 		changeSink: changeSinkMock,
+		login:      proxylogin.NewWithDefaults(),
 	}
 
 	// Put a mux.Router in place so the request path gets parsed.
@@ -80,13 +80,19 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 	return ctx, desc, s, router, w
 }
 
+func newAuthorizedRequest(method, target string, body io.Reader) *http.Request {
+	ret := httptest.NewRequest(method, target, body)
+	ret.Header.Add(authproxy.WebAuthRoleHeaderName, string(roles.Editor))
+	return ret
+}
+
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
 
@@ -110,7 +116,7 @@ func TestToggleMode_ChangesModeAndAddsAnnotation(t *testing.T) {
 
 func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/toggle_mode/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/toggle_mode/", nil)
 
 	router.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -120,7 +126,7 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/toggle_powercycle/%s", machineID), nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/toggle_powercycle/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
 
@@ -129,7 +135,7 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 
 func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/toggle_powercycle/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/toggle_powercycle/", nil)
 
 	router.ServeHTTP(w, r)
 
@@ -160,7 +166,7 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), body)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
 
@@ -169,7 +175,7 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 
 func TestMachineSetAttachedDevice_FailOnInvalidJSON(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), strings.NewReader("not valid json"))
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), strings.NewReader("not valid json"))
 
 	router.ServeHTTP(w, r)
 
@@ -178,7 +184,7 @@ func TestMachineSetAttachedDevice_FailOnInvalidJSON(t *testing.T) {
 
 func TestMachineSetAttachedDevice_FailOnMissingID(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/set_attached_device/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/set_attached_device/", nil)
 
 	router.ServeHTTP(w, r)
 
@@ -201,7 +207,7 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/remove_device/%s", machineID), body)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/remove_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
 
@@ -210,7 +216,7 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 
 func TestMachineRemoveDevice_FailOnMissingID(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/remove_device/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/remove_device/", nil)
 
 	router.ServeHTTP(w, r)
 
@@ -239,7 +245,7 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	storeMock.On("Delete", testutils.AnyContext, machineID).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
 
@@ -249,8 +255,8 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 func TestMachineDeleteMachineHandler_DeleteFails_ReturnsStatusBadRequest(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
-	storeMock.On("Delete", testutils.AnyContext, machineID).Return(myFakeError)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
+	storeMock.On("Delete", testutils.AnyContext, machineID).Return(errFake)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
 
@@ -259,7 +265,7 @@ func TestMachineDeleteMachineHandler_DeleteFails_ReturnsStatusBadRequest(t *test
 
 func TestMachineDeleteMachineHandler_MissingMachineID_ReturnsStatusNotFound(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/delete_machine/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/delete_machine/", nil)
 
 	router.ServeHTTP(w, r)
 
@@ -276,7 +282,7 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), body)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
 
@@ -285,7 +291,7 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 
 func TestMachineSetNoteHandler_ReceivesInvalidJSON_ReturnsStatusBadRequest(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), strings.NewReader("this is not valid json"))
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), strings.NewReader("this is not valid json"))
 
 	router.ServeHTTP(w, r)
 
@@ -294,7 +300,7 @@ func TestMachineSetNoteHandler_ReceivesInvalidJSON_ReturnsStatusBadRequest(t *te
 
 func TestMachineSetNoteHandler_MissingID_ReturnsStatusNotFound(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/set_note/", strings.NewReader("this is not valid json"))
+	r := newAuthorizedRequest("POST", "/_/machine/set_note/", strings.NewReader("this is not valid json"))
 
 	router.ServeHTTP(w, r)
 
@@ -330,7 +336,7 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
 	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
 
@@ -344,7 +350,7 @@ func TestMachineSupplyChromeOSInfoHandler_SSHUserIPMissing_ReturnsStatusBadReque
 			SSHUserIP:          "",
 			SuppliedDimensions: suppliedDimensions2,
 		})
-	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
 
@@ -353,7 +359,7 @@ func TestMachineSupplyChromeOSInfoHandler_SSHUserIPMissing_ReturnsStatusBadReque
 
 func TestMachineSupplyChromeOSInfoHandler_MissingMachineID_ReturnsStatusNotFound(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", "/_/machine/supply_chromeos/", nil)
+	r := newAuthorizedRequest("POST", "/_/machine/supply_chromeos/", nil)
 
 	router.ServeHTTP(w, r)
 
@@ -379,7 +385,7 @@ func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Get", testutils.AnyContext, machineID).Return(desc, nil)
 
-	r := httptest.NewRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
+	r := newAuthorizedRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
 	r = r.WithContext(ctx)
 
 	// Make the request.
@@ -395,9 +401,9 @@ func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t
 	_, desc, s, router, w := setupForTest(t)
 
 	storeMock := s.store.(*mocks.Store)
-	storeMock.On("Get", testutils.AnyContext, machineID).Return(desc, myFakeError)
+	storeMock.On("Get", testutils.AnyContext, machineID).Return(desc, errFake)
 
-	r := httptest.NewRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
+	r := newAuthorizedRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -407,7 +413,7 @@ func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t
 func TestApiMachineDescriptionHandler_NoMachineIDSupplied_ReturnsNotFound(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
 
-	r := httptest.NewRequest("GET", "/json/v1/machine/description/", nil)
+	r := newAuthorizedRequest("GET", "/json/v1/machine/description/", nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -421,7 +427,7 @@ func TestApiPowerCycleListHandler_NoMachinesNeedPowerCycling_ReturnsEmptyList(t 
 	machines := []string{}
 	storeMock.On("ListPowerCycle", testutils.AnyContext).Return(machines, nil)
 
-	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	r := newAuthorizedRequest("GET", "/json/v1/powercycle/list", nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -439,7 +445,7 @@ func TestApiPowerCycleListHandler_OneMachineNeedsPowerCycling_ReturnsOneMachineI
 	machines := []string{machineID}
 	storeMock.On("ListPowerCycle", testutils.AnyContext).Return(machines, nil)
 
-	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	r := newAuthorizedRequest("GET", "/json/v1/powercycle/list", nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -454,9 +460,9 @@ func TestApiPowerCycleListHandler_ListPowerCycleReturnsError_ReturnsInternalServ
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 
-	storeMock.On("ListPowerCycle", testutils.AnyContext).Return(nil, myFakeError)
+	storeMock.On("ListPowerCycle", testutils.AnyContext).Return(nil, errFake)
 
-	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	r := newAuthorizedRequest("GET", "/json/v1/powercycle/list", nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -468,7 +474,7 @@ func TestApiPowerCycleCompleteHandler_UpdateSucceeds_ReturnStatusOK(t *testing.T
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil)
 
-	r := httptest.NewRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -479,9 +485,9 @@ func TestApiPowerCycleCompleteHandler_UpdateSucceeds_ReturnStatusOK(t *testing.T
 func TestApiPowerCycleCompleteHandler_UpdateFails_ReturnStatusInternalServerError(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
-	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(errFake)
 
-	r := httptest.NewRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -516,9 +522,9 @@ var validUpdatePowerCycleStateRequest = rpc.UpdatePowerCycleStateRequest{
 func TestApiPowerCycleStateUpdateHandler_MachineDoesNotExist_TheMachineIsSkippedAndUpdateIsNeverCalled(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
-	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, myFakeError)
+	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, errFake)
 
-	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
+	r := newAuthorizedRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -528,10 +534,10 @@ func TestApiPowerCycleStateUpdateHandler_MachineDoesNotExist_TheMachineIsSkipped
 func TestApiPowerCycleStateUpdateHandler_UpdateFails_ReturnStatusInternalServerError(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
-	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(errFake)
 	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, nil)
 
-	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
+	r := newAuthorizedRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -540,7 +546,7 @@ func TestApiPowerCycleStateUpdateHandler_UpdateFails_ReturnStatusInternalServerE
 
 func TestApiPowerCycleStateUpdateHandler_InvalidJSON_ReturnStatusBadRequest(t *testing.T) {
 	_, _, _, router, w := setupForTest(t)
-	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, strings.NewReader("this isn't valid json"))
+	r := newAuthorizedRequest("POST", rpc.PowerCycleStateUpdateURL, strings.NewReader("this isn't valid json"))
 
 	// Make the request.
 	router.ServeHTTP(w, r)
@@ -552,7 +558,7 @@ func TestApiPowerCycleStateUpdateHandler_ValidRequest_DescriptionsAreSuccessfull
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil).Once()
 	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, nil)
-	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
+	r := newAuthorizedRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
 
 	// Make the request.
 	router.ServeHTTP(w, r)

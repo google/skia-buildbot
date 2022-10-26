@@ -8,10 +8,17 @@ import (
 
 // URL paths.
 const (
-	MachineDescriptionURL    = "/json/v1/machine/description/{id:.+}"
-	PowerCycleListURL        = "/json/v1/powercycle/list"
-	PowerCycleCompleteURL    = "/json/v1/powercycle/complete/{id:.+}"
-	PowerCycleStateUpdateURL = "/json/v1/powercycle/state/update"
+	APIPrefix = "/json/v1"
+
+	MachineDescriptionRelativeURL    = "/machine/description/{id:.+}"
+	PowerCycleListRelativeURL        = "/powercycle/list"
+	PowerCycleCompleteRelativeURL    = "/powercycle/complete/{id:.+}"
+	PowerCycleStateUpdateRelativeURL = "/powercycle/state/update"
+
+	MachineDescriptionURL    = APIPrefix + MachineDescriptionRelativeURL
+	PowerCycleListURL        = APIPrefix + PowerCycleListRelativeURL
+	PowerCycleCompleteURL    = APIPrefix + PowerCycleCompleteRelativeURL
+	PowerCycleStateUpdateURL = APIPrefix + PowerCycleStateUpdateRelativeURL
 )
 
 type SupplyChromeOSRequest struct {

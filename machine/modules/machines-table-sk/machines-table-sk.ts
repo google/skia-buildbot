@@ -92,6 +92,14 @@ const sortBooleans = (a: boolean, b: boolean): number => {
   return -1;
 };
 
+/** checkResponse throws an error with the response body text if the response
+ * was not 'ok'. */
+const checkResponse = async (resp: Response): Promise<void> => {
+  if (!resp.ok) {
+    throw await resp.text();
+  }
+};
+
 // Sort functions for different clumns, i.e. values in FrontendDescription.
 export const sortByMode = (a: FrontendDescription, b: FrontendDescription): number => a.Mode.localeCompare(b.Mode);
 
@@ -195,7 +203,7 @@ const isRunning = (machine: FrontendDescription): TemplateResult => (machine.Run
       `
   : html``);
 
-const asList = (arr: string[] | null) => arr === null ? '' : arr.join(' | ');
+const asList = (arr: string[] | null) => (arr === null ? '' : arr.join(' | '));
 
 const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
   if (!machine.LaunchedSwarming) {
@@ -565,6 +573,7 @@ export class MachinesTableSk extends ElementSk {
 
     try {
       const resp = await fetch(fetchPath);
+      await checkResponse(resp);
       const json = await jsonOrThrow(resp);
       if (waitCursorPolicy === 'ShowWaitCursor') {
         this.removeAttribute('waiting');
@@ -662,74 +671,56 @@ export class MachinesTableSk extends ElementSk {
     this.removeEventListener(UpdateDimensionsEvent, this.updateDimensions);
   }
 
-  async toggleUpdate(id: string): Promise<void> {
+  /** Performs the fetch and if successful updates the UI. */
+  async fetchCheckAndUpdate(input: string, init?: RequestInit): Promise<void> {
     try {
       this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_update/${id}`);
-      this.removeAttribute('waiting');
+      const resp = await fetch(input, init);
+      await checkResponse(resp);
       await this.update('ShowWaitCursor');
     } catch (error) {
       this.onError(error as string);
+    } finally {
+      this.removeAttribute('waiting');
     }
+  }
+
+  async toggleUpdate(id: string): Promise<void> {
+    await this.fetchCheckAndUpdate(`/_/machine/toggle_update/${id}`);
   }
 
   async attachedDeviceChanged(e: InputEvent, id: string): Promise<void> {
-    try {
-      this.setAttribute('waiting', '');
-      const sel = e.target as HTMLSelectElement;
-      const request: SetAttachedDevice = {
-        AttachedDevice: sel.selectedOptions[0].value as AttachedDevice,
-      };
-      await fetch(`/_/machine/set_attached_device/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
-    }
+    const sel = e.target as HTMLSelectElement;
+    const request: SetAttachedDevice = {
+      AttachedDevice: sel.selectedOptions[0].value as AttachedDevice,
+    };
+    await this.fetchCheckAndUpdate(`/_/machine/set_attached_device/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
   }
 
   async toggleMode(id: string): Promise<void> {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
-      this.removeAttribute('waiting');
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    }
+    await this.fetchCheckAndUpdate(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
   }
 
   async editNote(id: string, machine: FrontendDescription): Promise<void> {
-    try {
-      const editedAnnotation = await this.noteEditor!.edit(machine.Note);
-      if (!editedAnnotation) {
-        return;
-      }
-      const request: SetNoteRequest = editedAnnotation;
-      this.setAttribute('waiting', '');
-      const resp = await fetch(`/_/machine/set_note/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-      if (!resp.ok) {
-        this.onError(resp.statusText);
-      }
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
+    const editedAnnotation = await this.noteEditor!.edit(machine.Note);
+    if (!editedAnnotation) {
+      return;
     }
+    const request: SetNoteRequest = editedAnnotation;
+    this.setAttribute('waiting', '');
+    await this.fetchCheckAndUpdate(`/_/machine/set_note/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
   }
 
   async editHiddenColumns(): Promise<ColumnTitles[]> {
@@ -742,15 +733,7 @@ export class MachinesTableSk extends ElementSk {
   }
 
   async togglePowerCycle(id: string): Promise<void> {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
-    }
+    await this.fetchCheckAndUpdate(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
   }
 
   private async clearDevice(e: Event): Promise<void> {
@@ -759,28 +742,11 @@ export class MachinesTableSk extends ElementSk {
   }
 
   private async clearDeviceByID(id: string): Promise<void> {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/remove_device/${id}`, { method: 'POST' });
-
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
-    }
+    await this.fetchCheckAndUpdate(`/_/machine/remove_device/${id}`, { method: 'POST' });
   }
 
   async deleteDevice(id: string): Promise<void> {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/delete_machine/${id}`, { method: 'POST' });
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
-    }
+    await this.fetchCheckAndUpdate(`/_/machine/delete_machine/${id}`, { method: 'POST' });
   }
 
   private async updateDimensions(e: Event): Promise<void> {
@@ -789,19 +755,10 @@ export class MachinesTableSk extends ElementSk {
       SSHUserIP: info.sshUserIP,
       SuppliedDimensions: info.specifiedDimensions,
     };
-    try {
-      this.setAttribute('waiting', '');
-
-      await fetch(`/_/machine/supply_chromeos/${info.machineID}`, {
-        method: 'POST',
-        body: JSON.stringify(postBody),
-      });
-      await this.update('ShowWaitCursor');
-    } catch (error) {
-      this.onError(error as string);
-    } finally {
-      this.removeAttribute('waiting');
-    }
+    await this.fetchCheckAndUpdate(`/_/machine/supply_chromeos/${info.machineID}`, {
+      method: 'POST',
+      body: JSON.stringify(postBody),
+    });
   }
 }
 

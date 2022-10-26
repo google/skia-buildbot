@@ -17,6 +17,8 @@ import (
 	"github.com/unrolled/secure"
 
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
@@ -24,6 +26,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	pubsubUtils "go.skia.org/infra/go/pubsub"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
@@ -49,6 +52,7 @@ type server struct {
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
 	changeSink        changeSink.Sink
+	login             alogin.Login
 }
 
 // See baseapp.Constructor.
@@ -123,18 +127,14 @@ func new() (baseapp.App, error) {
 	s := &server{
 		store:      store,
 		changeSink: changeSink,
+		login:      proxylogin.NewWithDefaults(),
 	}
 	s.loadTemplates()
 	return s, nil
 }
 
-// user returns the currently logged in user, or a placeholder if running locally.
-func user(r *http.Request) string {
-	user := "barney@example.org"
-	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
-	}
-	return user
+func (s *server) audit(w http.ResponseWriter, r *http.Request, action string, body interface{}) {
+	auditlog.LogWithUser(r, s.login.LoggedInAs(r).String(), action, body)
 }
 
 func (s *server) loadTemplatesImpl() {
@@ -225,20 +225,12 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return
 	}
+	s.audit(w, r, "toggle-mode", id)
 	ctx := r.Context()
 
-	resultMode := machine.ModeAvailable
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		ret := toggleMode(ctx, user(r), in)
-		resultMode = ret.Mode
+		ret := toggleMode(ctx, string(s.login.LoggedInAs(r)), in)
 		return ret
-	})
-	auditlog.Log(r, "toggle-mode", struct {
-		MachineID string
-		Mode      machine.Mode
-	}{
-		MachineID: id,
-		Mode:      resultMode,
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
@@ -267,18 +259,11 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 	if err != nil {
 		return
 	}
+	s.audit(w, r, "toggle-powercycle", id)
 
 	ctx := r.Context()
-	var ret machine.Description
 	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
-		return togglePowerCycle(ctx, id, user(r), in)
-	})
-	auditlog.Log(r, "toggle-powercycle", struct {
-		MachineID  string
-		PowerCycle bool
-	}{
-		MachineID:  id,
-		PowerCycle: ret.PowerCycle,
+		return togglePowerCycle(ctx, id, string(s.login.LoggedInAs(r)), in)
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
@@ -307,6 +292,8 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	s.audit(w, r, "set-attached-device", attachedDeviceRequest)
+
 	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		return setAttachedDevice(attachedDeviceRequest.AttachedDevice, in)
 	})
@@ -314,13 +301,6 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "set-attached-device", struct {
-		MachineID      string
-		AttachedDevice machine.AttachedDevice
-	}{
-		MachineID:      id,
-		AttachedDevice: attachedDeviceRequest.AttachedDevice,
-	})
 	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
 }
@@ -349,14 +329,11 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	s.audit(w, r, "remove-device", id)
+
 	ctx := r.Context()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		return removeDevice(ctx, id, user(r), in)
-	})
-	auditlog.Log(r, "remove-device", struct {
-		MachineID string
-	}{
-		MachineID: id,
+		return removeDevice(ctx, id, string(s.login.LoggedInAs(r)), in)
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
@@ -372,11 +349,7 @@ func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditlog.Log(r, "delete-machine", struct {
-		MachineID string
-	}{
-		MachineID: id,
-	})
+	s.audit(w, r, "delete-machine", id)
 
 	if err := s.store.Delete(r.Context(), id); err != nil {
 		httputils.ReportError(w, err, "Failed to delete machine.", http.StatusInternalServerError)
@@ -410,11 +383,13 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
 		return
 	}
+
+	s.audit(w, r, "set-note", note)
+
 	ctx := r.Context()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		return setNote(ctx, user(r), note, in)
+		return setNote(ctx, string(s.login.LoggedInAs(r)), note, in)
 	})
-	auditlog.Log(r, "set-note", note)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
@@ -450,11 +425,13 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 		http.Error(w, "Missing fields.", http.StatusBadRequest)
 		return
 	}
+
+	s.audit(w, r, "supply-dimensions", req)
+
 	ctx := r.Context()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return setChromeOSInfo(ctx, req, in)
 	})
-	auditlog.Log(r, "supply-dimensions", req)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to process dimensions.", http.StatusInternalServerError)
 		return
@@ -498,6 +475,8 @@ func (s *server) apiPowerCycleCompleteHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	s.audit(w, r, "powercycle-complete", id)
+
 	err = s.store.Update(r.Context(), id, setPowerCycleFalse)
 	auditlog.Log(r, "powercycle-complete", id)
 	if err != nil {
@@ -520,6 +499,8 @@ func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	s.audit(w, r, "powercycle-update", req)
+
 	for _, updateRequest := range req.Machines {
 		if _, err := s.store.Get(r.Context(), updateRequest.MachineID); err != nil {
 			sklog.Infof("Got powercycle info for a non-existent machine: ", updateRequest.MachineID)
@@ -537,36 +518,56 @@ func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) loginStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	st := s.login.Status(r)
+	if *baseapp.Local {
+		st.EMail = "barney@example.org"
+	}
+	if err := json.NewEncoder(w).Encode(st); err != nil {
+		httputils.ReportError(w, err, "Failed to encode login status", http.StatusInternalServerError)
+	}
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	// Pages
 	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
 
+	editorURLs := r.PathPrefix("/_").Subrouter()
 	// UI API
-	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
-	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
-	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
-	r.HandleFunc("/_/machine/set_attached_device/{id:.+}", s.machineSetAttachedDeviceHandler).Methods("POST")
-	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("POST")
-	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
-	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
-	r.HandleFunc("/_/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
-	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
+	editorURLs.HandleFunc("/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/set_attached_device/{id:.+}", s.machineSetAttachedDeviceHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
+
+	if !*baseapp.Local {
+		editorURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
+	}
+
+	// PowerCycle API
+	apiURLs := r.PathPrefix(rpc.APIPrefix).Subrouter()
+	apiURLs.HandleFunc(rpc.PowerCycleCompleteRelativeURL, s.apiPowerCycleCompleteHandler).Methods("POST")
+	apiURLs.HandleFunc(rpc.PowerCycleStateUpdateRelativeURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
+
+	if !*baseapp.Local {
+		apiURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
+	}
 
 	// Public API
+	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc(rpc.MachineDescriptionURL, s.apiMachineDescriptionHandler).Methods("GET")
 	r.HandleFunc(rpc.PowerCycleListURL, s.apiPowerCycleListHandler).Methods("GET")
-	r.HandleFunc(rpc.PowerCycleCompleteURL, s.apiPowerCycleCompleteHandler).Methods("POST")
-	r.HandleFunc(rpc.PowerCycleStateUpdateURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
+	r.HandleFunc("/loginstatus/", s.loginStatus).Methods("GET")
+
 }
 
 // See baseapp.App.
 func (s *server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
-	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
-	}
-	return ret
+	return []mux.MiddlewareFunc{}
 }
 
 func main() {

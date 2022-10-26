@@ -819,7 +819,7 @@ func (f *Frontend) isEditor(w http.ResponseWriter, r *http.Request, action strin
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return false
 	}
-	auditlog.LogWithUser(r, user.String(), "triage", body)
+	auditlog.LogWithUser(r, user.String(), action, body)
 	return true
 }
 

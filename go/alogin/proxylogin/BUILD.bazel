@@ -8,10 +8,12 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/alogin",
+        "//go/httputils",
         "//go/roles",
         "//go/skerr",
         "//go/sklog",
         "//kube/go/authproxy",
+        "@com_github_gorilla_mux//:mux",
     ],
 )
 

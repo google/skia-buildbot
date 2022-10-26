@@ -8,6 +8,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/allowed",
+        "//go/alogin",
+        "//go/alogin/proxylogin",
         "//go/auditlog",
         "//go/baseapp",
         "//go/httputils",
@@ -15,6 +17,7 @@ go_library(
         "//go/metrics2",
         "//go/now",
         "//go/pubsub",
+        "//go/roles",
         "//go/skerr",
         "//go/sklog",
         "//machine/go/configs",
@@ -41,8 +44,11 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":machineserver_lib"],
     deps = [
+        "//go/alogin/proxylogin",
         "//go/now",
+        "//go/roles",
         "//go/testutils",
+        "//kube/go/authproxy",
         "//machine/go/machine",
         "//machine/go/machine/change/sink/mocks",
         "//machine/go/machine/store/mocks",
