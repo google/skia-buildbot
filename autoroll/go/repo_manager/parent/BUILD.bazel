@@ -41,6 +41,7 @@ go_library(
         "//go/git/git_common",
         "//go/github",
         "//go/go_install",
+        "//go/golang",
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
@@ -56,7 +57,7 @@ go_test(
     name = "parent_test",
     srcs = [
         "gitiles_test.go",
-        "go_mod_manual_test.go",
+        "go_mod_test.go",
         "pre_upload_steps_test.go",
     ],
     embed = [":parent"],

@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/golang"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -77,12 +78,17 @@ func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *confi
 		return nil, skerr.Wrap(err)
 	}
 
+	goBin, err := golang.FindGo()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Update the Go module.
-		if _, err := exec.RunCwd(ctx, co.Dir(), "go", "get", fmt.Sprintf("%s@%s", c.ModulePath, to.Id)); err != nil {
+		if _, err := exec.RunCwd(ctx, co.Dir(), goBin, "get", fmt.Sprintf("%s@%s", c.ModulePath, to.Id)); err != nil {
 			return "", skerr.Wrap(err)
 		}
-		if _, err := exec.RunCwd(ctx, co.Dir(), "go", "mod", "tidy"); err != nil {
+		if _, err := exec.RunCwd(ctx, co.Dir(), goBin, "mod", "tidy"); err != nil {
 			return "", skerr.Wrap(err)
 		}
 
