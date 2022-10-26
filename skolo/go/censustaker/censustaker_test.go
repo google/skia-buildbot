@@ -46,7 +46,7 @@ func TestMakeConfig_Success(t *testing.T) {
 func Test_FakeExe_Arp_ReturnsTable(t *testing.T) {
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -80,7 +80,7 @@ skia-rpi-042             ether   b8:27:eb:83:06:91   C                     eno1
 skia-rpi-022             ether   b8:27:eb:80:ba:ce   C                     eno1`
 
 func Test_FakeExe_EdgeSwitch_ReturnsTable(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	args := executil.OriginalArgs()

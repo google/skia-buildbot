@@ -60,14 +60,13 @@ func TestRunBenchMarkScript_ScriptSucceeds_DoesNotReturnError(t *testing.T) {
 }
 
 func Test_FakeExe_Exec_Fails(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
-		return
+	if executil.IsCallingFakeCommand() {
+		os.Exit(1)
 	}
-	os.Exit(1)
 }
 
 func Test_FakeExe_Python_Script_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -121,7 +120,7 @@ func TestNewSparseCheckout_GitCommandFails_ReturnsError(t *testing.T) {
 }
 
 func Test_FakeExe_Clone_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -133,7 +132,7 @@ func Test_FakeExe_Clone_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Sparse_Init_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -144,7 +143,7 @@ func Test_FakeExe_Sparse_Init_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Sparse_Set_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -172,14 +171,13 @@ func TestRunSingleBenchmark_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_Exec_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
-		return
+	if executil.IsCallingFakeCommand() {
+		os.Exit(0)
 	}
-	os.Exit(0)
 }
 
 func Test_FakeExe_Run_Canary_Python_Script_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 

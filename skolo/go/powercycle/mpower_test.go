@@ -40,7 +40,7 @@ func TestMPowerClient_NewFails_ControllerIsStillReturnedAndCanListMachines(t *te
 // This is a fake executable used to assert that a correct call to disable port 7 of the mpower
 // switch was made. It is invoked using executil.FakeTestsContext.
 func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	args := executil.OriginalArgs()
@@ -57,7 +57,7 @@ func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
 // This is a fake executable used to assert that a correct call to enable port 7 of the mpower
 // switch was made. It is invoked using executil.FakeTestsContext.
 func Test_FakeExe_MPowerSSHEnablePort7_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	args := executil.OriginalArgs()

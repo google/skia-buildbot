@@ -575,7 +575,7 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 }
 
 func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -588,7 +588,7 @@ func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbState_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -601,7 +601,7 @@ func Test_FakeExe_AdbState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -614,7 +614,7 @@ func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSys_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -623,7 +623,7 @@ func Test_FakeExe_RawDumpSys_Success(t *testing.T) {
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -635,7 +635,7 @@ func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -648,7 +648,7 @@ func Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -661,7 +661,7 @@ func Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysThermal_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -673,7 +673,7 @@ func Test_FakeExe_RawDumpSysThermal_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	require.Equal(t, []string{"ideviceinfo", "-k", "ProductType"}, executil.OriginalArgs())
@@ -683,7 +683,7 @@ func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	require.Equal(t, []string{"ideviceinfo", "-k", "ProductVersion"}, executil.OriginalArgs())
@@ -693,7 +693,7 @@ func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	require.Equal(t, []string{"ideviceinfo", "--domain", "com.apple.mobile.battery", "-k", "BatteryCurrentCapacity"}, executil.OriginalArgs())
@@ -703,7 +703,7 @@ func Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel(t *testing.T) {
 }
 
 func Test_FakeExe_IDeviceDiagnosticsReboot_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	require.Equal(t, []string{"idevicediagnostics", "restart"}, executil.OriginalArgs())
@@ -711,7 +711,7 @@ func Test_FakeExe_IDeviceDiagnosticsReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -725,7 +725,7 @@ func Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -739,7 +739,7 @@ func Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS(t *testing.T) {
 }
 
 func Test_FakeExe_SSHUptime_ReturnsPlaceholder(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -753,7 +753,7 @@ func Test_FakeExe_SSHUptime_ReturnsPlaceholder(t *testing.T) {
 }
 
 func Test_FakeExe_ExitCodeOne(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -761,7 +761,7 @@ func Test_FakeExe_ExitCodeOne(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -775,7 +775,7 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbReboot_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -788,7 +788,7 @@ func Test_FakeExe_AdbReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -798,7 +798,7 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -811,7 +811,7 @@ func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
 }
 
 func Test_FakeExe_SSHReboot_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 

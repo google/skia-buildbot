@@ -133,7 +133,7 @@ func TestStartAudit_FullEndToEndFlow_NoErrors(t *testing.T) {
 func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -160,7 +160,7 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 func Test_FakeExe_NPM_Audit_ReturnsNoHighIssues(t *testing.T) {
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 

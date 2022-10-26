@@ -64,7 +64,7 @@ func TestGetTarballsInMirrorStorage(t *testing.T) {
 func Test_FakeExe_Verdaccio_Start_Cmd(t *testing.T) {
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 

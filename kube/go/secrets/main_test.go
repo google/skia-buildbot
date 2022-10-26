@@ -133,7 +133,7 @@ func TestSecretsApp_Migrate(t *testing.T) {
 }
 
 func Test_FakeExe_Mount(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -142,7 +142,7 @@ func Test_FakeExe_Mount(t *testing.T) {
 }
 
 func Test_FakeExe_Umount(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.
@@ -151,7 +151,7 @@ func Test_FakeExe_Umount(t *testing.T) {
 }
 
 func Test_FakeExe_KubectlGetSecret(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	// Check the input arguments to make sure they were as expected.

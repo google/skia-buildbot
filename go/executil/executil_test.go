@@ -81,7 +81,7 @@ func TestWithFakeTests_ParentContextTimeoutRespected(t *testing.T) {
 func Test_FakeExe_Cowsay_ReturnsASCIIArt(t *testing.T) {
 	// Since this is a normal go test, it will get run on the usual test suite. We check for the
 	// special environment variable and if it is not set, we do nothing.
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -94,7 +94,7 @@ func Test_FakeExe_Cowsay_ReturnsASCIIArt(t *testing.T) {
 }
 
 func Test_FakeExe_Cowsay_Crashes(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -106,11 +106,10 @@ func Test_FakeExe_Cowsay_Crashes(t *testing.T) {
 }
 
 func Test_FakeExe_Cowsay_Hangs(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
-		return
+	if executil.IsCallingFakeCommand() {
+		// block forever. Hopefully this is called with a timeout.
+		select {}
 	}
-	// block forever. Hopefully this is called with a timeout.
-	select {}
 }
 
 const asciiArt = ` ___________

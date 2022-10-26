@@ -134,7 +134,7 @@ func TestRawProperties_EmptyOutputFromAdb(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -149,21 +149,18 @@ func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbShellGetProp_EmptyOutput(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
-		return
+	if executil.IsCallingFakeCommand() {
+		// Force exit so we don't get PASS in the output.
+		os.Exit(0)
 	}
-
-	// Force exit so we don't get PASS in the output.
-	os.Exit(0)
 }
 
 func Test_FakeExe_AdbShellGetProp_NonZeroExitCode(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
-
 	os.Exit(nonZeroExitCode)
 }
 
@@ -178,7 +175,7 @@ func TestRawDumpSys_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSysBattery_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -279,17 +276,16 @@ func TestEnsureOnline_OfflineAndReconnectFails_ReturnsError(t *testing.T) {
 }
 
 func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
-
 	os.Exit(nonZeroExitCode)
 }
 
 func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -304,17 +300,16 @@ func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Uptime_NonZeroExitCode(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
-
 	os.Exit(nonZeroExitCode)
 }
 
 func Test_FakeExe_AdbShellGetUptime_MalformedContents(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -329,7 +324,7 @@ func Test_FakeExe_AdbShellGetUptime_MalformedContents(t *testing.T) {
 }
 
 func Test_FakeExe_AdbReboot_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -342,17 +337,16 @@ func Test_FakeExe_AdbReboot_Success(t *testing.T) {
 }
 
 func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
-
 	os.Exit(nonZeroExitCode)
 }
 
 func Test_FakeExe_AdbGetState_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -366,7 +360,7 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_Offline(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -378,7 +372,7 @@ func Test_FakeExe_AdbGetState_Offline(t *testing.T) {
 }
 
 func Test_FakeExe_AdbGetState_NoDevice(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -391,7 +385,7 @@ func Test_FakeExe_AdbGetState_NoDevice(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -404,7 +398,7 @@ func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
 }
 
 func Test_FakeExe_ReconnectOffline_NoDevice(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 

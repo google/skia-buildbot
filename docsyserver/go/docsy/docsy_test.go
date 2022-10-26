@@ -20,7 +20,7 @@ func TestRender_HappyPath(t *testing.T) {
 }
 
 func Test_FakeExe_Hugo_Success(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 
@@ -41,10 +41,8 @@ func TestRender_Failure(t *testing.T) {
 }
 
 func Test_FakeExe_Hugo_Failure(t *testing.T) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
-		return
+	if executil.IsCallingFakeCommand() {
+		// Force exit so we don't get PASS in the output.
+		os.Exit(1)
 	}
-
-	// Force exit so we don't get PASS in the output.
-	os.Exit(1)
 }

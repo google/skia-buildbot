@@ -54,7 +54,7 @@ func Test_FakeExe_IDeviceInfo_PrintsStringButReturnsSuccess(t *testing.T) {
 // fakeBatteryLevelCommand pretends to be the command that checks iOS battery level, printing the
 // given output and returning the given status code.
 func fakeBatteryLevelCommand(t *testing.T, output string, statusCode int) {
-	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+	if !executil.IsCallingFakeCommand() {
 		return
 	}
 	require.Equal(t, []string{"ideviceinfo", "--domain", "com.apple.mobile.battery", "-k", "BatteryCurrentCapacity"}, executil.OriginalArgs())
