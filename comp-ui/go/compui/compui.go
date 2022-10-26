@@ -120,6 +120,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	"chrome-jetstream": {
@@ -130,6 +131,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	"chrome-speedometer": {
@@ -140,6 +142,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 		Flags: []string{
 			"--browser", "chrome",
 			"--extra-keys", "channel,stable,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	// Chrome Canary
@@ -152,6 +155,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
 			"--extra-keys", "channel,canary,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	"chrome-canary-jetstream": {
@@ -163,6 +167,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
 			"--extra-keys", "channel,canary,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	"chrome-canary-speedometer": {
@@ -174,6 +179,7 @@ var defaultBenchmarks = map[string]*Benchmark{
 			"--browser", "chrome",
 			"--chrome-path", "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
 			"--extra-keys", "channel,canary,browser_type,chrome",
+			"--arguments", "--no-first-run",
 		},
 	},
 	// Safari Stable
