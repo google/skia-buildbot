@@ -19,12 +19,17 @@ type CIPDRevisionFilter struct {
 	client    cipd.CIPDClient
 	packages  []string
 	platforms []string
+	tagKey    string
 }
 
 // Skip implements RevisionFilter.
 func (f *CIPDRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (string, error) {
-	if len(strings.Split(r.Id, ":")) != 2 {
-		return fmt.Sprintf("Revision ID %q doesn't follow CIPD tag format", r.Id), nil
+	tag := r.Id
+	if f.tagKey != "" {
+		tag = fmt.Sprintf("%s:%s", f.tagKey, tag)
+	}
+	if len(strings.Split(tag, ":")) != 2 {
+		return fmt.Sprintf("%q doesn't follow CIPD tag format", tag), nil
 	}
 	for _, pkg := range f.packages {
 		for _, platform := range f.platforms {
@@ -35,12 +40,12 @@ func (f *CIPDRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (st
 			// expected "key:value" tag format, and if it doesn't fail it will
 			// only ever return an empty set of results because the package ID
 			// isn't a tag.
-			pins, err := f.client.SearchInstances(ctx, pkgFullPath, []string{r.Id})
+			pins, err := f.client.SearchInstances(ctx, pkgFullPath, []string{tag})
 			if err != nil {
 				return "", skerr.Wrap(err)
 			}
 			if len(pins) == 0 {
-				return fmt.Sprintf("CIPD package %q does not exist at revision %q", pkgFullPath, r.Id), nil
+				return fmt.Sprintf("CIPD package %q does not exist at tag %q", pkgFullPath, tag), nil
 			}
 		}
 	}
@@ -58,6 +63,7 @@ func NewCIPDRevisionFilter(client *http.Client, cfg *config.CIPDRevisionFilterCo
 		client:    cipdClient,
 		packages:  cfg.Package,
 		platforms: cfg.Platform,
+		tagKey:    cfg.TagKey,
 	}, nil
 }
 

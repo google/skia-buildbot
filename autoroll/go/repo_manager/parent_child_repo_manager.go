@@ -22,7 +22,7 @@ import (
 type parentChildRepoManager struct {
 	child.Child
 	parent.Parent
-	revFilter revision_filter.RevisionFilter
+	revFilters []revision_filter.RevisionFilter
 }
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
@@ -91,14 +91,20 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	}
 
 	// Revision filter.
-	var revFilter revision_filter.RevisionFilter
-	if c.GetBuildbucketRevisionFilter() != nil {
-		rfConfig := c.GetBuildbucketRevisionFilter()
-		revFilter, err = revision_filter.NewBuildbucketRevisionFilter(client, rfConfig)
+	var revFilters []revision_filter.RevisionFilter
+	for _, rfConfig := range c.GetBuildbucketRevisionFilter() {
+		revFilter, err := revision_filter.NewBuildbucketRevisionFilter(client, rfConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		revFilters = append(revFilters, revFilter)
 	}
-	if c.GetCipdRevisionFilter() != nil {
-		rfConfig := c.GetCipdRevisionFilter()
-		revFilter, err = revision_filter.NewCIPDRevisionFilter(client, rfConfig, workdir)
+	for _, rfConfig := range c.GetCipdRevisionFilter() {
+		revFilter, err := revision_filter.NewCIPDRevisionFilter(client, rfConfig, workdir)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		revFilters = append(revFilters, revFilter)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -106,9 +112,9 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// TODO(borenet): Fill this out.
 	return &parentChildRepoManager{
-		Child:     childRM,
-		Parent:    parentRM,
-		revFilter: revFilter,
+		Child:      childRM,
+		Parent:     parentRM,
+		revFilters: revFilters,
 	}, nil
 }
 
@@ -131,12 +137,12 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 		return nil, nil, nil, skerr.Wrapf(err, "failed to get next revision to roll from Child")
 	}
 	// Optionally filter not-rolled revisions.
-	if rm.revFilter != nil {
-		if err := revision_filter.MaybeSetInvalid(ctx, rm.revFilter, tipRev); err != nil {
+	for _, revFilter := range rm.revFilters {
+		if err := revision_filter.MaybeSetInvalid(ctx, revFilter, tipRev); err != nil {
 			return nil, nil, nil, skerr.Wrap(err)
 		}
 		for _, notRolledRev := range notRolledRevs {
-			if err := revision_filter.MaybeSetInvalid(ctx, rm.revFilter, notRolledRev); err != nil {
+			if err := revision_filter.MaybeSetInvalid(ctx, revFilter, notRolledRev); err != nil {
 				return nil, nil, nil, skerr.Wrap(err)
 			}
 		}

@@ -9,6 +9,7 @@ package config
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
@@ -710,8 +711,13 @@ func (c *ParentChildRepoManagerConfig) Validate() error {
 		return skerr.Wrap(err)
 	}
 
-	if c.GetBuildbucketRevisionFilter() != nil {
-		if err := c.GetBuildbucketRevisionFilter().Validate(); err != nil {
+	for _, rf := range c.GetBuildbucketRevisionFilter() {
+		if err := rf.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, rf := range c.GetCipdRevisionFilter() {
+		if err := rf.Validate(); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -1113,6 +1119,20 @@ func (c *BuildbucketRevisionFilterConfig) Validate() error {
 	}
 	if c.BuildsetCommitTmpl == "" {
 		return skerr.Fmt("BuildsetCommitTmpl is required.")
+	}
+	return nil
+}
+
+// Validate implements util.Validator.
+func (c *CIPDRevisionFilterConfig) Validate() error {
+	if len(c.Package) == 0 {
+		return skerr.Fmt("At least one Package is required.")
+	}
+	if len(c.Platform) == 0 {
+		return skerr.Fmt("At least one Platform is required.")
+	}
+	if strings.Contains(c.TagKey, ":") {
+		return skerr.Fmt("TagKey cannot contain ':'.")
 	}
 	return nil
 }
