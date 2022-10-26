@@ -262,8 +262,8 @@ func CopyString(s string) string {
 type CleanupFunc func()
 
 // Close wraps an io.Closer and logs an error if one is returned. When
-// manipulating files prefer util.WithReadFile or util.WithCreateFile over
-// util.Close, as they handle closing automatically.
+// manipulating the file, prefer util.WithReadFile over util.Close, as
+// it handles closing automatically.
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
 		// Don't start the stacktrace here, but at the caller's location

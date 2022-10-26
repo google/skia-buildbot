@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/switchboard"
+	"go.skia.org/infra/machine/go/test_machine_monitor/foundrybotrunner"
 	"go.skia.org/infra/machine/go/test_machine_monitor/machine"
 	"go.skia.org/infra/machine/go/test_machine_monitor/server"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
@@ -32,10 +33,11 @@ var (
 	port              = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	pythonExe         = flag.String("python_exe", "", "Absolute path to Python.")
-	startSwarming     = flag.Bool("start_swarming", false, "If true then start swarming_bot.zip.")
-	startSwitchboard  = flag.Bool("start_switchboard", false, "If true then establish a connection to skia-switchboard.")
-	username          = flag.String("username", "chrome-bot", "The username of the account that accepts SSH connections.")
+	startFoundryBot   = flag.Bool("start_foundry_bot", false, "Start the Foundry Bot daemon, which listens for and runs Bazel RBE jobs.")
+	startSwarming     = flag.Bool("start_swarming", false, "Start swarming_bot.zip.")
+	startSwitchboard  = flag.Bool("start_switchboard", false, "Establish a connection to skia-switchboard.")
 	swarmingBotZip    = flag.String("swarming_bot_zip", "", "Absolute path to where the swarming_bot.zip code should run from.")
+	username          = flag.String("username", "chrome-bot", "The username of the account that accepts SSH connections.")
 )
 
 var (
@@ -66,7 +68,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	machineState, err := machine.New(ctx, *local, instanceConfig, Version, *startSwarming, *machineServerHost)
+	machineState, err := machine.New(ctx, *local, instanceConfig, Version, *startSwarming, *machineServerHost, *startFoundryBot)
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}
@@ -99,6 +101,18 @@ func main() {
 	store, err := store.NewFirestoreImpl(ctx, *local, instanceConfig)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	if *startFoundryBot {
+		runner, err := foundrybotrunner.New()
+		if err != nil {
+			sklog.Fatalf("Failed to run Foundry Bot: %s", err)
+		}
+		go func() {
+			if err := runner.RunUntilCancelled(ctx); err != nil {
+				sklog.Infof("Foundry Bot subprocess killed: %s", err.Error())
+			}
+		}()
 	}
 
 	if *startSwitchboard {

@@ -109,10 +109,13 @@ type Machine struct {
 	// sshMachineLocation is the name and path of the file to write the JSON data that specifies
 	// to recipes how to communicate with the device under test.
 	sshMachineLocation string
+
+	// startFoundryBot signifies whether to start the Foundry Bot daemon which runs Bazel RBE tasks.
+	startFoundryBot bool
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool) (*Machine, error) {
 
 	sink, err := eventSink.New(ctx, local, instanceConfig)
 	if err != nil {
@@ -165,6 +168,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		interrogateTimer:               metrics2.GetFloat64SummaryMetric("test_machine_monitor_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures:     metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		descriptionWatchArrivalCounter: metrics2.GetCounter("test_machine_monitor_description_watch_arrival", map[string]string{"machine": machineID}),
+		startFoundryBot:                startFoundryBot,
 	}, nil
 }
 

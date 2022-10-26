@@ -84,9 +84,11 @@ func CommandContext(ctx context.Context, cmd string, args ...string) *exec.Cmd {
 }
 
 // FakeCommandsReturned returns the count of how many times CommandContext was called using the
-// given context. This is a proxy for the amount of fake commands run.
+// given context. This is a proxy for the number of fake commands run.
 func FakeCommandsReturned(ctx context.Context) int {
 	if override, ok := ctx.Value(overrideKey).(*fakeTestTracker); ok {
+		override.mutex.Lock()
+		defer override.mutex.Unlock()
 		return override.index
 	}
 	panic("A Context was passed in that was not produced by the executil package.")
@@ -96,4 +98,11 @@ func FakeCommandsReturned(ctx context.Context) int {
 // at the osArgs and strips off the first 3 (the test binary, the test to run, and "--")
 func OriginalArgs() []string {
 	return os.Args[3:]
+}
+
+// IsCallingFakeCommand returns whether the current process is a test process that's running a
+// mocked-out CLI invocation. This should be called at the beginning of each Test_FakeExe_... test
+// and trigger an early return if false.
+func IsCallingFakeCommand() bool {
+	return os.Getenv(OverrideEnvironmentVariable) != ""
 }

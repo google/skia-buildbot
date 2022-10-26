@@ -1,0 +1,25 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "foundrybotrunner",
+    srcs = ["foundrybotrunner.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/foundrybotrunner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "foundrybotrunner_test",
+    srcs = ["foundrybotrunner_test.go"],
+    embed = [":foundrybotrunner"],
+    deps = [
+        "//go/executil",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
+    ],
+)
