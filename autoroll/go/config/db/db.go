@@ -98,7 +98,7 @@ func (d *FirestoreDB) GetAll(ctx context.Context) ([]*config.Config, error) {
 	if err := d.client.IterDocs(ctx, "GetAll", "GetAll", d.coll.Query, defaultAttempts, defaultTimeout, func(doc *fs.DocumentSnapshot) error {
 		cfg, err := decodeConfig(doc.Data())
 		if err != nil {
-			return skerr.Wrap(err)
+			return skerr.Wrapf(err, "failed to decode config %s", doc.Ref.Path)
 		}
 		rv = append(rv, cfg)
 		return nil
