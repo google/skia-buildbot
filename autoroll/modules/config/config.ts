@@ -336,6 +336,7 @@ export interface ParentChildRepoManagerConfig {
   semverGcsChild?: SemVerGCSChildConfig;
   buildbucketRevisionFilter?: BuildbucketRevisionFilterConfig[];
   cipdRevisionFilter?: CIPDRevisionFilterConfig[];
+  validHttpRevisionFilter?: ValidHttpRevisionFilterConfig[];
 }
 
 interface ParentChildRepoManagerConfigJSON {
@@ -353,6 +354,7 @@ interface ParentChildRepoManagerConfigJSON {
   semver_gcs_child?: SemVerGCSChildConfigJSON;
   buildbucket_revision_filter?: BuildbucketRevisionFilterConfigJSON[];
   cipd_revision_filter?: CIPDRevisionFilterConfigJSON[];
+  valid_http_revision_filter?: ValidHttpRevisionFilterConfigJSON[];
 }
 
 export interface CopyParentConfig_CopyEntry {
@@ -745,6 +747,16 @@ interface CIPDRevisionFilterConfigJSON {
   package?: string[];
   platform?: string[];
   tag_key?: string;
+}
+
+export interface ValidHttpRevisionFilterConfig {
+  fileUrl: string;
+  regex: string;
+}
+
+interface ValidHttpRevisionFilterConfigJSON {
+  file_url?: string;
+  regex?: string;
 }
 
 export interface PreUploadConfig {

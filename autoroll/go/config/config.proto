@@ -353,6 +353,7 @@ message ParentChildRepoManagerConfig {
     // considered as roll candidates.
     repeated BuildbucketRevisionFilterConfig buildbucket_revision_filter = 12;
     repeated CIPDRevisionFilterConfig cipd_revision_filter = 13;
+    repeated ValidHttpRevisionFilterConfig valid_http_revision_filter = 15;
 }
 
 // CopyParentConfig provides configuration for a Parent which copies the Child
@@ -786,6 +787,18 @@ message CIPDRevisionFilterConfig {
     repeated string package = 1;
     repeated string platform = 2;
     string tag_key = 3;
+}
+
+// ValidHttpRevisionFilterConfig provides configuration for a
+// revision filter which obtains a single valid revision from a file which is
+// retrieved via HTTP.
+message ValidHttpRevisionFilterConfig {
+    // URL of the file containing the valid revision.
+    string file_url = 1;
+    // Optional regular expression used to extract the valid revision from the
+    // file after retrieval. If not provided, we assume that the entire contents
+    // of the file comprise the revision ID.
+    string regex = 2;
 }
 
 // PreUploadConfig describes additional steps to run after updating the

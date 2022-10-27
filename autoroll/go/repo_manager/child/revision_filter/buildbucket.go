@@ -22,7 +22,7 @@ type BuildbucketRevisionFilter struct {
 }
 
 // Skip implements RevisionFilter.
-func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (string, error) {
+func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r revision.Revision) (string, error) {
 	pred := &buildbucketpb.BuildPredicate{
 		Builder: &buildbucketpb.BuilderID{Project: f.bbConfig.Project, Bucket: f.bbConfig.Bucket},
 		Tags: []*buildbucketpb.StringPair{
@@ -67,6 +67,11 @@ func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revisio
 	}
 	sklog.Infof("[bbFilter] All builds of %s were %s", r.Id, buildbucketpb.Status_SUCCESS)
 	return "", nil
+}
+
+// Update implements RevisionFilter.
+func (f BuildbucketRevisionFilter) Update(_ context.Context) error {
+	return nil
 }
 
 // NewBuildbucketRevisionFilter returns a RevisionFilter which uses results from

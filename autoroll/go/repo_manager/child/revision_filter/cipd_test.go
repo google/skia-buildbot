@@ -25,7 +25,7 @@ func TestCIPDRevisionFilter(t *testing.T) {
 
 	// We should reject revisions which don't follow the CIPD tag format.
 	t.Run("reject_bad_rev_id", func(t *testing.T) {
-		rev := &revision.Revision{
+		rev := revision.Revision{
 			Id: "bad",
 		}
 		skipReason, err := rf.Skip(ctx, rev)
@@ -37,7 +37,7 @@ func TestCIPDRevisionFilter(t *testing.T) {
 	t.Run("check_all_platforms_all_exist", func(t *testing.T) {
 		client := &mocks.CIPDClient{}
 		rf.client = client
-		rev := &revision.Revision{
+		rev := revision.Revision{
 			Id: "git_revision:abc123def456",
 		}
 		client.On("SearchInstances", ctx, "my/pkg/1/linux-amd64", []string{rev.Id}).Return(oneResult, nil)
@@ -59,7 +59,7 @@ func TestCIPDRevisionFilter(t *testing.T) {
 	t.Run("check_all_platforms_one_missing", func(t *testing.T) {
 		client := &mocks.CIPDClient{}
 		rf.client = client
-		rev := &revision.Revision{
+		rev := revision.Revision{
 			Id: "git_revision:abc123def456",
 		}
 		client.On("SearchInstances", ctx, "my/pkg/1/linux-amd64", []string{rev.Id}).Return(oneResult, nil)
@@ -82,7 +82,7 @@ func TestCIPDRevisionFilter(t *testing.T) {
 		client := &mocks.CIPDClient{}
 		rf.client = client
 		rf.tagKey = "git_revision"
-		rev := &revision.Revision{
+		rev := revision.Revision{
 			Id: "abc123def456",
 		}
 		tag := fmt.Sprintf("%s:%s", rf.tagKey, rev.Id)
@@ -106,7 +106,7 @@ func TestCIPDRevisionFilter(t *testing.T) {
 		client := &mocks.CIPDClient{}
 		rf.client = client
 		rf.tagKey = "git_revision"
-		rev := &revision.Revision{
+		rev := revision.Revision{
 			Id: "abc123def456",
 		}
 		tag := fmt.Sprintf("%s:%s", rf.tagKey, rev.Id)

@@ -23,7 +23,7 @@ type CIPDRevisionFilter struct {
 }
 
 // Skip implements RevisionFilter.
-func (f *CIPDRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (string, error) {
+func (f *CIPDRevisionFilter) Skip(ctx context.Context, r revision.Revision) (string, error) {
 	tag := r.Id
 	if f.tagKey != "" {
 		tag = fmt.Sprintf("%s:%s", f.tagKey, tag)
@@ -50,6 +50,11 @@ func (f *CIPDRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (st
 		}
 	}
 	return "", nil
+}
+
+// Update implements RevisionFilter.
+func (f *CIPDRevisionFilter) Update(_ context.Context) error {
+	return nil
 }
 
 // NewCIPDRevisionFilter returns a RevisionFilter which filters out Revisions

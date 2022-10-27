@@ -7,6 +7,7 @@ go_library(
         "buildbucket.go",
         "cipd.go",
         "revision_filter.go",
+        "valid_revision_from_http.go",
     ],
     importpath = "go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter",
     visibility = ["//visibility:public"],

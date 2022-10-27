@@ -22,7 +22,7 @@ import (
 type parentChildRepoManager struct {
 	child.Child
 	parent.Parent
-	revFilters []revision_filter.RevisionFilter
+	revFilters revision_filter.RevisionFilters
 }
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
@@ -106,11 +106,14 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		revFilters = append(revFilters, revFilter)
 	}
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	for _, rfConfig := range c.GetValidHttpRevisionFilter() {
+		revFilter, err := revision_filter.NewValidRevisionFromHTTPRevisionFilter(rfConfig, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		revFilters = append(revFilters, revFilter)
 	}
 
-	// TODO(borenet): Fill this out.
 	return &parentChildRepoManager{
 		Child:      childRM,
 		Parent:     parentRM,
@@ -136,15 +139,17 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 	if err != nil {
 		return nil, nil, nil, skerr.Wrapf(err, "failed to get next revision to roll from Child")
 	}
+
 	// Optionally filter not-rolled revisions.
-	for _, revFilter := range rm.revFilters {
-		if err := revision_filter.MaybeSetInvalid(ctx, revFilter, tipRev); err != nil {
+	if err := rm.revFilters.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	if err := rm.revFilters.MaybeSetInvalid(ctx, tipRev); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	for _, notRolledRev := range notRolledRevs {
+		if err := rm.revFilters.MaybeSetInvalid(ctx, notRolledRev); err != nil {
 			return nil, nil, nil, skerr.Wrap(err)
-		}
-		for _, notRolledRev := range notRolledRevs {
-			if err := revision_filter.MaybeSetInvalid(ctx, revFilter, notRolledRev); err != nil {
-				return nil, nil, nil, skerr.Wrap(err)
-			}
 		}
 	}
 	return lastRollRev, tipRev, notRolledRevs, nil
