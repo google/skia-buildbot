@@ -19,7 +19,7 @@
     ],
     "method": "GET",
     "expected": [
-      307
+      303
     ],
     "body": "",
     "mimetype": ""
@@ -30,7 +30,7 @@
     ],
     "method": "GET",
     "expected": [
-      307
+      303
     ],
     "body": "",
     "mimetype": "",
@@ -50,9 +50,7 @@
   },
   "skiaperf_untriaged": {
     "urls": [
-      "https://perf.skia.org/_/reg/count",
-      "https://ct-perf.skia.org/_/reg/count",
-      "https://androidx-perf.skia.org/_/reg/count"
+      "https://perf.skia.org/_/reg/count"
     ],
     "method": "GET",
     "expected": [
