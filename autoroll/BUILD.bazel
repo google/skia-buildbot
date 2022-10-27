@@ -33,12 +33,16 @@ skia_app_container(
             ],
         ],
     },
+    env = {
+        "PATH": "/cipd/go/bin:$${PATH}",
+    },
     repository = "skia-public/autoroll-be",
     run_commands_root = [
         "apt-get update",
         "apt-get install -y wget openssh-client curl procps unzip vim less build-essential g++ g++-10 gcc gcc-10 gcc-10-base cpp cpp-10 libgcc-10-dev libstdc++-10-dev cmake",
         "wget --output-document=/usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.14.0/bazelisk-linux-amd64",
         "chmod a+x /usr/local/bin/bazelisk",
+        "cipd install skia/bots/go --root=/cipd",
     ],
 )
 
