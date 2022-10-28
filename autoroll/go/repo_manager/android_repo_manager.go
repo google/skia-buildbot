@@ -219,7 +219,15 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	// Run repo init and sync commands.
 	initCmd := []string{r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()}
 	if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
-		return err
+		sklog.Warningf("repo init error: %s", err)
+		// Try deleting .repo in the workdir and re-initing (skbug.com/13867).
+		repoDirPath := path.Join(r.workdir, ".repo")
+		if err := os.RemoveAll(repoDirPath); err != nil {
+			return skerr.Wrapf(err, "Could not delete %s before attempting a reinit", repoDirPath)
+		}
+		if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
+			return err
+		}
 	}
 	// Sync only the child path and the repohooks directory (needed to upload changes).
 	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"}
