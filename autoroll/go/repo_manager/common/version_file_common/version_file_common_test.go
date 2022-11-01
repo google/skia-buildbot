@@ -190,7 +190,7 @@ func TestUpdateDep(t *testing.T) {
 		}`,
 		"find/and/replace/file": `Unrelated stuff
 Version: old-rev;
-Unrelated stuff
+Transitive-dep-version: transitive-dep-old-rev;
 `,
 	}
 	getFile := func(ctx context.Context, path string) (string, error) {
@@ -236,7 +236,7 @@ Unrelated stuff
 		}`,
 		"find/and/replace/file": `Unrelated stuff
 Version: new-rev;
-Unrelated stuff
+Transitive-dep-version: transitive-dep-new-rev;
 `,
 	}, changes)
 }

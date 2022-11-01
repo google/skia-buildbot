@@ -153,19 +153,24 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	replacements := map[string]string{
+		oldRev: rev.Id,
+	}
 
 	// Handle transitive dependencies.
 	if len(primaryDep.Transitive) > 0 {
 		for _, dep := range primaryDep.Transitive {
 			// Find the new revision.
-			newVersion, ok := rev.Dependencies[dep.Child.Id]
+			newRev, ok := rev.Dependencies[dep.Child.Id]
 			if !ok {
 				return nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.Child.Id, rev)
 			}
 			// Update.
-			if _, err := updateSingleDep(ctx, dep.Parent, newVersion, changes, getFile); err != nil {
+			oldRev, err := updateSingleDep(ctx, dep.Parent, newRev, changes, getFile)
+			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
+			replacements[oldRev] = newRev
 		}
 	}
 
@@ -175,7 +180,10 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		newContents := strings.ReplaceAll(oldContents, oldRev, rev.Id)
+		newContents := oldContents
+		for oldRev, newRev := range replacements {
+			newContents = strings.ReplaceAll(newContents, oldRev, newRev)
+		}
 		if oldContents != newContents {
 			changes[f] = newContents
 		}
