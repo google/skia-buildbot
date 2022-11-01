@@ -8,7 +8,11 @@
 # Record the directory of this file.
 REL=$(dirname "$0")
 
-DEFAULT_MOUNT=/media/${USER}/RASPIROOT
+if [ "$(uname -s)" = Darwin ]; then
+    DEFAULT_MOUNT=/Volumes/RASPIROOT
+else
+    DEFAULT_MOUNT=/media/${USER}/RASPIROOT
+fi
 
 # Check argument count is valid.
 if [ $# == 0 ]; then
