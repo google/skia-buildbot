@@ -29,7 +29,6 @@ func ListenPubSub(ctx context.Context, db louhi.DB, local bool, project string) 
 	go func() {
 		for {
 			err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-				sklog.Infof("Received message: %s", string(msg.Data))
 				var n louhi.Notification
 				if err := prototext.Unmarshal(msg.Data, &n); err != nil {
 					// We can't handle this message, so Ack() it and we won't try

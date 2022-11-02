@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -86,6 +87,7 @@ func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]
 		if err == iterator.Done {
 			break
 		}
+		sklog.Infof("Found DocRef: %+v", doc)
 		docs, err := doc.Collection(collectionExecutions).Where("Result", "!=", louhi.FlowResultUnknown).OrderBy("Result", fs.Asc).OrderBy("CreatedAt", fs.Desc).Limit(1).Documents(ctx).GetAll()
 		if err != nil {
 			return nil, skerr.Wrap(err)
