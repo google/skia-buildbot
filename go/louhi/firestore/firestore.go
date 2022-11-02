@@ -86,6 +86,11 @@ func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]
 		doc, err := iter.Next()
 		if err == iterator.Done {
 			break
+		} else if err != nil {
+			return nil, skerr.Wrapf(err, "failed to search FlowExecutions")
+		} else if doc == nil {
+			sklog.Errorf("DocRef is nil!")
+			continue
 		}
 		sklog.Infof("Found DocRef: %+v", doc)
 		docs, err := doc.Collection(collectionExecutions).Where("Result", "!=", louhi.FlowResultUnknown).OrderBy("Result", fs.Asc).OrderBy("CreatedAt", fs.Desc).Limit(1).Documents(ctx).GetAll()
