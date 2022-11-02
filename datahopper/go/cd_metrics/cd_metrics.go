@@ -20,6 +20,9 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/louhi"
+	"go.skia.org/infra/go/louhi/firestore"
+	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/skerr"
@@ -34,6 +37,7 @@ import (
 
 const (
 	containerRegistryProject    = "skia-public"
+	louhiFlowSuccessMetric      = "louhi_flow_success"
 	louhiUser                   = "louhi"
 	repoStateClean              = "clean"
 	commitHashLength            = 7
@@ -435,7 +439,7 @@ func getK8sConfigMapping(ctx context.Context, repos repograph.Map, gitilesRepo g
 }
 
 // Start initiates the metrics data generation for Docker images.
-func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfig, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfig, ts oauth2.TokenSource, fsProject, fsInstance, pubsubProject string, local bool) error {
 	// Set up event metrics.
 	edb, err := events.NewBTEventDB(ctx, btConf.ProjectID, btConf.InstanceID, ts)
 	if err != nil {
@@ -548,6 +552,38 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 		sklog.Infof("CD metrics loop end.")
 	})
 	em.Start(ctx)
+
+	// Start ingestion and metrics for last Louhi flow result for each flow.
+	db, err := firestore.NewDB(ctx, fsProject, "datahopper", fsInstance)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject); err != nil {
+		sklog.Fatal(err)
+	}
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		latestFlowExecs, err := db.GetLatestFlowExecutions(ctx)
+		if err != nil {
+			sklog.Errorf("Failed to get latest flow executions: %s", err)
+			return
+		}
+		sklog.Infof("Most recent flow results:")
+		for flowName, flow := range latestFlowExecs {
+			result := int64(1)
+			if flow.Result == louhi.FlowResultFailure {
+				result = 0
+			}
+			sklog.Infof("  %s:\t%s at %s", flowName, flow.Result, flow.FinishedAt)
+			sklog.Infof("    Link: https://louhi.dev/?projectId=%s&expandedFlows=%s#/flows", flow.ProjectID, flow.FlowID)
+			sklog.Infof("    Value: %d", result)
+			metrics2.GetInt64Metric(louhiFlowSuccessMetric, map[string]string{
+				"flow_name":     flowName,
+				"flow_id":       flow.FlowID,
+				"louhi_project": flow.ProjectID,
+			}).Update(result)
+		}
+	})
+
 	return nil
 }
 

@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pubsub",
+    srcs = ["pubsub.go"],
+    importpath = "go.skia.org/infra/go/louhi/pubsub",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/louhi",
+        "//go/pubsub/sub",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_x_oauth2//google",
+    ],
+)

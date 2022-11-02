@@ -44,20 +44,23 @@ const appName = "datahopper"
 // flags
 var (
 	// TODO(borenet): Combine btInstance and firestoreInstance.
-	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	dockerImageNames  = common.NewMultiStringFlag("docker_image", nil, "Docker images to watch for Continuous Deployment metrics.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gcloudProjects    = common.NewMultiStringFlag("gcloud_project", nil, "GCloud projects from which to ingest data")
-	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	perfBucket        = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix        = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric should be written.")
-	port              = flag.String("port", ":8000", "HTTP service port for the health check server (e.g., ':8000')")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
-	swarmingServer    = flag.String("swarming_server", "", "Host name of the Swarming server.")
-	swarmingPools     = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
+	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	dockerImageNames   = common.NewMultiStringFlag("docker_image", nil, "Docker images to watch for Continuous Deployment metrics.")
+	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gcloudProjects     = common.NewMultiStringFlag("gcloud_project", nil, "GCloud projects from which to ingest data")
+	gitstoreTable      = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	louhiFsProject     = flag.String("louhi_firestore_project", "", "Firestore project used for Louhi data ingestion.")
+	louhiFsInstance    = flag.String("louhi_firestore_instance", "", "Firestore instance used for Louhi data ingestion.")
+	louhiPubsubProject = flag.String("louhi_pubsub_project", "", "Pub/sub project used for Louhi data ingestion.")
+	perfBucket         = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix         = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric should be written.")
+	port               = flag.String("port", ":8000", "HTTP service port for the health check server (e.g., ':8000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	repoUrls           = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
+	swarmingServer     = flag.String("swarming_server", "", "Host name of the Swarming server.")
+	swarmingPools      = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
 )
 
 func main() {
@@ -213,8 +216,8 @@ func main() {
 	}
 
 	// Metrics for the Continuous Deployment pipeline.
-	if len(*dockerImageNames) > 0 {
-		if err := cd_metrics.Start(ctx, *dockerImageNames, btConf, ts); err != nil {
+	if len(*dockerImageNames) > 0 && *louhiFsProject != "" && *louhiFsInstance != "" && *louhiPubsubProject != "" {
+		if err := cd_metrics.Start(ctx, *dockerImageNames, btConf, ts, *louhiFsProject, *louhiFsInstance, *louhiPubsubProject, *local); err != nil {
 			sklog.Fatal(err)
 		}
 	}

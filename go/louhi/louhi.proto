@@ -1,0 +1,35 @@
+syntax = "proto3";
+package louhi;
+option go_package = "go.skia.org/infra/louhi-watcher/go/louhi";
+
+// EventSource describes the source of a Notification.
+enum EventSource {
+    PIPELINE = 0;
+    STAGE = 1;
+}
+
+// EventAction describes the action which generated a Notification.
+enum EventAction {
+    STARTED = 0;
+    FINISHED = 1;
+    FAILED = 2;
+}
+
+// Notification describes a PubSub notification from Louhi.
+message Notification {
+    string project_id = 1;
+    string flow_unique_key = 2;
+    string flow_name = 3;
+    string pipeline_execution_id = 4;
+    EventSource event_source = 5;
+    EventAction event_action = 6;
+    string link = 7;
+    string branch = 8;
+    string ref_sha = 9;
+    // We'd really prefer an enum for trigger_type, but the values don't follow
+    // a consistent format, eg. "MANUAL" and "cron-trigger", the latter of which
+    // is not a valid enum value.
+    string trigger_type = 10;
+    string started_by = 11;
+    repeated string artifact_link = 12;
+}

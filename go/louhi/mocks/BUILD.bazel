@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "DB.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/louhi/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/louhi",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
+
+go_test(
+    name = "mocks_test",
+    srcs = ["louhi_test.go"],
+    embed = [":mocks"],
+    deps = [
+        "//go/louhi",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
+    ],
+)
