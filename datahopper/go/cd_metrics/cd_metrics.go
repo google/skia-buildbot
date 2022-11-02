@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/gcr"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -556,10 +557,19 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	// Start ingestion and metrics for last Louhi flow result for each flow.
 	db, err := firestore.NewDB(ctx, fsProject, "datahopper", fsInstance)
 	if err != nil {
-		sklog.Fatal(err)
+		return skerr.Wrapf(err, "failed to create Louhi DB")
 	}
-	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject); err != nil {
-		sklog.Fatal(err)
+	louhiHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	g, err := gerrit.NewGerrit("https://skia-review.googlesource.com", louhiHttpClient)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to create Gerrit client")
+	}
+	louhiRepos := []gitiles.GitilesRepo{
+		gitiles.NewRepo("https://skia.googlesource.com/buildbot.git", louhiHttpClient),
+		gitiles.NewRepo("https://skia.googlesource.com/skia-autoroll-internal-config.git", louhiHttpClient),
+	}
+	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject, g, louhiRepos); err != nil {
+		return skerr.Wrapf(err, "failed to initiate Louhi pub/sub listener")
 	}
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		latestFlowExecs, err := db.GetLatestFlowExecutions(ctx)
@@ -567,15 +577,11 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 			sklog.Errorf("Failed to get latest flow executions: %s", err)
 			return
 		}
-		sklog.Infof("Most recent flow results:")
 		for flowName, flow := range latestFlowExecs {
 			result := int64(1)
 			if flow.Result == louhi.FlowResultFailure {
 				result = 0
 			}
-			sklog.Infof("  %s:\t%s at %s", flowName, flow.Result, flow.FinishedAt)
-			sklog.Infof("    Link: https://louhi.dev/?projectId=%s&expandedFlows=%s#/flows", flow.ProjectID, flow.FlowID)
-			sklog.Infof("    Value: %d", result)
 			metrics2.GetInt64Metric(louhiFlowSuccessMetric, map[string]string{
 				"flow_name":     flowName,
 				"flow_id":       flow.FlowID,

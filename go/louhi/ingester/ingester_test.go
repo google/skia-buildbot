@@ -1,16 +1,19 @@
-package mocks
-
-// Note: We'd prefer this test to be in the go/louhi package, but we can't do so
-// because it would create an import cycle between go/louhi and go/louhi/mocks.
+package ingester
 
 import (
-	context "context"
-	testing "testing"
+	"context"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	louhi "go.skia.org/infra/go/louhi"
+
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	"go.skia.org/infra/go/gitiles"
+	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
+	"go.skia.org/infra/go/louhi"
+	louhi_mocks "go.skia.org/infra/go/louhi/mocks"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -21,6 +24,8 @@ const (
 	flowLink       = "http://flows/" + id
 	flowName       = "My Flow"
 	id             = "flow123"
+	issueNum       = int64(598597)
+	issueUrl       = "https://skia-review.googlesource.com/c/buildbot/+/598597"
 	projectID      = "my-project"
 	startedByLouhi = "Louhi"
 	triggerType    = louhi.TriggerTypeCommit
@@ -32,10 +37,20 @@ var finishedTs = time.Unix(1667309500, 0)
 
 func helper(t *testing.T, n *louhi.Notification, oldFlow, expect *louhi.FlowExecution, ts time.Time) {
 	ctx := context.Background()
-	db := &DB{}
+	db := &louhi_mocks.DB{}
 	db.On("GetFlowExecution", testutils.AnyContext, n.PipelineExecutionId).Return(oldFlow, nil)
 	db.On("PutFlowExecution", testutils.AnyContext, expect).Return(nil)
-	require.NoError(t, louhi.UpdateFlowFromNotification(ctx, db, n, ts))
+	mockGerrit := &gerrit_mocks.GerritInterface{}
+	mockRepo := &gitiles_mocks.GitilesRepo{}
+	commitDetails := &vcsinfo.LongCommit{
+		Body: "Reviewed-on: " + issueUrl,
+	}
+	mockRepo.On("Details", testutils.AnyContext, commit).Return(commitDetails, nil)
+	mockGerrit.On("ExtractIssueFromCommit", commitDetails.Body).Return(issueNum, nil)
+	mockGerrit.On("Url", issueNum).Return(issueUrl)
+	repos := []gitiles.GitilesRepo{mockRepo}
+	ingester := NewIngester(db, mockGerrit, repos)
+	require.NoError(t, ingester.UpdateFlowFromNotification(ctx, n, ts))
 }
 
 func TestUpdateFlowFromNotification_NewFlow(t *testing.T) {
@@ -67,6 +82,7 @@ func TestUpdateFlowFromNotification_NewFlow(t *testing.T) {
 		ModifiedAt:  createdTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultUnknown,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
@@ -117,6 +133,7 @@ func TestUpdateFlowFromNotification_Success(t *testing.T) {
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultSuccess,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
@@ -167,6 +184,7 @@ func TestUpdateFlowFromNotification_Failure(t *testing.T) {
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultFailure,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
@@ -219,6 +237,7 @@ func TestUpdateFlowFromNotification_FailureAfterFinished(t *testing.T) {
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultFailure,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
@@ -271,6 +290,7 @@ func TestUpdateFlowFromNotification_FinishedAfterFailure(t *testing.T) {
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultFailure,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
@@ -324,8 +344,59 @@ func TestUpdateFlowFromNotification_StartedAfterFinished(t *testing.T) {
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
 		Result:      louhi.FlowResultSuccess,
+		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
 	}
 	helper(t, n, oldFlow, expect, createdTs)
+}
+
+func TestUpdateFlowFromNotification_GeneratedCLs(t *testing.T) {
+	// This tests the case where we receive the "started" notification after we
+	// receive the "finished" notification. Pub/sub message ordering is not
+	// guaranteed.
+	n := &louhi.Notification{
+		ProjectId:           projectID,
+		PipelineExecutionId: id,
+		EventSource:         louhi.EventSource_PIPELINE,
+		EventAction:         louhi.EventAction_CREATED_ARTIFACT,
+		GeneratedCls:        []string{issueUrl},
+	}
+	oldFlow := &louhi.FlowExecution{
+		Artifacts:    []string{artifactLink}, // Shouldn't be overwritten.
+		CreatedAt:    createdTs,              // Should get updated.
+		FinishedAt:   time.Time{},
+		FlowID:       flowID,
+		FlowName:     flowName,
+		GeneratedCLs: nil, // Should get filled in.
+		GitBranch:    branch,
+		GitCommit:    commit,
+		ID:           id,
+		Link:         flowLink,
+		ModifiedAt:   createdTs, // Should get updated.
+		ProjectID:    projectID,
+		Result:       louhi.FlowResultUnknown, // Shouldn't change.
+		StartedBy:    startedByLouhi,
+		TriggerType:  triggerType,
+	}
+	expect := &louhi.FlowExecution{
+		Artifacts:    []string{artifactLink},
+		CreatedAt:    createdTs,
+		FinishedAt:   time.Time{},
+		FlowID:       flowID,
+		FlowName:     flowName,
+		GeneratedCLs: []string{issueUrl},
+		GitBranch:    branch,
+		GitCommit:    commit,
+		ID:           id,
+		Link:         flowLink,
+		ModifiedAt:   finishedTs,
+		ProjectID:    projectID,
+		Result:       louhi.FlowResultUnknown,
+		// Not provided by the new notification but obtainable via GitCommit.
+		SourceCL:    issueUrl,
+		StartedBy:   startedByLouhi,
+		TriggerType: triggerType,
+	}
+	helper(t, n, oldFlow, expect, finishedTs)
 }

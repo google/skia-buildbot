@@ -15,6 +15,8 @@ go_library(
         "//go/gerrit/rubberstamper",
         "//go/git",
         "//go/gitauth",
+        "//go/louhi",
+        "//go/louhi/pubsub",
         "//go/skerr",
         "//go/util",
         "//task_driver/go/lib/git_steps",
@@ -31,7 +33,10 @@ go_binary(
 
 go_test(
     name = "build-images_test",
-    srcs = ["main_test.go"],
+    srcs = [
+        "main_test.go",
+        "update-refs_test.go",
+    ],
     embed = [":build-images_lib"],
     deps = ["@com_github_stretchr_testify//require"],
 )

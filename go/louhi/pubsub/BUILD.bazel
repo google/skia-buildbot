@@ -6,7 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/go/louhi/pubsub",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/gerrit",
+        "//go/gitiles",
         "//go/louhi",
+        "//go/louhi/ingester",
         "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",

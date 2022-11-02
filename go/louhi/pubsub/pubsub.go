@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/louhi"
+	"go.skia.org/infra/go/louhi/ingester"
 	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -21,11 +24,12 @@ var protoMarshalOpts = &prototext.MarshalOptions{
 
 // ListenPubSub starts listening for pub/sub events and pushing them into the
 // given DB. Attempts to create the topic if it does not already exist.
-func ListenPubSub(ctx context.Context, db louhi.DB, local bool, project string) error {
+func ListenPubSub(ctx context.Context, db louhi.DB, local bool, project string, g gerrit.GerritInterface, repos []gitiles.GitilesRepo) error {
 	sub, err := sub.New(ctx, local, project, pubsubTopic, 1)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create subscription")
 	}
+	ing := ingester.NewIngester(db, g, repos)
 	go func() {
 		for {
 			err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
@@ -37,7 +41,7 @@ func ListenPubSub(ctx context.Context, db louhi.DB, local bool, project string) 
 					sklog.Errorf("Failed to decode message as text proto. Message:\n%s\nError: %s", string(msg.Data), err)
 					return
 				}
-				if err := louhi.UpdateFlowFromNotification(ctx, db, &n, msg.PublishTime); err != nil {
+				if err := ing.UpdateFlowFromNotification(ctx, &n, msg.PublishTime); err != nil {
 					// This might be a transient error, so Nack() the message and
 					// we'll try again.
 					msg.Nack()

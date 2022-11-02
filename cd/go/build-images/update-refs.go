@@ -13,12 +13,16 @@ import (
 	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/louhi"
+	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-func updateRefs(ctx context.Context, repo, workspace, username, email string) error {
+var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
+
+func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
@@ -122,7 +126,19 @@ func updateRefs(ctx context.Context, repo, workspace, username, email string) er
 		if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
 			return td.FailStep(ctx, err)
 		}
-		if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
+		output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
+		if err != nil {
+			return td.FailStep(ctx, err)
+		}
+		match := uploadedCLRegex.FindString(output)
+		if match == "" {
+			return td.FailStep(ctx, skerr.Fmt("Failed to parse CL link from:\n%s", output))
+		}
+		sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
+		if err != nil {
+			return td.FailStep(ctx, err)
+		}
+		if err := sender.Send(ctx, &louhi.Notification{}); err != nil {
 			return td.FailStep(ctx, err)
 		}
 	}

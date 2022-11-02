@@ -9,7 +9,6 @@ go_library(
         "//go/firestore",
         "//go/louhi",
         "//go/skerr",
-        "//go/sklog",
         "@com_google_cloud_go_datastore//:datastore",
         "@com_google_cloud_go_firestore//:firestore",
         "@org_golang_google_api//iterator",

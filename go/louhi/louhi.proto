@@ -13,6 +13,7 @@ enum EventAction {
     STARTED = 0;
     FINISHED = 1;
     FAILED = 2;
+    CREATED_ARTIFACT = 3;
 }
 
 // Notification describes a PubSub notification from Louhi.
@@ -32,4 +33,5 @@ message Notification {
     string trigger_type = 10;
     string started_by = 11;
     repeated string artifact_link = 12;
+    repeated string generated_cls = 13;
 }

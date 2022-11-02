@@ -24,13 +24,14 @@ import (
 
 func main() {
 	const (
-		flagCommit    = "commit"
-		flagRepo      = "repo"
-		flagWorkspace = "workspace"
-		flagTarget    = "target"
-		flagRBE       = "rbe"
-		flagUser      = "user"
-		flagEmail     = "email"
+		flagCommit             = "commit"
+		flagEmail              = "email"
+		flagLouhiPubSubProject = "louhi-pubsub-project"
+		flagRBE                = "rbe"
+		flagRepo               = "repo"
+		flagTarget             = "target"
+		flagUser               = "user"
+		flagWorkspace          = "workspace"
 	)
 	app := &cli.App{
 		Name:        "build-images",
@@ -106,9 +107,14 @@ func main() {
 						Usage:    "Email address to attribute the build.",
 						Required: true,
 					},
+					&cli.StringFlag{
+						Name:     flagLouhiPubSubProject,
+						Usage:    "GCP project used for sending Louhi pub/sub notifications.",
+						Required: true,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail))
+					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject))
 				},
 			},
 		},

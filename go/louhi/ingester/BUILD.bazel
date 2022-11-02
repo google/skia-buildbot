@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "ingester",
+    srcs = ["ingester.go"],
+    importpath = "go.skia.org/infra/go/louhi/ingester",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/gitiles",
+        "//go/louhi",
+        "//go/skerr",
+        "//go/util",
+        "//go/vcsinfo",
+    ],
+)
+
+go_test(
+    name = "ingester_test",
+    srcs = ["ingester_test.go"],
+    embed = [":ingester"],
+    deps = [
+        "//go/gerrit/mocks",
+        "//go/gitiles",
+        "//go/gitiles/mocks",
+        "//go/louhi",
+        "//go/louhi/mocks",
+        "//go/testutils",
+        "//go/vcsinfo",
+        "@com_github_stretchr_testify//require",
+    ],
+)

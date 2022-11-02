@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/gcr",
+        "//go/gerrit",
         "//go/git/repograph",
         "//go/gitiles",
         "//go/gitstore/bt_gitstore",
