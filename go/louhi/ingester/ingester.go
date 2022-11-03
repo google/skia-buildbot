@@ -23,10 +23,10 @@ func NotificationToFlowExecution(ctx context.Context, n *louhi.Notification, ts 
 		result = louhi.FlowResultFailure
 		finishedAt = ts
 	} else if n.EventAction == louhi.EventAction_FINISHED {
-		// Note: at the time of writing, I don't know whether we get both a
-		// FINISHED and a FAILED notification for a failed flow, or just the
-		// FAILED notification. If the former, we may incorrectly mark the flow
-		// as a success until we receive the FAILED notification.
+		// Note: from casual observation it seems to be the case that we do not
+		// receive both a FINISHED and a FAILED notification when a flow fails.
+		// If we determine that to be incorrect, we'll need to change some logic
+		// around to ensure that we get the correct result for the flow.
 		result = louhi.FlowResultSuccess
 		finishedAt = ts
 	}
@@ -112,7 +112,7 @@ func (i *Ingester) UpdateFlowFromNotification(ctx context.Context, n *louhi.Noti
 	if oldFlow.ProjectID == "" {
 		oldFlow.ProjectID = newFlow.ProjectID
 	}
-	if oldFlow.Result == louhi.FlowResultUnknown || (oldFlow.Result == louhi.FlowResultSuccess && newFlow.Result == louhi.FlowResultFailure) {
+	if newFlow.Result != louhi.FlowResultUnknown {
 		oldFlow.Result = newFlow.Result
 		oldFlow.FinishedAt = newFlow.FinishedAt
 	}

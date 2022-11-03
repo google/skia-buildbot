@@ -245,8 +245,9 @@ func TestUpdateFlowFromNotification_FailureAfterFinished(t *testing.T) {
 }
 
 func TestUpdateFlowFromNotification_FinishedAfterFailure(t *testing.T) {
-	// This tests the case where we first receive a "finished" notification,
-	// which we interpret as success, but then receive a "failed" notification.
+	// This tests the case where we first receive a "failed" notification,
+	// but then receive a "finished" notification. This occurs when a user
+	// manually retries the flow.
 	n := &louhi.Notification{
 		ProjectId:           projectID,
 		FlowUniqueKey:       flowID,
@@ -289,7 +290,7 @@ func TestUpdateFlowFromNotification_FinishedAfterFailure(t *testing.T) {
 		Link:        flowLink,
 		ModifiedAt:  finishedTs,
 		ProjectID:   projectID,
-		Result:      louhi.FlowResultFailure,
+		Result:      louhi.FlowResultSuccess,
 		SourceCL:    issueUrl,
 		StartedBy:   startedByLouhi,
 		TriggerType: triggerType,
@@ -352,9 +353,6 @@ func TestUpdateFlowFromNotification_StartedAfterFinished(t *testing.T) {
 }
 
 func TestUpdateFlowFromNotification_GeneratedCLs(t *testing.T) {
-	// This tests the case where we receive the "started" notification after we
-	// receive the "finished" notification. Pub/sub message ordering is not
-	// guaranteed.
 	n := &louhi.Notification{
 		ProjectId:           projectID,
 		PipelineExecutionId: id,
