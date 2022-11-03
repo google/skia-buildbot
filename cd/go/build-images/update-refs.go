@@ -22,7 +22,7 @@ import (
 
 var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
 
-func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject string) error {
+func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
@@ -130,16 +130,22 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		if err != nil {
 			return td.FailStep(ctx, err)
 		}
-		match := uploadedCLRegex.FindString(output)
-		if match == "" {
-			return td.FailStep(ctx, skerr.Fmt("Failed to parse CL link from:\n%s", output))
-		}
-		sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
-		if err != nil {
-			return td.FailStep(ctx, err)
-		}
-		if err := sender.Send(ctx, &louhi.Notification{}); err != nil {
-			return td.FailStep(ctx, err)
+		if louhiPubsubProject != "" && executionID != "" {
+			match := uploadedCLRegex.FindString(output)
+			if match == "" {
+				return td.FailStep(ctx, skerr.Fmt("Failed to parse CL link from:\n%s", output))
+			}
+			sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
+			if err != nil {
+				return td.FailStep(ctx, err)
+			}
+			if err := sender.Send(ctx, &louhi.Notification{
+				EventAction:         louhi.EventAction_CREATED_ARTIFACT,
+				GeneratedCls:        []string{match},
+				PipelineExecutionId: executionID,
+			}); err != nil {
+				return td.FailStep(ctx, err)
+			}
 		}
 	}
 

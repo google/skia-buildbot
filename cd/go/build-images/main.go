@@ -26,6 +26,7 @@ func main() {
 	const (
 		flagCommit             = "commit"
 		flagEmail              = "email"
+		flagLouhiExecutionID   = "louhi-execution-id"
 		flagLouhiPubSubProject = "louhi-pubsub-project"
 		flagRBE                = "rbe"
 		flagRepo               = "repo"
@@ -110,11 +111,16 @@ func main() {
 					&cli.StringFlag{
 						Name:     flagLouhiPubSubProject,
 						Usage:    "GCP project used for sending Louhi pub/sub notifications.",
-						Required: true,
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagLouhiExecutionID,
+						Usage:    "Execution ID of the Louhi flow.",
+						Required: false,
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject))
+					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
 				},
 			},
 		},
