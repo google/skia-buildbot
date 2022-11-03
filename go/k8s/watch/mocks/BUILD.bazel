@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Interface.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/k8s/watch/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_stretchr_testify//mock",
+        "@io_k8s_apimachinery//pkg/watch",
+    ],
+)
