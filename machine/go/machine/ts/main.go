@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
-	"go.skia.org/infra/machine/go/switchboard"
 )
 
 func main() {
@@ -23,8 +22,6 @@ func main() {
 
 	generator := go2ts.New()
 	generator.AddMultiple(
-		switchboard.MeetingPoint{},
-		switchboard.Pod{},
 		rpc.SetNoteRequest{},
 		rpc.SupplyChromeOSRequest{},
 		rpc.SetAttachedDevice{},

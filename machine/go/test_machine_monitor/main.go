@@ -6,22 +6,16 @@ import (
 	"encoding/json"
 	"flag"
 	"io/fs"
-	"os"
 
 	"go.skia.org/infra/go/common"
 	pubsubUtils "go.skia.org/infra/go/pubsub"
-	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
-	"go.skia.org/infra/machine/go/machine/store"
-	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/test_machine_monitor/foundrybotrunner"
 	"go.skia.org/infra/machine/go/test_machine_monitor/machine"
 	"go.skia.org/infra/machine/go/test_machine_monitor/server"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
-	"go.skia.org/infra/switchboard/go/kubeconfig"
 )
 
 // flags
@@ -35,7 +29,6 @@ var (
 	pythonExe         = flag.String("python_exe", "", "Absolute path to Python.")
 	startFoundryBot   = flag.Bool("start_foundry_bot", false, "Start the Foundry Bot daemon, which listens for and runs Bazel RBE jobs.")
 	startSwarming     = flag.Bool("start_swarming", false, "Start swarming_bot.zip.")
-	startSwitchboard  = flag.Bool("start_switchboard", false, "Establish a connection to skia-switchboard.")
 	swarmingBotZip    = flag.String("swarming_bot_zip", "", "Absolute path to where the swarming_bot.zip code should run from.")
 	username          = flag.String("username", "chrome-bot", "The username of the account that accepts SSH connections.")
 )
@@ -85,24 +78,6 @@ func main() {
 		sklog.Fatal(machineSwarmingServer.Start(*port))
 	}()
 
-	sklog.Infof("Starting connection to switchboard.")
-	switchboardImpl, err := switchboard.New(ctx, *local, instanceConfig)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	rpf, err := revportforward.New(kubeconfig.Config, ":22", true /*useNcRev */)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	store, err := store.NewFirestoreImpl(ctx, *local, instanceConfig)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	if *startFoundryBot {
 		runner, err := foundrybotrunner.New()
 		if err != nil {
@@ -111,16 +86,6 @@ func main() {
 		go func() {
 			if err := runner.RunUntilCancelled(ctx); err != nil {
 				sklog.Infof("Foundry Bot subprocess killed: %s", err.Error())
-			}
-		}()
-	}
-
-	if *startSwitchboard {
-		connection := targetconnect.New(switchboardImpl, rpf, store, hostname, *username)
-		go func() {
-			err := connection.Start(ctx)
-			if err != nil {
-				sklog.Fatalf("Failed to maintain connection to switchboard: %s", err)
 			}
 		}()
 	}
