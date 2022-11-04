@@ -30,6 +30,8 @@ func main() {
 		flagLouhiPubSubProject = "louhi-pubsub-project"
 		flagRBE                = "rbe"
 		flagRepo               = "repo"
+		flagSourceRepo         = "source-repo"
+		flagSourceCommit       = "source-commit"
 		flagTarget             = "target"
 		flagUser               = "user"
 		flagWorkspace          = "workspace"
@@ -50,7 +52,7 @@ func main() {
 					},
 					&cli.StringFlag{
 						Name:     flagRepo,
-						Usage:    "Repository URL.",
+						Usage:    "URL of the repo to update.",
 						Required: true,
 					},
 					&cli.StringFlag{
@@ -67,6 +69,16 @@ func main() {
 						Name:  flagRBE,
 						Usage: "Whether or not to use Bazel RBE",
 						Value: false,
+					},
+					&cli.StringFlag{
+						Name:     flagSourceCommit,
+						Usage:    "Commit hash which triggered the build.",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagSourceRepo,
+						Usage:    "URL of the repo which triggered the build.",
+						Required: false,
 					},
 					&cli.StringFlag{
 						Name:     flagUser,
@@ -120,7 +132,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
+					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))
 				},
 			},
 		},

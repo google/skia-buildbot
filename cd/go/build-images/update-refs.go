@@ -5,24 +5,29 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
+	"golang.org/x/oauth2/google"
 )
 
 var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
 
-func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID string) error {
+func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
@@ -116,13 +121,39 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 	// Did we change anything?
 	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "--exit-code"); err != nil {
 		// If so, create a CL.
+
+		// Build the commit message.
 		imageList := make([]string, 0, len(imageInfo.Images))
 		for _, image := range imageInfo.Images {
-			imageList = append(imageList, image.Image)
+			imageList = append(imageList, path.Base(image.Image))
 		}
-		commitMsg := fmt.Sprintf(`Update %s
+		commitMsg := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
+		if srcCommit != "" {
+			shortCommit := srcCommit
+			if len(shortCommit) > 12 {
+				shortCommit = shortCommit[:12]
+			}
+			commitMsg += " for " + shortCommit
+		}
+		commitMsg += "\n\n"
+		if srcRepo != "" && srcCommit != "" {
+			ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+			if err != nil {
+				return td.FailStep(ctx, err)
+			}
+			client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+			gitilesRepo := gitiles.NewRepo(srcRepo, client)
+			commitDetails, err := gitilesRepo.Details(ctx, srcCommit)
+			if err != nil {
+				return td.FailStep(ctx, err)
+			}
+			commitMsg += fmt.Sprintf("%s/+/%s\n\n", srcRepo, srcCommit)
+			commitMsg += commitDetails.Subject
+			commitMsg += "\n\n"
+		}
+		commitMsg += rubberstamper.RandomChangeID()
 
-%s`, strings.Join(imageList, ", "), rubberstamper.RandomChangeID())
+		// Commit and push.
 		if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
 			return td.FailStep(ctx, err)
 		}
@@ -130,6 +161,8 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		if err != nil {
 			return td.FailStep(ctx, err)
 		}
+
+		// Send a pub/sub message.
 		if louhiPubsubProject != "" && executionID != "" {
 			match := uploadedCLRegex.FindString(output)
 			if match == "" {
