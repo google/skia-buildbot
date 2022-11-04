@@ -10,9 +10,11 @@ package main
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"go.skia.org/infra/go/cas/rbe"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -215,6 +217,29 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+// usesPreBuiltTaskDrivers changes the task to use pre-built task
+// drivers for efficiency. If you want to iterate on the task driver
+// itself, just comment out the line where this is called.
+func usesPreBuiltTaskDrivers(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
+	// Determine which task driver we want.
+	tdName := path.Base(t.Command[0])
+
+	// Add the CIPD package for the task driver.
+	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("skia/tools/"+tdName+"/${platform}"))
+
+	// Update the command to use the task driver from the CIPD package.
+	t.Command[0] = "./task_drivers/" + tdName
+
+	// Remove the BuildTaskDrivers task from the dependencies.
+	newDeps := make([]string, 0, len(t.Dependencies))
+	for _, dep := range t.Dependencies {
+		if !strings.HasPrefix(dep, buildTaskDriversName) {
+			newDeps = append(newDeps, dep)
+		}
+	}
+	t.Dependencies = newDeps
+}
+
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 
@@ -247,6 +272,9 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		},
 		ServiceAccount: compileServiceAccount,
 	}
+	// To iterate on the bazel_build_all task driver, comment out the
+	// call to usePreBuiltTaskDrivers.
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name
@@ -288,6 +316,9 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		},
 		ServiceAccount: compileServiceAccount,
 	}
+	// To iterate on the bazel_build_all task driver, comment out the
+	// call to usePreBuiltTaskDrivers.
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name

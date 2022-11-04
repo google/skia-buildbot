@@ -248,10 +248,15 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
+        },
+        {
+          "name": "skia/tools/bazel_build_all/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:abdd54b23f9d2a3fed1609c27ac56c2108467c85"
         }
       ],
       "command": [
-        "./bazel_build_all",
+        "./task_drivers/bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -274,9 +279,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -316,10 +318,15 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
+        },
+        {
+          "name": "skia/tools/bazel_build_all/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:abdd54b23f9d2a3fed1609c27ac56c2108467c85"
         }
       ],
       "command": [
-        "./bazel_build_all",
+        "./task_drivers/bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -343,9 +350,6 @@
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache",
         "--rbe"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -395,10 +399,15 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
+        },
+        {
+          "name": "skia/tools/bazel_test_all/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:abdd54b23f9d2a3fed1609c27ac56c2108467c85"
         }
       ],
       "command": [
-        "./bazel_test_all",
+        "./task_drivers/bazel_test_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -423,9 +432,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -475,10 +481,15 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
+        },
+        {
+          "name": "skia/tools/bazel_test_all/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:abdd54b23f9d2a3fed1609c27ac56c2108467c85"
         }
       ],
       "command": [
-        "./bazel_test_all",
+        "./task_drivers/bazel_test_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -504,9 +515,6 @@
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache",
         "--rbe"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
