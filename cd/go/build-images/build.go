@@ -81,7 +81,7 @@ func bazelRun(ctx context.Context, cwd, target, louhiImageTag string, rbe bool) 
 
 	cmd := []string{"bazelisk", "run"}
 	if rbe {
-		cmd = append(cmd, "--config=remote", "--google_default_credentials")
+		cmd = append(cmd, "--config=remote", "--google_default_credentials", "--remote_download_toplevel")
 	}
 	cmd = append(cmd, target)
 	if _, err := exec.RunCwd(ctx, cwd, cmd...); err != nil {
