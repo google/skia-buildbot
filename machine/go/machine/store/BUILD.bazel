@@ -26,10 +26,7 @@ go_library(
 
 go_test(
     name = "store_test",
-    srcs = [
-        "firestoreimpl_manual_test.go",
-        "firestoreimpl_test.go",
-    ],
+    srcs = ["firestoreimpl_test.go"],
     embed = [":store"],
     flaky = True,
     deps = [

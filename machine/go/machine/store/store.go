@@ -24,16 +24,6 @@ type Store interface {
 	// Get returns the Description for the given machine.
 	Get(ctx context.Context, machineID string) (machine.Description, error)
 
-	// Watch returns a channel that will produce a machine.Description every time
-	// the description for machineID changes.
-	Watch(ctx context.Context, machineID string) <-chan machine.Description
-
-	// WatchForPowerCycle returns a channel that will produce the name of a
-	// machine that needs to be power-cycled. Before a machineID is sent on the
-	// channel the PowerCycle value is set back to false. If rack is set then
-	// only machines whose id contains the rack value will be returned.
-	WatchForPowerCycle(ctx context.Context, rack string) <-chan string
-
 	// ListPowerCycle returns a list of machine names that need powercycling.
 	ListPowerCycle(ctx context.Context) ([]string, error)
 

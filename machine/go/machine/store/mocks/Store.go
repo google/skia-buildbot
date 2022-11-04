@@ -113,38 +113,6 @@ func (_m *Store) Update(ctx context.Context, machineID string, updateCallback st
 	return r0
 }
 
-// Watch provides a mock function with given fields: ctx, machineID
-func (_m *Store) Watch(ctx context.Context, machineID string) <-chan machine.Description {
-	ret := _m.Called(ctx, machineID)
-
-	var r0 <-chan machine.Description
-	if rf, ok := ret.Get(0).(func(context.Context, string) <-chan machine.Description); ok {
-		r0 = rf(ctx, machineID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan machine.Description)
-		}
-	}
-
-	return r0
-}
-
-// WatchForPowerCycle provides a mock function with given fields: ctx, rack
-func (_m *Store) WatchForPowerCycle(ctx context.Context, rack string) <-chan string {
-	ret := _m.Called(ctx, rack)
-
-	var r0 <-chan string
-	if rf, ok := ret.Get(0).(func(context.Context, string) <-chan string); ok {
-		r0 = rf(ctx, rack)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan string)
-		}
-	}
-
-	return r0
-}
-
 // NewStore creates a new instance of Store. It also registers a cleanup function to assert the mocks expectations.
 func NewStore(t testing.TB) *Store {
 	mock := &Store{}

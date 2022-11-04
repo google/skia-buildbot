@@ -2,8 +2,6 @@ package store
 
 import (
 	"context"
-	"math/rand"
-	"strings"
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
@@ -180,91 +178,6 @@ func (st *FirestoreImpl) Update(ctx context.Context, machineID string, updateCal
 
 		return tx.Set(docRef, &updatedStoreDescription)
 	})
-}
-
-// Watch implements the Store interface.
-func (st *FirestoreImpl) Watch(ctx context.Context, machineID string) <-chan machine.Description {
-	iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
-	ch := make(chan machine.Description)
-	go func() {
-		for {
-			snap, err := iter.Next()
-			if err != nil {
-				if ctx.Err() == context.Canceled {
-					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else if stErr, ok := status.FromError(err); ok && stErr.Code() == codes.Canceled {
-					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else {
-					iter.Stop()
-					time.Sleep(time.Second * time.Duration(rand.Int63n(watchRecoverBackoff)))
-					iter = st.machinesCollection.Doc(machineID).Snapshots(ctx)
-					sklog.Warningf("iter returned error; retrying query: %s", err)
-					continue
-				}
-				iter.Stop()
-				close(ch)
-				return
-			}
-			if !snap.Exists() {
-				continue
-			}
-			var storeDescription storeDescription
-			if err := snap.DataTo(&storeDescription); err != nil {
-				sklog.Errorf("Failed to read data from snapshot: %s", err)
-				st.watchDataToErrorCounter.Inc(1)
-				continue
-			}
-			machineDescription := convertFSDescription(storeDescription)
-			st.watchReceiveSnapshotCounter.Inc(1)
-			ch <- machineDescription
-		}
-	}()
-	return ch
-}
-
-// WatchForPowerCycle implements the Store interface.
-func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context, rack string) <-chan string {
-	q := st.machinesCollection.Where("PowerCycle", "==", true).Where("RunningSwarmingTask", "==", false)
-	ch := make(chan string)
-	go func() {
-		defer close(ch)
-		for qsnap := range firestore.QuerySnapshotChannel(ctx, q) {
-			for {
-				snap, err := qsnap.Documents.Next()
-				if err == iterator.Done {
-					break
-				}
-				if err != nil {
-					sklog.Errorf("Failed to read document snapshot: %s", err)
-					continue
-				}
-				var storeDescription storeDescription
-				if err := snap.DataTo(&storeDescription); err != nil {
-					sklog.Errorf("Failed to read data from snapshot: %s", err)
-					st.watchForPowerCycleDataToErrorCounter.Inc(1)
-					continue
-				}
-				machineDescription := convertFSDescription(storeDescription)
-				machineID := machineDescription.Dimensions[machine.DimID][0]
-				// If rack is set then only respond to powercycle events for that rack.
-				if rack != "" && !strings.Contains(machineID, rack) {
-					continue
-				}
-				st.watchForPowerCycleReceiveSnapshotCounter.Inc(1)
-				err = st.Update(ctx, machineID, func(previous machine.Description) machine.Description {
-					ret := previous.Copy()
-					ret.PowerCycle = false
-					return ret
-				})
-				if err != nil {
-					sklog.Errorf("Failed to update machine.Description PowerCycle: %s", err)
-					// Just log the error, still powercycle the machine.
-				}
-				ch <- machineID
-			}
-		}
-	}()
-	return ch
 }
 
 // ListPowerCycle implements the Store interface.
