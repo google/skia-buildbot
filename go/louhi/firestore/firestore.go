@@ -38,10 +38,15 @@ func NewDB(ctx context.Context, project, app, instance string) (*FirestoreDB, er
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create firestore client")
 	}
+	return newDBWithClient(ctx, client), nil
+}
+
+// newDBWithClient returns a FirestoreDB instance which uses the given Client.
+func newDBWithClient(ctx context.Context, client *firestore.Client) *FirestoreDB {
 	return &FirestoreDB{
 		client: client,
 		flows:  client.Collection(collectionFlows),
-	}, nil
+	}
 }
 
 // PutFlowExecution implements DB.
@@ -80,25 +85,39 @@ func (db *FirestoreDB) GetFlowExecution(ctx context.Context, id string) (*louhi.
 
 // GetLatestFlowExecutions implements DB.
 func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]*louhi.FlowExecution, error) {
-	iter := db.flows.DocumentRefs(ctx)
+	// Iterate over all known flows.
+	flowIter := db.flows.DocumentRefs(ctx)
 	rv := map[string]*louhi.FlowExecution{}
 	for {
-		doc, err := iter.Next()
+		doc, err := flowIter.Next()
 		if err == iterator.Done {
 			break
 		} else if err != nil {
 			return nil, skerr.Wrapf(err, "failed to search FlowExecutions")
 		}
-		docs, err := doc.Collection(collectionExecutions).OrderBy("CreatedAt", fs.Desc).Where("Result", "!=", louhi.FlowResultUnknown).OrderBy("Result", fs.Asc).Limit(1).Documents(ctx).GetAll()
-		if err != nil {
-			return nil, skerr.Wrap(err)
+		// Iterate over the executions of this flow in most-recent-first order
+		// until we find one which has finished.
+		execIter := doc.Collection(collectionExecutions).OrderBy("CreatedAt", fs.Desc).Documents(ctx)
+		var fe *louhi.FlowExecution
+		for {
+			doc, err := execIter.Next()
+			if err == iterator.Done {
+				break
+			} else if err != nil {
+				return nil, skerr.Wrapf(err, "failed to search FlowExecutions")
+			}
+			fe = new(louhi.FlowExecution)
+			if err := doc.DataTo(fe); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if fe.Finished() {
+				break
+			}
 		}
-		if len(docs) == 0 {
+		if !fe.Finished() {
+			// This indicates that there are no executions of this flow which
+			// have finished. Just move on.
 			continue
-		}
-		fe := new(louhi.FlowExecution)
-		if err := docs[0].DataTo(fe); err != nil {
-			return nil, skerr.Wrap(err)
 		}
 		// The DB stores flows by unique ID, not name, and the ID may change
 		// as the flow is edited, so we should deduplicate by name.
