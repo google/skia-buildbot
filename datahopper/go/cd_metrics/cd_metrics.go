@@ -571,6 +571,7 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject, g, louhiRepos); err != nil {
 		return skerr.Wrapf(err, "failed to initiate Louhi pub/sub listener")
 	}
+	lvFlowResults := metrics2.NewLiveness("last_successful_louhi_flow_metrics")
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		latestFlowExecs, err := db.GetLatestFlowExecutions(ctx)
 		if err != nil {
@@ -582,12 +583,14 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 			if flow.Result == louhi.FlowResultFailure {
 				result = 0
 			}
+			sklog.Infof("Flow %q has success == %d at %s (flows/%s/executions/%s)", flowName, result, flow.CreatedAt, flow.FlowID, flow.ID)
 			metrics2.GetInt64Metric(louhiFlowSuccessMetric, map[string]string{
 				"flow_name":     flowName,
 				"flow_id":       flow.FlowID,
 				"louhi_project": flow.ProjectID,
 			}).Update(result)
 		}
+		lvFlowResults.Reset()
 	})
 
 	return nil

@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -88,7 +89,7 @@ func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]
 		} else if err != nil {
 			return nil, skerr.Wrapf(err, "failed to search FlowExecutions")
 		}
-		docs, err := doc.Collection(collectionExecutions).Where("Result", "!=", louhi.FlowResultUnknown).OrderBy("Result", fs.Asc).OrderBy("CreatedAt", fs.Desc).Limit(1).Documents(ctx).GetAll()
+		docs, err := doc.Collection(collectionExecutions).OrderBy("CreatedAt", fs.Desc).Where("Result", "!=", louhi.FlowResultUnknown).OrderBy("Result", fs.Asc).Limit(1).Documents(ctx).GetAll()
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -102,6 +103,9 @@ func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]
 		// The DB stores flows by unique ID, not name, and the ID may change
 		// as the flow is edited, so we should deduplicate by name.
 		if prev, ok := rv[fe.FlowName]; !ok || prev.CreatedAt.Before(fe.CreatedAt) {
+			if ok && prev.CreatedAt.Before(fe.CreatedAt) {
+				sklog.Infof("Throwing away old flow result for %q (%s) created at %s in favor of new flow created at %s", prev.FlowName, prev.FlowID, prev.CreatedAt, fe.CreatedAt)
+			}
 			rv[fe.FlowName] = fe
 		}
 	}
