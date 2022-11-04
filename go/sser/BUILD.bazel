@@ -1,0 +1,49 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sser",
+    srcs = [
+        "peerfinder_impl.go",
+        "peerfinder_localhost.go",
+        "server_impl.go",
+        "sser.go",
+    ],
+    importpath = "go.skia.org/infra/go/sser",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util_generics",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_r3labs_sse_v2//:sse",
+        "@io_k8s_api//core/v1:core",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes",
+    ],
+)
+
+go_test(
+    name = "sser_test",
+    srcs = [
+        "peerfinder_impl_test.go",
+        "peerfinder_localhost_test.go",
+        "server_impl_test.go",
+    ],
+    embed = [":sser"],
+    deps = [
+        "//go/k8s/mocks",
+        "//go/k8s/watch/mocks",
+        "//go/metrics2",
+        "//go/sser/mocks",
+        "//go/testutils",
+        "@com_github_r3labs_sse_v2//:sse",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@io_k8s_api//core/v1:core",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes",
+    ],
+)

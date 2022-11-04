@@ -2017,6 +2017,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "sserexample",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "sserexample",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "sserexample",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "status",
           "endpoints": [
             {
@@ -4563,6 +4589,23 @@
                           },
                           "route": {
                             "cluster": "skottie-tenor",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "sserexample.skia.org",
+                      "name": "sserexample.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "sserexample",
                             "timeout": {
                               "seconds": 600
                             }

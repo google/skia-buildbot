@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+go_library(
+    name = "example_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/sser/example",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/sser",
+        "@com_github_gorilla_mux//:mux",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+    ],
+)
+
+go_binary(
+    name = "example",
+    embed = [":example_lib"],
+    visibility = ["//visibility:public"],
+)
+
+skia_app_container(
+    name = "sserexample",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//go/sser/example:example",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/example",
+    repository = "skia-public/sserexample",
+)

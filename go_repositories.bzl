@@ -2999,6 +2999,12 @@ def go_repositories():
         sum = "h1:NNFoKms+kut6ABPf6xiKNM5214jzxAhDBrPHCJ97Wg0=",
         version = "v0.2.1",
     )
+    go_repository(
+        name = "com_github_r3labs_sse_v2",
+        importpath = "github.com/r3labs/sse/v2",
+        sum = "h1:lZH+W4XOLIq88U5MIHOsLec7+R62uhz3bIi2yn0Sg8o=",
+        version = "v2.8.1",
+    )
 
     go_repository(
         name = "com_github_rcrowley_go_metrics",
@@ -3749,6 +3755,12 @@ def go_repositories():
         importpath = "gopkg.in/alecthomas/kingpin.v2",
         sum = "h1:jMFz6MfLP0/4fUyZle81rXUoxOBFi19VUFKVDOQfozc=",
         version = "v2.2.6",
+    )
+    go_repository(
+        name = "in_gopkg_cenkalti_backoff_v1",
+        importpath = "gopkg.in/cenkalti/backoff.v1",
+        sum = "h1:Arh75ttbsvlpVA7WtVpH4u9h6Zl46xuptxqLxPiSo4Y=",
+        version = "v1.1.0",
     )
 
     go_repository(
