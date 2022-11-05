@@ -74,6 +74,7 @@ import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet } from '../paramtools';
+import { dataFrameToCSV } from '../csv';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -1658,28 +1659,8 @@ export class ExploreSk extends ElementSk {
       URL.revokeObjectURL(this._csvBlobURL);
       this._csvBlobURL = '';
     }
-    const csv = [];
-    let line: (string | number)[] = ['id'];
-    this._dataframe.header!.forEach((_, i) => {
-      // TODO(jcgregorio) Look up the git hash and use that as the header.
-      line.push(i.toString());
-    });
-    csv.push(line.join(','));
-    Object.keys(this._dataframe.traceset).forEach((traceId) => {
-      if (traceId === ZERO_NAME) {
-        return;
-      }
-      line = [`"${traceId}"`];
-      this._dataframe.traceset[traceId]!.forEach((f) => {
-        if (!Number.isNaN(f)) {
-          line.push(f);
-        } else {
-          line.push('');
-        }
-      });
-      csv.push(line.join(','));
-    });
-    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const csvBody = dataFrameToCSV(this._dataframe);
+    const blob = new Blob([csvBody], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     this.csvDownload!.href = url;
     this._csvBlobURL = url;
