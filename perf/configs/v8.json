@@ -18,6 +18,7 @@
       "topic": "perf-ingestion-v8-production",
       "subscription": "",
       "sources": [
+        "gs://v8_perf_skia_prod/v8/cq/",
         "gs://v8_perf_skia_prod/v8/chromeperf/"
       ]
     },
