@@ -478,6 +478,12 @@ third_party {
 		}
 	}
 
+	// The pre-upload step may reintroduce submodule directories, remove them
+	// to compensate the effect.
+	modOutput, modErr = exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm -r --cached \"$1) }'")
+	sklog.Infof("Output of submodule removal cmd (after preUploadSteps): %s", modOutput)
+	util.LogErr(modErr)
+
 	// Create a new repo branch.
 	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, r.repoToolPath, "start", androidRepoBranchName, "."); repoBranchErr != nil {
 		util.LogErr(r.abortMerge(ctx))
