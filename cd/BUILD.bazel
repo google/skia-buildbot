@@ -7,6 +7,10 @@ skia_app_container(
     dirs = {
         "/usr/local/bin": [
             [
+                "//autoroll/go/autoroll-config-converter:autoroll-config-converter",
+                "0755",
+            ],
+            [
                 "//cd/go/build-images:build-images",
                 "0755",
             ],
