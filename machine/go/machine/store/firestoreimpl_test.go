@@ -19,7 +19,6 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		Mode:           machine.ModeAvailable,
 		AttachedDevice: machine.AttachedDeviceNone,
 		LastUpdated:    fakeTime,
 		Dimensions:     machine.SwarmingDimensions{},
@@ -39,11 +38,7 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
 		AttachedDevice: machine.AttachedDeviceAdb,
-		OS:             []string{"Android"},
-		DeviceType:     []string{"sailfish"},
-		Quarantined:    []string{"Device sailfish too hot."},
 		Dimensions:     expectedDims,
-		Mode:           machine.ModeAvailable,
 		LastUpdated:    fakeTime,
 	}, m)
 }
@@ -61,8 +56,6 @@ func TestConvertDescription_WithPowerCycle(t *testing.T) {
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
 		AttachedDevice: machine.AttachedDeviceAdb,
-		OS:             []string{"Android"},
-		Mode:           machine.ModeAvailable,
 		Dimensions:     expectedDims,
 		LastUpdated:    fakeTime,
 		PowerCycle:     true,
@@ -116,10 +109,11 @@ func TestGet_MachineExists_ReturnsCurrentDescription(t *testing.T) {
 
 	store.getCounter.Reset()
 
-	const machineID = "skia-rpi2-rack2-shelf1-001"
+	const machineID = "skia-rpi2-rack2-shelf2-002"
 	ret := machine.NewDescription(ctx)
 	err = store.Update(ctx, machineID, func(previous machine.Description) machine.Description {
 		ret = previous.Copy()
+		ret.PowerCycleState = machine.NotAvailable
 		ret.Mode = machine.ModeMaintenance
 		return ret
 	})
@@ -151,10 +145,10 @@ func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 
 	snap, err := store.machinesCollection.Doc("skia-rpi2-rack2-shelf1-001").Get(ctx)
 	require.NoError(t, err)
-	var storedDescription machine.Description
+	var storedDescription storeDescription
 	err = snap.DataTo(&storedDescription)
 	require.NoError(t, err)
-	assert.Equal(t, machine.ModeMaintenance, storedDescription.Mode)
+	assert.Equal(t, machine.ModeMaintenance, storedDescription.GetMode())
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
@@ -331,4 +325,46 @@ func TestForceToPowerCycleState_AllCurrentValuesConvertToThemSelves(t *testing.T
 func TestForceToPowerCycleState_UnknownValuesAreConvertedToNotAvailable(t *testing.T) {
 	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState(""), "empty string")
 	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState("foo-bar-baz"), "foo-bar-baz")
+}
+
+func TestStoreDescriptionGetMode_MaintenanceModeSet_ReturnsModeMaintenance(t *testing.T) {
+	s := storeDescription{
+		MaintenanceMode: "jcgregorio@google.com 2022-11-07T18:38:49+00:00",
+		IsQuarantined:   false,
+		Recovering:      "",
+	}
+	require.Equal(t, machine.ModeMaintenance, s.GetMode())
+}
+
+func TestStoreDescriptionGetMode_MaintenanceModeNotSet_ReturnsModeAvailable(t *testing.T) {
+	s := storeDescription{
+		MaintenanceMode: "",
+		IsQuarantined:   false,
+		Recovering:      "",
+	}
+	require.Equal(t, machine.ModeAvailable, s.GetMode())
+}
+
+func TestStoreDescriptionGetMode_RecoveringSet_ReturnsModeRecovery(t *testing.T) {
+	s := storeDescription{
+		MaintenanceMode: "",
+		IsQuarantined:   false,
+		Recovering:      "low power",
+	}
+	require.Equal(t, machine.ModeRecovery, s.GetMode())
+}
+
+func roundTripMode(t *testing.T, mode machine.Mode) {
+	m := machine.Description{
+		Mode: mode,
+	}
+	s := convertDescription(m)
+	m2 := convertFSDescription(s)
+	require.Equal(t, mode, m2.Mode)
+}
+
+func TestStoreDescription_EveryModeRoundTrips(t *testing.T) {
+	roundTripMode(t, machine.ModeAvailable)
+	roundTripMode(t, machine.ModeRecovery)
+	roundTripMode(t, machine.ModeMaintenance)
 }

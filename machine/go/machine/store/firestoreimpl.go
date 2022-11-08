@@ -53,8 +53,21 @@ type FirestoreImpl struct {
 
 // storeDescription is how machine.Description is mapped into firestore.
 type storeDescription struct {
-	// Mode describes if the machine is capable of running tasks or is otherwise not ready.
-	Mode machine.Mode
+	// MaintenanceMode is non-empty if someone manually puts the machine into
+	// this mode. The value will be the user's email address and the date of the
+	// change.
+	MaintenanceMode string
+
+	// IsQuarantined is true if the machine has failed too many tasks and should
+	// stop running tasks pending user intervention. Recipes/Task Drivers can
+	// write a $HOME/${SWARMING_BOT_ID}.quarantined file to move a machine into
+	// quarantined mode.
+	IsQuarantined bool
+
+	// Recovering is a non-empty string if test_machine_monitor detects the
+	// device is too hot, or low on charge. The value is a description of what
+	// is recovering.
+	Recovering string
 
 	// AttachedDevice is the kind of device attached.
 	AttachedDevice machine.AttachedDevice
@@ -97,11 +110,6 @@ type storeDescription struct {
 
 	// Dimensions describe the machine and what tasks it is capable of running.
 	Dimensions machine.SwarmingDimensions
-
-	// OS, DeviceType, and Quarantined are mirrored out of Dimensions, so we can query them.
-	OS          []string
-	DeviceType  []string
-	Quarantined []string
 }
 
 // fsAnnotation models how machine.Annotation is stored in Firestore. This serves to
@@ -145,14 +153,15 @@ func NewFirestoreImpl(ctx context.Context, local bool, instanceConfig config.Ins
 func (st *FirestoreImpl) Get(ctx context.Context, machineID string) (machine.Description, error) {
 	st.getCounter.Inc(1)
 	ret := machine.NewDescription(ctx)
+	var sret storeDescription
 	snap, err := st.machinesCollection.Doc(machineID).Get(ctx)
 	if err != nil {
 		return ret, skerr.Wrapf(err, "Failed to query for machine: %q", machineID)
 	}
-	if err := snap.DataTo(&ret); err != nil {
+	if err := snap.DataTo(&sret); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to deserialize for machine: %q", machineID)
 	}
-	return ret, nil
+	return convertFSDescription(sret), nil
 }
 
 // Update implements the Store interface.
@@ -243,27 +252,54 @@ func (st *FirestoreImpl) Delete(ctx context.Context, machineID string) error {
 }
 
 func convertDescription(m machine.Description) storeDescription {
-	return storeDescription{
+	ret := storeDescription{
 		Annotation:          convertAnnotation(m.Annotation),
 		AttachedDevice:      forceToAttachedDevice(m.AttachedDevice),
 		Battery:             m.Battery,
-		DeviceType:          m.Dimensions[machine.DimDeviceType],
 		DeviceUptime:        m.DeviceUptime,
 		Dimensions:          m.Dimensions,
+		MaintenanceMode:     convertModeToMaintenanceMode(m.Mode),
+		IsQuarantined:       false,
+		Recovering:          convertModeToIsRecovering(m.Mode),
 		LastUpdated:         m.LastUpdated,
 		LaunchedSwarming:    m.LaunchedSwarming,
-		Mode:                m.Mode,
 		Note:                convertAnnotation(m.Note),
-		OS:                  m.Dimensions[machine.DimOS],
 		PowerCycle:          m.PowerCycle,
 		PowerCycleState:     m.PowerCycleState,
-		Quarantined:         m.Dimensions[machine.DimQuarantined],
 		RecoveryStart:       m.RecoveryStart,
 		RunningSwarmingTask: m.RunningSwarmingTask,
 		SSHUserIP:           m.SSHUserIP,
 		SuppliedDimensions:  m.SuppliedDimensions,
 		Temperature:         m.Temperature,
 		Version:             m.Version,
+	}
+
+	return ret
+}
+
+func convertModeToMaintenanceMode(mode machine.Mode) string {
+	switch mode {
+	case machine.ModeMaintenance:
+		return "Legacy Maintenance"
+	case machine.ModeRecovery:
+		return ""
+	case machine.ModeAvailable:
+		return ""
+	default:
+		return ""
+	}
+}
+
+func convertModeToIsRecovering(mode machine.Mode) string {
+	switch mode {
+	case machine.ModeMaintenance:
+		return ""
+	case machine.ModeRecovery:
+		return "Legacy Recovery"
+	case machine.ModeAvailable:
+		return ""
+	default:
+		return ""
 	}
 }
 
@@ -301,6 +337,16 @@ func forceToPowerCycleState(powerCycleState machine.PowerCycleState) machine.Pow
 	return machine.NotAvailable
 }
 
+func (s storeDescription) GetMode() machine.Mode {
+	if s.MaintenanceMode != "" || s.IsQuarantined {
+		return machine.ModeMaintenance
+	}
+	if s.Recovering != "" {
+		return machine.ModeRecovery
+	}
+	return machine.ModeAvailable
+}
+
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
 	return machine.Description{
@@ -311,7 +357,7 @@ func convertFSDescription(s storeDescription) machine.Description {
 		Dimensions:          s.Dimensions,
 		LastUpdated:         s.LastUpdated,
 		LaunchedSwarming:    s.LaunchedSwarming,
-		Mode:                s.Mode,
+		Mode:                s.GetMode(),
 		Note:                convertFSAnnotation(s.Note),
 		PowerCycle:          s.PowerCycle,
 		PowerCycleState:     forceToPowerCycleState(s.PowerCycleState),
