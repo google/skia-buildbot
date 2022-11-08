@@ -10,22 +10,14 @@ import (
 	"regexp"
 	"strings"
 
-	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/louhi"
-	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"golang.org/x/oauth2/google"
 )
-
-var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
 
 func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
@@ -118,69 +110,11 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		return td.FailStep(ctx, err)
 	}
 
-	// Did we change anything?
-	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "--exit-code"); err != nil {
-		// If so, create a CL.
-
-		// Build the commit message.
-		imageList := make([]string, 0, len(imageInfo.Images))
-		for _, image := range imageInfo.Images {
-			imageList = append(imageList, path.Base(image.Image))
-		}
-		commitMsg := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
-		if srcCommit != "" {
-			shortCommit := srcCommit
-			if len(shortCommit) > 12 {
-				shortCommit = shortCommit[:12]
-			}
-			commitMsg += " for " + shortCommit
-		}
-		commitMsg += "\n\n"
-		if srcRepo != "" && srcCommit != "" {
-			ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
-			if err != nil {
-				return td.FailStep(ctx, err)
-			}
-			client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-			gitilesRepo := gitiles.NewRepo(srcRepo, client)
-			commitDetails, err := gitilesRepo.Details(ctx, srcCommit)
-			if err != nil {
-				return td.FailStep(ctx, err)
-			}
-			commitMsg += fmt.Sprintf("%s/+/%s\n\n", srcRepo, srcCommit)
-			commitMsg += commitDetails.Subject
-			commitMsg += "\n\n"
-		}
-		commitMsg += rubberstamper.RandomChangeID()
-
-		// Commit and push.
-		if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
-			return td.FailStep(ctx, err)
-		}
-		output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
-		if err != nil {
-			return td.FailStep(ctx, err)
-		}
-
-		// Send a pub/sub message.
-		if louhiPubsubProject != "" && executionID != "" {
-			match := uploadedCLRegex.FindString(output)
-			if match == "" {
-				return td.FailStep(ctx, skerr.Fmt("Failed to parse CL link from:\n%s", output))
-			}
-			sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
-			if err != nil {
-				return td.FailStep(ctx, err)
-			}
-			if err := sender.Send(ctx, &louhi.Notification{
-				EventAction:         louhi.EventAction_CREATED_ARTIFACT,
-				GeneratedCls:        []string{match},
-				PipelineExecutionId: executionID,
-			}); err != nil {
-				return td.FailStep(ctx, err)
-			}
-		}
+	// Upload a CL.
+	imageList := make([]string, 0, len(imageInfo.Images))
+	for _, image := range imageInfo.Images {
+		imageList = append(imageList, path.Base(image.Image))
 	}
-
-	return nil
+	commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
+	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
 }

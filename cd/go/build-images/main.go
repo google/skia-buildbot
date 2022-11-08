@@ -130,6 +130,16 @@ func main() {
 						Usage:    "Execution ID of the Louhi flow.",
 						Required: false,
 					},
+					&cli.StringFlag{
+						Name:     flagSourceCommit,
+						Usage:    "Commit hash which triggered the build.",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagSourceRepo,
+						Usage:    "URL of the repo which triggered the build.",
+						Required: false,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))

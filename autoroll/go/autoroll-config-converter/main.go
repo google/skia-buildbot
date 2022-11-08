@@ -18,6 +18,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -63,6 +64,11 @@ func main() {
 	dst := flag.String("dst", "", "Destination directory. Outputs will mimic the structure of the source.")
 	privacySandboxAndroidRepoURL := flag.String("privacy_sandbox_android_repo_url", "", "Repo URL for privacy sandbox on Android.")
 	privacySandboxAndroidVersionsPath := flag.String("privacy_sandbox_android_versions_path", "", "Path to the file containing the versions of privacy sandbox on Android.")
+	createCL := flag.Bool("create-cl", false, "If true, creates a CL if any changes were made.")
+	srcRepo := flag.String("source-repo", "", "URL of the repo which triggered this run.")
+	srcCommit := flag.String("source-commit", "", "Commit hash which triggered this run.")
+	louhiExecutionID := flag.String("louhi-execution-id", "", "Execution ID of the Louhi flow.")
+	louhiPubsubProject := flag.String("louhi-pubsub-project", "", "GCP project used for sending Louhi pub/sub notifications.")
 
 	flag.Parse()
 
@@ -180,6 +186,14 @@ func main() {
 		return nil
 	}); err != nil {
 		sklog.Fatalf("Failed to read configs: %s", err)
+	}
+
+	// Upload a CL.
+	if *createCL {
+		commitSubject := "Update autoroll k8s configs"
+		if err := cd.MaybeUploadCL(ctx, *dst, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
+			sklog.Fatalf("Failed to create CL: %s", err)
+		}
 	}
 }
 

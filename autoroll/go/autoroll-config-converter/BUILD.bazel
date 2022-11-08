@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//autoroll/go/config",
         "//autoroll/go/config_vars",
+        "//cd/go/cd",
         "//go/chrome_branch",
         "//go/gerrit",
         "//go/gitiles",

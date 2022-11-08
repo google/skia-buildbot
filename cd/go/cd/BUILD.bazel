@@ -1,0 +1,28 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cd",
+    srcs = ["cd.go"],
+    importpath = "go.skia.org/infra/cd/go/cd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/exec",
+        "//go/gerrit/rubberstamper",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/louhi",
+        "//go/louhi/pubsub",
+        "//go/skerr",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "cd_test",
+    srcs = ["cd_test.go"],
+    embed = [":cd"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
