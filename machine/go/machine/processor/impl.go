@@ -128,6 +128,11 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	inMaintenanceMode := false
 	maintenanceMessage := ""
 
+	shouldPowerCycle := false
+	if (previous.RunningSwarmingTask && !event.RunningSwarmingTask) || previous.PowerCycle {
+		shouldPowerCycle = true
+	}
+
 	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
 	if ok {
 		if battery < minBatteryLevel {
@@ -155,6 +160,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	ret.Battery = battery
 	ret.Temperature = temperatures
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
+	ret.PowerCycle = shouldPowerCycle
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
