@@ -387,6 +387,7 @@ type TextData struct {
 // exec package.
 type ExecData struct {
 	Cmd []string `json:"command"`
+	Dir string   `json:"dir"`
 	Env []string `json:"env,omitempty"`
 }
 
@@ -415,6 +416,7 @@ func execCtx(ctx context.Context) context.Context {
 			// Collect step metadata about the command.
 			d := &ExecData{
 				Cmd: append([]string{cmd.Name}, cmd.Args...),
+				Dir: cmd.Dir,
 				Env: cmd.Env,
 			}
 			StepData(ctx, DATA_TYPE_COMMAND, d)
