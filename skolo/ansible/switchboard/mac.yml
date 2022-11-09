@@ -11,6 +11,11 @@
       import_role:
         name: stop_sleeping
 
+    - name: Restart after power failure.
+      # Some sources indicate this works only for desktop Macs.
+      command: pmset -a autorestart 1
+      become: true
+
     - name: Set hostname, which should already be set.
       command: scutil --set HostName {{ inventory_hostname }}
       become: true
