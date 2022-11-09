@@ -16,6 +16,7 @@ go_library(
         "//go/louhi",
         "//go/louhi/pubsub",
         "//go/skerr",
+        "//task_driver/go/td",
         "@org_golang_x_oauth2//google",
     ],
 )

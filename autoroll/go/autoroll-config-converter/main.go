@@ -19,16 +19,15 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
-	"golang.org/x/oauth2/google"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
+	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
@@ -77,40 +76,49 @@ func main() {
 
 	flag.Parse()
 
+	// We're using the task driver framework because it provides logging and
+	// helpful insight into what's occurring as the program runs.
+	fakeProjectId := ""
+	fakeTaskId := ""
+	fakeTaskName := ""
+	output := "-"
+	tdLocal := true
+	ctx := td.StartRun(&fakeProjectId, &fakeTaskId, &fakeTaskName, &output, &tdLocal)
+	defer td.EndRun(ctx)
+
 	if *src == "" {
-		sklog.Fatal("--src is required.")
+		td.Fatalf(ctx, "--src is required.")
 	}
 	if *dst == "" {
-		sklog.Fatal("--dst is required.")
+		td.Fatalf(ctx, "--dst is required.")
 	}
 	if backendTemplate == "" {
-		sklog.Fatal("internal error; embedded template is empty.")
+		td.Fatalf(ctx, "internal error; embedded template is empty.")
 	}
 
 	// Set up auth, load config variables.
-	ctx := context.Background()
-	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope, auth.ScopeUserinfoEmail)
+	ts, err := git_steps.Init(ctx, true)
 	if err != nil {
-		sklog.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 	if !*local {
 		srv, err := oauth2.NewService(ctx, option.WithTokenSource(ts))
 		if err != nil {
-			sklog.Fatal(err)
+			td.Fatal(ctx, err)
 		}
 		info, err := srv.Userinfo.V2.Me.Get().Do()
 		if err != nil {
-			sklog.Fatal(err)
+			td.Fatal(ctx, err)
 		}
 		sklog.Infof("Authenticated as %s", info.Email)
 		if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, info.Email); err != nil {
-			sklog.Fatal(err)
+			td.Fatal(ctx, err)
 		}
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
 	if err != nil {
-		sklog.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 	vars := &TemplateVars{
 		Vars: reg.Vars(),
@@ -155,12 +163,12 @@ func main() {
 			})
 		}
 		if err := eg.Wait(); err != nil {
-			sklog.Fatal(err)
+			td.Fatal(ctx, err)
 		}
 	}
 	b, err := json.MarshalIndent(vars, "", "  ")
 	if err != nil {
-		sklog.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 	sklog.Infof("Using variables: %s", string(b))
 
@@ -204,14 +212,14 @@ func main() {
 		}
 		return nil
 	}); err != nil {
-		sklog.Fatalf("Failed to read configs: %s", err)
+		td.Fatalf(ctx, "Failed to read configs: %s", err)
 	}
 
 	// Upload a CL.
 	if *createCL {
 		commitSubject := "Update autoroll k8s configs"
 		if err := cd.MaybeUploadCL(ctx, *dst, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
-			sklog.Fatalf("Failed to create CL: %s", err)
+			td.Fatalf(ctx, "Failed to create CL: %s", err)
 		}
 	}
 }

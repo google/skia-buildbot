@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/oauth2/google"
 )
 
@@ -25,6 +26,9 @@ var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\
 // commit message.  If louhiPubsubProject and louhiExecutionID are provided,
 // a pub/sub message is sent after the CL is uploaded.
 func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID string) error {
+	ctx = td.StartStep(ctx, td.Props("MaybeUploadCL"))
+	defer td.EndStep(ctx)
+
 	gitExec, err := git.Executable(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
