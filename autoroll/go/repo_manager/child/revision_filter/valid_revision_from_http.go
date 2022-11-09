@@ -11,15 +11,16 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 )
 
 // ValidHTTPRevisionFilter is a RevisionFilter implementation which
 // obtains a single valid revision from a file which is retrieved via HTTP.
 type ValidHTTPRevisionFilter struct {
-	client           *http.Client
-	regex            *regexp.Regexp
 	fileURL          string
+	regex            *regexp.Regexp
+	getFileFunc      func(ctx context.Context) ([]byte, error)
 	validRevision    string
 	validRevisionMtx sync.Mutex
 }
@@ -34,10 +35,55 @@ func NewValidRevisionFromHTTPRevisionFilter(cfg *config.ValidHttpRevisionFilterC
 			return nil, skerr.Wrap(err)
 		}
 	}
+	var getFileFunc func(ctx context.Context) ([]byte, error)
+	if strings.Contains(cfg.FileUrl, "googlesource.com") {
+		split := strings.Split(cfg.FileUrl, "+")
+		if len(split) != 2 {
+			return nil, skerr.Fmt("Expected two halves but got %v", split)
+		}
+		repo := gitiles.NewRepo(split[0], client)
+		splitRefAndPath := strings.Split(split[1], "/")
+		if len(splitRefAndPath) < 2 {
+			return nil, skerr.Fmt("Not enough parts to %v", splitRefAndPath)
+		}
+		var ref string
+		var path string
+		if len(splitRefAndPath) > 3 && splitRefAndPath[0] == "refs" && splitRefAndPath[1] == "heads" {
+			ref = strings.Join(splitRefAndPath[0:2], "/")
+			path = strings.Join(splitRefAndPath[3:], "/")
+		} else if len(splitRefAndPath) > 1 {
+			ref = splitRefAndPath[0]
+			path = strings.Join(splitRefAndPath[1:], "/")
+		} else {
+			return nil, skerr.Fmt("Not enough parts to %v", splitRefAndPath)
+		}
+		getFileFunc = func(ctx context.Context) ([]byte, error) {
+			return repo.ReadFileAtRef(ctx, path, ref)
+		}
+	} else {
+		getFileFunc = func(ctx context.Context) ([]byte, error) {
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, cfg.FileUrl, nil)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "failed to create HTTP request")
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "failed to execute HTTP request")
+			}
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "failed to read response body")
+			}
+			if resp.StatusCode < 200 || resp.StatusCode > 299 {
+				return nil, skerr.Fmt("got HTTP status code %d; body: %s", resp.StatusCode, string(b))
+			}
+			return b, nil
+		}
+	}
 	return &ValidHTTPRevisionFilter{
-		client:  client,
-		regex:   regex,
-		fileURL: cfg.FileUrl,
+		fileURL:     cfg.FileUrl,
+		getFileFunc: getFileFunc,
+		regex:       regex,
 	}, nil
 }
 
@@ -70,24 +116,13 @@ func (f *ValidHTTPRevisionFilter) Skip(ctx context.Context, r revision.Revision)
 func (f *ValidHTTPRevisionFilter) Update(ctx context.Context) error {
 	// Perform the HTTP request to retrieve the current version of the revision
 	// selector file.
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.fileURL, nil)
+	contents, err := f.getFileFunc(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to create HTTP request")
-	}
-	resp, err := f.client.Do(req)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to execute HTTP request")
-	}
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to read response body")
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return skerr.Fmt("got HTTP status code %d; body: %s", resp.StatusCode, string(b))
+		return skerr.Wrap(err)
 	}
 
 	// Extract the revision from the file.
-	validRevision, err := f.extractRevision(b)
+	validRevision, err := f.extractRevision(contents)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to extract revision")
 	}

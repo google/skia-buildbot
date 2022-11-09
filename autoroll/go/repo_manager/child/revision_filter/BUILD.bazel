@@ -16,6 +16,7 @@ go_library(
         "//autoroll/go/revision",
         "//go/buildbucket",
         "//go/cipd",
+        "//go/gitiles",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
