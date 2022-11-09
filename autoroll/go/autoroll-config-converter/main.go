@@ -19,8 +19,10 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -28,6 +30,8 @@ import (
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -69,6 +73,7 @@ func main() {
 	srcCommit := flag.String("source-commit", "", "Commit hash which triggered this run.")
 	louhiExecutionID := flag.String("louhi-execution-id", "", "Execution ID of the Louhi flow.")
 	louhiPubsubProject := flag.String("louhi-pubsub-project", "", "GCP project used for sending Louhi pub/sub notifications.")
+	local := flag.Bool("local", false, "True if running locally.")
 
 	flag.Parse()
 
@@ -84,9 +89,23 @@ func main() {
 
 	// Set up auth, load config variables.
 	ctx := context.Background()
-	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
+	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+	if !*local {
+		srv, err := oauth2.NewService(ctx, option.WithTokenSource(ts))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		info, err := srv.Userinfo.V2.Me.Get().Do()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		sklog.Infof("Authenticated as %s", info.Email)
+		if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, info.Email); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
