@@ -14,6 +14,8 @@ go_library(
         "//autoroll/go/config_vars",
         "//cd/go/cd",
         "//go/chrome_branch",
+        "//go/exec",
+        "//go/git",
         "//go/gitauth",
         "//go/gitiles",
         "//go/httputils",

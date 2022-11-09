@@ -20,6 +20,8 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/chrome_branch"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
@@ -213,6 +215,15 @@ func main() {
 		return nil
 	}); err != nil {
 		td.Fatalf(ctx, "Failed to read configs: %s", err)
+	}
+
+	// "git add" the directory.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := exec.RunCwd(ctx, *dst, gitExec, "add", "-A"); err != nil {
+		td.Fatal(ctx, err)
 	}
 
 	// Upload a CL.
