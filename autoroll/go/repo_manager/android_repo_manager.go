@@ -480,7 +480,7 @@ third_party {
 
 	// The pre-upload step may reintroduce submodule directories, remove them
 	// to compensate the effect.
-	modOutput, modErr = exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm -r --cached \"$1) }'")
+	modOutput, modErr = exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm -f --cached \"$1) }'")
 	sklog.Infof("Output of submodule removal cmd (after preUploadSteps): %s", modOutput)
 	util.LogErr(modErr)
 
