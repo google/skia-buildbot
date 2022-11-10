@@ -41,8 +41,8 @@ func NewValidRevisionFromHTTPRevisionFilter(cfg *config.ValidHttpRevisionFilterC
 		if len(split) != 2 {
 			return nil, skerr.Fmt("Expected two halves but got %v", split)
 		}
-		repo := gitiles.NewRepo(split[0], client)
-		splitRefAndPath := strings.Split(split[1], "/")
+		repo := gitiles.NewRepo(strings.TrimPrefix(split[0], "/"), client)
+		splitRefAndPath := strings.Split(strings.TrimPrefix(split[1], "/"), "/")
 		if len(splitRefAndPath) < 2 {
 			return nil, skerr.Fmt("Not enough parts to %v", splitRefAndPath)
 		}
