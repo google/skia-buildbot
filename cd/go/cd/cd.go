@@ -35,7 +35,7 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 	}
 
 	// Did we change anything?
-	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "--exit-code"); err != nil {
+	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "HEAD", "--exit-code"); err != nil {
 		// If so, create a CL.
 
 		// Build the commit message.
