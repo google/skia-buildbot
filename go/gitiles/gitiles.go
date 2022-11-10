@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -816,3 +817,47 @@ func (r *Repo) URL() string {
 }
 
 var _ GitilesRepo = &Repo{}
+
+// ParseURL breaks a gitiles URL into the repo URL, ref, and sub-path. Note that
+// this is inherently error-prone due to the way that Gitiles URLs are
+// structured: it is impossible to distinguish between the ref name and a path
+// within the repo since both are separated by slashes with no other
+// distinction. This function assumes that the ref name has a single component,
+// eg. "refs/heads/main", or simply, "main".
+func ParseURL(u string) (string, string, string, error) {
+	parsed, err := url.Parse(u)
+	if err != nil {
+		return "", "", "", skerr.Wrap(err)
+	}
+	repoURL := parsed.Scheme + "://" + parsed.Host
+	var ref, path string
+	splitPath := strings.Split(strings.TrimPrefix(parsed.Path, "/"), "/")
+	actionIndex := len(splitPath)
+	for idx, elem := range splitPath {
+		if strings.HasPrefix(elem, "+") {
+			actionIndex = idx
+			break
+		}
+	}
+	repoURL += "/" + strings.Join(splitPath[:actionIndex], "/")
+	if actionIndex == len(splitPath) {
+		return repoURL, ref, path, nil
+	}
+	splitRefAndPath := splitPath[actionIndex+1:]
+	if len(splitRefAndPath) < 2 {
+		return "", "", "", skerr.Fmt("Not enough parts to %v", splitRefAndPath)
+	}
+	if len(splitRefAndPath) > 2 && splitRefAndPath[0] == "refs" && splitRefAndPath[1] == "heads" {
+		// Note: we have no way of knowing whether each path component belongs
+		// to the ref name or the path within the repo. We just have to assume
+		// that the ref name has a single element.
+		ref = strings.Join(splitRefAndPath[0:3], "/")
+		path = strings.Join(splitRefAndPath[3:], "/")
+	} else if len(splitRefAndPath) > 1 {
+		ref = splitRefAndPath[0]
+		path = strings.Join(splitRefAndPath[1:], "/")
+	} else {
+		return "", "", "", skerr.Fmt("Not enough parts to %v", splitRefAndPath)
+	}
+	return repoURL, ref, path, nil
+}

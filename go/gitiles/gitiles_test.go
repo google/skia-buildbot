@@ -634,3 +634,52 @@ body
 body2
 `)
 }
+
+func TestParseURL(t *testing.T) {
+	test := func(input, expectRepoURL, expectRef, expectPath, expectErr string) {
+		actualRepoURL, actualRef, actualPath, actualErr := ParseURL(input)
+		if expectErr != "" {
+			require.EqualError(t, actualErr, expectErr)
+		} else {
+			require.NoError(t, actualErr)
+		}
+		require.Equal(t, expectRepoURL, actualRepoURL)
+		require.Equal(t, expectRef, actualRef)
+		require.Equal(t, expectPath, actualPath)
+	}
+	test(
+		"https://example.googlesource.com/my-repo/+/refs/heads/main/path/to/file",
+		"https://example.googlesource.com/my-repo",
+		"refs/heads/main",
+		"path/to/file",
+		"",
+	)
+	test(
+		"https://example.googlesource.com/my-repo/+/main/path/to/file",
+		"https://example.googlesource.com/my-repo",
+		"main",
+		"path/to/file",
+		"",
+	)
+	test(
+		"https://example.googlesource.com/my-repo/+show/refs/heads/main/path/to/file?format=TEXT",
+		"https://example.googlesource.com/my-repo",
+		"refs/heads/main",
+		"path/to/file",
+		"",
+	)
+	test(
+		"https://example.googlesource.com/my-repo/+show/refs/heads/main?format=JSON",
+		"https://example.googlesource.com/my-repo",
+		"refs/heads/main",
+		"",
+		"",
+	)
+	test(
+		"https://example.googlesource.com/my-repo/+log/main/path/to/file?format=JSON",
+		"https://example.googlesource.com/my-repo",
+		"main",
+		"path/to/file",
+		"",
+	)
+}

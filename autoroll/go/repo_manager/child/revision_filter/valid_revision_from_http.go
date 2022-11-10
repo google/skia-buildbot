@@ -37,26 +37,11 @@ func NewValidRevisionFromHTTPRevisionFilter(cfg *config.ValidHttpRevisionFilterC
 	}
 	var getFileFunc func(ctx context.Context) ([]byte, error)
 	if strings.Contains(cfg.FileUrl, "googlesource.com") {
-		split := strings.Split(cfg.FileUrl, "+")
-		if len(split) != 2 {
-			return nil, skerr.Fmt("Expected two halves but got %v", split)
+		repoURL, ref, path, err := gitiles.ParseURL(cfg.FileUrl)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse Gitiles URL")
 		}
-		repo := gitiles.NewRepo(strings.TrimPrefix(split[0], "/"), client)
-		splitRefAndPath := strings.Split(strings.TrimPrefix(split[1], "/"), "/")
-		if len(splitRefAndPath) < 2 {
-			return nil, skerr.Fmt("Not enough parts to %v", splitRefAndPath)
-		}
-		var ref string
-		var path string
-		if len(splitRefAndPath) > 3 && splitRefAndPath[0] == "refs" && splitRefAndPath[1] == "heads" {
-			ref = strings.Join(splitRefAndPath[0:2], "/")
-			path = strings.Join(splitRefAndPath[3:], "/")
-		} else if len(splitRefAndPath) > 1 {
-			ref = splitRefAndPath[0]
-			path = strings.Join(splitRefAndPath[1:], "/")
-		} else {
-			return nil, skerr.Fmt("Not enough parts to %v", splitRefAndPath)
-		}
+		repo := gitiles.NewRepo(repoURL, client)
 		getFileFunc = func(ctx context.Context) ([]byte, error) {
 			return repo.ReadFileAtRef(ctx, path, ref)
 		}
