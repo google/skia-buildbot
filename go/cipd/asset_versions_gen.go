@@ -196,12 +196,12 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/bazel_build_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_build_all/${platform}",
-		Version: "git_revision:282e486490ff5e707a95c0e9a3c5d9059729a241",
+		Version: "git_revision:9a163f5181d852111307cc1d6bff02dd4b5cdff0",
 	},
 	"skia/tools/bazel_test_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_test_all/${platform}",
-		Version: "git_revision:282e486490ff5e707a95c0e9a3c5d9059729a241",
+		Version: "git_revision:9a163f5181d852111307cc1d6bff02dd4b5cdff0",
 	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
