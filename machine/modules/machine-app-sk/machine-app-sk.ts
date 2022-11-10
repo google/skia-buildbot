@@ -52,9 +52,9 @@ export class MachineAppSk extends ElementSk {
           <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
           <h1><a href="/">Machines</a></h1>
         </span>
+        <input id="filter-input" @input=${ele.filterChanged} type="text" placeholder="Filter (CTRL-?)">
         <span id=header-rhs>
           <more-vert-icon-sk @click=${ele.editHiddenColumns}></more-vert-icon-sk>
-          <input id="filter-input" @input=${ele.filterChanged} type="text" placeholder="Filter">
           <theme-chooser-sk title="Toggle between light and dark mode."></theme-chooser-sk>
         </span>
       </header>
@@ -86,6 +86,13 @@ export class MachineAppSk extends ElementSk {
         this._render();
       },
     );
+
+    // Add keyboard shortcut for search.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '?' && e.ctrlKey) {
+        this._inputElement!.focus();
+      }
+    });
   }
 
   /** Handle input changed event for the filter element. */
