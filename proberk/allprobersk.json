@@ -241,16 +241,6 @@
     ],
     "mimetype": ""
   },
-  "hashtag": {
-    "urls": [
-      "https://hashtag.skia.org"
-    ],
-    "method": "GET",
-    "expected": [
-      307
-    ],
-    "mimetype": ""
-  },
   "jsdoc": {
     "urls": [
       "https://jsdoc.skia.org/"

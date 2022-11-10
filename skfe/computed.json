@@ -1419,32 +1419,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "hashtag",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "hashtag",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "hashtag",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "jsdoc",
           "endpoints": [
             {
@@ -4198,23 +4172,6 @@
                           },
                           "route": {
                             "cluster": "grafana",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "hashtag.skia.org",
-                      "name": "hashtag.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "hashtag",
                             "timeout": {
                               "seconds": 600
                             }

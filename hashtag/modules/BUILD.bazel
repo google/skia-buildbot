@@ -1,7 +1,0 @@
-load("//infra-sk:index.bzl", "ts_library")
-
-ts_library(
-    name = "placeholder_ts_lib",
-    srcs = ["placeholder.ts"],
-    visibility = ["//visibility:public"],
-)
