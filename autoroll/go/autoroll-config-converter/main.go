@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -87,7 +88,7 @@ func main() {
 	}
 
 	// Set up auth, load config variables.
-	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, gerrit.AuthScope)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

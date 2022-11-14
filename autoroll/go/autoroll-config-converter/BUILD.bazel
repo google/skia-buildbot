@@ -13,6 +13,7 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//cd/go/cd",
+        "//go/auth",
         "//go/chrome_branch",
         "//go/gerrit",
         "//go/git",

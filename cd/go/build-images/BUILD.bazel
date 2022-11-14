@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cd/go/cd",
+        "//go/auth",
         "//go/exec",
         "//go/gerrit",
         "//go/git",

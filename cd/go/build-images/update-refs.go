@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/cd/go/cd"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -23,7 +24,7 @@ func updateRefs(ctx context.Context, repoURL, workspace, username, email, louhiP
 	defer td.EndStep(ctx)
 
 	// Create the git repo.
-	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, gerrit.AuthScope)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
