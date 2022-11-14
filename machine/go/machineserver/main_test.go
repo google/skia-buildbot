@@ -564,3 +564,40 @@ func TestApiPowerCycleStateUpdateHandler_ValidRequest_DescriptionsAreSuccessfull
 	router.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestMachineClearQuarantineHandler_Success(t *testing.T) {
+	_, _, s, router, w := setupForTest(t)
+	storeMock := s.store.(*mocks.Store)
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
+	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/clear_quarantined/%s", machineID), nil)
+
+	router.ServeHTTP(w, r)
+
+	require.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestMachineClearQuarantineHandler_StoreReturnsError_ReturnsInternalServerError(t *testing.T) {
+	_, _, s, router, w := setupForTest(t)
+	storeMock := s.store.(*mocks.Store)
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(errFake)
+	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/clear_quarantined/%s", machineID), nil)
+
+	router.ServeHTTP(w, r)
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestMachineClearQuarantineHandler_MachineIDNotSupplied_ReturnsNotFound(t *testing.T) {
+	_, _, _, router, w := setupForTest(t)
+	r := newAuthorizedRequest("POST", "/_/machine/clear_quarantined/", nil)
+
+	router.ServeHTTP(w, r)
+
+	require.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestClearQuarantined(t *testing.T) {
+	require.False(t, clearQuarantined(machine.Description{IsQuarantined: true}).IsQuarantined)
+}

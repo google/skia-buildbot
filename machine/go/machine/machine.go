@@ -331,6 +331,9 @@ type Event struct {
 	Host                Host       `json:"host"`
 	RunningSwarmingTask bool       `json:"running_swarming_task"`
 
+	// ForcedQuarantine is true if a TaskDriver or Recipe wrote a file $HOME/${MACHINE_ID}.force_quarantine.
+	ForcedQuarantine bool `json:"forced_quarantine"`
+
 	// LaunchedSwarming is true if test_machine_monitor launched Swarming.
 	LaunchedSwarming bool `json:"launched_swarming"`
 }

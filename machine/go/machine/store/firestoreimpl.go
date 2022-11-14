@@ -259,7 +259,7 @@ func convertDescription(m machine.Description) storeDescription {
 		DeviceUptime:        m.DeviceUptime,
 		Dimensions:          m.Dimensions,
 		MaintenanceMode:     m.MaintenanceMode,
-		IsQuarantined:       false,
+		IsQuarantined:       m.IsQuarantined,
 		Recovering:          m.Recovering,
 		LastUpdated:         m.LastUpdated,
 		LaunchedSwarming:    m.LaunchedSwarming,

@@ -111,6 +111,10 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	}
 	next := p.processEvent(ctx, previous, event)
 
+	if event.ForcedQuarantine {
+		next.IsQuarantined = true
+	}
+
 	// Set the Quarantined dimension in Swarming.
 	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags())
 	if machine.SetSwarmingQuarantinedMessage(&next) {
@@ -139,7 +143,6 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	machineID := event.Host.Name
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
 	dimensions[machine.DimID] = []string{machineID}
-	inMaintenanceMode := false
 	maintenanceMessages := []string{}
 
 	shouldPowerCycle := false
@@ -150,7 +153,6 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
 	if ok {
 		if battery < minBatteryLevel {
-			inMaintenanceMode = true
 			maintenanceMessages = append(maintenanceMessages, "Battery low.")
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
@@ -162,7 +164,6 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	if ok {
 		temperature := findMaxTemperature(temperatures)
 		if temperature > maxTemperatureC {
-			inMaintenanceMode = true
 			maintenanceMessages = append(maintenanceMessages, "Too hot.")
 		}
 		for sensor, temp := range temperatures {
@@ -180,7 +181,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	}
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, strings.Join(maintenanceMessages, " "))
+	ret = handleRecoveryMode(ctx, previous, ret, strings.Join(maintenanceMessages, " "))
 	return ret
 }
 
@@ -193,26 +194,26 @@ func handleGeneralFields(ctx context.Context, current machine.Description, event
 	return current
 }
 
-// handleRecoveryMode effects transitions in or out of Recovery mode based on an assertion of
-// whether a machine shouldBeRecovering.
-func handleRecoveryMode(ctx context.Context, previous, current machine.Description, shouldBeRecovering bool, msg string) machine.Description {
+// handleRecoveryMode records transitions in or out of Recovery mode.
+func handleRecoveryMode(ctx context.Context, previous, current machine.Description, recoveryMessage string) machine.Description {
+	isRecovering := recoveryMessage != ""
 
 	// If the machine is going into Recovery mode then record the start time.
 	// Note that if the machine is currently running a test then the amount of
 	// time in recovery will also include some of the test time, but that's the
 	// price we pay to avoid a race condition where a test ends and a new test
 	// starts before we set Recovery mode.
-	if shouldBeRecovering && !previous.IsRecovering() {
-		current.Recovering = msg
+	if isRecovering && !previous.IsRecovering() {
+		current.Recovering = recoveryMessage
 		current.RecoveryStart = now.Now(ctx)
 		current.Annotation.Timestamp = now.Now(ctx)
-		current.Annotation.Message = msg
+		current.Annotation.Message = recoveryMessage
 		current.Annotation.User = machineUserName
 	}
 
 	// If the machine didn't report an empty battery or other bad condition, move back being
 	// available.
-	if !shouldBeRecovering && previous.IsRecovering() {
+	if !isRecovering && previous.IsRecovering() {
 		current.Recovering = ""
 		current.Annotation.Timestamp = now.Now(ctx)
 		current.Annotation.Message = "Leaving recovery mode."
@@ -221,7 +222,7 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 
 	// This refers to Swarming's maintenance mode, not machineserver's:
 	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", current.Dimensions.AsMetricsTags())
-	if shouldBeRecovering {
+	if recoveryMessage != "" {
 		maintenanceModeMetric.Update(1)
 	} else {
 		maintenanceModeMetric.Update(0)
@@ -243,6 +244,11 @@ func processChromeOSEvent(ctx context.Context, previous machine.Description, eve
 	ret.Battery = 0
 	ret.Temperature = nil
 	ret.DeviceUptime = int32(event.ChromeOS.Uptime / time.Second)
+
+	// ChromeOS doesn't have any conditions that would put it in Recovery mode,
+	// and since we made it here we know it's attached.
+	ret.Recovering = ""
+
 	// SuppliedDimensions overwrite the existing ones now.
 	for k, values := range previous.SuppliedDimensions {
 		ret.Dimensions[k] = values
@@ -254,7 +260,7 @@ func processChromeOSEvent(ctx context.Context, previous machine.Description, eve
 	ret.Dimensions[machine.DimChromeOSReleaseVersion] = []string{event.ChromeOS.ReleaseVersion}
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, false, "")
+	ret = handleRecoveryMode(ctx, previous, ret, ret.Recovering)
 	return ret
 }
 
@@ -276,19 +282,17 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 	ret.Dimensions[machine.DimOS] = osDimensions
 	ret.Dimensions[machine.DimDeviceType] = []string{event.IOS.DeviceType}
 
-	inMaintenanceMode := false
 	maintenanceMessage := ""
 	battery := event.IOS.Battery
 	if battery != machine.BadBatteryLevel {
 		if battery < minBatteryLevel {
-			inMaintenanceMode = true
 			maintenanceMessage += "Battery low. "
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": event.Host.Name}).Update(int64(battery))
 	}
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
+	ret = handleRecoveryMode(ctx, previous, ret, maintenanceMessage)
 	return ret
 }
 
@@ -317,7 +321,7 @@ func processMissingDeviceEvent(ctx context.Context, previous machine.Description
 	}
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, false, "")
+	ret = handleRecoveryMode(ctx, previous, ret, ret.Recovering)
 	return ret
 }
 
@@ -333,7 +337,6 @@ func processStandaloneEvent(ctx context.Context, previous machine.Description, e
 	ret.Dimensions[machine.DimCPU] = event.Standalone.CPUs
 	ret.Dimensions[machine.DimGPU] = event.Standalone.GPUs
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret
 }
 

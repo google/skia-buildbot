@@ -126,6 +126,20 @@ func TestProcess_SwarmingTaskIsRunning(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 }
 
+func TestProcess_ForcedQuarantine(t *testing.T) {
+	ctx := context.Background()
+	event := machine.Event{
+		EventType:        machine.EventTypeRawState,
+		ForcedQuarantine: true,
+	}
+	previous := machine.Description{}
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+	assert.True(t, next.IsQuarantined)
+	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
+	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
+}
+
 func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescription(t *testing.T) {
 	ctx := context.Background()
 	event := machine.Event{
@@ -248,6 +262,12 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
+		RecoveryStart:      serverTime,
+		Annotation: machine.Annotation{
+			Timestamp: serverTime,
+			User:      machineUserName,
+			Message:   "Device [\"sargo\"] has gone missing",
+		},
 	}, next)
 }
 
@@ -876,6 +896,7 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
 	previous := machine.Description{
+		Recovering:          "Device has gone missing.",
 		LastUpdated:         stateTime,
 		RunningSwarmingTask: false,
 		LaunchedSwarming:    true,
@@ -931,6 +952,11 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"release_version":    []string{"13729.56.0"},     // added
 			// quarantined was removed.
 		},
+		Annotation: machine.Annotation{
+			User:      machineUserName,
+			Timestamp: serverTime,
+			Message:   "Leaving recovery mode.",
+		},
 	}, next)
 }
 
@@ -979,6 +1005,12 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"cpu":                  []string{"x86", "x86_64"},
 			"gpu":                  []string{"none"},
 			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
+		},
+		RecoveryStart: serverTime,
+		Annotation: machine.Annotation{
+			Timestamp: serverTime,
+			User:      machineUserName,
+			Message:   "Device \"root@my-chromebook\" has gone missing",
 		},
 	}, next)
 }
@@ -1034,6 +1066,12 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"chromeos_milestone":   []string{"89"},
 			"release_version":      []string{"13729.56.0"},
 			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
+		},
+		RecoveryStart: serverTime,
+		Annotation: machine.Annotation{
+			Timestamp: serverTime,
+			User:      machineUserName,
+			Message:   "Device \"root@my-chromebook\" has gone missing",
 		},
 	}, next)
 }

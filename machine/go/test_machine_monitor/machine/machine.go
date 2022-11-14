@@ -4,10 +4,12 @@ package machine
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -81,6 +83,9 @@ type Machine struct {
 	// MachineID is the swarming id of the machine.
 	MachineID string
 
+	// The $HOME directory of the process running this application.
+	homeDir string
+
 	// Version of test_machine_monitor being run.
 	Version string
 
@@ -133,6 +138,11 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		machineID = hostname
 	}
 
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "recording home directory")
+	}
+
 	// Construct the URL need to retrieve this machines Description.
 	u, err := url.Parse(machineServerHost)
 	if err != nil {
@@ -169,6 +179,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		interrogateAndSendFailures:     metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		descriptionWatchArrivalCounter: metrics2.GetCounter("test_machine_monitor_description_watch_arrival", map[string]string{"machine": machineID}),
 		startFoundryBot:                startFoundryBot,
+		homeDir:                        homeDir,
 	}, nil
 }
 
@@ -214,10 +225,23 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 
 	default:
 		sklog.Errorf("Unhandled type of machine.AttachedDevice: %s", m.description.AttachedDevice)
-
 	}
 
+	ret.ForcedQuarantine = m.checkForForcedQuarantine()
+
 	return ret, skerr.Wrap(err)
+}
+
+func (m *Machine) checkForForcedQuarantine() bool {
+	ret := false
+	forcedQuarantineFile := filepath.Join(m.homeDir, fmt.Sprintf("%s.force_quarantine", m.MachineID))
+	if _, err := os.Stat(forcedQuarantineFile); err == nil {
+		ret = true
+		if err := os.Remove(forcedQuarantineFile); err != nil {
+			sklog.Errorf("Failed to remove file %q", forcedQuarantineFile)
+		}
+	}
+	return ret
 }
 
 // interrogateAndSend gathers the state for this machine and sends it to the

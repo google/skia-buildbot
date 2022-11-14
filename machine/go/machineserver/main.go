@@ -222,6 +222,7 @@ func toggleMode(ctx context.Context, user string, in machine.Description) machin
 		Message:   annotation,
 		Timestamp: now.Now(ctx),
 	}
+	machine.SetSwarmingQuarantinedMessage(&ret)
 	return ret
 }
 
@@ -242,6 +243,30 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	s.triggerDescriptionUpdateEvent(r.Context(), id)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func clearQuarantined(in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.IsQuarantined = false
+	machine.SetSwarmingQuarantinedMessage(&ret)
+	return ret
+}
+
+func (s *server) machineClearQuarantinedHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getID(w, r)
+	if err != nil {
+		return
+	}
+	s.audit(w, r, "clear-quarantine", id)
+	ctx := r.Context()
+
+	if err := s.store.Update(ctx, id, clearQuarantined); err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	s.triggerDescriptionUpdateEvent(ctx, id)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -548,6 +573,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	editorURLs.HandleFunc("/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
 	editorURLs.HandleFunc("/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	editorURLs.HandleFunc("/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
+	editorURLs.HandleFunc("/machine/clear_quarantined/{id:.+}", s.machineClearQuarantinedHandler).Methods("POST")
 
 	if !*baseapp.Local {
 		editorURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))

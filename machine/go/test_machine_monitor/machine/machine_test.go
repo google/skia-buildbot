@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -923,4 +923,58 @@ func TestStartDescriptionWatch_ChannelIsClosed_FunctionExits(t *testing.T) {
 	close(ch)
 
 	// Test will never exit on failure.
+}
+
+func getMachineWithHomeDir(t *testing.T) *Machine {
+	return &Machine{
+		MachineID: machineID,
+		homeDir:   t.TempDir(),
+		description: rpc.FrontendDescription{
+			AttachedDevice: machine.AttachedDeviceNone,
+		},
+		interrogateTimer: metrics2.GetFloat64SummaryMetric("just_a_test"),
+	}
+}
+
+func writeQuarantineFile(m *Machine, t *testing.T) string {
+	// Write quarantine file.
+	quarantineFile := filepath.Join(m.homeDir, fmt.Sprintf("%s.force_quarantine", machineID))
+	err := ioutil.WriteFile(quarantineFile, []byte("test"), 0666)
+	require.NoError(t, err)
+
+	// Test the test, confirm the file exists.
+	_, err = os.Stat(quarantineFile)
+	require.NoError(t, err)
+	return quarantineFile
+}
+
+func TestMachineCheckForForcedQuarantine_FileExists_FileIsDeletedAndReturnsTrue(t *testing.T) {
+	m := getMachineWithHomeDir(t)
+
+	filename := writeQuarantineFile(m, t)
+	require.True(t, m.checkForForcedQuarantine())
+
+	// Confirm the file was removed.
+	_, err := os.Stat(filepath.Join(m.homeDir, filename))
+	require.True(t, os.IsNotExist(err))
+}
+
+func TestMachineCheckForForcedQuarantine_FileDoesNotExists_ReturnsFalse(t *testing.T) {
+	m := getMachineWithHomeDir(t)
+	require.False(t, m.checkForForcedQuarantine())
+}
+
+func TestInterrogate_ForceQuarantineFileDoesNotExists_ReturnsEventWithForceQuarantineTrue(t *testing.T) {
+	m := getMachineWithHomeDir(t)
+	event, err := m.interrogate(context.Background())
+	require.NoError(t, err)
+	require.False(t, event.ForcedQuarantine)
+}
+
+func TestInterrogate_ForceQuarantineFileExists_ReturnsEventWithForceQuarantineTrue(t *testing.T) {
+	m := getMachineWithHomeDir(t)
+	_ = writeQuarantineFile(m, t)
+	event, err := m.interrogate(context.Background())
+	require.NoError(t, err)
+	require.True(t, event.ForcedQuarantine)
 }

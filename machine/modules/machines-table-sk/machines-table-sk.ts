@@ -21,6 +21,7 @@ import {
 
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
+import 'elements-sk/icon/block-icon-sk';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/edit-icon-sk';
@@ -403,6 +404,11 @@ export class MachinesTableSk extends ElementSk {
         quarantined,
         sortByQuarantined,
       ),
+      'Clear Quarantine': new Column(
+        'Clear Quarantine',
+        this.clearQuarantine.bind(this),
+        sortByIsQuarantined,
+      ),
       Task: new Column(
         'Task',
         isRunning,
@@ -518,6 +524,17 @@ export class MachinesTableSk extends ElementSk {
       title="Controller failed to connect."
       ></warning-icon-sk>
     <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
+  `;
+  }
+
+  clearQuarantine(machine: FrontendDescription): TemplateResult {
+    return html`
+    <block-icon-sk
+      title="Clear the quarantine"
+      class="clickable"
+      @click=${() => this.clearQuarantineAction(machine.Dimensions!.id![0])}
+      ?hidden=${!machine.IsQuarantined}
+    ></block-icon-sk>
   `;
   }
 
@@ -752,6 +769,10 @@ export class MachinesTableSk extends ElementSk {
 
   async togglePowerCycle(id: string): Promise<void> {
     await this.fetchCheckAndUpdate(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
+  }
+
+  async clearQuarantineAction(id: string): Promise<void> {
+    await this.fetchCheckAndUpdate(`/_/machine/clear_quarantined/${id}`, { method: 'POST' });
   }
 
   private async clearDevice(e: Event): Promise<void> {
