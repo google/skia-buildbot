@@ -16,8 +16,10 @@ var testDuration = int32(5) // Seconds
 
 func TestCopy(t *testing.T) {
 	in := Description{
-		Mode:           ModeAvailable,
-		AttachedDevice: AttachedDevice(AttachedDeviceAdb),
+		MaintenanceMode: "jcgregorio 2022-11-08",
+		IsQuarantined:   true,
+		Recovering:      "too hot",
+		AttachedDevice:  AttachedDevice(AttachedDeviceAdb),
 		Annotation: Annotation{
 			Message:   "take offline",
 			User:      "barney@example.com",
@@ -111,9 +113,62 @@ func TestNewDescription(t *testing.T) {
 	actual := NewDescription(ctx)
 	expected := Description{
 		AttachedDevice: AttachedDeviceNone,
-		Mode:           ModeAvailable,
 		Dimensions:     SwarmingDimensions{},
 		LastUpdated:    serverTime,
 	}
 	assert.Equal(t, expected, actual)
+}
+
+func descForCombination(maintenanceMode string, isQuarantined bool, recovering string) Description {
+	return Description{
+		MaintenanceMode: maintenanceMode,
+		IsQuarantined:   isQuarantined,
+		Recovering:      recovering,
+		Dimensions:      SwarmingDimensions{},
+	}
+}
+
+func TestSetSwarmingQuarantinedMessage_NoQuarantined_MessageIsNotSet(t *testing.T) {
+	d := descForCombination("", false, "")
+	quarantined := SetSwarmingQuarantinedMessage(&d)
+	_, ok := d.Dimensions[DimQuarantined]
+	require.False(t, ok)
+	require.False(t, quarantined)
+}
+
+func TestSetSwarmingQuarantinedMessage_MaintenanceMode_MessageIsSet(t *testing.T) {
+	d := descForCombination("barney@example.com", false, "")
+	quarantined := SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com", d.Dimensions[DimQuarantined][0])
+	require.True(t, quarantined)
+}
+
+func TestSetSwarmingQuarantinedMessage_MaintenanceModeAndQuarantined_MessageIsSet(t *testing.T) {
+	d := descForCombination("barney@example.com", true, "")
+	quarantined := SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine", d.Dimensions[DimQuarantined][0])
+	require.True(t, quarantined)
+}
+
+func TestSetSwarmingQuarantinedMessage_MaintenanceModeAndQuarantinedAndRecovering_MessageIsSet(t *testing.T) {
+	d := descForCombination("barney@example.com", true, "Low power.")
+	quarantined := SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine, Recovering: Low power.", d.Dimensions[DimQuarantined][0])
+	require.True(t, quarantined)
+}
+
+func TestDescription_IsRecovering_ReturnsTrueIfHasRecoveryMessage(t *testing.T) {
+	require.True(t, Description{Recovering: "any non-empty string"}.IsRecovering())
+}
+
+func TestDescription_IsRecovering_ReturnsFalseIfRecoveryMessageIsEmpty(t *testing.T) {
+	require.False(t, Description{Recovering: ""}.IsRecovering())
+}
+
+func TestDescription_InMaintenanceMode_ReturnsTrueIfHasMaintenanceModeMessage(t *testing.T) {
+	require.True(t, Description{MaintenanceMode: "any non-empty string"}.InMaintenanceMode())
+}
+
+func TestDescription_InMaintenanceMode_ReturnsFalseIfMaintenanceModeMessageIsEmpty(t *testing.T) {
+	require.False(t, Description{}.InMaintenanceMode())
 }

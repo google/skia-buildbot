@@ -27,7 +27,6 @@ func main() {
 		rpc.SetAttachedDevice{},
 	)
 	generator.AddIgnoreNil(rpc.ListMachinesResponse{})
-	generator.AddUnion(machine.AllModes)
 	generator.AddUnion(machine.AllAttachedDevices)
 	generator.AddUnion(machine.AllPowerCycleStates)
 

@@ -2,6 +2,7 @@ package machine
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/now"
@@ -79,32 +80,6 @@ const (
 
 var AllPowerCycleStates = []PowerCycleState{NotAvailable, Available, InError}
 
-// Mode is the mode we want the machine to be in. Note that this is the desired
-// state, it might not be the actual state, for example if we put a machine in
-// maintenance mode it will only get there after it finishes running the current
-// task.
-type Mode string
-
-const (
-	// ModeAvailable means the machine should be available to run tasks (not in
-	// maintenance mode). Note that the machine may still not be running tasks
-	// if the Processor decides the machine should be quarantined, for example,
-	// for having an overheated device.
-	ModeAvailable Mode = "available"
-
-	// ModeMaintenance means the machine is in maintenance mode and should not
-	// run tasks.
-	ModeMaintenance Mode = "maintenance"
-
-	// ModeRecovery means the machine is cooling down and/or recharging its battery
-	// and is unavailable to run tests.
-	ModeRecovery Mode = "recovery"
-)
-
-// AllModes is a slice of all Mode* consts. Used when generating TypeScript
-// definitions.
-var AllModes = []Mode{ModeAvailable, ModeMaintenance, ModeRecovery}
-
 // AttachedDevice is what kind of mobile device, if any, we expect to find attached to the test machine.
 type AttachedDevice string
 
@@ -138,7 +113,21 @@ type Annotation struct {
 
 // Description is the current state of a single machine.
 type Description struct {
-	Mode Mode
+	// MaintenanceMode is non-empy if someone manually puts the machine into
+	// this mode. The value will be the user's email address and the date of the
+	// change.
+	MaintenanceMode string
+
+	// IsQuarantined is true if the machine has failed too many tasks and should
+	// stop running tasks pending user intervention. Recipes/Task Drivers can
+	// write a $HOME/${SWARMING_BOT_ID}.quarantined file to move a machine into
+	// quarantined mode.
+	IsQuarantined bool
+
+	// Recovering is a non-empty string if test_machine_monitor detects the
+	// device is too hot, or low on charge. The value is a description of what
+	// is recovering.
+	Recovering string
 
 	// AttachedDevice defines the kind of device attached to this test machine,
 	// if any.
@@ -186,12 +175,44 @@ type Description struct {
 	Dimensions SwarmingDimensions
 }
 
+// IsRecovering returns true if the machine is recoving, i.e. has a non-empty Recovering message.
+func (d Description) IsRecovering() bool {
+	return d.Recovering != ""
+}
+
+// InMaintenanceMode returns true if the machine is in maintenance mode, i.e. has a non-empty MaintenanceMode message.
+func (d Description) InMaintenanceMode() bool {
+	return d.MaintenanceMode != ""
+}
+
+// SetSwarmingQuarantinedMessage sets the Swarming Dimensions to reflect the
+// full quarantined state. Returns true if the machine is quarantined.
+func SetSwarmingQuarantinedMessage(d *Description) bool {
+	parts := []string{}
+	if d.InMaintenanceMode() {
+		parts = append(parts, "Maintenance: "+d.MaintenanceMode)
+	}
+	if d.IsQuarantined {
+		parts = append(parts, "Forced Quarantine")
+	}
+	if d.IsRecovering() {
+		parts = append(parts, "Recovering: "+d.Recovering)
+	}
+	msg := strings.Join(parts, ", ")
+
+	delete(d.Dimensions, DimQuarantined)
+	if msg != "" {
+		d.Dimensions[DimQuarantined] = []string{msg}
+		return true
+	}
+	return false
+}
+
 // NewDescription returns a new Description instance. It describes an available machine with no
 // known dimensions.
 func NewDescription(ctx context.Context) Description {
 	return Description{
 		AttachedDevice: AttachedDeviceNone,
-		Mode:           ModeAvailable,
 		Dimensions:     SwarmingDimensions{},
 		LastUpdated:    now.Now(ctx),
 	}

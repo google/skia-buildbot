@@ -101,7 +101,10 @@ const checkResponse = async (resp: Response): Promise<void> => {
 };
 
 // Sort functions for different clumns, i.e. values in FrontendDescription.
-export const sortByMode = (a: FrontendDescription, b: FrontendDescription): number => a.Mode.localeCompare(b.Mode);
+
+// Mode no longer exists, so this is a no-op.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const sortByMode = (a: FrontendDescription, b: FrontendDescription): number => a.MaintenanceMode.localeCompare(b.MaintenanceMode);
 
 export const sortByAttachedDevice = (a: FrontendDescription, b: FrontendDescription): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
 
@@ -143,6 +146,10 @@ export const sortByMachineID = (a: FrontendDescription, b: FrontendDescription):
   return qa.localeCompare(qb);
 };
 
+export const sortByRecovering = (a: FrontendDescription, b: FrontendDescription): number => a.Recovering.localeCompare(b.Recovering);
+
+export const sortByIsQuarantined = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.IsQuarantined, b.IsQuarantined);
+
 // Do not change the location of these functions, i.e. their index, as that would
 // change the meaning of URLs already in the wild. Always add new sort functions
 // to the end of the list, and if a sort function is no-longer used replace it with
@@ -162,6 +169,8 @@ const sortFunctionsByColumn: compareFunc<FrontendDescription>[] = [
   sortByNote,
   sortByAnnotation,
   sortByVersion,
+  sortByRecovering,
+  sortByIsQuarantined,
 ];
 
 const temps = (machine: FrontendDescription): TemplateResult => {
@@ -373,6 +382,11 @@ export class MachinesTableSk extends ElementSk {
         this.toggleModeElement.bind(this),
         sortByMode,
       ),
+      Recovering: new Column(
+        'Recovering',
+        this.recovering.bind(this),
+        sortByRecovering,
+      ),
       Power: new Column(
         'Power',
         this.powerCycle.bind(this),
@@ -480,11 +494,15 @@ export class MachinesTableSk extends ElementSk {
     <button
       class="mode"
       @click=${() => this.toggleMode(machine.Dimensions!.id![0])}
-      title="Put the machine in maintenance mode."
+      title="${machine.MaintenanceMode || 'Put machine in maintenance mode'}"
     >
-      ${machine.Mode}
+      ${machine.MaintenanceMode === '' ? 'available' : 'maintenance'}
     </button>
   `;
+  }
+
+  recovering(machine: FrontendDescription): TemplateResult {
+    return html`${machine.Recovering}`;
   }
 
   powerCycle(machine: FrontendDescription): TemplateResult {

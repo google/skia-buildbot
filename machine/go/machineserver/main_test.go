@@ -101,17 +101,17 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 
 func TestToggleMode_ChangesModeAndAddsAnnotation(t *testing.T) {
 	ctx, desc, _, _, _ := setupForTest(t)
-	desc.Mode = machine.ModeAvailable
+	desc.MaintenanceMode = ""
 
 	retDesc := toggleMode(ctx, testUser, desc)
 
 	expected := machine.Annotation{
-		Message:   `Changed mode to "maintenance"`,
+		Message:   `Enabled Maintenance Mode`,
 		User:      "somebody@example.org",
 		Timestamp: fakeTime,
 	}
 	require.Equal(t, expected, retDesc.Annotation)
-	require.Equal(t, machine.ModeMaintenance, retDesc.Mode)
+	require.Equal(t, "somebody@example.org 2021-09-01T02:03:04Z", retDesc.MaintenanceMode)
 }
 
 func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {

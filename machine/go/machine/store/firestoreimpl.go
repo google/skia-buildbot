@@ -53,7 +53,7 @@ type FirestoreImpl struct {
 
 // storeDescription is how machine.Description is mapped into firestore.
 type storeDescription struct {
-	// MaintenanceMode is non-empty if someone manually puts the machine into
+	// MaintenanceMode is non-empy if someone manually puts the machine into
 	// this mode. The value will be the user's email address and the date of the
 	// change.
 	MaintenanceMode string
@@ -258,9 +258,9 @@ func convertDescription(m machine.Description) storeDescription {
 		Battery:             m.Battery,
 		DeviceUptime:        m.DeviceUptime,
 		Dimensions:          m.Dimensions,
-		MaintenanceMode:     convertModeToMaintenanceMode(m.Mode),
+		MaintenanceMode:     m.MaintenanceMode,
 		IsQuarantined:       false,
-		Recovering:          convertModeToIsRecovering(m.Mode),
+		Recovering:          m.Recovering,
 		LastUpdated:         m.LastUpdated,
 		LaunchedSwarming:    m.LaunchedSwarming,
 		Note:                convertAnnotation(m.Note),
@@ -275,32 +275,6 @@ func convertDescription(m machine.Description) storeDescription {
 	}
 
 	return ret
-}
-
-func convertModeToMaintenanceMode(mode machine.Mode) string {
-	switch mode {
-	case machine.ModeMaintenance:
-		return "Legacy Maintenance"
-	case machine.ModeRecovery:
-		return ""
-	case machine.ModeAvailable:
-		return ""
-	default:
-		return ""
-	}
-}
-
-func convertModeToIsRecovering(mode machine.Mode) string {
-	switch mode {
-	case machine.ModeMaintenance:
-		return ""
-	case machine.ModeRecovery:
-		return "Legacy Recovery"
-	case machine.ModeAvailable:
-		return ""
-	default:
-		return ""
-	}
 }
 
 func convertAnnotation(a machine.Annotation) fsAnnotation {
@@ -337,16 +311,6 @@ func forceToPowerCycleState(powerCycleState machine.PowerCycleState) machine.Pow
 	return machine.NotAvailable
 }
 
-func (s storeDescription) GetMode() machine.Mode {
-	if s.MaintenanceMode != "" || s.IsQuarantined {
-		return machine.ModeMaintenance
-	}
-	if s.Recovering != "" {
-		return machine.ModeRecovery
-	}
-	return machine.ModeAvailable
-}
-
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
 	return machine.Description{
@@ -357,7 +321,9 @@ func convertFSDescription(s storeDescription) machine.Description {
 		Dimensions:          s.Dimensions,
 		LastUpdated:         s.LastUpdated,
 		LaunchedSwarming:    s.LaunchedSwarming,
-		Mode:                s.GetMode(),
+		MaintenanceMode:     s.MaintenanceMode,
+		Recovering:          s.Recovering,
+		IsQuarantined:       s.IsQuarantined,
 		Note:                convertFSAnnotation(s.Note),
 		PowerCycle:          s.PowerCycle,
 		PowerCycleState:     forceToPowerCycleState(s.PowerCycleState),

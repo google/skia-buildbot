@@ -87,11 +87,6 @@ func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	delete(dict, "quarantined")
 	delete(dict, "maintenance")
 
-	inMaintenanceMode, message := s.machine.GetMaintenanceMode()
-	if inMaintenanceMode {
-		dict["maintenance"] = message
-	}
-
 	// TODO(jcgregorio) Also gather/report device temp to Machine State.
 
 	dict["sk_rack"] = os.Getenv("MY_RACK_NAME")

@@ -57,33 +57,6 @@ func TestGetState_Success(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
-
-	const someRackName = "some-rack-name"
-
-	err := os.Setenv("MY_RACK_NAME", someRackName)
-	require.NoError(t, err)
-
-	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("{\"foo\":\"bar\"}"))
-
-	m := &botmachine.Machine{}
-	m.UpdateDescription(rpc.FrontendDescription{
-		Mode: machine.ModeMaintenance,
-	})
-	s, err := New(m)
-	require.NoError(t, err)
-	w := httptest.NewRecorder()
-
-	s.getState(w, r)
-
-	res := w.Result()
-	assert.Equal(t, 200, res.StatusCode)
-	var dict map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&dict)
-	require.NoError(t, err)
-	assert.NotEmpty(t, dict["maintenance"].(string))
-}
-
 func TestGetState_ErrOnInvalidJSON(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("This is not valid JSON"))

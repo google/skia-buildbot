@@ -20,7 +20,9 @@ export interface Annotation {
 }
 
 export interface FrontendDescription {
-	Mode: Mode;
+	MaintenanceMode: string;
+	IsQuarantined: boolean;
+	Recovering: string;
 	AttachedDevice: AttachedDevice;
 	Annotation: Annotation;
 	Note: Annotation;
@@ -40,8 +42,6 @@ export interface FrontendDescription {
 export type SwarmingDimensions = { [key: string]: string[] | null } | null;
 
 export type AttachedDevice = "nodevice" | "adb" | "ios" | "ssh";
-
-export type Mode = "available" | "maintenance" | "recovery";
 
 export type PowerCycleState = "not_available" | "available" | "in_error";
 

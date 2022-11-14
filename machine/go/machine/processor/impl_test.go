@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/machine/go/machine"
@@ -185,7 +184,6 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	// The Android device should be reflected in the returned Dimensions.
 	assert.Equal(t, machine.Description{
 		AttachedDevice: machine.AttachedDeviceAdb,
-		Mode:           machine.ModeAvailable,
 		LastUpdated:    serverTime,
 		Dimensions: machine.SwarmingDimensions{
 			"android_devices":     []string{"1"},
@@ -201,35 +199,6 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		Version:            myTestVersion,
 		DeviceUptime:       5,
 	}, next)
-}
-
-func TestProcess_DetectNotInsideDocker(t *testing.T) {
-	ctx := context.Background()
-
-	// The current machine has nothing attached.
-	previous := machine.NewDescription(ctx)
-	require.Empty(t, previous.Dimensions)
-
-	// An event arrives with the attachment of an Android device.
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Android:   machine.Android{},
-		Host: machine.Host{
-			Name: "skia-rpi-0001",
-		},
-	}
-
-	p := newProcessorForTest()
-	next := p.Process(ctx, previous, event)
-	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
-	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
-
-	// The Android device should be reflected in the returned Dimensions.
-	expected := machine.SwarmingDimensions{
-		machine.DimID: []string{"skia-rpi-0001"},
-	}
-	assert.Equal(t, expected, next.Dimensions)
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
 func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
@@ -265,7 +234,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	// The dimensions should not change, except for the addition of the
 	// quarantine message, which tells swarming to quarantine this machine.
 	expectedDims := previous.Dimensions.Copy()
-	expectedDims[machine.DimQuarantined] = []string{`Device ["sargo"] has gone missing`}
+	expectedDims[machine.DimQuarantined] = []string{`Recovering: Device ["sargo"] has gone missing`}
 
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
@@ -274,15 +243,15 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
+		Recovering:         "Device [\"sargo\"] has gone missing",
 		AttachedDevice:     machine.AttachedDeviceAdb,
-		Mode:               machine.ModeAvailable,
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
 	}, next)
 }
 
-func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
+func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 
 	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
@@ -301,7 +270,7 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
 	}
-	previous.Mode = machine.ModeMaintenance
+	previous.MaintenanceMode = "jcgregorio 2022-11-08"
 
 	// An event arrives with the device still attached.
 	props := strings.Join([]string{
@@ -322,8 +291,11 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 			GetProp: props,
 		},
 	}
-	// The dimensions should not change.
+	// The dimensions should not change except for the quarantine message.
 	expected := previous.Dimensions.Copy()
+	expected[machine.DimQuarantined] = []string{
+		"Maintenance: jcgregorio 2022-11-08, Recovering: Device [\"sargo\"] has gone missing",
+	}
 
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
@@ -332,8 +304,8 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, expected, next.Dimensions)
-	assert.Equal(t, machine.ModeMaintenance, next.Mode)
-	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
+	assert.NotEmpty(t, next.MaintenanceMode)
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -347,6 +319,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	// The current machine has been quarantined because the device went missing.
 	previous := machine.NewDescription(ctx)
 	previous.AttachedDevice = machine.AttachedDeviceAdb
+	previous.Recovering = "Device is missing."
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":      []string{"1"},
 		"device_os":            []string{"Q", "QQ2A.200305.002"},
@@ -389,8 +362,13 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
+		Annotation: machine.Annotation{
+			User:      machineUserName,
+			Timestamp: serverTime,
+			Message:   "Leaving recovery mode.",
+		},
 		AttachedDevice:     machine.AttachedDeviceAdb,
-		Mode:               machine.ModeAvailable,
+		MaintenanceMode:    "",
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
@@ -438,15 +416,17 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
-		AttachedDevice: machine.AttachedDeviceAdb,
-		Mode:           machine.ModeRecovery,
+		AttachedDevice:  machine.AttachedDeviceAdb,
+		MaintenanceMode: "",
+		Recovering:      "Battery low.",
 		Annotation: machine.Annotation{
-			Message:   "Battery low. ",
+			Message:   "Battery low.",
 			User:      machineUserName,
 			Timestamp: serverTime,
 		},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID: []string{"skia-rpi2-0001"},
+			machine.DimID:          []string{"skia-rpi2-0001"},
+			machine.DimQuarantined: []string{"Recovering: Battery low."},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            9,
@@ -469,7 +449,7 @@ func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testin
 
 	previous := machine.NewDescription(ctx)
 	previous.RecoveryStart = startRecoveryTime
-	previous.Mode = machine.ModeRecovery
+	previous.Recovering = "low power"
 
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
@@ -570,15 +550,14 @@ Current cooling devices from HAL:
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Too hot. ", next.Annotation.Message)
+	assert.Equal(t, "Too hot.", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
-	assert.Equal(t, machine.ModeRecovery, next.Mode)
-	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, next.Recovering, "Too hot.")
+	assert.Equal(t, []string{"Recovering: Too hot."}, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
-
 }
 
 func TestProcess_HandleTempsInMilliCentgrade(t *testing.T) {
@@ -704,7 +683,7 @@ Current cooling devices from HAL:`
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Empty(t, next.MaintenanceMode)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(11.9), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "ocp_cpu2"}).Get())
@@ -794,10 +773,10 @@ Current cooling devices from HAL:
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Battery low. Too hot. ", next.Annotation.Message)
+	assert.Equal(t, "Battery low. Too hot.", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
-	assert.Equal(t, machine.ModeRecovery, next.Mode)
-	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, "Battery low. Too hot.", next.Recovering)
+	assert.Equal(t, []string{"Recovering: Battery low. Too hot."}, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
@@ -841,7 +820,8 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Empty(t, next.MaintenanceMode)
+	assert.Empty(t, next.Recovering)
 	assert.Equal(t, 95, next.Battery)
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
 }
@@ -855,7 +835,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
-	previous.Mode = machine.ModeRecovery
+	previous.Recovering = "low power"
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
@@ -884,7 +864,8 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Empty(t, next.MaintenanceMode)
+	assert.Empty(t, next.Recovering)
 	assert.Equal(t, 95, next.Battery)
 }
 
@@ -895,7 +876,6 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
 	previous := machine.Description{
-		Mode:                machine.ModeAvailable,
 		LastUpdated:         stateTime,
 		RunningSwarmingTask: false,
 		LaunchedSwarming:    true,
@@ -932,7 +912,6 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
-		Mode:                machine.ModeAvailable,
 		LastUpdated:         serverTime,
 		RunningSwarmingTask: false,
 		LaunchedSwarming:    true,
@@ -962,7 +941,6 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
 	previous := machine.Description{
-		Mode:        machine.ModeAvailable,
 		LastUpdated: stateTime,
 		SSHUserIP:   "root@my-chromebook",
 		SuppliedDimensions: machine.SwarmingDimensions{
@@ -988,8 +966,8 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
-		Mode:        machine.ModeAvailable,
 		LastUpdated: serverTime,
+		Recovering:  "Device \"root@my-chromebook\" has gone missing",
 		SSHUserIP:   "root@my-chromebook",
 		SuppliedDimensions: machine.SwarmingDimensions{
 			"cpu": []string{"arm"},
@@ -1000,7 +978,7 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"os":                   []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
 			"cpu":                  []string{"x86", "x86_64"},
 			"gpu":                  []string{"none"},
-			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
 		},
 	}, next)
 }
@@ -1012,7 +990,6 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
 	previous := machine.Description{
-		Mode:        machine.ModeAvailable,
 		LastUpdated: stateTime,
 		SSHUserIP:   "root@my-chromebook",
 		SuppliedDimensions: machine.SwarmingDimensions{
@@ -1041,8 +1018,8 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
-		Mode:        machine.ModeAvailable,
 		LastUpdated: serverTime,
+		Recovering:  "Device \"root@my-chromebook\" has gone missing",
 		SSHUserIP:   "root@my-chromebook",
 		SuppliedDimensions: machine.SwarmingDimensions{
 			"cpu": []string{"arm"},
@@ -1056,7 +1033,7 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"chromeos_channel":     []string{"stable-channel"},
 			"chromeos_milestone":   []string{"89"},
 			"release_version":      []string{"13729.56.0"},
-			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
 		},
 	}, next)
 }

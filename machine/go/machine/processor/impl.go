@@ -109,6 +109,20 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		sklog.Errorf("Unknown event type: %q", event.EventType)
 		return previous
 	}
+	next := p.processEvent(ctx, previous, event)
+
+	// Set the Quarantined dimension in Swarming.
+	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags())
+	if machine.SetSwarmingQuarantinedMessage(&next) {
+		quarantinedMetric.Update(1)
+	} else {
+		quarantinedMetric.Update(0)
+	}
+
+	return next
+}
+
+func (p *ProcessorImpl) processEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	if event.Android.IsPopulated() {
 		return processAndroidEvent(ctx, previous, event)
 	} else if event.ChromeOS.IsPopulated() {
@@ -126,7 +140,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
 	dimensions[machine.DimID] = []string{machineID}
 	inMaintenanceMode := false
-	maintenanceMessage := ""
+	maintenanceMessages := []string{}
 
 	shouldPowerCycle := false
 	if (previous.RunningSwarmingTask && !event.RunningSwarmingTask) || previous.PowerCycle {
@@ -137,7 +151,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	if ok {
 		if battery < minBatteryLevel {
 			inMaintenanceMode = true
-			maintenanceMessage += "Battery low. "
+			maintenanceMessages = append(maintenanceMessages, "Battery low.")
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
 	} else {
@@ -149,7 +163,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 		temperature := findMaxTemperature(temperatures)
 		if temperature > maxTemperatureC {
 			inMaintenanceMode = true
-			maintenanceMessage += "Too hot. "
+			maintenanceMessages = append(maintenanceMessages, "Too hot.")
 		}
 		for sensor, temp := range temperatures {
 			metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": machineID, "sensor": sensor}).Update(temp)
@@ -164,11 +178,9 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
-	// The device was attached, so it will no longer be quarantined.
-	delete(ret.Dimensions, machine.DimQuarantined)
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
+	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, strings.Join(maintenanceMessages, " "))
 	return ret
 }
 
@@ -190,8 +202,8 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 	// time in recovery will also include some of the test time, but that's the
 	// price we pay to avoid a race condition where a test ends and a new test
 	// starts before we set Recovery mode.
-	if shouldBeRecovering && previous.Mode != machine.ModeRecovery {
-		current.Mode = machine.ModeRecovery
+	if shouldBeRecovering && !previous.IsRecovering() {
+		current.Recovering = msg
 		current.RecoveryStart = now.Now(ctx)
 		current.Annotation.Timestamp = now.Now(ctx)
 		current.Annotation.Message = msg
@@ -200,8 +212,8 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 
 	// If the machine didn't report an empty battery or other bad condition, move back being
 	// available.
-	if !shouldBeRecovering && previous.Mode == machine.ModeRecovery {
-		current.Mode = machine.ModeAvailable
+	if !shouldBeRecovering && previous.IsRecovering() {
+		current.Recovering = ""
 		current.Annotation.Timestamp = now.Now(ctx)
 		current.Annotation.Message = "Leaving recovery mode."
 		current.Annotation.User = machineUserName
@@ -216,20 +228,13 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 	}
 
 	recoveryTimeMetric := metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", current.Dimensions.AsMetricsTags())
-	if current.Mode == machine.ModeRecovery {
+	if current.IsRecovering() {
 		// Report time in recovery mode as a metric.
 		recoveryTimeMetric.Update(int64(now.Now(ctx).Sub(current.RecoveryStart).Seconds()))
 	} else {
 		recoveryTimeMetric.Update(0)
 	}
 
-	// Record the quarantined state in a metric.
-	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", current.Dimensions.AsMetricsTags())
-	if len(current.Dimensions[machine.DimQuarantined]) > 0 {
-		quarantinedMetric.Update(1)
-	} else {
-		quarantinedMetric.Update(0)
-	}
 	return current
 }
 
@@ -247,8 +252,6 @@ func processChromeOSEvent(ctx context.Context, previous machine.Description, eve
 	ret.Dimensions[machine.DimChromeOSChannel] = []string{event.ChromeOS.Channel}
 	ret.Dimensions[machine.DimChromeOSMilestone] = []string{event.ChromeOS.Milestone}
 	ret.Dimensions[machine.DimChromeOSReleaseVersion] = []string{event.ChromeOS.ReleaseVersion}
-	// The device was attached, so it will no longer be quarantined.
-	delete(ret.Dimensions, machine.DimQuarantined)
 
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, false, "")
@@ -284,9 +287,6 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": event.Host.Name}).Update(int64(battery))
 	}
 
-	// The device was attached, so it will no longer be quarantined:
-	delete(ret.Dimensions, machine.DimQuarantined)
-
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
 	return ret
@@ -295,6 +295,7 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 // processMissingDeviceEvent processes an event from a machine that expects to have an attached
 // device but cannot communicate with it.
 func processMissingDeviceEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	ret := previous.Copy()
 	dimensions := machine.SwarmingDimensions{
 		machine.DimID: []string{event.Host.Name},
 	}
@@ -302,13 +303,13 @@ func processMissingDeviceEvent(ctx context.Context, previous machine.Description
 	// quarantine the machine.
 	//
 	// We use the device_type dimension because it is reported for Android and iOS devices
-	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && previous.Mode != machine.ModeMaintenance {
-		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
+	if len(previous.Dimensions[machine.DimDeviceType]) > 0 {
+		ret.Recovering = fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])
 	}
-	if previous.SSHUserIP != "" && previous.Mode != machine.ModeMaintenance {
-		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %s has gone missing", previous.SSHUserIP)}
+	if previous.SSHUserIP != "" {
+		ret.Recovering = fmt.Sprintf("Device %q has gone missing", previous.SSHUserIP)
 	}
-	ret := previous.Copy()
+
 	ret.Battery = 0
 	ret.Temperature = nil
 	for k, values := range dimensions {

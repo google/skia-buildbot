@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
@@ -207,14 +208,18 @@ func (s *server) triggerDescriptionUpdateEvent(ctx context.Context, id string) {
 // to toggle the Description mode between Available and Maintenance.
 func toggleMode(ctx context.Context, user string, in machine.Description) machine.Description {
 	ret := in.Copy()
-	if ret.Mode == machine.ModeAvailable {
-		ret.Mode = machine.ModeMaintenance
+	ts := now.Now(ctx)
+	var annotation string
+	if !ret.InMaintenanceMode() {
+		ret.MaintenanceMode = fmt.Sprintf("%s %s", user, ts.Format(time.RFC3339))
+		annotation = "Enabled Maintenance Mode"
 	} else {
-		ret.Mode = machine.ModeAvailable
+		ret.MaintenanceMode = ""
+		annotation = "Cleared Maintenance Mode."
 	}
 	ret.Annotation = machine.Annotation{
 		User:      user,
-		Message:   fmt.Sprintf("Changed mode to %q", ret.Mode),
+		Message:   annotation,
 		Timestamp: now.Now(ctx),
 	}
 	return ret

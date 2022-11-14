@@ -12,7 +12,6 @@ import { FrontendDescription } from '../json';
 function mockMachinesResponse(): void {
   const ARBITRARY_DATE = '2020-04-21T17:33:09.638275Z';
   const arbitraryResponse: Partial<FrontendDescription> = {
-    Mode: 'available',
     Battery: 100,
     Dimensions: {
       id: ['skia-rpi2-rack4-shelf1-002'],

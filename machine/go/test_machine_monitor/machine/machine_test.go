@@ -882,9 +882,7 @@ func TestRetrieveDescription_EndpointReturnsInvalidJSON_DescriptionIsNotUpdated(
 }
 
 func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(t *testing.T) {
-	desc := rpc.FrontendDescription{
-		Mode: machine.ModeAvailable,
-	}
+	desc := rpc.FrontendDescription{}
 	var capturedRequest *http.Request
 	u, called, client := setupLocalServerWithCallback(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedRequest = r

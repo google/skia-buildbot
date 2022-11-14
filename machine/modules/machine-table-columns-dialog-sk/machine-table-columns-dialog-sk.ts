@@ -14,9 +14,9 @@ import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/checkbox-sk';
 
-export type ColumnTitles = 'Machine' | 'Attached' | 'Device' | 'Mode' | 'Power' | 'Details' | 'Quarantined' | 'Task' | 'Battery' | 'Temperature' | 'Last Seen' | 'Uptime' | 'Dimensions' | 'Launched Swarming' | 'Note' | 'Annotation' | 'Version' | 'Delete';
+export type ColumnTitles = 'Machine' | 'Attached' | 'Device' | 'Mode' | 'Recovering' |'Power' | 'Details' | 'Quarantined' | 'Task' | 'Battery' | 'Temperature' | 'Last Seen' | 'Uptime' | 'Dimensions' | 'Launched Swarming' | 'Note' | 'Annotation' | 'Version' | 'Delete';
 
-export const ColumnOrder: ColumnTitles[] = ['Machine', 'Attached', 'Device', 'Mode', 'Power', 'Details', 'Quarantined', 'Task', 'Battery', 'Temperature', 'Last Seen', 'Uptime', 'Dimensions', 'Launched Swarming', 'Note', 'Annotation', 'Version', 'Delete'];
+export const ColumnOrder: ColumnTitles[] = ['Machine', 'Attached', 'Device', 'Mode', 'Recovering', 'Power', 'Details', 'Quarantined', 'Task', 'Battery', 'Temperature', 'Last Seen', 'Uptime', 'Dimensions', 'Launched Swarming', 'Note', 'Annotation', 'Version', 'Delete'];
 
 export class MachineTableColumnsDialogSk extends ElementSk {
    private dialog: HTMLDialogElement|null = null;

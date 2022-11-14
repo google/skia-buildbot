@@ -31,7 +31,7 @@ class State {
   sort: string = '';
 
   /** The names of all the hidden columns. */
-  hidden: ColumnTitles[] = ['Version', 'Annotation', 'Launched Swarming'];
+  hidden: ColumnTitles[] = ['Version', 'Annotation', 'Launched Swarming', 'Recovering'];
 }
 
 export class MachineAppSk extends ElementSk {

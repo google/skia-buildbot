@@ -87,7 +87,9 @@ describe('SortHistory', () => {
   describe('compare', () => {
     // Start with a base FrontendDescription;
     const desc1: FrontendDescription = {
-      Mode: 'available',
+      MaintenanceMode: '',
+      Recovering: '',
+      IsQuarantined: false,
       AttachedDevice: 'nodevice',
       Annotation: {
         Message: 'Requested powercycle for "skia-e-linux-101"',

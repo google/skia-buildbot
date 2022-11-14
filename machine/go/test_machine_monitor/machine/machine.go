@@ -326,19 +326,6 @@ func (m *Machine) DimensionsForSwarming() machine.SwarmingDimensions {
 	return m.description.Dimensions
 }
 
-// GetMaintenanceMode returns true if the machine should report to Swarming that it is
-// in maintenance mode. Swarming does not have a "recovery" mode, so we group that in.
-// The message to display for Maintenance Mode is also returned.
-func (m *Machine) GetMaintenanceMode() (bool, string) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	ret := "Maintenance Mode"
-	if m.description.Note.Message != "" {
-		ret = m.description.Note.Message
-	}
-	return m.description.Mode == machine.ModeRecovery || m.description.Mode == machine.ModeMaintenance, ret
-}
-
 // SetIsRunningSwarmingTask records if a swarming task is being run.
 func (m *Machine) SetIsRunningSwarmingTask(isRunning bool) {
 	m.mutex.Lock()

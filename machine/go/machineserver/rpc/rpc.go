@@ -47,7 +47,9 @@ type UpdatePowerCycleStateRequest struct {
 // FrontendDescription is the frontend representation of machine.Description.
 // See that struct for details on the fields.
 type FrontendDescription struct {
-	Mode                machine.Mode
+	MaintenanceMode     string
+	IsQuarantined       bool
+	Recovering          string
 	AttachedDevice      machine.AttachedDevice
 	Annotation          machine.Annotation
 	Note                machine.Annotation
@@ -79,7 +81,9 @@ func ToListPowerCycleResponse(machineIDs []string) ListPowerCycleResponse {
 // ToFrontendDescription converts a machine.Description into a FrontendDescription.
 func ToFrontendDescription(d machine.Description) FrontendDescription {
 	return FrontendDescription{
-		Mode:                d.Mode,
+		MaintenanceMode:     d.MaintenanceMode,
+		IsQuarantined:       d.IsQuarantined,
+		Recovering:          d.Recovering,
 		AttachedDevice:      d.AttachedDevice,
 		Annotation:          d.Annotation,
 		Note:                d.Note,

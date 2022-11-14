@@ -4,8 +4,10 @@ export const fakeNow = Date.parse('2021-06-03T18:20:30.00000Z');
 
 // Based on a production response on 2021-06-03.
 export const descriptions: ListMachinesResponse = [{
-  Mode: 'available',
   AttachedDevice: 'adb',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   Annotation: {
     Message: 'Leaving recovery mode.',
     User: 'machines.skia.org',
@@ -43,7 +45,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 167,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'ssh',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-qdgf2"',
@@ -78,7 +82,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 266,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-5hqvb"',
@@ -113,7 +119,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 183,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-q2vpj"',
@@ -148,7 +156,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 167,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-k8fdn"',
@@ -183,7 +193,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 234,
   SSHUserIP: '',
 }, {
-  Mode: 'recovery',
+  MaintenanceMode: '',
+  Recovering: 'Low power.',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-j9lzl"',
@@ -222,7 +234,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 343,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-d86nk"',
@@ -257,7 +271,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 657,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Leaving recovery mode.',
@@ -296,7 +312,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 660,
   SSHUserIP: '',
 }, {
-  Mode: 'recovery',
+  MaintenanceMode: '',
+  Recovering: 'Too hot.',
+  IsQuarantined: false,
   AttachedDevice: 'adb',
   Annotation: {
     Message: 'Too hot. ',
@@ -317,6 +335,7 @@ export const descriptions: ListMachinesResponse = [{
     id: ['skia-rpi2-rack4-shelf1-009'],
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
+    quarantined: ['Recovering: Too hot.'],
   },
   Version: 'v1.2',
   PowerCycle: false,
@@ -335,7 +354,9 @@ export const descriptions: ListMachinesResponse = [{
   DeviceUptime: 891,
   SSHUserIP: '',
 }, {
-  Mode: 'available',
+  MaintenanceMode: '',
+  Recovering: '',
+  IsQuarantined: false,
   AttachedDevice: 'ssh',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-ghncz"',

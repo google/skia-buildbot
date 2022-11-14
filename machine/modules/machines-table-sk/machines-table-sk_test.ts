@@ -4,10 +4,10 @@ import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import {
-  Mode, AttachedDevice, Annotation, SwarmingDimensions,
+  AttachedDevice, Annotation, SwarmingDimensions,
 } from '../json';
 import {
-  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name_as_string, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRunningSwarmingTask, sortByVersion,
+  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name_as_string, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByIsQuarantined, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRecovering, sortByRunningSwarmingTask, sortByVersion,
 } from './machines-table-sk';
 import {
   FrontendDescription, ListMachinesResponse, SetNoteRequest,
@@ -23,7 +23,9 @@ const setUpElement = async (): Promise<MachinesTableSk> => {
   fetchMock.config.overwriteRoutes = true;
   mockMachinesResponse([
     {
-      Mode: 'available',
+      MaintenanceMode: '',
+      Recovering: '',
+      IsQuarantined: false,
       AttachedDevice: 'ssh',
       Battery: 100,
       Dimensions: {
@@ -70,7 +72,9 @@ describe('machines-table-sk', () => {
     fetchMock.post('/_/machine/toggle_mode/skia-rpi2-rack4-shelf1-002', 200);
     mockMachinesResponse([
       {
-        Mode: 'maintenance',
+        MaintenanceMode: 'barney@example.com 2022-11-09',
+        Recovering: '',
+        IsQuarantined: false,
         AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
@@ -115,7 +119,9 @@ describe('machines-table-sk', () => {
     );
     mockMachinesResponse([
       {
-        Mode: 'maintenance',
+        MaintenanceMode: '',
+        Recovering: '',
+        IsQuarantined: false,
         AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
@@ -170,7 +176,9 @@ describe('machines-table-sk', () => {
     );
     mockMachinesResponse([
       {
-        Mode: 'maintenance',
+        MaintenanceMode: '',
+        Recovering: '',
+        IsQuarantined: false,
         AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {},
@@ -220,7 +228,9 @@ describe('machines-table-sk', () => {
     );
     mockMachinesResponse([
       {
-        Mode: 'maintenance',
+        MaintenanceMode: '',
+        Recovering: '',
+        IsQuarantined: false,
         AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {},
@@ -325,7 +335,9 @@ describe('machines-table-sk', () => {
     );
     mockMachinesResponse([
       {
-        Mode: 'available',
+        MaintenanceMode: '',
+        Recovering: '',
+        IsQuarantined: false,
         AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
@@ -410,7 +422,9 @@ describe('machines-table-sk', () => {
 
   describe('compare functions', () => {
     it('returns correct values on simple compares', () => {
-      testCompareFunc<Mode>('Mode', sortByMode, 'available', 'maintenance');
+      testCompareFunc<string>('MaintenanceMode', sortByMode, '', 'barney@example.org 2022-11-09');
+      testCompareFunc<string>('Recovering', sortByRecovering, '', 'Too hot.');
+      testCompareFunc<boolean>('IsQuarantined', sortByIsQuarantined, false, true);
       testCompareFunc<AttachedDevice>('AttachedDevice', sortByAttachedDevice, 'adb', 'nodevice');
       testCompareFunc<Annotation>('Annotation', sortByAnnotation, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
       testCompareFunc<Annotation>('Note', sortByNote, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
