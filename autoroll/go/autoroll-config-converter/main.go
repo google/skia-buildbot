@@ -8,9 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/fs"
-	"io/ioutil"
-	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -20,19 +18,16 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/chrome_branch"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
-	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/api/oauth2/v2"
-	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -65,16 +60,12 @@ var (
 
 func main() {
 	// Flags.
-	src := flag.String("src", "", "Source directory.")
-	dst := flag.String("dst", "", "Destination directory. Outputs will mimic the structure of the source.")
 	privacySandboxAndroidRepoURL := flag.String("privacy_sandbox_android_repo_url", "", "Repo URL for privacy sandbox on Android.")
 	privacySandboxAndroidVersionsPath := flag.String("privacy_sandbox_android_versions_path", "", "Path to the file containing the versions of privacy sandbox on Android.")
-	createCL := flag.Bool("create-cl", false, "If true, creates a CL if any changes were made.")
-	srcRepo := flag.String("source-repo", "", "URL of the repo which triggered this run.")
+	srcRepo := flag.String("source-repo", "https://skia.googlesource.com/skia-autoroll-internal-config.git", "URL of the repo which triggered this run.")
 	srcCommit := flag.String("source-commit", "", "Commit hash which triggered this run.")
 	louhiExecutionID := flag.String("louhi-execution-id", "", "Execution ID of the Louhi flow.")
 	louhiPubsubProject := flag.String("louhi-pubsub-project", "", "GCP project used for sending Louhi pub/sub notifications.")
-	local := flag.Bool("local", false, "True if running locally.")
 
 	flag.Parse()
 
@@ -88,34 +79,17 @@ func main() {
 	ctx := td.StartRun(&fakeProjectId, &fakeTaskId, &fakeTaskName, &output, &tdLocal)
 	defer td.EndRun(ctx)
 
-	if *src == "" {
-		td.Fatalf(ctx, "--src is required.")
-	}
-	if *dst == "" {
-		td.Fatalf(ctx, "--dst is required.")
-	}
 	if backendTemplate == "" {
 		td.Fatalf(ctx, "internal error; embedded template is empty.")
 	}
+	if *srcCommit == "" {
+		td.Fatalf(ctx, "--source-commit is required.")
+	}
 
 	// Set up auth, load config variables.
-	ts, err := git_steps.Init(ctx, true)
+	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
 	if err != nil {
 		td.Fatal(ctx, err)
-	}
-	if !*local {
-		srv, err := oauth2.NewService(ctx, option.WithTokenSource(ts))
-		if err != nil {
-			td.Fatal(ctx, err)
-		}
-		info, err := srv.Userinfo.V2.Me.Get().Do()
-		if err != nil {
-			td.Fatal(ctx, err)
-		}
-		sklog.Infof("Authenticated as %s", info.Email)
-		if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, info.Email); err != nil {
-			td.Fatal(ctx, err)
-		}
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
@@ -174,62 +148,87 @@ func main() {
 	}
 	sklog.Infof("Using variables: %s", string(b))
 
-	// Walk through the autoroller config directory. Create roller configs from
-	// templates and convert roller configs to k8s configs.
-	fsys := os.DirFS(*src)
-	if err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if strings.HasSuffix(d.Name(), ".cfg") {
-			srcPath := filepath.Join(*src, path)
-			sklog.Infof("Converting %s", srcPath)
-			cfgBytes, err := ioutil.ReadFile(srcPath)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to read roller config %s", srcPath)
-			}
-
-			if err := convertConfig(ctx, cfgBytes, path, *dst); err != nil {
-				return skerr.Wrapf(err, "failed to convert config %s", path)
-			}
-		} else if strings.HasSuffix(d.Name(), ".tmpl") {
-			tmplPath := filepath.Join(*src, path)
-			sklog.Infof("Processing %s", tmplPath)
-			tmplContents, err := ioutil.ReadFile(tmplPath)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to read template file %s", tmplPath)
-			}
-			generatedConfigs, err := processTemplate(ctx, path, string(tmplContents), vars)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to process template file %s", path)
-			}
-			for path, cfgBytes := range generatedConfigs {
-				if err := convertConfig(ctx, cfgBytes, path, *dst); err != nil {
-					return skerr.Wrapf(err, "failed to convert config %s", path)
-				}
-			}
-		}
-		return nil
-	}); err != nil {
-		td.Fatalf(ctx, "Failed to read configs: %s", err)
-	}
-
-	// "git add" the directory.
-	gitExec, err := git.Executable(ctx)
+	// Walk through all files from the k8s-config repo. Read autoroll-related
+	// config files.
+	dst := gitiles.NewRepo("https://skia.googlesource.com/k8s-config.git", client)
+	dstBaseCommit, err := dst.ResolveRef(ctx, git.DefaultRef)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	if _, err := exec.RunCwd(ctx, *dst, gitExec, "add", "-A"); err != nil {
+	dstFiles, err := dst.ListFilesRecursiveAtRef(ctx, ".", dstBaseCommit)
+	if err != nil {
 		td.Fatal(ctx, err)
+	}
+	dstExistingContents := map[string][]byte{}
+	for _, dstFile := range dstFiles {
+		if strings.HasSuffix(dstFile, "-autoroll-ns.yaml") || (strings.HasPrefix(dstFile, "autoroll-be-") && strings.HasSuffix(dstFile, ".yaml")) {
+			contents, err := dst.ReadFileAtRef(ctx, dstFile, dstBaseCommit)
+			if err != nil {
+				td.Fatal(ctx, err)
+			}
+			dstExistingContents[dstFile] = contents
+		}
+	}
+
+	// Walk through the autoroller config repo. Create roller configs from
+	// templates and convert roller configs to k8s configs.
+	src := gitiles.NewRepo(*srcRepo, client)
+	srcFiles, err := src.ListFilesRecursiveAtRef(ctx, ".", *srcCommit)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	generatedContents := map[string][]byte{}
+	for _, srcFile := range srcFiles {
+		if strings.HasSuffix(srcFile, ".cfg") {
+			sklog.Infof("Converting %s", srcFile)
+			cfgBytes, err := src.ReadFileAtRef(ctx, srcFile, *srcCommit)
+			if err != nil {
+				td.Fatalf(ctx, "failed to read roller config %s: %s", srcFile, err)
+			}
+			if err := convertConfig(ctx, cfgBytes, srcFile, generatedContents); err != nil {
+				td.Fatalf(ctx, "failed to convert config %s: %s", srcFile, err)
+			}
+		} else if strings.HasSuffix(srcFile, ".tmpl") {
+			sklog.Infof("Processing %s", srcFile)
+			tmplBytes, err := src.ReadFileAtRef(ctx, srcFile, *srcCommit)
+			if err != nil {
+				td.Fatalf(ctx, "failed to read template file %s: %s", srcFile, err)
+			}
+			generatedConfigs, err := processTemplate(ctx, srcFile, string(tmplBytes), vars)
+			if err != nil {
+				td.Fatalf(ctx, "failed to process template file %s: %s", srcFile, err)
+			}
+			for path, cfgBytes := range generatedConfigs {
+				if err := convertConfig(ctx, cfgBytes, path, generatedConfigs); err != nil {
+					td.Fatalf(ctx, "failed to convert config %s: %s", srcFile, err)
+				}
+			}
+		}
+	}
+
+	// Find the actual changes between the existing and the generated configs.
+	changes := make(map[string]string, len(generatedContents))
+	// First, "delete" all of the old contents, to ensure that we remove any
+	// no-longer-generated rollers.
+	for path := range dstExistingContents {
+		changes[path] = ""
+	}
+	// Next, overwrite the old contents with the generated contents.
+	for path, newContents := range generatedContents {
+		changes[path] = string(newContents)
+	}
+	// Finally, remove any files which didn't actually change.
+	for path, newContents := range generatedContents {
+		oldContents, ok := dstExistingContents[path]
+		if ok && bytes.Equal(oldContents, newContents) {
+			delete(changes, path)
+		}
 	}
 
 	// Upload a CL.
-	if *createCL {
+	if len(changes) > 0 {
 		commitSubject := "Update autoroll k8s configs"
-		if err := cd.MaybeUploadCL(ctx, *dst, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
+		if err := cd.UploadCL(ctx, changes, "k8s-config", dstBaseCommit, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
 			td.Fatalf(ctx, "Failed to create CL: %s", err)
 		}
 	}
@@ -250,7 +249,7 @@ type TemplateVars struct {
 	PrivacySandboxVersions []*PrivacySandboxVersion
 }
 
-func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string) error {
+func convertConfig(ctx context.Context, cfgBytes []byte, relPath string, generatedContents map[string][]byte) error {
 	// Decode the config file.
 	var cfg config.Config
 	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
@@ -303,22 +302,24 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 	cfgMap["configBase64"] = cfgFileBase64
 
 	// Run kube-conf-gen to generate the backend config file.
-	relDir, baseName := filepath.Split(relPath)
-	dstPath := filepath.Join(dstDir, relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
-	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
+	relDir, baseName := path.Split(relPath)
+	dstCfgPath := path.Join(relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
+	rollerCfg, err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap)
+	if err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
-	sklog.Infof("Wrote %s", dstPath)
+	generatedContents[dstCfgPath] = rollerCfg
 
 	// Run kube-conf-gen to generate the namespace config file. Note that we'll
 	// overwrite this file for every roller in the namespace, but that shouldn't
 	// be a problem, since the generated files will be the same.
 	namespace := strings.Split(cfg.ServiceAccount, "@")[0]
-	dstNsPath := filepath.Join(dstDir, relDir, fmt.Sprintf("%s-ns.yaml", namespace))
-	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
+	dstNsPath := path.Join(relDir, fmt.Sprintf("%s-ns.yaml", namespace))
+	nsCfg, err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap)
+	if err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
-	sklog.Infof("Wrote %s", dstNsPath)
+	generatedContents[dstNsPath] = nsCfg
 
 	return nil
 }

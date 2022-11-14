@@ -13,13 +13,17 @@ go_library(
     deps = [
         "//cd/go/cd",
         "//go/exec",
+        "//go/gerrit",
         "//go/git",
         "//go/gitauth",
+        "//go/gitiles",
+        "//go/httputils",
         "//go/skerr",
         "//go/util",
         "//task_driver/go/lib/git_steps",
         "//task_driver/go/td",
         "@com_github_urfave_cli_v2//:cli",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

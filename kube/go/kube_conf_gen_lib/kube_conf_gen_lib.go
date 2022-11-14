@@ -97,37 +97,59 @@ func LoadConfigFiles(parseConf, strict, emptyQuotes bool, configFileNames ...str
 }
 
 // GenerateOutputFromTemplateString executes the template string with config as
-// its environment and writes the result to outFile.
-func GenerateOutputFromTemplateString(tmplString string, strict bool, config map[string]interface{}, outFile string) error {
+// its environment and returns the generated contents.
+func GenerateOutputFromTemplateString(tmplString string, strict bool, config map[string]interface{}) ([]byte, error) {
 	tmpl, err := template.New("kube-conf-gen-tmpl").Funcs(sprig.TxtFuncMap()).Parse(tmplString)
 	if err != nil {
-		return skerr.Wrapf(err, "error parsing template %s", tmplString)
+		return nil, skerr.Wrapf(err, "error parsing template %s", tmplString)
 	}
-	return generateOutputHelper(tmpl, strict, config, outFile)
+	return generateOutputHelper(tmpl, strict, config)
 }
 
 // GenerateOutputFromTemplateFile executes the template file with config as its
-// environment and writes the result to outFile.
-func GenerateOutputFromTemplateFile(templateFileName string, strict bool, config map[string]interface{}, outFile string) error {
+// environment and returns the generated contents.
+func GenerateOutputFromTemplateFile(templateFileName string, strict bool, config map[string]interface{}) ([]byte, error) {
 	tmpl, err := template.New(path.Base(templateFileName)).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFileName)
 	if err != nil {
-		return skerr.Wrapf(err, "error parsing template '%s'", templateFileName)
+		return nil, skerr.Wrapf(err, "error parsing template '%s'", templateFileName)
 	}
-	return generateOutputHelper(tmpl, strict, config, outFile)
+	return generateOutputHelper(tmpl, strict, config)
 }
 
-func generateOutputHelper(tmpl *template.Template, strict bool, config map[string]interface{}, outFile string) error {
+// WriteOutputFromTemplateString executes the template string with config as its
+// environment and writes the result to outFile.
+func WriteOutputFromTemplateString(tmplString string, strict bool, config map[string]interface{}, outFile string) error {
+	contents, err := GenerateOutputFromTemplateString(tmplString, strict, config)
+	if err != nil {
+		return err
+	}
+	return writeOutputHelper(outFile, contents)
+}
+
+// WriteOutputFromTemplateFile executes the template file with config as its
+// environment and writes the result to outFile.
+func WriteOutputFromTemplateFile(templateFileName string, strict bool, config map[string]interface{}, outFile string) error {
+	contents, err := GenerateOutputFromTemplateFile(templateFileName, strict, config)
+	if err != nil {
+		return err
+	}
+	return writeOutputHelper(outFile, contents)
+}
+
+func generateOutputHelper(tmpl *template.Template, strict bool, config map[string]interface{}) ([]byte, error) {
 	if strict {
 		tmpl.Option("missingkey=error")
 	}
-
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, config); err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
+	return buf.Bytes(), nil
+}
 
+func writeOutputHelper(outFile string, contents []byte) error {
 	if outFile == "_" {
-		fmt.Println(string(buf.Bytes()))
+		fmt.Println(string(contents))
 		return nil
 	} else {
 		dir, _ := filepath.Split(outFile)
@@ -136,6 +158,6 @@ func generateOutputHelper(tmpl *template.Template, strict bool, config map[strin
 				return skerr.Wrapf(err, "failed to create destination directory")
 			}
 		}
-		return skerr.Wrap(ioutil.WriteFile(outFile, buf.Bytes(), 0644))
+		return skerr.Wrap(ioutil.WriteFile(outFile, contents, 0644))
 	}
 }
