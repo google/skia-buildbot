@@ -200,7 +200,7 @@ func main() {
 				td.Fatalf(ctx, "failed to process template file %s: %s", srcFile, err)
 			}
 			for path, cfgBytes := range generatedConfigs {
-				if err := convertConfig(ctx, cfgBytes, path, generatedConfigs); err != nil {
+				if err := convertConfig(ctx, cfgBytes, path, generatedContents); err != nil {
 					td.Fatalf(ctx, "failed to convert config %s: %s", srcFile, err)
 				}
 			}
@@ -229,7 +229,7 @@ func main() {
 	// Upload a CL.
 	if len(changes) > 0 {
 		commitSubject := "Update autoroll k8s configs"
-		if err := cd.UploadCL(ctx, changes, "k8s-config", dstBaseCommit, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
+		if err := cd.UploadCL(ctx, changes, "https://skia.googlesource.com/k8s-config.git", dstBaseCommit, commitSubject, *srcRepo, *srcCommit, *louhiPubsubProject, *louhiExecutionID); err != nil {
 			td.Fatalf(ctx, "Failed to create CL: %s", err)
 		}
 	}
@@ -254,7 +254,7 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath string, generat
 	// Decode the config file.
 	var cfg config.Config
 	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
-		return skerr.Wrapf(err, "failed to parse roller config")
+		return skerr.Wrapf(err, "failed to parse roller config: %s", string(cfgBytes))
 	}
 	// Google3 uses a different type of backend.
 	if cfg.ParentDisplayName == google3ParentName {

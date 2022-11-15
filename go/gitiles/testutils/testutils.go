@@ -53,7 +53,11 @@ func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	require.NoError(mr.t, err)
 	body := make([]byte, base64.StdEncoding.EncodedLen(len(contents)))
 	base64.StdEncoding.Encode(body, contents)
-	url := fmt.Sprintf(gitiles.DownloadURL, mr.url, ref, srcPath)
+	mockURLPath := srcPath
+	if srcPath == "." {
+		mockURLPath = ""
+	}
+	url := fmt.Sprintf(gitiles.DownloadURL, mr.url, ref, mockURLPath)
 	md := mockhttpclient.MockGetDialogue(body)
 	typ := git.ObjectTypeBlob
 	if st.IsDir() {
