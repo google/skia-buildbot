@@ -12,3 +12,4 @@
     - swarming_needs
     - switchboard_needs
     - install_test_machine_monitor
+    - rfkill

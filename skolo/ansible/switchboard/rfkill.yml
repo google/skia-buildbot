@@ -1,0 +1,9 @@
+# Installs and runs rfkill.
+- hosts: switchboard_rpis, all_linux
+  user: chrome-bot
+  gather_facts: true
+
+  tasks:
+    - name: Turn off wifi and bluetooth.
+      import_role:
+        name: rfkill

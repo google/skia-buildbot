@@ -25,3 +25,6 @@
     - name: Install test_machine_monitor.
       import_role:
         name: install_test_machine_monitor
+    - name: Turn off wifi and bluetooth.
+      import_role:
+        name: rfkill

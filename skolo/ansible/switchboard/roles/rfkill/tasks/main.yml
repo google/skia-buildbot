@@ -1,0 +1,15 @@
+# tasks file for rfkill
+- name: Install rfkill
+  become: true
+  apt:
+    update_cache: yes
+    pkg:
+      - rfkill
+
+- name: block wifi
+  become: true
+  shell: rfkill block wifi
+
+- name: block bluetooth
+  become: true
+  shell: rfkill block bluetooth
