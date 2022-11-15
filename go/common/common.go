@@ -22,6 +22,7 @@ const (
 	REPO_CHROMIUM                      = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_DEPOT_TOOLS                   = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
 	REPO_ESKIA                         = "https://skia.googlesource.com/eskia.git"
+	REPO_K8S_CONFIG                    = "https://skia.googlesource.com/k8s-config.git"
 	REPO_LOTTIE_CI                     = "https://skia.googlesource.com/lottie-ci.git"
 	REPO_PDFIUM                        = "https://pdfium.googlesource.com/pdfium.git"
 	REPO_SKCMS                         = "https://skia.googlesource.com/skcms.git"
@@ -44,6 +45,7 @@ var (
 	// REPO_PROJECT_MAPPING is a mapping of repo URLs to project names.
 	REPO_PROJECT_MAPPING = map[string]string{
 		REPO_ESKIA:                         "eskia",
+		REPO_K8S_CONFIG:                    "k8s-config",
 		REPO_LOTTIE_CI:                     "lottie-ci",
 		REPO_SKCMS:                         "skcms",
 		REPO_SKIA:                          "skia",
