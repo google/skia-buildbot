@@ -35,6 +35,7 @@ import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
 import 'elements-sk/icon/clear-all-icon-sk';
+import 'elements-sk/icon/content-copy-icon-sk';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../device-editor-sk';
@@ -241,14 +242,6 @@ const imageVersion = (machine: FrontendDescription): TemplateResult => {
   return html`(missing)`;
 };
 
-const machineLink = (machine: FrontendDescription): TemplateResult => html`
-    <a
-      href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
-    >
-      ${machine.Dimensions!.id}
-    </a>
-  `;
-
 /** Displays the device uptime, truncated to the minute. */
 const deviceUptime = (machine: FrontendDescription): TemplateResult => html`
   ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
@@ -365,7 +358,7 @@ export class MachinesTableSk extends ElementSk {
     this.columns = {
       Machine: new Column(
         'Machine',
-        machineLink,
+        this.machineLink.bind(this),
         sortByMachineID,
       ),
       Attached: new Column(
@@ -653,12 +646,30 @@ export class MachinesTableSk extends ElementSk {
       </option>`);
   }
 
+  private machineLink(machine: FrontendDescription): TemplateResult {
+    return  html`
+      <a
+        href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
+      >
+        ${machine.Dimensions!.id}
+      </a>
+      <content-copy-icon-sk @click=${() => this.copyToClipboard(machine.Dimensions!.id)}></content-copy-icon-sk>
+    `;
+  }
+
   private attachedDevice(machine: FrontendDescription): TemplateResult {
     return html`
     <select
       @input=${(e: InputEvent) => this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
       ${this.attachedDeviceOptions(machine)}
     </select>`;
+  }
+
+  async copyToClipboard(s: string[] | null) {
+    if (!s) {
+      return;
+    }
+    await navigator.clipboard.writeText(s[0]);
   }
 
   sortArrow(fn: compareFunc<FrontendDescription>): TemplateResult {
