@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/png"
 	"time"
@@ -573,6 +574,7 @@ func (w *WorkerImpl) getCommonAndRecentDigests(ctx context.Context, grouping par
 	ctx, span := trace.StartSpan(ctx, "getCommonAndRecentDigests")
 	defer span.End()
 
+	// Find the first commit in the target range of commits.
 	row := w.db.QueryRow(ctx, `WITH
 RecentCommits AS (
 	SELECT commit_id FROM CommitsWithData
@@ -588,14 +590,22 @@ ORDER BY commit_id ASC LIMIT 1`, w.windowSize)
 		return nil, skerr.Wrap(err)
 	}
 
-	const statement = `WITH
-TracesOfInterest AS (
-  SELECT trace_id FROM Traces WHERE grouping_id = $1
-),
+	// Find all the traces for the target grouping.
+	traceIDs, err := w.findTraceIDsForGrouping(ctx, grouping)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// We used to join the Traces and TraceValues tables, but that turned out to be slow. Filtering
+	// TraceValues using a list of trace IDs can be faster when the list of trace IDs is large.
+	// For example, lovisolo@ observed that for a grouping with ~1000 traces, the below query takes
+	// ~40s when joining the two tables, or ~6s when using "WHERE trace_id IN (id1, id2, ...)".
+	traceIDPlaceholders := sql.ValuesPlaceholders(1 /* =valuesPerRow */, len(traceIDs))
+
+	statement := `WITH
 DigestsCountsAndMostRecent AS (
   SELECT digest, count(*) as occurrences, max(commit_id) as recent FROM TraceValues
-  JOIN TracesOfInterest ON TraceValues.trace_id = TracesOfInterest.trace_id
-  WHERE commit_id >= $2
+  WHERE trace_id IN (` + traceIDPlaceholders + `) AND commit_id >= ` + fmt.Sprintf("$%d", len(traceIDs)+1) + `
   GROUP BY digest
 ),
 MostCommon AS (
@@ -615,8 +625,15 @@ SELECT * FROM MostCommon
 UNION
 SELECT * FROM MostRecent`
 
-	_, groupingID := sql.SerializeMap(grouping)
-	rows, err := w.db.Query(ctx, statement, groupingID, firstCommitID)
+	// Build a list of arguments with the IDs of all traces of interest and the firstCommitID.
+	args := make([]interface{}, 0, len(traceIDs)+1)
+	for _, traceID := range traceIDs {
+		args = append(args, traceID)
+	}
+	args = append(args, firstCommitID)
+
+	// Execute the statement and return the result.
+	rows, err := w.db.Query(ctx, statement, args...)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -630,6 +647,29 @@ SELECT * FROM MostRecent`
 		rv = append(rv, b)
 	}
 	return rv, nil
+}
+
+// findTraceIDsForGrouping returns the trace IDs corresponding to the given grouping.
+func (w *WorkerImpl) findTraceIDsForGrouping(ctx context.Context, grouping paramtools.Params) ([]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "findTraceIDsForGrouping")
+	defer span.End()
+
+	_, groupingID := sql.SerializeMap(grouping)
+	rows, err := w.db.Query(ctx, "SELECT trace_id FROM Traces WHERE grouping_id = $1", groupingID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	var traceIDs []schema.TraceID
+	for rows.Next() {
+		var tid schema.TraceID
+		if err := rows.Scan(&tid); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		traceIDs = append(traceIDs, tid)
+	}
+	return traceIDs, nil
 }
 
 type digestPair struct {
