@@ -161,19 +161,20 @@ func GetSamplesFromLegacyFormat(b *format.BenchData) SamplesSet {
 // the params and then the float for a single value of a trace.
 func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float32) {
 	paramSlice := []paramtools.Params{}
+	keyParams := paramtools.Params(f.Key)
 	measurementSlice := []float32{}
 	for _, result := range f.Results {
-		p := paramtools.Params(f.Key).Copy()
+		p := keyParams.Copy()
 		p.Add(result.Key)
 		if len(result.Measurements) == 0 {
-			paramSlice = append(paramSlice, p)
+			paramSlice = append(paramSlice, query.ForceValid(p))
 			measurementSlice = append(measurementSlice, result.Measurement)
 		} else {
 			for key, measurements := range result.Measurements {
 				for _, measurement := range measurements {
 					singleParam := p.Copy()
 					singleParam[key] = measurement.Value
-					paramSlice = append(paramSlice, singleParam)
+					paramSlice = append(paramSlice, query.ForceValid(singleParam))
 					measurementSlice = append(measurementSlice, measurement.Measurement)
 				}
 			}

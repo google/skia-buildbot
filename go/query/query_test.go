@@ -459,6 +459,10 @@ func TestForceValue(t *testing.T) {
 			want:  map[string]string{"arch": "x86", "config": "5_65"},
 		},
 		{
+			input: map[string]string{"arch": "x86", "config+v": "5+65"},
+			want:  map[string]string{"arch": "x86", "config_v": "5_65"},
+		},
+		{
 			input: map[string]string{"arch": "x86", "config": ""},
 			want:  map[string]string{"arch": "x86", "config": "_"},
 		},

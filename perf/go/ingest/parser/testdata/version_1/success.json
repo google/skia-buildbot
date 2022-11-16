@@ -15,7 +15,7 @@
   "results": [
     {
       "key": {
-        "test": "memory_usage_0_0",
+        "test": "memory+usage_0_0",
         "sub_result": "max_rss_mb"
       },
       "measurement": 858
@@ -24,7 +24,7 @@
       "key": {
         "test": "DeferredSurfaceCopy_discardable_640_480",
         "source_type": "bench",
-        "sub_result": "min_ms"
+        "sub_result": "min+ms"
       },
       "measurements": {
         "config": [
