@@ -17,13 +17,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 
-	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	pubsubUtils "go.skia.org/infra/go/pubsub"
@@ -78,8 +76,6 @@ func new() (baseapp.App, error) {
 	}
 
 	sklog.Infof("AllowList: %s", allowList)
-
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allowed.NewAllowedFromList(allowList))
 
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, *configFlag)

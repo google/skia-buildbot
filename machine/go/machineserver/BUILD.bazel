@@ -7,13 +7,11 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machineserver",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/allowed",
         "//go/alogin",
         "//go/alogin/proxylogin",
         "//go/auditlog",
         "//go/baseapp",
         "//go/httputils",
-        "//go/login",
         "//go/metrics2",
         "//go/now",
         "//go/pubsub",
