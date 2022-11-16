@@ -4,8 +4,12 @@ import (
 	"flag"
 	"path/filepath"
 
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -41,6 +45,24 @@ func main() {
 	}
 
 	// Check out the code.
+	ts, err := git_steps.Init(ctx, *local)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	if !*local {
+		client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		g, err := gerrit.NewGerrit("https://skia-review.googlesource.com", client)
+		if err != nil {
+			td.Fatal(ctx, err)
+		}
+		email, err := g.GetUserEmail(ctx)
+		if err != nil {
+			td.Fatal(ctx, err)
+		}
+		if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
 	repoState, err := checkout.GetRepoState(checkoutFlags)
 	if err != nil {
 		td.Fatal(ctx, err)
