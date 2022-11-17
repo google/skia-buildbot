@@ -1,0 +1,25 @@
+@import '../../themes';
+
+tooltip-sk {
+  position: relative;
+
+  &.hidden {
+    display: none;
+  }
+
+  div {
+    position: absolute;
+    white-space: nowrap;
+    z-index: 10;
+    top: -12px;
+    left: 12px;
+    opacity: 0.75;
+
+    background-color: var(--surface-2dp);
+    color: var(--on-surface);
+
+    padding: 4px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+}

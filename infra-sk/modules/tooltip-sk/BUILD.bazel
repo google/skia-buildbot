@@ -1,0 +1,53 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":tooltip-sk-demo",
+)
+
+sk_element(
+    name = "tooltip-sk",
+    sass_deps = ["//infra-sk:themes_sass_lib"],
+    sass_srcs = ["tooltip-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "tooltip-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "tooltip-sk-demo",
+    html_file = "tooltip-sk-demo.html",
+    scss_entry_point = "tooltip-sk-demo.scss",
+    sk_element_deps = [":tooltip-sk"],
+    ts_entry_point = "tooltip-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "tooltip-sk_puppeteer_test",
+    src = "tooltip-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "tooltip-sk_test",
+    src = "tooltip-sk_test.ts",
+    deps = [
+        ":tooltip-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+    ],
+)

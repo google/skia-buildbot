@@ -18,7 +18,7 @@ fi
 # via the tab key.
 DIR=$(echo $1 | sed 's:/*$::')
 
-ls $DIR/* | entr -r bazelisk run --config=remote //$DIR:demo_page_server
+ls $DIR/* | entr -r bazelisk run --config=mayberemote //$DIR:demo_page_server
 
 # For some reason entr leaves the terminal in a corrupted state after being killed with Ctrl+C. The
 # following commands restore the terminal to a workable state.
