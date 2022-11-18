@@ -47,8 +47,8 @@ export class ClipboardSk extends ElementSk {
   private static template = (ele: ClipboardSk) => html`
   <content-copy-icon-sk
     id=${ele.icon_id}
-    @click=${() => ele.copyToClipboard()}>
-    @mouseleave=${() => ele.restoreToolTipMessage()}
+    @click=${() => ele.copyToClipboard()}
+    @mouseleave=${() => ele.restoreToolTipMessage()}>
   </content-copy-icon-sk>
   <tooltip-sk
     target=${ele.icon_id}

@@ -22,7 +22,8 @@ testjs:
 	$(BAZEL) test --config=mayberemote modules/...
 
 build-am: generate
-	$(BAZEL) build --config=mayberemote //am:alert-manager
+	$(BAZEL) build --config=mayberemote //am/pages/...
+	$(BAZEL) build --config=mayberemote //am/go/alert-manager:alert-manager
 
 release-am: build-am
 	$(BAZEL) run --config=mayberemote //am:push_alert-manager

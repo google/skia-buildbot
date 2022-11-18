@@ -6,7 +6,10 @@ sk_element(
         "//am/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["incident-sk.scss"],
-    sk_element_deps = ["//am/modules/silence-sk"],
+    sk_element_deps = [
+        "//am/modules/silence-sk",
+        "//infra-sk/modules/clipboard-sk",
+    ],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
         "//am/modules/paramset:index_ts_lib",

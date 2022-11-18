@@ -88,35 +88,6 @@ incident-sk {
     border: solid var(--on-background) 1px;
   }
 
-  .small-icon svg {
-    width: 0.9em;
-    height: auto;
-    padding-right: 0.9em;
-  }
-
-  .tooltip {
-    position: relative;
-    display: inline-block;
-  }
-
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    white-space: nowrap;
-    background-color: var(--minimized);
-    color: var(--on-background);
-    text-align: center;
-    border-radius: 0.5em;
-    padding: 0.5em;
-
-    /* Position the tooltip */
-    position: absolute;
-    z-index: 1;
-  }
-
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
-  }
-
   .meta {
     display: flex;
     justify-content: flex-end;
@@ -146,7 +117,6 @@ incident-sk[minimized] .matchingSilences {
 incident-sk[minimized][params] .params {
   display: block;
 }
-
 
 incident-sk[minimized] {
   margin: 1em;

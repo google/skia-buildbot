@@ -53,9 +53,9 @@
  */
 import { define } from 'elements-sk/define';
 import 'elements-sk/icon/alarm-off-icon-sk';
-import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/thumbs-up-down-icon-sk';
+import '../../../infra-sk/modules/clipboard-sk';
 import '../silence-sk';
 
 import { $$ } from 'common-sk/modules/dom';
@@ -206,21 +206,7 @@ export class IncidentSk extends HTMLElement {
 
   private maybeDisplayCopyIcon(k: string): TemplateResult {
     if (PARAMS_TO_DISPLAY_COPY_ICON.includes(k)) {
-      return html`
-      <div class="tooltip">
-        <content-copy-icon-sk
-          class="small-icon clickable"
-          @click=${() => {
-    ($$(`#tooltiptext-${k}`) as HTMLElement).textContent = 'Copied!';
-    navigator.clipboard.writeText(this.state.params[k]);
-  }}
-          @mouseleave=${() => {
-    ($$(`#tooltiptext-${k}`) as HTMLElement).textContent = 'Copy to Clipboard';
-  }}
-        ></content-copy-icon-sk>
-        <span class="tooltiptext" id="tooltiptext-${k}">Copy to Clipboard</span>
-      </div>
-    `;
+      return html`<clipboard-sk value=${this.state.params[k]}></clipboard-sk>`;
     }
     return html``;
   }
