@@ -12,6 +12,7 @@ sk_element(
         "//machine/modules/auto-refresh-sk",
         "//machine/modules/device-editor-sk",
         "//machine/modules/machine-table-columns-dialog-sk",
+        "//infra-sk/modules/clipboard-sk",
     ],
     ts_deps = [
         "//machine/modules/json:index_ts_lib",

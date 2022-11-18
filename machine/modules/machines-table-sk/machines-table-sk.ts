@@ -20,6 +20,7 @@ import {
 } from '../json';
 
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
+import '../../../infra-sk/modules/clipboard-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/block-icon-sk';
 import 'elements-sk/icon/cached-icon-sk';
@@ -647,13 +648,14 @@ export class MachinesTableSk extends ElementSk {
   }
 
   private machineLink(machine: FrontendDescription): TemplateResult {
-    return  html`
+    return html`
       <a
         href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
+
       >
         ${machine.Dimensions!.id}
       </a>
-      <content-copy-icon-sk @click=${() => this.copyToClipboard(machine.Dimensions!.id)}></content-copy-icon-sk>
+      <clipboard-sk value="${machine.Dimensions!.id![0]}"></clipboard-sk>
     `;
   }
 
@@ -663,13 +665,6 @@ export class MachinesTableSk extends ElementSk {
       @input=${(e: InputEvent) => this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
       ${this.attachedDeviceOptions(machine)}
     </select>`;
-  }
-
-  async copyToClipboard(s: string[] | null) {
-    if (!s) {
-      return;
-    }
-    await navigator.clipboard.writeText(s[0]);
   }
 
   sortArrow(fn: compareFunc<FrontendDescription>): TemplateResult {
