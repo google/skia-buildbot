@@ -87,7 +87,7 @@ func (r *Rules) AddAbsentRules(cluster string) {
 				For:   absentAlertForDuration,
 				Labels: map[string]string{
 					"category": "infra",
-					"severify": "critical",
+					"severity": "critical",
 				},
 				Annotations: map[string]string{
 					"abbr":        rule.Alert,

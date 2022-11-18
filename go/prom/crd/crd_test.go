@@ -98,7 +98,7 @@ func TestRules_AddAbsentRules_AlertWithDoubleComparisonIsSkipped(t *testing.T) {
 							For:   absentAlertForDuration,
 							Labels: map[string]string{
 								"category": "infra",
-								"severify": "critical",
+								"severity": "critical",
 							},
 							Annotations: map[string]string{
 								"abbr":        "AndroidIngestLiveness",
@@ -175,7 +175,7 @@ func TestRules_AddAbsentRules_AlertsOnlyAppearInIncludedClusters(t *testing.T) {
 							For:   absentAlertForDuration,
 							Labels: map[string]string{
 								"category": "infra",
-								"severify": "critical",
+								"severity": "critical",
 							},
 							Annotations: map[string]string{
 								"abbr":        "AndroidIngestLiveness",
