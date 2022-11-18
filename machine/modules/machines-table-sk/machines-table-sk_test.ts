@@ -19,6 +19,7 @@ function mockMachinesResponse(param: ListMachinesResponse | Partial<FrontendDesc
 }
 
 const setUpElement = async (): Promise<MachinesTableSk> => {
+  await window.customElements.whenDefined('machines-table-sk');
   fetchMock.reset();
   fetchMock.config.overwriteRoutes = true;
   mockMachinesResponse([
@@ -57,6 +58,31 @@ const setUpElement = async (): Promise<MachinesTableSk> => {
   await fetchMock.flush(true);
 
   return element;
+};
+
+const fillWithTwoMachinesReturnedOutOfOrder = async (element: MachinesTableSk) => {
+  fetchMock.reset();
+  fetchMock.config.overwriteRoutes = true;
+  const machine1 = {
+    Dimensions: {
+      id: ['skia-rpi2-rack4-shelf1-002'],
+    },
+  };
+  const machine2 = {
+    Dimensions: {
+      id: ['skia-rpi2-rack4-shelf1-001'],
+    },
+  };
+
+  mockMachinesResponse([
+    machine1,
+    machine2,
+  ]);
+
+  await element.update();
+
+  // Wait for the initial fetch to finish.
+  await fetchMock.flush(true);
 };
 
 describe('machines-table-sk', () => {
@@ -452,6 +478,19 @@ describe('machines-table-sk', () => {
       assert.isAbove(castFn(b, a), 0, 'sortByPowerCycle');
       assert.equal(castFn(b, b), 0, 'sortByPowerCycle');
       assert.equal(castFn(a, a), 0, 'sortByPowerCycle');
+    });
+  });
+
+  describe('allDisplayedMachineIDs', () => {
+    it('returns machine ids in sorted order', async () => {
+      const s = await setUpElement();
+      await fillWithTwoMachinesReturnedOutOfOrder(s);
+      const ids = await s.allDisplayedMachineIDs();
+      const expected = `skia-rpi2-rack4-shelf1-001
+skia-rpi2-rack4-shelf1-002`;
+
+      // Confirm the ids are in machine id sorted order, which is the default order.
+      assert.equal(ids, expected);
     });
   });
 });

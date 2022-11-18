@@ -294,19 +294,49 @@ class Column {
 
   className: ((machine: FrontendDescription)=> string) | null;
 
-  constructor(name: string, row: (machine: FrontendDescription)=> TemplateResult, compare: compareFunc<FrontendDescription> | null, className: ((machine: FrontendDescription)=> string) | null = null) {
+  computedClipValue: (()=> Promise<string>) | null;
+
+  /** constructor
+   *
+   * name - The displayed name of the column.
+   * row - A function that emits the `td` HTML for each row in this column,
+   * compare - An optional comparison function for sorting based on the values in this column.
+   * className - An optional function to compute the class name to apply to each row's `td`.
+   * computedClipValue - An optional function that computes a value to send to the clipboard. A non-null
+   *    value will cause a clipboard-sk element to be added to the header.
+   */
+  constructor(
+    name: string,
+    row: (machine: FrontendDescription)=> TemplateResult,
+    compare: compareFunc<FrontendDescription> | null,
+    className: ((machine: FrontendDescription)=> string) | null = null,
+    computedClipValue: (()=> Promise<string>) | null = null,
+  ) {
     this.name = name;
     this.row = row;
     this.compare = compare;
     this.className = className;
+    this.computedClipValue = computedClipValue;
   }
 
   // eslint-disable-next-line no-use-before-define
   header(ele: MachinesTableSk): TemplateResult {
-    if (this.compare !== null) {
-      return html`<th>${this.name}&nbsp;${ele.sortArrow(this.compare)}</div></th>`;
+    return html`<th>${this.name}${this.optionalClipboard()}${this.optionalSortArrow(ele)}</div></th>`;
+  }
+
+  // eslint-disable-next-line no-use-before-define
+  optionalSortArrow(ele: MachinesTableSk): TemplateResult {
+    if (this.compare === null) {
+      return html``;
     }
-    return html`<th>${this.name}</th>`;
+    return html`&nbsp;${ele.sortArrow(this.compare)}`;
+  }
+
+  optionalClipboard(): TemplateResult {
+    if (this.computedClipValue === null) {
+      return html``;
+    }
+    return html`&nbsp;<clipboard-sk .calculatedValue=${this.computedClipValue}></clipboard-sk>`;
   }
 
   rowValue(machine: FrontendDescription): TemplateResult {
@@ -361,6 +391,8 @@ export class MachinesTableSk extends ElementSk {
         'Machine',
         this.machineLink.bind(this),
         sortByMachineID,
+        null,
+        this.allDisplayedMachineIDs.bind(this),
       ),
       Attached: new Column(
         'Attached',
@@ -463,11 +495,19 @@ export class MachinesTableSk extends ElementSk {
     };
   }
 
+  async allDisplayedMachineIDs(): Promise<string> {
+    return this.orderedFilteredRows().map((d: FrontendDescription) => d.Dimensions!.id![0]).join('\n');
+  }
+
+  private orderedFilteredRows(): FrontendDescription[] {
+    const ret = this.filterer.matchingValues();
+    ret.sort(this.sortHistory.compare.bind(this.sortHistory));
+    return ret;
+  }
+
   private tableRows(): TemplateResult[] {
-    const values = this.filterer.matchingValues();
-    values.sort(this.sortHistory.compare.bind(this.sortHistory));
     const ret: TemplateResult[] = [];
-    values.forEach((item) => ret.push(html`<tr>${this.tableRow(item)}</tr>`));
+    this.orderedFilteredRows().forEach((item) => ret.push(html`<tr>${this.tableRow(item)}</tr>`));
     return ret;
   }
 
