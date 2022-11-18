@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>clipboard-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body class="body-sk darkmode">
+    <h1>clipboard-sk</h1>
+    <div>
+      Hover over the icon
+      <clipboard-sk value="This gets copied to the clipboard"></clipboard-sk>
+    </div>
+    <h1>calculated clipboard-sk value</h1>
+    <div>
+      The value copied to the clipboard is calculated on the fly.
+      <clipboard-sk
+        id="onthefly"
+        value="This gets changed before copying to the clipboard"
+      ></clipboard-sk>
+    </div>
+  </body>
+</html>

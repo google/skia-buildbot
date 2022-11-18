@@ -1,0 +1,56 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":clipboard-sk-demo",
+)
+
+sk_element(
+    name = "clipboard-sk",
+    sass_srcs = ["clipboard-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/tooltip-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "@npm//common-sk",
+    ],
+    ts_srcs = [
+        "clipboard-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "clipboard-sk-demo",
+    html_file = "clipboard-sk-demo.html",
+    scss_entry_point = "clipboard-sk-demo.scss",
+    sk_element_deps = [":clipboard-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "clipboard-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "clipboard-sk_puppeteer_test",
+    src = "clipboard-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "clipboard-sk_test",
+    src = "clipboard-sk_test.ts",
+    deps = [
+        ":clipboard-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//infra-sk/modules/tooltip-sk",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+    ],
+)

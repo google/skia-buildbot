@@ -36,6 +36,8 @@ export class TooltipSk extends ElementSk {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this._upgradeProperty('value');
+    this._upgradeProperty('target');
     this._render();
     this.hide();
 
@@ -51,7 +53,7 @@ export class TooltipSk extends ElementSk {
     // back to this element. We require an id for this to work, so assign a
     // random id if one hasn't been set.
     if (!this.id) {
-      this.id = `x${Math.random()}`;
+      this.id = `x${`${Math.random()}`.slice(2)}`;
     }
 
     this.connectToTarget();
