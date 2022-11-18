@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "recentschannel",
+    srcs = ["recentschannel.go"],
+    importpath = "go.skia.org/infra/go/recentschannel",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "recentschannel_test",
+    srcs = ["recentschannel_test.go"],
+    embed = [":recentschannel"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

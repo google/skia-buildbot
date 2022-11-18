@@ -117,10 +117,14 @@ type Machine struct {
 
 	// startFoundryBot signifies whether to start the Foundry Bot daemon which runs Bazel RBE tasks.
 	startFoundryBot bool
+
+	// descriptionRetrievalCallback is called whenever a new machine state is pulled from
+	// machineserver. It is passed the new state.
+	descriptionRetrievalCallback func(*Machine)
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine)) (*Machine, error) {
 
 	sink, err := eventSink.New(ctx, local, instanceConfig)
 	if err != nil {
@@ -180,7 +184,18 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		descriptionWatchArrivalCounter: metrics2.GetCounter("test_machine_monitor_description_watch_arrival", map[string]string{"machine": machineID}),
 		startFoundryBot:                startFoundryBot,
 		homeDir:                        homeDir,
+		descriptionRetrievalCallback:   descriptionRetrievalCallback,
 	}, nil
+}
+
+// IsAvailable returns whether this Machine is currently willing to accept new tasks.
+func (m *Machine) IsAvailable() bool {
+	if m == nil {
+		return false
+	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.description.MaintenanceMode == "" && !m.description.IsQuarantined && m.description.Recovering == ""
 }
 
 // interrogate the machine we are running on for state-related information. Compile that into a
@@ -307,6 +322,9 @@ func (m *Machine) retrieveDescription(ctx context.Context) error {
 		return skerr.Wrapf(err, "Failed to decode description from %q", m.machineDescriptionURL)
 	}
 	m.UpdateDescription(desc)
+	if m.descriptionRetrievalCallback != nil {
+		m.descriptionRetrievalCallback(m)
+	}
 	m.descriptionWatchArrivalCounter.Inc(1)
 	return nil
 }

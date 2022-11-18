@@ -14,10 +14,11 @@ go_library(
     deps = [
         "//go/common",
         "//go/pubsub",
+        "//go/recentschannel",
         "//go/sklog",
         "//machine/go/configs",
         "//machine/go/machineserver/config",
-        "//machine/go/test_machine_monitor/foundrybotrunner",
+        "//machine/go/test_machine_monitor/foundrybotcustodian",
         "//machine/go/test_machine_monitor/machine",
         "//machine/go/test_machine_monitor/server",
         "//machine/go/test_machine_monitor/swarming",

@@ -889,11 +889,13 @@ func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(
 		err := json.NewEncoder(w).Encode(desc)
 		require.NoError(t, err)
 	})
+	calledRetrievalCallback := false
 
 	m := &Machine{
 		client:                         client,
 		machineDescriptionURL:          u.String(),
 		descriptionWatchArrivalCounter: metrics2.GetCounter("bot_config_machine_description_watch_arrival", map[string]string{"machine": machineID}),
+		descriptionRetrievalCallback:   func(*Machine) { calledRetrievalCallback = true },
 	}
 	m.descriptionWatchArrivalCounter.Reset()
 
@@ -901,6 +903,7 @@ func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(
 	require.NoError(t, err)
 	require.Equal(t, u.Path, capturedRequest.URL.Path)
 	require.True(t, *called)
+	require.True(t, calledRetrievalCallback)
 	require.Equal(t, desc, m.description)
 	require.Equal(t, int64(1), m.descriptionWatchArrivalCounter.Get())
 }
@@ -977,4 +980,20 @@ func TestInterrogate_ForceQuarantineFileExists_ReturnsEventWithForceQuarantineTr
 	event, err := m.interrogate(context.Background())
 	require.NoError(t, err)
 	require.True(t, event.ForcedQuarantine)
+}
+
+func TestIsAvailable_NilMachine_ReturnsFalse(t *testing.T) {
+	var m *Machine
+	require.False(t, m.IsAvailable())
+}
+
+func TestIsAvailable_AvailableMachine_ReturnsTrue(t *testing.T) {
+	m := &Machine{
+		description: rpc.FrontendDescription{
+			MaintenanceMode: "",
+			IsQuarantined:   false,
+			Recovering:      "",
+		},
+	}
+	require.True(t, m.IsAvailable())
 }

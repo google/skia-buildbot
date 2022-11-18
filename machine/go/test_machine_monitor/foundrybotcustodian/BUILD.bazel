@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "foundrybotcustodian",
+    srcs = ["foundrybotcustodian.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/foundrybotcustodian",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/metrics2",
+        "//go/recentschannel",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "foundrybotcustodian_test",
+    srcs = ["foundrybotcustodian_test.go"],
+    embed = [":foundrybotcustodian"],
+    deps = [
+        "//go/executil",
+        "//go/recentschannel",
+        "@com_github_stretchr_testify//require",
+    ],
+)

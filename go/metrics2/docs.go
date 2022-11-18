@@ -26,7 +26,7 @@ should be your primary mode of interacting with metrics.
 
 Metrics2 provides a few typed metrics helpers which behave similarly to
 go_metrics.GetOrRegisterGauge: once registered, the metric contains a single
-value which are reported at regular intervals.  The value can be changed by
+value which is reported at regular intervals.  The value can be changed by
 calling Update() on the Metric. The metrics are stored in a sort of registry
 so that you don’t need to keep the object around and can just do:
 metrics2.GetInt64Metric(metric, tags).Update(value).

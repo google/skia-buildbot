@@ -14,3 +14,11 @@ func GetFloat64Metric(measurement string, tags ...map[string]string) Float64Metr
 func GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric {
 	return defaultClient.GetFloat64SummaryMetric(measurement, tags...)
 }
+
+// Convert a bool so it can be represented using an Int64Metric.
+func BoolToInt(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
+}

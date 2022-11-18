@@ -5,7 +5,7 @@
 // If any presubmits fail, there will be errors logged to stdout and the exit code will be non-zero.
 //
 // This should be invoked from the root of the repo via Bazel like
-//   bazel run //cmd/presubmit
+//	 bazel run //cmd/presubmit
 // See presubmit.sh for a helper that pipes in the correct value for repo_dir.
 package main
 
@@ -314,7 +314,7 @@ type fileWithChanges struct {
 func (f fileWithChanges) String() string {
 	rv := f.fileName + "\n"
 	for _, line := range f.touchedLines {
-		rv += "  " + line.String() + "\n"
+		rv += "	 " + line.String() + "\n"
 	}
 	return rv
 }
@@ -489,8 +489,22 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 		{regex: regexp.MustCompile(`http\.Head`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`http\.Post`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`http\.PostForm`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
-		{regex: regexp.MustCompile(`os\.Interrupt`), suggestion: "AtExit in go.skia.org/go/cleanup"},
-		{regex: regexp.MustCompile(`signal\.Notify`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`os\.Interrupt`),
+			suggestion: "AtExit in go.skia.org/go/cleanup",
+			exceptions: []*regexp.Regexp{
+				// These are mocks which specifically need to listen for interrupts because that's
+				// what the process we're mocking does. There is also one spot that sends a SIGINT
+				// to gracefully shut down a Foundry Bot child process.
+				regexp.MustCompile(`machine/go/test_machine_monitor/foundrybotcustodian/.*\.go`),
+			},
+		},
+		{regex: regexp.MustCompile(`signal\.Notify`), suggestion: "AtExit in go.skia.org/go/cleanup",
+			exceptions: []*regexp.Regexp{
+				// This is a mock which specifically needs to listen for a SIGINT because that's
+				// what the process we're mocking does.
+				regexp.MustCompile(`machine/go/test_machine_monitor/foundrybotcustodian/.*_test\.go`),
+			},
+		},
 		{regex: regexp.MustCompile(`syscall\.SIGINT`), suggestion: "AtExit in go.skia.org/go/cleanup"},
 		{regex: regexp.MustCompile(`syscall\.SIGTERM`), suggestion: "AtExit in go.skia.org/go/cleanup"},
 		{regex: regexp.MustCompile(`syncmap\.Map`), suggestion: "sync.Map, added in go 1.9"},
@@ -501,20 +515,20 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 			exceptions: []*regexp.Regexp{
 				// These don't actually shell out to git; the tests look for "git" in the
 				// command line and mock stdout accordingly.
-				regexp.MustCompile(`autoroll/go/repo_manager/.*_test.go`),
+				regexp.MustCompile(`autoroll/go/repo_manager/.*_test\.go`),
 				// This doesn't shell out to git; it's referring to a CIPD package with
 				// the same name.
-				regexp.MustCompile(`infra/bots/gen_tasks.go`),
+				regexp.MustCompile(`infra/bots/gen_tasks\.go`),
 				// This doesn't shell out to git; it retrieves the path to the Git binary
 				// in the corresponding Bazel-downloaded CIPD packages.
-				regexp.MustCompile(`bazel/external/cipd/git/git.go`),
+				regexp.MustCompile(`bazel/external/cipd/git/git\.go`),
 				// Our presubmits invoke git directly because git is a necessary
 				// executable for all devs, and we do not want our presubmit code to
 				// depend on the code it is checking.
 				regexp.MustCompile(`cmd/presubmit/.*`),
 				// This is the one place where we are allowed to shell out to git; all
 				// others should go through here.
-				regexp.MustCompile(`go/git/git_common/.*.go`),
+				regexp.MustCompile(`go/git/git_common/.*\.go`),
 			},
 		},
 	}
