@@ -115,13 +115,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		next.IsQuarantined = true
 	}
 
-	// Set the Quarantined dimension in Swarming.
-	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags())
-	if machine.SetSwarmingQuarantinedMessage(&next) {
-		quarantinedMetric.Update(1)
-	} else {
-		quarantinedMetric.Update(0)
-	}
+	_ = machine.SetSwarmingQuarantinedMessage(&next)
+	setQuarantineMetrics(next)
 
 	return next
 }
@@ -137,6 +132,36 @@ func (p *ProcessorImpl) processEvent(ctx context.Context, previous machine.Descr
 		return processStandaloneEvent(ctx, previous, event)
 	}
 	return processMissingDeviceEvent(ctx, previous, event)
+}
+
+var (
+	maintenanceTag = map[string]string{"state": "Maintenance"}
+	quarantineTag  = map[string]string{"state": "Quarantined"}
+	recoveringTag  = map[string]string{"state": "Recovering"}
+)
+
+// Reflects MaintenanceMode, Quarantined, and Recovering into metrics.
+func setQuarantineMetrics(d machine.Description) {
+	m := metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), maintenanceTag)
+	if d.InMaintenanceMode() {
+		m.Update(1)
+	} else {
+		m.Update(0)
+	}
+
+	m = metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), quarantineTag)
+	if d.IsQuarantined {
+		m.Update(1)
+	} else {
+		m.Update(0)
+	}
+
+	m = metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), recoveringTag)
+	if d.IsRecovering() {
+		m.Update(1)
+	} else {
+		m.Update(0)
+	}
 }
 
 func processAndroidEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {

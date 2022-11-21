@@ -325,7 +325,6 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 
 	assert.Equal(t, expected, next.Dimensions)
 	assert.NotEmpty(t, next.MaintenanceMode)
-	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -394,8 +393,6 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		LastUpdated:        serverTime,
 		Battery:            machine.BadBatteryLevel,
 	}, next)
-
-	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
@@ -1268,4 +1265,79 @@ func TestProcessAndroidEvent_PowerCycleAfterRunningTest(t *testing.T) {
 	t.Run("NotPreviousPowerCycleThenNextPowerCycle_PreviousAndEventNoRunnigSwarming", func(t *testing.T) {
 		shouldPowerCycle(t, prevPowerCycleFalse, prevRunningSwarmingFalse, eventRunningSwarmingFalse, expectedNextPowerCycleFalse)
 	})
+}
+
+func TestProcessorImpl_setQuarantineMetrics(t *testing.T) {
+
+	tests := []struct {
+		name                string
+		desc                machine.Description
+		expectedMaintenance int64
+		expectedRecovering  int64
+		expectedQuarantined int64
+	}{
+		{
+			name: "Machine is available",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  0,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Manually put into maintenance mode.",
+			desc: machine.Description{
+				MaintenanceMode: "alice@example.com",
+				Recovering:      "",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 1,
+			expectedRecovering:  0,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Machine is recovering",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "Too hot.",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  1,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Machine was quarantined by failing an infra step",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "",
+				IsQuarantined:   true,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  0,
+			expectedQuarantined: 1,
+		},
+		{
+			name: "Machine has multiple reasons for being quarantined",
+			desc: machine.Description{
+				MaintenanceMode: "bob@example.com",
+				Recovering:      "Low charge.",
+				IsQuarantined:   true,
+			},
+			expectedMaintenance: 1,
+			expectedRecovering:  1,
+			expectedQuarantined: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setQuarantineMetrics(tt.desc)
+			require.Equal(t, tt.expectedMaintenance, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), maintenanceTag).Get())
+			require.Equal(t, tt.expectedRecovering, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), recoveringTag).Get())
+			require.Equal(t, tt.expectedQuarantined, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), quarantineTag).Get())
+		})
+	}
 }
