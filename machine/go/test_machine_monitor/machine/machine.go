@@ -462,11 +462,13 @@ func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, e
 	}
 	ret.DeviceType = deviceType
 
-	if osVersion, err := m.ios.OSVersion(ctx); err != nil {
-		sklog.Warningf("Failed to read iOS version, though we managed to read the device type: %s", err)
-	} else {
-		ret.OSVersion = osVersion
+	// Since osVersion ends up as part of the Dimensions for the machine, like
+	// DeviceType, a failure here can't be ignored.
+	osVersion, err := m.ios.OSVersion(ctx)
+	if err != nil {
+		return ret, skerr.Wrapf(err, "reading iOS version")
 	}
+	ret.OSVersion = osVersion
 
 	battery, err := m.ios.BatteryLevel(ctx)
 	if err != nil {

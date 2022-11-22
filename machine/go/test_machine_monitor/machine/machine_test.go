@@ -264,16 +264,7 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 	}, actual)
 }
 
-// Just make sure it can get into tryInterrogatingIOSDevice(), and test success while we're at it.
-// Tests that call tryInterrogatingIOSDevice() directly cover the other cases.
-func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
-	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
-		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
-		"Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel",
-	)
-
-	timePlaceholder := time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC)
+func goodIOSInterrogationResult(timePlaceholder time.Time) (*Machine, machine.Event) {
 	m := &Machine{
 		adb:              adb.New(),
 		ios:              ios.New(),
@@ -287,9 +278,7 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 			AttachedDevice: machine.AttachedDeviceIOS,
 		},
 	}
-	actual, err := m.interrogate(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, machine.Event{
+	expected := machine.Event{
 		EventType:           machine.EventTypeRawState,
 		LaunchedSwarming:    true,
 		RunningSwarmingTask: true,
@@ -303,23 +292,50 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 			DeviceType: iOSDeviceTypePlaceholder,
 			Battery:    33,
 		},
-	}, actual)
+	}
+	return m, expected
 }
 
-func TestTryInterrogatingIOSDevice_OSVersionAndBatteryFail_StillSucceeds(t *testing.T) {
+// Just make sure it can get into tryInterrogatingIOSDevice(), and test success while we're at it.
+// Tests that call tryInterrogatingIOSDevice() directly cover the other cases.
+func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
+		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
+		"Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel",
+	)
+
+	timePlaceholder := time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC)
+	m, expected := goodIOSInterrogationResult(timePlaceholder)
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestInterrogate_IOSDeviceAttachedButBatteryCallFails_StillSuccess(t *testing.T) {
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
+		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
+		"Test_FakeExe_ExitCodeOne", // battery level fails
+	)
+
+	timePlaceholder := time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC)
+	m, expected := goodIOSInterrogationResult(timePlaceholder)
+	expected.IOS.Battery = machine.BadBatteryLevel // Battery value should reflect failure.
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestTryInterrogatingIOSDevice_OSVersionFails_Fails(t *testing.T) {
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_ExitCodeOne", // OS version check goes kaboom.
-		"Test_FakeExe_ExitCodeOne", // battery level too
+		"Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel",
 	)
 	m := &Machine{ios: ios.New()}
-	actual, err := m.tryInterrogatingIOSDevice(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, machine.IOS{
-		OSVersion:  "",
-		DeviceType: iOSDeviceTypePlaceholder,
-		Battery:    machine.BadBatteryLevel,
-	}, actual)
+	_, err := m.tryInterrogatingIOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t *testing.T) {
