@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "loggingtracer",
+    srcs = ["loggingtracer.go"],
+    importpath = "go.skia.org/infra/go/tracing/loggingtracer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "loggingtracer_test",
+    srcs = ["loggingtracer_test.go"],
+    embed = [":loggingtracer"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@io_opencensus_go//trace",
+    ],
+)
