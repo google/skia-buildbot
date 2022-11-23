@@ -197,7 +197,7 @@ export class IncidentSk extends HTMLElement {
       <tr>
         <th>${k}</th>
         <td>
-          ${linkify(params[k])}
+          <span class="respect-newlines">${linkify(params[k])}</span>
           ${this.maybeDisplayCopyIcon(k)}
         </td>
       </tr>

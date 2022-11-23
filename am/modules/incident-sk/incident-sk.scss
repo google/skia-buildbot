@@ -26,6 +26,10 @@ incident-sk {
     padding: 0.4em;
   }
 
+  span.respect-newlines {
+    white-space: pre-line;
+  }
+
   td {
     text-align: left;
   }
