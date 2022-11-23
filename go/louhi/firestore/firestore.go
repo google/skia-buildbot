@@ -98,6 +98,7 @@ func (db *FirestoreDB) GetLatestFlowExecutions(ctx context.Context) (map[string]
 		// Iterate over the executions of this flow in most-recent-first order
 		// until we find one which has finished.
 		execIter := doc.Collection(collectionExecutions).OrderBy("CreatedAt", fs.Desc).Documents(ctx)
+		defer execIter.Stop()
 		var fe *louhi.FlowExecution
 		for {
 			doc, err := execIter.Next()

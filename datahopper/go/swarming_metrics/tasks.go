@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARMING_TASKS = "swarming_task_events"
-	STREAM_SWARMING_TASKS_TMPL = "swarming-tasks-%s"
+	MEASUREMENT_SWARMING_TASKS_TMPL = "swarming_task_events_%s"
+	STREAM_SWARMING_TASKS_TMPL      = "swarming-tasks-%s"
 )
 
 var (
@@ -432,7 +432,7 @@ func setupMetrics(ctx context.Context, btProject, btInstance, pool string, ts oa
 	if err != nil {
 		return nil, nil, err
 	}
-	em, err := events.NewEventMetrics(edb, MEASUREMENT_SWARMING_TASKS)
+	em, err := events.NewEventMetrics(edb, fmt.Sprintf(MEASUREMENT_SWARMING_TASKS_TMPL, pool))
 	if err != nil {
 		return nil, nil, err
 	}

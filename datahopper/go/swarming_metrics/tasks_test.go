@@ -225,7 +225,7 @@ func TestMetrics(t *testing.T) {
 				tags[k] = ""
 			}
 		}
-		mx := metrics2.GetFloat64Metric(MEASUREMENT_SWARMING_TASKS, tags)
+		mx := metrics2.GetFloat64Metric(fmt.Sprintf(MEASUREMENT_SWARMING_TASKS_TMPL, "Skia"), tags)
 		require.NotNil(t, mx)
 		require.Equal(t, expect, mx.Get())
 	}

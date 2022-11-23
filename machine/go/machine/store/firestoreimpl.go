@@ -194,6 +194,7 @@ func (st *FirestoreImpl) ListPowerCycle(ctx context.Context) ([]string, error) {
 	st.listPowerCycleCounter.Inc(1)
 	ret := []string{}
 	iter := st.machinesCollection.Where("PowerCycle", "==", true).Documents(ctx)
+	defer iter.Stop()
 	for {
 		snap, err := iter.Next()
 		if err == iterator.Done {
@@ -221,6 +222,7 @@ func (st *FirestoreImpl) List(ctx context.Context) ([]machine.Description, error
 	st.listCounter.Inc(1)
 	ret := []machine.Description{}
 	iter := st.machinesCollection.Documents(ctx)
+	defer iter.Stop()
 	for {
 		snap, err := iter.Next()
 		if err == iterator.Done {
