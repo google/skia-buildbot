@@ -47,6 +47,7 @@ go_test(
         "//machine/go/test_machine_monitor/ios",
         "//machine/go/test_machine_monitor/ssh",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

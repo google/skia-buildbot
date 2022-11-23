@@ -2,7 +2,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -22,8 +21,9 @@ const (
 
 // Server is the core functionality of test_machine_monitor.
 type Server struct {
-	r       *mux.Router
-	machine *machine.Machine
+	r                      *mux.Router
+	machine                *machine.Machine
+	triggerInterrogationCh chan<- bool
 
 	getStateRequests             metrics2.Counter
 	getStateRequestsSuccess      metrics2.Counter
@@ -36,11 +36,12 @@ type Server struct {
 }
 
 // New returns a new instance of Server.
-func New(m *machine.Machine) (*Server, error) {
+func New(m *machine.Machine, triggerInterrogationCh chan<- bool) (*Server, error) {
 	r := mux.NewRouter()
 	ret := &Server{
-		r:       r,
-		machine: m,
+		r:                      r,
+		machine:                m,
+		triggerInterrogationCh: triggerInterrogationCh,
 
 		getStateRequests:             metrics2.GetCounter("bot_config_server_get_state_requests", map[string]string{"machine": m.MachineID}),
 		getStateRequestsSuccess:      metrics2.GetCounter("bot_config_server_get_state_requests_success", map[string]string{"machine": m.MachineID}),
@@ -181,9 +182,19 @@ func (s *Server) onAfterTask(_ http.ResponseWriter, r *http.Request) {
 	s.onAfterTaskSuccess.Inc(1)
 	// Don't use r.Context() here as that seems to get cancelled by Swarming
 	// pretty quickly.
-	if err := s.machine.RebootDevice(context.Background()); err != nil {
-		sklog.Warningf("Failed to reboot device: %s", err)
-	}
+
+	// Do this in a Go routine so as we can return from this HTTP handler
+	// quickly.
+	go func() {
+		defer metrics2.FuncTimer().Stop()
+		// Do the reboot first so that the device will be ready
+		// when doing the interrogation.
+		if err := s.machine.RebootDevice(r.Context()); err != nil {
+			sklog.Warningf("Failed to reboot device: %s", err)
+		}
+		s.triggerInterrogationCh <- true
+	}()
+
 }
 
 // Start the http server. This function never returns.

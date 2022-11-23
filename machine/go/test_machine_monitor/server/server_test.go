@@ -18,7 +18,7 @@ import (
 func TestGetSettings_Success(t *testing.T) {
 
 	r := httptest.NewRequest("GET", "/get_settings", nil)
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
 
@@ -40,7 +40,7 @@ func TestGetState_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("{\"foo\":\"bar\"}"))
 
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
 
@@ -61,7 +61,7 @@ func TestGetState_ErrOnInvalidJSON(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("This is not valid JSON"))
 
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
 
@@ -75,7 +75,7 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/get_settings", strings.NewReader("{\"foo\": [\"bar\"]}"))
 
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	s.machine.UpdateDescription(rpc.FrontendDescription{
 		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}},
@@ -101,7 +101,7 @@ func TestOnBeginTask_Success(t *testing.T) {
 
 	r := httptest.NewRequest("GET", "/on_begin_task", nil)
 
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	require.False(t, s.machine.IsRunningSwarmingTask())
 	s.onBeforeTaskSuccess.Reset()
@@ -122,7 +122,7 @@ func TestOnAfterTask_Success(t *testing.T) {
 
 	r := httptest.NewRequest("GET", "/on_after_task", nil)
 
-	s, err := New(&botmachine.Machine{})
+	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	s.machine.SetIsRunningSwarmingTask(true)
 	require.True(t, s.machine.IsRunningSwarmingTask())

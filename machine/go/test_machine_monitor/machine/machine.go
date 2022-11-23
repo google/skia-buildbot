@@ -121,10 +121,13 @@ type Machine struct {
 	// descriptionRetrievalCallback is called whenever a new machine state is pulled from
 	// machineserver. It is passed the new state.
 	descriptionRetrievalCallback func(*Machine)
+
+	// This channel emits a value if a round of interrogation must take place immediately.
+	triggerInterrogationCh <-chan bool
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine)) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine), triggerInterrogationCh <-chan bool) (*Machine, error) {
 
 	sink, err := eventSink.New(ctx, local, instanceConfig)
 	if err != nil {
@@ -185,6 +188,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		startFoundryBot:                startFoundryBot,
 		homeDir:                        homeDir,
 		descriptionRetrievalCallback:   descriptionRetrievalCallback,
+		triggerInterrogationCh:         triggerInterrogationCh,
 	}, nil
 }
 
@@ -271,6 +275,7 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		// for example, if an Android device is missing, and that's a fatal
 		// error.
 		sklog.Errorf("Failed to interrogate: %s", err)
+		m.interrogateAndSendFailures.Inc(1)
 	}
 	if err := m.eventSink.Send(ctx, event); err != nil {
 		return skerr.Wrapf(err, "Failed to send interrogation step.")
@@ -299,12 +304,18 @@ func (m *Machine) Start(ctx context.Context) error {
 // Start a loop that scans for local devices and sends pubsub events with all
 // the data every 30s.
 func (m *Machine) startInterrogateLoop(ctx context.Context) {
-	util.RepeatCtx(ctx, interrogateDuration, func(ctx context.Context) {
-		if err := m.interrogateAndSend(ctx); err != nil {
-			m.interrogateAndSendFailures.Inc(1)
-			sklog.Errorf("interrogateAndSend failed: %s", err)
+	timer := time.NewTicker(interrogateDuration)
+	defer timer.Stop()
+	for {
+		select {
+		case <-m.triggerInterrogationCh:
+			_ = m.interrogateAndSend(ctx)
+		case <-timer.C:
+			_ = m.interrogateAndSend(ctx)
+		case <-ctx.Done():
+			return
 		}
-	})
+	}
 }
 
 // retrieveDescription stores and updates the machine Description in m.description.

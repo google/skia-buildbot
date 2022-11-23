@@ -19,6 +19,12 @@ import (
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 )
 
+const (
+	// Make the triggerInterrogation channel buffered so we don't lag responding
+	// to HTTP requests from the Swarming bot.
+	interrogationChannelSize = 10
+)
+
 // flags
 var (
 	configFlag         = flag.String("config", "prod.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
@@ -71,7 +77,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-	machineState, err := machine.New(ctx, *local, instanceConfig, Version, *startSwarming, *machineServerHost, *startFoundryBot, reportAvailability)
+	triggerInterrogationCh := make(chan bool, interrogationChannelSize)
+	machineState, err := machine.New(ctx, *local, instanceConfig, Version, *startSwarming, *machineServerHost, *startFoundryBot, reportAvailability, triggerInterrogationCh)
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}
@@ -80,7 +87,7 @@ func main() {
 	}
 
 	sklog.Infof("Starting the server.")
-	machineSwarmingServer, err := server.New(machineState)
+	machineSwarmingServer, err := server.New(machineState, triggerInterrogationCh)
 	if err != nil {
 		sklog.Fatal(err)
 	}

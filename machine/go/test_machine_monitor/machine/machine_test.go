@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/httputils"
@@ -572,12 +573,13 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 
 	// Create a Machine instance.
 	m := &Machine{
-		eventSink:        eventSink,
-		startTime:        start,
-		description:      rpc.ToFrontendDescription(desc),
-		adb:              adb.New(),
-		interrogateTimer: metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
-		MachineID:        "my-test-bot-001",
+		eventSink:                  eventSink,
+		startTime:                  start,
+		description:                rpc.ToFrontendDescription(desc),
+		adb:                        adb.New(),
+		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
+		interrogateAndSendFailures: metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": "my-test-bot-001"}),
+		MachineID:                  "my-test-bot-001",
 	}
 
 	ctx = executil.WithFakeTests(ctx,
@@ -588,6 +590,49 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 	err := m.interrogateAndSend(ctx)
 	require.NoError(t, err)
 	eventSink.AssertExpectations(t)
+}
+
+func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *testing.T) {
+	ctx := context.Background()
+
+	// Successful calls for a single loop of interrogating an ADB device.
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_AdbGetState_Success",
+		"Test_FakeExe_AdbShellGetUptime_Success",
+		"Test_FakeExe_AdbShellGetProp_Success",
+		"Test_FakeExe_RawDumpSys_Success",
+		"Test_FakeExe_RawDumpSys_Success",
+	)
+	cancelCtx, cancel := context.WithCancel(ctx)
+
+	// Other tests confirm the value being sent is valid, in this case we just
+	// want to cancel the context so the startInterrogateLoop exits.
+	eventSink := sinkMocks.NewSink(t)
+	eventSink.On("Send", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+		cancel()
+	}).Return(nil)
+
+	desc := machine.NewDescription(ctx)
+	desc.AttachedDevice = machine.AttachedDeviceAdb
+
+	// Create a Machine instance.
+	triggerInterrogationCh := make(chan bool, 1)
+	m := &Machine{
+		eventSink:              eventSink,
+		description:            rpc.ToFrontendDescription(desc),
+		adb:                    adb.New(),
+		interrogateTimer:       metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
+		MachineID:              "my-test-bot-001",
+		triggerInterrogationCh: triggerInterrogationCh,
+	}
+
+	// trigger an interrogation right away.
+	triggerInterrogationCh <- true
+
+	m.startInterrogateLoop(cancelCtx)
+
+	// The test will fail by timeout if startInterrogateLoop fails to exit on
+	// context cancellation.
 }
 
 func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
