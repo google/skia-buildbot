@@ -1,0 +1,31 @@
+- name: Install lighttpd
+  become: true
+  apt:
+    pkg:
+      - lighttpd
+      - rsync
+
+- name: Copy over lighttpd config file.
+  become: true
+  template:
+    src: templates/lighttpd.conf
+    dest: /etc/lighttpd/lighttpd.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name:
+    Create /home/chrome-bot/www directory, which is where lighttpd will serve
+    files from.
+  file:
+    path: /home/chrome-bot/www
+    state: directory
+    owner: chrome-bot
+    mode: 0755
+
+- name: restart lighttpd
+  become: true
+  systemd:
+    enabled: true
+    state: restarted
+    name: lighttpd

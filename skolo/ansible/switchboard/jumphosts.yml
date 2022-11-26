@@ -15,6 +15,7 @@
     - copy_authorized_keys
     - copy_service_account_key
     - install_collectd
+    - jumphost-lighttpd
     - role: install_metadata_server
       metadata_server_ansible_version:
         '{{ metadata_server_ansible_version_override }}'

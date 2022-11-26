@@ -1,4 +1,6 @@
-- name: Delete Swarming startup script if running test_machine_monitor with --start_swarming.
+- name:
+    Delete Swarming startup script if running test_machine_monitor with
+    --start_swarming.
   win_file:
     path:
       "{{ ansible_env.APPDATA }}\\Microsoft\\Windows\\Start
@@ -12,11 +14,13 @@
     state: directory
 
 - name: Copy over executable.
-  copy:
-    src:
-      "{{ get_ansible_binaries_directory.path }}/build/{{
-      ansible_facts['system'] }}/{{ ansible_facts['architecture']
-      }}/test_machine_monitor"
+  win_get_url:
+    # Not the trailing dot on domain name: `metadata.`, this is important for
+    # windows to look up the DNS name of the jumphost.
+    url:
+      "http://metadata.:{{ all.jumphost_file_server
+      }}/test_machine_monitor/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/test_machine_monitor"
     # Note we copy it to "...2.exe" which is then moved to "test_machine_monitor.exe"
     # by the PowerShell script.
     dest: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor2.exe"
@@ -58,7 +62,9 @@
     # ISO 8601 Duration format for no limit.
     execution_time_limit: PT0S
 
-- name: Allow test_machine_monitor to accept connections (needed for Prometheus to scrape metrics).
+- name:
+    Allow test_machine_monitor to accept connections (needed for Prometheus to
+    scrape metrics).
   community.windows.win_firewall_rule:
     name: test_machine_monitor.exe
     program: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor.exe"

@@ -10,6 +10,14 @@
     get_ansible_binaries_application: test_machine_monitor
     get_ansible_binaries_version: '{{ test_machine_monitor_version }}'
 
+- name: Copy test_machine_monitor exe's to lighttpd dir on every jumphosts.
+  delegate_to: 127.0.0.1
+  run_once: true
+  command:
+    'rsync -r {{ get_ansible_binaries_directory.path }}/build chrome-bot@{{ item
+    }}:/home/chrome-bot/www'
+  loop: "{{groups['jumphosts']}}"
+
 - name: Install startup job for Linux.
   import_tasks: linux.yml
   when: ansible_facts['system']|lower == 'linux'

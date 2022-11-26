@@ -1,11 +1,16 @@
 - name: Copy over executable.
   become: true
-  copy:
-    src:
-      "{{ get_ansible_binaries_directory.path }}/build/{{
-      ansible_facts['system'] }}/{{ ansible_facts['architecture']
-      }}/test_machine_monitor"
+  get_url:
+    url:
+      "http://metadata:{{ all.jumphost_file_server
+      }}/test_machine_monitor/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
+
+- name: Set test_machine_monitor permissions.
+  become: true
+  file:
+    path: /usr/local/bin/test_machine_monitor
     owner: root
     group: root
     mode: 0755
@@ -40,6 +45,6 @@
   systemd:
     enabled: true
     # Do not force a restart, we'll just pick up the new version on reboot.
-    state: started
+    state: restarted
     name: test_machine_monitor
     daemon_reload: true

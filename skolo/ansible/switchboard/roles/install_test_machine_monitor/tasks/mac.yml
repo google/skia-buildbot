@@ -1,11 +1,16 @@
 - name: Copy over executable.
   become: true
-  copy:
-    src:
-      "{{ get_ansible_binaries_directory.path }}/build/{{
-      ansible_facts['system'] }}/{{ ansible_facts['architecture']
-      }}/test_machine_monitor"
+  get_url:
+    url:
+      "http://metadata:{{ all.jumphost_file_server
+      }}/test_machine_monitor/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
+
+- name: Set test_machine_monitor permissions.
+  become: true
+  file:
+    path: /usr/local/bin/test_machine_monitor
     owner: root
     group: wheel
     mode: 0755
@@ -30,9 +35,7 @@
 
 - name: Install test_machine_monitor.
   vars:
-    launch_agents_folder:
-      ~{{ skolo_account
-      }}/Library/LaunchAgents
+    launch_agents_folder: ~{{ skolo_account }}/Library/LaunchAgents
     tmm_launch_plist:
       '{{ launch_agents_folder }}/com.google.skia.test_machine_monitor.plist'
   block:
