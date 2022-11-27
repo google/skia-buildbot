@@ -90,6 +90,12 @@ func (err *ErrorWithContext) Error() string {
 	return out.String()
 }
 
+// Unwrap allows unwrapping an error as implemented in the `errors` standard
+// library.
+func (err *ErrorWithContext) Unwrap() error {
+	return err.Wrapped
+}
+
 func tryCast(err error) (*ErrorWithContext, bool) {
 	if wrapper, ok := err.(*ErrorWithContext); ok {
 		return wrapper, true

@@ -1,7 +1,10 @@
 package skerr_test
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -68,4 +71,27 @@ func TestWrapfAppend(t *testing.T) {
 	}
 	err := beta_test.Context2(callback)
 	require.Regexp(t, `When walking the dog: When searching for 35 trees: Dog lost interest\. At skerr_test\.go:\d+ beta.go:30 beta.go:38 skerr_test\.go:\d+.*`, err.Error())
+}
+
+func TestErrorWithContextUnwrap_ErrorIsWrapped_UnwrapReturnsNextErrorInTheChain(t *testing.T) {
+	wrappedEOF := skerr.Wrap(io.EOF)
+	require.Equal(t, errors.Unwrap(wrappedEOF), io.EOF)
+}
+
+func TestErrorWithContextUnwrap_ErrorIsWrapped_IsFindsCorrectErrorInTheChain(t *testing.T) {
+	wrappedEOF := skerr.Wrap(io.EOF)
+	require.True(t, errors.Is(wrappedEOF, io.EOF))
+}
+
+func TestErrorWithContextUnwrap_ErrorIsWrapped_AsExtractsCorrectErrorInTheChain(t *testing.T) {
+	// Create an error that's interesting to unwrap.
+	err := &json.SyntaxError{
+		Offset: 32,
+	}
+	wrappedEOF := skerr.Wrapf(err, "decode JSON")
+
+	// Use As to extract the Syntax error.
+	var syntaxError *json.SyntaxError
+	require.True(t, errors.As(wrappedEOF, &syntaxError))
+	require.Equal(t, int64(32), syntaxError.Offset)
 }
