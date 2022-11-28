@@ -57,10 +57,15 @@
           "name": "skia/bots/bazelisk",
           "path": "bazelisk",
           "version": "version:0"
+        },
+        {
+          "name": "skia/tools/presubmit/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:34cc81bb5351394a3576a5125b309b85e39add4f"
         }
       ],
       "command": [
-        "./presubmit",
+        "./task_drivers/presubmit",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -83,9 +88,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",

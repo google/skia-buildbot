@@ -175,6 +175,9 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		ServiceAccount: compileServiceAccount,
 		MaxAttempts:    1,
 	}
+	// To iterate on the presubmit task driver, comment out the
+	// call to usePreBuiltTaskDrivers.
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	b.MustAddTask(name, t)
 	return name

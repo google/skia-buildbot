@@ -208,4 +208,9 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/tools/goldctl/${platform}",
 		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
 	},
+	"skia/tools/presubmit/${platform}": {
+		Path:    "task_drivers",
+		Name:    "skia/tools/presubmit/${platform}",
+		Version: "git_revision:34cc81bb5351394a3576a5125b309b85e39add4f",
+	},
 }
