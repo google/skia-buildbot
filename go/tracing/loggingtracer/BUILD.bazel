@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/go/tracing/loggingtracer",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/now",
         "//go/sklog",
         "@io_opencensus_go//trace",
     ],
@@ -17,6 +18,7 @@ go_test(
     srcs = ["loggingtracer_test.go"],
     embed = [":loggingtracer"],
     deps = [
+        "//go/now",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@io_opencensus_go//trace",
