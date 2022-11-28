@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/web"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
@@ -59,6 +60,10 @@ func main() {
 		sklog.Fatalf("Reading config: %s", err)
 	}
 	sklog.Infof("Loaded config %#v", bsc)
+
+	if err := tracing.Initialize(0.1, bsc.SQLDatabaseName); err != nil {
+		sklog.Fatalf("Could not initialize tracing: %s", err)
+	}
 
 	// Set up the logging options.
 	logOpts := []common.Opt{

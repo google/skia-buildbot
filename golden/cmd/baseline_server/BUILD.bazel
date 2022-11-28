@@ -14,6 +14,7 @@ go_library(
         "//golden/go/config",
         "//golden/go/sql",
         "//golden/go/storage",
+        "//golden/go/tracing",
         "//golden/go/web",
         "//golden/go/web/frontend",
         "@com_github_gorilla_mux//:mux",
