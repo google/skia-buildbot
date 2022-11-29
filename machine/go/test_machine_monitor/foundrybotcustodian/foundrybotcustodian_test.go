@@ -5,13 +5,13 @@ import (
 	"errors"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/recentschannel"
+	"go.skia.org/infra/go/testutils"
 )
 
 // launchTimeout is how long we're willing to wait for a process to spin up.
@@ -39,12 +39,6 @@ func Test_FakeExe_FoundryBot_RunsForever(t *testing.T) {
 	time.Sleep(2 * launchTimeout)
 }
 
-func testBinary(t *testing.T) string {
-	executable, err := os.Executable()
-	require.NoError(t, err)
-	return executable
-}
-
 func TestStart_RelaunchesIfProcessExits(t *testing.T) {
 	// This also tests the initial launch.
 	ctx, cancel := context.WithCancel(executil.FakeTestsContext("Test_FakeExe_FoundryBot_ExitsWithZero",
@@ -52,7 +46,7 @@ func TestStart_RelaunchesIfProcessExits(t *testing.T) {
 	defer cancel()
 	wantFoundryBotUpCh := recentschannel.New[bool](1)
 	wantFoundryBotUpCh.Send(true)
-	require.NoError(t, Start(ctx, testBinary(t), "ignored", wantFoundryBotUpCh))
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh))
 	require.Eventually(t, func() bool {
 		return executil.FakeCommandsReturned(ctx) >= 2
 	}, launchTimeout, launchTimeout/10, "Foundry Bot never got relaunched after exiting.")
@@ -63,10 +57,10 @@ func TestBotPath_DoesntFindFoundryBot_ReturnsError(t *testing.T) {
 	require.Contains(t, err.Error(), "Foundry Bot not found")
 }
 
-func gracefulStopTempFile(t *testing.T) string {
-	executable, err := os.Executable()
-	require.NoError(t, err)
-	return filepath.Join(filepath.Dir(executable), "TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse.temp")
+// flagFileForProcessStartAndInterrupt returns the path to the file through which we synchronize the
+// fake Foundry Bot process with the test harness.
+func flagFileForProcessStartAndInterrupt(t *testing.T) string {
+	return testutils.FlagPath(t, "foundryBotStartAndInterrupt.temp")
 }
 
 // Test_FakeExe_FoundryBot_RunsUntilInterruptAndMakesFlagFile pretends to be a Foundry Bot which
@@ -80,8 +74,8 @@ func Test_FakeExe_FoundryBot_RunsUntilInterruptAndMakesFlagFile(t *testing.T) {
 	require.Contains(t, executil.OriginalArgs(), "session")
 
 	// Make flag file.
-	tempPath := gracefulStopTempFile(t)
-	file, err := os.Create(tempPath)
+	flag := flagFileForProcessStartAndInterrupt(t)
+	file, err := os.Create(flag)
 	require.NoError(t, err)
 	require.NoError(t, file.Close())
 
@@ -91,7 +85,7 @@ func Test_FakeExe_FoundryBot_RunsUntilInterruptAndMakesFlagFile(t *testing.T) {
 	timeout := time.NewTicker(launchTimeout)
 	select {
 	case <-interrupt:
-		require.NoError(t, os.Remove(tempPath))
+		require.NoError(t, os.Remove(flag))
 	case <-timeout.C:
 		// Let the file leak. If under Bazel, it's in a temp dir anyway.
 	}
@@ -103,17 +97,16 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 	wantFoundryBotUpCh := recentschannel.New[bool](1)
 	wantFoundryBotUpCh.Send(true)
 	ctx := executil.FakeTestsContext("Test_FakeExe_FoundryBot_RunsUntilInterruptAndMakesFlagFile")
-	require.NoError(t, Start(ctx, testBinary(t), "ignored", wantFoundryBotUpCh))
-	tempPath := gracefulStopTempFile(t)
+	flag := flagFileForProcessStartAndInterrupt(t)
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh))
 
-	// Wait until TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse.temp exists, showing the
-	// process is up.
+	// Wait until foundryBotStartAndInterrupt.temp exists, showing the process is up.
 	//
 	// Using the FS (relative to the test executable) as a place to rendezvous and also a
 	// synchronization mechanism lets us avoid shoehorning extra channels, mutexes, and struct-level
 	// vars into the implementation just to give visibility to tests.
 	require.Eventually(t, func() bool {
-		_, err := os.Stat(tempPath)
+		_, err := os.Stat(flag)
 		return err == nil
 	}, launchTimeout, launchTimeout/10, "Foundry Bot process never came up.")
 
@@ -122,7 +115,7 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 
 	// Wait until temp file disappears, indicating the process has received the requisite SIGINT.
 	require.Eventually(t, func() bool {
-		_, err := os.Stat(tempPath)
+		_, err := os.Stat(flag)
 		return errors.Is(err, os.ErrNotExist)
 	}, launchTimeout, launchTimeout/10, "Foundry Bot process never caught SIGINT.")
 }

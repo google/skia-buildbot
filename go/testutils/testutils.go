@@ -206,3 +206,24 @@ func SetUpFakeHomeDir(t sktest.TestingT, tempDirPattern string) {
 		util.RemoveAll(fakeHome)
 	})
 }
+
+// Executable returns the filesystem path to the binary running the current test, panicking on
+// failure.
+func Executable(t sktest.TestingT) string {
+	executable, err := os.Executable()
+	require.NoError(t, err)
+	return executable
+}
+
+// FlagPath returns the path to a temp file for use as a synchronization flag between the test
+// runner and a mocked-out subprocess launched by tested code; see go/flag-files. It lives next to
+// the test executable and has the specified name, which should contain the name of the test for
+// uniqueness across concurrent tests. It also asserts the absence of said file as a safety measure
+// against leftover files from earlier runs—admittedly unlikely given "go test"'s and Bazel's
+// proclivity for running everything in temp dirs.
+func FlagPath(t sktest.TestingT, fileName string) string {
+	path := filepath.Join(filepath.Dir(Executable(t)), fileName)
+	_, err := os.Stat(path)
+	require.True(t, errors.Is(err, os.ErrNotExist), fmt.Sprintf("Flag file %s existed before it was expected.", fileName))
+	return path
+}
