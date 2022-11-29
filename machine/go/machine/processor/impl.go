@@ -171,7 +171,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	maintenanceMessages := []string{}
 
 	shouldPowerCycle := false
-	if (previous.RunningSwarmingTask && !event.RunningSwarmingTask) || previous.PowerCycle {
+	if previous.PowerCycle {
 		shouldPowerCycle = true
 	}
 

@@ -1229,42 +1229,22 @@ const (
 	expectedNextPowerCycleTrue  = true
 )
 
-func shouldPowerCycle(t *testing.T, previousPowerCycle, previousRunningSwarming, eventRunningSwarming, nextPowerCycle bool) {
+func TestProcessAndroidEvent_PowerCycled_PowerCycleRetained(t *testing.T) {
 	ctx := context.Background()
 	previous := machine.NewDescription(ctx)
-	previous.PowerCycle = previousPowerCycle
-	previous.RunningSwarmingTask = previousRunningSwarming
-	event := androidEvent(eventRunningSwarming)
+	previous.PowerCycle = true
+	event := androidEvent(false)
 	next := processAndroidEvent(ctx, previous, event)
-	assert.Equal(t, next.RunningSwarmingTask, eventRunningSwarming, "next.RunningSwarmingTask")
-	assert.Equal(t, next.PowerCycle, nextPowerCycle, "next.PowerCycle")
+	assert.True(t, next.PowerCycle)
 }
 
-func TestProcessAndroidEvent_PowerCycleAfterRunningTest(t *testing.T) {
-	t.Run("IfPreviousPowerCycleThenNextPowerCycle", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleTrue, prevRunningSwarmingTrue, eventRunnignSwarmingTrue, expectedNextPowerCycleTrue)
-	})
-	t.Run("IfPreviousPowerCycleThenNextPowerCycle_PreviousNotRunningSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleTrue, prevRunningSwarmingFalse, eventRunnignSwarmingTrue, expectedNextPowerCycleTrue)
-	})
-	t.Run("IfPreviousPowerCycleThenNextPowerCycle_EventNotRunningSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleTrue, prevRunningSwarmingTrue, eventRunningSwarmingFalse, expectedNextPowerCycleTrue)
-	})
-	t.Run("IfPreviousPowerCycleThenNextPowerCycle_PreviousAndEventNoRunnigSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleTrue, prevRunningSwarmingFalse, eventRunningSwarmingFalse, expectedNextPowerCycleTrue)
-	})
-	t.Run("NotPreviousPowerCycleThenNextPowerCycle", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleFalse, prevRunningSwarmingTrue, eventRunnignSwarmingTrue, expectedNextPowerCycleFalse)
-	})
-	t.Run("NotPreviousPowerCycleThenNextPowerCycle_PreviousNotRunningSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleFalse, prevRunningSwarmingFalse, eventRunnignSwarmingTrue, expectedNextPowerCycleFalse)
-	})
-	t.Run("NotPreviousPowerCycleThenNextPowerCycle_EventNotRunningSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleFalse, prevRunningSwarmingTrue, eventRunningSwarmingFalse, expectedNextPowerCycleTrue)
-	})
-	t.Run("NotPreviousPowerCycleThenNextPowerCycle_PreviousAndEventNoRunnigSwarming", func(t *testing.T) {
-		shouldPowerCycle(t, prevPowerCycleFalse, prevRunningSwarmingFalse, eventRunningSwarmingFalse, expectedNextPowerCycleFalse)
-	})
+func TestProcessAndroidEvent_NotPowerCycled_NotPowerCycleRetained(t *testing.T) {
+	ctx := context.Background()
+	previous := machine.NewDescription(ctx)
+	previous.PowerCycle = false
+	event := androidEvent(false)
+	next := processAndroidEvent(ctx, previous, event)
+	assert.False(t, next.PowerCycle)
 }
 
 func TestProcessorImpl_setQuarantineMetrics(t *testing.T) {
