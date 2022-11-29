@@ -5,6 +5,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"sort"
@@ -13,12 +14,6 @@ import (
 	"github.com/Jeffail/gabs/v2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-)
-
-const (
-	probersFilename = "probersk.json"
-
-	envoyFilename = "envoy-starter.json"
 )
 
 var (
@@ -30,8 +25,12 @@ var (
 )
 
 func main() {
+	probersFilename := flag.String("probers-file", "probersk.json", "Path to the probers file.")
+	envoyFilename := flag.String("envoy-file", "envoy-starter.json", "Path to the envoy starter file.")
+	flag.Parse()
+
 	// Load the existing probers file.
-	probers, err := gabs.ParseJSONFile(probersFilename)
+	probers, err := gabs.ParseJSONFile(*probersFilename)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -47,7 +46,7 @@ func main() {
 	}
 
 	// Load the envoy config file.
-	redirects, err := gabs.ParseJSONFile(envoyFilename)
+	redirects, err := gabs.ParseJSONFile(*envoyFilename)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -85,7 +84,7 @@ func main() {
 	}
 
 	// Rewrite the probers file.
-	if err := ioutil.WriteFile(probersFilename, []byte(probers.StringIndent("", "  ")), 0644); err != nil {
+	if err := ioutil.WriteFile(*probersFilename, []byte(probers.StringIndent("", "  ")), 0644); err != nil {
 		sklog.Fatal(err)
 	}
 }
