@@ -1916,6 +1916,7 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	statement := `WITH
 PrimaryBranchExps AS (
 	SELECT grouping_id, digest, label FROM Expectations
+	AS OF SYSTEM TIME '-0.1s'
 	WHERE label = 'n' OR label = 'p'
 )`
 	var args []interface{}
@@ -1923,7 +1924,8 @@ PrimaryBranchExps AS (
 		span.AddAttributes(trace.StringAttribute("type", "primary"))
 		statement += `
 SELECT Groupings.keys ->> 'name', encode(digest, 'hex'), label FROM PrimaryBranchExps
-JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id`
+JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id
+AS OF SYSTEM TIME '-0.1s'`
 	} else {
 		span.AddAttributes(
 			trace.StringAttribute("type", "changelist"),
@@ -1933,6 +1935,7 @@ JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id`
 		statement += `,
 CLExps AS (
 	SELECT grouping_id, digest, label FROM SecondaryBranchExpectations
+	AS OF SYSTEM TIME '-0.1s'
 	WHERE branch_name = $1
 ),
 JoinedExps AS (
@@ -1942,9 +1945,11 @@ JoinedExps AS (
     FROM CLExps FULL OUTER JOIN PrimaryBranchExps ON
 		CLExps.grouping_id = PrimaryBranchExps.grouping_id
 		AND CLExps.digest = PrimaryBranchExps.digest
+	AS OF SYSTEM TIME '-0.1s'
 )
 SELECT Groupings.keys ->> 'name', encode(digest, 'hex'), label FROM JoinedExps
 JOIN Groupings ON JoinedExps.grouping_id = Groupings.grouping_id
+AS OF SYSTEM TIME '-0.1s'
 WHERE label = 'n' OR label = 'p'`
 		args = append(args, qCLID)
 	}
