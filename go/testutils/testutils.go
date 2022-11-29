@@ -224,6 +224,6 @@ func Executable(t sktest.TestingT) string {
 func FlagPath(t sktest.TestingT, fileName string) string {
 	path := filepath.Join(filepath.Dir(Executable(t)), fileName)
 	_, err := os.Stat(path)
-	require.True(t, errors.Is(err, os.ErrNotExist), fmt.Sprintf("Flag file %s existed before it was expected.", fileName))
+	require.True(t, errors.Is(err, os.ErrNotExist), "Flag file %s existed before it was expected.", fileName)
 	return path
 }
