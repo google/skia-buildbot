@@ -1925,7 +1925,10 @@ PrimaryBranchExps AS (
 SELECT Groupings.keys ->> 'name', encode(digest, 'hex'), label FROM PrimaryBranchExps
 JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id`
 	} else {
-		span.AddAttributes(trace.StringAttribute("type", "changelist"))
+		span.AddAttributes(
+			trace.StringAttribute("type", "changelist"),
+			trace.StringAttribute("crs", crs),
+			trace.StringAttribute("clID", clID))
 		qCLID := sql.Qualify(crs, clID)
 		statement += `,
 CLExps AS (
