@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cas",
+    srcs = ["cas.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/cas",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/common",
+        "//go/skerr",
+        "//task_driver/go/td",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

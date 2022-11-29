@@ -75,7 +75,7 @@ func main() {
 	td.StepText(ctx, "Canary roll doc", "https://goto.google.com/autoroller-canary-bots")
 
 	// Instantiate Gerrit.
-	client, err := auth_steps.InitHttpClient(ctx, *local, gerrit.AuthScope)
+	client, _, err := auth_steps.InitHttpClient(ctx, *local, gerrit.AuthScope)
 	if err != nil {
 		td.Fatal(ctx, skerr.Wrap(err))
 	}

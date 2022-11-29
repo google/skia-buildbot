@@ -34,10 +34,10 @@ func HttpClient(ctx context.Context, ts oauth2.TokenSource) *http.Client {
 	return td.HttpClient(ctx, httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client())
 }
 
-func InitHttpClient(ctx context.Context, local bool, scopes ...string) (*http.Client, error) {
+func InitHttpClient(ctx context.Context, local bool, scopes ...string) (*http.Client, oauth2.TokenSource, error) {
 	ts, err := Init(ctx, local, scopes...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return HttpClient(ctx, ts), nil
+	return HttpClient(ctx, ts), ts, nil
 }

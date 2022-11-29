@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cipd",
+    srcs = ["cipd.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/cipd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cipd",
+        "//go/common",
+        "//go/skerr",
+        "//task_driver/go/td",
+    ],
+)
