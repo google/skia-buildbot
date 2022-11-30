@@ -5,8 +5,5 @@ go_library(
     srcs = ["source.go"],
     importpath = "go.skia.org/infra/machine/go/machine/event/source",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/skerr",
-        "//machine/go/machine",
-    ],
+    deps = ["//machine/go/machine"],
 )

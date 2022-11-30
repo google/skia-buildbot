@@ -29,8 +29,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	sklog.Infof("Sink started for topic: %q", topic.String())
 	return &SinkImpl{
 		topic:       topic,
-		sendSuccess: metrics2.GetCounter(SendSuccessMetricName, map[string]string{"type": "pubsub"}),
-		sendFailure: metrics2.GetCounter(SendFailureMetricName, map[string]string{"type": "pubsub"}),
+		sendSuccess: metrics2.GetCounter("machine_sink_send_success"),
+		sendFailure: metrics2.GetCounter("machine_sink_send_failure"),
 	}, nil
 }
 

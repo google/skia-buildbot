@@ -11,13 +11,11 @@ const (
 	APIPrefix = "/json/v1"
 
 	MachineDescriptionRelativeURL    = "/machine/description/{id:.+}"
-	MachineEventRelativeURL          = "/machine/event/"
 	PowerCycleListRelativeURL        = "/powercycle/list"
 	PowerCycleCompleteRelativeURL    = "/powercycle/complete/{id:.+}"
 	PowerCycleStateUpdateRelativeURL = "/powercycle/state/update"
 
 	MachineDescriptionURL    = APIPrefix + MachineDescriptionRelativeURL
-	MachineEventURL          = APIPrefix + MachineEventRelativeURL
 	PowerCycleListURL        = APIPrefix + PowerCycleListRelativeURL
 	PowerCycleCompleteURL    = APIPrefix + PowerCycleCompleteRelativeURL
 	PowerCycleStateUpdateURL = APIPrefix + PowerCycleStateUpdateRelativeURL
