@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -142,6 +143,7 @@ func main() {
 		if err := eg.Wait(); err != nil {
 			td.Fatal(ctx, err)
 		}
+		sort.Sort(PrivacySandboxVersionSlice(vars.PrivacySandboxVersions))
 	}
 	b, err := json.MarshalIndent(vars, "", "  ")
 	if err != nil {
@@ -243,6 +245,51 @@ type PrivacySandboxVersion struct {
 	PylTargetPath string `json:"PylTargetPath"`
 	CipdPackage   string `json:"CipdPackage"`
 	CipdTag       string `json:"CipdTag"`
+}
+
+// PrivacySandboxVersionSlice implements sort.Interface.
+type PrivacySandboxVersionSlice []*PrivacySandboxVersion
+
+// Len implements sort.Interface.
+func (s PrivacySandboxVersionSlice) Len() int {
+	return len(s)
+}
+
+func sortHelper(a, b string) (bool, bool) {
+	if a != b {
+		return true, a < b
+	}
+	return false, false
+}
+
+// Less implements sort.Interface.
+func (s PrivacySandboxVersionSlice) Less(i, j int) bool {
+	a := s[i]
+	b := s[j]
+	if diff, less := sortHelper(a.BranchName, b.BranchName); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.Ref, b.Ref); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.CipdPackage, b.CipdPackage); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.CipdTag, b.CipdTag); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.PylFile, b.PylFile); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.PylTargetPath, b.PylTargetPath); diff {
+		return less
+	}
+	return false
+}
+
+// Swap implements sort.Interface.
+func (s PrivacySandboxVersionSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 type TemplateVars struct {
