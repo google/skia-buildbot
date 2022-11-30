@@ -31,6 +31,8 @@ import (
 	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine"
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
+	"go.skia.org/infra/machine/go/machine/event/source"
+	"go.skia.org/infra/machine/go/machine/event/source/httpsource"
 	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
@@ -51,6 +53,7 @@ type server struct {
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
 	changeSink        changeSink.Sink
+	httpSource        httpsource.HTTPSource
 	login             alogin.Login
 }
 
@@ -93,10 +96,21 @@ func new() (baseapp.App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	eventSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
+
+	// Listen on both pubsub and http sources, until we are fully migrated over
+	// to HTTP sources.
+	pubsubSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
+	httpSource, err := httpsource.New()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	eventSource := source.NewMultiSource(httpSource, pubsubSource)
+
 	eventCh, err := eventSource.Start(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to start pubsubsource.")
@@ -125,6 +139,7 @@ func new() (baseapp.App, error) {
 		store:      store,
 		changeSink: changeSink,
 		login:      proxylogin.NewWithDefaults(),
+		httpSource: *httpSource,
 	}
 	s.loadTemplates()
 	return s, nil
@@ -579,6 +594,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	apiURLs := r.PathPrefix(rpc.APIPrefix).Subrouter()
 	apiURLs.HandleFunc(rpc.PowerCycleCompleteRelativeURL, s.apiPowerCycleCompleteHandler).Methods("POST")
 	apiURLs.HandleFunc(rpc.PowerCycleStateUpdateRelativeURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
+	apiURLs.Handle(rpc.MachineEventRelativeURL, &s.httpSource)
 
 	if !*baseapp.Local {
 		apiURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))

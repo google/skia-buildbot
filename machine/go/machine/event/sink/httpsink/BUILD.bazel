@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "httpsink",
+    srcs = ["httpsink.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/event/sink/httpsink",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//machine/go/machine",
+        "//machine/go/machine/event/sink",
+        "//machine/go/machineserver/rpc",
+    ],
+)
+
+go_test(
+    name = "httpsink_test",
+    srcs = ["httpsink_test.go"],
+    embed = [":httpsink"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//machine/go/machine",
+        "@com_github_stretchr_testify//require",
+    ],
+)

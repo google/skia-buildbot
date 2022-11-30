@@ -3,6 +3,9 @@ include ../make/bazel.mk
 build:
 	$(BAZEL) build --config=mayberemote //machine/...
 
+test:
+	$(BAZEL) test --config=mayberemote //machine/...
+
 generate:
 	go generate ./go/...
 

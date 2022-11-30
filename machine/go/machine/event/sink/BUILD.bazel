@@ -22,9 +22,13 @@ go_library(
 
 go_test(
     name = "sink_test",
-    srcs = ["impl_manual_test.go"],
+    srcs = [
+        "impl_manual_test.go",
+        "sink_test.go",
+    ],
     embed = [":sink"],
     deps = [
+        "//go/deepequal/assertdeep",
         "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/config",

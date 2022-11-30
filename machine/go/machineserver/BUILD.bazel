@@ -21,6 +21,8 @@ go_library(
         "//machine/go/configs",
         "//machine/go/machine",
         "//machine/go/machine/change/sink",
+        "//machine/go/machine/event/source",
+        "//machine/go/machine/event/source/httpsource",
         "//machine/go/machine/event/source/pubsubsource",
         "//machine/go/machine/processor",
         "//machine/go/machine/store",

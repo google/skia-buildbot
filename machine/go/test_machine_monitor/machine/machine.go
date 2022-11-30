@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 	changeSource "go.skia.org/infra/machine/go/machine/change/source"
 	eventSink "go.skia.org/infra/machine/go/machine/event/sink"
+	"go.skia.org/infra/machine/go/machine/event/sink/httpsink"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
@@ -129,11 +130,6 @@ type Machine struct {
 // New return an instance of *Machine.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine), triggerInterrogationCh <-chan bool) (*Machine, error) {
 
-	sink, err := eventSink.New(ctx, local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
-	}
-
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
@@ -163,6 +159,18 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	}
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
+
+	// For now send machine.Event's to both sinks so that we can migrate between
+	// the two methods of sending events.
+	httpSink, err := httpsink.NewFromClient(httpClient, "https://machines.skia.org")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
+	}
+	pubsubSink, err := eventSink.New(ctx, local, instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
+	}
+	sink := eventSink.NewMultiSink(httpSink, pubsubSink)
 
 	changeSource, err := changeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
 	if err != nil {
