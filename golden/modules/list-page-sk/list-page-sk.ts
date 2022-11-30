@@ -37,6 +37,11 @@ const searchQuery = (corpus: string, query: string): string => {
   return `source_type=${corpus}, \n${query.split('&').join(',\n')}`;
 };
 
+/** We extend TestSummary with the test name to facilitate sorting with SortToggleSk. */
+interface TestSummaryWithTestName extends TestSummary {
+  name: string
+}
+
 export class ListPageSk extends ElementSk {
   private static template = (ele: ListPageSk) => html`
     <div>
@@ -79,7 +84,7 @@ export class ListPageSk extends ElementSk {
     <query-dialog-sk @edit=${ele.currentQueryChanged}></query-dialog-sk>
   `;
 
-  private static testRow = (row: TestSummary, ele: ListPageSk) => {
+  private static testRow = (row: TestSummaryWithTestName, ele: ListPageSk) => {
     interface MakeSearchCriteriaOpts {
       positive: boolean;
       negative: boolean;
@@ -168,7 +173,7 @@ export class ListPageSk extends ElementSk {
 
   private disregardIgnoreRules = false;
 
-  private byTestCounts: TestSummary[] = [];
+  private byTestCounts: TestSummaryWithTestName[] = [];
 
   private readonly stateChanged: ()=> void;
 
@@ -246,11 +251,13 @@ export class ListPageSk extends ElementSk {
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((response: ListTestsResponse) => {
-        this.byTestCounts = response.tests || [];
+        this.byTestCounts = response.tests
+          ? response.tests.map((test: TestSummary) => ({ ...test, name: test.grouping.name }))
+          : [];
         this._render();
           // By default, sort the data by name in ascending order (to match the direction set
           // above).
-          $$<SortToggleSk<TestSummary>>('#sort_table', this)!.sort('name', 'up');
+          $$<SortToggleSk<TestSummaryWithTestName>>('#sort_table', this)!.sort('name', 'up');
           sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'list'));

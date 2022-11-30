@@ -210,7 +210,7 @@ export interface IgnoresResponse {
 }
 
 export interface TestSummary {
-	name: TestName;
+	grouping: Params;
 	positive_digests: number;
 	negative_digests: number;
 	untriaged_digests: number;

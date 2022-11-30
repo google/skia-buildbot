@@ -337,11 +337,11 @@ func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
 
 // TestSummary summarizes the digest count for a given test (and a series of search params).
 type TestSummary struct {
-	Name             types.TestName `json:"name"`
-	PositiveDigests  int            `json:"positive_digests"`
-	NegativeDigests  int            `json:"negative_digests"`
-	UntriagedDigests int            `json:"untriaged_digests"`
-	TotalDigests     int            `json:"total_digests"`
+	Grouping         paramtools.Params `json:"grouping"`
+	PositiveDigests  int               `json:"positive_digests"`
+	NegativeDigests  int               `json:"negative_digests"`
+	UntriagedDigests int               `json:"untriaged_digests"`
+	TotalDigests     int               `json:"total_digests"`
 }
 
 // ListTestsResponse is the response for /json/v1/list.

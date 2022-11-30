@@ -6570,14 +6570,20 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 	assert.Equal(t, frontend.ListTestsResponse{
 		Tests: []frontend.TestSummary{
 			{
-				Name:             dks.SquareTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
 				PositiveDigests:  4,
 				NegativeDigests:  0,
 				UntriagedDigests: 0,
 				TotalDigests:     4,
 			},
 			{
-				Name:             dks.TriangleTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
 				PositiveDigests:  2,
 				NegativeDigests:  0,
 				UntriagedDigests: 0,
@@ -6593,7 +6599,10 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 	assert.Equal(t, frontend.ListTestsResponse{
 		Tests: []frontend.TestSummary{
 			{
-				Name:             dks.CircleTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
 				PositiveDigests:  2,
 				NegativeDigests:  0,
 				UntriagedDigests: 3,
@@ -6617,14 +6626,20 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 	assert.Equal(t, frontend.ListTestsResponse{
 		Tests: []frontend.TestSummary{
 			{
-				Name:             dks.SquareTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
 				PositiveDigests:  4,
 				NegativeDigests:  1, // This was on an ignored trace.
 				UntriagedDigests: 0,
 				TotalDigests:     5,
 			},
 			{
-				Name:             dks.TriangleTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
 				PositiveDigests:  2,
 				NegativeDigests:  0,
 				UntriagedDigests: 0,
@@ -6641,7 +6656,10 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 	assert.Equal(t, frontend.ListTestsResponse{
 		Tests: []frontend.TestSummary{
 			{
-				Name:            dks.CircleTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.RoundCorpus,
+					types.PrimaryKeyField: dks.CircleTest,
+				},
 				PositiveDigests: 2,
 				NegativeDigests: 0,
 				// The ignored trace produced the same value as another, already counted trace,
@@ -6670,14 +6688,20 @@ func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
 	assert.Equal(t, frontend.ListTestsResponse{
 		Tests: []frontend.TestSummary{
 			{
-				Name:             dks.SquareTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.SquareTest,
+				},
 				PositiveDigests:  3,
 				NegativeDigests:  0,
 				UntriagedDigests: 0,
 				TotalDigests:     3,
 			},
 			{
-				Name:             dks.TriangleTest,
+				Grouping: paramtools.Params{
+					types.CorpusField:     dks.CornersCorpus,
+					types.PrimaryKeyField: dks.TriangleTest,
+				},
 				PositiveDigests:  2,
 				NegativeDigests:  0,
 				UntriagedDigests: 0,

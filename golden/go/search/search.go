@@ -3840,12 +3840,14 @@ OldestCommitInWindow AS (
 	}
 	statement += digestsStatement
 	statement += `DigestsWithLabels AS (
-	SELECT test_name, label, DigestsOfInterest.digest
-	FROM DigestsOfInterest JOIN Expectations ON DigestsOfInterest.grouping_id = Expectations.grouping_id
-		AND DigestsOfInterest.digest = Expectations.digest
+	SELECT Groupings.grouping_id, Groupings.keys AS grouping, label, DigestsOfInterest.digest
+	FROM DigestsOfInterest
+	JOIN Expectations ON DigestsOfInterest.grouping_id = Expectations.grouping_id
+	                     AND DigestsOfInterest.digest = Expectations.digest
+	JOIN Groupings ON DigestsOfInterest.grouping_id = Groupings.grouping_id
 )
-SELECT test_name, label, COUNT(digest) FROM DigestsWithLabels
-GROUP BY test_name, label ORDER BY test_name`
+SELECT encode(grouping_id, 'hex'), grouping, label, COUNT(digest) FROM DigestsWithLabels
+GROUP BY grouping_id, grouping, label ORDER BY grouping->>'name'`
 
 	arguments := []interface{}{s.windowLength}
 	arguments = append(arguments, digestsArgs...)
@@ -3858,16 +3860,19 @@ GROUP BY test_name, label ORDER BY test_name`
 	}
 	defer rows.Close()
 	var currentSummary *frontend.TestSummary
+	var currentSummaryGroupingID string
 	var summaries []*frontend.TestSummary
 	for rows.Next() {
-		var name types.TestName
+		var groupingID string
+		var grouping paramtools.Params
 		var label schema.ExpectationLabel
 		var count int
-		if err := rows.Scan(&name, &label, &count); err != nil {
+		if err := rows.Scan(&groupingID, &grouping, &label, &count); err != nil {
 			return frontend.ListTestsResponse{}, skerr.Wrap(err)
 		}
-		if currentSummary == nil || currentSummary.Name != name {
-			currentSummary = &frontend.TestSummary{Name: name}
+		if currentSummary == nil || currentSummaryGroupingID != groupingID {
+			currentSummary = &frontend.TestSummary{Grouping: grouping}
+			currentSummaryGroupingID = groupingID
 			summaries = append(summaries, currentSummary)
 		}
 		if label == schema.LabelNegative {
