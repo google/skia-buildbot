@@ -1,5 +1,7 @@
+import { HintableObject } from 'common-sk/modules/hintable';
 import { fromObject } from 'common-sk/modules/query';
 import { Params } from './rpc_types';
+import { SearchCriteria, SearchCriteriaToHintableObject } from './search-controls-sk/search-controls-sk';
 
 /**
  * Takes a URL-encoded search query and returns that query with newlines between each of the
@@ -80,6 +82,34 @@ export function diffPageHref(
     + `&left=${left}&right=${right}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
+  }
+  return u;
+}
+
+/**
+ * Returns a link to the cluster page for the given grouping and search criteria.
+ *
+ * Note that this function clears the search criteria's left-hand trace filter before constructing
+ * the link.
+ *
+ * @param grouping Grouping.
+ * @param searchCriteria Search criteria.
+ * @param clID CL ID. Optional, omit or use empty string for master branch.
+ * @param crs Code review system. Optional, omit or use empty string for master branch.
+ */
+export function clusterPageHref(
+  grouping: Params,
+  searchCriteria: Partial<SearchCriteria>,
+  clID = '',
+  crs = '',
+): string {
+  const searchCriteriaHintableObject = SearchCriteriaToHintableObject(searchCriteria);
+  searchCriteriaHintableObject.left_filter = '';
+  const u = `${'/cluster?'
+    + `grouping=${encodeURIComponent(fromObject(grouping))}&`}${
+    fromObject(searchCriteriaHintableObject as HintableObject)}`;
+  if (clID) {
+    return `${u}&changeListID=${clID}&crs=${crs}`;
   }
   return u;
 }

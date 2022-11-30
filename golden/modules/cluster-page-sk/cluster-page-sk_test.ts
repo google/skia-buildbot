@@ -33,7 +33,7 @@ describe('cluster-page-sk', () => {
     });
     // Clear out any query params we might have to not mess with our current state.
     // This page always requires a grouping to be set.
-    setQueryString('?grouping=some-test');
+    setQueryString('?grouping=name%3Dsome-test%26source_type%3Dinfra');
 
     // These are the default RPC calls when the page loads.
     fetchMock.get(
@@ -101,22 +101,33 @@ describe('cluster-page-sk', () => {
         + '&source_type=infra&unt=false',
     clusterDiffJSON);
     await clusterPageSkPO.searchControlsSkPO.clickIncludeDigestsNotAtHeadCheckbox();
-    expectQueryStringToEqual('?corpus=infra&grouping=some-test&max_rgba=255&not_at_head=true');
+    expectQueryStringToEqual('?corpus=infra'
+        + '&grouping=name%3Dsome-test%26source_type%3Dinfra&max_rgba=255&not_at_head=true');
   });
 
   it('makes an RPC for details when the selection is changed to one digest', async () => {
-    fetchMock.get('/json/v2/details?corpus=infra'
-      + `&digest=${positiveDigest}&test=some-test`, {
-      'these-details': 'do not matter for this test',
+    fetchMock.post('/json/v2/details', (url, opts) => {
+      expect(opts.body).to.equal(
+        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`,
+      );
+      return {
+        status: 200,
+        body: { 'these-details': 'do not matter for this test' },
+      };
     });
 
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
   });
 
   it('makes an RPC for a diff when the selection is changed to two digests', async () => {
-    fetchMock.get('/json/v2/details?corpus=infra'
-        + `&digest=${positiveDigest}&test=some-test`, {
-      'these-details': 'do not matter for this test',
+    fetchMock.post('/json/v2/details', (url, opts) => {
+      expect(opts.body).to.equal(
+        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`,
+      );
+      return {
+        status: 200,
+        body: { 'these-details': 'do not matter for this test' },
+      };
     });
 
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
@@ -160,7 +171,7 @@ describe('cluster-page-sk', () => {
         digest: deepCopy(typicalDetails),
         commits: deepCopy(twoHundredCommits),
       };
-      fetchMock.get('glob:/json/v2/details*', digestDetails);
+      fetchMock.post('/json/v2/details', digestDetails);
     });
 
     it('can triage with one digest selected', async () => {

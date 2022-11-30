@@ -19,12 +19,11 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { fromObject } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import {
+  clusterPageHref,
   detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
 
@@ -35,11 +34,10 @@ import '../triage-sk';
 import '../image-compare-sk';
 import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
-import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 import {
-  Commit, GroupingsResponse, Label, Params, RefClosest, SearchResult, SRDiffDigest, TestName, TraceID, TriageRequestV3, TriageResponse, TriageResponseStatus,
+  Commit, GroupingsResponse, Label, Params, RefClosest, SearchResult, SRDiffDigest, TraceID, TriageRequestV3, TriageResponse,
 } from '../rpc_types';
-import { SearchCriteria, SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
+import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { DotsSk } from '../dots-sk/dots-sk';
 import { BlamelistPanelSk } from '../blamelist-panel-sk/blamelist-panel-sk';
 import { TriageSk } from '../triage-sk/triage-sk';
@@ -403,9 +401,10 @@ export class DigestDetailsSk extends ElementSk {
       includeUntriagedDigests: true,
       includeDigestsNotAtHead: true,
     };
-    const clusterState: SearchCriteriaHintableObject & {grouping?: TestName} = SearchCriteriaToHintableObject(searchCriteria);
-    clusterState.grouping = this._details.test;
-    return `/cluster?${fromObject(clusterState as HintableObject)}`;
+    return clusterPageHref(
+      this.getGrouping(),
+      searchCriteria,
+    );
   }
 
   private hoverOverTrace(e: CustomEvent<TraceID>) {

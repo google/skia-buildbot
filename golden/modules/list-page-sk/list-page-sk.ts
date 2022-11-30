@@ -15,7 +15,9 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import { fromObject } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
+import {
+  clusterPageHref, sendBeginTask, sendEndTask, sendFetchError,
+} from '../common';
 import { defaultCorpus } from '../settings';
 
 import '../corpus-selector-sk';
@@ -27,7 +29,7 @@ import 'elements-sk/icon/tune-icon-sk';
 import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
 import { SortToggleSk } from '../sort-toggle-sk/sort-toggle-sk';
-import { SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
+import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { ListTestsResponse, ParamSet, TestSummary } from '../rpc_types';
 
 const searchQuery = (corpus: string, query: string): string => {
@@ -92,7 +94,7 @@ export class ListPageSk extends ElementSk {
     }
 
     // Returns a HintableObject for building the GET parameters to the search page.
-    const makeSearchCriteria = (opts: MakeSearchCriteriaOpts): SearchCriteriaHintableObject => SearchCriteriaToHintableObject({
+    const makeSearchCriteria = (opts: MakeSearchCriteriaOpts): Partial<SearchCriteria> => ({
       corpus: ele.currentCorpus,
       leftHandTraceFilter: { name: [row.name] },
       includePositiveDigests: opts.positive,
@@ -104,22 +106,16 @@ export class ListPageSk extends ElementSk {
 
     const searchPageHref = (opts: MakeSearchCriteriaOpts) => {
       const searchCriteria = makeSearchCriteria(opts);
-      const queryParameters = fromObject(searchCriteria as HintableObject);
+      const queryParameters = fromObject(SearchCriteriaToHintableObject(searchCriteria) as HintableObject);
       return `/search?${queryParameters}`;
     };
 
-    const clusterPageHref = () => {
-      const hintableObject: HintableObject = {
-        ...makeSearchCriteria({
-          positive: true,
-          negative: true,
-          untriaged: true,
-
-        }),
-        left_filter: '',
-        grouping: row.name,
-      };
-      return `/cluster?${fromObject(hintableObject)}`;
+    const clusterPageSearchCriteria: Partial<SearchCriteria> = {
+      ...makeSearchCriteria({
+        positive: true,
+        negative: true,
+        untriaged: true,
+      }),
     };
 
     return html`
@@ -155,7 +151,8 @@ export class ListPageSk extends ElementSk {
           </a>
         </td>
         <td class=center>
-          <a href="${clusterPageHref()}" target=_blank rel=noopener>
+          <a href="${clusterPageHref(row.grouping, clusterPageSearchCriteria)}"
+             target=_blank rel=noopener>
             <group-work-icon-sk></group-work-icon-sk>
           </a>
         </td>

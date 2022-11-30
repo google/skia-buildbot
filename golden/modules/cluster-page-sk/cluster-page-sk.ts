@@ -22,7 +22,7 @@ import '../digest-details-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import {
-  ClusterDiffLink, ClusterDiffResult, Digest, DigestComparison, DigestDetails, GroupingsResponse, TestName,
+  ClusterDiffLink, ClusterDiffResult, DetailsRequest, Digest, DigestComparison, DigestDetails, GroupingsResponse, Params,
 } from '../rpc_types';
 import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from '../cluster-digests-sk/cluster-digests-sk';
 import { ParamSetSkClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
@@ -47,7 +47,7 @@ function sortParamset(ps: ParamSet) {
 
 export class ClusterPageSk extends ElementSk {
   private static template = (ele: ClusterPageSk) => {
-    if (!ele.grouping) {
+    if (Object.keys(ele.grouping).length === 0) {
       return html`<h1>Need a test to cluster by</h1>`;
     }
     return html`
@@ -141,7 +141,7 @@ export class ClusterPageSk extends ElementSk {
 
   private groupings: GroupingsResponse | null = null;
 
-  private grouping: TestName = '';
+  private grouping: Params = {};
 
   private changeListID: string = '';
 
@@ -189,7 +189,7 @@ export class ClusterPageSk extends ElementSk {
           return;
         }
         this.searchCriteria = SearchCriteriaFromHintableObject(newState);
-        this.grouping = newState.grouping as string;
+        this.grouping = newState.grouping as Params || {};
         this.changeListID = newState.changeListID as string;
         this.crs = newState.crs as string;
         this.fetchGroupingsOnce();
@@ -232,13 +232,13 @@ export class ClusterPageSk extends ElementSk {
    * Creates the RPC URL for fetching the data about clustering within this test (aka grouping).
    */
   private clusterURL(): string {
-    if (!this.grouping) {
+    if (Object.keys(this.grouping).length === 0) {
       return '';
     }
     const sc = this.searchCriteria;
 
     const query: ParamSet = { ...sc.leftHandTraceFilter };
-    query.name = [this.grouping];
+    query.name = [this.grouping.name];
 
     const queryObj: HintableObject = {
       source_type: sc.corpus,
@@ -303,20 +303,22 @@ export class ClusterPageSk extends ElementSk {
     const extra = this.prefetch();
     sendBeginTask(this);
 
-    const urlObj: HintableObject = {
-      corpus: [this.searchCriteria.corpus],
-      test: [this.grouping],
-      digest: [digest],
+    const request: DetailsRequest = {
+      digest: digest,
+      grouping: this.grouping,
     };
-    if (this.changeListID) {
-      urlObj.changelist_id = [this.changeListID];
-      urlObj.crs = [this.crs];
+    if (this.changeListID && this.crs) {
+      request.changelist_id = this.changeListID;
+      request.crs = this.crs;
     }
-    const base = '/json/v2/details';
-    const url = `${base}?${fromObject(urlObj)}`;
-
-    fetch(url, extra)
-      .then(jsonOrThrow)
+    fetch('/json/v2/details', {
+      ...extra,
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(jsonOrThrow)
       .then((digestDetails: DigestDetails) => {
         this.digestDetails = digestDetails;
         this._render();
@@ -331,7 +333,7 @@ export class ClusterPageSk extends ElementSk {
 
     const urlObj: HintableObject = {
       corpus: [this.searchCriteria.corpus],
-      test: [this.grouping],
+      test: [this.grouping.name],
       left: [leftDigest],
       right: [rightDigest],
     };
@@ -407,7 +409,7 @@ export class ClusterPageSk extends ElementSk {
     this.layoutCluster();
   }
 
-  private prefetch() {
+  private prefetch(): RequestInit {
     if (this.fetchController) {
       // Kill any outstanding requests
       this.fetchController.abort();

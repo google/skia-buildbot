@@ -98,8 +98,8 @@ describe('list-page-sk', () => {
     ].join('&')}`;
 
     const expectedClusterPageHref = (opts: {disregardIgnoreRules: boolean}): string => `/cluster?${[
+      'grouping=name%3Dthis_is_another_test%26source_type%3Dgm',
       'corpus=gm',
-      'grouping=this_is_another_test',
       `include_ignored=${opts.disregardIgnoreRules}`,
       'left_filter=',
       'max_rgba=0',

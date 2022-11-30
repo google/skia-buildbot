@@ -5,6 +5,7 @@ karma_test(
     src = "common_test.ts",
     deps = [
         ":common_ts_lib",
+        "//golden/modules/search-controls-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
@@ -18,6 +19,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":rpc_types_ts_lib",
+        "//golden/modules/search-controls-sk",
         "@npm//common-sk",
     ],
 )

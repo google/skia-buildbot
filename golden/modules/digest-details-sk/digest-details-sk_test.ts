@@ -43,9 +43,10 @@ describe('digest-details-sk', () => {
 
     it('has a link to the cluster view', async () => {
       expect(await digestDetailsSkPO.getClusterHref()).to.equal(
-        '/cluster?corpus=infra&grouping=dots-legend-sk_too-many-digests&include_ignored=false'
-        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=true&positive=true'
-        + '&reference_image_required=false&right_filter=&sort=descending&untriaged=true',
+        '/cluster?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
+        + '&corpus=infra&include_ignored=false&left_filter=&max_rgba=0&min_rgba=0&negative=true'
+        + '&not_at_head=true&positive=true&reference_image_required=false&right_filter='
+        + '&sort=descending&untriaged=true',
       );
     });
 

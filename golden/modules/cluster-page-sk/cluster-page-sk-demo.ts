@@ -21,7 +21,8 @@ testOnlySetSettings({
 // Load the demo page with some params to load if there aren't any already. 4 is an arbitrary
 // small number to check against to determine "no query params"
 if (window.location.search.length < 4) {
-  const query = '?grouping=dots-legend-sk_too-many-digests&changelist_id=12353&crs=gerrit';
+  const query = '?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
+    + '&changelist_id=12353&crs=gerrit';
   history.pushState(null, '', window.location.origin + window.location.pathname + query);
 }
 
@@ -35,7 +36,7 @@ const detailsResponse: DigestDetails = {
   digest: typicalDetails,
   commits: twoHundredCommits,
 };
-fetchMock.get('glob:/json/v2/details*', delay(detailsResponse, fakeRpcDelayMillis));
+fetchMock.post('/json/v2/details', delay(detailsResponse, fakeRpcDelayMillis));
 fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 fetchMock.get('/json/v1/groupings', groupingsResponse);
 
