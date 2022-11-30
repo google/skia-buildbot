@@ -1,5 +1,5 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2022-10-25T17_24_45Z-kjlubick-54a4d32-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2022-11-30T04_50_53Z-lovisolo-e50f391-clean",
     "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2022-10-25T17_25_06Z-kjlubick-54a4d32-clean",
     "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2022-10-25T17_21_34Z-kjlubick-54a4d32-clean",
     "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2022-10-25T17_25_25Z-kjlubick-54a4d32-clean",
