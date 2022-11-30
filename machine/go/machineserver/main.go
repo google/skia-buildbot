@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine"
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
+	"go.skia.org/infra/machine/go/machine/event/source/httpsource"
 	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
@@ -51,6 +52,7 @@ type server struct {
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
 	changeSink        changeSink.Sink
+	httpSource        httpsource.HTTPSource
 	login             alogin.Login
 }
 
@@ -93,14 +95,27 @@ func new() (baseapp.App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	eventSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
+
+	// Listen on both pubsub and http sources, until we are fully migrated over
+	// to HTTP sources.
+	pubsubSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	eventCh, err := eventSource.Start(ctx)
+	pubsubSourceCh, err := pubsubSource.Start(ctx)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to start pubsubsource.")
+		return nil, skerr.Wrap(err)
 	}
+
+	httpSource, err := httpsource.New()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	httpSourceCh, err := httpSource.Start(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
 
 	changeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
@@ -110,14 +125,11 @@ func new() (baseapp.App, error) {
 
 	// Start our main loop.
 	go func() {
-		for event := range eventCh {
-			err := store.Update(ctx, event.Host.Name, func(previous machine.Description) machine.Description {
-				return processor.Process(ctx, previous, event)
-			})
-			if err != nil {
-				storeUpdateFail.Inc(1)
-				sklog.Errorf("Failed to update: %s", err)
-			}
+		select {
+		case event := <-pubsubSourceCh:
+			processEventArrival(ctx, store, storeUpdateFail, processor, event)
+		case event := <-httpSourceCh:
+			processEventArrival(ctx, store, storeUpdateFail, processor, event)
 		}
 	}()
 
@@ -125,9 +137,20 @@ func new() (baseapp.App, error) {
 		store:      store,
 		changeSink: changeSink,
 		login:      proxylogin.NewWithDefaults(),
+		httpSource: *httpSource,
 	}
 	s.loadTemplates()
 	return s, nil
+}
+
+func processEventArrival(ctx context.Context, store machineStore.Store, storeUpdateFail metrics2.Counter, processor machineProcessor.Processor, event machine.Event) {
+	err := store.Update(ctx, event.Host.Name, func(previous machine.Description) machine.Description {
+		return processor.Process(ctx, previous, event)
+	})
+	if err != nil {
+		storeUpdateFail.Inc(1)
+		sklog.Errorf("Failed to update: %s", err)
+	}
 }
 
 func (s *server) audit(w http.ResponseWriter, r *http.Request, action string, body interface{}) {
@@ -579,6 +602,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	apiURLs := r.PathPrefix(rpc.APIPrefix).Subrouter()
 	apiURLs.HandleFunc(rpc.PowerCycleCompleteRelativeURL, s.apiPowerCycleCompleteHandler).Methods("POST")
 	apiURLs.HandleFunc(rpc.PowerCycleStateUpdateRelativeURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
+	apiURLs.Handle(rpc.MachineEventRelativeURL, &s.httpSource)
 
 	if !*baseapp.Local {
 		apiURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))

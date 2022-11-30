@@ -520,14 +520,15 @@ func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T
 	}
 
 	eventSink := &sinkMocks.Sink{}
-	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil).Times(2)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
 
 	// Create a Machine instance.
 	m := &Machine{
-		eventSink:        eventSink,
+		pubsubSink:       eventSink,
+		httpSink:         eventSink,
 		startTime:        start,
 		description:      rpc.ToFrontendDescription(desc),
 		adb:              adb.New(),
@@ -566,14 +567,15 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 	}
 
 	eventSink := &sinkMocks.Sink{}
-	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil).Times(2)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
 
 	// Create a Machine instance.
 	m := &Machine{
-		eventSink:                  eventSink,
+		pubsubSink:                 eventSink,
+		httpSink:                   eventSink,
 		startTime:                  start,
 		description:                rpc.ToFrontendDescription(desc),
 		adb:                        adb.New(),
@@ -607,10 +609,13 @@ func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *t
 
 	// Other tests confirm the value being sent is valid, in this case we just
 	// want to cancel the context so the startInterrogateLoop exits.
-	eventSink := sinkMocks.NewSink(t)
-	eventSink.On("Send", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	pubsubSink := sinkMocks.NewSink(t)
+	pubsubSink.On("Send", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
 		cancel()
 	}).Return(nil)
+
+	httpSink := &sinkMocks.Sink{}
+	httpSink.On("Send", testutils.AnyContext, mock.Anything).Return(nil)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
@@ -618,7 +623,8 @@ func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *t
 	// Create a Machine instance.
 	triggerInterrogationCh := make(chan bool, 1)
 	m := &Machine{
-		eventSink:              eventSink,
+		pubsubSink:             pubsubSink,
+		httpSink:               httpSink,
 		description:            rpc.ToFrontendDescription(desc),
 		adb:                    adb.New(),
 		interrogateTimer:       metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),

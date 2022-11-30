@@ -44,8 +44,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 
 	return &Source{
 		sub:                        sub,
-		eventsReceivedCounter:      metrics2.GetCounter("machineserver_pubsubsource_events_received"),
-		eventsFailedToParseCounter: metrics2.GetCounter("machineserver_pubsubsource_events_failed_to_parse"),
+		eventsReceivedCounter:      metrics2.GetCounter(source.ReceiveSuccessMetricName, map[string]string{"type": "pubsub"}),
+		eventsFailedToParseCounter: metrics2.GetCounter(source.ReceiveFailureMetricName, map[string]string{"type": "pubsub"}),
 	}, nil
 }
 

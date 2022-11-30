@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 	changeSource "go.skia.org/infra/machine/go/machine/change/source"
 	eventSink "go.skia.org/infra/machine/go/machine/event/sink"
+	"go.skia.org/infra/machine/go/machine/event/sink/httpsink"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
@@ -64,8 +65,11 @@ type Machine struct {
 	// An absolute URL used to retrieve this machines Description.
 	machineDescriptionURL string
 
-	// eventSink is how we send machine.Events to the machine state server.
-	eventSink eventSink.Sink
+	// pubsubSink is how we send machine.Events to the machine state server.
+	pubsubSink eventSink.Sink
+
+	// httpSink is how we send machine.Events to the machine state server.
+	httpSink eventSink.Sink
 
 	// changeSource emits events when the machine Description has changed on the
 	// server.
@@ -129,11 +133,6 @@ type Machine struct {
 // New return an instance of *Machine.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine), triggerInterrogationCh <-chan bool) (*Machine, error) {
 
-	sink, err := eventSink.New(ctx, local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
-	}
-
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
@@ -164,6 +163,17 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
 
+	// For now send machine.Event's to both sinks so that we can migrate between
+	// the two methods of sending events.
+	httpSink, err := httpsink.NewFromClient(httpClient, "https://machines.skia.org")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
+	}
+	pubsubSink, err := eventSink.New(ctx, local, instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
+	}
+
 	changeSource, err := changeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create changeSource.")
@@ -172,7 +182,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	return &Machine{
 		client:                         httpClient,
 		machineDescriptionURL:          u.String(),
-		eventSink:                      sink,
+		pubsubSink:                     pubsubSink,
+		httpSink:                       httpSink,
 		changeSource:                   changeSource,
 		adb:                            adb.New(),
 		ios:                            ios.New(),
@@ -277,8 +288,11 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		sklog.Errorf("Failed to interrogate: %s", err)
 		m.interrogateAndSendFailures.Inc(1)
 	}
-	if err := m.eventSink.Send(ctx, event); err != nil {
-		return skerr.Wrapf(err, "Failed to send interrogation step.")
+	if err := m.pubsubSink.Send(ctx, event); err != nil {
+		return skerr.Wrapf(err, "Failed to send interrogation step via pubsub.")
+	}
+	if err := m.httpSink.Send(ctx, event); err != nil {
+		return skerr.Wrapf(err, "Failed to send interrogation step via http.")
 	}
 	return nil
 }

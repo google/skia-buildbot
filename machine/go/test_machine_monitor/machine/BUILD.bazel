@@ -17,6 +17,7 @@ go_library(
         "//machine/go/machine",
         "//machine/go/machine/change/source",
         "//machine/go/machine/event/sink",
+        "//machine/go/machine/event/sink/httpsink",
         "//machine/go/machineserver/config",
         "//machine/go/machineserver/rpc",
         "//machine/go/test_machine_monitor/adb",
