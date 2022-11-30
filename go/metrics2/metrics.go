@@ -43,6 +43,18 @@ type Liveness interface {
 	Close()
 }
 
+// BoolMetric is a metric which reports a Boolean value, represented on the backend as an int64.
+type BoolMetric interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() bool
+
+	// Update adds a data point to the metric.
+	Update(v bool)
+}
+
 // Int64Metric is a metric which reports an int64 value.
 type Int64Metric interface {
 	// Delete removes the metric from its Client's registry.
@@ -108,6 +120,9 @@ type Client interface {
 
 	// GetInt64Metric returns an Int64Metric instance.
 	GetInt64Metric(measurement string, tags ...map[string]string) Int64Metric
+
+	// GetBoolMetric returns a BoolMetric instance.
+	GetBoolMetric(name string, tags ...map[string]string) BoolMetric
 
 	// GetFloat64SummaryMetric returns an Float64SummaryMetric instance.
 	GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric

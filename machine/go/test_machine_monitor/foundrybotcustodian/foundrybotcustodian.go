@@ -51,10 +51,10 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 		// Set up metrics.
 		const statusMetric = "machine_tmm_foundry_bot_status"
 		timeSinceProcessStarted := metrics2.NewLiveness("liveness_machine_tmm_foundry_bot", nil)
-		runningMetric := metrics2.GetInt64Metric(statusMetric, map[string]string{"status": "running"})
-		maintenanceMetric := metrics2.GetInt64Metric(statusMetric, map[string]string{"status": "maintenance"})
-		failedToStartMetric := metrics2.GetInt64Metric(statusMetric, map[string]string{"status": "failed_to_start"})
-		failedToStopMetric := metrics2.GetInt64Metric(statusMetric, map[string]string{"status": "failed_to_stop"})
+		runningMetric := metrics2.GetBoolMetric(statusMetric, map[string]string{"status": "running"})
+		maintenanceMetric := metrics2.GetBoolMetric(statusMetric, map[string]string{"status": "maintenance"})
+		failedToStartMetric := metrics2.GetBoolMetric(statusMetric, map[string]string{"status": "failed_to_start"})
+		failedToStopMetric := metrics2.GetBoolMetric(statusMetric, map[string]string{"status": "failed_to_stop"})
 
 		for {
 			select {
@@ -82,10 +82,10 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 			}
 
 			// Update metrics.
-			runningMetric.Update(metrics2.BoolToInt(wantUp && cmd != nil))
-			maintenanceMetric.Update(metrics2.BoolToInt(!wantUp && cmd == nil))
-			failedToStartMetric.Update(metrics2.BoolToInt(wantUp && cmd == nil))
-			failedToStopMetric.Update(metrics2.BoolToInt(!wantUp && cmd != nil))
+			runningMetric.Update(wantUp && cmd != nil)
+			maintenanceMetric.Update(!wantUp && cmd == nil)
+			failedToStartMetric.Update(wantUp && cmd == nil)
+			failedToStopMetric.Update(!wantUp && cmd != nil)
 		}
 	}()
 	return nil

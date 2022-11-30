@@ -142,26 +142,14 @@ var (
 
 // Reflects MaintenanceMode, Quarantined, and Recovering into metrics.
 func setQuarantineMetrics(d machine.Description) {
-	m := metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), maintenanceTag)
-	if d.InMaintenanceMode() {
-		m.Update(1)
-	} else {
-		m.Update(0)
-	}
+	m := metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), maintenanceTag)
+	m.Update(d.InMaintenanceMode())
 
-	m = metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), quarantineTag)
-	if d.IsQuarantined {
-		m.Update(1)
-	} else {
-		m.Update(0)
-	}
+	m = metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), quarantineTag)
+	m.Update(d.IsQuarantined)
 
-	m = metrics2.GetInt64Metric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), recoveringTag)
-	if d.IsRecovering() {
-		m.Update(1)
-	} else {
-		m.Update(0)
-	}
+	m = metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), recoveringTag)
+	m.Update(d.IsRecovering())
 }
 
 func processAndroidEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
@@ -246,12 +234,8 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 	}
 
 	// This refers to Swarming's maintenance mode, not machineserver's:
-	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", current.Dimensions.AsMetricsTags())
-	if recoveryMessage != "" {
-		maintenanceModeMetric.Update(1)
-	} else {
-		maintenanceModeMetric.Update(0)
-	}
+	maintenanceModeMetric := metrics2.GetBoolMetric("machine_processor_device_maintenance", current.Dimensions.AsMetricsTags())
+	maintenanceModeMetric.Update(recoveryMessage != "")
 
 	recoveryTimeMetric := metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", current.Dimensions.AsMetricsTags())
 	if current.IsRecovering() {

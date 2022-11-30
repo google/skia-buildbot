@@ -53,6 +53,28 @@ func (m *promInt64) Delete() error {
 	return m.delete()
 }
 
+// promBool is a facade around promInt64 and implements the BoolMetric interface. It lets the caller
+// operate in terms of bools but stores them as 1 and 0 in Prometheus.
+type promBool struct {
+	promInt *promInt64
+}
+
+func (pb *promBool) Delete() error {
+	return pb.promInt.Delete()
+}
+
+func (pb *promBool) Get() bool {
+	return pb.promInt.Get() == 0
+}
+
+func (pb *promBool) Update(v bool) {
+	var i int64
+	if v {
+		i = 1
+	}
+	pb.promInt.Update(i)
+}
+
 // promFloat64 implements the Float64Metric interface.
 type promFloat64 struct {
 	// i tracks the value of the gauge, because prometheus client lib doesn't
@@ -239,6 +261,13 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	return ret
 }
 
+func (p *promClient) GetBoolMetric(name string, tags ...map[string]string) BoolMetric {
+	intMetric := p.GetInt64Metric(name, tags...)
+	return &promBool{
+		promInt: intMetric.(*promInt64),
+	}
+}
+
 func (p *promClient) GetCounter(name string, tags ...map[string]string) Counter {
 	i64 := p.GetInt64Metric(name, tags...)
 	return &promCounter{
@@ -361,6 +390,7 @@ func (c *promClient) Int64MetricExists(name string, tags ...map[string]string) b
 
 // Validate that the concrete structs faithfully implement their respective interfaces.
 var _ Int64Metric = (*promInt64)(nil)
+var _ BoolMetric = (*promBool)(nil)
 var _ Float64Metric = (*promFloat64)(nil)
 var _ Float64SummaryMetric = (*promFloat64Summary)(nil)
 var _ Counter = (*promCounter)(nil)

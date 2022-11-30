@@ -15,10 +15,7 @@ func GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Floa
 	return defaultClient.GetFloat64SummaryMetric(measurement, tags...)
 }
 
-// Convert a bool so it can be represented using an Int64Metric.
-func BoolToInt(b bool) int64 {
-	if b {
-		return 1
-	}
-	return 0
+// GetBoolMetric returns a BoolMetric instance using the default client.
+func GetBoolMetric(measurement string, tags ...map[string]string) BoolMetric {
+	return defaultClient.GetBoolMetric(measurement, tags...)
 }
