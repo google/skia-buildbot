@@ -15,6 +15,8 @@ import (
 
 const (
 	myTestVersion = "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"
+
+	hostName = "skia-rpi2-rack4-shelf2-001"
 )
 
 func TestParseAndroidProperties_HappyPath(t *testing.T) {
@@ -1320,4 +1322,18 @@ func TestProcessorImpl_setQuarantineMetrics(t *testing.T) {
 			require.Equal(t, tt.expectedQuarantined, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), quarantineTag).Get())
 		})
 	}
+}
+
+func Test_handleGeneralFields(t *testing.T) {
+	m := metrics2.GetBoolMetric("machine_processor_running_swarming_task", map[string]string{
+		"id": hostName,
+	})
+	ctx := context.Background()
+	current := machine.NewDescription(ctx)
+	event := machine.NewEvent()
+	event.Host.Name = hostName
+	event.RunningSwarmingTask = true
+	_ = handleGeneralFields(ctx, current, event)
+	got := m.Get()
+	require.True(t, got)
 }

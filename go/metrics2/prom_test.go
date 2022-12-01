@@ -136,6 +136,24 @@ func TestCounter(t *testing.T) {
 	require.Equal(t, `Could not find anything for c{some_key="some-value"}`, metrics_util.GetRecordedMetric(t, "c", labels))
 }
 
+func TestBool(t *testing.T) {
+	c := getPromClient()
+	labels := map[string]string{"some_key": "some-value"}
+	g := c.GetBoolMetric("c", labels)
+	require.NotNil(t, g)
+
+	g.Update(true)
+	g = c.GetBoolMetric("c", labels)
+	require.Equal(t, true, g.Get())
+
+	g.Update(false)
+	require.Equal(t, false, g.Get())
+
+	// Test delete.
+	require.NoError(t, g.Delete())
+	require.Equal(t, `Could not find anything for c{some_key="some-value"}`, metrics_util.GetRecordedMetric(t, "c", labels))
+}
+
 func TestPanicOn(t *testing.T) {
 	/*
 		  We need a sklog stand-in that just panics on Fatal*.

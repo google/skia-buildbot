@@ -64,7 +64,7 @@ func (pb *promBool) Delete() error {
 }
 
 func (pb *promBool) Get() bool {
-	return pb.promInt.Get() == 0
+	return pb.promInt.Get() == 1
 }
 
 func (pb *promBool) Update(v bool) {

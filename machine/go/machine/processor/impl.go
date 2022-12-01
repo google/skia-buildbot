@@ -202,6 +202,9 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 func handleGeneralFields(ctx context.Context, current machine.Description, event machine.Event) machine.Description {
 	current.LastUpdated = now.Now(ctx)
 	current.RunningSwarmingTask = event.RunningSwarmingTask
+	metrics2.GetBoolMetric("machine_processor_running_swarming_task", map[string]string{
+		"id": event.Host.Name,
+	}).Update(current.RunningSwarmingTask)
 	current.LaunchedSwarming = event.LaunchedSwarming
 	current.Version = event.Host.Version
 	return current
