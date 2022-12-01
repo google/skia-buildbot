@@ -34,6 +34,7 @@ import (
 	sseChangeSink "go.skia.org/infra/machine/go/machine/change/sink/sse"
 	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
 	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
+	"go.skia.org/infra/machine/go/machine/processor"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -55,9 +56,18 @@ type server struct {
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
 	httpEventSource   *httpEventSource.HTTPSource
-	pubsubChangeSink  changeSink.Sink
-	sserChangeSink    changeSink.Sink
-	sserServer        sseChangeSink.SSE
+
+	// Change Sinks.
+	pubsubChangeSink changeSink.Sink
+	sserChangeSink   changeSink.Sink
+
+	// Event Sources.
+	pubsubSourceCh <-chan machine.Event
+	httpSourceCh   <-chan machine.Event
+
+	sserServer sseChangeSink.SSE
+
+	processor processor.Processor
 
 	login alogin.Login
 }
@@ -105,8 +115,6 @@ func new() (baseapp.App, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
-
 	pubsubChangeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to start pubsub change sink.")
@@ -117,20 +125,6 @@ func new() (baseapp.App, error) {
 		return nil, skerr.Wrapf(err, "create sser Server")
 	}
 
-	// Start our main loop.
-	// TODO(jcgregorio) Break out and add unit tests.
-	go func() {
-		sklog.Infof("Start machine.Event listening loop")
-		for {
-			select {
-			case event := <-pubsubSourceCh:
-				processEventArrival(ctx, store, storeUpdateFail, processor, event)
-			case event := <-httpSourceCh:
-				processEventArrival(ctx, store, storeUpdateFail, processor, event)
-			}
-		}
-	}()
-
 	s := &server{
 		store:            store,
 		pubsubChangeSink: pubsubChangeSink,
@@ -138,9 +132,31 @@ func new() (baseapp.App, error) {
 		login:            proxylogin.NewWithDefaults(),
 		httpEventSource:  httpSource,
 		sserServer:       *sserChangeSink,
+		processor:        processor,
+		pubsubSourceCh:   pubsubSourceCh,
+		httpSourceCh:     httpSourceCh,
 	}
 	s.loadTemplates()
+	go s.listenMachineEvents(ctx)
 	return s, nil
+}
+
+// Starts listening for the arrival of machine.Events. This function doesn't
+// return unless the context is cancelled.
+func (s *server) listenMachineEvents(ctx context.Context) {
+	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
+
+	sklog.Infof("Start machine.Event listening loop")
+	for {
+		select {
+		case event := <-s.pubsubSourceCh:
+			processEventArrival(ctx, s.store, storeUpdateFail, s.processor, event)
+		case event := <-s.httpSourceCh:
+			processEventArrival(ctx, s.store, storeUpdateFail, s.processor, event)
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func processEventArrival(ctx context.Context, store machineStore.Store, storeUpdateFail metrics2.Counter, processor machineProcessor.Processor, event machine.Event) {

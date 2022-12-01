@@ -609,3 +609,36 @@ func TestMachineClearQuarantineHandler_MachineIDNotSupplied_ReturnsNotFound(t *t
 func TestClearQuarantined(t *testing.T) {
 	require.False(t, clearQuarantined(machine.Description{IsQuarantined: true}).IsQuarantined)
 }
+
+func TestServerListenMachineEvents_EventsArriveOnBothChannels_BothEventsAreProcessed(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+
+	numUpdateCalled := 0
+	store := mocks.NewStore(t)
+	store.On("Update", testutils.AnyContext, machineID, mock.Anything).Times(2).Run(func(_ mock.Arguments) {
+		// Only after both events have arrived should be cancel the context to
+		// exit from listenMachineEvents.
+		numUpdateCalled++
+		if numUpdateCalled == 2 {
+			cancel()
+		}
+	}).Return(nil)
+
+	event := machine.NewEvent()
+	event.Host.Name = machineID
+
+	pubsubSourceCh := make(chan machine.Event, 1)
+	httpSourceCh := make(chan machine.Event, 1)
+
+	s := &server{
+		pubsubSourceCh: pubsubSourceCh,
+		httpSourceCh:   httpSourceCh,
+		store:          store,
+	}
+
+	pubsubSourceCh <- event
+	httpSourceCh <- event
+
+	s.listenMachineEvents(ctx)
+	// Test will timeout if listenMachineEvents doesn't return.
+}
