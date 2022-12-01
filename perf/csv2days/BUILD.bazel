@@ -1,0 +1,27 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "csv2days_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/csv2days",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "csv2days",
+    embed = [":csv2days_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "csv2days_test",
+    srcs = ["main_test.go"],
+    embed = [":csv2days_lib"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
