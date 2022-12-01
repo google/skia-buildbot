@@ -643,7 +643,8 @@ func (s *server) AddMiddleware() []mux.MiddlewareFunc {
 func main() {
 	// TODO(jcgregorio) We should feed instanceConfig.Web.AllowedHosts to baseapp.Serve.
 	baseapp.Serve(new, []string{"machines.skia.org"},
-		// Disable Logging middleware, as it conflicts with Server-Sent events.
+		// Disable Logging and GZip middleware, as they conflict with Server-Sent Events.
 		baseapp.DisableLoggingRequestResponse{},
+		baseapp.DisableResponseGZip{},
 	)
 }
