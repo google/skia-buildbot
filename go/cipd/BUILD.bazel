@@ -17,6 +17,7 @@ go_library(
         "@org_chromium_go_luci//cipd/client/cipd/ensure",
         "@org_chromium_go_luci//cipd/client/cipd/fs",
         "@org_chromium_go_luci//cipd/client/cipd/pkg",
+        "@org_chromium_go_luci//cipd/client/cipd/template",
         "@org_chromium_go_luci//cipd/common",
     ],
 )

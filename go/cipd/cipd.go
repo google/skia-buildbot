@@ -21,6 +21,7 @@ import (
 	"go.chromium.org/luci/cipd/client/cipd/ensure"
 	"go.chromium.org/luci/cipd/client/cipd/fs"
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
+	"go.chromium.org/luci/cipd/client/cipd/template"
 	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -255,6 +256,7 @@ type CIPDClient interface {
 // Client is a struct used for interacting with the CIPD API.
 type Client struct {
 	cipd.Client
+	expander template.Expander
 }
 
 // NewClient returns a CIPD client.
@@ -267,25 +269,32 @@ func NewClient(c *http.Client, rootDir, serviceURL string) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create CIPD client: %s", err)
 	}
-	return &Client{cipdClient}, nil
+	return &Client{
+		Client:   cipdClient,
+		expander: template.DefaultExpander(),
+	}, nil
 }
 
 func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 	pkgs := common.PinSliceBySubdir{}
 	for _, pkg := range packages {
-		pin, err := c.ResolveVersion(ctx, pkg.Name, pkg.Version)
+		pkgName, err := c.expander.Expand(pkg.Name)
 		if err != nil {
-			return fmt.Errorf("Failed to resolve package version %q @ %q: %s", pkg.Name, pkg.Version, err)
+			return skerr.Wrapf(err, "failed to expand package name %q", pkg.Name)
 		}
-		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pkg.Name)
-		pkgs[pkg.Path] = common.PinSlice{pin}
+		pin, err := c.ResolveVersion(ctx, pkgName, pkg.Version)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to resolve package version %q @ %q", pkgName, pkg.Version)
+		}
+		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pin.PackageName)
+		pkgs[pkg.Path] = append(pkgs[pkg.Path], pin)
 	}
 	// This means use as many threads as CPUs. (Prior to
 	// https://chromium-review.googlesource.com/c/infra/luci/luci-go/+/1848212,
 	// extracting the packages was always single-threaded.)
 	const maxThreads = 0
 	if _, err := c.EnsurePackages(ctx, pkgs, cipd.CheckPresence, maxThreads, false); err != nil {
-		return fmt.Errorf("Failed to ensure packages: %s", err)
+		return skerr.Wrapf(err, "failed to ensure packages")
 	}
 	return nil
 }
