@@ -61,7 +61,7 @@
         {
           "name": "skia/tools/presubmit/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:51b3cbc90f03c7e8e97140d632479d188c578ae2"
+          "version": "git_revision:a96fcb86b9839803f354b4b913744960e9f5c9e9"
         }
       ],
       "command": [
@@ -254,7 +254,7 @@
         {
           "name": "skia/tools/bazel_build_all/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:51b3cbc90f03c7e8e97140d632479d188c578ae2"
+          "version": "git_revision:a96fcb86b9839803f354b4b913744960e9f5c9e9"
         }
       ],
       "command": [
@@ -324,7 +324,7 @@
         {
           "name": "skia/tools/bazel_build_all/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:51b3cbc90f03c7e8e97140d632479d188c578ae2"
+          "version": "git_revision:a96fcb86b9839803f354b4b913744960e9f5c9e9"
         }
       ],
       "command": [
@@ -405,7 +405,7 @@
         {
           "name": "skia/tools/bazel_test_all/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:51b3cbc90f03c7e8e97140d632479d188c578ae2"
+          "version": "git_revision:a96fcb86b9839803f354b4b913744960e9f5c9e9"
         }
       ],
       "command": [
@@ -487,7 +487,7 @@
         {
           "name": "skia/tools/bazel_test_all/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:51b3cbc90f03c7e8e97140d632479d188c578ae2"
+          "version": "git_revision:a96fcb86b9839803f354b4b913744960e9f5c9e9"
         }
       ],
       "command": [
