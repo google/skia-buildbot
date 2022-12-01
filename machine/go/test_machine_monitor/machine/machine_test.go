@@ -984,10 +984,11 @@ func TestStartDescriptionWatch_ChannelIsClosed_FunctionExits(t *testing.T) {
 	ch := make(chan interface{})
 	var readOnlyCh <-chan interface{} = ch
 	changeSource := &mocks.Source{}
-	changeSource.On("Start", testutils.AnyContext).Return(readOnlyCh)
+	changeSource.On("Start", testutils.AnyContext).Return(readOnlyCh).Times(2)
 
 	m := &Machine{
-		changeSource: changeSource,
+		pubsubChangeSource: changeSource,
+		sseChangeSource:    changeSource,
 	}
 	m.startDescriptionWatch(ctx)
 	close(ch)

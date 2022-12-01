@@ -28,7 +28,10 @@ const (
 )
 
 var (
-	errStreamNameRequired = errors.New("a stream name is required as part of the query parameters")
+	ErrStreamNameRequired = errors.New("a stream name is required as part of the query parameters")
+
+	// ErrOnlySendNoneEmptyMessages because if you send an empty string, the client may mistake that as being no message.
+	ErrOnlySendNoneEmptyMessages = errors.New("you cannot send the empty string as a message over SSE")
 )
 
 // Event is serialized as JSON to be sent from a server to each peer.
@@ -169,7 +172,7 @@ func (s *ServerImpl) ClientConnectionHandler(ctx context.Context) http.HandlerFu
 	return func(w http.ResponseWriter, r *http.Request) {
 		streamName := r.FormValue(QueryParameterName)
 		if streamName == "" {
-			httputils.ReportError(w, errStreamNameRequired, "A stream name must be supplied", http.StatusBadRequest)
+			httputils.ReportError(w, ErrStreamNameRequired, "A stream name must be supplied", http.StatusBadRequest)
 			return
 		}
 		if !s.server.StreamExists(streamName) {
@@ -183,8 +186,13 @@ func (s *ServerImpl) ClientConnectionHandler(ctx context.Context) http.HandlerFu
 }
 
 // Send implements Server.
-func (s *ServerImpl) Send(ctx context.Context, stream string, msg string) {
+func (s *ServerImpl) Send(ctx context.Context, stream string, msg string) error {
+	if msg == "" {
+		return ErrOnlySendNoneEmptyMessages
+	}
+
 	s.sendCh <- Event{Stream: stream, Msg: msg}
+	return nil
 }
 
 var _ Server = (*ServerImpl)(nil)

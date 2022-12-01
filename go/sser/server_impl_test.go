@@ -2,6 +2,7 @@ package sser
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -65,7 +66,8 @@ func TestServer_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send an event via the Server, which the client should receive via the frontend.
-	sserServer.Send(ctx, streamName, eventValue)
+	err = sserServer.Send(ctx, streamName, eventValue)
+	require.NoError(t, err)
 
 	// Confirm the client received the correct event.
 	e := <-events
@@ -110,7 +112,8 @@ func TestServer_TwoClientsForSameStream_BothReceiveEvents(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send an event via the Server, which the client should receive via the frontend.
-	sserServer.Send(ctx, streamName, eventValue)
+	err = sserServer.Send(ctx, streamName, eventValue)
+	require.NoError(t, err)
 
 	// Confirm the client received the correct event.
 	e := <-events1
@@ -130,4 +133,11 @@ func TestClientConnectionHandler_NoStreamNameProvided_ReturnsStatusBadRequest(t 
 
 	sserServer.ClientConnectionHandler(ctx)(w, r)
 	require.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestClientConnectionHandler_SendEmptyString_ReturnsErrorAboutNotSendingEmptyStrings(t *testing.T) {
+	ctx, sserServer, _ := createServerAndFrontendForTest(t)
+
+	err := sserServer.Send(ctx, streamName, "")
+	require.True(t, errors.Is(err, ErrOnlySendNoneEmptyMessages))
 }

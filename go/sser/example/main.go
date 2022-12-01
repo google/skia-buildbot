@@ -113,7 +113,9 @@ func main() {
 	go func() {
 		for range time.Tick(time.Second) {
 			count++
-			sserServer.Send(ctx, "counter", fmt.Sprintf("%s - %d", hostname, count))
+			if err := sserServer.Send(ctx, "counter", fmt.Sprintf("%s - %d", hostname, count)); err != nil {
+				sklog.Errorf("failed to send: %s", err)
+			}
 		}
 	}()
 

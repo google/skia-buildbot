@@ -29,20 +29,9 @@ type Store struct {
 	Instance string `json:"instance"`
 }
 
-// Web is configuration for the web interface.
-type Web struct {
-	// AllowedUsers is the list of users, or domain names, that are allowed access to the app.
-	AllowedUsers []string `json:"allowed_users"`
-
-	// AllowedHosts is the list of hosts that are allowed to make requests to
-	// the web UI via CORS requests.
-	AllowedHosts []string `json:"allowed_hosts"`
-}
-
 // InstanceConfig is the config for an instance of machineserver.
 type InstanceConfig struct {
 	Source                  Source                  `json:"source"`
 	Store                   Store                   `json:"store"`
-	Web                     Web                     `json:"web"`
 	DescriptionChangeSource DescriptionChangeSource `json:"desc_source"`
 }

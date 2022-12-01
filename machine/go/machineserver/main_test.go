@@ -67,9 +67,17 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 	changeSinkMock := changeSinkMocks.NewSink(t)
 
 	s := &server{
-		store:      storeMock,
-		changeSink: changeSinkMock,
-		login:      proxylogin.NewWithDefaults(),
+		store: storeMock,
+
+		// Note we use changeSinkMock for both pubsubChangeSink and
+		// sserChangeSink, which is why all the changeSinkMock.On("Send",...)
+		// have a ``.Times(2)`` on them. This keeps the code simpler for when we
+		// eventually drop pubsubChangeSink, which will be right after this CL
+		// rolls out to all TMM instance.
+		pubsubChangeSink: changeSinkMock,
+		sserChangeSink:   changeSinkMock,
+
+		login: proxylogin.NewWithDefaults(),
 	}
 
 	// Put a mux.Router in place so the request path gets parsed.
@@ -88,8 +96,8 @@ func newAuthorizedRequest(method, target string, body io.Reader) *http.Request {
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
@@ -164,8 +172,8 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -205,8 +213,8 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/remove_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -243,8 +251,8 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Delete", testutils.AnyContext, machineID).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
@@ -280,8 +288,8 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 			Message: "this is a message",
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -334,8 +342,8 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 			SuppliedDimensions: suppliedDimensions2,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -569,8 +577,8 @@ func TestMachineClearQuarantineHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.changeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
+	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/clear_quarantined/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)

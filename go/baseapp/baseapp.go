@@ -150,6 +150,19 @@ func hasDisableResponseGZip(options []Option) bool {
 	return false
 }
 
+// DisableLoggingRequestResponse disables LoggingRequestResponse, which doesn't
+// work with Server-Sent Events.
+type DisableLoggingRequestResponse struct{}
+
+func hasDisableLoggingRequestResponse(options []Option) bool {
+	for _, opt := range options {
+		if _, ok := opt.(DisableLoggingRequestResponse); ok {
+			return true
+		}
+	}
+	return false
+}
+
 // Serve builds and runs the App in a secure manner in our kubernetes cluster.
 //
 // The constructor builds an App instance. Note that we don't pass in an App
@@ -236,13 +249,15 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 		middleware = append(middleware, httputils.HealthzAndHTTPS)
 	}
 	middleware = append(middleware, app.AddMiddleware()...)
-	if hasDisableResponseGZip(options) {
-		// Add only LoggingRequestResponse.
+
+	if !hasDisableLoggingRequestResponse(options) {
 		middleware = append(middleware, httputils.LoggingRequestResponse)
-	} else {
-		// Add both LoggingRequestResponse and GZipping functionality.
-		middleware = append(middleware, httputils.LoggingGzipRequestResponse)
 	}
+
+	if !hasDisableResponseGZip(options) {
+		middleware = append(middleware, httputils.GzipRequestResponse)
+	}
+
 	middleware = append(middleware, securityMiddleware(allowedHosts, *Local, options))
 	r.Use(middleware...)
 

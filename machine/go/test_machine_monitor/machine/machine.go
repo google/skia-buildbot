@@ -25,7 +25,8 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
-	changeSource "go.skia.org/infra/machine/go/machine/change/source"
+	pubsubChangeSource "go.skia.org/infra/machine/go/machine/change/source"
+	sseChangeSource "go.skia.org/infra/machine/go/machine/change/source/sse"
 	eventSink "go.skia.org/infra/machine/go/machine/event/sink"
 	"go.skia.org/infra/machine/go/machine/event/sink/httpsink"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -71,9 +72,13 @@ type Machine struct {
 	// httpSink is how we send machine.Events to the machine state server.
 	httpSink eventSink.Sink
 
-	// changeSource emits events when the machine Description has changed on the
+	// pubsubChangeSource emits events when the machine Description has changed on the
 	// server.
-	changeSource changeSource.Source
+	pubsubChangeSource pubsubChangeSource.Source
+
+	// changeSource emits events when the machine Description has changed on the
+	// server, as sent by Server-Sent Events (SSE).
+	sseChangeSource pubsubChangeSource.Source
 
 	// adb makes calls to the adb server.
 	adb adb.Adb
@@ -135,7 +140,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not determine hostname.")
+		return nil, skerr.Wrapf(err, "determine hostname")
 	}
 	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
 	if machineID == "" {
@@ -152,13 +157,13 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	// Construct the URL need to retrieve this machines Description.
 	u, err := url.Parse(machineServerHost)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to parse machineserver flag: %s", machineServerHost)
+		return nil, skerr.Wrapf(err, "parse machineserver flag: %s", machineServerHost)
 	}
 	u.Path = urlExpansionRegex.ReplaceAllLiteralString(rpc.MachineDescriptionURL, machineID)
 
 	ts, err := google.DefaultTokenSource(ctx, "email")
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
+		return nil, skerr.Wrapf(err, "create tokensource.")
 	}
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
@@ -174,9 +179,14 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
 	}
 
-	changeSource, err := changeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
+	pubsubChangeSource, err := pubsubChangeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create changeSource.")
+		return nil, skerr.Wrapf(err, "create pubsub changeSource.")
+	}
+
+	sseChangeSource, err := sseChangeSource.New(ctx, machineServerHost, machineID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "create sse changeSource.")
 	}
 
 	return &Machine{
@@ -184,7 +194,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		machineDescriptionURL:          u.String(),
 		pubsubSink:                     pubsubSink,
 		httpSink:                       httpSink,
-		changeSource:                   changeSource,
+		pubsubChangeSource:             pubsubChangeSource,
+		sseChangeSource:                sseChangeSource,
 		adb:                            adb.New(),
 		ios:                            ios.New(),
 		ssh:                            ssh.ExeImpl{},
@@ -288,13 +299,18 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		sklog.Errorf("Failed to interrogate: %s", err)
 		m.interrogateAndSendFailures.Inc(1)
 	}
+	var retErr error
 	if err := m.pubsubSink.Send(ctx, event); err != nil {
-		return skerr.Wrapf(err, "Failed to send interrogation step via pubsub.")
+		sklog.Errorf("Failed to send event via pubsub: %s", err)
+		retErr = skerr.Wrapf(err, "send interrogation step via pubsub.")
 	}
 	if err := m.httpSink.Send(ctx, event); err != nil {
-		return skerr.Wrapf(err, "Failed to send interrogation step via http.")
+		sklog.Errorf("Failed to send event via http: %s", err)
+		// Could potentially over-write the error, but that's OK, we just want
+		// to know if either one fails.
+		retErr = skerr.Wrapf(err, "send interrogation step via http.")
 	}
-	return nil
+	return retErr
 }
 
 // Start the background processes that send events to the sink and watch for
@@ -358,15 +374,23 @@ func (m *Machine) retrieveDescription(ctx context.Context) error {
 // machine Description. This function does not return unless the context is
 // cancelled.
 func (m *Machine) startDescriptionWatch(ctx context.Context) {
-	changeCh := m.changeSource.Start(ctx)
+	changeCh := m.pubsubChangeSource.Start(ctx)
+	sseChangeCh := m.sseChangeSource.Start(ctx)
 	tickCh := time.NewTicker(descriptionPollDuration).C
 	for {
 		select {
 		case <-changeCh:
+			sklog.Info("pubsub Desc Change")
 			if err := m.retrieveDescription(ctx); err != nil {
 				sklog.Errorf("Event driven retrieveDescription failed: %s", err)
 			}
+		case <-sseChangeCh:
+			sklog.Info("SSE Desc Change")
+			if err := m.retrieveDescription(ctx); err != nil {
+				sklog.Errorf("SSE driven retrieveDescription failed: %s", err)
+			}
 		case <-tickCh:
+			sklog.Info("Tick Desc Change")
 			if err := m.retrieveDescription(ctx); err != nil {
 				sklog.Errorf("Timer driven retrieveDescription failed: %s", err)
 			}

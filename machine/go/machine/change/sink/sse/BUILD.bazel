@@ -1,0 +1,27 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sse",
+    srcs = ["sse.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/change/sink/sse",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sser",
+        "//machine/go/machine/change/sink",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+    ],
+)
+
+go_test(
+    name = "sse_test",
+    srcs = ["sse_test.go"],
+    embed = [":sse"],
+    deps = [
+        "@com_github_r3labs_sse_v2//:sse",
+        "@com_github_stretchr_testify//require",
+    ],
+)

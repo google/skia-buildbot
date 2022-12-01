@@ -103,5 +103,5 @@ type Server interface {
 
 	// Send a message to all connections on all peer pods that are listening for
 	// events from the given stream name.
-	Send(ctx context.Context, stream string, msg string)
+	Send(ctx context.Context, stream string, msg string) error
 }

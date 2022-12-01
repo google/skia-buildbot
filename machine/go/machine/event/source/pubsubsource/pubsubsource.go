@@ -59,6 +59,7 @@ func (s *Source) Start(ctx context.Context) (<-chan machine.Event, error) {
 	go func() {
 		for {
 			if ctx.Err() != nil {
+				sklog.Errorf("pubsub source closing!: %s", ctx.Err())
 				close(ch)
 				return
 			}

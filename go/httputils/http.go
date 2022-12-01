@@ -432,6 +432,11 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 	return autogzip.Handle(LoggingRequestResponse(h))
 }
 
+// GzipRequestResponse is middleware that gzips the response.
+func GzipRequestResponse(h http.Handler) http.Handler {
+	return autogzip.Handle(h)
+}
+
 // LoggingRequestResponse records parts of the request and the response to the logs.
 func LoggingRequestResponse(h http.Handler) http.Handler {
 	// Closure to capture the request.

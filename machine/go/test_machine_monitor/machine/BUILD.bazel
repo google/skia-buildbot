@@ -16,6 +16,7 @@ go_library(
         "//go/util",
         "//machine/go/machine",
         "//machine/go/machine/change/source",
+        "//machine/go/machine/change/source/sse",
         "//machine/go/machine/event/sink",
         "//machine/go/machine/event/sink/httpsink",
         "//machine/go/machineserver/config",

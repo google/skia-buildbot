@@ -9,6 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machine/change/source",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//machine/go/machine/change",

@@ -31,7 +31,8 @@ import (
 	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine"
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
-	"go.skia.org/infra/machine/go/machine/event/source/httpsource"
+	sseChangeSink "go.skia.org/infra/machine/go/machine/change/sink/sse"
+	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
 	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
@@ -41,8 +42,10 @@ import (
 
 // flags
 var (
-	configFlag             = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
-	allowedServiceAccounts = flag.String("service_accounts", "skolo-jumphost@skia-public.iam.gserviceaccount.com", "A comma separated list of service accounts that can access the JSON API.")
+	configFlag              = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
+	changeEventSSERPeerPort = flag.Int("change_event_sser_peer_port", 4000, "The port used to communicate among peers messages that need to be sent over SSE.")
+	namespace               = flag.String("namespace", "default", "The namespace this application is running under in k8s.")
+	labelSelector           = flag.String("label_selector", "app=machineserver", "A label selector that finds all peer pods of this application in k8s.")
 )
 
 var errFailedToGetID = errors.New("failed to get id from URL")
@@ -51,9 +54,12 @@ type server struct {
 	store             machineStore.Store
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
-	changeSink        changeSink.Sink
-	httpSource        httpsource.HTTPSource
-	login             alogin.Login
+	httpEventSource   *httpEventSource.HTTPSource
+	pubsubChangeSink  changeSink.Sink
+	sserChangeSink    changeSink.Sink
+	sserServer        sseChangeSink.SSE
+
+	login alogin.Login
 }
 
 // See baseapp.Constructor.
@@ -62,27 +68,10 @@ func new() (baseapp.App, error) {
 
 	ctx := context.Background()
 
-	var allowList []string
-	if !*baseapp.Local {
-		allowList = []string{"google.com"}
-	} else {
-		allowList = []string{"barney@example.org"}
-	}
-
-	// Add in service accounts.
-	for _, s := range strings.Split(*allowedServiceAccounts, ",") {
-		s = strings.TrimSpace(s)
-		if s != "" {
-			allowList = append(allowList, s)
-		}
-	}
-
-	sklog.Infof("AllowList: %s", allowList)
-
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, *configFlag)
 	if err != nil {
-		sklog.Fatalf("Failed to read config file %q: %s", *configFlag, err)
+		sklog.Fatalf("read config file %q: %s", *configFlag, err)
 	}
 	err = json.Unmarshal(b, &instanceConfig)
 	if err != nil {
@@ -107,7 +96,7 @@ func new() (baseapp.App, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	httpSource, err := httpsource.New()
+	httpSource, err := httpEventSource.New()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -118,26 +107,37 @@ func new() (baseapp.App, error) {
 
 	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
 
-	changeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
+	pubsubChangeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to start change sink.")
+		return nil, skerr.Wrapf(err, "Failed to start pubsub change sink.")
+	}
+
+	sserChangeSink, err := sseChangeSink.New(ctx, *baseapp.Local, *namespace, *labelSelector, *changeEventSSERPeerPort)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "create sser Server")
 	}
 
 	// Start our main loop.
+	// TODO(jcgregorio) Break out and add unit tests.
 	go func() {
-		select {
-		case event := <-pubsubSourceCh:
-			processEventArrival(ctx, store, storeUpdateFail, processor, event)
-		case event := <-httpSourceCh:
-			processEventArrival(ctx, store, storeUpdateFail, processor, event)
+		sklog.Infof("Start machine.Event listening loop")
+		for {
+			select {
+			case event := <-pubsubSourceCh:
+				processEventArrival(ctx, store, storeUpdateFail, processor, event)
+			case event := <-httpSourceCh:
+				processEventArrival(ctx, store, storeUpdateFail, processor, event)
+			}
 		}
 	}()
 
 	s := &server{
-		store:      store,
-		changeSink: changeSink,
-		login:      proxylogin.NewWithDefaults(),
-		httpSource: *httpSource,
+		store:            store,
+		pubsubChangeSink: pubsubChangeSink,
+		sserChangeSink:   sserChangeSink,
+		login:            proxylogin.NewWithDefaults(),
+		httpEventSource:  httpSource,
+		sserServer:       *sserChangeSink,
 	}
 	s.loadTemplates()
 	return s, nil
@@ -218,8 +218,11 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) triggerDescriptionUpdateEvent(ctx context.Context, id string) {
-	if err := s.changeSink.Send(ctx, id); err != nil {
+	if err := s.pubsubChangeSink.Send(ctx, id); err != nil {
 		sklog.Errorf("Failed to trigger change event: %s", err)
+	}
+	if err := s.sserChangeSink.Send(ctx, id); err != nil {
+		sklog.Errorf("Failed to trigger SSE change event: %s", err)
 	}
 }
 
@@ -598,22 +601,22 @@ func (s *server) AddHandlers(r *mux.Router) {
 		editorURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
 	}
 
-	// PowerCycle API
+	// Protected APIs
 	apiURLs := r.PathPrefix(rpc.APIPrefix).Subrouter()
 	apiURLs.HandleFunc(rpc.PowerCycleCompleteRelativeURL, s.apiPowerCycleCompleteHandler).Methods("POST")
 	apiURLs.HandleFunc(rpc.PowerCycleStateUpdateRelativeURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
-	apiURLs.Handle(rpc.MachineEventRelativeURL, &s.httpSource)
+	apiURLs.Handle(rpc.MachineEventRelativeURL, s.httpEventSource)
+	apiURLs.Handle(rpc.SSEMachineDescriptionUpdatedRelativeURL, s.sserServer.GetHandler(context.Background()))
 
 	if !*baseapp.Local {
 		apiURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
 	}
 
-	// Public API
+	// Public APIs
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc(rpc.MachineDescriptionURL, s.apiMachineDescriptionHandler).Methods("GET")
 	r.HandleFunc(rpc.PowerCycleListURL, s.apiPowerCycleListHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", s.loginStatus).Methods("GET")
-
 }
 
 // See baseapp.App.
@@ -623,5 +626,8 @@ func (s *server) AddMiddleware() []mux.MiddlewareFunc {
 
 func main() {
 	// TODO(jcgregorio) We should feed instanceConfig.Web.AllowedHosts to baseapp.Serve.
-	baseapp.Serve(new, []string{"machines.skia.org"})
+	baseapp.Serve(new, []string{"machines.skia.org"},
+		// Disable Logging middleware, as it conflicts with Server-Sent events.
+		baseapp.DisableLoggingRequestResponse{},
+	)
 }

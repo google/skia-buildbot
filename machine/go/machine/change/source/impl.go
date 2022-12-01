@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine/change"
@@ -62,6 +63,7 @@ func New(ctx context.Context, local bool, config config.DescriptionChangeSource,
 func (s *changeSource) Start(ctx context.Context) <-chan interface{} {
 
 	ch := make(chan interface{})
+	sendMetric := metrics2.GetCounter(MetricName, map[string]string{"type": "pubsub"})
 
 	go func() {
 		if err := s.sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
@@ -72,6 +74,7 @@ func (s *changeSource) Start(ctx context.Context) <-chan interface{} {
 			}
 			ch <- nil
 			m.Ack()
+			sendMetric.Inc(1)
 		}); err != nil {
 			sklog.Errorf("Pubsub subscription receive failed: %s", err)
 			close(ch)
