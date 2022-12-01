@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// Generate the output.
-	if err := kube_conf_gen_lib.WriteOutputFromTemplateFile(*templateFileName, *strict, config, *outputFileName); err != nil {
+	if err := kube_conf_gen_lib.GenerateOutputFromTemplateFile(*templateFileName, *strict, config, *outputFileName); err != nil {
 		sklog.Fatal(err)
 	}
 }

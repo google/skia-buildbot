@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -187,9 +186,6 @@ func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error 
 // and FileInfo.
 func (r *Repo) ReadObject(ctx context.Context, path, ref string) (os.FileInfo, []byte, error) {
 	path = strings.TrimSuffix(path, "/")
-	if path == "." {
-		path = ""
-	}
 	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.url, ref, path))
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -292,13 +288,12 @@ func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) 
 			return err
 		}
 		for _, fi := range infos {
-			fullPath := path.Join(dir, fi.Name())
 			if fi.IsDir() {
-				if err := helper(fullPath); err != nil {
+				if err := helper(dir + "/" + fi.Name()); err != nil {
 					return err
 				}
 			} else {
-				rv = append(rv, strings.TrimPrefix(fullPath, topDir+"/"))
+				rv = append(rv, strings.TrimPrefix(dir+"/"+fi.Name(), topDir+"/"))
 			}
 		}
 		return nil

@@ -3,33 +3,34 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"go.skia.org/infra/cd/go/cd"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"golang.org/x/oauth2/google"
 )
 
-func updateRefs(ctx context.Context, repoURL, workspace, username, email, louhiPubsubProject, louhiExecutionID, srcRepo, srcCommit string) error {
+func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
-	// Create the git repo.
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, gerrit.AuthScope)
+	// Initialize git authentication.
+	ts, err := git_steps.Init(ctx, true)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	repo := gitiles.NewRepo(repoURL, client)
+	if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
+		return td.FailStep(ctx, err)
+	}
 
 	imageInfo, err := readBuildImagesJSON(ctx, workspace)
 	if err != nil {
@@ -53,56 +54,67 @@ func updateRefs(ctx context.Context, repoURL, workspace, username, email, louhiP
 		image.Sha256 = strings.TrimSuffix(strings.TrimPrefix(split[1], "sha256:"), "'")
 	}
 
-	// Obtain the current contents of all files in the repo.
-	baseCommit, err := repo.ResolveRef(ctx, git.DefaultRef)
+	// Create a shallow clone of the repo.
+	checkoutDir, err := shallowClone(ctx, repo, git.DefaultRef)
 	if err != nil {
 		return td.FailStep(ctx, err)
-	}
-	oldFiles, err := repo.ListFilesRecursiveAtRef(ctx, ".", baseCommit)
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	oldContents := map[string][]byte{}
-	for _, f := range oldFiles {
-		contents, err := repo.ReadFileAtRef(ctx, f, baseCommit)
-		if err != nil {
-			return td.FailStep(ctx, err)
-		}
-		oldContents[f] = contents
 	}
 
-	// Create regexes for each of the images.
-	imageRegexes := make([]*regexp.Regexp, 0, len(imageInfo.Images))
-	imageReplace := make([]string, 0, len(imageInfo.Images))
-	for _, image := range imageInfo.Images {
-		imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
-		imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, image.Sha256))
+	// Create a branch.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "checkout", "-b", "update", "-t", git.DefaultRemoteBranch); err != nil {
+		return td.FailStep(ctx, err)
 	}
 
 	// Find-and-replace each of the image references.
-	changes := map[string]string{}
-	for f, oldFileContents := range oldContents {
-		// Replace all instances of the old image specification with the new.
-		contentsStr := string(oldFileContents)
-		for idx, re := range imageRegexes {
-			contentsStr = re.ReplaceAllString(contentsStr, imageReplace[idx])
+	if err := td.Do(ctx, td.Props("Update Image References"), func(ctx context.Context) error {
+		imageRegexes := make([]*regexp.Regexp, 0, len(imageInfo.Images))
+		imageReplace := make([]string, 0, len(imageInfo.Images))
+		for _, image := range imageInfo.Images {
+			imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
+			imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, image.Sha256))
 		}
+		return filepath.WalkDir(checkoutDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			} else if d.IsDir() {
+				if d.Name() == ".git" {
+					return fs.SkipDir
+				} else {
+					return nil
+				}
+			}
+			// Read the file.
+			contents, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			contentsStr := string(contents)
 
-		// Write out the updated file.
-		newFileContents := contentsStr
-		if string(oldFileContents) != newFileContents {
-			changes[f] = newFileContents
-		}
+			// Replace all instances of the old image specification with the new.
+			for idx, re := range imageRegexes {
+				contentsStr = re.ReplaceAllString(contentsStr, imageReplace[idx])
+			}
+
+			// Write out the updated file.
+			contents = []byte(contentsStr)
+			if err := ioutil.WriteFile(path, contents, d.Type().Perm()); err != nil {
+				return err
+			}
+			return nil
+		})
+	}); err != nil {
+		return td.FailStep(ctx, err)
 	}
 
 	// Upload a CL.
-	if len(changes) > 0 {
-		imageList := make([]string, 0, len(imageInfo.Images))
-		for _, image := range imageInfo.Images {
-			imageList = append(imageList, path.Base(image.Image))
-		}
-		commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
-		return cd.UploadCL(ctx, changes, repoURL, baseCommit, commitSubject, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID)
+	imageList := make([]string, 0, len(imageInfo.Images))
+	for _, image := range imageInfo.Images {
+		imageList = append(imageList, path.Base(image.Image))
 	}
-	return nil
+	commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
+	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
 }

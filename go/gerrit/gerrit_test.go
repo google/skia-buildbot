@@ -646,14 +646,3 @@ func TestFullChangeId(t *testing.T) {
 	ci.Branch = "refs/heads/chrome/m90"
 	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
 }
-
-func TestParseGerritURLAndProject(t *testing.T) {
-	test := func(repoURL, expectGerritURL, expectProject string) {
-		actualGerritURL, actualProject, err := ParseGerritURLAndProject(repoURL)
-		require.NoError(t, err)
-		require.Equal(t, expectGerritURL, actualGerritURL)
-		require.Equal(t, expectProject, actualProject)
-	}
-	test("https://skia.googlesource.com/k8s-config.git", "https://skia-review.googlesource.com", "k8s-config")
-	test("https://chromium.googlesource.com/chromium/src", "https://chromium-review.googlesource.com", "chromium/src")
-}
