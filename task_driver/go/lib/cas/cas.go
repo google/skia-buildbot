@@ -38,12 +38,15 @@ func SetupFlags(fs *flag.FlagSet) *Flags {
 // DownloadFromFlags downloads the CAS digests requested using the given flags.
 func DownloadFromFlags(ctx context.Context, workdir string, ts oauth2.TokenSource, f *Flags) error {
 	return td.Do(ctx, td.Props("Download CAS Inputs").Infra(), func(ctx context.Context) error {
-		if *(f.Instance) == "" {
-			return skerr.Fmt("--cas-instance is required.")
-		}
 		dls, err := GetCASDownloads(f)
 		if err != nil {
 			return skerr.Wrap(err)
+		}
+		if len(dls) == 0 {
+			return nil
+		}
+		if *(f.Instance) == "" {
+			return skerr.Fmt("--cas-instance is required.")
 		}
 		client, err := rbe.NewClient(ctx, *f.Instance, ts)
 		if err != nil {

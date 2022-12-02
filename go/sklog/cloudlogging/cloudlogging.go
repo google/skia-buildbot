@@ -27,7 +27,7 @@ func New(ctx context.Context, projectID, logID string, ts oauth2.TokenSource, la
 		return nil, err
 	}
 	logger := logsClient.Logger(logID, logging.CommonLabels(labels))
-	fmt.Printf("Connected Cloud Logging; logs can be found here:\n\thttps://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%%3D%%22projects%%2F%s%%2Flogs%%2F%s%%22\n", projectID, logID)
+	fmt.Printf("Connected Cloud Logging; logs can be found here:\n\thttps://console.cloud.google.com/logs/viewer?project=%s&advancedFilter=logName%%3D%%22projects%%2F%s%%2Flogs%%2F%s%%22\n", projectID, projectID, logID)
 	return &cloudLogger{
 		logger: logger,
 	}, nil

@@ -141,6 +141,7 @@ genrule(
         "//infra/bots/task_drivers/build_and_deploy_cipd",
         "//infra/bots/task_drivers/build_push_docker_image",
         "//infra/bots/task_drivers/canary",
+        "//infra/bots/task_drivers/command_wrapper",
         "//infra/bots/task_drivers/roll_cipd_packages",
         "//infra/bots/task_drivers/presubmit",
         "//infra/bots/task_drivers/validate_autoroll_configs",

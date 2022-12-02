@@ -40,6 +40,10 @@ const (
 
 	// envVarPath represents the PATH environment variable.
 	envVarPath = "PATH"
+
+	// EnvVarWrappedStepID indicates that a task driver is nested inside of
+	// another, with the given step ID as its parent.
+	EnvVarWrappedStepID = "TASK_DRIVER_WRAPPED_STEP_ID"
 )
 
 var (
@@ -252,16 +256,51 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		receiver: rec,
 		taskId:   taskId,
 	}
-	r.send(&Message{
-		Type: MsgType_RunStarted,
-		Run:  props,
-	})
 	ctx = context.WithValue(ctx, contextKey, &Context{
 		run:     r,
 		execRun: exec.DefaultRun,
 	})
 	env := MergeEnv(os.Environ(), BaseEnv)
-	ctx = newStep(ctx, StepIDRoot, nil, Props(taskName).Env(env))
+	if wrappedStepID, ok := os.LookupEnv(EnvVarWrappedStepID); ok {
+		// We don't send a RUN_STARTED message, or a STEP_STARTED message for
+		// the root step, because we want all of the steps for this task driver
+		// to nest under the step given by the environment variable. Instead,
+		// set up a context which uses the wrapped step ID.
+		rootProps := &StepProperties{
+			Id:      wrappedStepID,
+			Name:    taskName,
+			Environ: env,
+		}
+		ctx = withChildCtx(ctx, &Context{
+			step: rootProps,
+		})
+		// ReportReceiver needs a root step for its tree structure. Send a
+		// message to any ReportReceivers (but not to any others) to create the
+		// root step.
+		msg := &Message{
+			Type:   MsgType_StepStarted,
+			StepId: StepIDRoot,
+			Step:   rootProps,
+		}
+		var sendMsg func(Receiver)
+		sendMsg = func(rec Receiver) {
+			if multi, ok := rec.(MultiReceiver); ok {
+				for _, elem := range multi {
+					sendMsg(elem)
+				}
+			} else if report, ok := rec.(*ReportReceiver); ok {
+				_ = report.HandleMessage(msg)
+			}
+		}
+		sendMsg(rec)
+	} else {
+		r.send(&Message{
+			Type: MsgType_RunStarted,
+			Run:  props,
+		})
+		ctx = newStep(ctx, StepIDRoot, nil, Props(taskName).Env(env))
+	}
+
 	return ctx
 }
 
