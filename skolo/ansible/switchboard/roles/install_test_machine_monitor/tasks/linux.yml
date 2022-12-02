@@ -45,6 +45,6 @@
   systemd:
     enabled: true
     # Do not force a restart, we'll just pick up the new version on reboot.
-    state: restarted
+    state: started
     name: test_machine_monitor
     daemon_reload: true
