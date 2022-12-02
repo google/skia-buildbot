@@ -31,7 +31,7 @@ go_test(
     flaky = True,
     deps = [
         "//go/emulators",
-        "//go/testutils/unittest",
+        "//go/emulators/cockroachdb_instance",
         "//perf/go/sql/migrations/cockroachdb",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

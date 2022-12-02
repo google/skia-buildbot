@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/common",
         "//go/emulators",
+        "//go/emulators/cockroachdb_instance",
         "//go/sklog",
     ],
 )

@@ -35,18 +35,6 @@ func RequiresBigTableEmulator(t sktest.TestingT) {
 	requiresEmulator(t, emulators.BigTable, useTestSuiteSharedEmulatorInstanceUnderRBE)
 }
 
-// RequiresCockroachDB should be called by any test case that requires the CockroachDB emulator.
-//
-// When running locally, the test case will fail if the corresponding environment variable is unset.
-// When running under RBE, the first invocation of this function will start the emulator and set the
-// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
-//
-// Note: The CockroachDB emulator is just a test-only, real CockroachDB instance. We refer to it as
-// an emulator for consistency with the Google Cloud emulators.
-func RequiresCockroachDB(t sktest.TestingT) {
-	requiresEmulator(t, emulators.CockroachDB, useTestSuiteSharedEmulatorInstanceUnderRBE)
-}
-
 // RequiresDatastoreEmulator should be called by any test case that requires the Datastore emulator.
 //
 // When running locally, the test case will fail if the corresponding environment variable is unset.

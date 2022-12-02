@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cockroachdb_instance",
+    srcs = ["cockroachdb_instance.go"],
+    importpath = "go.skia.org/infra/go/emulators/cockroachdb_instance",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/external/cockroachdb",
+        "//go/emulators",
+        "//go/skerr",
+        "//go/sktest",
+    ],
+)

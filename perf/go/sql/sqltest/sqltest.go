@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 )
@@ -32,7 +32,7 @@ type Cleanup func()
 //
 // If migrations to are be applied then set applyMigrations to true.
 func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) (*pgxpool.Pool, Cleanup) {
-	unittest.RequiresCockroachDB(t)
+	cockroachdb_instance.Require(t)
 
 	rand.Seed(time.Now().UnixNano())
 	databaseName := fmt.Sprintf("%s_%d", databaseNamePrefix, rand.Uint64())

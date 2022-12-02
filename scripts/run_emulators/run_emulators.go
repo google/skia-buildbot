@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
+
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/sklog"
@@ -33,6 +35,9 @@ func main() {
 	}
 	if start {
 		if err := emulators.StartAllEmulators(); err != nil {
+			sklog.Fatal(err)
+		}
+		if _, err := cockroachdb_instance.StartCockroachDBIfNotRunning(); err != nil {
 			sklog.Fatal(err)
 		}
 		time.Sleep(5 * time.Second)

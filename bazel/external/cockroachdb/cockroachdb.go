@@ -1,6 +1,7 @@
 package cockroachdb
 
 import (
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
@@ -13,6 +14,9 @@ import (
 // Calling this function from any Go package will automatically establish a Bazel dependency on the
 // corresponding external Bazel repository.
 func FindCockroach() (string, error) {
+	if !bazel.InBazelTest() {
+		return exec.LookPath("cockroach")
+	}
 	if runtime.GOOS == "linux" {
 		return filepath.Join(bazel.RunfilesDir(), "external", "cockroachdb_linux", "cockroach"), nil
 	}

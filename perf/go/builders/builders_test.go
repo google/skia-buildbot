@@ -9,8 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts/alertstest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
@@ -62,10 +63,8 @@ func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 	assert.Error(t, err)
 }
 
-type cleanupFunc func()
-
 func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig, sqltest.Cleanup) {
-	unittest.RequiresCockroachDB(t)
+	cockroachdb_instance.Require(t)
 
 	ctx := context.Background()
 

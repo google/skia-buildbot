@@ -260,6 +260,9 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 
 	// Set *_EMULATOR_HOST environment variables.
 	var emulatorHostEnvVars []string
+	var emulatorsToSet []emulators.Emulator
+	emulatorsToSet = append(emulatorsToSet, emulators.AllEmulators...)
+	emulatorsToSet = append(emulatorsToSet, emulators.CockroachDB)
 	for _, emulator := range emulators.AllEmulators {
 		// We need to set the *_EMULATOR_HOST variable for the current emulator before we can retrieve
 		// its value via emulators.GetEmulatorHostEnvVar().
@@ -270,6 +273,7 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 		value := emulators.GetEmulatorHostEnvVar(emulator)
 		emulatorHostEnvVars = append(emulatorHostEnvVars, fmt.Sprintf("%s=%s", name, value))
 	}
+
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.

@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/emulators",
-        "//go/testutils/unittest",
+        "//go/emulators/cockroachdb_instance",
         "//perf/go/sql/migrations",
         "//perf/go/sql/migrations/cockroachdb",
         "@com_github_jackc_pgx_v4//pgxpool",

@@ -13,7 +13,6 @@ package emulators
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,7 +20,6 @@ import (
 	"strings"
 	"syscall"
 
-	"go.skia.org/infra/bazel/external/cockroachdb"
 	"go.skia.org/infra/bazel/external/google_cloud_sdk"
 	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/bazel/go/bazel"
@@ -37,7 +35,9 @@ const (
 	BigTable = Emulator("BigTable")
 
 	// CockroachDB represents a test-only CockroachDB instance.
-	CockroachDB = Emulator("CockroachDB")
+	CockroachDB       = Emulator("CockroachDB")
+	CockroachDBPort   = 8895
+	CockroachDBEnvVar = "COCKROACHDB_EMULATOR_HOST"
 
 	// Datastore represents a Google Cloud Datastore emulator.
 	Datastore = Emulator("Datastore")
@@ -50,7 +50,7 @@ const (
 )
 
 // AllEmulators contains a list of all known emulators.
-var AllEmulators = []Emulator{BigTable, CockroachDB, Datastore, Firestore, PubSub}
+var AllEmulators = []Emulator{BigTable, Datastore, Firestore, PubSub}
 
 // emulatorInfo holds the information necessary to start an emulator and manage its lifecycle.
 type emulatorInfo struct {
@@ -108,7 +108,7 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 		}
 	case CockroachDB:
 		info = emulatorInfo{
-			cmd:    computeCockroachDBCmd(),
+			cmd:    "Use cockroachdb_instance.Require(t) instead",
 			envVar: "COCKROACHDB_EMULATOR_HOST",
 			port:   8895,
 		}
@@ -143,41 +143,6 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 	return info
 }
 
-func computeCockroachDBCmd() string {
-	cockroach := "cockroach"
-	if bazel.InBazelTest() {
-		var err error
-		cockroach, err = cockroachdb.FindCockroach()
-		if err != nil {
-			panic(fmt.Sprintf("Could not find Bazel-downloaded cockroach command: %s", err))
-		}
-	}
-
-	// Read the CockroachDB storage directory from an environment variable, or create a temp dir.
-	cockroachDbStoreDir := os.Getenv("COCKROACHDB_EMULATOR_STORE_DIR")
-	if cockroachDbStoreDir == "" {
-		var err error
-		cockroachDbStoreDir, err = ioutil.TempDir("", "crdb-emulator-*")
-		if err != nil {
-			panic("Error while creating temporary directory: " + skerr.Wrap(err).Error())
-		}
-	}
-
-	cmd := fmt.Sprintf("%s start-single-node --insecure --listen-addr=localhost:%%d --store=%s", cockroach, cockroachDbStoreDir)
-
-	// Under RBE, we want the web UI to be served on a random TCP port. This minimizes the chance of
-	// parallel tests from interfering with each other.
-	if bazel.InBazelTestOnRBE() {
-		cmd += " --http-addr=localhost:0"
-	} else {
-		// The default port for Cockroach's web UI 8080, but that is the same port at which we serve
-		// demo pages during development.
-		cmd += " --http-addr=localhost:9090"
-	}
-
-	return cmd
-}
-
 // GetEmulatorHostEnvVar returns the contents of the *_EMULATOR_HOST environment variable
 // corresponding to the given emulator, or the empty string if the environment variable is unset.
 func GetEmulatorHostEnvVar(emulator Emulator) string {
@@ -189,6 +154,7 @@ func GetEmulatorHostEnvVar(emulator Emulator) string {
 //
 // It's OK to call this function before calling StartEmulatorIfNotRunning because both functions
 // look up the emulator information (e.g. TCP port) from a package-private, global dictionary.
+// TODO(kjlubick) Remove this after decoupling dependencies.
 func SetEmulatorHostEnvVar(emulator Emulator) error {
 	return setEmulatorHostEnvVarFromEmulatorInfo(getCachedEmulatorInfo(emulator))
 }
@@ -197,11 +163,34 @@ func setEmulatorHostEnvVarFromEmulatorInfo(info emulatorInfo) error {
 	return skerr.Wrap(os.Setenv(info.envVar, fmt.Sprintf("localhost:%d", info.port)))
 }
 
+func setEmulatorHostEnvVar(emulator Emulator) error {
+	var envVar string
+	var port int
+	switch emulator {
+	case CockroachDB:
+		envVar = CockroachDBEnvVar
+		port = CockroachDBPort
+	default:
+		panic("Emulator %s has not been decoupled from emulators yet")
+	}
+	return skerr.Wrap(os.Setenv(envVar, fmt.Sprintf("localhost:%d", port)))
+}
+
 // UnsetAllEmulatorHostEnvVars unsets the *_EMULATOR_HOST environment variables for all known
 // emulators.
+// TODO(kjlubick) Remove this after decoupling dependencies.
 func UnsetAllEmulatorHostEnvVars() error {
 	for _, emulator := range AllEmulators {
 		if err := os.Setenv(getCachedEmulatorInfo(emulator).envVar, ""); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+func unsetAllEmulatorHostEnvVars() error {
+	for _, envVar := range []string{CockroachDBEnvVar} {
+		if err := os.Setenv(envVar, ""); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

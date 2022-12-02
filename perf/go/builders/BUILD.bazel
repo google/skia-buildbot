@@ -44,8 +44,8 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
+        "//go/emulators/cockroachdb_instance",
         "//go/paramtools",
-        "//go/testutils/unittest",
         "//perf/go/alerts/alertstest",
         "//perf/go/config",
         "//perf/go/file/dirsource",

@@ -8,10 +8,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/external/cockroachdb",
-        "//bazel/go/bazel",
         "//go/emulators",
+        "//go/emulators/cockroachdb_instance",
         "//go/skerr",
-        "//go/testutils/unittest",
         "//go/util",
         "//golden/go/sql",
         "//golden/go/sql/schema",

@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 )
 
 func TestUpDown_CockroachDB(t *testing.T) {
-	unittest.RequiresCockroachDB(t)
+	cockroachdb_instance.Require(t)
 
 	cockroachMigrations, err := cockroachdb.New()
 	require.NoError(t, err)

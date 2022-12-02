@@ -16,10 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/bazel/external/cockroachdb"
-	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/emulators"
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -28,14 +27,10 @@ import (
 // NewCockroachDBForTests creates a randomly named database on a test CockroachDB instance (aka the
 // CockroachDB emulator). The returned pool will automatically be closed after the test finishes.
 func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
-	unittest.RequiresCockroachDB(t)
+	cockroachdb_instance.Require(t)
 
-	cockroach := "cockroach"
-	if bazel.InBazelTest() {
-		var err error
-		cockroach, err = cockroachdb.FindCockroach()
-		require.NoError(t, err)
-	}
+	cockroach, err := cockroachdb.FindCockroach()
+	require.NoError(t, err)
 
 	out, err := exec.Command(cockroach, "version").CombinedOutput()
 	require.NoError(t, err, "Do you have 'cockroach' on your path? %s", out)
