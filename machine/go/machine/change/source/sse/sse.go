@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/r3labs/sse/v2"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -45,23 +47,23 @@ func NewFromClient(ctx context.Context, client *http.Client, serverURL string, m
 	// Create SSE client.
 	sseClient := sse.NewClient(u.String())
 	sseClient.Connection = client
+	sseClient.ReconnectStrategy = backoff.NewConstantBackOff(time.Second)
 
 	receive := metrics2.GetCounter(source.MetricName, map[string]string{"type": "http"})
 
 	ch := make(chan interface{})
 
-	eventCh := make(chan *sse.Event)
 	// Subscribe to all events for this machine.
-	sklog.Warning("about to subscribe")
-	err = sseClient.SubscribeChanWithContext(ctx, machineID, eventCh)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "subscribe to stream: %q", machineID)
-	}
 	go func() {
-		defer close(ch)
-		for range eventCh {
-			ch <- nil
-			receive.Inc(1)
+		for {
+			// SubscribeWithContext should not return except on error.
+			err := sseClient.SubscribeWithContext(ctx, machineID, func(msg *sse.Event) {
+				receive.Inc(1)
+				ch <- nil
+			})
+			if err != nil {
+				sklog.Errorf("sse connect: %s", err)
+			}
 		}
 	}()
 

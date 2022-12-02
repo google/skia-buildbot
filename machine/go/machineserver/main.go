@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"text/template"
@@ -21,6 +23,8 @@ import (
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/common"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -41,17 +45,33 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
 
-// flags
-var (
-	configFlag              = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
-	changeEventSSERPeerPort = flag.Int("change_event_sser_peer_port", 4000, "The port used to communicate among peers messages that need to be sent over SSE.")
-	namespace               = flag.String("namespace", "default", "The namespace this application is running under in k8s.")
-	labelSelector           = flag.String("label_selector", "app=machineserver", "A label selector that finds all peer pods of this application in k8s.")
-)
-
 var errFailedToGetID = errors.New("failed to get id from URL")
 
+type flags struct {
+	configFlag              string
+	changeEventSSERPeerPort int
+	namespace               string
+	labelSelector           string
+	local                   bool
+	port                    string
+	promPort                string
+	resourcesDir            string
+}
+
+func (f *flags) Register(fs *flag.FlagSet) {
+	fs.StringVar(&f.configFlag, "config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
+	fs.IntVar(&f.changeEventSSERPeerPort, "change_event_sser_peer_port", 4000, "The port used to communicate among peers messages that need to be sent over SSE.")
+	fs.StringVar(&f.namespace, "namespace", "default", "The namespace this application is running under in k8s.")
+	fs.StringVar(&f.labelSelector, "label_selector", "app=machineserver", "A label selector that finds all peer pods of this application in k8s.")
+	fs.BoolVar(&f.local, "local", false, "Running locally if true. As opposed to in production.")
+	fs.StringVar(&f.port, "port", ":8000", "HTTP service address (e.g., ':8000')")
+	fs.StringVar(&f.promPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	fs.StringVar(&f.resourcesDir, "resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+}
+
 type server struct {
+	flags *flags
+
 	store             machineStore.Store
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
@@ -72,16 +92,32 @@ type server struct {
 	login alogin.Login
 }
 
-// See baseapp.Constructor.
-func new() (baseapp.App, error) {
-	pubsubUtils.EnsureNotEmulator()
-
+func new(args []string) (*server, error) {
 	ctx := context.Background()
 
-	var instanceConfig config.InstanceConfig
-	b, err := fs.ReadFile(configs.Configs, *configFlag)
+	// Register and parse flags.
+	flags := &flags{}
+	flagSet := flag.NewFlagSet("machineserver", flag.ExitOnError)
+	flags.Register(flagSet)
+
+	common.InitWithMust(
+		"machineserver",
+		common.PrometheusOpt(&flags.promPort),
+		common.MetricsLoggingOpt(),
+		common.FlagSetOpt(flagSet),
+	)
+
+	err := flagSet.Parse(args)
 	if err != nil {
-		sklog.Fatalf("read config file %q: %s", *configFlag, err)
+		return nil, skerr.Wrap(err)
+	}
+
+	pubsubUtils.EnsureNotEmulator()
+
+	var instanceConfig config.InstanceConfig
+	b, err := fs.ReadFile(configs.Configs, flags.configFlag)
+	if err != nil {
+		sklog.Fatalf("read config file %q: %s", flags.configFlag, err)
 	}
 	err = json.Unmarshal(b, &instanceConfig)
 	if err != nil {
@@ -90,14 +126,14 @@ func new() (baseapp.App, error) {
 
 	processor := machineProcessor.New(ctx)
 
-	store, err := machineStore.NewFirestoreImpl(ctx, *baseapp.Local, instanceConfig)
+	store, err := machineStore.NewFirestoreImpl(ctx, flags.local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Listen on both pubsub and http sources, until we are fully migrated over
 	// to HTTP sources.
-	pubsubSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
+	pubsubSource, err := pubsubsource.New(ctx, flags.local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -115,17 +151,18 @@ func new() (baseapp.App, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	pubsubChangeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
+	pubsubChangeSink, err := changeSink.New(ctx, flags.local, instanceConfig.DescriptionChangeSource)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to start pubsub change sink.")
 	}
 
-	sserChangeSink, err := sseChangeSink.New(ctx, *baseapp.Local, *namespace, *labelSelector, *changeEventSSERPeerPort)
+	sserChangeSink, err := sseChangeSink.New(ctx, flags.local, flags.namespace, flags.labelSelector, flags.changeEventSSERPeerPort)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "create sser Server")
 	}
 
 	s := &server{
+		flags:            flags,
 		store:            store,
 		pubsubChangeSink: pubsubChangeSink,
 		sserChangeSink:   sserChangeSink,
@@ -175,12 +212,12 @@ func (s *server) audit(w http.ResponseWriter, r *http.Request, action string, bo
 
 func (s *server) loadTemplatesImpl() {
 	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(
-		filepath.Join(*baseapp.ResourcesDir, "*.html"),
+		filepath.Join(s.flags.resourcesDir, "*.html"),
 	))
 }
 
 func (s *server) loadTemplates() {
-	if *baseapp.Local {
+	if s.flags.local {
 		s.loadTemplatesImpl()
 	}
 	s.loadTemplatesOnce.Do(s.loadTemplatesImpl)
@@ -589,7 +626,7 @@ func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.
 func (s *server) loginStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	st := s.login.Status(r)
-	if *baseapp.Local {
+	if s.flags.local {
 		st.EMail = "barney@example.org"
 	}
 	if err := json.NewEncoder(w).Encode(st); err != nil {
@@ -597,54 +634,81 @@ func (s *server) loginStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// See baseapp.App.
-func (s *server) AddHandlers(r *mux.Router) {
-	// Pages
-	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
+// Wrapper functions for http.Handlers based on the combinations we need of
+// GZipping, CSP, and Role enforcement.
 
-	editorURLs := r.PathPrefix("/_").Subrouter()
-	// UI API
-	editorURLs.HandleFunc("/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/set_attached_device/{id:.+}", s.machineSetAttachedDeviceHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
-	editorURLs.HandleFunc("/machine/clear_quarantined/{id:.+}", s.machineClearQuarantinedHandler).Methods("POST")
-
-	if !*baseapp.Local {
-		editorURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
-	}
-
-	// Protected APIs
-	apiURLs := r.PathPrefix(rpc.APIPrefix).Subrouter()
-	apiURLs.HandleFunc(rpc.PowerCycleCompleteRelativeURL, s.apiPowerCycleCompleteHandler).Methods("POST")
-	apiURLs.HandleFunc(rpc.PowerCycleStateUpdateRelativeURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
-	apiURLs.Handle(rpc.MachineEventRelativeURL, s.httpEventSource)
-	apiURLs.Handle(rpc.SSEMachineDescriptionUpdatedRelativeURL, s.sserServer.GetHandler(context.Background()))
-
-	if !*baseapp.Local {
-		apiURLs.Use(proxylogin.ForceRoleMiddleware(s.login, roles.Editor))
-	}
-
-	// Public APIs
-	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
-	r.HandleFunc(rpc.MachineDescriptionURL, s.apiMachineDescriptionHandler).Methods("GET")
-	r.HandleFunc(rpc.PowerCycleListURL, s.apiPowerCycleListHandler).Methods("GET")
-	r.HandleFunc("/loginstatus/", s.loginStatus).Methods("GET")
+func gzip(h http.Handler) http.Handler {
+	return httputils.GzipRequestResponse(h)
 }
 
-// See baseapp.App.
-func (s *server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (s *server) editor(h http.Handler) http.Handler {
+	if s.flags.local {
+		proxylogin.ForceRoleMiddleware(s.login, roles.Editor)(h)
+	}
+	return h
+}
+
+func (s *server) secure(h http.Handler) http.Handler {
+	return baseapp.SecurityMiddleware([]string{"machines.skia.org"}, s.flags.local, nil)(h)
+}
+
+func (s *server) secureGzip(h http.Handler) http.Handler {
+	return s.secure(gzip(h))
+}
+
+func (s *server) editorSecureGzip(h http.Handler) http.Handler {
+	return s.editor(s.secureGzip(h))
+}
+
+func (s *server) AddHandlers(r *mux.Router) {
+	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
+	// Pages
+	r.Handle("/", s.secureGzip(http.HandlerFunc(s.machinesPageHandler))).Methods("GET")
+
+	// Resources
+	if s.flags.resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(1)
+		s.flags.resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
+	}
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", s.secureGzip(http.HandlerFunc(httputils.MakeResourceHandler(s.flags.resourcesDir))))).Methods("GET")
+
+	// UI API
+	r.Handle("/_/machine/toggle_mode/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineToggleModeHandler))).Methods("POST")
+	r.Handle("/_/machine/toggle_powercycle/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineTogglePowerCycleHandler))).Methods("POST")
+	r.Handle("/_/machine/set_attached_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetAttachedDeviceHandler))).Methods("POST")
+	r.Handle("/_/machine/remove_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineRemoveDeviceHandler))).Methods("POST")
+	r.Handle("/_/machine/delete_machine/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineDeleteMachineHandler))).Methods("POST")
+	r.Handle("/_/machine/set_note/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetNoteHandler))).Methods("POST")
+	r.Handle("/_/machine/supply_chromeos/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSupplyChromeOSInfoHandler))).Methods("POST")
+	r.Handle("/_/machine/clear_quarantined/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineClearQuarantinedHandler))).Methods("POST")
+
+	// External APIs
+	r.Handle(rpc.PowerCycleCompleteURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleCompleteHandler))).Methods("POST")
+	r.Handle(rpc.PowerCycleStateUpdateURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleStateUpdateHandler))).Methods("POST")
+	r.Handle(rpc.MachineEventURL, s.editorSecureGzip(s.httpEventSource)).Methods("POST")
+	r.Handle(rpc.SSEMachineDescriptionUpdatedURL, s.editor(s.sserServer.GetHandler(context.Background()))) // GZip interferes with SSE.
+
+	// Public APIs
+	r.Handle("/_/machines", gzip(http.HandlerFunc(s.machinesHandler))).Methods("GET")
+	r.Handle(rpc.MachineDescriptionURL, gzip(http.HandlerFunc(s.apiMachineDescriptionHandler))).Methods("GET")
+	r.Handle(rpc.PowerCycleListURL, gzip(http.HandlerFunc(s.apiPowerCycleListHandler))).Methods("GET")
+	r.Handle("/loginstatus/", gzip(http.HandlerFunc(s.loginStatus))).Methods("GET")
 }
 
 func main() {
-	// TODO(jcgregorio) We should feed instanceConfig.Web.AllowedHosts to baseapp.Serve.
-	baseapp.Serve(new, []string{"machines.skia.org"},
-		// Disable Logging and GZip middleware, as they conflict with Server-Sent Events.
-		baseapp.DisableLoggingRequestResponse{},
-		baseapp.DisableResponseGZip{},
-	)
+	s, err := new(os.Args[1:])
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	r := mux.NewRouter()
+	s.AddHandlers(r)
+
+	sklog.Infof("Ready to serve at: %q", s.flags.port)
+	server := &http.Server{
+		Addr:           s.flags.port,
+		Handler:        r,
+		MaxHeaderBytes: 1 << 20,
+	}
+	sklog.Fatal(server.ListenAndServe())
 }

@@ -12,6 +12,7 @@ go_library(
         "//go/sklog",
         "//machine/go/machine/change/source",
         "//machine/go/machineserver/rpc",
+        "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_r3labs_sse_v2//:sse",
         "@org_golang_x_oauth2//google",
     ],

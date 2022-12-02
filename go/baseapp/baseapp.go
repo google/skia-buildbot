@@ -92,7 +92,8 @@ func cspString(allowedHosts []string, local bool, options []Option) string {
 	return fmt.Sprintf("base-uri 'none';  img-src %s ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", imgSrc, addScriptSrc)
 }
 
-func securityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
+// SecurityMiddleware sets the CPS headers.
+func SecurityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
@@ -258,7 +259,7 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 		middleware = append(middleware, httputils.GzipRequestResponse)
 	}
 
-	middleware = append(middleware, securityMiddleware(allowedHosts, *Local, options))
+	middleware = append(middleware, SecurityMiddleware(allowedHosts, *Local, options))
 	r.Use(middleware...)
 
 	// Start serving.

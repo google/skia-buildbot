@@ -67,13 +67,16 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 	changeSinkMock := changeSinkMocks.NewSink(t)
 
 	s := &server{
+		flags: &flags{
+			local: true,
+		},
 		store: storeMock,
 
 		// Note we use changeSinkMock for both pubsubChangeSink and
 		// sserChangeSink, which is why all the changeSinkMock.On("Send",...)
 		// have a ``.Times(2)`` on them. This keeps the code simpler for when we
 		// eventually drop pubsubChangeSink, which will be right after this CL
-		// rolls out to all TMM instance.
+		// rolls out to all TMM instances.
 		pubsubChangeSink: changeSinkMock,
 		sserChangeSink:   changeSinkMock,
 

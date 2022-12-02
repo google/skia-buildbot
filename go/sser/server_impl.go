@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/gorilla/mux"
 	sse "github.com/r3labs/sse/v2"
@@ -25,6 +26,12 @@ const (
 	serverSendChannelSize = 100
 
 	clientConnectionsMetricName = "sser_server_client_connections"
+
+	// eventTTL is how long the SSE server should hold onto events before
+	// dropping them. Since a client tries to reconnect in 1s, this should be
+	// more than long enough to handle any disconnects. Also, since the client
+	// also polls it's not critical that it receive every SSE event
+	eventTTL = 10 * time.Second
 )
 
 var (
@@ -62,10 +69,12 @@ type ServerImpl struct {
 
 // New returns a new Server.
 func New(internalPort int, peerFinder PeerFinder) (*ServerImpl, error) {
+	server := sse.New()
+	server.EventTTL = eventTTL
 	return &ServerImpl{
 		internalPort: internalPort,
 		peerFinder:   peerFinder,
-		server:       sse.New(),
+		server:       server,
 		sendCh:       make(chan Event, 100),
 		peers:        map[string]*http.Client{},
 	}, nil

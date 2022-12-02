@@ -11,6 +11,7 @@ go_library(
         "//go/alogin/proxylogin",
         "//go/auditlog",
         "//go/baseapp",
+        "//go/common",
         "//go/httputils",
         "//go/metrics2",
         "//go/now",
