@@ -29,12 +29,12 @@ go_test(
     deps = [
         "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
+        "//go/emulators/gcp_emulator",
         "//go/git",
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/gitstore/bt_gitstore",
         "//go/testutils",
-        "//go/testutils/unittest",
         "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//assert",
         "@com_google_cloud_go_pubsub//:pubsub",

@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	repograph_shared_tests "go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -118,7 +118,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 
 // setupGitStore performs common setup for GitStore based Graphs.
 func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, repograph_shared_tests.RepoImplRefresher, func()) {
-	unittest.RequiresBigTableEmulator(t)
+	gcp_emulator.RequireBigTable(t)
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 
 	btConf := &BTConfig{

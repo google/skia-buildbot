@@ -4,7 +4,7 @@ go_test(
     name = "tests_test",
     srcs = ["change_manual_test.go"],
     deps = [
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "//machine/go/machine/change/sink",
         "//machine/go/machine/change/source",
         "//machine/go/machineserver/config",

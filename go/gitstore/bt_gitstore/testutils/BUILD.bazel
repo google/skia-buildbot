@@ -7,11 +7,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/bt",
+        "//go/emulators/gcp_emulator",
         "//go/git/repograph",
         "//go/gitstore",
         "//go/gitstore/bt_gitstore",
         "//go/sktest",
-        "//go/testutils/unittest",
         "//go/timer",
         "//go/util",
         "//go/vcsinfo",

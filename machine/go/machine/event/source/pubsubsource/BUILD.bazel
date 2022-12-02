@@ -23,7 +23,7 @@ go_test(
     srcs = ["pubsubsource_manual_test.go"],
     embed = [":pubsubsource"],
     deps = [
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "//machine/go/machine",
         "//machine/go/machineserver/config",
         "@com_github_stretchr_testify//assert",

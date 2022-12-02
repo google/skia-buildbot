@@ -27,7 +27,7 @@ go_test(
     srcs = ["gcssource_manual_test.go"],
     embed = [":gcssource"],
     deps = [
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "//perf/go/config",
         "//perf/go/file",
         "@com_github_stretchr_testify//assert",

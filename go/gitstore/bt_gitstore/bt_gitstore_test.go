@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/gitstore/shared_tests"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGitStore(t *testing.T) {
-	unittest.RequiresBigTableEmulator(t)
+	gcp_emulator.RequireBigTable(t)
 
 	conf := BTTestConfig()
 	require.NoError(t, InitBT(conf))

@@ -35,7 +35,8 @@ and then set the environment variables it prints out.`, emulator)
 }
 
 // setUpEmulatorBazelRBEOnly starts an instance of the given emulator, or reuses an existing
-// instance if one was started by an earlier test case.
+// instance if one was started by an earlier test case. It then sets the appropriate environment
+// variable with the port number where the emulator is listening.
 //
 // If a test case-specific instance is requested, it will always start a new emulator instance,
 // regardless of whether one was started by an earlier test case. The test case-specific instance

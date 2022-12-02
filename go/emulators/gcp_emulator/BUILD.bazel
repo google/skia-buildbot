@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "gcp_emulator",
+    srcs = ["gcp_emulator.go"],
+    importpath = "go.skia.org/infra/go/emulators/gcp_emulator",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/external/google_cloud_sdk",
+        "//bazel/external/rules_python",
+        "//go/emulators",
+        "//go/skerr",
+        "//go/sktest",
+    ],
+)

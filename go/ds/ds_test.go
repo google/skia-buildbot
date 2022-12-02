@@ -9,7 +9,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 )
 
 const TEST_KIND = Kind("DS_TEST_KIND")
@@ -21,7 +21,7 @@ type testEntity struct {
 }
 
 func TestDeleteAll(t *testing.T) {
-	unittest.RequiresDatastoreEmulator(t)
+	gcp_emulator.RequireDatastore(t)
 
 	require.NoError(t, InitForTesting("test-project", "test-namespace"))
 	client := DS
@@ -41,7 +41,7 @@ func TestDeleteAll(t *testing.T) {
 }
 
 func TestIterKeys(t *testing.T) {
-	unittest.RequiresDatastoreEmulator(t)
+	gcp_emulator.RequireDatastore(t)
 
 	nEntries := 1200
 	maxID := int64(nEntries / 2)

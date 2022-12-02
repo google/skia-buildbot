@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
 )
@@ -63,18 +63,7 @@ func TestConvertDescription_WithPowerCycle(t *testing.T) {
 }
 
 func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
-	unittest.RequiresFirestoreEmulator(t)
-	cfg := config.InstanceConfig{
-		Store: config.Store{
-			Project:  "test-project",
-			Instance: fmt.Sprintf("test-%s", uuid.New()),
-		},
-	}
-	return now.TimeTravelingContext(fakeTime), cfg
-}
-
-func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
-	unittest.RequiresFirestoreEmulatorWithTestCaseSpecificInstanceUnderRBE(t)
+	gcp_emulator.RequireFirestore(t)
 	cfg := config.InstanceConfig{
 		Store: config.Store{
 			Project:  "test-project",

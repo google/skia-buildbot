@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/emulators"
@@ -34,20 +34,17 @@ func main() {
 		sklog.Fatal(err)
 	}
 	if start {
-		if err := emulators.StartAllEmulators(); err != nil {
+		if err := gcp_emulator.StartAllIfNotRunning(); err != nil {
 			sklog.Fatal(err)
 		}
 		if _, err := cockroachdb_instance.StartCockroachDBIfNotRunning(); err != nil {
 			sklog.Fatal(err)
 		}
-		time.Sleep(5 * time.Second)
+		if err := gcp_emulator.StartAllIfNotRunning(); err != nil {
+			sklog.Fatal(err)
+		}
 		fmt.Println("Emulators started. Set environment variables as follows:")
 		for _, e := range emulators.AllEmulators {
-			// We need to set the *_EMULATOR_HOST environment variable before we can read its value via
-			// emulators.GetEmulatorHostEnvVar().
-			if err := emulators.SetEmulatorHostEnvVar(e); err != nil {
-				sklog.Fatal(err)
-			}
 			fmt.Println(fmt.Sprintf("export %s=%s", emulators.GetEmulatorHostEnvVarName(e), emulators.GetEmulatorHostEnvVar(e)))
 		}
 	} else {

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -29,7 +29,7 @@ func cleanup(t require.TestingT, kinds ...ds.Kind) {
 				t.Errorf("Failed to clean database: %s", err)
 				t.FailNow()
 			}
-			err = ds.DS.Delete(context.Background(), k)
+			err = ds.DS.Delete(context.TODO(), k)
 			require.NoError(t, err)
 		}
 	}
@@ -39,7 +39,7 @@ func cleanup(t require.TestingT, kinds ...ds.Kind) {
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
 func InitDatastore(t require.TestingT, kinds ...ds.Kind) util.CleanupFunc {
-	unittest.RequiresDatastoreEmulator(t.(*testing.T))
+	gcp_emulator.RequireDatastore(t.(*testing.T))
 	// Copied from net/http to create a fresh http client. In some tests the
 	// httpmock replaces the default http client and the healthcheck below fails.
 	var transport http.RoundTripper = &http.Transport{

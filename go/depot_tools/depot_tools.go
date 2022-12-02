@@ -135,8 +135,6 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 	if err == nil && gclient != "" {
 		sklog.Infof("Found depot_tools in PATH: %s", gclient)
 		return path.Dir(path.Dir(gclient)), nil
-		dir, err := Sync(ctx, path.Dir(path.Dir(gclient)), recipesCfgFile)
-		return dir, skerr.Wrap(err)
 	}
 
 	// Sync to the given workdir.

@@ -1,6 +1,7 @@
 package google_cloud_sdk
 
 import (
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
@@ -13,6 +14,9 @@ import (
 // Calling this function from any Go package will automatically establish a Bazel dependency on the
 // corresponding external Bazel repository.
 func FindGcloud() (string, error) {
+	if !bazel.InBazelTest() {
+		return exec.LookPath("gcloud")
+	}
 	if runtime.GOOS == "linux" {
 		return filepath.Join(bazel.RunfilesDir(), "external", "google_cloud_sdk", "google-cloud-sdk", "bin", "gcloud"), nil
 	}

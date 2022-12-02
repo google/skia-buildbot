@@ -12,7 +12,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"golang.org/x/oauth2/google"
@@ -79,7 +79,7 @@ func sendPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *pubsub.
 }
 
 func TestStart(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	ctx, pubsubClient, instanceConfig := setupPubSubClient(t)
 	ctx, cancel := context.WithCancel(ctx)
@@ -106,7 +106,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestStart_SecondCallToStartFails(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	ctx, pubsubClient, instanceConfig := setupPubSubClient(t)
 	// Create source and call Start.

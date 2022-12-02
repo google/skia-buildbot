@@ -13,8 +13,8 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,7 +25,7 @@ import (
 // concurrent tests don't interfere with each other. It also returns a
 // CleanupFunc that closes the Client.
 func newClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.CleanupFunc) {
-	unittest.RequiresFirestoreEmulator(t)
+	gcp_emulator.RequireFirestore(t)
 	return NewClientForTesting(ctx, t)
 }
 

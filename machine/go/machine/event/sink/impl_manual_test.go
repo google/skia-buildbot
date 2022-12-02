@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"golang.org/x/oauth2/google"
@@ -52,7 +52,7 @@ func setupPubSubClient(t *testing.T) (context.Context, *pubsub.Client, *pubsub.S
 }
 
 func TestSink(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 	ctx, _, sub, instanceConfig := setupPubSubClient(t)
 
 	// Create new sink.

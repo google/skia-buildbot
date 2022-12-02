@@ -8,6 +8,8 @@ go_library(
     deps = [
         "//go/depot_tools",
         "//go/emulators",
+        "//go/emulators/cockroachdb_instance",
+        "//go/emulators/gcp_emulator",
         "//go/exec",
         "//go/git",
         "//go/recipe_cfg",

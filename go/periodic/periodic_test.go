@@ -7,11 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils/unittest"
+
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 )
 
 func TestPeriodic(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

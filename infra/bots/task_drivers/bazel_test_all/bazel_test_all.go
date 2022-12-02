@@ -7,10 +7,11 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/emulators"
+	"go.skia.org/infra/go/emulators/cockroachdb_instance"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
@@ -248,7 +249,10 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	}
 
 	// Start the emulators.
-	if err := emulators.StartAllEmulators(); err != nil {
+	if _, err := cockroachdb_instance.StartCockroachDBIfNotRunning(); err != nil {
+		return err
+	}
+	if err := gcp_emulator.StartAllIfNotRunning(); err != nil {
 		return err
 	}
 	defer func() {
@@ -256,21 +260,15 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 			rvErr = err
 		}
 	}()
-	time.Sleep(5 * time.Second) // Give emulators time to boot.
 
 	// Set *_EMULATOR_HOST environment variables.
 	var emulatorHostEnvVars []string
-	var emulatorsToSet []emulators.Emulator
-	emulatorsToSet = append(emulatorsToSet, emulators.AllEmulators...)
-	emulatorsToSet = append(emulatorsToSet, emulators.CockroachDB)
 	for _, emulator := range emulators.AllEmulators {
-		// We need to set the *_EMULATOR_HOST variable for the current emulator before we can retrieve
-		// its value via emulators.GetEmulatorHostEnvVar().
-		if err := emulators.SetEmulatorHostEnvVar(emulator); err != nil {
-			return err
-		}
 		name := emulators.GetEmulatorHostEnvVarName(emulator)
 		value := emulators.GetEmulatorHostEnvVar(emulator)
+		if value == "" {
+			return fmt.Errorf("ENV VAR %s is empty", name)
+		}
 		emulatorHostEnvVars = append(emulatorHostEnvVars, fmt.Sprintf("%s=%s", name, value))
 	}
 

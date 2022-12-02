@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 )
 
 func TestPubSub(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	// This is just a thin wrapper around Cloud PubSub, so all we really
 	// need to test is that we can create a publisher and subscriber with
@@ -94,7 +94,7 @@ loop:
 }
 
 func TestUpdateUsingPubSub(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	ctx := cipd_git.UseGitFinder(context.Background())
 	ctx, cancel := context.WithCancel(ctx)

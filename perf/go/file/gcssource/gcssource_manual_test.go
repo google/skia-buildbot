@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"golang.org/x/oauth2/google"
@@ -24,7 +24,7 @@ const (
 )
 
 func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 	ctx := context.Background()
 
 	rand.Seed(time.Now().Unix())

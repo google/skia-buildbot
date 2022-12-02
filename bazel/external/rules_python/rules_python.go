@@ -1,6 +1,7 @@
 package rules_python
 
 import (
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
@@ -15,6 +16,9 @@ import (
 //
 // [1] https://github.com/bazelbuild/rules_python
 func FindPython3() (string, error) {
+	if !bazel.InBazelTest() {
+		return exec.LookPath("python3")
+	}
 	if runtime.GOOS == "linux" {
 		// This path was determined by looking at the `interpreter` constant defined in
 		// @python3_10//:defs.bzl, e.g.:

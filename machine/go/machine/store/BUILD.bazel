@@ -30,8 +30,8 @@ go_test(
     embed = [":store"],
     flaky = True,
     deps = [
+        "//go/emulators/gcp_emulator",
         "//go/now",
-        "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/config",
         "@com_github_google_uuid//:uuid",

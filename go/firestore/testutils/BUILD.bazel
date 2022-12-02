@@ -6,9 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/go/firestore/testutils",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/emulators/gcp_emulator",
         "//go/firestore",
         "//go/sktest",
-        "//go/testutils/unittest",
         "//go/util",
     ],
 )

@@ -20,7 +20,7 @@ go_test(
     srcs = ["periodic_test.go"],
     embed = [":periodic"],
     deps = [
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//assert",
     ],

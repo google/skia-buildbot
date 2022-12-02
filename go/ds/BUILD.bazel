@@ -33,7 +33,7 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_datastore//:datastore",
     ],

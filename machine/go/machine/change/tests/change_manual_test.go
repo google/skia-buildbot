@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/machine/go/machine/change/sink"
 	"go.skia.org/infra/machine/go/machine/change/source"
 	"go.skia.org/infra/machine/go/machineserver/config"
 )
 
 func TestSourceAndSink(t *testing.T) {
-	unittest.RequiresPubSubEmulator(t)
+	gcp_emulator.RequirePubSub(t)
 
 	const machineID1 = "skia-rpi2-rack4-shelf1-001"
 	const machineID2 = "skia-rpi2-rack4-shelf1-002"

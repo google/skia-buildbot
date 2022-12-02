@@ -39,10 +39,10 @@ go_test(
     tags = ["no-remote"],
     deps = [
         "//go/emulators",
+        "//go/emulators/gcp_emulator",
         "//go/metrics2",
         "//go/paramtools",
         "//go/testutils",
-        "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/ingestevents",
         "//perf/go/sql/sqltest",

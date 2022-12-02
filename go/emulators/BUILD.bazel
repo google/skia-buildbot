@@ -11,10 +11,7 @@ go_library(
     importpath = "go.skia.org/infra/go/emulators",
     visibility = ["//visibility:public"],
     deps = [
-        "//bazel/external/google_cloud_sdk",
-        "//bazel/external/rules_python",
         "//bazel/go/bazel",
-        "//go/netutils",
         "//go/skerr",
         "//go/sktest",
     ],

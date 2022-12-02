@@ -8,7 +8,7 @@ go_library(
     deps = [
         "//go/ds",
         "//go/emulators",
-        "//go/testutils/unittest",
+        "//go/emulators/gcp_emulator",
         "//go/util",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//iterator",
