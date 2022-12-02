@@ -127,7 +127,7 @@ func TestMessageValidation(t *testing.T) {
 		m := msgRunStarted()
 		m.ID = ""
 		return m
-	}, "ID is required.")
+	}, "ID or Index is required.")
 	checkNotValid(func() *Message {
 		m := msgRunStarted()
 		m.TaskId = ""

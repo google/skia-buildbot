@@ -77,8 +77,8 @@ type Message struct {
 
 // Return an error if the Message is not valid.
 func (m *Message) Validate() error {
-	if m.ID == "" {
-		return skerr.Fmt("ID is required.")
+	if m.ID == "" && m.Index == 0 {
+		return skerr.Fmt("ID or Index is required.")
 	}
 	if m.TaskId == "" {
 		return skerr.Fmt("TaskId is required.")
