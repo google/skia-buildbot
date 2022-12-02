@@ -2,11 +2,12 @@ package td
 
 import (
 	"fmt"
-	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/skerr"
 )
 
 func TestMessageValidation(t *testing.T) {
@@ -18,15 +19,15 @@ func TestMessageValidation(t *testing.T) {
 		require.NoError(t, m.Validate())
 	}
 	checkNotValid := func(fn func() *Message, errMsg string) {
-		require.EqualError(t, fn().Validate(), errMsg)
+		err := skerr.Unwrap(fn().Validate())
+		require.EqualError(t, err, errMsg)
 	}
-	msgIndex := int32(0)
 	msgRunStarted := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_RUN_STARTED,
+			Type:      MsgType_RunStarted,
 			Run: &RunProperties{
 				Local:          false,
 				SwarmingBot:    "bot",
@@ -37,11 +38,11 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepStarted := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    StepIDRoot,
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_STARTED,
+			Type:      MsgType_StepStarted,
 			Step: &StepProperties{
 				Id:      StepIDRoot,
 				Name:    "step-name",
@@ -51,58 +52,58 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepFinished := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_FINISHED,
+			Type:      MsgType_StepFinished,
 		}
 	}
 	msgTextStepData := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_DATA,
+			Type:      MsgType_StepData,
 			Data: &TextData{
 				Value: "http://www.google.com",
 				Label: "Google homepage",
 			},
-			DataType: DATA_TYPE_TEXT,
+			DataType: DataType_Text,
 		}
 	}
 	msgCommandStepData := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_DATA,
+			Type:      MsgType_StepData,
 			Data: &ExecData{
 				Cmd: []string{"echo", "hi"},
 				Env: []string{"K=V"},
 			},
-			DataType: DATA_TYPE_COMMAND,
+			DataType: DataType_Command,
 		}
 	}
 	msgStepFailed := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_FAILED,
+			Type:      MsgType_StepFailed,
 			Error:     "failed",
 		}
 	}
 	msgStepException := func() *Message {
 		return &Message{
-			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			ID:        uuid.New().String(),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
-			Type:      MSG_TYPE_STEP_EXCEPTION,
+			Type:      MsgType_StepException,
 			Error:     "exception",
 		}
 	}
@@ -124,6 +125,11 @@ func TestMessageValidation(t *testing.T) {
 	// Check that we catch missing fields.
 	checkNotValid(func() *Message {
 		m := msgRunStarted()
+		m.ID = ""
+		return m
+	}, "ID is required.")
+	checkNotValid(func() *Message {
+		m := msgRunStarted()
 		m.TaskId = ""
 		return m
 	}, "TaskId is required.")
@@ -136,7 +142,7 @@ func TestMessageValidation(t *testing.T) {
 		m := msgRunStarted()
 		m.Run = nil
 		return m
-	}, fmt.Sprintf("RunProperties are required for %s", MSG_TYPE_RUN_STARTED))
+	}, fmt.Sprintf("RunProperties are required for %s", MsgType_RunStarted))
 	checkNotValid(func() *Message {
 		m := msgRunStarted()
 		m.Run.SwarmingBot = ""
@@ -146,12 +152,12 @@ func TestMessageValidation(t *testing.T) {
 		m := msgStepStarted()
 		m.StepId = ""
 		return m
-	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_STARTED))
+	}, fmt.Sprintf("StepId is required for %s", MsgType_StepStarted))
 	checkNotValid(func() *Message {
 		m := msgStepStarted()
 		m.Step = nil
 		return m
-	}, fmt.Sprintf("StepProperties are required for %s", MSG_TYPE_STEP_STARTED))
+	}, fmt.Sprintf("StepProperties are required for %s", MsgType_StepStarted))
 	checkNotValid(func() *Message {
 		m := msgStepStarted()
 		m.Step.Id = ""
@@ -172,17 +178,17 @@ func TestMessageValidation(t *testing.T) {
 		m := msgStepFinished()
 		m.StepId = ""
 		return m
-	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_FINISHED))
+	}, fmt.Sprintf("StepId is required for %s", MsgType_StepFinished))
 	checkNotValid(func() *Message {
 		m := msgCommandStepData()
 		m.StepId = ""
 		return m
-	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_DATA))
+	}, fmt.Sprintf("StepId is required for %s", MsgType_StepData))
 	checkNotValid(func() *Message {
 		m := msgCommandStepData()
 		m.Data = nil
 		return m
-	}, fmt.Sprintf("Data is required for %s", MSG_TYPE_STEP_DATA))
+	}, fmt.Sprintf("Data is required for %s", MsgType_StepData))
 	checkNotValid(func() *Message {
 		m := msgCommandStepData()
 		m.DataType = "fake"
@@ -192,30 +198,25 @@ func TestMessageValidation(t *testing.T) {
 		m := msgStepFailed()
 		m.StepId = ""
 		return m
-	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_FAILED))
+	}, fmt.Sprintf("StepId is required for %s", MsgType_StepFailed))
 	checkNotValid(func() *Message {
 		m := msgStepFailed()
 		m.Error = ""
 		return m
-	}, fmt.Sprintf("Error is required for %s", MSG_TYPE_STEP_FAILED))
+	}, fmt.Sprintf("Error is required for %s", MsgType_StepFailed))
 	checkNotValid(func() *Message {
 		m := msgStepException()
 		m.StepId = ""
 		return m
-	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_EXCEPTION))
+	}, fmt.Sprintf("StepId is required for %s", MsgType_StepException))
 	checkNotValid(func() *Message {
 		m := msgStepException()
 		m.Error = ""
 		return m
-	}, fmt.Sprintf("Error is required for %s", MSG_TYPE_STEP_EXCEPTION))
+	}, fmt.Sprintf("Error is required for %s", MsgType_StepException))
 	checkNotValid(func() *Message {
 		m := msgStepException()
 		m.Type = "invalid"
 		return m
 	}, "Invalid message Type \"invalid\"")
-	checkNotValid(func() *Message {
-		m := msgStepStarted()
-		m.Index = 0
-		return m
-	}, "A non-zero index is required.")
 }

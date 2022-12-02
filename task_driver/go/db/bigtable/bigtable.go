@@ -16,36 +16,41 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 const (
 	// We use a single BigTable table for storing Task Driver runs.
-	BT_TABLE = "task-driver-runs"
+	btTable = "task-driver-runs"
 
 	// We use a single BigTable column family.
-	BT_COLUMN_FAMILY = "MSGS"
+	btColumnFamily = "MSGS"
 
 	// We use a single BigTable column which stores gob-encoded td.Messages.
-	BT_COLUMN = "MSG"
+	btColumn = "MSG"
 
 	// Format used for BigTable row keys.
-	ROW_KEY_FORMAT = "%s#%010d"
+	rowKeyFormat           = "%s#%s#%s"
+	rowKeyFormatDeprecated = "%s#%010d"
 
-	INSERT_TIMEOUT = 30 * time.Second
-	QUERY_TIMEOUT  = 5 * time.Second
+	insertTimeout = 30 * time.Second
+	queryTimeout  = 5 * time.Second
 )
 
 var (
 	// Fully-qualified BigTable column name.
-	BT_COLUMN_FULL = fmt.Sprintf("%s:%s", BT_COLUMN_FAMILY, BT_COLUMN)
+	btColumnFull = fmt.Sprintf("%s:%s", btColumnFamily, btColumn)
 )
 
 // rowKey returns a BigTable row key for the given message, based on the given
 // Task Driver ID.
 func rowKey(id string, msg *td.Message) string {
-	return fmt.Sprintf(ROW_KEY_FORMAT, id, msg.Index)
+	if msg.ID == "" {
+		return fmt.Sprintf(rowKeyFormatDeprecated, id, msg.Index)
+	}
+	return fmt.Sprintf(rowKeyFormat, id, msg.Timestamp.Format(util.SAFE_TIMESTAMP_FORMAT), msg.ID)
 }
 
 // BTDB is an implementation of db.DB which uses BigTable.
@@ -60,7 +65,7 @@ func NewBigTableDB(ctx context.Context, project, instance string, ts oauth2.Toke
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
-	table := client.Open(BT_TABLE)
+	table := client.Open(btTable)
 	return &BTDB{
 		client: client,
 		table:  table,
@@ -80,11 +85,11 @@ func (d *BTDB) GetMessagesForTaskDriver(ctx context.Context, id string) ([]*td.M
 	// Retrieve all messages for the Task Driver from BigTable.
 	msgs := []*td.Message{}
 	var decodeErr error
-	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeout)
 	defer cancel()
 	if err := d.table.ReadRows(ctx, bigtable.PrefixRange(id), func(row bigtable.Row) bool {
-		for _, ri := range row[BT_COLUMN_FAMILY] {
-			if ri.Column == BT_COLUMN_FULL {
+		for _, ri := range row[btColumnFamily] {
+			if ri.Column == btColumnFull {
 				var msg td.Message
 				decodeErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&msg)
 				if decodeErr != nil {
@@ -144,9 +149,9 @@ func (d *BTDB) UpdateTaskDriver(ctx context.Context, id string, msg *td.Message)
 	}
 	// Insert the message into BigTable.
 	mt := bigtable.NewMutation()
-	mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.Time(msg.Timestamp), buf.Bytes())
+	mt.Set(btColumnFamily, btColumn, bigtable.Time(msg.Timestamp), buf.Bytes())
 	rk := rowKey(id, msg)
-	ctx, cancel := context.WithTimeout(ctx, INSERT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, insertTimeout)
 	defer cancel()
 	return d.table.Apply(ctx, rk, mt)
 }

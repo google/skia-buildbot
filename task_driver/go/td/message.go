@@ -1,26 +1,25 @@
 package td
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	MSG_TYPE_RUN_STARTED    MessageType = "RUN_STARTED"
-	MSG_TYPE_STEP_STARTED   MessageType = "STEP_STARTED"
-	MSG_TYPE_STEP_FINISHED  MessageType = "STEP_FINISHED"
-	MSG_TYPE_STEP_DATA      MessageType = "STEP_DATA"
-	MSG_TYPE_STEP_FAILED    MessageType = "STEP_FAILED"
-	MSG_TYPE_STEP_EXCEPTION MessageType = "STEP_EXCEPTION"
+	MsgType_RunStarted    MessageType = "RUN_STARTED"
+	MsgType_StepStarted   MessageType = "STEP_STARTED"
+	MsgType_StepFinished  MessageType = "STEP_FINISHED"
+	MsgType_StepData      MessageType = "STEP_DATA"
+	MsgType_StepFailed    MessageType = "STEP_FAILED"
+	MsgType_StepException MessageType = "STEP_EXCEPTION"
 
-	DATA_TYPE_LOG           DataType = "log"
-	DATA_TYPE_TEXT          DataType = "text"
-	DATA_TYPE_COMMAND       DataType = "command"
-	DATA_TYPE_HTTP_REQUEST  DataType = "httpRequest"
-	DATA_TYPE_HTTP_RESPONSE DataType = "httpResponse"
+	DataType_Log          DataType = "log"
+	DataType_Text         DataType = "text"
+	DataType_Command      DataType = "command"
+	DataType_HttpRequest  DataType = "httpRequest"
+	DataType_HttpResponse DataType = "httpResponse"
 )
 
 // MessageType indicates the type of a Message.
@@ -31,8 +30,12 @@ type DataType string
 
 // Message is a struct used to send step metadata to Receivers.
 type Message struct {
+	// ID is the unique identifier for this message. This is required for every
+	// Message.
+	ID string `json:"id"`
+
 	// Index is a monotonically increasing index of the message within the
-	// Task.
+	// Task. Deprecated.
 	Index int `json:"index"`
 
 	// StepId indicates the ID for the step. This is required for every
@@ -74,71 +77,71 @@ type Message struct {
 
 // Return an error if the Message is not valid.
 func (m *Message) Validate() error {
-	if m.Index == 0 {
-		return errors.New("A non-zero index is required.")
+	if m.ID == "" {
+		return skerr.Fmt("ID is required.")
 	}
 	if m.TaskId == "" {
-		return errors.New("TaskId is required.")
+		return skerr.Fmt("TaskId is required.")
 	} else if util.TimeIsZero(m.Timestamp) {
-		return errors.New("Timestamp is required.")
+		return skerr.Fmt("Timestamp is required.")
 	}
 	switch m.Type {
-	case MSG_TYPE_RUN_STARTED:
+	case MsgType_RunStarted:
 		if m.Run == nil {
-			return fmt.Errorf("RunProperties are required for %s", m.Type)
+			return skerr.Fmt("RunProperties are required for %s", m.Type)
 		}
 		if err := m.Run.Validate(); err != nil {
 			return err
 		}
-	case MSG_TYPE_STEP_STARTED:
+	case MsgType_StepStarted:
 		if m.StepId == "" {
-			return fmt.Errorf("StepId is required for %s", m.Type)
+			return skerr.Fmt("StepId is required for %s", m.Type)
 		}
 		if m.Step == nil {
-			return fmt.Errorf("StepProperties are required for %s", m.Type)
+			return skerr.Fmt("StepProperties are required for %s", m.Type)
 		}
 		if err := m.Step.Validate(); err != nil {
 			return err
 		}
 		if m.StepId != m.Step.Id {
-			return fmt.Errorf("StepId must equal Step.Id (%s vs %s)", m.StepId, m.Step.Id)
+			return skerr.Fmt("StepId must equal Step.Id (%s vs %s)", m.StepId, m.Step.Id)
 		}
-	case MSG_TYPE_STEP_FINISHED:
+	case MsgType_StepFinished:
 		if m.StepId == "" {
-			return fmt.Errorf("StepId is required for %s", m.Type)
+			return skerr.Fmt("StepId is required for %s", m.Type)
 		}
-	case MSG_TYPE_STEP_DATA:
+	case MsgType_StepData:
 		if m.StepId == "" {
-			return fmt.Errorf("StepId is required for %s", m.Type)
+			return skerr.Fmt("StepId is required for %s", m.Type)
 		}
 		if m.Data == nil {
-			return fmt.Errorf("Data is required for %s", m.Type)
+			return skerr.Fmt("Data is required for %s", m.Type)
 		}
 		switch m.DataType {
-		case DATA_TYPE_LOG:
-		case DATA_TYPE_TEXT:
-		case DATA_TYPE_COMMAND:
-		case DATA_TYPE_HTTP_REQUEST:
-		case DATA_TYPE_HTTP_RESPONSE:
+		case DataType_Log:
+		case DataType_Text:
+		case DataType_Command:
+		case DataType_HttpRequest:
+		case DataType_HttpResponse:
 		default:
-			return fmt.Errorf("Invalid DataType %q", m.DataType)
+			return skerr.Fmt("Invalid DataType %q", m.DataType)
 		}
-	case MSG_TYPE_STEP_FAILED:
+	case MsgType_StepFailed:
 		if m.StepId == "" {
-			return fmt.Errorf("StepId is required for %s", m.Type)
+			return skerr.Fmt("StepId is required for %s", m.Type)
 		}
 		if m.Error == "" {
-			return fmt.Errorf("Error is required for %s", m.Type)
+			return skerr.Fmt("Error is required for %s", m.Type)
 		}
-	case MSG_TYPE_STEP_EXCEPTION:
+	case MsgType_StepException:
 		if m.StepId == "" {
-			return fmt.Errorf("StepId is required for %s", m.Type)
+			return skerr.Fmt("StepId is required for %s", m.Type)
 		}
 		if m.Error == "" {
-			return fmt.Errorf("Error is required for %s", m.Type)
+			return skerr.Fmt("Error is required for %s", m.Type)
 		}
 	default:
-		return fmt.Errorf("Invalid message Type %q", m.Type)
+		return skerr.Fmt("Invalid message Type %q", m.Type)
 	}
 	return nil
 }

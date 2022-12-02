@@ -189,7 +189,7 @@ func StepText(ctx context.Context, label, value string) {
 		Label: label,
 		Value: value,
 	}
-	StepData(ctx, DATA_TYPE_TEXT, d)
+	StepData(ctx, DataType_Text, d)
 }
 
 // Do is a convenience function which runs the given function as a Step. It
@@ -419,7 +419,7 @@ func execCtx(ctx context.Context) context.Context {
 				Dir: cmd.Dir,
 				Env: cmd.Env,
 			}
-			StepData(ctx, DATA_TYPE_COMMAND, d)
+			StepData(ctx, DataType_Command, d)
 
 			// Run the command.
 			return getCtx(ctx).execRun(ctx, cmd)
@@ -457,14 +457,14 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		ctx = t.ctx
 	}
 	return resp, Do(ctx, Props(fmt.Sprintf("%s %s", req.Method, req.URL.String())), func(ctx context.Context) error {
-		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
+		StepData(ctx, DataType_HttpRequest, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
 		})
 		var err error
 		resp, err = t.rt.RoundTrip(req)
 		if resp != nil {
-			StepData(ctx, DATA_TYPE_HTTP_RESPONSE, &HttpResponseData{
+			StepData(ctx, DataType_HttpResponse, &HttpResponseData{
 				StatusCode: resp.StatusCode,
 			})
 		}

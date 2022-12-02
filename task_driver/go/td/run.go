@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -244,7 +243,6 @@ func EndRun(ctx context.Context) {
 type run struct {
 	receiver Receiver
 	taskId   string
-	msgIndex int32
 }
 
 // newRun returns a context.Context representing a Task Driver run, including
@@ -255,7 +253,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		taskId:   taskId,
 	}
 	r.send(&Message{
-		Type: MSG_TYPE_RUN_STARTED,
+		Type: MsgType_RunStarted,
 		Run:  props,
 	})
 	ctx = context.WithValue(ctx, contextKey, &Context{
@@ -270,7 +268,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 // Send the given message to the receiver. Does not return an error, even if
 // sending fails.
 func (r *run) send(msg *Message) {
-	msg.Index = int(atomic.AddInt32(&r.msgIndex, 1))
+	msg.ID = uuid.New().String()
 	msg.TaskId = r.taskId
 	msg.Timestamp = time.Now().UTC()
 	if err := msg.Validate(); err != nil {
@@ -286,7 +284,7 @@ func (r *run) send(msg *Message) {
 // Send a Message indicating that a new step has started.
 func (r *run) Start(props *StepProperties) {
 	msg := &Message{
-		Type:   MSG_TYPE_STEP_STARTED,
+		Type:   MsgType_StepStarted,
 		StepId: props.Id,
 		Step:   props,
 	}
@@ -296,7 +294,7 @@ func (r *run) Start(props *StepProperties) {
 // Send a Message with additional data for the current step.
 func (r *run) AddStepData(id string, typ DataType, d interface{}) {
 	msg := &Message{
-		Type:     MSG_TYPE_STEP_DATA,
+		Type:     MsgType_StepData,
 		StepId:   id,
 		Data:     d,
 		DataType: typ,
@@ -312,9 +310,9 @@ func (r *run) Failed(id string, err error) {
 		Error:  err.Error(),
 	}
 	if IsInfraError(err) {
-		msg.Type = MSG_TYPE_STEP_EXCEPTION
+		msg.Type = MsgType_StepException
 	} else {
-		msg.Type = MSG_TYPE_STEP_FAILED
+		msg.Type = MsgType_StepFailed
 	}
 	r.send(msg)
 }
@@ -322,7 +320,7 @@ func (r *run) Failed(id string, err error) {
 // Send a Message indicating that the current step has finished.
 func (r *run) Finish(id string) {
 	msg := &Message{
-		Type:   MSG_TYPE_STEP_FINISHED,
+		Type:   MsgType_StepFinished,
 		StepId: id,
 	}
 	r.send(msg)
@@ -358,7 +356,7 @@ func (r *run) LogStream(stepId, logName string, severity Severity) io.Writer {
 		w: w,
 		cb: func() {
 			// Emit step data for the log stream.
-			r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
+			r.AddStepData(stepId, DataType_Log, &LogData{
 				Name:     logName,
 				Id:       logId,
 				Severity: severity.String(),

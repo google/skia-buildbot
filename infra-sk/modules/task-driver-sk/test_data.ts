@@ -66,14 +66,14 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'status'],
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -82,7 +82,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -100,7 +100,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'remote', '-v'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240794Z',
             },
             {
               type: 'log',
@@ -109,7 +109,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240795Z',
             },
             {
               type: 'log',
@@ -118,7 +118,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240796Z',
             },
           ],
         },
@@ -138,14 +138,14 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'rev-parse', 'HEAD'],
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -154,7 +154,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -181,7 +181,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'fetch', '--prune', 'origin'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -190,7 +190,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -199,7 +199,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
           ],
         },
@@ -217,7 +217,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'reset', '--hard', 'HEAD'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -226,7 +226,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -235,7 +235,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -255,14 +255,14 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'clean', '-d', '-f'],
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -271,7 +271,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -289,7 +289,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'checkout', 'master', '-f'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -298,7 +298,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -307,7 +307,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -325,7 +325,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'reset', '--hard', 'origin/master'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -334,7 +334,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -343,7 +343,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -363,7 +363,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'command',
@@ -375,7 +375,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                   'refs/changes/07/161107/14',
                 ],
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -384,7 +384,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -404,14 +404,14 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'reset', '--hard', 'FETCH_HEAD'],
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -420,7 +420,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -438,7 +438,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
               data: {
                 command: ['git', 'rebase', 'b173bcd1ba3215f3d8aa7384c0b2100c565dd458'],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -447,7 +447,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -456,7 +456,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -505,7 +505,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -514,7 +514,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'command',
@@ -530,7 +530,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                   'TMPDIR=',
                 ],
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -559,7 +559,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -568,7 +568,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'command',
@@ -584,7 +584,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                   'TMPDIR=',
                 ],
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -620,7 +620,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                   'TMPDIR=',
                 ],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -629,7 +629,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -638,7 +638,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
         },
@@ -674,7 +674,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                   'TMPDIR=',
                 ],
               },
-              msgIndex: 0,
+              timestamp: '2018-10-22T15:29:49.643240791Z',
             },
             {
               type: 'log',
@@ -683,7 +683,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stdout',
                 severity: 'INFO',
               },
-              msgIndex: 1,
+              timestamp: '2018-10-22T15:29:49.643240792Z',
             },
             {
               type: 'log',
@@ -692,7 +692,7 @@ export const taskDriverData: TaskDriverRunDisplay = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
-              msgIndex: 2,
+              timestamp: '2018-10-22T15:29:49.643240793Z',
             },
           ],
           errors: [

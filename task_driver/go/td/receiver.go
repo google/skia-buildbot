@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 
 	"cloud.google.com/go/logging"
@@ -102,17 +103,17 @@ type DebugReceiver struct{}
 // HandleMessage implements Receiver.
 func (r *DebugReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
-	case MSG_TYPE_RUN_STARTED:
+	case MsgType_RunStarted:
 		sklog.Infof("RUN_STARTED: %+v", m.Run)
-	case MSG_TYPE_STEP_STARTED:
+	case MsgType_StepStarted:
 		sklog.Infof("STEP_STARTED: %s", m.StepId)
-	case MSG_TYPE_STEP_FINISHED:
+	case MsgType_StepFinished:
 		sklog.Infof("STEP_FINISHED: %s", m.StepId)
-	case MSG_TYPE_STEP_EXCEPTION:
+	case MsgType_StepException:
 		sklog.Infof("STEP_EXCEPTION: %s", m.StepId)
-	case MSG_TYPE_STEP_FAILED:
+	case MsgType_StepFailed:
 		sklog.Infof("STEP_FAILED: %s", m.StepId)
-	case MSG_TYPE_STEP_DATA:
+	case MsgType_StepData:
 		b, err := json.MarshalIndent(m.Data, "", " ")
 		if err != nil {
 			return err
@@ -209,14 +210,14 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 	defer r.mtx.Unlock()
 
 	switch m.Type {
-	case MSG_TYPE_RUN_STARTED:
+	case MsgType_RunStarted:
 		// Do nothing.
-	case MSG_TYPE_STEP_STARTED:
+	case MsgType_StepStarted:
 		s := &StepReport{
 			StepProperties: m.Step,
 			Logs:           map[string]*bytes.Buffer{},
 		}
-		if m.Step.Id == StepIDRoot {
+		if strings.Contains(m.Step.Id, StepIDRoot) {
 			r.root = s
 		} else {
 			parent, err := r.findStep(m.Step.Parent)
@@ -225,7 +226,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 			}
 			parent.Steps = append(parent.Steps, s)
 		}
-	case MSG_TYPE_STEP_FINISHED:
+	case MsgType_StepFinished:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
@@ -233,21 +234,21 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 		if len(s.Errors) == 0 && len(s.Exceptions) == 0 {
 			s.Result = StepResultSuccess
 		}
-	case MSG_TYPE_STEP_FAILED:
+	case MsgType_StepFailed:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
 		}
 		s.Errors = append(s.Errors, m.Error)
 		s.Result = StepResultFailure
-	case MSG_TYPE_STEP_EXCEPTION:
+	case MsgType_StepException:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
 		}
 		s.Exceptions = append(s.Exceptions, m.Error)
 		s.Result = StepResultException
-	case MSG_TYPE_STEP_DATA:
+	case MsgType_StepData:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err

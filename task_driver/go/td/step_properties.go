@@ -1,8 +1,7 @@
 package td
 
 import (
-	"errors"
-
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -66,9 +65,9 @@ func (p *StepProperties) Copy() *StepProperties {
 // Return an error if the StepProperties are not valid.
 func (p *StepProperties) Validate() error {
 	if p.Id == "" {
-		return errors.New("Id is required.")
+		return skerr.Fmt("Id is required.")
 	} else if p.Id != StepIDRoot && p.Parent == "" {
-		return errors.New("Non-root steps must have a parent.")
+		return skerr.Fmt("Non-root steps must have a parent.")
 	}
 	return nil
 }

@@ -11,9 +11,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"path"
-	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
@@ -40,13 +40,12 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	require.Nil(t, r)
 
 	// Create a task driver in the DB via UpdateTaskDriver.
-	msgIndex := int32(0)
 	m := &td.Message{
-		Index:     int(atomic.AddInt32(&msgIndex, 1)),
+		ID:        uuid.New().String(),
 		TaskId:    id,
 		StepId:    td.StepIDRoot,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
-		Type:      td.MSG_TYPE_STEP_STARTED,
+		Type:      td.MsgType_StepStarted,
 		Step: &td.StepProperties{
 			Id: td.StepIDRoot,
 		},
@@ -71,18 +70,18 @@ func TestDB(t sktest.TestingT, d db.DB) {
 
 	// Update the task driver with some data.
 	m = &td.Message{
-		Index:     int(atomic.AddInt32(&msgIndex, 1)),
+		ID:        uuid.New().String(),
 		TaskId:    id,
 		StepId:    td.StepIDRoot,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
-		Type:      td.MSG_TYPE_STEP_DATA,
+		Type:      td.MsgType_StepData,
 		Data: td.LogData{
 			Name:     "fake-log",
 			Id:       "fake-log-id",
 			Severity: "ERROR",
 			Log:      "???",
 		},
-		DataType: td.DATA_TYPE_LOG,
+		DataType: td.DataType_Log,
 	}
 	require.NoError(t, m.Validate())
 	require.NoError(t, d.UpdateTaskDriver(ctx, id, m))
@@ -90,9 +89,9 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	require.NoError(t, err)
 	require.NotNil(t, r)
 	expect.Steps[td.StepIDRoot].Data = append(expect.Steps[td.StepIDRoot].Data, &db.StepData{
-		Type:     m.DataType,
-		Data:     m.Data,
-		MsgIndex: m.Index,
+		Type:      m.DataType,
+		Data:      m.Data,
+		Timestamp: m.Timestamp,
 	})
 	assertdeep.Equal(t, r, expect)
 }

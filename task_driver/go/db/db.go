@@ -60,9 +60,9 @@ func newStep(id string) *Step {
 
 // StepData represents data attached to a step.
 type StepData struct {
-	Type     td.DataType `json:"type"`
-	Data     interface{} `json:"data"`
-	MsgIndex int         `json:"msgIndex"`
+	Type      td.DataType `json:"type"`
+	Data      interface{} `json:"data"`
+	Timestamp time.Time   `json:"timestamp"`
 }
 
 // StepDataSlice is a slice of StepData.
@@ -71,7 +71,7 @@ type StepDataSlice []*StepData
 func (s StepDataSlice) Len() int { return len(s) }
 
 func (s StepDataSlice) Less(i, j int) bool {
-	return s[i].MsgIndex < s[j].MsgIndex
+	return s[i].Timestamp.Before(s[j].Timestamp)
 }
 
 func (s StepDataSlice) Swap(i, j int) {
@@ -142,9 +142,9 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 	}
 
 	switch m.Type {
-	case td.MSG_TYPE_RUN_STARTED:
+	case td.MsgType_RunStarted:
 		t.Properties = m.Run.Copy()
-	case td.MSG_TYPE_STEP_STARTED:
+	case td.MsgType_StepStarted:
 		// Validation.
 		if m.Step == nil {
 			return fmt.Errorf("Step properties are required.")
@@ -154,7 +154,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		}
 		step.Properties = m.Step
 		step.Started = m.Timestamp
-	case td.MSG_TYPE_STEP_FINISHED:
+	case td.MsgType_StepFinished:
 		// Set the finished time.
 		step.Finished = m.Timestamp
 		// Set the step result if it isn't set already. If the
@@ -163,11 +163,11 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		if step.Result == "" {
 			step.Result = td.StepResultSuccess
 		}
-	case td.MSG_TYPE_STEP_DATA:
+	case td.MsgType_StepData:
 		sd := &StepData{
-			Type:     m.DataType,
-			Data:     m.Data,
-			MsgIndex: m.Index,
+			Type:      m.DataType,
+			Data:      m.Data,
+			Timestamp: m.Timestamp,
 		}
 		// Avoid duplicating data we've already seen.
 		for _, existing := range step.Data {
@@ -178,7 +178,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		step.Data = append(step.Data, sd)
 		// Sort the data. This is just to make tests pass.
 		sort.Sort(StepDataSlice(step.Data))
-	case td.MSG_TYPE_STEP_FAILED:
+	case td.MsgType_StepFailed:
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
 		// order the messages arrive in.
@@ -186,7 +186,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		if m.Error != "" {
 			step.Errors = append(step.Errors, m.Error)
 		}
-	case td.MSG_TYPE_STEP_EXCEPTION:
+	case td.MsgType_StepException:
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
 		// order the messages arrive in.

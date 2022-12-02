@@ -12,7 +12,7 @@ import (
 )
 
 func setup(t *testing.T) (db.DB, func()) {
-	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
+	project, instance, cleanup := bt_testutil.SetupBigTable(t, btTable, btColumnFamily)
 
 	d, err := NewBigTableDB(context.Background(), project, instance, nil)
 	require.NoError(t, err)

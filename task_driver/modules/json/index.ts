@@ -10,7 +10,7 @@ export interface RunProperties {
 export interface StepData {
 	type: DataType;
 	data: any;
-	msgIndex: number;
+	timestamp: string;
 }
 
 export interface StepDisplay {
