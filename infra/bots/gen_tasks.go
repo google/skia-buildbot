@@ -137,9 +137,11 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		Dimensions: linuxGceDimensions(machineTypeMedium),
 		// This task is idempotent but unlikely to ever be deduped
 		// because it depends on the entire repo...
-		Idempotent: true,
+		Idempotent:     true,
+		ServiceAccount: compileServiceAccount,
 	}
 	usesBazelisk(b, t)
+	usesWrapperTaskDriver(b, name, false, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -179,6 +181,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	// call to usePreBuiltTaskDrivers.
 	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
+	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -216,6 +219,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		ServiceAccount: recreateSKPsServiceAccount,
 	}
 	usesBazelisk(b, t)
+	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -241,6 +245,30 @@ func usesPreBuiltTaskDrivers(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
 		}
 	}
 	t.Dependencies = newDeps
+}
+
+func usesWrapperTaskDriver(b *specs.TasksCfgBuilder, name string, isTaskDriver bool, t *specs.TaskSpec) {
+	newCmd := []string{
+		"./task_drivers/command_wrapper",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+	}
+	for _, pkg := range t.CipdPackages {
+		flag := fmt.Sprintf("%s:%s@%s", pkg.Path, pkg.Name, pkg.Version)
+		newCmd = append(newCmd, "--cipd", flag)
+	}
+	if isTaskDriver {
+		newCmd = append(newCmd, "--command-is-task-driver")
+	}
+	newCmd = append(newCmd, "--")
+	newCmd = append(newCmd, t.Command...)
+	t.Command = newCmd
+
+	t.CipdPackages = []*specs.CipdPackage{
+		cipd.MustGetPackage("skia/tools/command_wrapper/${platform}"),
+	}
 }
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
@@ -279,6 +307,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	// call to usePreBuiltTaskDrivers.
 	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
+	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -323,6 +352,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	// call to usePreBuiltTaskDrivers.
 	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
+	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
 	return name
 }

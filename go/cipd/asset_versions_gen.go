@@ -203,6 +203,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/tools/bazel_test_all/${platform}",
 		Version: "git_revision:2195169c3c8754d261f092b32704003ee21bd9bf",
 	},
+	"skia/tools/command_wrapper/${platform}": {
+		Path:    "task_drivers",
+		Name:    "skia/tools/command_wrapper/${platform}",
+		Version: "git_revision:b65a23129f1d7028291ccb0cead545d60b84d296",
+	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
