@@ -29,13 +29,13 @@ export type CorpusRendererFn<T extends Object> = (corpus: T)=> string;
  */
 export class CorpusSelectorSk<T extends Object> extends ElementSk {
   private static template =
-    <T>(el: CorpusSelectorSk<T>) => (el._corpora.length
+    <T extends Object>(el: CorpusSelectorSk<T>) => (el._corpora.length
       ? html`
             <ul>${el._corpora.map((corpus) => CorpusSelectorSk.corpusTemplate(el, corpus))}</ul>`
       : html`<p>Loading corpora details...</p>`);
 
   private static corpusTemplate =
-    <T>(el: CorpusSelectorSk<T>, corpus: T) => html`
+    <T extends Object>(el: CorpusSelectorSk<T>, corpus: T) => html`
         <li class=${el._selectedCorpus === corpus ? 'selected' : ''}
             title="${el._corpusRendererFn(corpus)}"
             @click=${() => el._handleCorpusClick(corpus)}>

@@ -117,7 +117,7 @@ export class SortToggleSk<T extends Object> extends ElementSk {
         return left.localeCompare(right);
       }
       throw new Error(
-        `Trying to sort by key "${key}", which is neither a number nor a string. ${left}, ${right}`,
+        `Trying to sort by key "${String(key)}", which is neither a number nor a string. ${left}, ${right}`,
       );
     });
     this.dispatchEvent(new CustomEvent('sort-changed', { bubbles: true }));

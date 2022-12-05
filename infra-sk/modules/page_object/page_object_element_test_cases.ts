@@ -1,6 +1,5 @@
 import { expect } from 'chai';
-import { Serializable } from 'puppeteer';
-import { PageObjectElement } from './page_object_element';
+import { PageObjectElement, Serializable } from './page_object_element';
 
 /**
  * A test bed for PageObjectElement test cases that must run both in-browser and on Puppeteer.

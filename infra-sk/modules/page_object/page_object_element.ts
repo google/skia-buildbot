@@ -1,13 +1,16 @@
-import { ElementHandle, Serializable } from 'puppeteer';
+import { ElementHandle } from 'puppeteer';
 import {
   asyncFilter, asyncFind, asyncForEach, asyncMap,
 } from '../async';
+
+// Puppeteer used to have a Serializable type, but it is now just "unknown".
+export type Serializable = unknown;
 
 // Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
   element: HTMLElement | ElementHandle<HTMLElement>,
 ): element is ElementHandle<HTMLElement> {
-  return (element as ElementHandle).asElement !== undefined;
+  return !!(element as ElementHandle).asElement;
 }
 
 /**
@@ -82,14 +85,14 @@ export class PageObjectElement {
 
   /** Analogous to HTMLElement#focus(). */
   async focus() {
-    const element = await this.elementPromise;
-    await element!.focus();
+    const element = (await this.elementPromise) as ElementHandle;
+    await element.focus();
   }
 
   /** Analogous to HTMLElement#click(). */
   async click() {
-    const element = await this.elementPromise;
-    await element!.click();
+    const element = (await this.elementPromise) as ElementHandle;
+    await element.click();
   }
 
   /** Analogous to HTMLElement#hasAttribute(). */
@@ -102,7 +105,7 @@ export class PageObjectElement {
   /** Analogous to HTMLElement#getAttribute(). */
   async getAttribute(attribute: string): Promise<string | null> {
     return this.applyFnToDOMNode(
-      (el, attribute) => el.getAttribute(attribute as string), attribute,
+      (el: HTMLElement, attribute: unknown) => el.getAttribute(attribute as string), attribute,
     );
   }
 
@@ -122,11 +125,12 @@ export class PageObjectElement {
   async typeKey(key: string) {
     const element = await this.elementPromise;
     if (isPptrElement(element!)) {
-      return element.type(key);
+      return (element as ElementHandle).type(key);
     }
-    element!.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: key }));
-    element!.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: key }));
-    element!.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: key }));
+    const ele = (element as HTMLElement);
+    ele.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: key }));
+    ele.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: key }));
+    ele.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: key }));
   }
 
   /**
@@ -164,9 +168,9 @@ export class PageObjectElement {
   ): Promise<T> {
     const element = await this.elementPromise;
     if (isPptrElement(element!)) {
-      return await element.evaluate(fn, ...args) as T;
+      return await (element as ElementHandle<HTMLElement>).evaluate(fn, ...args) as T;
     }
-    return fn(element!, ...args);
+    return fn(element as HTMLElement, ...args);
   }
 
   /// /////////////////////////////////////////////////////////////////
@@ -175,18 +179,23 @@ export class PageObjectElement {
 
   /** Analogous to HTMLElement#querySelector(). */
   bySelector(selector: string): PageObjectElement {
-    return new PageObjectElement(this.elementPromise.then((element) => {
-      if (!element) {
-        return new Promise((resolve) => resolve(null));
-      }
-      if (isPptrElement(element)) {
-        // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
-        // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
-        // ElementHandle#$$() methods are the other way around.
-        return element.$(selector);
-      }
-      return new Promise((resolve) => resolve(element.querySelector<HTMLElement>(selector)));
-    }));
+    return new PageObjectElement(
+        this.elementPromise.then((element) => {
+          if (!element) {
+            return null;
+          }
+          if (isPptrElement(element)) {
+            // Note that common-sk functions $ and $$ are aliases for
+            // HTMLElement#querySelectorAll() and HTMLElement#querySelector(), respectively,
+            // whereas Puppeteer's ElementHandle#$() and ElementHandle#$$() methods are the other
+            // way around.
+            return (element as ElementHandle).$(selector) as Promise<ElementHandle<HTMLElement>>;
+          }
+          return new Promise((resolve) => resolve(
+              (element as HTMLElement).querySelector<HTMLElement>(selector)
+          ));
+        })
+    );
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
@@ -199,9 +208,11 @@ export class PageObjectElement {
         // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
         // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
         // ElementHandle#$$() methods are the other way around.
-        return element.$$(selector);
+        return (element as ElementHandle).$$(selector) as Promise<ElementHandle<HTMLElement>[]>;
       }
-      return new Promise((resolve) => resolve(Array.from(element.querySelectorAll<HTMLElement>(selector))));
+      return new Promise((resolve) => resolve(
+          Array.from((element as HTMLElement).querySelectorAll<HTMLElement>(selector)))
+      );
     }));
   }
 }

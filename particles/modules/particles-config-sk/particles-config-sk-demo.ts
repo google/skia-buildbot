@@ -9,6 +9,6 @@ $$('#open')!.addEventListener('click', async () => {
     });
     $$('#results')!.textContent = JSON.stringify(config, null, '  ');
   } catch (err) {
-    $$('#results')!.textContent = err;
+    $$('#results')!.textContent = `${err}`;
   }
 });

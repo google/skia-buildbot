@@ -6,7 +6,6 @@ karma_test(
     deps = [
         ":page_object_element_test_cases_ts_lib",
         ":page_object_element_ts_lib",
-        "@npm//puppeteer",
     ],
 )
 
@@ -31,7 +30,6 @@ ts_library(
         ":page_object_element_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//puppeteer",
     ],
 )
 

@@ -406,10 +406,10 @@ export class ClusterLastNPageSk extends ElementSk {
     window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
-  private catch(msg: string) {
+  private catch(msg: Error) {
     this.hasError = true;
     this.requestId = '';
-    this.runningStatus = msg;
+    this.runningStatus = `${msg}`;
     this._render();
     if (msg) {
       errorMessage(msg);
@@ -449,7 +449,7 @@ export class ClusterLastNPageSk extends ElementSk {
       this.regressions = finalProg.results;
       this.runningStatus = '';
     } catch (error) {
-      this.catch(error);
+      this.catch(error as Error);
     } finally {
       this.requestId = '';
       this._render();

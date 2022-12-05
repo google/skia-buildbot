@@ -89,13 +89,16 @@ export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
  *  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
  *  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
  */
-const bazelRunfilesDir = () => process.env.RUNFILES_DIR! + '/' + process.env.TEST_WORKSPACE!;
+const bazelRunfilesDir = () => {
+  return path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
+}
 
 /**
  * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
  * This can be handy for debugging.
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
+  const chromeDir = path.join(bazelRunfilesDir(), 'external', 'google_chrome');
   return puppeteer.launch({
     // These options are required to run Puppeteer from within a Docker container, as is the case
     // under Bazel and RBE. See
@@ -112,7 +115,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     headless: !showBrowser,
     env: {
       ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
-      FONTCONFIG_SYSROOT: bazelRunfilesDir() + '/external/google_chrome',
+      FONTCONFIG_SYSROOT: chromeDir,
     },
   });
 };
@@ -164,7 +167,14 @@ export const outputDir = () => {
  * application name as a prefix prevents name collisions between different apps
  * and increases consistency among test names.
  */
-export const takeScreenshot = (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) => handle.screenshot({ path: path.join(exports.outputDir(), `${appName}_${testName}.png`) });
+export function takeScreenshot(handle: puppeteer.Page | puppeteer.ElementHandle,
+                               appName: string, testName: string): Promise<Buffer | string> {
+    const pngPath = path.join(exports.outputDir(), `${appName}_${testName}.png`);
+    // Typescript is unhappy about the type union due to the ElementHandle having a "this"
+    // typing. Both Page and ElementHandle have a screenshot method, so we can just
+    // pretend it's one of those two.
+    return (handle as puppeteer.Page).screenshot({ path:  pngPath});
+}
 
 let browser: puppeteer.Browser;
 let testBed: Partial<TestBed>;

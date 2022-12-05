@@ -75,8 +75,13 @@ def karma_test(
             "@npm//karma-chai-dom",
             "@npm//karma-spec-reporter",
             "@npm//mocha",
-            "@google_chrome//:all_files",  # Provides Google Chrome, libraries and fonts.
-        ] + static_karma_files,
+        ] + select({
+            # Provides Google Chrome, libraries and fonts.
+            "@platforms//os:linux": ["@google_chrome//:all_files"],
+            # We don't have hermetic support for Mac and Windows. Users are expected
+            # to have a working chrome installation already.
+            "//conditions:default": [],
+        }) + static_karma_files,
         templated_args = [
             "start",
             "$(execpath %s)" % karma_config_file,

@@ -146,8 +146,8 @@ describe('test utilities', () => {
         try {
           await hello;
           expect.fail('promise should not have resolved');
-        } catch (error) {
-          expect(error.message).to.equal(
+        } catch (error: unknown) {
+          expect((error as Error).message).to.equal(
             'timed out after 5000 ms while waiting to catch event "hello"',
           );
         }
@@ -176,8 +176,8 @@ describe('test utilities', () => {
         try {
           await noHello;
           expect.fail('promise should not have resolved');
-        } catch (error) {
-          expect(error.message).to.equal(
+        } catch (error: unknown) {
+          expect((error as Error).message).to.equal(
             'event "hello" was caught when none was expected',
           );
         }
@@ -190,8 +190,8 @@ describe('test utilities', () => {
         try {
           await noHello;
           expect.fail('promise should not have resolved');
-        } catch (error) {
-          expect(error.message).to.equal(
+        } catch (error: unknown) {
+          expect((error as Error).message).to.equal(
             'event "hello" was caught when none was expected',
           );
         }

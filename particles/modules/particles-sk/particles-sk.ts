@@ -315,7 +315,7 @@ export class ParticlesSk extends ElementSk {
       this.stateChanged!();
       this._render();
     } catch (err) {
-      await errorMessage(err);
+      await errorMessage(err as Error);
     }
   }
 
@@ -357,7 +357,7 @@ export class ParticlesSk extends ElementSk {
       this.play();
       this.currentNameOrHash = this.state.nameOrHash;
     } catch (error) {
-      await errorMessage(error);
+      await errorMessage(error as Error);
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.currentNameOrHash = this.state.nameOrHash;

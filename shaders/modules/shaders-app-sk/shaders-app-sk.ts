@@ -534,7 +534,7 @@ export class ShadersAppSk extends ElementSk {
           },
         );
       } catch (error) {
-        doNotWait(errorMessage(error, 0));
+        doNotWait(errorMessage(error as Error, 0));
       }
     });
   }
@@ -565,7 +565,7 @@ export class ShadersAppSk extends ElementSk {
       this.setUniformValuesToControls();
       this.run();
     } catch (error) {
-      doNotWait(errorMessage(error, 0));
+      doNotWait(errorMessage(error as Error, 0));
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.stateChanged!();
@@ -794,7 +794,7 @@ export class ShadersAppSk extends ElementSk {
       this.stateChanged!();
       this._render();
     } catch (error) {
-      doNotWait(errorMessage(`${error}`, 0));
+      doNotWait(errorMessage(error as Error, 0));
     }
   }
 
@@ -830,7 +830,7 @@ export class ShadersAppSk extends ElementSk {
       this._render();
       await this.runClick();
     } catch (error) {
-      doNotWait(errorMessage(error));
+      doNotWait(errorMessage(error as Error));
     }
   }
 

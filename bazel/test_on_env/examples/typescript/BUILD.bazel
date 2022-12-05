@@ -3,6 +3,10 @@ load("//infra-sk:index.bzl", "nodejs_test")
 nodejs_test(
     name = "typescript_nodejs_test",
     src = "typescript_nodejs_test.ts",
+    data = [
+        "//:.puppeteerrc.js",
+        "//puppeteer-tests:chrome",
+    ],
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],
     deps = [

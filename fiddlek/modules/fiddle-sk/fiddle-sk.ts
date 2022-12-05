@@ -750,7 +750,7 @@ ${err.text}</pre
         }),
       );
     } catch (error) {
-      const ignoredPromise = errorMessage(error);
+      const ignoredPromise = errorMessage(error as Error);
     } finally {
       this.spinner!.active = false;
     }

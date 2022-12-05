@@ -274,7 +274,7 @@ export class WasmFiddle extends HTMLElement {
       f(this.Wasm, canvas, consoleInterceptor, this._benchmarkFPSInstance(this.runID),
         this.activeRunInstance(this.runID));
     } catch (e) {
-      errorMessage(e);
+      errorMessage(e as Error);
     }
   }
 

@@ -58,7 +58,10 @@ gazelle(
 )
 
 exports_files(
-    ["tsconfig.json"],
+    [
+        "tsconfig.json",
+        ".puppeteerrc.js",
+    ],
     visibility = ["//visibility:public"],
 )
 

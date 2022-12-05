@@ -391,7 +391,7 @@ private renderIdle = () => html`
       this.state = 'complete';
       this.blob = blob as Blob;
       this.exportDuration = diffDate(this.startTime);
-      this.blobURL = URL.createObjectURL(blob);
+      this.blobURL = URL.createObjectURL(this.blob);
       this._render();
     });
     this.gif.on('progress', (value: unknown) => {

@@ -294,6 +294,13 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     if not src.endswith("_puppeteer_test.ts"):
         fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
 
+    headless_opts = {
+        #  "PUPPETEER_CACHE_DIR": "test/kjlubick/whatever",
+    }
+    headful_opts = {
+        "PUPPETEER_TEST_SHOW_BROWSER": "true",
+    }.update(headless_opts)
+
     for debug, headful in [(False, False), (True, False), (True, True)]:
         suffix = ""
         if debug:
@@ -307,7 +314,7 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
             tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
             deps = deps,
             wait_for_debugger = debug,
-            env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
+            env = headful_opts if headful else headless_opts,
             _internal_skip_naming_convention_enforcement = True,
         )
 

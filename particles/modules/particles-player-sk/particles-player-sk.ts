@@ -127,7 +127,7 @@ export class ParticlesPlayerSk extends ElementSk {
       try {
         this._initializeParticles(config.body);
       } catch (error) {
-        errorMessage(error);
+        errorMessage(error as Error);
       }
       this._render();
     });

@@ -119,7 +119,7 @@ export class CodesizeScaffoldSk extends ElementSk {
     try {
       return await promise;
     } catch (e) {
-      await errorMessage(e);
+      await errorMessage(e as Error);
       throw e;
     } finally {
       this.busyTaskCount--;

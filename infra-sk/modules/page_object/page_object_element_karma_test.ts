@@ -1,5 +1,4 @@
-import { Serializable } from 'puppeteer';
-import { PageObjectElement } from './page_object_element';
+import { PageObjectElement, Serializable } from './page_object_element';
 import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
 
 describe('PageObjectElement on the browser', () => {

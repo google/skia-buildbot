@@ -16,7 +16,31 @@ nodejs_test(
 ts_library(
     name = "util_ts_lib",
     srcs = ["util.ts"],
-    data = ["@google_chrome//:all_files"],  # Provides Google Chrome, libraries and fonts.
+    data = select({
+        # Provides Google Chrome, libraries and fonts.
+        "@platforms//os:linux": [
+            "@google_chrome//:all_files",
+            ":chrome",
+            "//:.puppeteerrc.js",
+        ],
+        # We don't have hermetic support for Mac and Windows. Users are expected
+        # to have a working chrome installation already.
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = ["@npm//puppeteer"],
+)
+
+# This is where we configured Puppeteer to download the cached version of Chrome.
+filegroup(
+    name = "chrome",
+    # Add a dependency to puppeteer so Bazel globs the chrome_cache *after* npm installation
+    # completes
+    data = ["@npm//:node_modules/puppeteer/README.md"] + glob(
+        [
+            "chrome_cache/chrome/**",
+        ],
+        allow_empty = False,
+    ),
+    visibility = ["//visibility:public"],
 )

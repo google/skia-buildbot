@@ -351,7 +351,8 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(b, t)
+	// TODO(kjlubick) Replace after this bakes in
+	// usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)

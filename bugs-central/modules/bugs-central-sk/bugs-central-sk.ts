@@ -332,7 +332,7 @@ export class BugsCentralSk extends ElementSk {
       const json = await jsonOrThrow(resp);
       action(json);
     } catch (msg) {
-      await errorMessage(msg);
+      await errorMessage(msg as Error);
     }
   }
 

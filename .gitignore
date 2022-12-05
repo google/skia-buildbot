@@ -108,3 +108,6 @@ gold-client/build
 # based on the name of the directory bazel is cloned into. Note that the prefix
 # is set in .bazelrc.
 _bazel_*
+
+# Puppeteer downloads things (e.g. Chrome) to this folder when installing
+puppeteer-tests/chrome_cache

@@ -95,6 +95,13 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Make sure Bazel runs npm install before we try to test things. Without this, we would
+	// sometimes see tests fail because puppeteer hadn't downloaded chrome before the "chrome_cache"
+	// filegroup resolved.
+	if _, err := bzl.Do(ctx, "build", "@npm//:node_modules/puppeteer/README.md"); err != nil {
+		td.Fatal(ctx, err)
+	}
+
 	// Run the tests.
 	if *rbe {
 		if err := testOnRBE(ctx, bzl); err != nil {
