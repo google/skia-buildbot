@@ -14,7 +14,7 @@ import (
 // corresponding CIPD package, which Bazel will download as needed.
 func FindVPython3() (string, error) {
 	if runtime.GOOS == "linux" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "vpython_linux", "vpython3"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "vpython_amd64_linux", "vpython3"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 }

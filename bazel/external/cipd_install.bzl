@@ -18,16 +18,18 @@ directory. Example:
 ```
 # WORKSPACE
 cipd_install(
-    name = "git_linux",
-    package = "infra/3pp/tools/git/linux-amd64",
-    version = "version:2.29.2.chromium.6",
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+    tag = "version:2.29.2.chromium.6",
 )
 
 # BUILD.bazel
 go_library(
     name = "git_util.go",
     srcs = ["git_util.go"],
-    data = ["@git_linux//:all_files"],
+    data = ["@git_amd64_linux//:all_files"],
     ...
 )
 
@@ -39,59 +41,8 @@ import (
 )
 
 func FindGitBinary() string {
-    return filepath.Join(bazel.RunfilesDir(), "external/git_linux/bin/git")
+    return filepath.Join(bazel.RunfilesDir(), "external/git_amd64_linux/bin/git")
 }
-```
-
-For Bazel targets that must support multiple operating systems, one can declare OS-specific CIPD
-packages in the WORKSPACE file, and select the correct package according to the host OS via a
-select[1] statement. Example:
-
-```
-# WORKSPACE
-cipd_install(
-    name = "git_linux",
-    package = "infra/3pp/tools/git/linux-amd64",
-    version = "version:2.29.2.chromium.6",
-)
-cipd_install(
-    name = "git_win",
-    package = "infra/3pp/tools/git/windows-amd64",
-    version = "version:2.29.2.chromium.6",
-)
-
-# BUILD.bazel
-go_library(
-    name = "git_util.go",
-    srcs = ["git_util.go"],
-    data = select({
-        "@platforms//os:linux": ["@git_linux//:all_files"],
-        "@platforms//os:windows": ["@git_win//:all_files"],
-    }),
-    ...
-)
-```
-
-As an alternative, we could extract any such select statements as Bazel macros, which would keep
-BUILD files short. Example:
-
-```
-# cipd_packages.bzl
-def git():
-    return select({
-        "@platforms//os:linux": ["@git_linux//:all_files"],
-        "@platforms//os:windows": ["@git_win//:all_files"],
-    })
-
-# BUILD.bazel
-load(":cipd_packages.bzl", "git")
-
-go_library(
-    name = "git_util.go",
-    srcs = ["git_util.go"],
-    data = git(),
-    ...
-)
 ```
 
 Note that runfile generation is disabled on Windows by default, and must be enabled with
@@ -101,105 +52,86 @@ Note that runfile generation is disabled on Windows by default, and must be enab
 [2] https://bazel.build/reference/command-line-reference#flag--enable_runfiles
 """
 
-load(":common.bzl", "fail_if_nonzero_status")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def _postinstall_script(repository_ctx, script_name, script_content):
-    repository_ctx.report_progress("Executing postinstall script...")
-    repository_ctx.file(
-        script_name,
-        content = script_content,
-        executable = True,
+def cipd_install(
+        name,
+        build_file_content,
+        cipd_package,
+        sha256,
+        tag,
+        postinstall_cmds_posix = None,
+        postinstall_cmds_win = None):
+    """Download and extract the zipped archive from CIPD, making it available for Bazel rules.
+
+    This is a wrapper around the built-in http_archive rule.
+
+    Args:
+        name: The name of the Bazel "repository" created. For example, if name is "alpha_beta",
+              the full Bazel label will start with @alpha_beta//
+        build_file_content: CIPD packages do not come with BUILD.bazel files, so we must supply
+                            one. This should generally contain exports_files or filegroup.
+                            See also all_cipd_files() and export_cipd_files for helpers to create
+                            these contents.
+        cipd_package: The full name of the CIPD package. This is a "path" from the root of CIPD.
+                      This should be a publicly accessible package, as authentication is not
+                      supported.
+        sha256: The sha256 hash of the zip archive downloaded from CIPD. This should match the
+                official CIPD website.
+        tag: Represents the version of the CIPD package to download.
+             For example, git_revision:abc123...
+        postinstall_cmds_posix: Optional Bash commands to run on Mac/Linux after download.
+        postinstall_cmds_win: Optional Powershell commands to run on Windows after download.
+    """
+    cipd_url = "https://chrome-infra-packages.appspot.com/dl/"
+    cipd_url += cipd_package
+    cipd_url += "/+/"
+    cipd_url += tag
+
+    mirror_url = "https://storage.googleapis.com/skia-world-readable/bazel/"
+    mirror_url += sha256
+    mirror_url += ".zip"
+
+    # https://bazel.build/rules/lib/repo/http#http_archive
+    http_archive(
+        name = name,
+        build_file_content = build_file_content,
+        sha256 = sha256,
+        urls = [
+            cipd_url,
+            mirror_url,
+        ],
+        patch_cmds = postinstall_cmds_posix,
+        patch_cmds_win = postinstall_cmds_win,
+        type = "zip",
     )
-    exec_result = repository_ctx.execute(
-        [repository_ctx.path(script_name)],
-        quiet = repository_ctx.attr.quiet,
-    )
-    fail_if_nonzero_status(exec_result, "Failed to run postinstall script.")
-    repository_ctx.delete(repository_ctx.path(script_name))
 
-_DEFAULT_BUILD_FILE_CONTENT = """
-# To add a specific file inside this CIPD package as a dependency, use a label such as
-# @my_cipd_pkg//:path/to/file.
-# The exclude pattern prevents files with spaces in their names from tripping up Bazel.
-exports_files(glob(include=["**/*"], exclude=["**/* *"]))
-
-# Convenience filegroup to add all files in this CIPD package as dependencies.
+def all_cipd_files():
+    """Returns the contents of a BUILD file which export all files in all subdirectories."""
+    return """
 filegroup(
-    name = "all_files",
-    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.
-    srcs = glob(include=["**/*"], exclude=["**/* *"]),
-    visibility = ["//visibility:public"],
+  name = "all_files",
+  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.
+  srcs = glob(include=["**/*"], exclude=["**/* *"]),
+  visibility = ["//visibility:public"],
+)"""
+
+def export_cipd_files(list_of_files):
+    """Returns the contents of a BUILD file which exports only the given files.
+
+    Args:
+        list_of_files: list of strings containing paths relative to the root of the extracted files.
+    Returns:
+        A string containing a public export_files rule.
+    """
+    contents = """
+exports_files(
+    ["""
+    for file in list_of_files:
+        contents += '"' + file + '",'
+
+    contents += """],
+    visibility = ["//visibility:public"]
 )
 """
-
-def _cipd_install_impl(repository_ctx):
-    is_windows = "windows" in repository_ctx.os.name.lower()
-    is_posix = not is_windows  # This is a safe assumption given our fleet of test machines.
-
-    # Install the CIPD package.
-    cipd_client = Label("@depot_tools//:cipd.bat" if is_windows else "@depot_tools//:cipd")
-    repository_ctx.report_progress("Installing CIPD package...")
-    exec_result = repository_ctx.execute(
-        [
-            repository_ctx.path(cipd_client),
-            "install",
-            repository_ctx.attr.package,
-            repository_ctx.attr.version,
-            "-root",
-            ".",
-        ],
-        quiet = repository_ctx.attr.quiet,
-    )
-    fail_if_nonzero_status(exec_result, "Failed to fetch CIPD package.")
-
-    # Generate BUILD.bazel file.
-    build_file_content = repository_ctx.attr.build_file_content
-    if not build_file_content:
-        build_file_content = _DEFAULT_BUILD_FILE_CONTENT
-    repository_ctx.file("BUILD.bazel", content = build_file_content)
-
-    # Optionally run the postinstall script if one was given.
-    if is_posix and repository_ctx.attr.postinstall_script_posix != "":
-        _postinstall_script(
-            repository_ctx,
-            "postinstall.sh",
-            repository_ctx.attr.postinstall_script_posix,
-        )
-    if is_windows and repository_ctx.attr.postinstall_script_win != "":
-        _postinstall_script(
-            repository_ctx,
-            # The .bat extension is needed under Windows, or the OS won't execute the script.
-            "postinstall.bat",
-            repository_ctx.attr.postinstall_script_win,
-        )
-
-cipd_install = repository_rule(
-    implementation = _cipd_install_impl,
-    attrs = {
-        "package": attr.string(
-            doc = """CIPD package name, e.g. "infra/3pp/tools/git/linux-amd64".""",
-            mandatory = True,
-        ),
-        "version": attr.string(
-            doc = """CIPD package version, e.g. "version:2.29.2.chromium.6".""",
-            mandatory = True,
-        ),
-        "build_file_content": attr.string(
-            doc = """If set, will be used as the content of the BUILD.bazel file. Otherwise, a
-default BUILD.bazel file will be created with an all_files target.""",
-        ),
-        "postinstall_script_posix": attr.string(
-            doc = """Contents of post-install script to execute. Ignored if Bazel is running on a
-non-POSIX OS. Optional.""",
-        ),
-        "postinstall_script_win": attr.string(
-            doc = """Contents of post-install script to execute. Ignored if Bazel is not running on
-Windows. Optional.""",
-        ),
-        "quiet": attr.bool(
-            default = True,
-            doc = "Whether stdout and stderr should be printed to the terminal for debugging.",
-        ),
-    },
-    doc = "Hermetically installs a CIPD package as an external Bazel repository.",
-)
+    return contents

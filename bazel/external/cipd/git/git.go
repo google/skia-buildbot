@@ -20,9 +20,9 @@ func FindGit() (string, error) {
 		return exec.LookPath("git")
 	}
 	if runtime.GOOS == "windows" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "git_win", "bin", "git.exe"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "git_amd64_windows", "bin", "git.exe"), nil
 	} else if runtime.GOOS == "linux" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "git_linux", "bin", "git"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "git_amd64_linux", "bin", "git"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 }

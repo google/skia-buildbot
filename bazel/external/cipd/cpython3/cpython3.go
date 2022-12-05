@@ -14,7 +14,7 @@ import (
 // corresponding CIPD package, which Bazel will download as needed.
 func FindPython38() (string, error) {
 	if runtime.GOOS == "linux" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "cpython3_linux", "bin", "python3.8"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "cpython3_amd64_linux", "bin", "python3.8"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 }

@@ -4,7 +4,7 @@ go_library(
     name = "cpython3",
     srcs = ["cpython3.go"],
     data = select({
-        "@platforms//os:linux": ["@cpython3_linux//:all_files"],
+        "@platforms//os:linux": ["@cpython3_amd64_linux//:all_files"],
         "//conditions:default": [],  # Prevent errors on platforms without this CIPD package.
     }),
     importpath = "go.skia.org/infra/bazel/external/cipd/cpython3",

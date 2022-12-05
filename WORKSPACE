@@ -385,67 +385,52 @@ container_pull(
 # CIPD packages. #
 ##################
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+load("//bazel/external:cipd_install.bzl", "all_cipd_files", "cipd_install")
 
-# We import depot_tools to get the `cipd` binary, which is used by the cipd_install workspace rule.
-new_git_repository(
-    name = "depot_tools",
-    build_file_content = """
-exports_files(
-    glob(
-        ["**/*"],
-        # This prevents "link or target filename contains space" Bazel errors.
-        exclude = [
-            "**/* *",
-        ],
-    ),
-    visibility = ["//visibility:public"],
-)""",
-    commit = "7253c59443a1a41069c41e8414713f9587dcfb8e",
-    remote = "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
-    # Bazel prints out a debug message if we don't specify shallow_since as a Unix timestamp. The
-    # below timestamp is 2021-10-05T17:35:06+00:00 in RFC 3339 format.
-    shallow_since = "1633455306 +0000",
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+    tag = "version:2.29.2.chromium.6",
 )
 
-load("//bazel/external:cipd_install.bzl", "cipd_install")
-
-# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/
 cipd_install(
-    name = "git_linux",
-    package = "infra/3pp/tools/git/linux-amd64",
-    postinstall_script_posix = """#!/bin/sh
-set -e  # Fail immediately if any commands return a non-zero exit status.
-mkdir etc
-bin/git config --system user.name "Bazel Test User"
-bin/git config --system user.email "bazel-test-user@example.com"
-""",
-    version = "version:2.29.2.chromium.6",
+    name = "git_amd64_windows",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/windows-amd64",
+    postinstall_cmds_win = [
+        "mkdir etc",
+        "bin/git.exe config --system user.name \"Bazel Test User\"",
+        "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6
+    sha256 = "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
+    tag = "version:2.29.2.chromium.6",
 )
 
-# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/
 cipd_install(
-    name = "git_win",
-    package = "infra/3pp/tools/git/windows-amd64",
-    postinstall_script_win = """
-bin\\git.exe config --system user.name "Bazel Test User"
-bin\\git.exe config --system user.email "bazel-test-user@example.com"
-""",
-    version = "version:2.29.2.chromium.6",
+    name = "vpython_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/tools/luci/vpython/linux-amd64",
+    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097
+    sha256 = "1de06f1727bde7ef9eaae901944adead46dd2b7ddda1e962fff29ee431b0e746",
+    tag = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
 )
 
-# https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/
 cipd_install(
-    name = "vpython_linux",
-    package = "infra/tools/luci/vpython/linux-amd64",
-    version = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
-)
-
-# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/
-cipd_install(
-    name = "cpython3_linux",
-    package = "infra/3pp/tools/cpython3/linux-amd64",
-    version = "version:2@3.8.10.chromium.19",
+    name = "cpython3_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.8.10.chromium.19
+    sha256 = "4ba68650a271a80a565a619ed2419f4cf1344525b63798608ce3b8cef63a9244",
+    tag = "version:2@3.8.10.chromium.19",
 )
 
 #############################################################
