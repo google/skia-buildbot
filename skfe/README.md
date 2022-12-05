@@ -27,8 +27,9 @@ distributes requests to multiple envoy pods: They, in turn, distribute the calls
 to the backend as kubernetes sevices. The certs for all Skia properties are
 handled at the GKE Ingress level, see http://go/skia-ssl-cert for more details.
 
-The configuration for the envoy server comes from `envoy-starter.json` and
-metadata annotations on services running in the skia-public k8s cluster.
+The configuration for the envoy server is generated in the k8s-config repo from
+`//skfe/envoy-starter.json` and metadata annotations on service files in the
+skia-public k8s cluster.
 
 The generation of the configuration involves three files, two of which are
 auto-generated:
@@ -82,20 +83,6 @@ output of each step, as Envoy configs are very wordy.
 
 Finally `update_probers` can be run to add all the redirects from
 `envoy-starter.json` to `probersk.json5`.
-
-## Pushing
-
-Run
-
-    make
-
-To build the `computed.json` config file which is then reviewed and submitted.
-
-After that file has landed then run:
-
-    make push
-
-to push the `computed.json` file to production.
 
 ## Admin
 

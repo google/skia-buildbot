@@ -9,9 +9,7 @@ make sure the URL is serving the correct response or lack of response.
 
 ## Prober Files
 
-Application specific probers should be placed in the applications top level
-directory in a file called 'probersk.json'. The `build_probersk_json`
-command-line application will incorporate all such files into a single prober
-config file that is uploaded to the server. This is run automatically when the container
-image is built.
-
+Application specific probers should be placed in the //prober directory of the
+k8s-config repo in a file named for the application. The `generate.sh` script
+will incorporate all such files into a single prober config file that is
+included in the proberk Docker image.
