@@ -64,7 +64,8 @@ func main() {
 		bzl        *bazel.Bazel
 		bzlCleanup func()
 	)
-	if !*rbe && !*local {
+	// TODO(kjlubick) Remove ramdisk logic if it lands well.
+	if false && !*rbe && !*local {
 		// Infra-PerCommit-Build-Bazel-Local uses a ramdisk as the Bazel cache. I/O on GCE VMs can be
 		// very slow, which that can cause said task to time out.
 		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
