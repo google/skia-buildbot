@@ -66,15 +66,8 @@ type Machine struct {
 	// An absolute URL used to retrieve this machines Description.
 	machineDescriptionURL string
 
-	// pubsubSink is how we send machine.Events to the machine state server.
-	pubsubSink eventSink.Sink
-
 	// httpSink is how we send machine.Events to the machine state server.
 	httpSink eventSink.Sink
-
-	// pubsubChangeSource emits events when the machine Description has changed on the
-	// server.
-	pubsubChangeSource pubsubChangeSource.Source
 
 	// changeSource emits events when the machine Description has changed on the
 	// server, as sent by Server-Sent Events (SSE).
@@ -168,20 +161,9 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
 
-	// For now send machine.Event's to both sinks so that we can migrate between
-	// the two methods of sending events.
 	httpSink, err := httpsink.NewFromClient(httpClient, "https://machines.skia.org")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
-	}
-	pubsubSink, err := eventSink.New(ctx, local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
-	}
-
-	pubsubChangeSource, err := pubsubChangeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "create pubsub changeSource.")
 	}
 
 	sseChangeSource, err := sseChangeSource.New(ctx, machineServerHost, machineID)
@@ -192,9 +174,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	return &Machine{
 		client:                         httpClient,
 		machineDescriptionURL:          u.String(),
-		pubsubSink:                     pubsubSink,
 		httpSink:                       httpSink,
-		pubsubChangeSource:             pubsubChangeSource,
 		sseChangeSource:                sseChangeSource,
 		adb:                            adb.New(),
 		ios:                            ios.New(),
@@ -300,10 +280,6 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		m.interrogateAndSendFailures.Inc(1)
 	}
 	var retErr error
-	if err := m.pubsubSink.Send(ctx, event); err != nil {
-		sklog.Errorf("Failed to send event via pubsub: %s", err)
-		retErr = skerr.Wrapf(err, "send interrogation step via pubsub.")
-	}
 	if err := m.httpSink.Send(ctx, event); err != nil {
 		sklog.Errorf("Failed to send event via http: %s", err)
 		// Could potentially over-write the error, but that's OK, we just want
@@ -374,16 +350,10 @@ func (m *Machine) retrieveDescription(ctx context.Context) error {
 // machine Description. This function does not return unless the context is
 // cancelled.
 func (m *Machine) startDescriptionWatch(ctx context.Context) {
-	changeCh := m.pubsubChangeSource.Start(ctx)
 	sseChangeCh := m.sseChangeSource.Start(ctx)
 	tickCh := time.NewTicker(descriptionPollDuration).C
 	for {
 		select {
-		case <-changeCh:
-			sklog.Info("pubsub Desc Change")
-			if err := m.retrieveDescription(ctx); err != nil {
-				sklog.Errorf("Event driven retrieveDescription failed: %s", err)
-			}
 		case <-sseChangeCh:
 			sklog.Info("SSE Desc Change")
 			if err := m.retrieveDescription(ctx); err != nil {

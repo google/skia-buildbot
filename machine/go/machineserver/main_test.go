@@ -72,13 +72,7 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 		},
 		store: storeMock,
 
-		// Note we use changeSinkMock for both pubsubChangeSink and
-		// sserChangeSink, which is why all the changeSinkMock.On("Send",...)
-		// have a ``.Times(2)`` on them. This keeps the code simpler for when we
-		// eventually drop pubsubChangeSink, which will be right after this CL
-		// rolls out to all TMM instances.
-		pubsubChangeSink: changeSinkMock,
-		sserChangeSink:   changeSinkMock,
+		sserChangeSink: changeSinkMock,
 
 		login: proxylogin.NewWithDefaults(),
 	}
@@ -99,8 +93,8 @@ func newAuthorizedRequest(method, target string, body io.Reader) *http.Request {
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
@@ -175,8 +169,8 @@ func TestMachineSetAttachedDeviceHandler_Success(t *testing.T) {
 			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_attached_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -216,8 +210,8 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 			AttachedDevice: machine.AttachedDeviceIOS,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/remove_device/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -254,8 +248,8 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Delete", testutils.AnyContext, machineID).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/delete_machine/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
@@ -291,8 +285,8 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 			Message: "this is a message",
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/set_note/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -345,8 +339,8 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 			SuppliedDimensions: suppliedDimensions2,
 		})
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/supply_chromeos/%s", machineID), body)
 
 	router.ServeHTTP(w, r)
@@ -580,8 +574,8 @@ func TestMachineClearQuarantineHandler_Success(t *testing.T) {
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.Anything).Return(nil)
-	changeSinkMock := s.pubsubChangeSink.(*changeSinkMocks.Sink)
-	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil).Times(2)
+	changeSinkMock := s.sserChangeSink.(*changeSinkMocks.Sink)
+	changeSinkMock.On("Send", testutils.AnyContext, machineID).Return(nil)
 	r := newAuthorizedRequest("POST", fmt.Sprintf("/_/machine/clear_quarantined/%s", machineID), nil)
 
 	router.ServeHTTP(w, r)
@@ -611,37 +605,4 @@ func TestMachineClearQuarantineHandler_MachineIDNotSupplied_ReturnsNotFound(t *t
 
 func TestClearQuarantined(t *testing.T) {
 	require.False(t, clearQuarantined(machine.Description{IsQuarantined: true}).IsQuarantined)
-}
-
-func TestServerListenMachineEvents_EventsArriveOnBothChannels_BothEventsAreProcessed(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-
-	numUpdateCalled := 0
-	store := mocks.NewStore(t)
-	store.On("Update", testutils.AnyContext, machineID, mock.Anything).Times(2).Run(func(_ mock.Arguments) {
-		// Only after both events have arrived should be cancel the context to
-		// exit from listenMachineEvents.
-		numUpdateCalled++
-		if numUpdateCalled == 2 {
-			cancel()
-		}
-	}).Return(nil)
-
-	event := machine.NewEvent()
-	event.Host.Name = machineID
-
-	pubsubSourceCh := make(chan machine.Event, 1)
-	httpSourceCh := make(chan machine.Event, 1)
-
-	s := &server{
-		pubsubSourceCh: pubsubSourceCh,
-		httpSourceCh:   httpSourceCh,
-		store:          store,
-	}
-
-	pubsubSourceCh <- event
-	httpSourceCh <- event
-
-	s.listenMachineEvents(ctx)
-	// Test will timeout if listenMachineEvents doesn't return.
 }

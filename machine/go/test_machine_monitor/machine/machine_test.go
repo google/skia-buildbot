@@ -520,14 +520,13 @@ func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T
 	}
 
 	eventSink := &sinkMocks.Sink{}
-	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil).Times(2)
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
 
 	// Create a Machine instance.
 	m := &Machine{
-		pubsubSink:       eventSink,
 		httpSink:         eventSink,
 		startTime:        start,
 		description:      rpc.ToFrontendDescription(desc),
@@ -567,14 +566,13 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 	}
 
 	eventSink := &sinkMocks.Sink{}
-	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil).Times(2)
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
 
 	// Create a Machine instance.
 	m := &Machine{
-		pubsubSink:                 eventSink,
 		httpSink:                   eventSink,
 		startTime:                  start,
 		description:                rpc.ToFrontendDescription(desc),
@@ -609,13 +607,10 @@ func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *t
 
 	// Other tests confirm the value being sent is valid, in this case we just
 	// want to cancel the context so the startInterrogateLoop exits.
-	pubsubSink := sinkMocks.NewSink(t)
-	pubsubSink.On("Send", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	httpSink := &sinkMocks.Sink{}
+	httpSink.On("Send", testutils.AnyContext, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		cancel()
 	}).Return(nil)
-
-	httpSink := &sinkMocks.Sink{}
-	httpSink.On("Send", testutils.AnyContext, mock.Anything).Return(nil)
 
 	desc := machine.NewDescription(ctx)
 	desc.AttachedDevice = machine.AttachedDeviceAdb
@@ -623,7 +618,6 @@ func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *t
 	// Create a Machine instance.
 	triggerInterrogationCh := make(chan bool, 1)
 	m := &Machine{
-		pubsubSink:             pubsubSink,
 		httpSink:               httpSink,
 		description:            rpc.ToFrontendDescription(desc),
 		adb:                    adb.New(),
@@ -984,11 +978,10 @@ func TestStartDescriptionWatch_ChannelIsClosed_FunctionExits(t *testing.T) {
 	ch := make(chan interface{})
 	var readOnlyCh <-chan interface{} = ch
 	changeSource := &mocks.Source{}
-	changeSource.On("Start", testutils.AnyContext).Return(readOnlyCh).Times(2)
+	changeSource.On("Start", testutils.AnyContext).Return(readOnlyCh)
 
 	m := &Machine{
-		pubsubChangeSource: changeSource,
-		sseChangeSource:    changeSource,
+		sseChangeSource: changeSource,
 	}
 	m.startDescriptionWatch(ctx)
 	close(ch)

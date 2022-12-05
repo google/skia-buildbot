@@ -1,37 +1,9 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "sink",
-    srcs = [
-        "impl.go",
-        "sink.go",
-    ],
+    srcs = ["sink.go"],
     importpath = "go.skia.org/infra/machine/go/machine/event/sink",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/metrics2",
-        "//go/skerr",
-        "//go/sklog",
-        "//machine/go/common",
-        "//machine/go/machine",
-        "//machine/go/machineserver/config",
-        "@com_google_cloud_go_pubsub//:pubsub",
-    ],
-)
-
-go_test(
-    name = "sink_test",
-    srcs = ["impl_manual_test.go"],
-    embed = [":sink"],
-    deps = [
-        "//go/emulators/gcp_emulator",
-        "//machine/go/machine",
-        "//machine/go/machineserver/config",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
-        "@com_google_cloud_go_pubsub//:pubsub",
-        "@org_golang_google_api//option",
-        "@org_golang_x_oauth2//google",
-    ],
+    deps = ["//machine/go/machine"],
 )

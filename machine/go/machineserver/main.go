@@ -37,7 +37,6 @@ import (
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
 	sseChangeSink "go.skia.org/infra/machine/go/machine/change/sink/sse"
 	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
-	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
 	"go.skia.org/infra/machine/go/machine/processor"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
@@ -78,12 +77,10 @@ type server struct {
 	httpEventSource   *httpEventSource.HTTPSource
 
 	// Change Sinks.
-	pubsubChangeSink changeSink.Sink
-	sserChangeSink   changeSink.Sink
+	sserChangeSink changeSink.Sink
 
 	// Event Sources.
-	pubsubSourceCh <-chan machine.Event
-	httpSourceCh   <-chan machine.Event
+	httpSourceCh <-chan machine.Event
 
 	sserServer sseChangeSink.SSE
 
@@ -131,17 +128,6 @@ func new(args []string) (*server, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	// Listen on both pubsub and http sources, until we are fully migrated over
-	// to HTTP sources.
-	pubsubSource, err := pubsubsource.New(ctx, flags.local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	pubsubSourceCh, err := pubsubSource.Start(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	httpSource, err := httpEventSource.New()
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -151,27 +137,20 @@ func new(args []string) (*server, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	pubsubChangeSink, err := changeSink.New(ctx, flags.local, instanceConfig.DescriptionChangeSource)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to start pubsub change sink.")
-	}
-
 	sserChangeSink, err := sseChangeSink.New(ctx, flags.local, flags.namespace, flags.labelSelector, flags.changeEventSSERPeerPort)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "create sser Server")
 	}
 
 	s := &server{
-		flags:            flags,
-		store:            store,
-		pubsubChangeSink: pubsubChangeSink,
-		sserChangeSink:   sserChangeSink,
-		login:            proxylogin.NewWithDefaults(),
-		httpEventSource:  httpSource,
-		sserServer:       *sserChangeSink,
-		processor:        processor,
-		pubsubSourceCh:   pubsubSourceCh,
-		httpSourceCh:     httpSourceCh,
+		flags:           flags,
+		store:           store,
+		sserChangeSink:  sserChangeSink,
+		login:           proxylogin.NewWithDefaults(),
+		httpEventSource: httpSource,
+		sserServer:      *sserChangeSink,
+		processor:       processor,
+		httpSourceCh:    httpSourceCh,
 	}
 	s.loadTemplates()
 	go s.listenMachineEvents(ctx)
@@ -186,8 +165,6 @@ func (s *server) listenMachineEvents(ctx context.Context) {
 	sklog.Infof("Start machine.Event listening loop")
 	for {
 		select {
-		case event := <-s.pubsubSourceCh:
-			processEventArrival(ctx, s.store, storeUpdateFail, s.processor, event)
 		case event := <-s.httpSourceCh:
 			processEventArrival(ctx, s.store, storeUpdateFail, s.processor, event)
 		case <-ctx.Done():
@@ -271,9 +248,6 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) triggerDescriptionUpdateEvent(ctx context.Context, id string) {
-	if err := s.pubsubChangeSink.Send(ctx, id); err != nil {
-		sklog.Errorf("Failed to trigger change event: %s", err)
-	}
 	if err := s.sserChangeSink.Send(ctx, id); err != nil {
 		sklog.Errorf("Failed to trigger SSE change event: %s", err)
 	}
