@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/emulators/gcp_emulator"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
@@ -93,11 +92,6 @@ func main() {
 
 	// Print out the Bazel version for debugging purposes.
 	if _, err := bzl.Do(ctx, "version"); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Run "npm cache clean -f".
-	if _, err := exec.RunCwd(ctx, path.Join(workDir, "repo"), "npm", "cache", "clean", "-f"); err != nil {
 		td.Fatal(ctx, err)
 	}
 

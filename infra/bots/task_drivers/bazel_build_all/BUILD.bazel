@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/infra/bots/task_drivers/bazel_build_all",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/exec",
         "//task_driver/go/lib/bazel",
         "//task_driver/go/lib/checkout",
         "//task_driver/go/lib/os_steps",

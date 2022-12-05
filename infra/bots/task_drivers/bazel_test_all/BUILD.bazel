@@ -10,7 +10,6 @@ go_library(
         "//go/emulators",
         "//go/emulators/cockroachdb_instance",
         "//go/emulators/gcp_emulator",
-        "//go/exec",
         "//go/git",
         "//go/recipe_cfg",
         "//task_driver/go/lib/bazel",

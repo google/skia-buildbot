@@ -4,7 +4,6 @@ import (
 	"flag"
 	"path"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -122,11 +121,6 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
-
-	// Run "npm cache clean -f".
-	if _, err := exec.RunCwd(ctx, path.Join(workDir, "repo"), "npm", "cache", "clean", "-f"); err != nil {
-		td.Fatal(ctx, err)
-	}
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
 	doFunc := bzl.Do
