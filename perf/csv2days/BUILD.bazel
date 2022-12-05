@@ -10,6 +10,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//go/util_generics",
     ],
 )
 

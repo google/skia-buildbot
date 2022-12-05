@@ -11,13 +11,16 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util_generics"
 )
 
 var (
@@ -38,6 +41,33 @@ func removeValueFromSliceAtIndex(s []string, index int) []string {
 func removeAllIndexesFromSlices(s []string, skipCols []int) []string {
 	for _, col := range skipCols {
 		s = removeValueFromSliceAtIndex(s, col)
+	}
+	return s
+}
+
+// Returns the max value over all the floats found.
+func max(s []string) string {
+	var ret float64 = -math.MaxFloat64
+	for _, floatAsString := range s {
+		v, err := strconv.ParseFloat(floatAsString, 64)
+		if err != nil {
+			continue
+		}
+		if v > ret {
+			ret = v
+		}
+	}
+
+	if ret == -math.MaxFloat64 {
+		return s[0]
+	}
+
+	return fmt.Sprintf("%g", ret)
+}
+
+func applyMaxToRuns(s []string, runLengths map[int]int) []string {
+	for runStart, runLength := range runLengths {
+		s[runStart] = max(s[runStart : runStart+runLength])
 	}
 	return s
 }
@@ -77,20 +107,31 @@ func transformCSV(input io.Reader, output io.Writer) error {
 
 	// Determine which columns to drop from output.
 	lastDate := ""
+
+	// The columns to ignore.
 	skipCols := []int{}
+
+	// The number of columns that appear on a single day.
+	runLengths := map[int]int{}
+
 	outHeader := []string{}
+	beginningOfCurrentRun := 0
 	for index, h := range header {
 		if !datetime.MatchString(h) {
 			outHeader = append(outHeader, h)
+			beginningOfCurrentRun = index
 			continue
 		}
-		// Preserve just the date.
+		// Preserve just the date. Also record all the columns that need to be
+		// combined into a single value.
 		day := h[:10]
 		if day == lastDate {
 			skipCols = append(skipCols, index)
+			runLengths[beginningOfCurrentRun] = util_generics.Get(runLengths, beginningOfCurrentRun, 1) + 1
 		} else {
 			outHeader = append(outHeader, day)
 			lastDate = day
+			beginningOfCurrentRun = index
 		}
 	}
 
@@ -109,6 +150,7 @@ func transformCSV(input io.Reader, output io.Writer) error {
 		if err != nil {
 			return skerr.Wrap(err)
 		}
+		record = applyMaxToRuns(record, runLengths)
 		record = removeAllIndexesFromSlices(record, skipCols)
 		err = out.Write(record)
 		if err != nil {
