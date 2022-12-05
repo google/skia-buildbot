@@ -1325,11 +1325,15 @@ func TestProcessorImpl_setQuarantineMetrics(t *testing.T) {
 }
 
 func Test_handleGeneralFields(t *testing.T) {
-	m := metrics2.GetBoolMetric("machine_processor_running_swarming_task", map[string]string{
-		"id": hostName,
-	})
+	dims := machine.SwarmingDimensions{
+		machine.DimID:         []string{hostName},
+		machine.DimOS:         []string{"Android"},
+		machine.DimDeviceType: []string{"Pixel6"},
+	}
+	m := metrics2.GetBoolMetric("machine_processor_running_swarming_task", dims.AsMetricsTags())
 	ctx := context.Background()
 	current := machine.NewDescription(ctx)
+	current.Dimensions = dims
 	event := machine.NewEvent()
 	event.Host.Name = hostName
 	event.RunningSwarmingTask = true
