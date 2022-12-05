@@ -196,12 +196,12 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/bazel_build_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_build_all/${platform}",
-		Version: "git_revision:2195169c3c8754d261f092b32704003ee21bd9bf",
+		Version: "git_revision:35859e727fc05720f1e04b1c3ba280c673e34828",
 	},
 	"skia/tools/bazel_test_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_test_all/${platform}",
-		Version: "git_revision:2195169c3c8754d261f092b32704003ee21bd9bf",
+		Version: "git_revision:35859e727fc05720f1e04b1c3ba280c673e34828",
 	},
 	"skia/tools/command_wrapper/${platform}": {
 		Path:    "task_drivers",
@@ -216,6 +216,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/presubmit/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/presubmit/${platform}",
-		Version: "git_revision:2195169c3c8754d261f092b32704003ee21bd9bf",
+		Version: "git_revision:35859e727fc05720f1e04b1c3ba280c673e34828",
 	},
 }
