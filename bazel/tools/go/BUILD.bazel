@@ -1,11 +1,22 @@
 # Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
+# Single quotes (as used for ownership) throw off Bazel, so they've been omitted at the
+# expense of proper grammar.
 _SCRIPT = """
-# Add the "go" and "gofmt" binaries to PATH (they are located in the same directory).
-GO_PATH=$$(realpath $$(dirname $(rootpath @go_sdk//:bin/go)))
-export PATH=$$GO_PATH:$$PATH
+# Overwrite the users GOPATH to avoid conflicts between the go binary we are about to run
+# and the GOPATH directory. Failure to do this leads to strange errors like:
+#     compile: version "go1.18.1" does not match go tool version "go1.18"
+#
+# It is important to call realpath first because we want to resolve the symlink of the
+# go binary *first* before finding the grandparent directory. If we do not do this,
+# go fails to embed files which are symlinks: https://github.com/bazelbuild/rules_go/issues/3178
+export GOROOT=$$(dirname $$(dirname $$(realpath $(rootpath @go_sdk//:bin/go))))
+
+# Add the bin folder (containing go and gofmt and others) to the PATH
+export PATH=$$GOROOT/bin:$$PATH
 
 # Change into the directory where Bazel was invoked.
+# https://bazel.build/docs/user-manual#running-executables
 cd $$BUILD_WORKING_DIRECTORY
 
 go $$@
@@ -15,7 +26,10 @@ genrule(
     name = "gen_script",
     outs = ["go.sh"],
     cmd = "echo '%s' > $@" % _SCRIPT,
-    exec_tools = ["@go_sdk//:bin/go"],
+    exec_tools = [
+        "@go_sdk//:files",
+        "@go_sdk//:bin/go",
+    ],
 )
 
 # Wrapper script around the Bazel-downloaded "go" binary.
@@ -29,8 +43,7 @@ sh_binary(
     name = "go",
     srcs = ["go.sh"],
     data = [
-        "@go_sdk//:bin/go",
-        "@go_sdk//:bin/gofmt",  # Some commands invoked via "go generate" require gofmt.
+        "@go_sdk//:files",
     ],
     visibility = ["//visibility:public"],
 )
