@@ -29,7 +29,6 @@ go_test(
         "//go/git/testutils/mem_git",
         "//go/gitstore",
         "//go/gitstore/mem_gitstore",
-        "//go/testutils",
         "@com_github_stretchr_testify//require",
     ],
 )

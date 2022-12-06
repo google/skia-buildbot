@@ -14,10 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
-
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
@@ -3054,7 +3053,7 @@ func assertBlamelist(t *testing.T, hashes []string, task *types.Task, indexes []
 // to expected, in any order.
 func assertModifiedTasks(t *testing.T, d db.TaskReader, mod <-chan []*types.Task, expected []*types.Task) {
 	tasksById := map[string]*types.Task{}
-	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.Eventually(t, func() bool {
 		// Use a select so that the test will fail after 10 seconds
 		// rather than time out after 10 minutes (or whatever the
 		// overall timeout is set to).
@@ -3066,21 +3065,18 @@ func assertModifiedTasks(t *testing.T, d db.TaskReader, mod <-chan []*types.Task
 			for _, expectedTask := range expected {
 				actualTask, ok := tasksById[expectedTask.Id]
 				if !ok {
-					time.Sleep(50 * time.Millisecond)
-					return testutils.TryAgainErr
+					return false
 				}
 				if !deepequal.DeepEqual(expectedTask, actualTask) {
-					time.Sleep(50 * time.Millisecond)
-					return testutils.TryAgainErr
+					return false
 				}
 			}
-			return nil
+			return true
 		default:
 			// Nothing to do.
 		}
-		time.Sleep(50 * time.Millisecond)
-		return testutils.TryAgainErr
-	}))
+		return false
+	}, 10*time.Second, 50*time.Millisecond)
 }
 
 // addTasksSingleTaskSpec should add tasks and compute simple blamelists.

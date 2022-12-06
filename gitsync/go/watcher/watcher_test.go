@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/gitstore/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -304,26 +303,24 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 	for _, b := range branchHeads {
 		expectBranches[b.Name] = b.Head
 	}
-	require.NoError(u.t, testutils.EventuallyConsistent(time.Second, func() error {
+	require.Eventually(u.t, func() bool {
 		actual, err := u.gs.GetBranches(ctx)
 		require.NoError(u.t, err)
 		for name, expect := range expectBranches {
 			actualBranch, ok := actual[name]
 			if !ok || actualBranch.Head != expect {
-				sklog.Errorf("%s is %+v, expect %s", name, actualBranch, expect)
-				time.Sleep(10 * time.Millisecond)
-				return testutils.TryAgainErr
+				sklog.Debugf("%s is %+v, expect %s", name, actualBranch, expect)
+				return false
 			}
 		}
 		for name := range actual {
 			if _, ok := expectBranches[name]; name != gitstore.ALL_BRANCHES && !ok {
-				sklog.Errorf("Expected %s not to be present", name)
-				time.Sleep(10 * time.Millisecond)
-				return testutils.TryAgainErr
+				sklog.Debugf("Expected %s not to be present", name)
+				return false
 			}
 		}
-		return nil
-	}))
+		return true
+	}, time.Second, 10*time.Millisecond)
 
 	// Assert that the branch heads are the same.
 	gotBranches, err := u.gs.GetBranches(ctx)

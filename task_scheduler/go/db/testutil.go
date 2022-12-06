@@ -45,7 +45,7 @@ func findModifiedTasks(t sktest.TestingT, m <-chan []*types.Task, expect ...*typ
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Task, len(expectMap))
-	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.Eventually(t, func() bool {
 		tasks := <-m
 		for _, a := range tasks {
 			// Ignore tasks not in the expected list.
@@ -58,13 +58,12 @@ func findModifiedTasks(t sktest.TestingT, m <-chan []*types.Task, expect ...*typ
 			}
 		}
 		if len(actualMap) != len(expectMap) {
-			sklog.Errorf("  want %d but have %d", len(expectMap), len(actualMap))
-			time.Sleep(100 * time.Millisecond)
-			return testutils.TryAgainErr
+			sklog.Debugf("  want %d but have %d", len(expectMap), len(actualMap))
+			return false
 		}
 		assertdeep.Equal(t, expectMap, actualMap)
-		return nil
-	}))
+		return true
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types.Job) {
@@ -73,7 +72,7 @@ func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Job, len(expectMap))
-	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.Eventually(t, func() bool {
 		jobs := <-m
 		for _, a := range jobs {
 			// Ignore tasks not in the expected list.
@@ -86,12 +85,11 @@ func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types
 			}
 		}
 		if len(actualMap) != len(expectMap) {
-			time.Sleep(100 * time.Millisecond)
-			return testutils.TryAgainErr
+			return false
 		}
 		assertdeep.Equal(t, expectMap, actualMap)
-		return nil
-	}))
+		return true
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc <-chan []*types.TaskSpecComment, cc <-chan []*types.CommitComment, e1Slice []*types.TaskComment, e2Slice []*types.TaskSpecComment, e3Slice []*types.CommitComment) {
@@ -110,7 +108,7 @@ func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc
 	a1 := make(map[string]*types.TaskComment, len(e1))
 	a2 := make(map[string]*types.TaskSpecComment, len(e2))
 	a3 := make(map[string]*types.CommitComment, len(e3))
-	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.Eventually(t, func() bool {
 		select {
 		case c1 := <-tc:
 			for _, c := range c1 {
@@ -135,14 +133,13 @@ func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc
 			}
 		}
 		if len(a1) != len(e1) || len(a2) != len(e2) || len(a3) != len(e3) {
-			time.Sleep(100 * time.Millisecond)
-			return testutils.TryAgainErr
+			return false
 		}
 		assertdeep.Equal(t, e1, a1)
 		assertdeep.Equal(t, e2, a2)
 		assertdeep.Equal(t, e3, a3)
-		return nil
-	}))
+		return true
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.

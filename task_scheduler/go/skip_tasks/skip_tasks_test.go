@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/testutils"
 )
 
 func setup(t *testing.T) (*DB, func()) {
@@ -40,21 +39,20 @@ func TestAddRemove(t *testing.T) {
 	// other's data, so we use the same client as b1.
 	b2, err := New(ctx, b1.client)
 	require.NoError(t, err)
-	assertEqual := func() {
-		require.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
+	assertRulesAreEqual := func() {
+		require.Eventually(t, func() bool {
 			require.NoError(t, b2.Update(ctx))
 			if len(b1.rules) == len(b2.rules) {
 				assertdeep.Equal(t, b1.rules, b2.rules)
-				return nil
+				return true
 			}
-			time.Sleep(100 * time.Millisecond)
-			return testutils.TryAgainErr
-		}))
+			return false
+		}, 30*time.Second, 100*time.Millisecond)
 	}
-	assertEqual()
+	assertRulesAreEqual()
 
 	require.NoError(t, b1.RemoveRule(ctx, r1.Name))
-	assertEqual()
+	assertRulesAreEqual()
 }
 
 func TestRuleCopy(t *testing.T) {

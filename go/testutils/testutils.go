@@ -6,14 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"text/template"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -23,11 +21,6 @@ import (
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
-)
-
-var (
-	// TryAgainErr use used by TryUntil.
-	TryAgainErr = errors.New("Trying Again")
 )
 
 // TestDataDir returns the path to the caller's testdata directory, which
@@ -138,26 +131,6 @@ func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()
 	require.NoError(t, err)
 	return root
-}
-
-// EventuallyConsistent tries a test repeatedly until either the test passes
-// or time expires, and is used when tests are written to expect
-// non-eventual consistency.
-//
-// Use this function sparingly.
-//
-// duration - The amount of time to keep trying.
-// f - The func to run the tests, should return TryAgainErr if
-//     we should keep trying, otherwise TryUntil will return
-//     with the err that f() returns.
-func EventuallyConsistent(duration time.Duration, f func() error) error {
-	begin := time.Now()
-	for time.Now().Sub(begin) < duration {
-		if err := f(); err != TryAgainErr {
-			return err
-		}
-	}
-	return fmt.Errorf("Failed to pass test in allotted time.")
 }
 
 // AnyContext can be used to match any Context objects e.g.

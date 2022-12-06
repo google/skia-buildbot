@@ -308,14 +308,13 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 
-	require.NoError(t, testutils.EventuallyConsistent(2*time.Minute, func() error {
+	require.Eventually(t, func() bool {
 		tasks, err := d.GetTasksFromDateRange(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, "")
 		require.NoError(t, err)
 		if len(tasks) > 0 {
 			sklog.Errorf("Triggered tasks!")
-			return nil
+			return true
 		}
-		time.Sleep(100 * time.Millisecond)
-		return testutils.TryAgainErr
-	}))
+		return false
+	}, 2*time.Minute, 100*time.Millisecond)
 }

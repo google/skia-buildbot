@@ -122,14 +122,14 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	// the revisit list.
 	require.Equal(t, 1, len(revisit))
 	assertCount := func(from, to time.Time, expect int) {
-		require.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+		require.Eventually(t, func() bool {
 			ev, err := edb.Range(streamForPool("Skia"), from, to)
 			require.NoError(t, err)
 			if len(ev) != expect {
-				return testutils.TryAgainErr
+				return false
 			}
-			return nil
-		}))
+			return true
+		}, 5*time.Second, 100*time.Millisecond)
 	}
 	assertCount(lastLoad, now, 1)
 
