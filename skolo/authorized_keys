@@ -1,4 +1,5 @@
 # This authorized_keys files is used on all the jumphosts in the skolo.
+# New entries should be of type ed25519 for improved readability of this file.
 # The canonical version can be found at https://skia.googlesource.com/buildbot/+/refs/heads/master/skolo/authorized_keys
 # Use the ansible scripts to push updated versions of this file to each jumphost:
 #    $ cd skolo/ansible
