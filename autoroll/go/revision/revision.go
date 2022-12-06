@@ -12,7 +12,7 @@ import (
 
 const (
 	projectChromium     = "chromium"
-	bugProjectDefault   = projectChromium
+	bugProjectFallback  = projectChromium
 	BugProjectBuganizer = "buganizer"
 	bugsPattern         = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
 )
@@ -153,6 +153,9 @@ func parseTests(details string) []string {
 // bugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func bugsFromCommitMsg(msg, defaultBugProject string) map[string][]string {
 	rv := map[string][]string{}
+	if defaultBugProject == "" {
+		defaultBugProject = bugProjectFallback
+	}
 	for _, line := range strings.Split(msg, "\n") {
 		m := bugsRegex.FindAllStringSubmatch(line, -1)
 		for _, match := range m {

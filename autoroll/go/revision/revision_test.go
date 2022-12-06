@@ -231,7 +231,13 @@ Bug: bb/234`,
 		},
 	}
 	for _, tc := range cases {
-		result := bugsFromCommitMsg(tc.in, bugProjectDefault)
-		require.Equal(t, tc.out, result)
+		result := bugsFromCommitMsg(tc.in, "")
+		require.Equal(t, tc.out, result, "Input was: %q", tc.in)
 	}
+
+	// Test a passed-in default bug project.
+	result := bugsFromCommitMsg("Bug: 1234", "fake-project")
+	require.Equal(t, map[string][]string{
+		"fake-project": {"1234"},
+	}, result)
 }
