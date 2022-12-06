@@ -74,8 +74,14 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		imageRegexes := make([]*regexp.Regexp, 0, len(imageInfo.Images))
 		imageReplace := make([]string, 0, len(imageInfo.Images))
 		for _, image := range imageInfo.Images {
+			// Update instances of "image/path@sha256:digest"
 			imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
 			imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, image.Sha256))
+
+			// Replace Bazel container_pull specifications.
+			bazelRegex, bazelReplace := bazelRegexAndReplaceForImage(image)
+			imageRegexes = append(imageRegexes, bazelRegex)
+			imageReplace = append(imageReplace, bazelReplace)
 		}
 		return filepath.WalkDir(checkoutDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
@@ -117,4 +123,13 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 	}
 	commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
 	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
+}
+
+func bazelRegexAndReplaceForImage(image *SingleImageInfo) (*regexp.Regexp, string) {
+	const regexTmpl = `(container_pull\(\s*name\s*=\s*"%s",\s*digest\s*=\s*)"sha256:[a-f0-9]+",`
+	regex := regexp.MustCompile(fmt.Sprintf(regexTmpl, path.Base(image.Image)))
+
+	const replTmpl = `$1"%s",`
+	replace := fmt.Sprintf(replTmpl, image.Sha256)
+	return regex, replace
 }
