@@ -41,12 +41,15 @@ const (
 var (
 	// jobsToCQStatus lists all infra Jobs and their CQ config to run at each commit.
 	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
-		"Housekeeper-OnDemand-Presubmit":        &cqWithDefaults,
-		"Infra-PerCommit-Build-Bazel-RBE":       &cqWithDefaults,
-		"Infra-PerCommit-Test-Bazel-RBE":        &cqWithDefaults,
-		"Housekeeper-Weekly-UpdateCIPDPackages": noCQ,
-		"Infra-PerCommit-Build-Bazel-Local":     noCQ,
-		"Infra-PerCommit-Test-Bazel-Local":      noCQ,
+		"Housekeeper-OnDemand-Presubmit":                      &cqWithDefaults,
+		"Infra-PerCommit-Build-Bazel-RBE":                     &cqWithDefaults,
+		"Infra-PerCommit-Test-Bazel-RBE":                      &cqWithDefaults,
+		"Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": &cqWithDefaults,
+		"Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64":   noCQ,
+		"Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64":   noCQ,
+		"Housekeeper-Weekly-UpdateCIPDPackages":               noCQ,
+		"Infra-PerCommit-Build-Bazel-Local":                   noCQ,
+		"Infra-PerCommit-Test-Bazel-Local":                    noCQ,
 	}
 
 	// cqWithDefaults means this is a non-experimental CQ job (if it fails, the submission will
@@ -375,11 +378,14 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, bazelTest(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Test-Bazel-RBE") {
 		deps = append(deps, bazelTest(b, name, true /* =rbe */))
+	} else if strings.Contains(name, "Presubmit") {
+		priority = 1
+		deps = append(deps, presubmit(b, name))
+	} else if strings.Contains(name, "TaskDrivers") {
+		parts := strings.Split(name, "-")
+		deps = append(deps, buildTaskDrivers(b, parts[len(parts)-2], parts[len(parts)-1]))
 	} else {
-		if strings.Contains(name, "Presubmit") {
-			priority = 1
-			deps = append(deps, presubmit(b, name))
-		}
+		panic("Un-handled task " + name)
 	}
 
 	// Add the Job spec.

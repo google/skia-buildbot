@@ -7,6 +7,21 @@
       ],
       "trigger": "on demand"
     },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
+      "tasks": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ]
+    },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64": {
+      "tasks": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64"
+      ]
+    },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
+      "tasks": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64"
+      ]
+    },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "tasks": [
         "Housekeeper-Weekly-UpdateCIPDPackages"
@@ -133,6 +148,92 @@
         "buildbot/infra/bots/build_task_drivers.sh",
         "${ISOLATED_OUTDIR}",
         "linux_amd64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "bazelisk"
+        ]
+      },
+      "idempotent": true,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64": {
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "skia/tools/command_wrapper/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:b65a23129f1d7028291ccb0cead545d60b84d296"
+        }
+      ],
+      "command": [
+        "./task_drivers/command_wrapper",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64",
+        "--workdir",
+        ".",
+        "--cipd",
+        "bazelisk:skia/bots/bazelisk@version:0",
+        "--",
+        "/bin/bash",
+        "buildbot/infra/bots/build_task_drivers.sh",
+        "${ISOLATED_OUTDIR}",
+        "darwin_amd64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "bazelisk"
+        ]
+      },
+      "idempotent": true,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "skia/tools/command_wrapper/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:b65a23129f1d7028291ccb0cead545d60b84d296"
+        }
+      ],
+      "command": [
+        "./task_drivers/command_wrapper",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64",
+        "--workdir",
+        ".",
+        "--cipd",
+        "bazelisk:skia/bots/bazelisk@version:0",
+        "--",
+        "/bin/bash",
+        "buildbot/infra/bots/build_task_drivers.sh",
+        "${ISOLATED_OUTDIR}",
+        "windows_amd64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -565,6 +666,7 @@
   },
   "commit_queue": {
     "Housekeeper-OnDemand-Presubmit": {},
+    "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {},
     "Infra-PerCommit-Build-Bazel-RBE": {},
     "Infra-PerCommit-Test-Bazel-RBE": {}
   }
