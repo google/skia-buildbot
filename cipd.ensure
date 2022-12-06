@@ -49,7 +49,7 @@ infra/3pp/tools/cpython3/windows-amd64           version:2@3.8.10.chromium.19
 @subdir task_drivers
 skia/tools/bazel_build_all/${platform}           git_revision:b55f242675c09ca160427fd935e8d55309d74833
 skia/tools/bazel_test_all/${platform}            git_revision:b55f242675c09ca160427fd935e8d55309d74833
-skia/tools/command_wrapper/${platform}           git_revision:b65a23129f1d7028291ccb0cead545d60b84d296
+skia/tools/command_wrapper/${platform}           git_revision:b55f242675c09ca160427fd935e8d55309d74833
 skia/tools/presubmit/${platform}                 git_revision:b55f242675c09ca160427fd935e8d55309d74833
 
 @Subdir

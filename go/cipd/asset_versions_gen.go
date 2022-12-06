@@ -206,7 +206,7 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/command_wrapper/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/command_wrapper/${platform}",
-		Version: "git_revision:b65a23129f1d7028291ccb0cead545d60b84d296",
+		Version: "git_revision:b55f242675c09ca160427fd935e8d55309d74833",
 	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
