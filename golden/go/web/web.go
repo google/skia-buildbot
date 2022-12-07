@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
@@ -74,6 +75,10 @@ const (
 	// RPCCallCounterMetric is the metric that should be used when counting how many times a given
 	// RPC route is called from clients.
 	RPCCallCounterMetric = "gold_rpc_call_counter"
+
+	baselineCachePrimaryBranchEntryTTL   = 10 * time.Second
+	baselineCacheSecondaryBranchEntryTTL = time.Minute
+	baselineCacheCleanupInterval         = 10 * time.Minute
 )
 
 type validateFields int
@@ -105,6 +110,7 @@ type Handlers struct {
 	anonymousGerritQuota    *rate.Limiter
 
 	clSummaryCache *lru.Cache
+	baselineCache  *ttlcache.Cache
 
 	statusCache      frontend.GUIStatus
 	statusCacheMutex sync.RWMutex
@@ -149,6 +155,7 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
 		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
 		clSummaryCache:          clcache,
+		baselineCache:           ttlcache.New(baselineCachePrimaryBranchEntryTTL, baselineCacheCleanupInterval),
 		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
 	}, nil
 }
@@ -1913,6 +1920,15 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
 	defer span.End()
 
+	// Return the baseline from the cache if possible.
+	baselineCacheKey := "primary"
+	if clID != "" {
+		baselineCacheKey = fmt.Sprintf("%s_%s", crs, clID)
+	}
+	if val, ok := wh.baselineCache.Get(baselineCacheKey); ok {
+		return val.(frontend.BaselineV2Response), nil
+	}
+
 	statement := `WITH
 PrimaryBranchExps AS (
 	SELECT grouping_id, digest, label FROM Expectations
@@ -1974,11 +1990,20 @@ WHERE label = 'n' OR label = 'p'`
 		byDigest[digest] = label.ToExpectation()
 	}
 
-	return frontend.BaselineV2Response{
+	response := frontend.BaselineV2Response{
 		CodeReviewSystem: crs,
 		ChangelistID:     clID,
 		Expectations:     baseline,
-	}, nil
+	}
+
+	// Cache the computed baseline.
+	baselineCacheEntryTTL := baselineCachePrimaryBranchEntryTTL
+	if clID != "" {
+		baselineCacheEntryTTL = baselineCacheSecondaryBranchEntryTTL
+	}
+	wh.baselineCache.Set(baselineCacheKey, response, baselineCacheEntryTTL)
+
+	return response, nil
 }
 
 // DigestListHandler returns a list of digests for a given test. This is used by goldctl's

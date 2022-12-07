@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	ttlcache "github.com/patrickmn/go-cache"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
@@ -412,6 +414,7 @@ func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			DB: db,
 		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
@@ -436,6 +439,7 @@ func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
 				},
 			},
 		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
@@ -465,6 +469,7 @@ func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
 				},
 			},
 		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_new_tests&crs=gerrit-internal", nil)
@@ -490,6 +495,7 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 				},
 			},
 		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=wrong", nil)
@@ -513,11 +519,67 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 				},
 			},
 		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
 
 	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"NewCLID","crs":"gerrit"}`
+
+	wh.BaselineHandlerV2(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+func TestBaselineHandlerV2_CachedPrimaryBranch_ReturnsCachedBaseline(t *testing.T) {
+	// Note that we do not initialize a test database. This is intentional: reading from the
+	// database would defeat the purpose of caching, and such an attempt would make this test fail.
+	wh := Handlers{
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
+	}
+	wh.baselineCache.Set("primary", frontend.BaselineV2Response{
+		Expectations: expectations.Baseline{
+			dks.CircleTest: {
+				dks.DigestA01Pos: expectations.Positive,
+			},
+		},
+	}, ttlcache.DefaultExpiration)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
+
+	expectedJSONResponse := `{"primary":{"circle":{"a01a01a01a01a01a01a01a01a01a01a0":"positive"}}}`
+
+	wh.BaselineHandlerV2(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+func TestBaselineHandlerV2_CachedChangelist_ReturnsCachedBaseline(t *testing.T) {
+	// Note that we do not initialize a test database. This is intentional: reading from the
+	// database would defeat the purpose of caching, and such an attempt would make this test fail.
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
+	}
+	wh.baselineCache.Set("gerrit_CLID", frontend.BaselineV2Response{
+		CodeReviewSystem: dks.GerritCRS,
+		ChangelistID:     "CLID",
+		Expectations: expectations.Baseline{
+			dks.CircleTest: {
+				dks.DigestA01Pos: expectations.Positive,
+			},
+		},
+	}, ttlcache.DefaultExpiration)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CLID&crs=gerrit", nil)
+
+	expectedJSONResponse := `{"primary":{"circle":{"a01a01a01a01a01a01a01a01a01a01a0":"positive"}},"cl_id":"CLID","crs":"gerrit"}`
 
 	wh.BaselineHandlerV2(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
