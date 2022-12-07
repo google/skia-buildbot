@@ -14,6 +14,7 @@ go_library(
         "//go/login",
         "//go/metrics2",
         "//go/sklog",
+        "//go/tracing/loggingtracer",
         "//golden/go/clstore",
         "//golden/go/code_review",
         "//golden/go/code_review/gerrit_crs",

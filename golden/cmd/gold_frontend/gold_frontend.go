@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tracing/loggingtracer"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -123,6 +124,11 @@ func main() {
 
 	if err := tracing.Initialize(0.01, fsc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not initialize tracing: %s", err)
+	}
+
+	// Log traces and their durations via sklog.Info() when running locally.
+	if fsc.Local {
+		loggingtracer.Initialize()
 	}
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
