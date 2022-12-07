@@ -83,6 +83,11 @@ Debugging and Information Gathering Tips
   - `SHOW STATISTICS FOR TABLE [foo]` is a handy way to get row counts and distinct value counts.
   - `SHOW RANGES FROM TABLE [foo]` is a good way to see the ranges, how full each is and where the
     keys are partitioned.
+  - To query a column of type BYTES (e.g. digest) by a hex-encoded string, use `x'...'`. Example:
+    `SELECT * FROM expectations WHERE digest = x'76045fe3f71fa5edfa173f06ecbc66ef';`.
+  - To convert a value of type BYTES (e.g. digest) into a hex-encoded string, cast it with
+    `::string`. Example: `SELECT digest::string FROM expectations LIMIT 1`. Alternatively, use
+    `encode(column, 'hex')`, e.g. `SELECT encode(digest, 'hex') FROM expectations LIMIT 1`.
 
 Replacing a Node
 ----------------
