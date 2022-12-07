@@ -42,13 +42,13 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 
 	// Start custodianship loop.
 	go func() {
-		// exits is a channel that receives a message every time the Foundry Bot process ends for any
-		// reason. The value is ignored, but it serves as a synchronizer and a provocation to bring the
-		// process back up. It's buffered because there's no advantage in waitForProcess() delaying
-		// exiting until the custodian receives the value.
+		// exits is a channel that receives a message every time the Foundry Bot process ends for
+		// any reason. The value is ignored, but it serves as a synchronizer and a provocation to
+		// bring the process back up. It's buffered because there's no advantage in waitForProcess()
+		// delaying exiting until the custodian receives the value.
 		exits := make(chan bool, 1)
-		var wantUp bool   // Initial value doesn't matter because we always write before read.
-		var cmd *exec.Cmd // cmd is nil iff process is down.
+		var wantUp bool          // Initial value doesn't matter because we always write before read.
+		var foundryBot *exec.Cmd // foundryBot is nil iff process is down.
 
 		// Set up metrics.
 		const statusMetric = "machine_tmm_foundry_bot_status"
@@ -63,24 +63,24 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 			case wantUp = <-wantUpChannel.Recv():
 				// A polling request to machineserver has returned.
 				switch {
-				case wantUp && cmd == nil:
-					cmd = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
+				case wantUp && foundryBot == nil:
+					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
 					// If starting the process failed, we'll have another try at the next heartbeat.
-				case !wantUp && cmd != nil:
-					cmd = stopProcess(cmd, exits)
-					if cmd == nil {
+				case !wantUp && foundryBot != nil:
+					foundryBot = stopProcess(foundryBot, exits)
+					if foundryBot == nil {
 						machine.SetIsRunningSwarmingTask(false)
 					}
 				}
 			case <-exits:
 				// Foundry Bot exited on its own. It's not supposed to do that.
-				cmd = nil
+				foundryBot = nil
 				// Foundry Bot may not have sent us a task-ended ping because it crashed etc., so
 				// set task as not running ourselves.
 				machine.SetIsRunningSwarmingTask(false)
 				// Start it up again if we like, without waiting for next heartbeat.
 				if wantUp {
-					cmd = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
+					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
 					// If starting the process failed, we'll have another try at the next heartbeat.
 				}
 			case <-ctx.Done():
@@ -93,10 +93,10 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 			}
 
 			// Update metrics.
-			runningMetric.Update(wantUp && cmd != nil)
-			maintenanceMetric.Update(!wantUp && cmd == nil)
-			failedToStartMetric.Update(wantUp && cmd == nil)
-			failedToStopMetric.Update(!wantUp && cmd != nil)
+			runningMetric.Update(wantUp && foundryBot != nil)
+			maintenanceMetric.Update(!wantUp && foundryBot == nil)
+			failedToStartMetric.Update(wantUp && foundryBot == nil)
+			failedToStopMetric.Update(!wantUp && foundryBot != nil)
 		}
 	}()
 	return nil
