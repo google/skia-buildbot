@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/recentschannel"
 	"go.skia.org/infra/go/testutils"
+	tmmMachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
 // launchTimeout is how long we're willing to wait for a process to spin up.
@@ -46,14 +47,25 @@ func TestStart_RelaunchesIfProcessExits(t *testing.T) {
 	defer cancel()
 	wantFoundryBotUpCh := recentschannel.New[bool](1)
 	wantFoundryBotUpCh.Send(true)
-	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh))
+
+	machine := &tmmMachine.Machine{}
+	machine.SetIsRunningSwarmingTask(true)
+
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine))
 	require.Eventually(t, func() bool {
 		return executil.FakeCommandsReturned(ctx) >= 2
 	}, launchTimeout, launchTimeout/10, "Foundry Bot never got relaunched after exiting.")
+	// Machine gets set to no-task-running state on unexpected FB exits:
+	require.False(t, machine.IsRunningSwarmingTask())
 }
 
-func TestBotPath_DoesntFindFoundryBot_ReturnsError(t *testing.T) {
-	err := Start(context.Background(), "/something-that-does-not-exist", "ignored", recentschannel.New[bool](1))
+func TestStart_DoesntFindFoundryBot_ReturnsError(t *testing.T) {
+	err := Start(
+		context.Background(),
+		"/something-that-does-not-exist",
+		"ignored",
+		recentschannel.New[bool](1),
+		&tmmMachine.Machine{})
 	require.Contains(t, err.Error(), "Foundry Bot not found")
 }
 
@@ -98,7 +110,11 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 	wantFoundryBotUpCh.Send(true)
 	ctx := executil.FakeTestsContext("Test_FakeExe_FoundryBot_RunsUntilInterruptAndMakesFlagFile")
 	flag := flagFileForProcessStartAndInterrupt(t)
-	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh))
+
+	machine := &tmmMachine.Machine{}
+	machine.SetIsRunningSwarmingTask(true)
+
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine))
 
 	// Wait until foundryBotStartAndInterrupt.temp exists, showing the process is up.
 	//
@@ -118,4 +134,7 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 		_, err := os.Stat(flag)
 		return errors.Is(err, os.ErrNotExist)
 	}, launchTimeout, launchTimeout/10, "Foundry Bot process never caught SIGINT.")
+
+	// Machine gets set to no-task-running state when we take FB down on purpose:
+	require.False(t, machine.IsRunningSwarmingTask())
 }

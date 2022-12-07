@@ -96,7 +96,7 @@ func main() {
 	}()
 
 	if *startFoundryBot {
-		err := foundrybotcustodian.Start(ctx, *foundryBotPath, *foundryBotInstance, wantFoundryBotUpCh)
+		err := foundrybotcustodian.Start(ctx, *foundryBotPath, *foundryBotInstance, wantFoundryBotUpCh, machineState)
 		if err != nil {
 			sklog.Fatalf("Failed to start Foundry Bot Custodian: %s", err)
 		}

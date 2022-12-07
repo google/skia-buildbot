@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/recentschannel"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	tmmMachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
 // Start spawns a goroutine that forever brings Foundry Bot up or down in accordance with the
@@ -26,9 +27,10 @@ import (
 // botPath is the absolute path to a copy of Foundry Bot.
 // instance is the GCP instance under which the RBE jobs run. Its project must contain a Remote
 //     Build Execution API endpoint under APIs & Services.
+// machine will be advised that it is no longer running a task whenever Foundry Bot exits.
 //
 // Start looks for likely error conditions and returns them before starting the goroutine.
-func Start(ctx context.Context, botPath string, instance string, wantUpChannel *recentschannel.Ch[bool]) error {
+func Start(ctx context.Context, botPath string, instance string, wantUpChannel *recentschannel.Ch[bool], machine *tmmMachine.Machine) error {
 	// Check as much as we can before spinning off the goroutine.
 	_, err := os.Stat(botPath)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -66,10 +68,16 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 					// If starting the process failed, we'll have another try at the next heartbeat.
 				case !wantUp && cmd != nil:
 					cmd = stopProcess(cmd, exits)
+					if cmd == nil {
+						machine.SetIsRunningSwarmingTask(false)
+					}
 				}
 			case <-exits:
 				// Foundry Bot exited on its own. It's not supposed to do that.
 				cmd = nil
+				// Foundry Bot may not have sent us a task-ended ping because it crashed etc., so
+				// set task as not running ourselves.
+				machine.SetIsRunningSwarmingTask(false)
 				// Start it up again if we like, without waiting for next heartbeat.
 				if wantUp {
 					cmd = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
@@ -77,6 +85,9 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 				}
 			case <-ctx.Done():
 				// For now, this is an error case, because nobody is canceling the context yet.
+
+				// Context cancellation causes Foundry Bot to be killed.
+				machine.SetIsRunningSwarmingTask(false)
 				sklog.Infof("Foundry Bot custodian stopped: %s", err)
 				return
 			}
