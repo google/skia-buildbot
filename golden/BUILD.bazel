@@ -190,6 +190,31 @@ gold_launcher(
     window_size = 1024,
 )
 
+# Runs a local Gold instance that mirrors http://flutter-gold.skia.org. It might have write access
+# to the production CockroachDB database, so please exercise caution.
+#
+# Usage: bazel run //golden:flutter_local -- path/to/client_secret.json
+gold_launcher(
+    name = "flutter_local",
+    code_review_systems = [
+        {
+            "id": "github",
+            "flavor": "github",
+            "github_cred_path": "/dev/null",  # Most of the UI still works with no GitHub creds.
+            "github_repo": "flutter/flutter",
+            "url_template": "https://github.com/flutter/flutter/pull/%s",
+        },
+    ],
+    default_corpus = "flutter",
+    gcs_bucket = "skia-gold-flutter",
+    git_repo_url = "https://github.com/flutter/flutter",
+    known_hashes_gcs_path = "skia-gold-flutter/hash_files/gold-flutter-hashes.txt",
+    site_url = "https://flutter-gold.skia.org",
+    sql_database = "flutter",
+    title = "Flutter Gold",
+    window_size = 200,
+)
+
 # Runs a local Gold instance that mirrors http://flutter-engine-gold.skia.org. It might have write access
 # to the production CockroachDB database, so please exercise caution.
 #
