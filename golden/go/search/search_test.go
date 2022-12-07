@@ -4686,6 +4686,83 @@ func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing
 	}, res)
 }
 
+// This test verifies that skbug.com/13972 is resolved.
+func TestSearch_PrimaryBranch_NoReferenceImages_ReturnsEmptyResult(t *testing.T) {
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
+
+	// Delete all reference images from the database.
+	_, err := db.Exec(ctx, "DELETE FROM DiffMetrics")
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:     true,
+		MustIncludeReferenceFilter: true,
+		RGBAMinFilter:              0,
+		RGBAMaxFilter:              100,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results:              []*frontend.SearchResult{},
+		Offset:               0,
+		Size:                 0,
+		Commits:              kitchenSinkCommits,
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{},
+	}, res)
+}
+
+// This test verifies that skbug.com/13972 is resolved.
+func TestSearch_SecondaryBranch_NoReferenceImages_ReturnsEmptyResult(t *testing.T) {
+	ctx := context.Background()
+
+	db := useKitchenSinkData(ctx, t)
+
+	// Delete all reference images from the database.
+	_, err := db.Exec(ctx, "DELETE FROM DiffMetrics")
+	require.NoError(t, err)
+
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
+	clCommits = append(clCommits, frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
+		Author:        dks.UserOne,
+		Subject:       "Fix iOS",
+		ChangelistURL: "http://example.com/public/CL_fix_ios",
+	})
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		ChangelistID:               dks.ChangelistIDThatAttemptsToFixIOS,
+		CodeReviewSystemID:         dks.GerritCRS,
+		Patchsets:                  []int64{3}, // dks.PatchSetIDFixesIPadButNotIPhone
+		IncludePositiveDigests:     true,
+		MustIncludeReferenceFilter: true,
+		RGBAMinFilter:              0,
+		RGBAMaxFilter:              100,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results:              []*frontend.SearchResult{},
+		Offset:               0,
+		Size:                 0,
+		Commits:              clCommits,
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{},
+	}, res)
+}
+
 func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())

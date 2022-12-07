@@ -1977,6 +1977,9 @@ func makeGroupingAndDigestWhereClause(triageDeltaInfos []extendedBulkTriageDelta
 // passed in extendedBulkTriageDeltaInfo structs.
 func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
 	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+	if len(triageDeltaInfos) == 0 {
+		return labels, nil
+	}
 	whereClause, whereArgs := makeGroupingAndDigestWhereClause(triageDeltaInfos, 1)
 	statement := "SELECT grouping_id, digest, label FROM Expectations WHERE " + whereClause
 	rows, err := s.db.Query(ctx, statement, whereArgs...)
@@ -2004,6 +2007,9 @@ func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []e
 // passed in extendedBulkTriageDeltaInfo structs.
 func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
 	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+	if len(triageDeltaInfos) == 0 {
+		return labels, nil
+	}
 	whereClause, whereArgs := makeGroupingAndDigestWhereClause(triageDeltaInfos, 2)
 	statement := `
 		SELECT grouping_id,
