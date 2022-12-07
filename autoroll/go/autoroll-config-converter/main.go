@@ -138,9 +138,11 @@ func main() {
 			eg.Go(func() error {
 				branchName := fmt.Sprintf("m%d", m.Milestone)
 				ref := fmt.Sprintf("refs/heads/chromium/%d", m.Number)
+				bucket := fmt.Sprintf("luci.chrome-m%d.try", m.Milestone)
 				if m.Number == 0 {
 					branchName = "main"
 					ref = "refs/heads/main"
+					bucket = "luci.chrome.try"
 				}
 				sklog.Infof("Reading privacy sandbox versions at milestone: %+v", m)
 				contents, err := repo.ReadFileAtRef(ctx, *privacySandboxAndroidVersionsPath, ref)
@@ -158,6 +160,7 @@ func main() {
 				for _, v := range psVersions {
 					v.BranchName = branchName
 					v.Ref = ref
+					v.Bucket = bucket
 				}
 				mtx.Lock()
 				defer mtx.Unlock()
@@ -241,6 +244,7 @@ func main() {
 type PrivacySandboxVersion struct {
 	BranchName    string `json:"BranchName"`
 	Ref           string `json:"Ref"`
+	Bucket        string `json:"Bucket"`
 	PylFile       string `json:"PylFile"`
 	PylTargetPath string `json:"PylTargetPath"`
 	CipdPackage   string `json:"CipdPackage"`
@@ -270,6 +274,9 @@ func (s PrivacySandboxVersionSlice) Less(i, j int) bool {
 		return less
 	}
 	if diff, less := sortHelper(a.Ref, b.Ref); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.Bucket, b.Bucket); diff {
 		return less
 	}
 	if diff, less := sortHelper(a.CipdPackage, b.CipdPackage); diff {

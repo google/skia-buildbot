@@ -26,6 +26,11 @@ func TestSortPrivacySandboxVersionSlice(t *testing.T) {
 		Ref: "more",
 	})
 	checkLess(&PrivacySandboxVersion{
+		Bucket: "less",
+	}, &PrivacySandboxVersion{
+		Bucket: "more",
+	})
+	checkLess(&PrivacySandboxVersion{
 		PylFile: "less",
 	}, &PrivacySandboxVersion{
 		PylFile: "more",
