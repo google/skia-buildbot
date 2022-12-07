@@ -28,9 +28,6 @@ func main() {
 	if *outputFileName == "" {
 		sklog.Fatal("-o is required.")
 	}
-	if len(*configFileNames) == 0 {
-		sklog.Fatal("-c is required.")
-	}
 	extraVarsMap := map[string]string{}
 	for _, pair := range *extraVars {
 		split := strings.SplitN(pair, ":", 2)
