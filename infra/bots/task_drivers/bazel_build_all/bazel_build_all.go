@@ -60,27 +60,14 @@ func main() {
 	}
 
 	// Set up Bazel.
-	var (
-		bzl        *bazel.Bazel
-		bzlCleanup func()
-	)
-	// TODO(kjlubick) Remove ramdisk logic if it lands well.
-	if false && !*rbe && !*local {
-		// Infra-PerCommit-Build-Bazel-Local uses a ramdisk as the Bazel cache. I/O on GCE VMs can be
-		// very slow, which that can cause said task to time out.
-		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
-	} else {
-		opts := bazel.BazelOptions{
-			CachePath:           *bazelCacheDir,
-			RepositoryCachePath: *bazelRepoCacheDir,
-		}
-		bzl, err = bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
-		bzlCleanup = func() {}
+	opts := bazel.BazelOptions{
+		CachePath:           *bazelCacheDir,
+		RepositoryCachePath: *bazelRepoCacheDir,
 	}
+	bzl, err := bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	defer bzlCleanup()
 
 	// Print out the Bazel version for debugging purposes.
 	if _, err := bzl.Do(ctx, "version"); err != nil {
