@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/shirou/gopsutil/host"
+	"go.skia.org/infra/go/gpus"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/machine/go/common"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
@@ -42,7 +43,7 @@ func CPUs(ctx context.Context) ([]string, error) {
 }
 
 // nvidiaVersion returns the version of the installed Nvidia GPU driver, "" if not available.
-func nvidiaDriverVersion() string {
+func nvidiaDriverVersion(ctx context.Context) string {
 	contents, err := os.ReadFile("/sys/module/nvidia/version")
 	if err != nil {
 		return ""
@@ -52,8 +53,10 @@ func nvidiaDriverVersion() string {
 
 var dpkgVersionRegex = regexp.MustCompile(`(?m)^Version: (\d+\.\d+\.\d+)`)
 
-// intelDriverVersion returns the version of the installed Intel GPU driver, "" if not available.
-func intelDriverVersion(ctx context.Context) string {
+// mesaDRIVersion returns the version of the MESA DRI modules. For GPUs whose drivers ship inside
+// the kernel and thus don't expose a version number of their own, this is a more informative
+// version number than simply the version of the kernel. Returns "" if not available.
+func mesaDRIVersion(ctx context.Context) string {
 	status, err := common.TrimmedCommandOutput(ctx, "dpkg", "-s", "libgl1-mesa-dri")
 	if err != nil {
 		return ""
@@ -65,6 +68,12 @@ func intelDriverVersion(ctx context.Context) string {
 	return groups[1]
 }
 
+var versionGetters = linux.VendorsToVersionGetters{
+	gpus.Nvidia: nvidiaDriverVersion,
+	gpus.Intel:  mesaDRIVersion,
+	gpus.AMD:    mesaDRIVersion,
+}
+
 // GPUs returns a Swarming-style description of all the host's GPUs, in all available precisions,
 // drawn from the lspci commandline util. If lspci is absent, returns an error.
 func GPUs(ctx context.Context) ([]string, error) {
@@ -72,5 +81,5 @@ func GPUs(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to run lspci to get GPU info. Output was '%s'", lspciOutput)
 	}
-	return linux.GPUs(ctx, lspciOutput, nvidiaDriverVersion, intelDriverVersion)
+	return linux.GPUs(ctx, lspciOutput, versionGetters)
 }

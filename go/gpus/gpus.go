@@ -19,6 +19,7 @@ type vendorNameAndDevices struct {
 }
 
 const (
+	AMD    = "1002"
 	Nvidia = "10de"
 	Intel  = "8086"
 	VMWare = "15ad"
@@ -26,7 +27,7 @@ const (
 
 // Static lookup tables:
 var vendorMap = map[VendorID]vendorNameAndDevices{
-	"1002": {
+	AMD: {
 		Name: "AMD",
 		Devices: map[string]string{
 			// http://developer.amd.com/resources/ati-catalyst-pc-vendor-id-1002-li/

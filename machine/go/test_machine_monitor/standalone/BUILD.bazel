@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = select({
         "@io_bazel_rules_go//go/platform:android": [
+            "//go/gpus",
             "//go/skerr",
             "//machine/go/common",
             "//machine/go/test_machine_monitor/standalone/crossplatform",
@@ -35,6 +36,7 @@ go_library(
             "@org_golang_x_sys//unix",
         ],
         "@io_bazel_rules_go//go/platform:linux": [
+            "//go/gpus",
             "//go/skerr",
             "//machine/go/common",
             "//machine/go/test_machine_monitor/standalone/crossplatform",

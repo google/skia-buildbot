@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gpus"
 )
 
 func TestVendorAndBrand_StopsAfterExhaustingAllLines(t *testing.T) {
@@ -59,12 +60,17 @@ func TestOSVersions_CapitalizesPlatform(t *testing.T) {
 	assert.Equal(t, []string{"Linux", "Greeb", "Greeb-4", "Greeb-4.3"}, OSVersions("greeb", "4.3"))
 }
 
-func version123() string {
+func version123(context.Context) string {
 	return "1.2.3"
 }
 
 func version456(context.Context) string {
 	return "4.5.6"
+}
+
+var versionGetters = VendorsToVersionGetters{
+	gpus.Nvidia: version123,
+	gpus.Intel:  version456,
 }
 
 func TestGPUs_MultipleGPUsDetectedAndNonGPUDevicesSkipped(t *testing.T) {
@@ -76,8 +82,7 @@ func TestGPUs_MultipleGPUsDetectedAndNonGPUDevicesSkipped(t *testing.T) {
 00:04.0 "Host bridge [0600]" "Intel Corporation [8086]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Series SoC Transaction Register [2280]" -r21 "Intel Corporation [8086]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Series SoC Transaction Register [2060]"
 01:00.0 "VGA compatible controller [0300]" "NVIDIA Corporation [10de]" "Device [2489]" -ra1 "ASUSTeK Computer Inc. [1043]" "Device [884f]"
 `,
-		version123,
-		version456,
+		versionGetters,
 	)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"8086", "8086:22b1", "8086:22b1-4.5.6", "10de", "10de:2489", "10de:2489-1.2.3"}, gpus)
@@ -89,8 +94,7 @@ func TestGPUs_GPUHasBadVendorFormat_GetsSkipped(t *testing.T) {
 		context.Background(),
 		`00:02.0 "VGA compatible controller [0300]" "Karnov [No ID Here]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Integrated Graphics Controller [22b1]"
 `,
-		version123,
-		version456,
+		versionGetters,
 	)
 	require.NoError(t, err)
 	assert.Equal(t, []string(nil), gpus)
@@ -101,8 +105,7 @@ func TestGPUs_NonIntelOrNvidiaVendor_OmitsVersion(t *testing.T) {
 		context.Background(),
 		`00:02.0 "VGA compatible controller [0300]" "Schlocko Corporation [1111]" "Atom/Celeron/Pentium Processor x5-E8000/J3xxx/N3xxx Integrated Graphics Controller [3333]"
 `,
-		version123,
-		version456,
+		versionGetters,
 	)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"1111", "1111:3333"}, gpus)

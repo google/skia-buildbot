@@ -10,6 +10,7 @@ go_library(
         "//go/gpus",
         "//go/skerr",
         "//go/util",
+        "//go/util_generics",
         "//machine/go/test_machine_monitor/standalone/crossplatform",
         "@com_github_kballard_go_shellquote//:go-shellquote",
     ],
@@ -20,6 +21,7 @@ go_test(
     srcs = ["linux_test.go"],
     embed = [":linux"],
     deps = [
+        "//go/gpus",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

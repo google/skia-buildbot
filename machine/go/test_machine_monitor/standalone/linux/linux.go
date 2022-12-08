@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gpus"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util_generics"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone/crossplatform"
 )
 
@@ -84,11 +85,15 @@ func OSVersions(platform, version string) []string {
 
 var idRegex = regexp.MustCompile(`^(.+?) \[([0-9a-f]{4})\]$`)
 
+// VendorsToVersionGetters is a map of vendor IDs to functions that return GPU driver versions for
+// those vendors' products.
+type VendorsToVersionGetters = map[string]func(context.Context) string
+
 // GPUs returns a slice of Swarming-style descriptors of all the GPUs on the host, in all
 // precisions: "vendorID", "vendorID-deviceID", and, if detectable,
 // "vendorID-deviceID-driverVersion". nvidiaVersionGetter is a thunk that returns the version of the
 // installed Nvidia driver. intelVersionGetter is similar but for the Intel driver.
-func GPUs(ctx context.Context, lspciOutput string, nvidiaVersionGetter func() string, intelVersionGetter func(context.Context) string) ([]string, error) {
+func GPUs(ctx context.Context, lspciOutput string, versionGetters VendorsToVersionGetters) ([]string, error) {
 	var ret []string
 	for _, line := range util.SplitLines(lspciOutput) {
 		fields, err := shell.Split(line)
@@ -122,12 +127,8 @@ func GPUs(ctx context.Context, lspciOutput string, nvidiaVersionGetter func() st
 		}
 		deviceID := groups[2]
 
-		version := ""
-		if vendorID == gpus.Nvidia {
-			version = nvidiaVersionGetter()
-		} else if vendorID == gpus.Intel {
-			version = intelVersionGetter(ctx)
-		}
+		versionGetter := util_generics.Get(versionGetters, vendorID, func(context.Context) string { return "" })
+		version := versionGetter(ctx)
 
 		// Prefer vendor name from table.
 		vendorName, _ = gpus.IDsToNames(gpus.VendorID(vendorID), vendorName, "dummy", "dummy")
