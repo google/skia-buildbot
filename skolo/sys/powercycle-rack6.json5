@@ -14,4 +14,28 @@
       }
     }
   }
+  edgeswitch: {
+    "rack6-shelf4-poe-switch": {
+      address: "rack6-shelf4-poe-switch",
+      user: "ubnt",
+      password: "",
+      ports: {
+        "skia-rpi2-rack6-shelf4-001": 1,
+        "skia-rpi2-rack6-shelf4-002": 2,
+        "skia-rpi2-rack6-shelf4-003": 3,
+        "skia-rpi2-rack6-shelf4-004": 4,
+        "skia-rpi2-rack6-shelf4-005": 5,
+        "skia-rpi2-rack6-shelf4-006": 6,
+        "skia-rpi2-rack6-shelf4-007": 7,
+        "skia-rpi2-rack6-shelf4-008": 8,
+        "skia-rpi2-rack6-shelf4-009": 9,
+        "skia-rpi2-rack6-shelf4-010": 10,
+        "skia-rpi2-rack6-shelf4-011": 11,
+        "skia-rpi2-rack6-shelf4-012": 12,
+        "skia-rpi2-rack6-shelf4-013": 13,
+        "skia-rpi2-rack6-shelf4-014": 14,
+        "skia-rpi2-rack6-shelf4-015": 15,
+        "skia-rpi2-rack6-shelf4-016": 16,
+      },
+    },
 }
