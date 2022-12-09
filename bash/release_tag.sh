@@ -6,7 +6,7 @@
 set -e
 
 REL=$(dirname "$BASH_SOURCE")
-DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
+DATETIME=`date -u "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
 
 # Determine repo state.

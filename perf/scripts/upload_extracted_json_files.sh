@@ -6,4 +6,4 @@
 gsutil \
   -m cp -r \
   downloads/ \
-  gs://skia-perf/nano-json-v1/$(date --utc --date +1hour +%Y/%m/%d/%H)
+  gs://skia-perf/nano-json-v1/$(date -u --date +1hour +%Y/%m/%d/%H)

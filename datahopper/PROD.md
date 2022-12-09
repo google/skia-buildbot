@@ -76,7 +76,7 @@ has not succeeded in more than 24 hours. There are several things to check:
 
  - Run `gcloud beta firestore operations list --project=skia-firestore
    "--filter=metadata.outputUriPrefix~^gs://skia-firestore-backup/everything/" |
-   grep -C 14 "endTime: '$(date --utc +%Y-%m-)"` (please modify if it's the
+   grep -C 14 "endTime: '$(date -u +%Y-%m-)"` (please modify if it's the
    first week of the month).
 
    - If you see a recent endTime with "operationState: SUCCESSFUL," see below
@@ -114,7 +114,7 @@ has not succeeded in more than 24 hours. There are several things to check:
 
  - To manually trigger a new export, run `gcloud beta firestore export
    --project=skia-firestore --async gs://skia-firestore-backup/everything/$(date
-   --utc +%Y-%m-%dT%H:%M:%SZ)`. Alternatively, run `kubectl create job
+   -u +%Y-%m-%dT%H:%M:%SZ)`. Alternatively, run `kubectl create job
    --from=cronjob/firestore-export-everything-weekly
    firestore-export-everything-manual`, wait for the job to finish, then run
    `kubectl delete job firestore-export-everything-manual`.

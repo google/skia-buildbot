@@ -187,7 +187,7 @@ fi
 if [ ! -v BYPASS_UPLOAD ]
 then
   # Upload the package to right location in Google Storage.
-  DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
+  DATETIME=`date -u "+%Y-%m-%dT%H:%M:%SZ"`
   HASH=`git rev-parse HEAD`
   DIRTY=false
   GITSTATE=`${REL}/gitstate.sh`
