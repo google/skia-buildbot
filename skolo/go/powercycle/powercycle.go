@@ -126,7 +126,7 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool, contro
 	for name, c := range conf.MPower {
 		mp, err := newMPowerController(ctx, c, connect)
 		if err != nil {
-			sklog.Errorf("failed to initialize %s", name)
+			sklog.Errorf("failed to initialize %s: %s", name, err)
 			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(mp, machine.InError)); err != nil {
 				return nil, skerr.Wrap(err)
 			}
@@ -145,7 +145,7 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool, contro
 	for name, c := range conf.EdgeSwitch {
 		es, err := newEdgeSwitchController(ctx, c, connect)
 		if err != nil {
-			sklog.Errorf("failed to initialize %s", name)
+			sklog.Errorf("failed to initialize %s: %s", name, err)
 			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.InError)); err != nil {
 				return nil, skerr.Wrap(err)
 			}
@@ -163,7 +163,7 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool, contro
 	for name, c := range conf.SynaccessPDU {
 		es, err := newSynaccessController(ctx, string(name), c, connect)
 		if err != nil {
-			sklog.Errorf("failed to initialize %s", name)
+			sklog.Errorf("failed to initialize %s: %s", name, err)
 			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.InError)); err != nil {
 				return nil, skerr.Wrap(err)
 			}

@@ -26,6 +26,12 @@
     group: root
     mode: '0755'
 
+- name: Install sshpass.
+  become: true
+  apt:
+    pkg:
+      - sshpass
+
 - name: Start systemd servce.
   become: true
   systemd:

@@ -13,13 +13,13 @@
         "skia-e-win-600": 8
       }
     }
-  }
-  edgeswitch: {
+  },
+  "edgeswitch": {
     "rack6-shelf4-poe-switch": {
-      address: "rack6-shelf4-poe-switch",
-      user: "ubnt",
-      password: "",
-      ports: {
+      "address": "rack6-shelf4-poe-switch",
+      "user": "ubnt",
+      "password": "",
+      "ports": {
         "skia-rpi2-rack6-shelf4-001": 1,
         "skia-rpi2-rack6-shelf4-002": 2,
         "skia-rpi2-rack6-shelf4-003": 3,
@@ -35,7 +35,8 @@
         "skia-rpi2-rack6-shelf4-013": 13,
         "skia-rpi2-rack6-shelf4-014": 14,
         "skia-rpi2-rack6-shelf4-015": 15,
-        "skia-rpi2-rack6-shelf4-016": 16,
-      },
-    },
+        "skia-rpi2-rack6-shelf4-016": 16
+      }
+    }
+  }
 }
