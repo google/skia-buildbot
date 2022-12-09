@@ -127,11 +127,22 @@
   become: true
   apt:
     pkg:
-      - make
-      - fontconfig
-      - libfontconfig-dev
-      - libglu-dev
       - build-essential
+      - clang-11
+      - cmake
+      - curl
+      - fontconfig
+      - git
+      - libfontconfig-dev
+      - libfreetype6-dev
+      - libgl1-mesa-dev
+      - libglu-dev
+      - libglu1-mesa-dev
+      - libxi-dev
+      - libx11-xcb-dev
+      - make
+      - python
+      - python3
 
 # On boot, the i915 kernal module enables the paranoid performance collection mode by default.
 # To use the VK_INTEL_performance_query extension, this paranoid mode must be disabled.
@@ -162,3 +173,46 @@
   apt:
     pkg:
       - libllvm13
+
+- name: Check for newer NVIDIA GPUs
+  shell:
+    # The grep can be expanded to match other GPUs.
+    cmd: lspci -mm -nn 2>&1 | grep "\[10de\].*\[2489\]"
+  args:
+    executable: /bin/bash
+  register: has_recent_nvidia_gpu
+  # Grep will exit with a non-zero return code if it does not match any of
+  # the input. Ansible normally fails the step for that, but we just want to
+  # register the facts, so we ignore errors.
+  ignore_errors: true
+
+- name: Install the latest NVIDIA drivers.
+  when: has_recent_nvidia_gpu.rc == 0
+  become: true
+  apt:
+    pkg:
+      - nvidia-driver
+      - firmware-misc-nonfree
+
+- name: Check for newer AMD GPUs
+  shell:
+    # The grep can be expanded to match other GPUs.
+    cmd: lspci -mm -nn 2>&1 | grep "\[1002\].*\[1636\]"
+  args:
+    executable: /bin/bash
+  register: has_recent_amd_gpu
+  # Grep will exit with a non-zero return code if it does not match any of
+  # the input. Ansible normally fails the step for that, but we just want to
+  # register the facts, so we ignore errors.
+  ignore_errors: true
+
+- name: Install the latest AMD GPU drivers.
+  when: has_recent_amd_gpu.rc == 0
+  become: true
+  apt:
+    pkg:
+      - firmware-amd-graphics
+      - libgl1-mesa-dri
+      - libglx-mesa0
+      - mesa-vulkan-drivers
+      - xserver-xorg-video-all

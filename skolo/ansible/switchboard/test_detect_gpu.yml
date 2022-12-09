@@ -1,0 +1,44 @@
+# Test GPU Card Detection
+#
+# Simple playbook to test out the GPU detection done in the swarming_needs role.
+- hosts: all_linux
+  user: chrome-bot
+  gather_facts: false
+
+  tasks:
+    - name: Check for newer NVIDIA GPUs
+      shell:
+        cmd: lspci -mm -nn 2>&1 | grep "\[10de\].*\[2489\]"
+      args:
+        executable: /bin/bash
+      register: has_recent_nvidia_gpu
+      # Grep will exit with a non-zero return code if it does not match any of
+      # the input. Ansible normally fails the step for that, but we just want to
+      # register the facts, so we ignore errors.
+      ignore_errors: true
+
+    - name: print
+      debug:
+        msg: Got {{ has_recent_nvidia_gpu }}
+
+    - name: test conditional
+      when: has_recent_nvidia_gpu.rc == 0
+      debug:
+        msg: Matches NVIDIA
+
+    - name: Check for newer AMD GPUs
+      shell:
+        # The grep can be expanded to match other GPUs.
+        cmd: lspci -mm -nn 2>&1 | grep "\[1002\].*\[1636\]"
+      args:
+        executable: /bin/bash
+      register: has_recent_amd_gpu
+      # Grep will exit with a non-zero return code if it does not match any of
+      # the input. Ansible normally fails the step for that, but we just want to
+      # register the facts, so we ignore errors.
+      ignore_errors: true
+
+    - name: test conditional amd
+      when: has_recent_amd_gpu.rc == 0
+      debug:
+        msg: Matches AMD
