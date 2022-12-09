@@ -4,7 +4,9 @@
     "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold@chops-service-accounts.iam.gserviceaccount.com",
     "chromium-tester@chops-service-accounts.iam.gserviceaccount.com",
-    "chrome-tester@chops-service-accounts.iam.gserviceaccount.com"
+    "chrome-tester@chops-service-accounts.iam.gserviceaccount.com",
+    // Chromium ChromeOS tests running in Skylab.
+    "skylab-drone@chromeos-service-accounts.iam.gserviceaccount.com"
   ],
   client_secret_file: "/etc/skia.org/login.json",
   force_login: true, // This instance requires authentication. It has a public view (chrome-public)
