@@ -28,3 +28,6 @@
     - name: Turn off wifi and bluetooth.
       import_role:
         name: rfkill
+    - name: Rotate logs
+      import_role:
+        name: logrotate
