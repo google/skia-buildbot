@@ -934,7 +934,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 		return fmt.Errorf("Could not count lines from %s: %s", filepath.Join(localOutputDir, outputFileName), err)
 	}
 	if lines <= 1 {
-		return fmt.Errorf("%s has %d lines. More than 1 line is expected.", filepath.Join(localOutputDir, outputFileName), lines)
+		sklog.Warningf("%s has %d lines. More than 1 line is expected.", filepath.Join(localOutputDir, outputFileName), lines)
 	}
 
 	// Copy the output file to Google Storage.
