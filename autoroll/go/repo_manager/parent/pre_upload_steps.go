@@ -252,6 +252,17 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 		}
 	}
 
+	// Step 8: Look for "excluded_files" and copy to golden dir if it exists.
+	// See https://github.com/flutter/flutter/issues/117162 for context.
+	excludedFileName := "excluded_files"
+	if _, err := os.Stat(filepath.Join(licensesOutDir, excludedFileName)); err == nil {
+		sklog.Infof("Found %s", excludedFileName)
+		// Copy from out dir to goldens dir.
+		if _, err := exec.RunCwd(ctx, licenseToolsDir, "cp", filepath.Join(licensesOutDir, excludedFileName), filepath.Join(licensesGoldenDir, excludedFileName)); err != nil {
+			return fmt.Errorf("Error when copying %s from out to golden dir: %s", excludedFileName, err)
+		}
+	}
+
 	sklog.Info("Done running flutter license scripts.")
 	licenseScriptFailure = 0
 	return nil
