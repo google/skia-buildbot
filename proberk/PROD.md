@@ -16,6 +16,6 @@ This ProberFailure type means that the current list of public repos visible at
 we accidentally leaked something private, but more often simply means we just added a GoB mirror
 (e.g. go/new-skia-git-mirror).
 
-To address this, run `make update-expectations` from //proberk, verify the diffs, check it in,
-and re-deploy. This will update //proberk/expectations/gob.json
+To address this, run `./generate.sh` from the //prober/expectations directory in the
+k8s-config repo. Verify the diffs and check them in. The changes will autodeploy.
 
