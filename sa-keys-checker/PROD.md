@@ -33,8 +33,9 @@ To confirm that all the metadata servers have restarted you can run:
 
         ansible  jumphosts -a "ps aux" | grep metadata
 
-For k8s services, the steps in [this comment](https://bugs.chromium.org/p/skia/issues/detail?id=12496#c1)
-will be useful.
+For k8s services in skia-corp, you can use the [rotate-keys-for-skia-corp-sa.sh](https://skia.googlesource.com/buildbot/+/main/kube/secrets/rotate-keys-for-skia-corp-sa.sh) script. Example:
+
+        bash secrets/rotate-keys-for-skia-corp-sa.sh google.com:skia-corp alert-to-pubsub deployment/alert-to-pubsub
 
 Key metrics: sa_key_expiration_s
 
