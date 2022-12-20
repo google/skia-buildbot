@@ -244,6 +244,8 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
+		// TODO(borenet): Remove once b/263111193 is resolved.
+		g.SetTraceID("b/263111193-1671550264")
 	} else if cfg.GetGithub() != nil {
 		githubCfg := cfg.GetGithub()
 		var gToken string

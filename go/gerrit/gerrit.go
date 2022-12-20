@@ -26,7 +26,6 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -193,6 +192,9 @@ const (
 	// Gerrit's magic path for the commit message. See:
 	// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#file-id
 	CommitMsgFileName = "/COMMIT_MSG"
+
+	// HTTP header used to enable tracing.
+	HeaderTracing = "X-Gerrit-Trace"
 )
 
 var (
@@ -444,6 +446,7 @@ type GerritInterface interface {
 	SetReadyForReview(context.Context, *ChangeInfo) error
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int, []*AttentionSetInput) error
 	SetTopic(context.Context, string, int64) error
+	SetTraceID(issue string)
 	Submit(context.Context, *ChangeInfo) error
 	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
 	Url(int64) string
@@ -459,6 +462,7 @@ type Gerrit struct {
 	repoUrl           string
 	extractRegEx      *regexp.Regexp
 	rl                *rate.Limiter
+	traceId           string
 }
 
 // NewGerrit returns a new Gerrit instance.
@@ -659,7 +663,12 @@ func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (st
 	}
 
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
-	resp, err := httputils.GetWithContext(ctx, g.client, u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return "", err
+	}
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
@@ -717,7 +726,12 @@ func (g *Gerrit) GetContent(ctx context.Context, issue int64, revision string, f
 	// Encode the filePath to convert paths like /COMMIT_MSG into %2FCOMMIT_MSG.
 	filePath = url.QueryEscape(filePath)
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/files/%s/content", g.apiUrl, issue, revision, filePath)
-	resp, err := httputils.GetWithContext(ctx, g.client, u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return "", err
+	}
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
@@ -901,7 +915,12 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 	}
 
 	getURL := g.apiUrl + suburl
-	resp, err := httputils.GetWithContext(ctx, g.client, getURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, getURL, nil)
+	if err != nil {
+		return err
+	}
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
 	}
@@ -939,7 +958,13 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 
-	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+suburl, "application/json", bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.apiUrl+suburl, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -974,6 +999,7 @@ func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	g.maybeAddTraceHeader(req)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -1002,6 +1028,7 @@ func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 	if err != nil {
 		return err
 	}
+	g.maybeAddTraceHeader(req)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -1144,6 +1171,7 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	g.maybeAddTraceHeader(req)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -1318,7 +1346,12 @@ func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
 	}
 
 	url := g.apiUrl + urlCommitMsgHook
-	resp, err := httputils.GetWithContext(ctx, g.client, url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", url, err)
 	}
@@ -1439,7 +1472,13 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+"/changes/", "application/json", bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.apiUrl+"/changes/", bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	g.maybeAddTraceHeader(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -1472,6 +1511,7 @@ func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
+	g.maybeAddTraceHeader(req)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)
@@ -1619,4 +1659,18 @@ func FullChangeId(ci *ChangeInfo) string {
 	// Encode the branch to convert names like chrome/m90 into chrome%2Fm90.
 	branch = url.QueryEscape(branch)
 	return fmt.Sprintf("%s~%s~%s", project, branch, ci.ChangeId)
+}
+
+// SetTraceID enables tracing for all requests. If an empty string is provided,
+// tracing is disabled. It is recommended to use an issue number for the trace
+// ID, eg. "issue/123".SetTracing(issue string)
+func (g *Gerrit) SetTraceID(id string) {
+	g.traceId = id
+}
+
+// maybeAddTraceHeader sets the trace header on the request if tracing is enabled.
+func (g *Gerrit) maybeAddTraceHeader(req *http.Request) {
+	if g.traceId != "" {
+		req.Header.Add(HeaderTracing, g.traceId)
+	}
 }

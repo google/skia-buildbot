@@ -14,7 +14,6 @@ go_library(
         "//go/auth",
         "//go/buildbucket",
         "//go/git",
-        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
