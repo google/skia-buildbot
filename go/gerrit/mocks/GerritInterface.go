@@ -690,9 +690,9 @@ func (_m *GerritInterface) SetTopic(_a0 context.Context, _a1 string, _a2 int64) 
 	return r0
 }
 
-// SetTraceID provides a mock function with given fields: issue
-func (_m *GerritInterface) SetTraceID(issue string) {
-	_m.Called(issue)
+// SetTraceIDPrefix provides a mock function with given fields: traceIdPrefix
+func (_m *GerritInterface) SetTraceIDPrefix(traceIdPrefix string) {
+	_m.Called(traceIdPrefix)
 }
 
 // Submit provides a mock function with given fields: _a0, _a1

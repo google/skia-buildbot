@@ -446,7 +446,7 @@ type GerritInterface interface {
 	SetReadyForReview(context.Context, *ChangeInfo) error
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int, []*AttentionSetInput) error
 	SetTopic(context.Context, string, int64) error
-	SetTraceID(issue string)
+	SetTraceIDPrefix(traceIdPrefix string)
 	Submit(context.Context, *ChangeInfo) error
 	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
 	Url(int64) string
@@ -462,7 +462,7 @@ type Gerrit struct {
 	repoUrl           string
 	extractRegEx      *regexp.Regexp
 	rl                *rate.Limiter
-	traceId           string
+	traceIdPrefix     string
 }
 
 // NewGerrit returns a new Gerrit instance.
@@ -667,8 +667,7 @@ func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (st
 	if err != nil {
 		return "", err
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
@@ -730,8 +729,7 @@ func (g *Gerrit) GetContent(ctx context.Context, issue int64, revision string, f
 	if err != nil {
 		return "", err
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
@@ -919,8 +917,7 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 	if err != nil {
 		return err
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
 	}
@@ -963,8 +960,7 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -999,8 +995,7 @@ func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -1028,8 +1023,7 @@ func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 	if err != nil {
 		return err
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -1171,8 +1165,7 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -1350,8 +1343,7 @@ func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
 	if err != nil {
 		return err
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", url, err)
 	}
@@ -1477,8 +1469,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -1511,8 +1502,7 @@ func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
-	g.maybeAddTraceHeader(req)
-	resp, err := g.client.Do(req)
+	resp, err := g.doRequest(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)
 	}
@@ -1661,16 +1651,25 @@ func FullChangeId(ci *ChangeInfo) string {
 	return fmt.Sprintf("%s~%s~%s", project, branch, ci.ChangeId)
 }
 
-// SetTraceID enables tracing for all requests. If an empty string is provided,
-// tracing is disabled. It is recommended to use an issue number for the trace
-// ID, eg. "issue/123".SetTracing(issue string)
-func (g *Gerrit) SetTraceID(id string) {
-	g.traceId = id
+// SetTraceIDPrefix enables tracing for all requests, with the given prefix.
+// The full trace ID consists of the prefix and the timestamp of the request.
+// If an empty string is provided, tracing is disabled. It is recommended to use
+// an issue number for the trace ID, eg. "issue/123"
+func (g *Gerrit) SetTraceIDPrefix(traceIdPrefix string) {
+	g.traceIdPrefix = traceIdPrefix
 }
 
-// maybeAddTraceHeader sets the trace header on the request if tracing is enabled.
-func (g *Gerrit) maybeAddTraceHeader(req *http.Request) {
-	if g.traceId != "" {
-		req.Header.Add(HeaderTracing, g.traceId)
+// doRequest executes the given http.Request. It is a thin wrapper around
+// g.client.Do().
+func (g *Gerrit) doRequest(req *http.Request) (*http.Response, error) {
+	var traceID string
+	if g.traceIdPrefix != "" {
+		traceID = fmt.Sprintf("%s-%d", g.traceIdPrefix, time.Now().UnixNano())
+		req.Header.Add(HeaderTracing, traceID)
 	}
+	resp, err := g.client.Do(req)
+	if traceID != "" {
+		err = skerr.Wrapf(err, "trace ID %q", traceID)
+	}
+	return resp, err
 }
