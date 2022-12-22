@@ -88,6 +88,16 @@ type AutoRollerI interface {
 	AddHandlers(r *mux.Router)
 }
 
+// clientConfig returns a common httputils.ClientConfig to be used for all
+// HTTP clients.
+func clientConfig(ts oauth2.TokenSource) httputils.ClientConfig {
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly()
+	// Gerrit occasionally times out when creating CLs. Increase the request
+	// timeout to compensate. Remove this when b/261896675 is fixed.
+	c.RequestTimeout = 10 * time.Minute
+	return c
+}
+
 func main() {
 	common.InitWithMust(
 		"autoroll-be",
@@ -136,7 +146,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	client := clientConfig(ts).Client()
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
@@ -239,13 +249,11 @@ func main() {
 		// Gerrit sometimes throws 404s for CLs that we've just uploaded, likely
 		// due to eventual consistency. Rather than error out, use an HTTP
 		// client which retries 4XX errors.
-		clientForGerrit := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithRetry4XX().Client()
+		clientForGerrit := clientConfig(ts).WithRetry4XX().Client()
 		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, clientForGerrit)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
-		// TODO(borenet): Remove once b/263111193 is resolved.
-		g.SetTraceIDPrefix("b/263111193")
 	} else if cfg.GetGithub() != nil {
 		githubCfg := cfg.GetGithub()
 		var gToken string

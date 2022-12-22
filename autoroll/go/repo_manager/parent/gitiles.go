@@ -68,8 +68,6 @@ func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
-	// TODO(borenet): Remove once b/263111193 is resolved.
-	g.SetTraceIDPrefix("b/263111193")
 	return &gitilesParent{
 		childID:           c.Dep.Primary.Id,
 		GitilesRepo:       gr,
