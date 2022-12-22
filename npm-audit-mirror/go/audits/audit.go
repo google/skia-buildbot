@@ -35,8 +35,8 @@ const (
 	defaultCCUser = "rmistry@google.com"
 )
 
-// File new audit issues once a quarter.
-var fileAuditIssueAfterThreshold = time.Hour * 24 * 30 * 3
+// File new audit issues 1 hour after the last one was closed.
+var fileAuditIssueAfterThreshold = time.Hour
 
 // NpmProjectAudit implements the types.ProjectAudit interface.
 type NpmProjectAudit struct {
