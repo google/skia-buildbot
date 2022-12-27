@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "exporter",
+    srcs = ["exporter.go"],
+    importpath = "go.skia.org/infra/go/sql/exporter",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "exporter_test",
+    srcs = ["exporter_test.go"],
+    embed = [":exporter"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)
