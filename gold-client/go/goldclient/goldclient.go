@@ -415,7 +415,7 @@ func (c *CloudClient) groupingForTrace(ctx context.Context, traceParams paramtoo
 	}
 	groupingParams, ok := groupings[corpus]
 	if !ok {
-		return nil, skerr.Fmt("grouping params for corpus %q are unknown", corpus)
+		return nil, skerr.Fmt("grouping params for corpus %q are unknown; known grouping params: %v", corpus, groupings)
 	}
 	grouping := paramtools.Params{}
 	for _, param := range groupingParams {

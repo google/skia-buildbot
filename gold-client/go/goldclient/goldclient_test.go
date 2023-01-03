@@ -2414,7 +2414,7 @@ func TestCloudClient_GroupingForTrace_InvalidTraceParams_Error(t *testing.T) {
 			"alpha":       "beta",
 		},
 		true, /* =callsGroupingRPC */
-		`grouping params for corpus "unknown-corpus" are unknown`)
+		`grouping params for corpus "unknown-corpus" are unknown; known grouping params: map[my-corpus:[name source_type]]`)
 	test(
 		"no test name",
 		paramtools.Params{
