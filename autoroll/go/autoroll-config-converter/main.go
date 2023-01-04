@@ -60,7 +60,8 @@ var (
 	}
 	// funcMap is used for executing templates.
 	funcMap = template.FuncMap{
-		"map": makeMap,
+		"map":  makeMap,
+		"list": makeList,
 	}
 )
 
@@ -429,4 +430,8 @@ func makeMap(elems ...interface{}) (map[string]interface{}, error) {
 		rv[key] = elems[i+1]
 	}
 	return rv, nil
+}
+
+func makeList(args ...interface{}) []interface{} {
+	return args
 }
