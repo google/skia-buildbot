@@ -25,7 +25,10 @@
         "skia-rpi2-rack4-shelf1-018": 18,
         "skia-rpi2-rack4-shelf1-019": 19,
         "skia-rpi2-rack4-shelf1-020": 20,
-
+        "skia-rpi2-rack4-shelf1-021": 21,
+        "skia-rpi2-rack4-shelf1-022": 22,
+        "skia-rpi2-rack4-shelf1-023": 23,
+        "skia-rpi2-rack4-shelf1-024": 24,
         "skia-rpi2-rack4-shelf1-025": 25,
         "skia-rpi2-rack4-shelf1-026": 26,
         "skia-rpi2-rack4-shelf1-027": 27,
@@ -35,13 +38,7 @@
         "skia-rpi2-rack4-shelf1-031": 31,
         "skia-rpi2-rack4-shelf1-032": 32,
         "skia-rpi2-rack4-shelf1-033": 33,
-        "skia-rpi2-rack4-shelf1-034": 34,
-        "skia-rpi2-rack4-shelf1-035": 35,
-        "skia-rpi2-rack4-shelf1-036": 36,
-        "skia-rpi2-rack4-shelf1-037": 37,
-        "skia-rpi2-rack4-shelf1-038": 38,
-        "skia-rpi2-rack4-shelf1-039": 39,
-        "skia-rpi2-rack4-shelf1-040": 40
+        "skia-rpi2-rack4-shelf1-034": 34
       }
     },
     "rack4-shelf2-poe-switch": {
