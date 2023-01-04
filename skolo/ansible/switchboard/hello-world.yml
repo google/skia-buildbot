@@ -1,4 +1,4 @@
-- hosts: jumphosts
+- hosts: all
   user: chrome-bot
   gather_facts: false
 

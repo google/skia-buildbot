@@ -1,0 +1,32 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "update_ssh_gce_config_lib",
+    srcs = ["update_ssh_gce_config.go"],
+    importpath = "go.skia.org/infra/skolo/go/update_ssh_gce_config",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "update_ssh_gce_config",
+    embed = [":update_ssh_gce_config_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "update_ssh_gce_config_test",
+    srcs = ["update_ssh_gce_config_test.go"],
+    embed = [":update_ssh_gce_config_lib"],
+    deps = [
+        "//go/executil",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

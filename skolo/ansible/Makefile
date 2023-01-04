@@ -1,3 +1,5 @@
+include ../../make/bazel.mk
+
 # If you need to set up authorized_hosts on machines that don't already have an
 # authorized_hosts and only password access you should pass the following flags
 # to ansible-playbook:
@@ -22,3 +24,6 @@ validate:
 	ansible-lint  -x 701,301 -p switchboard/*.yml
 	# Validate roles.
 	ansible-lint  -x 701     -p switchboard/roles/
+
+update_ssh_gce_config:
+	$(BAZEL) run --config=mayberemote --run_under="cd $$PWD &&" //skolo/go/update_ssh_gce_config -- ssh.cfg
