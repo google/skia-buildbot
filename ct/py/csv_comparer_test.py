@@ -8,6 +8,8 @@
 import datetime
 import filecmp
 import os
+import random
+import scipy
 import shutil
 import tempfile
 import unittest
@@ -110,6 +112,44 @@ class TestCsvComparer(unittest.TestCase):
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers',
                           ('fieldname2.html', 'fieldname3.html'))
+
+  def test_find95ConfidenceInterval(self):
+    random.seed(0)  # avoid test flakiness
+    mean = 1234
+    iterations = 20000
+    hits = 0
+    for _ in range(iterations):
+      # Create random nopatch and withpatch values.
+      values1 = [random.gauss(mean, 5) for x in range(100)]
+      values2 = [random.gauss(mean, 5) for x in range(100)]
+
+      field_values = []
+      total_no_patch = 0
+      total_with_patch = 0
+      for i in range(100):
+        field_values.append(csv_comparer.PageValues(
+            value1=values1[i], value2=values2[i],
+            # Below are unused values.
+            perc_diff=0, perc_change=0, pageset_link='', archive_link='',
+            traceUrls1=[], traceUrls2=[], page_name=''))
+        total_no_patch += values1[i]
+        total_with_patch += values2[i]
+
+      field_totals = csv_comparer.FieldNameValues(
+          value1=total_no_patch, value2=total_with_patch,
+          # Below are unused values.
+          perc_diff=0, total_webpages_reported=0)
+      perc_change = csv_comparer._GetPercentageChange(total_no_patch,
+                                                      total_with_patch)
+      field_totals.perc_change = perc_change
+
+      low, high = csv_comparer.find95ConfidenceInterval(field_values,
+                                                        field_totals)
+      hits += 1 if (low<=0 and high>=0) else 0
+
+    # CI should contain 0 roughly 95% of the time
+    p = scipy.stats.binomtest(hits, iterations, 0.95, "less")
+    assert p.pvalue>0.01, 'CI does not contain the perc_change 95% of the time'
 
 
 if __name__ == '__main__':

@@ -8,8 +8,10 @@
 
 import csv
 import datetime
+import math
 import optparse
 import os
+import random
 import re
 import sys
 import tempfile
@@ -24,6 +26,18 @@ GS_HTML_BROWSER_LINK = (
     'https://console.cloud.google.com/storage/browser/cluster-telemetry')
 GS_HTML_DIRECT_LINK = (
     'https://console.cloud.google.com/m/cloudstorage/b/cluster-telemetry/o')
+
+
+# go/rasta-confidence-intervals#background mentions that 50 or 100 buckets
+# would have been preferable but storage constraints made it not possible.
+# We do not have such constraints here and so we use 100 buckets.
+# If data is < 100 items then we do not calculate the CI.
+NUM_CI_BUCKETS=100
+
+# Hardcoding the tail ppf below for 100 buckets so that we do not have to
+# install scipy. It is the result of scipy.stats.t.ppf(0.975,99)
+# 95% confidence interval -> right tail is 97.5% = 0.97
+TAIL_PPF=1.9842169515086827
 
 
 def _GetPercentageDiff(value1, value2):
@@ -284,6 +298,23 @@ class CsvComparer(object):
     for fieldname, values in fieldnames_to_page_values.items():
       fieldnames_to_totals[fieldname].total_webpages_reported = len(values)
 
+    # Set the 95% confidence interval.
+    for fieldname, pageValues in fieldnames_to_page_values.items():
+      field_totals = fieldnames_to_totals[fieldname]
+
+      if field_totals.total_webpages_reported >= NUM_CI_BUCKETS:
+        lower_ci, upper_ci = find95ConfidenceInterval(pageValues, field_totals)
+        fieldnames_to_totals[fieldname].lower_ci = lower_ci
+        fieldnames_to_totals[fieldname].upper_ci = upper_ci
+        fieldnames_to_totals[fieldname].ci_exists = True
+
+        # If any of the bounds in the interval include 0 then set the special
+        # includes_zero flag. We do this so that intervals that do not include
+        # 0 can be displayed with emphasis because they will likely represent
+        # a real change.
+        if lower_ci <= 0 and upper_ci >= 0:
+          fieldnames_to_totals[fieldname].includes_zero = True
+
     # Done processing. Output the HTML.
     self.OutputToHTML(fieldnames_to_totals, fieldnames_to_page_values,
                       fieldnames_to_discards, self._output_html_dir)
@@ -347,6 +378,56 @@ class CsvComparer(object):
           os.path.join(self._output_html_dir,
           'fieldname%s.html' % fieldname_count), 'w') as fieldname_html:
         fieldname_html.write(rendered)
+
+
+def find95ConfidenceInterval(field_values, field_totals):
+  """ Finds the confidence interval of %-changes with 95% confidence level.
+
+  Implements the jacknife cookie buckets method described in:
+  * go/yaqs/3837187828798717952
+  * go/rasta-confidence-intervals
+  * https://en.wikipedia.org/wiki/Jackknife_resampling
+
+  Args:
+    field_values = List of PageValues objects.
+    field_totals: List of FieldNameValues objects.
+
+  Returns:
+    A tuple containing (lower_internal, upper_internal) of the CI.
+  """
+  # Step1: Find the overall totals and the statistic we plan to use as the
+  # point estimate (the percentage change).
+  total_no_patch = field_totals.value1
+  total_with_patch = field_totals.value2
+  point_estimate = field_totals.perc_change
+
+  # Step2: Randomly assign each row to one of 100 buckets.
+  buckets = random.sample(field_values, k=NUM_CI_BUCKETS)
+
+  # Step3: For each bucket, calculate the overall percentage diff statistic
+  # with that data removed.
+  all_but_one_estimates = []
+  for b in buckets:
+    perc_change = _GetPercentageChange(total_no_patch-b.value1,
+                                       total_no_patch-b.value2)
+    all_but_one_estimates.append(perc_change)
+
+  # Step4: Do the jacknife calculation.
+  # D_j on go/rasta-confidence-intervals
+  d_js = [(NUM_CI_BUCKETS * point_estimate) - ((NUM_CI_BUCKETS - 1) * e)
+          for e in all_but_one_estimates]
+
+  # D with a line over it on go/rasta-confidence-intervals
+  d_overline = sum(d_js) / len(d_js)
+
+  # S_D^2 on go/rasta-confidence-intervals
+  s_d2 = (sum(((d_j - d_overline)**2) for d_j in d_js) /
+          float(NUM_CI_BUCKETS - 1))
+  standard_error = math.sqrt(s_d2 / float(NUM_CI_BUCKETS))
+
+  center = point_estimate
+  halfwidth = TAIL_PPF * standard_error
+  return center - halfwidth, center + halfwidth
 
 
 if '__main__' == __name__:

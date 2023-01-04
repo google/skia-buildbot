@@ -5,6 +5,8 @@
   <!--
     td.belowthreshold { background-color:#8FDF5F; }
     td.abovethreshold { background-color:#ED4337; }
+    td.notincludeszero { background-color:#B0E0E6; }
+    td.includeszero { background-color:#DCDCDC; }
   -->
 </style>
 
@@ -70,8 +72,8 @@
         <th>#Webpages</th>
         <th>Total</th>
         <th>Total with Patch</th>
-        <th>Percentage Change</th>
-        <th>Percentage Difference</th>
+        <th>%𝚫</th>
+        <th>95% CI</th>
       </tr>
       
         <tr>
@@ -80,7 +82,9 @@
           <td>18</td>
           <td>28</td>
           <td class="abovethreshold" >55.556%</td>
-          <td class="abovethreshold" >43.478%</td>
+          
+            <td>N/A for <100 webpages</td>
+          
         </tr>
       
     </table>
