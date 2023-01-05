@@ -219,6 +219,13 @@ func TestBranchCopy(t *testing.T) {
 func TestBranchesCopy(t *testing.T) {
 
 	b := fakeBranches()
+	b.Main.Milestone = 95
+	b.Dev = &Branch{
+		Milestone: 94,
+		Number:    4606,
+		Ref:       fmt.Sprintf(refTmplRelease, 4606),
+		V8Branch:  "9.4",
+	}
 	assertdeep.Copy(t, b, b.Copy())
 }
 
@@ -309,14 +316,14 @@ func TestGet(t *testing.T) {
 	require.Equal(t, fakeMilestones(), m)
 
 	// Beta channel is missing, we retrieve the branch via milestone number.
-	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchBeta, "dev"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"))))
 	b, m, err = Get(ctx, c)
 	require.NoError(t, err)
 	require.Equal(t, fakeBranches(), b)
 	require.Equal(t, fakeMilestones(), m)
 
 	// Beta channel is actually missing.
-	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData, branchBeta, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
+	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
 	b, m, err = Get(ctx, c)
 	require.Nil(t, b)
@@ -324,7 +331,7 @@ func TestGet(t *testing.T) {
 	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
 	// Stable channel is missing.
-	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchStable, "dev"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, schedulePhaseStable, "dev"))))
 	b, m, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
@@ -356,10 +363,18 @@ func TestGetSecondDataSet(t *testing.T) {
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData2)))
 	b, _, err := Get(ctx, c)
 	require.NoError(t, err)
-	require.Equal(t, fakeBranches(), b)
+	expect := fakeBranches()
+	expect.Main.Milestone = 95
+	expect.Dev = &Branch{
+		Milestone: 94,
+		Number:    4606,
+		Ref:       fmt.Sprintf(refTmplRelease, 4606),
+		V8Branch:  "9.4",
+	}
+	require.Equal(t, expect, b)
 
 	// Beta channel is actually missing.
-	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, branchStableCut, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
+	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
 	b, _, err = Get(ctx, c)
 	require.Nil(t, b)
@@ -367,7 +382,7 @@ func TestGetSecondDataSet(t *testing.T) {
 	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
 	// Stable channel is missing.
-	noStable := strings.ReplaceAll(fakeData2, fmt.Sprintf("\"%s\"", branchStable), "\"dev\"")
+	noStable := strings.ReplaceAll(fakeData2, fmt.Sprintf("\"%s\"", schedulePhaseStable), "\"dev\"")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noStable)))
 	b, _, err = Get(ctx, c)
 	require.Nil(t, b)

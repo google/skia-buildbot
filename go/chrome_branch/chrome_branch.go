@@ -22,12 +22,13 @@ const (
 	// RefMain is the ref name for the main branch.
 	RefMain = git.DefaultRef
 
-	branchBeta      = "beta"
-	branchStable    = "stable"
-	branchStableCut = "stable_cut"
-	jsonURL         = "https://chromiumdash.appspot.com/fetch_milestones"
-	os              = "linux"
-	refTmplRelease  = "refs/branch-heads/%d"
+	schedulePhaseBeta      = "beta"
+	schedulePhaseDev       = "branch"
+	schedulePhaseStable    = "stable"
+	schedulePhaseStableCut = "stable_cut"
+	jsonURL                = "https://chromiumdash.appspot.com/fetch_milestones"
+	os                     = "linux"
+	refTmplRelease         = "refs/branch-heads/%d"
 )
 
 var versionRegex = regexp.MustCompile(`(\d+)\.\d+\.(\d+)\.\d+`)
@@ -92,6 +93,7 @@ func (b *Branch) Validate() error {
 // number.
 type Branches struct {
 	Main   *Branch `json:"main"`
+	Dev    *Branch `json:"dev"`
 	Beta   *Branch `json:"beta"`
 	Stable *Branch `json:"stable"`
 }
@@ -100,6 +102,7 @@ type Branches struct {
 func (b *Branches) Copy() *Branches {
 	return &Branches{
 		Main:   b.Main.Copy(),
+		Dev:    b.Dev.Copy(),
 		Beta:   b.Beta.Copy(),
 		Stable: b.Stable.Copy(),
 	}
@@ -112,6 +115,12 @@ func (b *Branches) Validate() error {
 	}
 	if err := b.Beta.Validate(); err != nil {
 		return skerr.Wrapf(err, "Beta branch is invalid")
+	}
+
+	if b.Dev != nil {
+		if err := b.Dev.Validate(); err != nil {
+			return skerr.Wrapf(err, "Dev branch is invalid")
+		}
 	}
 
 	if b.Stable == nil {
@@ -173,19 +182,22 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 		}
 	}
 	rv := &Branches{}
-	rv.Beta = byPhase[branchBeta]
-	rv.Stable = byPhase[branchStable]
+	rv.Stable = byPhase[schedulePhaseStable]
+	rv.Dev = byPhase[schedulePhaseDev]
+	rv.Beta = byPhase[schedulePhaseBeta]
 	if rv.Beta == nil {
-		rv.Beta = byPhase[branchStableCut]
+		rv.Beta = byPhase[schedulePhaseStableCut]
 	}
 	if rv.Beta == nil && rv.Stable != nil {
 		rv.Beta = byMilestone[rv.Stable.Milestone+1]
 	}
 	if rv.Beta != nil {
+		mainMilestoneMinusOne := rv.Beta.Milestone
+		if rv.Dev != nil && rv.Dev.Milestone > mainMilestoneMinusOne {
+			mainMilestoneMinusOne = rv.Dev.Milestone
+		}
 		rv.Main = &Branch{
-			// TODO(borenet): Is this reliable? Is
-			// there a better way to find it?
-			Milestone: rv.Beta.Milestone + 1,
+			Milestone: mainMilestoneMinusOne + 1,
 			Number:    0,
 			Ref:       RefMain,
 			V8Branch:  RefMain,
