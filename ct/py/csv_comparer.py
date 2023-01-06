@@ -409,7 +409,7 @@ def find95ConfidenceInterval(field_values, field_totals):
   all_but_one_estimates = []
   for b in buckets:
     perc_change = _GetPercentageChange(total_no_patch-b.value1,
-                                       total_no_patch-b.value2)
+                                       total_with_patch-b.value2)
     all_but_one_estimates.append(perc_change)
 
   # Step4: Do the jacknife calculation.
