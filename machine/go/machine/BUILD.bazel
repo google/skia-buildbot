@@ -12,10 +12,11 @@ go_library(
 go_test(
     name = "machine_test",
     srcs = ["machine_test.go"],
-    embed = [":machine"],
     deps = [
+        ":machine",
         "//go/deepequal/assertdeep",
         "//go/now",
+        "//machine/go/machine/machinetest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

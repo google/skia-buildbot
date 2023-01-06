@@ -116,63 +116,72 @@ type Description struct {
 	// MaintenanceMode is non-empy if someone manually puts the machine into
 	// this mode. The value will be the user's email address and the date of the
 	// change.
-	MaintenanceMode string
+	MaintenanceMode string `sql:"maintenance_mode STRING NOT NULL DEFAULT ''"`
 
 	// IsQuarantined is true if the machine has failed too many tasks and should
 	// stop running tasks pending user intervention. Recipes/Task Drivers can
 	// write a $HOME/${SWARMING_BOT_ID}.quarantined file to move a machine into
 	// quarantined mode.
-	IsQuarantined bool
+	IsQuarantined bool `sql:"is_quarantined BOOL NOT NULL DEFAULT FALSE"`
 
 	// Recovering is a non-empty string if test_machine_monitor detects the
 	// device is too hot, or low on charge. The value is a description of what
 	// is recovering.
-	Recovering string
+	Recovering string `sql:"recovering STRING NOT NULL DEFAULT ''"`
 
 	// AttachedDevice defines the kind of device attached to this test machine,
 	// if any.
-	AttachedDevice AttachedDevice
+	AttachedDevice AttachedDevice `sql:"attached_device STRING NOT NULL DEFAULT 'nodevice'"`
 
 	// Annotation is used to record the most recent non-user change to Description.
 	// For example, if the device battery is too low, this will be set automatically.
 	// This will be in addition to the normal auditlog of user actions:
 	// https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
-	Annotation Annotation
+	Annotation Annotation `sql:"annotation JSONB NOT NULL"`
 
 	// Note is a user authored message on the state of a machine.
-	Note Annotation
+	Note Annotation `sql:"note JSONB NOT NULL"`
 
 	// Version of test_machine_monitor being run.
-	Version string
+	Version string `sql:"version STRING NOT NULL DEFAULT ''"`
 
 	// PowerCycle is true if the machine needs to be power-cycled.
-	PowerCycle bool
+	PowerCycle bool `sql:"powercycle BOOL NOT NULL DEFAULT FALSE"`
 
 	// PowerCycleState is the state of power cycling availability for this
 	// machine.
-	PowerCycleState PowerCycleState
+	PowerCycleState PowerCycleState `sql:"powercycle_state STRING NOT NULL DEFAULT 'not_available'"`
 
-	LastUpdated         time.Time
-	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
-	Temperature         map[string]float64 // In Celsius.
-	RunningSwarmingTask bool
-	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
-	RecoveryStart       time.Time // When did the machine start being in recovery mode.
+	LastUpdated         time.Time          `sql:"last_updated TIMESTAMPTZ NOT NULL"`
+	Battery             int                `sql:"battery INT NOT NULL DEFAULT 0"` // Charge as an integer percent, e.g. 50% = 50.
+	Temperature         map[string]float64 `sql:"temperatures JSONB NOT NULL"`    // In Celsius.
+	RunningSwarmingTask bool               `sql:"running_swarmingTask BOOL NOT NULL DEFAULT FALSE"`
+	LaunchedSwarming    bool               `sql:"launched_swarming BOOL NOT NULL DEFAULT FALSE"` // True if test_machine_monitor launched Swarming.
+	RecoveryStart       time.Time          `sql:"recovery_start TIMESTAMPTZ NOT NULL"`           // When did the machine start being in recovery mode.
 	// DeviceUptime is how long the attached device has been up. It is measured in seconds.
-	DeviceUptime int32
+	DeviceUptime int32 `sql:"device_uptime INT4 DEFAULT 0"`
 
 	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
 	// given ChromeOS device at that username and ip/hostname.
-	SSHUserIP string
+	SSHUserIP string `sql:"ssh_user_ip STRING NOT NULL DEFAULT ''"`
 
 	// SuppliedDimensions are dimensions that we, the humans, supply because they are difficult
 	// for the automated system to gather. These are used only for ChromeOS devices, which don't
 	// readily report their CPU and GPU.
-	SuppliedDimensions SwarmingDimensions
+	SuppliedDimensions SwarmingDimensions `sql:"supplied_dimensions JSONB NOT NULL"`
 
 	// Dimensions describe what hardware/software this machine has and informs what tasks
 	// it can run.
-	Dimensions SwarmingDimensions
+	Dimensions SwarmingDimensions `sql:"dimensions JSONB NOT NULL"`
+
+	// Create a computed column with the machine id to use as the primary key.
+	machineIDComputed struct{} `sql:"machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED"`
+
+	// Create generalized inverted index (GIN) for Dimensions.
+	dimensionsIndex struct{} `sql:"INVERTED INDEX dimensions_gin (dimensions)"`
+
+	// Create an index for the powercycle column.
+	powerCycleIndex struct{} `sql:"INDEX by_powercycle (powercycle)"`
 }
 
 // IsRecovering returns true if the machine is recoving, i.e. has a non-empty Recovering message.
@@ -183,6 +192,34 @@ func (d Description) IsRecovering() bool {
 // InMaintenanceMode returns true if the machine is in maintenance mode, i.e. has a non-empty MaintenanceMode message.
 func (d Description) InMaintenanceMode() bool {
 	return d.MaintenanceMode != ""
+}
+
+// DestFromDescription returns a slice of interface containing pointers to every public member
+// of Description. This is useful in code that stores the Description in an SQL database.
+//
+// Make sure this always stays in the same order as the fields appear in the struct.
+func DestFromDescription(d *Description) []interface{} {
+	return []interface{}{
+		&d.MaintenanceMode,
+		&d.IsQuarantined,
+		&d.Recovering,
+		&d.AttachedDevice,
+		&d.Annotation,
+		&d.Note,
+		&d.Version,
+		&d.PowerCycle,
+		&d.PowerCycleState,
+		&d.LastUpdated,
+		&d.Battery,
+		&d.Temperature,
+		&d.RunningSwarmingTask,
+		&d.LaunchedSwarming,
+		&d.RecoveryStart,
+		&d.DeviceUptime,
+		&d.SSHUserIP,
+		&d.SuppliedDimensions,
+		&d.Dimensions,
+	}
 }
 
 // SetSwarmingQuarantinedMessage sets the Swarming Dimensions to reflect the

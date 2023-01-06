@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "tosql_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/store/cdb/tosql",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//go/sql/exporter",
+        "//machine/go/machine/store/cdb",
+    ],
+)
+
+go_binary(
+    name = "tosql",
+    embed = [":tosql_lib"],
+    visibility = ["//visibility:public"],
+)

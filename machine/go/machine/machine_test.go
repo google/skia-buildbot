@@ -1,4 +1,4 @@
-package machine
+package machine_test
 
 import (
 	"testing"
@@ -8,47 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machine/machinetest"
 )
 
-var testTime = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-
-var testDuration = int32(5) // Seconds
-
 func TestCopy(t *testing.T) {
-	in := Description{
-		MaintenanceMode: "jcgregorio 2022-11-08",
-		IsQuarantined:   true,
-		Recovering:      "too hot",
-		AttachedDevice:  AttachedDevice(AttachedDeviceAdb),
-		Annotation: Annotation{
-			Message:   "take offline",
-			User:      "barney@example.com",
-			Timestamp: testTime,
-		},
-		Note: Annotation{
-			Message:   "Battery swollen.",
-			User:      "wilma@example.com",
-			Timestamp: testTime,
-		},
-		Dimensions: SwarmingDimensions{
-			"foo":   []string{"bar"},
-			"alpha": []string{"beta", "gamma"},
-		},
-		SuppliedDimensions: SwarmingDimensions{
-			"gpu": []string{"some-gpu"},
-		},
-		Version:             "v1.2",
-		LastUpdated:         testTime,
-		Battery:             91,
-		Temperature:         map[string]float64{"cpu": 26.4},
-		RunningSwarmingTask: true,
-		LaunchedSwarming:    true,
-		PowerCycle:          true,
-		PowerCycleState:     Available,
-		RecoveryStart:       testTime,
-		DeviceUptime:        testDuration,
-		SSHUserIP:           "root@skia-sparky360-03",
-	}
+	in := machinetest.FullyFilledInDescription
 	out := in.Copy()
 	require.Equal(t, in, out)
 	assertdeep.Copy(t, in, out)
@@ -61,114 +26,114 @@ func TestCopy(t *testing.T) {
 
 func TestAsMetricsTags_EmptyDimensions_ReturnsEmptyTags(t *testing.T) {
 	emptyTags := map[string]string{
-		DimID:         "",
-		DimOS:         "",
-		DimDeviceType: "",
+		machine.DimID:         "",
+		machine.DimOS:         "",
+		machine.DimDeviceType: "",
 	}
-	assert.Equal(t, emptyTags, SwarmingDimensions{}.AsMetricsTags())
+	assert.Equal(t, emptyTags, machine.SwarmingDimensions{}.AsMetricsTags())
 }
 
 func TestAsMetricsTags_NilSlices_ReturnsEmptyTags(t *testing.T) {
 	emptyTags := map[string]string{
-		DimID:         "",
-		DimOS:         "",
-		DimDeviceType: "",
+		machine.DimID:         "",
+		machine.DimOS:         "",
+		machine.DimDeviceType: "",
 	}
-	assert.Equal(t, emptyTags, SwarmingDimensions{
-		DimID:         nil,
-		DimOS:         nil,
-		DimDeviceType: nil,
+	assert.Equal(t, emptyTags, machine.SwarmingDimensions{
+		machine.DimID:         nil,
+		machine.DimOS:         nil,
+		machine.DimDeviceType: nil,
 	}.AsMetricsTags())
 }
 
 func TestAsMetricsTags_ZeroLengthSlices_ReturnsEmptyTags(t *testing.T) {
 	emptyTags := map[string]string{
-		DimID:         "",
-		DimOS:         "",
-		DimDeviceType: "",
+		machine.DimID:         "",
+		machine.DimOS:         "",
+		machine.DimDeviceType: "",
 	}
-	assert.Equal(t, emptyTags, SwarmingDimensions{
-		DimID:         {},
-		DimOS:         {},
-		DimDeviceType: {},
+	assert.Equal(t, emptyTags, machine.SwarmingDimensions{
+		machine.DimID:         {},
+		machine.DimOS:         {},
+		machine.DimDeviceType: {},
 	}.AsMetricsTags())
 }
 
 func TestAsMetricsTags_MultipleValues_ReturnsTagsWithMostSpecificValues(t *testing.T) {
 	expected := map[string]string{
-		DimID:         "",
-		DimOS:         "iOS-13.6",
-		DimDeviceType: "",
+		machine.DimID:         "",
+		machine.DimOS:         "iOS-13.6",
+		machine.DimDeviceType: "",
 	}
-	assert.Equal(t, expected, SwarmingDimensions{"os": []string{"iOS", "iOS-13.6"}}.AsMetricsTags())
+	assert.Equal(t, expected, machine.SwarmingDimensions{"os": []string{"iOS", "iOS-13.6"}}.AsMetricsTags())
 }
 
 func TestNewEvent(t *testing.T) {
-	assert.Equal(t, EventTypeRawState, NewEvent().EventType)
+	assert.Equal(t, machine.EventTypeRawState, machine.NewEvent().EventType)
 }
 
 func TestNewDescription(t *testing.T) {
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 	ctx := now.TimeTravelingContext(serverTime)
-	actual := NewDescription(ctx)
-	expected := Description{
-		AttachedDevice: AttachedDeviceNone,
-		Dimensions:     SwarmingDimensions{},
+	actual := machine.NewDescription(ctx)
+	expected := machine.Description{
+		AttachedDevice: machine.AttachedDeviceNone,
+		Dimensions:     machine.SwarmingDimensions{},
 		LastUpdated:    serverTime,
 	}
 	assert.Equal(t, expected, actual)
 }
 
-func descForCombination(maintenanceMode string, isQuarantined bool, recovering string) Description {
-	return Description{
+func descForCombination(maintenanceMode string, isQuarantined bool, recovering string) machine.Description {
+	return machine.Description{
 		MaintenanceMode: maintenanceMode,
 		IsQuarantined:   isQuarantined,
 		Recovering:      recovering,
-		Dimensions:      SwarmingDimensions{},
+		Dimensions:      machine.SwarmingDimensions{},
 	}
 }
 
 func TestSetSwarmingQuarantinedMessage_NoQuarantined_MessageIsNotSet(t *testing.T) {
 	d := descForCombination("", false, "")
-	quarantined := SetSwarmingQuarantinedMessage(&d)
-	_, ok := d.Dimensions[DimQuarantined]
+	quarantined := machine.SetSwarmingQuarantinedMessage(&d)
+	_, ok := d.Dimensions[machine.DimQuarantined]
 	require.False(t, ok)
 	require.False(t, quarantined)
 }
 
 func TestSetSwarmingQuarantinedMessage_MaintenanceMode_MessageIsSet(t *testing.T) {
 	d := descForCombination("barney@example.com", false, "")
-	quarantined := SetSwarmingQuarantinedMessage(&d)
-	require.Equal(t, "Maintenance: barney@example.com", d.Dimensions[DimQuarantined][0])
+	quarantined := machine.SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com", d.Dimensions[machine.DimQuarantined][0])
 	require.True(t, quarantined)
 }
 
 func TestSetSwarmingQuarantinedMessage_MaintenanceModeAndQuarantined_MessageIsSet(t *testing.T) {
 	d := descForCombination("barney@example.com", true, "")
-	quarantined := SetSwarmingQuarantinedMessage(&d)
-	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine", d.Dimensions[DimQuarantined][0])
+	quarantined := machine.SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine", d.Dimensions[machine.DimQuarantined][0])
 	require.True(t, quarantined)
 }
 
 func TestSetSwarmingQuarantinedMessage_MaintenanceModeAndQuarantinedAndRecovering_MessageIsSet(t *testing.T) {
 	d := descForCombination("barney@example.com", true, "Low power.")
-	quarantined := SetSwarmingQuarantinedMessage(&d)
-	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine, Recovering: Low power.", d.Dimensions[DimQuarantined][0])
+	quarantined := machine.SetSwarmingQuarantinedMessage(&d)
+	require.Equal(t, "Maintenance: barney@example.com, Forced Quarantine, Recovering: Low power.", d.Dimensions[machine.DimQuarantined][0])
 	require.True(t, quarantined)
 }
 
 func TestDescription_IsRecovering_ReturnsTrueIfHasRecoveryMessage(t *testing.T) {
-	require.True(t, Description{Recovering: "any non-empty string"}.IsRecovering())
+	require.True(t, machine.Description{Recovering: "any non-empty string"}.IsRecovering())
 }
 
 func TestDescription_IsRecovering_ReturnsFalseIfRecoveryMessageIsEmpty(t *testing.T) {
-	require.False(t, Description{Recovering: ""}.IsRecovering())
+	require.False(t, machine.Description{Recovering: ""}.IsRecovering())
 }
 
 func TestDescription_InMaintenanceMode_ReturnsTrueIfHasMaintenanceModeMessage(t *testing.T) {
-	require.True(t, Description{MaintenanceMode: "any non-empty string"}.InMaintenanceMode())
+	require.True(t, machine.Description{MaintenanceMode: "any non-empty string"}.InMaintenanceMode())
 }
 
 func TestDescription_InMaintenanceMode_ReturnsFalseIfMaintenanceModeMessageIsEmpty(t *testing.T) {
-	require.False(t, Description{}.InMaintenanceMode())
+	require.False(t, machine.Description{}.InMaintenanceMode())
 }

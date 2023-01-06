@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cdbtest",
+    srcs = ["cdbtest.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/store/cdb/cdbtest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/emulators",
+        "//go/emulators/cockroachdb_instance",
+        "//machine/go/machine/store/cdb",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//require",
+    ],
+)

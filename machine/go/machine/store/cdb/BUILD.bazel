@@ -1,0 +1,34 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cdb",
+    srcs = [
+        "cdb.go",
+        "sql.go",
+    ],
+    importpath = "go.skia.org/infra/machine/go/machine/store/cdb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/sql",
+        "//machine/go/machine",
+        "//machine/go/machine/store",
+        "@com_github_jackc_pgconn//:pgconn",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "cdb_test",
+    srcs = ["cdb_test.go"],
+    deps = [
+        ":cdb",
+        "//go/deepequal/assertdeep",
+        "//machine/go/machine",
+        "//machine/go/machine/machinetest",
+        "//machine/go/machine/store/cdb/cdbtest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
