@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/commenter"
@@ -388,7 +389,7 @@ func (g *diffWorkGatherer) addNewGroupingsForProcessing(ctx context.Context, gro
 	span.AddAttributes(trace.Int64Attribute("num_groupings", int64(len(groupings))))
 	statement := `INSERT INTO PrimaryBranchDiffCalculationWork (grouping_id, last_calculated_ts, calculation_lease_ends) VALUES`
 	const valuesPerRow = 3
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(groupings))
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(groupings))
 	statement = statement + vp + ` ON CONFLICT DO NOTHING`
 	args := make([]interface{}, 0, valuesPerRow*len(groupings))
 	// This time will make sure we compute diffs for this soon.
@@ -574,7 +575,7 @@ func (g *diffWorkGatherer) createDiffRowsForCL(ctx context.Context, startingTile
 	insertStatement := `INSERT INTO SecondaryBranchDiffCalculationWork
 (branch_name, grouping_id, last_updated_ts, digests, last_calculated_ts, calculation_lease_ends) VALUES `
 	const valuesPerRow = 6
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(workRows))
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(workRows))
 	insertStatement += vp
 	insertStatement += ` ON CONFLICT (branch_name, grouping_id)
 DO UPDATE SET (last_updated_ts, digests) = (excluded.last_updated_ts, excluded.digests);`
@@ -942,7 +943,7 @@ func getTuplesOfKeysToQuery(ctx context.Context, db *pgxpool.Pool, keys, ignoreV
 		statement += fmt.Sprintf(",keys->>'%s'", sql.Sanitize(key))
 	}
 	statement += " FROM TRACES WHERE keys->>'source_type' IN "
-	statement += sql.ValuesPlaceholders(len(corpora), 1)
+	statement += sqlutil.ValuesPlaceholders(len(corpora), 1)
 	statement += " ORDER BY 1"
 	for i := range keys {
 		statement += fmt.Sprintf(",%d", i+2)

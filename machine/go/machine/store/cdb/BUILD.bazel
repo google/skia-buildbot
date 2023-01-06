@@ -11,7 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "//golden/go/sql",
+        "//go/sql/sqlutil",
         "//machine/go/machine",
         "//machine/go/machine/store",
         "@com_github_jackc_pgconn//:pgconn",

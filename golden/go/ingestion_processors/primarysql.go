@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -447,7 +448,7 @@ func batchCreateGroupings(ctx context.Context, db crdbpgx.Conn, rows []schema.Gr
 		}
 		statement := `INSERT INTO Groupings (grouping_id, keys) VALUES `
 		const valuesPerRow = 2
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.GroupingID, row.Keys)
@@ -492,7 +493,7 @@ func batchCreateOptions(ctx context.Context, db crdbpgx.Conn, rows []schema.Opti
 		}
 		statement := `INSERT INTO Options (options_id, keys) VALUES `
 		const valuesPerRow = 2
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.OptionsID, row.Keys)
@@ -538,7 +539,7 @@ func batchCreateTraces(ctx context.Context, db crdbpgx.Conn, rows []schema.Trace
 		}
 		statement := `INSERT INTO Traces (trace_id, grouping_id, keys) VALUES `
 		const valuesPerRow = 3
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.TraceID, row.GroupingID, row.Keys)
@@ -623,7 +624,7 @@ func (s *sqlPrimaryIngester) batchCreateExpectations(ctx context.Context, rows [
 		}
 		statement := `INSERT INTO Expectations (grouping_id, digest, label) VALUES `
 		const valuesPerRow = 3
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.GroupingID, row.Digest, row.Label)
@@ -670,7 +671,7 @@ grouping_id, options_id, source_file_id) VALUES `
 			arguments = append(arguments, row.Shard, row.TraceID, row.CommitID, row.Digest,
 				row.GroupingID, row.OptionsID, row.SourceFileID)
 		}
-		vp := sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement+vp, arguments...)
 			return err // Don't wrap - crdbpgx might retry
@@ -704,7 +705,7 @@ func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, rows [
 		statement := `INSERT INTO ValuesAtHead (trace_id, most_recent_commit_id, digest,
 options_id, grouping_id, keys) VALUES `
 		const valuesPerRow = 6
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.TraceID, row.MostRecentCommitID, row.Digest,
@@ -765,7 +766,7 @@ func (s *sqlPrimaryIngester) batchCreatePrimaryBranchParams(ctx context.Context,
 		}
 		statement := `INSERT INTO PrimaryBranchParams (tile_id, key, value) VALUES `
 		const valuesPerRow = 3
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.TileID, row.Key, row.Value)
@@ -811,7 +812,7 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 		}
 		statement := `INSERT INTO TiledTraceDigests (trace_id, tile_id, digest, grouping_id) VALUES `
 		const valuesPerRow = 4
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.TraceID, tileID, row.Digest, row.GroupingID)

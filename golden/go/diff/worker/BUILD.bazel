@@ -12,6 +12,7 @@ go_library(
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/sqlutil",
         "//go/util",
         "//golden/go/diff",
         "//golden/go/sql",

@@ -19,8 +19,8 @@ import (
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
@@ -142,7 +142,7 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	// fewer than 22 columns, which should be realistic for all our tables.
 	err := util.ChunkIter(numRows, 3000, func(startIdx int, endIdx int) error {
 		argBatch := arguments[startIdx*numCols : endIdx*numCols]
-		vp := sql.ValuesPlaceholders(numCols, endIdx-startIdx)
+		vp := sqlutil.ValuesPlaceholders(numCols, endIdx-startIdx)
 		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
 
 		_, err := db.Exec(ctx, insert, argBatch...)

@@ -96,42 +96,12 @@ func TestFromMD5Hash_Success(t *testing.T) {
 	}, someGroupingIDs)
 }
 
-func TestValuesPlaceholders_ValidInputs_Success(t *testing.T) {
-
-	v := ValuesPlaceholders(3, 2)
-	assert.Equal(t, "($1,$2,$3),($4,$5,$6)", v)
-
-	v = ValuesPlaceholders(2, 4)
-	assert.Equal(t, "($1,$2),($3,$4),($5,$6),($7,$8)", v)
-
-	v = ValuesPlaceholders(1, 1)
-	assert.Equal(t, "($1)", v)
-
-	v = ValuesPlaceholders(1, 3)
-	assert.Equal(t, "($1),($2),($3)", v)
-}
-
-func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
-
-	assert.Panics(t, func() {
-		ValuesPlaceholders(-3, 2)
-	})
-	assert.Panics(t, func() {
-		ValuesPlaceholders(2, -4)
-	})
-	assert.Panics(t, func() {
-		ValuesPlaceholders(0, 0)
-	})
-}
-
 func TestQualify_Success(t *testing.T) {
-
 	assert.Equal(t, "gerrit_12345", Qualify("gerrit", "12345"))
 	assert.Equal(t, "gerrit-internal_6789012", Qualify("gerrit-internal", "6789012"))
 }
 
 func TestUnqualify_Success(t *testing.T) {
-
 	assert.Equal(t, "12345", Unqualify("gerrit_12345"))
 	assert.Equal(t, "6789012", Unqualify("gerrit-internal_6789012"))
 	assert.Equal(t, "1234_6789012", Unqualify("gerrit_1234_6789012"))
@@ -139,7 +109,6 @@ func TestUnqualify_Success(t *testing.T) {
 }
 
 func TestSanitize_Success(t *testing.T) {
-
 	assert.Equal(t, "All Good!", Sanitize(`All Good!`))
 	assert.Equal(t, "foo OR 1=1", Sanitize(`foo OR '1=1'`))
 	assert.Equal(t, "foo OR 1=1", Sanitize(`foo OR "1=1"`))

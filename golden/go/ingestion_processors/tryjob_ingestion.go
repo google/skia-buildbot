@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
@@ -651,7 +652,7 @@ func (g *goldTryjobProcessor) batchUpdateSecondaryBranchValues(ctx context.Conte
 (branch_name, version_name, secondary_branch_trace_id, digest, grouping_id, options_id,
 source_file_id, tryjob_id) VALUES `
 		const valuesPerRow = 8
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, value := range batch {
 			arguments = append(arguments, value.BranchName, value.VersionName, value.TraceID,
@@ -707,7 +708,7 @@ func (g *goldTryjobProcessor) batchCreateSecondaryBranchParams(ctx context.Conte
 		}
 		statement := `INSERT INTO SecondaryBranchParams (branch_name, version_name, key, value) VALUES `
 		const valuesPerRow = 4
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.BranchName, row.VersionName, row.Key, row.Value)

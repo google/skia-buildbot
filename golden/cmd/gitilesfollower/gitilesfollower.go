@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
@@ -320,7 +321,7 @@ func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, com
 			arguments = append(arguments, c.Hash, cid, c.Timestamp, c.Author, c.Subject)
 			commitID++
 		}
-		vp := sql.ValuesPlaceholders(valuesPerRow, len(chunk))
+		vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(chunk))
 		if _, err := db.Exec(ctx, statement+vp, arguments...); err != nil {
 			return skerr.Wrap(err)
 		}
@@ -624,7 +625,7 @@ func bulkWriteDeltas(ctx context.Context, db *pgxpool.Pool, recordID uuid.UUID, 
 		statement := `INSERT INTO ExpectationDeltas (expectation_record_id, grouping_id, digest,
 label_before, label_after) VALUES `
 		const valuesPerRow = 5
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, recordID, row.GroupingID, row.Digest, row.LabelBefore, row.LabelAfter)
@@ -657,7 +658,7 @@ func bulkWriteExpectations(ctx context.Context, db *pgxpool.Pool, recordID uuid.
 		}
 		statement := `UPSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES `
 		const valuesPerRow = 4
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.GroupingID, row.Digest, row.LabelAfter, recordID)

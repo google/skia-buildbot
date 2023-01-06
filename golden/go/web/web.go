@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
@@ -1759,7 +1760,7 @@ func writeDeltas(ctx context.Context, tx pgx.Tx, deltas []schema.ExpectationDelt
 	const statement = `INSERT INTO ExpectationDeltas
 (expectation_record_id, grouping_id, digest, label_before, label_after) VALUES `
 	const valuesPerRow = 5
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
 		arguments = append(arguments, d.ExpectationRecordID, d.GroupingID, d.Digest, d.LabelBefore, d.LabelAfter)
@@ -1776,7 +1777,7 @@ func applyDeltasToPrimary(ctx context.Context, tx pgx.Tx, deltas []schema.Expect
 	const statement = `UPSERT INTO Expectations
 (grouping_id, digest, label, expectation_record_id) VALUES `
 	const valuesPerRow = 4
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
 		arguments = append(arguments, d.GroupingID, d.Digest, d.LabelAfter, d.ExpectationRecordID)
@@ -1793,7 +1794,7 @@ func applyDeltasToBranch(ctx context.Context, tx pgx.Tx, deltas []schema.Expecta
 	const statement = `UPSERT INTO SecondaryBranchExpectations
 (branch_name, grouping_id, digest, label, expectation_record_id) VALUES `
 	const valuesPerRow = 5
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
 		arguments = append(arguments, branch, d.GroupingID, d.Digest, d.LabelAfter, d.ExpectationRecordID)

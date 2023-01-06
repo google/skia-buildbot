@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/store"
 )
@@ -63,7 +63,7 @@ UPSERT INTO
 	Description (%s)
 VALUES
 	%s
-`, descriptionAllNonComputedColumns, sql.ValuesPlaceholders(len(Description), 1),
+`, descriptionAllNonComputedColumns, sqlutil.ValuesPlaceholders(len(Description), 1),
 	),
 	Get: fmt.Sprintf(`
 SELECT
@@ -93,15 +93,6 @@ DELETE FROM
 WHERE
 	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
 `,
-}
-
-// NPlaceHolders generates N placeholders, e.g. "$1, $2, ..., $7".
-func NPlaceHolders(n int) string {
-	var ret []string
-	for i := 0; i < n; i++ {
-		ret = append(ret, fmt.Sprintf("$%d", i+1))
-	}
-	return strings.Join(ret, ",")
 }
 
 // Tables represents all SQL tables used by machineserver.

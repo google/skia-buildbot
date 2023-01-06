@@ -12,6 +12,7 @@ go_library(
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/sqlutil",
         "//go/util",
         "//go/vcsinfo",
         "//golden/go/config",

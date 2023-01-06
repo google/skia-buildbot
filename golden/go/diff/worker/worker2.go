@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/sql"
@@ -503,7 +504,7 @@ max_channel_diff, combined_metric, dimensions_differ, ts) VALUES `
 		arguments = append(arguments, r.RightDigest, r.LeftDigest, r.NumPixelsDiff, r.PercentPixelsDiff, rgba,
 			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp)
 	}
-	vp := sql.ValuesPlaceholders(valuesPerRow, count)
+	vp := sqlutil.ValuesPlaceholders(valuesPerRow, count)
 	_, err := w.db.Exec(ctx, baseStatement+vp, arguments...)
 	if err != nil {
 		return skerr.Wrapf(err, "writing %d metrics to SQL", len(metrics))
@@ -600,7 +601,7 @@ ORDER BY commit_id ASC LIMIT 1`, w.windowSize)
 	// TraceValues using a list of trace IDs can be faster when the list of trace IDs is large.
 	// For example, lovisolo@ observed that for a grouping with ~1000 traces, the below query takes
 	// ~40s when joining the two tables, or ~6s when using "WHERE trace_id IN (id1, id2, ...)".
-	traceIDPlaceholders := sql.ValuesPlaceholders(1 /* =valuesPerRow */, len(traceIDs))
+	traceIDPlaceholders := sqlutil.ValuesPlaceholders(1 /* =valuesPerRow */, len(traceIDs))
 
 	statement := `WITH
 DigestsCountsAndMostRecent AS (
