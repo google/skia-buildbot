@@ -20,6 +20,11 @@ import (
 	"go.skia.org/infra/machine/go/machine/store"
 )
 
+const (
+	// DatabaseName is the name of the database.
+	DatabaseName = "machineserver"
+)
+
 // statement is an SQL statement or fragment of an SQL statement.
 type statement int
 

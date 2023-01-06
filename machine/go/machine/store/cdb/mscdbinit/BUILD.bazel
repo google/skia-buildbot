@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "mscdbinit_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/store/cdb/mscdbinit",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//machine/go/machine/store/cdb",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "mscdbinit",
+    embed = [":mscdbinit_lib"],
+    visibility = ["//visibility:public"],
+)
