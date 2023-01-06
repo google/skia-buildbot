@@ -23,7 +23,7 @@ func main() {
 		sklog.Fatalf("Could not get working dir")
 	}
 
-	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg)
+	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly)
 	out := filepath.Join(cwd, *outputFile)
 	err = ioutil.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
