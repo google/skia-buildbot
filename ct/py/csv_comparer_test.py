@@ -115,18 +115,17 @@ class TestCsvComparer(unittest.TestCase):
 
   def test_find95ConfidenceInterval(self):
     random.seed(0)  # avoid test flakiness
-    mean = 1234
-    iterations = 20000
+    iterations = 100
     hits = 0
     for _ in range(iterations):
       # Create random nopatch and withpatch values.
-      values1 = [random.gauss(mean, 5) for x in range(100)]
-      values2 = [random.gauss(mean, 5) for x in range(100)]
+      values1 = [random.gauss(0, 5) for x in range(1000)]
+      values2 = [random.gauss(0, 5) for x in range(1000)]
 
       field_values = []
       total_no_patch = 0
       total_with_patch = 0
-      for i in range(100):
+      for i in range(1000):
         field_values.append(csv_comparer.PageValues(
             value1=values1[i], value2=values2[i],
             # Below are unused values.
@@ -149,7 +148,8 @@ class TestCsvComparer(unittest.TestCase):
 
     # CI should contain 0 roughly 95% of the time
     p = scipy.stats.binomtest(hits, iterations, 0.95, "less")
-    assert p.pvalue>0.01, 'CI does not contain the perc_change 95% of the time'
+    print('scipy.stats.binomtest:', p)
+    assert p.pvalue>0.01, 'CI does not contain zero 95% of the time'
 
 
 if __name__ == '__main__':

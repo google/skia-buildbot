@@ -401,16 +401,27 @@ def find95ConfidenceInterval(field_values, field_totals):
   total_with_patch = field_totals.value2
   point_estimate = field_totals.perc_change
 
-  # Step2: Randomly assign each row to one of 100 buckets.
-  buckets = random.sample(field_values, k=NUM_CI_BUCKETS)
+  # Step2: Randomly assign each row to one of 100 buckets. Initialize the bucket
+  # with empty list, append all hits after that.
+  buckets = [[] for x in range(NUM_CI_BUCKETS)]
+  for fv in field_values:
+    buckets[random.randrange(NUM_CI_BUCKETS)].append(fv)
 
   # Step3: For each bucket, calculate the overall percentage diff statistic
   # with that data removed.
   all_but_one_estimates = []
   for b in buckets:
-    perc_change = _GetPercentageChange(total_no_patch-b.value1,
-                                       total_with_patch-b.value2)
+    bucket_value1 = 0
+    bucket_value2 = 0
+    for pv in b:
+      bucket_value1 += pv.value1
+      bucket_value2 += pv.value2
+    perc_change = _GetPercentageChange(total_no_patch-bucket_value1,
+                                       total_with_patch-bucket_value2)
     all_but_one_estimates.append(perc_change)
+
+  # We should have gathered and processed exactly 100 buckets.
+  assert len(all_but_one_estimates) == NUM_CI_BUCKETS
 
   # Step4: Do the jacknife calculation.
   # D_j on go/rasta-confidence-intervals
