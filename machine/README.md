@@ -37,6 +37,8 @@ The main loop of machine state server looks like:
 The application that runs on each switchboard test machine and feeds information
 into the machine state server.
 
+See the [Design Doc](http://go/skia-switchboard).
+
 # Current Data Flow
 
 ## User triggers powercycle for a machine.
@@ -55,11 +57,10 @@ into the machine state server.
 
 ## How test_machine_monitor keeps machine.Description up to date.
 
-| initiator            | message                      | target        | notes                                                            |
-| -------------------- | ---------------------------- | ------------- | ---------------------------------------------------------------- |
-| test_machine_monitor | >WebAPI([Event][event])      | machineserver | POST to `/json/v1/machine/event`                                 |
-| test_machine_monitor | <WebAPI([Description][desc]) | machineserver | GET to `/json/v1/machine/description/{id:.+}`                    |
-| test_machine_monitor | <SSE([Description][desc])    | machineserver | GET to `/json/v1/machine/sse/description/updated?stream={id:.+}` |
+| initiator            | message                      | target        | notes                                         |
+| -------------------- | ---------------------------- | ------------- | --------------------------------------------- |
+| test_machine_monitor | >PubSub([Event][event])      | machineserver | Sends results from interrogate.               |
+| test_machine_monitor | <WebAPI([Description][desc]) | machineserver | GET to `/json/v1/machine/description/{id:.+}` |
 
 [desc]:
   https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Description
@@ -81,24 +82,6 @@ into the machine state server.
   being moved.
   - `Set` - A database operation
   - `WebAPI` - An HTTP Request
-  - `SSE` - Server-Sent Event
   - `PubSub` - A PubSub message.
 - target - Who the iniator is talking to.
 - Δ is used before a struct if only a part of that struct is being changed.
-
-# Data Storage
-
-Machine server stores its data in CockroachDB.
-
-## Initializing the database.
-
-Run the following commands to initialize to create the database and the initial
-tables.
-
-Run this while talking to the correct GKE cluster:
-
-     kubectl port-forward service/machineserver-cockroachdb-public 25001:26257
-
-In a separate shell run:
-
-     bazel run --config=mayberemote //machine/go/machine/store/cdb/mscdbinit:mscdbinit
