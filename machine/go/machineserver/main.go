@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/unrolled/secure"
 
 	"go.skia.org/infra/go/alogin"
@@ -39,7 +40,9 @@ import (
 	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
 	"go.skia.org/infra/machine/go/machine/processor"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
+	"go.skia.org/infra/machine/go/machine/store"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
+	"go.skia.org/infra/machine/go/machine/store/cdb"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
@@ -123,9 +126,18 @@ func new(args []string) (*server, error) {
 
 	processor := machineProcessor.New(ctx)
 
-	store, err := machineStore.NewFirestoreImpl(ctx, flags.local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	var store store.Store
+	if instanceConfig.ConnectionString != "" {
+		db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		store = cdb.New(db)
+	} else {
+		store, err = machineStore.NewFirestoreImpl(ctx, flags.local, instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 
 	httpSource, err := httpEventSource.New()

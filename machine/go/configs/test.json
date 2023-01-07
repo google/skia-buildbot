@@ -10,5 +10,6 @@
   "desc_source": {
     "project": "skia-public",
     "topic": "machineserver-events-test"
-  }
+  },
+  "connection_string": "postgresql://root@127.0.0.1:25001/machineserver?sslmode=disable"
 }

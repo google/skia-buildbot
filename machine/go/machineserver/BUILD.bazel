@@ -26,9 +26,11 @@ go_library(
         "//machine/go/machine/event/source/httpsource",
         "//machine/go/machine/processor",
         "//machine/go/machine/store",
+        "//machine/go/machine/store/cdb",
         "//machine/go/machineserver/config",
         "//machine/go/machineserver/rpc",
         "@com_github_gorilla_mux//:mux",
+        "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_unrolled_secure//:secure",
     ],
 )

@@ -34,4 +34,8 @@ type InstanceConfig struct {
 	Source                  Source                  `json:"source"`
 	Store                   Store                   `json:"store"`
 	DescriptionChangeSource DescriptionChangeSource `json:"desc_source"`
+
+	// ConnectionString, if supplied, points to the CockroachDB database to use
+	// for storage. If not supplied storage falls back to Firestore.
+	ConnectionString string `json:"connection_string"`
 }

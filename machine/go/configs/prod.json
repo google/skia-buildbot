@@ -10,5 +10,6 @@
   "desc_source": {
     "project": "skia-public",
     "topic": "machineserver-events-prod"
-  }
+  },
+  "connection_string": "postgresql://root@machineserver-cockroachdb-public:26257/machineserver?sslmode=disable"
 }
