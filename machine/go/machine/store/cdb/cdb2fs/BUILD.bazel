@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cdb2fs_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/store/cdb/cdb2fs",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//machine/go/configs",
+        "//machine/go/machine",
+        "//machine/go/machine/store",
+        "//machine/go/machine/store/cdb",
+        "//machine/go/machineserver/config",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "cdb2fs",
+    embed = [":cdb2fs_lib"],
+    visibility = ["//visibility:public"],
+)
