@@ -22,16 +22,6 @@ sudo apt-get --assume-yes install build-essential mercurial libosmesa-dev libexp
 # is resolved.
 sudo touch /etc/lsb-release
 
-# gcc-4.8 is only available in jessie. gcc-4.8 is required to compile for Ubuntu-14.04.
-cat <<EOF | sudo tee --append /etc/apt/sources.list
-deb http://cdn-fastly.deb.debian.org/debian/ jessie main
-deb-src http://cdn-fastly.deb.debian.org/debian/ jessie main
-deb http://security.debian.org/ jessie/updates main
-deb-src http://security.debian.org/ jessie/updates main
-EOF
-sudo apt-get update
-sudo apt-get --assume-yes install gcc-4.8 g++-4.8
-
 # Buster locales need to be configured and set to avoid spurious bash
 # complaints.
 echo 'LC_ALL=en_US.UTF-8' | sudo tee --append /etc/environment
