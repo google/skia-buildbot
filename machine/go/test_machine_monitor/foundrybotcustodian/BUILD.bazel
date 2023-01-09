@@ -13,6 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//machine/go/test_machine_monitor/machine",
+        "//machine/go/test_machine_monitor/server",
     ],
 )
 
@@ -25,6 +26,7 @@ go_test(
         "//go/recentschannel",
         "//go/testutils",
         "//machine/go/test_machine_monitor/machine",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )

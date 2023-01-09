@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/recentschannel"
@@ -51,7 +52,7 @@ func TestStart_RelaunchesIfProcessExits(t *testing.T) {
 	machine := &tmmMachine.Machine{}
 	machine.SetIsRunningSwarmingTask(true)
 
-	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine))
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine, "ignored"))
 	require.Eventually(t, func() bool {
 		return executil.FakeCommandsReturned(ctx) >= 2
 	}, launchTimeout, launchTimeout/10, "Foundry Bot never got relaunched after exiting.")
@@ -65,7 +66,8 @@ func TestStart_DoesntFindFoundryBot_ReturnsError(t *testing.T) {
 		"/something-that-does-not-exist",
 		"ignored",
 		recentschannel.New[bool](1),
-		&tmmMachine.Machine{})
+		&tmmMachine.Machine{},
+		"ignored")
 	require.Contains(t, err.Error(), "Foundry Bot not found")
 }
 
@@ -114,7 +116,7 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 	machine := &tmmMachine.Machine{}
 	machine.SetIsRunningSwarmingTask(true)
 
-	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine))
+	require.NoError(t, Start(ctx, testutils.Executable(t), "ignored", wantFoundryBotUpCh, machine, "ignored"))
 
 	// Wait until foundryBotStartAndInterrupt.temp exists, showing the process is up.
 	//
@@ -137,4 +139,17 @@ func TestStart_GracefullyStopsProcessIfHeartbeatSaysFalse(t *testing.T) {
 
 	// Machine gets set to no-task-running state when we take FB down on purpose:
 	require.False(t, machine.IsRunningSwarmingTask())
+}
+
+// TestPingURLs makes sure leading slashes are removed from paths (a helpful but unspecified
+// behavior of the net/url.URL). It also codifies that we expect hostless URLs to be constructed if
+// no host is passed in.
+func TestPingURLs(t *testing.T) {
+	startURL, endURL := pingURLs(":1234")
+	assert.Equal(t, startURL, "http://:1234/on_before_task")
+	assert.Equal(t, endURL, "http://:1234/on_after_task")
+
+	startURL, endURL = pingURLs("localhost:5678")
+	assert.Equal(t, startURL, "http://localhost:5678/on_before_task")
+	assert.Equal(t, endURL, "http://localhost:5678/on_after_task")
 }

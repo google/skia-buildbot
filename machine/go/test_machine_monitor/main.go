@@ -31,8 +31,8 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	machineServerHost  = flag.String("machine_server", "https://machines.skia.org", "A URL with the scheme and domain name of the machine hosting the machine server API.")
 	metadataURL        = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
-	port               = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	port               = flag.String("port", ":11000", "HTTP service address (e.g., 'localhost:8000' or ':8000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., 'localhost:10110' or ':10110')")
 	pythonExe          = flag.String("python_exe", "", "Absolute path to Python.")
 	startFoundryBot    = flag.Bool("start_foundry_bot", false, "Start the Foundry Bot daemon (if not in maintenance mode), which listens for and runs Bazel RBE jobs.")
 	foundryBotInstance = flag.String("foundry_bot_instance", "projects/skia-rbe/instances/default_instance", "Path to GCP instance under which RBE tasks should run")
@@ -96,7 +96,7 @@ func main() {
 	}()
 
 	if *startFoundryBot {
-		err := foundrybotcustodian.Start(ctx, *foundryBotPath, *foundryBotInstance, wantFoundryBotUpCh, machineState)
+		err := foundrybotcustodian.Start(ctx, *foundryBotPath, *foundryBotInstance, wantFoundryBotUpCh, machineState, *port)
 		if err != nil {
 			sklog.Fatalf("Failed to start Foundry Bot Custodian: %s", err)
 		}

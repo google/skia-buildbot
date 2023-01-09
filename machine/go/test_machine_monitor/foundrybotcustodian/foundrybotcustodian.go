@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"net/url"
 	"os"
 	"os/exec"
 
@@ -15,6 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	tmmMachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
+	"go.skia.org/infra/machine/go/test_machine_monitor/server"
 )
 
 // Start spawns a goroutine that forever brings Foundry Bot up or down in accordance with the
@@ -27,10 +29,13 @@ import (
 // botPath is the absolute path to a copy of Foundry Bot.
 // instance is the GCP instance under which the RBE jobs run. Its project must contain a Remote
 //     Build Execution API endpoint under APIs & Services.
+// wantUpChannel should receive a steady stream of "whether Foundry Bot should be up" booleans.
 // machine will be advised that it is no longer running a task whenever Foundry Bot exits.
+// pingPort is the host and/or port (e.g. ":1234" or "example.com:1234") Foundry Bot should ping
+//     with an arbitrary HTTP GET when starting or finishing a task.
 //
 // Start looks for likely error conditions and returns them before starting the goroutine.
-func Start(ctx context.Context, botPath string, instance string, wantUpChannel *recentschannel.Ch[bool], machine *tmmMachine.Machine) error {
+func Start(ctx context.Context, botPath string, instance string, wantUpChannel *recentschannel.Ch[bool], machine *tmmMachine.Machine, pingPort string) error {
 	// Check as much as we can before spinning off the goroutine.
 	_, err := os.Stat(botPath)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -64,7 +69,7 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 				// A polling request to machineserver has returned.
 				switch {
 				case wantUp && foundryBot == nil:
-					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
+					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted, pingPort)
 					// If starting the process failed, we'll have another try at the next heartbeat.
 				case !wantUp && foundryBot != nil:
 					foundryBot = stopProcess(foundryBot, exits)
@@ -80,7 +85,7 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 				machine.SetIsRunningSwarmingTask(false)
 				// Start it up again if we like, without waiting for next heartbeat.
 				if wantUp {
-					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted)
+					foundryBot = startProcess(ctx, botPath, instance, exits, timeSinceProcessStarted, pingPort)
 					// If starting the process failed, we'll have another try at the next heartbeat.
 				}
 			case <-ctx.Done():
@@ -108,10 +113,11 @@ func Start(ctx context.Context, botPath string, instance string, wantUpChannel *
 //
 // Returns a Cmd representing the process: nil if it wasn't successfully brought up. The process is
 // killed when the context is cancelled.
-func startProcess(ctx context.Context, botPath string, instance string, exits chan bool, timeSinceProcessStarted metrics2.Liveness) *exec.Cmd {
+func startProcess(ctx context.Context, botPath string, instance string, exits chan bool, timeSinceProcessStarted metrics2.Liveness, pingPort string) *exec.Cmd {
 	// rbeServiceAddress is the FQDN and port of the Foundry service to which the Foundry Bot should
 	// connect to receive tasks.
 	const rbeServiceAddress = "remotebuildexecution.googleapis.com:443"
+	startedPingURL, endedPingURL := pingURLs(pingPort)
 	cmd := executil.CommandContext(
 		ctx,
 		botPath,
@@ -121,7 +127,9 @@ func startProcess(ctx context.Context, botPath string, instance string, exits ch
 		"-sandbox=none",
 		// 6h timeout after sending a SIGINT to foundry_bot because our longest job is about 3.75h.
 		// See https://perf.skia.org/e/?queries=sub_result%3Dtask_step_s.
-		"-stop_time=6h")
+		"-stop_time=6h",
+		"-lease_started_ping_url="+startedPingURL,
+		"-lease_ended_ping_url="+endedPingURL)
 	sklog.Infof("Starting %s", cmd.String())
 	timeSinceProcessStarted.Reset()
 	err := cmd.Start()
@@ -173,4 +181,22 @@ func stopProcess(cmd *exec.Cmd, exits chan bool) *exec.Cmd {
 		sklog.Warningf("Sending interrupt signal to Foundry Bot failed: %s", err)
 		return cmd
 	}
+}
+
+// pingURLs returns URLs to ping when an RBE task starts or ends.
+//
+// pingPort is [host]:[port], at least one field of which must be specified. Hostless URLs will be
+// constructed if no host is passed in. These are okay (though not strictly RFC-1738-compliant)
+// because Foundry Bot, the recipient of these URLs, is also written in Go and thus understands them
+// to mean localhost.
+func pingURLs(pingPort string) (startedPingURL string, endedPingURL string) {
+	pingURL := url.URL{
+		Scheme: "http",
+		Host:   pingPort,
+	}
+	pingURL.Path = server.OnBeforeTaskPath
+	startedPingURL = pingURL.String()
+	pingURL.Path = server.OnAfterTaskPath
+	endedPingURL = pingURL.String()
+	return
 }

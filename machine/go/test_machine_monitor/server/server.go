@@ -17,6 +17,8 @@ import (
 const (
 	serverReadTimeout  = 5 * time.Minute
 	serverWriteTimeout = 5 * time.Minute
+	OnBeforeTaskPath   = "/on_before_task"
+	OnAfterTaskPath    = "/on_after_task"
 )
 
 // Server is the core functionality of test_machine_monitor.
@@ -56,8 +58,8 @@ func New(m *machine.Machine, triggerInterrogationCh chan<- bool) (*Server, error
 	r.HandleFunc("/get_state", ret.getState).Methods("POST")
 	r.HandleFunc("/get_settings", ret.getSettings).Methods("GET")
 	r.HandleFunc("/get_dimensions", ret.getDimensions).Methods("POST")
-	r.HandleFunc("/on_before_task", ret.onBeforeTask).Methods("GET")
-	r.HandleFunc("/on_after_task", ret.onAfterTask).Methods("GET")
+	r.HandleFunc(OnBeforeTaskPath, ret.onBeforeTask).Methods("GET")
+	r.HandleFunc(OnAfterTaskPath, ret.onAfterTask).Methods("GET")
 	r.Use(
 		httputils.HealthzAndHTTPS,
 		httputils.LoggingGzipRequestResponse,
