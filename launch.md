@@ -354,3 +354,50 @@ spec:
 Some apps are set up to be continuously re-built and re-deployed on every commit
 of Skia or Skia Infra. To do that, see
 [docker_pushes_watcher/README.md](./docker_pushes_watcher/README.md).
+
+# CockroachDB
+
+When standing up a new CockroachDB cluster the following extra steps
+need to be done:
+
+1. Modify the YML file to add ephemeral-storage to the resource requests:
+
+~~~
+resources:
+  requests:
+  cpu: '2'
+  memory: '32Gi'
+  ephemeral-storage: 100M
+~~~
+
+2. Update `managed-prometheus-pod-monitoring.yml` because CockroachDB hosts metrics at a different path than the expected default of `/metrics`.
+
+~~~
+# CockroachDB hosts metrics at a different path.
+apiVersion: monitoring.googleapis.com/v1
+kind: ClusterPodMonitoring
+metadata:
+  name: perf-cockroachdb-cluster-pod-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: perf-cockroachdb
+  endpoints:
+    - port: prom
+      path: _status/vars
+      interval: 15s
+  targetLabels:
+    fromPod:
+      - from: app
+      - from: appgroup
+~~~
+
+3. Rename the HTTP port from `http` to `prom` so it gets scraped:
+
+~~~
+ports:
+  - containerPort: 26257
+    name: grpc
+  - containerPort: 8080
+    name: prom
+~~~
