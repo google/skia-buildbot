@@ -47,4 +47,8 @@ sleep 10
   --start_swarming `
   --swarming_bot_zip=C:\b\s\swarming_bot.zip `
   {% endif %}
+  {% if install_test_machine_monitor__start_foundry_bot is true %}
+  --start_foundry_bot `
+  --foundry_bot_path=C:\Users\{{ skolo_account }}\bin\bot.1.exe `
+  {% endif %}
   --username=chrome-bot

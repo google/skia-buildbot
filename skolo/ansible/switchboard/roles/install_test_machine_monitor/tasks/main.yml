@@ -18,14 +18,29 @@
     item }}:/home/chrome-bot/www/test_machine_monitor'
   loop: "{{groups['jumphosts']}}"
 
-- name: Install startup job for Linux.
+- name: Load Foundry Bot executables.
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: foundry_bot
+    get_ansible_binaries_version: '{{ foundry_bot_version }}'
+
+- name: Copy Foundry Bot binaries to lighttpd dir on every jumphost.
+  delegate_to: 127.0.0.1
+  run_once: true
+  command:
+    'rsync -rz {{ get_ansible_binaries_directory.path }}/build chrome-bot@{{
+    item }}:/home/chrome-bot/www/foundry_bot'
+  loop: "{{groups['jumphosts']}}"
+
+- name: Install for Linux.
   import_tasks: linux.yml
   when: ansible_facts['system']|lower == 'linux'
 
-- name: Install startup job for Mac.
+- name: Install for Mac.
   import_tasks: mac.yml
   when: ansible_facts['system']|lower == 'darwin'
 
-- name: Install startup job for Win.
+- name: Install for Win.
   import_tasks: win.yml
   when: ansible_facts['system']|lower == 'win32nt'

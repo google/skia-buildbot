@@ -1,7 +1,7 @@
 argument_specs:
   main:
     short_description:
-      The main entry point for the install_test_machine_monitor role.
+      The main entry point for the install_test_machine_monitor role
     options:
       test_machine_monitor_version:
         type: "str"
@@ -10,3 +10,9 @@ argument_specs:
         description:
           'The version of test_machine_monitor to deploy, e.g.
           2021-09-17T22:47:32Z-jcgregorio-77033a142afc2ebf670339c958cbb4eb738c88ee-dirty'
+      foundry_bot_version:
+        type: "str"
+        required: false
+        default: ""
+        description:
+          'The version of Foundry Bot to deploy, e.g. 2022-12-30T02_28_24Z-erikrose-8e5ecae-clean'

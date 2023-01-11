@@ -1,4 +1,4 @@
-- name: Copy over executable.
+- name: Copy test_machine_monitor executable.
   become: true
   get_url:
     url:
@@ -14,6 +14,27 @@
     owner: root
     group: root
     mode: 0755
+
+- name: Install Foundry Bot.
+  when: ansible_facts['architecture'] == 'x86_64'
+  # Haven't got it compiling for ARM yet.
+  block:
+    - name: Copy Foundry Bot executable.
+      become: true
+      get_url:
+        url:
+          "http://metadata:{{ all.jumphost_file_server
+          }}/foundry_bot/build/{{ ansible_facts['system'] }}/{{
+          ansible_facts['architecture'] }}/bot.1"
+        dest: /usr/local/bin/bot.1
+
+    - name: Set Foundry Bot permissions.
+      become: true
+      file:
+        path: /usr/local/bin/bot.1
+        owner: root
+        group: root
+        mode: 0755
 
 - name: Check that ~chrome-bot/.config/autostart/swarming.desktop exists
   stat:

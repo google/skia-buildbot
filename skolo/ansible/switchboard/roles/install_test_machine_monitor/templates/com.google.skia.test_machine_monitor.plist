@@ -43,6 +43,9 @@
       <string>--start_swarming</string>
       <string>--swarming_bot_zip=/opt/s/swarming_bot.zip</string>
       {% endif %}
+      {% if install_test_machine_monitor__start_foundry_bot is true %}
+      <string>--start_foundry_bot</string>
+      {% endif %}
       <string>--username=chrome-bot</string>
     </array>
   </dict>

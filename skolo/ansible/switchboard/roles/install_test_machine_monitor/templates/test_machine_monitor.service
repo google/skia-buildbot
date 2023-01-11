@@ -39,6 +39,9 @@ ExecStart=/usr/local/bin/test_machine_monitor \
    --start_swarming \
    --swarming_bot_zip=/b/s/swarming_bot.zip \
    {% endif %}
+   {% if install_test_machine_monitor__start_foundry_bot is true %}
+   --start_foundry_bot \
+   {% endif %}
    --username=chrome-bot
 Restart=always
 RestartSec=10

@@ -1,4 +1,4 @@
-- name: Copy over executable.
+- name: Copy test_machine_monitor executable.
   become: true
   get_url:
     url:

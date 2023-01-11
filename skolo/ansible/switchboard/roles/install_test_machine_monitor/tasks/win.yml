@@ -25,6 +25,10 @@
     # by the PowerShell script.
     dest: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor2.exe"
 
+# TODO(erikrose): Give the same treatment to the Foundry Bot executable once
+# it's built for Windows (b/264880169): copy over a funny-named version, then
+# have the PowerShell script rename it on startup.
+
 - name: Copy over PowerShell script that launches test_machine_monitor.
   template:
     src: templates/test_machine_monitor.ps1
