@@ -130,6 +130,24 @@ func wrappedError(err error) error {
 	return skerr.Wrap(err)
 }
 
+// wrappedError unwraps and re-wraps a pgconn.PgError to give more details on
+// the failure and includes the machineID in the error message.
+func wrappedErrorForID(err error, machineID string) error {
+	return skerr.Wrapf(wrappedError(err), "Machine: %q", machineID)
+}
+
+// Remove dimensions that have 0 length slices for a value.
+func sanitizeDimensions(in machine.SwarmingDimensions) machine.SwarmingDimensions {
+	ret := machine.SwarmingDimensions{}
+	for key, slice := range in {
+		if len(slice) == 0 {
+			continue
+		}
+		ret[key] = in[key]
+	}
+	return ret
+}
+
 // Update implements ../store.Store.
 func (s *Store) Update(ctx context.Context, machineID string, updateCallback store.UpdateCallback) error {
 	return s.db.BeginFunc(ctx, func(tx pgx.Tx) error {
@@ -139,10 +157,13 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 		err := tx.QueryRow(ctx, Statements[GetAndLockRow], machineID).Scan(machine.DestFromDescription(&d)...)
 		// Not finding any rows is fine, but all other errors should return.
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			return wrappedError(err)
+			return wrappedErrorForID(err, machineID)
 		}
 
 		newD := updateCallback(d)
+
+		newD.Dimensions = sanitizeDimensions(newD.Dimensions)
+		newD.SuppliedDimensions = sanitizeDimensions(newD.SuppliedDimensions)
 
 		// Normalize times so they appear consistent in the database.
 		newD.RecoveryStart = newD.RecoveryStart.UTC().Truncate(time.Millisecond)
@@ -151,7 +172,7 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 		// Write the updated value.
 		_, err = tx.Exec(ctx, Statements[Update], machine.DestFromDescription(&newD)...)
 		if err != nil {
-			return wrappedError(err)
+			return wrappedErrorForID(err, machineID)
 		}
 		return nil
 	})
@@ -163,7 +184,7 @@ func (s *Store) Get(ctx context.Context, machineID string) (machine.Description,
 	ret.Dimensions[machine.DimID] = []string{machineID}
 	err := s.db.QueryRow(ctx, Statements[Get], machineID).Scan(machine.DestFromDescription(&ret)...)
 	if err != nil {
-		return ret, wrappedError(err)
+		return ret, wrappedErrorForID(err, machineID)
 	}
 	ret.RecoveryStart = ret.RecoveryStart.UTC().Truncate(time.Millisecond)
 	ret.LastUpdated = ret.LastUpdated.UTC().Truncate(time.Millisecond)
@@ -216,7 +237,7 @@ func (s *Store) List(ctx context.Context) ([]machine.Description, error) {
 // Delete implements ../store.Store.
 func (s *Store) Delete(ctx context.Context, machineID string) error {
 	if _, err := s.db.Exec(ctx, Statements[Delete], machineID); err != nil {
-		return wrappedError(err)
+		return wrappedErrorForID(err, machineID)
 	}
 	return nil
 }

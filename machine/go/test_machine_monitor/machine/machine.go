@@ -302,6 +302,12 @@ func (m *Machine) Start(ctx context.Context) error {
 
 	go m.startInterrogateLoop(ctx)
 
+	// Always start by immediately retrieving the Description.
+	if err := m.retrieveDescription(ctx); err != nil {
+		// Only a warning since this may be a new machine.
+		sklog.Warningf("Initial retrieveDescription failed: %s", err)
+	}
+
 	go m.startDescriptionWatch(ctx)
 
 	return nil

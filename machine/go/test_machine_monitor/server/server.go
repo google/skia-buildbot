@@ -144,19 +144,25 @@ func (s *Server) getSettings(w http.ResponseWriter, _ *http.Request) {
 func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getDimensionsRequests.Inc(1)
-
 	dim := map[string][]string{}
+
 	if err := json.NewDecoder(r.Body).Decode(&dim); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON input.", http.StatusInternalServerError)
 		return
 	}
 	for key, values := range s.machine.DimensionsForSwarming() {
-		if values != nil {
+		if len(values) != 0 {
 			dim[key] = values
 		} else {
 			sklog.Errorf("Found bad value: %v for key: %q", values, key)
 		}
 	}
+	if len(dim) == 0 {
+		sklog.Error("Empty dimensions found in get_dimensions.")
+		http.Error(w, "No valid Dimensions to report", http.StatusInternalServerError)
+	}
+
+	// Now that we do dimension detection, we can now just send the value we want.
 	if err := json.NewEncoder(w).Encode(dim); err != nil {
 		sklog.Errorf("Failed to encode JSON output: %s", err)
 		return

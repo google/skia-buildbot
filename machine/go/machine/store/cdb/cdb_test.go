@@ -97,6 +97,42 @@ func TestStore_UpdateAndGetFullyRoundTripTheDescription_Success(t *testing.T) {
 	assertdeep.Copy(t, d, full)
 }
 
+func TestStore_ZeroLengthDimensionsAreDiscarded_Success(t *testing.T) {
+	ctx := context.Background()
+	db := cdbtest.NewCockroachDBForTests(t, "desc")
+	s := cdb.New(db)
+	d := machine.NewDescription(ctx)
+	d.Dimensions = machine.SwarmingDimensions{
+		"keep":        {"a", "b"},
+		"removed":     {},
+		"alsoremoved": nil,
+		machine.DimID: {machineID1},
+	}
+	d.SuppliedDimensions = machine.SwarmingDimensions{
+		"keep":        {"a", "b"},
+		"removed":     {},
+		"alsoremoved": nil,
+	}
+
+	err := s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
+		return d
+	})
+	require.NoError(t, err)
+
+	stored, err := s.Get(ctx, machineID1)
+	require.NoError(t, err)
+
+	expected := machine.SwarmingDimensions{
+		"keep":        {"a", "b"},
+		machine.DimID: {machineID1},
+	}
+	require.Equal(t, expected, stored.Dimensions)
+	expected = machine.SwarmingDimensions{
+		"keep": {"a", "b"},
+	}
+	require.Equal(t, expected, stored.SuppliedDimensions)
+}
+
 func TestStore_Get_Success(t *testing.T) {
 	ctx, s := setupForTest(t)
 	d, err := s.Get(ctx, machineID1)

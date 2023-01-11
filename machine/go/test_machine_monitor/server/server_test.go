@@ -78,7 +78,7 @@ func TestGetDimensions_Success(t *testing.T) {
 	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
 	s.machine.UpdateDescription(rpc.FrontendDescription{
-		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}},
+		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}, "gpu": {}},
 	})
 
 	w := httptest.NewRecorder()
@@ -90,7 +90,7 @@ func TestGetDimensions_Success(t *testing.T) {
 	var dict map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&dict)
 	require.NoError(t, err)
-	// Expect the whole dimension to be replaced.
+	// Expect the whole dimension to be replaced, and empty slices to be removed.
 	expected := map[string]interface{}{
 		"foo": []interface{}{"baz", "quux"},
 	}
