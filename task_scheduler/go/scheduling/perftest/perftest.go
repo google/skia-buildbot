@@ -331,8 +331,12 @@ func main() {
 	}
 	cas, err := rbe.NewClient(ctx, rbeInstance, ts)
 	assertNoError(err)
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, rbeInstance, "")
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExec, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", "", taskCfgCache, nil, nil, "")
+	swarmingTaskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, rbeInstance, "")
+	taskExecs := map[string]types.TaskExecutor{
+		types.TaskExecutor_UseDefault: swarmingTaskExec,
+		types.TaskExecutor_Swarming:   swarmingTaskExec,
+	}
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", "", taskCfgCache, nil, nil, "")
 	assertNoError(err)
 
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()

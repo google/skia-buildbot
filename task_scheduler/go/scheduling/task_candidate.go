@@ -150,6 +150,7 @@ func (c *TaskCandidate) MakeTask() *types.Task {
 		MaxAttempts:   maxAttempts,
 		ParentTaskIds: parentTaskIds,
 		RetryOf:       c.RetryOf,
+		TaskExecutor:  c.TaskSpec.TaskExecutor,
 		TaskKey:       c.TaskKey.Copy(),
 	}
 }

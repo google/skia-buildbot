@@ -37,6 +37,15 @@ const (
 	SWARMING_TAG_SOURCE_REPO     = "source_repo"
 
 	MILO_HOST = "https://ci.chromium.org/raw/build/%s"
+
+	// Types of task executors.
+	TaskExecutor_UseDefault = ""
+	TaskExecutor_Swarming   = "swarming"
+	DefaultTaskExecutor     = TaskExecutor_Swarming
+)
+
+var (
+	ValidTaskExecutors = []string{TaskExecutor_UseDefault, TaskExecutor_Swarming}
 )
 
 type TaskStatus string
@@ -157,6 +166,9 @@ type Task struct {
 	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	SwarmingTaskId string `json:"swarmingTaskId"`
+
+	// TaskExecutor is the task executor used to run this Task.
+	TaskExecutor string `json:"taskExecutor"`
 
 	// TaskKey is a struct which describes aspects of the Task related
 	// to the current state of the repo when it ran, and about the Task
@@ -323,6 +335,7 @@ func (t *Task) Copy() *Task {
 		Status:         t.Status,
 		SwarmingBotId:  t.SwarmingBotId,
 		SwarmingTaskId: t.SwarmingTaskId,
+		TaskExecutor:   t.TaskExecutor,
 		TaskKey:        t.TaskKey.Copy(),
 	}
 }

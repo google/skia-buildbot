@@ -293,7 +293,11 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExecs := map[string]types.TaskExecutor{
+		types.TaskExecutor_Swarming:   taskExec,
+		types.TaskExecutor_UseDefault: taskExec,
+	}
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -2354,7 +2358,11 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExecs := map[string]types.TaskExecutor{
+		types.TaskExecutor_Swarming:   taskExec,
+		types.TaskExecutor_UseDefault: taskExec,
+	}
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	for _, h := range hashes {

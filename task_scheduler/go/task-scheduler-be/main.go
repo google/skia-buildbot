@@ -162,8 +162,12 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *cdPool, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
+	swarmingTaskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
+	taskExecs := map[string]types.TaskExecutor{
+		types.TaskExecutor_UseDefault: swarmingTaskExec,
+		types.TaskExecutor_Swarming:   swarmingTaskExec,
+	}
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *swarmingPools, *cdPool, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

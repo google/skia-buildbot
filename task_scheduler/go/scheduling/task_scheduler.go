@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -102,16 +103,16 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	pools        []string
-	pubsubCount  metrics2.Counter
-	pubsubTopic  string
-	queue        []*TaskCandidate // protected by queueMtx.
-	queueMtx     sync.RWMutex
-	repos        repograph.Map
-	skipTasks    *skip_tasks.DB
-	taskExecutor types.TaskExecutor
-	taskCfgCache task_cfg_cache.TaskCfgCache
-	tCache       cache.TaskCache
+	pools         []string
+	pubsubCount   metrics2.Counter
+	pubsubTopic   string
+	queue         []*TaskCandidate // protected by queueMtx.
+	queueMtx      sync.RWMutex
+	repos         repograph.Map
+	skipTasks     *skip_tasks.DB
+	taskExecutors map[string]types.TaskExecutor
+	taskCfgCache  task_cfg_cache.TaskCfgCache
+	tCache        cache.TaskCache
 	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
 	// create so that tests can ensure all goroutines finish before asserting.
 	testWaitGroup         sync.WaitGroup
@@ -121,7 +122,7 @@ type TaskScheduler struct {
 	window                window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutor types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, cdPool, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors map[string]types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, cdPool, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -169,7 +170,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		rbeCas:                rbeCas,
 		rbeCasInstance:        rbeCasInstance,
 		repos:                 repos,
-		taskExecutor:          taskExecutor,
+		taskExecutors:         taskExecutors,
 		taskCfgCache:          taskCfgCache,
 		tCache:                tCache,
 		timeDecayAmt24Hr:      timeDecayAmt24Hr,
@@ -1289,7 +1290,12 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCand
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
-			resp, err := s.taskExecutor.TriggerTask(ctx, req)
+			taskExecutor, ok := s.taskExecutors[t.TaskExecutor]
+			if !ok {
+				recordErr("Failed to trigger task", skerr.Fmt("Unknown task executor %q wanted by %s", candidate.TaskSpec.TaskExecutor, candidate.Name))
+				return
+			}
+			resp, err := taskExecutor.TriggerTask(ctx, req)
 			if err != nil {
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
@@ -1450,15 +1456,27 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	sklog.Infof("Task Scheduler MainLoop starting...")
 	diagStart := now.Now(ctx)
 
-	var wg sync.WaitGroup
-
-	var bots []*types.Machine
-	var getSwarmingBotsErr error
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		bots, getSwarmingBotsErr = getFreeMachines(ctx, s.taskExecutor, s.busyBots, s.pools)
-	}()
+	// Load the free machines from all task executors.
+	var freeMachines []*types.Machine
+	var freeMachinesMtx sync.Mutex
+	getFreeMachinesGroup := errgroup.Group{}
+	for taskExecName, taskExec := range s.taskExecutors {
+		if taskExecName == types.TaskExecutor_UseDefault {
+			// This one will be handled by the explicitly-named entry.
+			continue
+		}
+		taskExec := taskExec
+		getFreeMachinesGroup.Go(func() error {
+			m, err := getFreeMachines(ctx, taskExec, s.busyBots, s.pools)
+			if err != nil {
+				return err
+			}
+			freeMachinesMtx.Lock()
+			defer freeMachinesMtx.Unlock()
+			freeMachines = append(freeMachines, m...)
+			return nil
+		})
+	}
 
 	if err := s.tCache.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "Failed to update task cache")
@@ -1483,13 +1501,12 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return skerr.Wrapf(err, "Failed to regenerate task queue")
 	}
 
-	wg.Wait()
-	if getSwarmingBotsErr != nil {
-		return skerr.Wrapf(getSwarmingBotsErr, "Failed to retrieve free Swarming bots")
+	if getFreeMachinesErr := getFreeMachinesGroup.Wait(); getFreeMachinesErr != nil {
+		return skerr.Wrapf(getFreeMachinesErr, "Failed to retrieve free machines")
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
-	err = s.scheduleTasks(ctx, bots, queue)
+	err = s.scheduleTasks(ctx, freeMachines, queue)
 
 	// An error from scheduleTasks can indicate a partial error; write diagnostics
 	// in either case.
@@ -1498,7 +1515,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		s.testWaitGroup.Add(1)
 		go func() {
 			defer s.testWaitGroup.Done()
-			util.LogErr(writeMainLoopDiagnosticsToGCS(ctx, diagStart, diagEnd, s.diagClient, s.diagInstance, allCandidates, bots, err))
+			util.LogErr(writeMainLoopDiagnosticsToGCS(ctx, diagStart, diagEnd, s.diagClient, s.diagInstance, allCandidates, freeMachines, err))
 		}()
 	}
 
@@ -1692,50 +1709,61 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 	}
 	sort.Sort(types.TaskSlice(tasks))
 
-	// Query Swarming for all unfinished tasks.
+	// Query for all unfinished tasks.
 	sklog.Infof("Querying states of %d unfinished tasks.", len(tasks))
-	ids := make([]string, 0, len(tasks))
+	unfinishedIDsByExecutor := map[string][]string{}
 	for _, t := range tasks {
-		ids = append(ids, t.SwarmingTaskId)
-	}
-	finishedStates, err := s.taskExecutor.GetTaskCompletionStatuses(ctx, ids)
-	if err != nil {
-		return err
-	}
-	finished := make([]*types.Task, 0, len(finishedStates))
-	for idx, task := range tasks {
-		if finishedStates[idx] {
-			finished = append(finished, task)
+		executor := t.TaskExecutor
+		if executor == types.TaskExecutor_UseDefault {
+			executor = types.DefaultTaskExecutor
 		}
+		unfinishedIDsByExecutor[executor] = append(unfinishedIDsByExecutor[executor], t.SwarmingTaskId)
 	}
+	for executorName := range unfinishedIDsByExecutor {
+		ids := unfinishedIDsByExecutor[executorName]
+		taskExecutor, ok := s.taskExecutors[executorName]
+		if !ok {
+			return skerr.Fmt("Tasks use unknown task executor %q: %v", executorName, ids)
+		}
+		finishedStates, err := taskExecutor.GetTaskCompletionStatuses(ctx, ids)
+		if err != nil {
+			return err
+		}
+		finished := make([]*types.Task, 0, len(finishedStates))
+		for idx, task := range tasks {
+			if finishedStates[idx] {
+				finished = append(finished, task)
+			}
+		}
 
-	// Update any newly-finished tasks.
-	if len(finished) > 0 {
-		sklog.Infof("Updating %d newly-finished tasks.", len(finished))
-		var wg sync.WaitGroup
-		errs := make([]error, len(tasks))
-		for i, t := range finished {
-			wg.Add(1)
-			go func(idx int, t *types.Task) {
-				defer wg.Done()
-				taskResult, err := s.taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId)
+		// Update any newly-finished tasks.
+		if len(finished) > 0 {
+			sklog.Infof("Updating %d newly-finished tasks.", len(finished))
+			var wg sync.WaitGroup
+			errs := make([]error, len(tasks))
+			for i, t := range finished {
+				wg.Add(1)
+				go func(idx int, t *types.Task) {
+					defer wg.Done()
+					taskResult, err := taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId)
+					if err != nil {
+						errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s; failed to get updated task from swarming", t.SwarmingTaskId)
+						return
+					}
+					modified, err := db.UpdateDBFromTaskResult(ctx, s.db, taskResult)
+					if err != nil {
+						errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s", t.SwarmingTaskId)
+						return
+					} else if modified {
+						s.updateUnfinishedCount.Inc(1)
+					}
+				}(i, t)
+			}
+			wg.Wait()
+			for _, err := range errs {
 				if err != nil {
-					errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s; failed to get updated task from swarming", t.SwarmingTaskId)
-					return
+					return err
 				}
-				modified, err := db.UpdateDBFromTaskResult(ctx, s.db, taskResult)
-				if err != nil {
-					errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s", t.SwarmingTaskId)
-					return
-				} else if modified {
-					s.updateUnfinishedCount.Inc(1)
-				}
-			}(i, t)
-		}
-		wg.Wait()
-		for _, err := range errs {
-			if err != nil {
-				return err
 			}
 		}
 	}
@@ -1990,7 +2018,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	}
 
 	// Obtain the Swarming task data.
-	res, err := s.taskExecutor.GetTaskResult(ctx, msg.SwarmingTaskId)
+	res, err := s.taskExecutors[types.TaskExecutor_Swarming].GetTaskResult(ctx, msg.SwarmingTaskId)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true

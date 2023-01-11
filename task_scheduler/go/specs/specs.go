@@ -394,6 +394,9 @@ type TaskSpec struct {
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
+
+	// TaskExecutor specifies what type of task executor should handle the task.
+	TaskExecutor string `json:"task_executor,omitempty"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -415,6 +418,10 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 		if len(split) != 2 {
 			return fmt.Errorf("Dimension %q does not contain a colon!", d)
 		}
+	}
+
+	if !util.In(t.TaskExecutor, types.ValidTaskExecutors) {
+		return fmt.Errorf("Invalid task executor %q; must be one of: %v", t.TaskExecutor, types.ValidTaskExecutors)
 	}
 
 	return nil
@@ -473,6 +480,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Outputs:          outputs,
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
+		TaskExecutor:     t.TaskExecutor,
 	}
 }
 

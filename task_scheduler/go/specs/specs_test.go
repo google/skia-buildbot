@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func fakeTaskSpec() *TaskSpec {
@@ -45,6 +46,7 @@ func fakeTaskSpec() *TaskSpec {
 		Outputs:        []string{"out"},
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
+		TaskExecutor:   types.TaskExecutor_Swarming,
 	}
 }
 
