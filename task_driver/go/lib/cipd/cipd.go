@@ -23,6 +23,16 @@ func SetupFlags(fs *flag.FlagSet) Flags {
 	return common.FSNewMultiStringFlag(fs, "cipd", nil, "CIPD packages to install, in the form: \"dest/dir:package/name@version\"")
 }
 
+// Ensure installs the given CIPD packages.
+func Ensure(ctx context.Context, c *http.Client, workdir string, pkgs ...*cipd.Package) error {
+	return td.Do(ctx, td.Props("Download CIPD Packages").Infra(), func(ctx context.Context) error {
+		if len(pkgs) > 0 {
+			return cipd.Ensure(ctx, c, workdir, pkgs...)
+		}
+		return nil
+	})
+}
+
 // EnsureFromFlags installs the CIPD packages requested using the given flags.
 func EnsureFromFlags(ctx context.Context, c *http.Client, workdir string, f Flags) error {
 	return td.Do(ctx, td.Props("Download CIPD Packages").Infra(), func(ctx context.Context) error {

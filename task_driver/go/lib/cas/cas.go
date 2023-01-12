@@ -35,6 +35,26 @@ func SetupFlags(fs *flag.FlagSet) *Flags {
 	}
 }
 
+// Download downloads the given CAS digests.
+func Download(ctx context.Context, workdir, casInstance string, ts oauth2.TokenSource, dls ...*CASDownload) error {
+	return td.Do(ctx, td.Props("Download CAS Inputs").Infra(), func(ctx context.Context) error {
+		if len(dls) == 0 {
+			return nil
+		}
+		client, err := rbe.NewClient(ctx, casInstance, ts)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		for _, dl := range dls {
+			dest := filepath.Join(workdir, dl.Path)
+			if err := client.Download(ctx, dest, dl.Digest); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+		return nil
+	})
+}
+
 // DownloadFromFlags downloads the CAS digests requested using the given flags.
 func DownloadFromFlags(ctx context.Context, workdir string, ts oauth2.TokenSource, f *Flags) error {
 	return td.Do(ctx, td.Props("Download CAS Inputs").Infra(), func(ctx context.Context) error {
@@ -79,4 +99,18 @@ func GetCASDownloads(f *Flags) ([]*CASDownload, error) {
 		rv = append(rv, cas)
 	}
 	return rv, nil
+}
+
+// Upload uploads the given paths to CAS and returns a digest.
+func Upload(ctx context.Context, workdir, casInstance string, ts oauth2.TokenSource, paths, excludes []string) (string, error) {
+	var digest string
+	err := td.Do(ctx, td.Props("Upload CAS Outputs").Infra(), func(ctx context.Context) error {
+		client, err := rbe.NewClient(ctx, casInstance, ts)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		digest, err = client.Upload(ctx, workdir, paths, excludes)
+		return err
+	})
+	return digest, err
 }
