@@ -234,7 +234,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 
 		// Step7: Update sky_engine/LICENSE. It should always be run
 		// according to https://github.com/flutter/engine/pull/4959#issuecomment-380222322
-		updateLicenseCmd := []string{dartBinary, "lib/main.dart", "--release", "--src", "../../..", "--out", licensesOutDir}
+		updateLicenseCmd := []string{dartBinary, "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
 		sklog.Infof("Running %s", updateLicenseCmd)
 		releasesLicensePath := filepath.Join(parentRepoDir, "sky", "packages", "sky_engine", "LICENSE")
 		outFile, err := os.Create(releasesLicensePath)
