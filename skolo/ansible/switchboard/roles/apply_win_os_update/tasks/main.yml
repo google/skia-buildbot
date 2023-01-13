@@ -129,6 +129,12 @@
     - name: Run Windows 10 Update Assistant as a background process in headless mode (takes ~1 hour, should trigger a reboot)
       win_shell: 'Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList "C:\Temp\{{ win_10_update_assistant_exe }} /quietinstall /skipeula /auto upgrade"'
 
+    - name: Print the time
+      delegate_to: 127.0.0.1
+      run_once: true
+      debug:
+        msg: "{{ ansible_date_time.date }} {{ ansible_date_time.time }} {{ ansible_date_time.tz }}"
+
     - name: Wait {{ wait_for_reboot_seconds }} seconds for the update to complete and for the machine to reboot.
       wait_for_connection:
         delay: '{{ wait_for_reboot_seconds }}'
