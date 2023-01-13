@@ -20,10 +20,14 @@ var (
 )
 
 func clean(s string) string {
-	if invalidChar.MatchString(s) {
-		sklog.Warningf("Hey, metrics string %s should not have invalid characters in it", s)
+	sanitized := strings.ToValidUTF8(s, "")
+	if sanitized != s {
+		sklog.Warningf("Metrics string %q has invalid UTF-8 characters", s)
 	}
-	return invalidChar.ReplaceAllLiteralString(s, "_")
+	if invalidChar.MatchString(sanitized) {
+		sklog.Warningf("Hey, metrics string %s should not have invalid characters in it", sanitized)
+	}
+	return invalidChar.ReplaceAllLiteralString(sanitized, "_")
 }
 
 // promInt64 implements the Int64Metric interface.

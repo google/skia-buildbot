@@ -11,6 +11,7 @@ import (
 
 func TestClean(t *testing.T) {
 	require.Equal(t, "a_b_c", clean("a.b-c"))
+	require.Equal(t, "bc", clean("\xc0bc"))
 }
 
 // getPromClient creates a fresh Prometheus Registry and
