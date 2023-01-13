@@ -1,31 +1,41 @@
 # Launches the test_machine_monitor executable, but not before checking if there
-# is an updated executable.
+# is an updated executable. Also look for a new version of Foundry Bot, and
+# install it if present.
 #
-# Background: On Windows you can't delete or overwrite an executable that is
-# running, so we always write new executables to test_machine_monitor2.exe and
-# then this script, which only runs when test_machine_monitor.exe is not
-# running, can then overwrite test_machine_monitor.exe with
-# test_machine_monitor2.exe.
+# Background: On Windows, you can't delete or overwrite an executable that is
+# running, so we always write new executables to (for example)
+# test_machine_monitor2.exe. Then this script, which runs only when
+# test_machine_monitor.exe is not running, can overwrite
+# test_machine_monitor.exe with test_machine_monitor2.exe.
 
-$newfile = '.\test_machine_monitor2.exe'
-$oldfile = '.\test_machine_monitor.exe'
+function Update-Executables {
+    param (
+        [Parameter(Mandatory)]
+        [string]$Old,
+        [Parameter(Mandatory)]
+        [string]$New
+    )
 
-# If the file exists, move it over test_machine_monitor.exe.
-if (Test-Path -Path $newfile -PathType Leaf) {
-    # Remove the old one if it exists.
-    if (Test-Path -Path $oldfile -PathType Leaf) {
-        Remove-Item -Path $oldfile -Force -ErrorAction Stop
-        Write-Host "The file [$oldfile] has been deleted."
+    # If the new file exists, overwrite the old file with it.
+    if (Test-Path -Path $New -PathType Leaf) {
+        # Remove the old one if it exists.
+        if (Test-Path -Path $Old -PathType Leaf) {
+            Remove-Item -Path $Old -Force -ErrorAction Stop
+            Write-Host "The file [$Old] has been deleted."
+        }
+
+        # Move the new file into its place.
+        Move-Item -Path $New -Destination $Old
+        Write-Host "[$New] has been moved into place."
     }
+    else {
+        # If the file does not exist, then run the existing file.
+        Write-Host "Using existing [$Old]; no newer version found."
+    }
+}
 
-    # Overwrite the existing test_machine_monitor.exe.
-    Move-Item -Path $newfile -Destination $oldfile
-    Write-Host "[$newfile] has been overwritten."
-}
-else {
-    # If the file does not exist, then run the existing file.
-    Write-Host "Running existing [$oldfile], no newer version found."
-}
+Update-Executables -New '.\test_machine_monitor2.exe' -Old '.\test_machine_monitor.exe'
+Update-Executables -New '.\bot.new.exe' -Old '.\bot.1.exe'
 
 # Set environment.
 {% if install_test_machine_monitor__start_swarming is true %}

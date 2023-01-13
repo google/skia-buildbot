@@ -13,21 +13,25 @@
     path: "C:\\Users\\{{ skolo_account }}\\bin"
     state: directory
 
-- name: Copy over executable.
-  win_get_url:
-    # Not the trailing dot on domain name: `metadata.`, this is important for
+- name: Copy over executables.
+  vars:
+    # Note the trailing dot on domain name: `metadata.`, this is important for
     # windows to look up the DNS name of the jumphost.
-    url:
-      "http://metadata.:{{ all.jumphost_file_server
-      }}/test_machine_monitor/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/test_machine_monitor"
-    # Note we copy it to "...2.exe" which is then moved to "test_machine_monitor.exe"
-    # by the PowerShell script.
-    dest: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor2.exe"
+    file_server: "http://metadata.:{{ all.jumphost_file_server }}"
+    os_and_arch: "{{ ansible_facts['system'] }}/{{ ansible_facts['architecture'] }}"
+  block:
+    - name: Copy test_machine_monitor.
+      win_get_url:
+        url: "{{ file_server }}/test_machine_monitor/build/{{ os_and_arch }}/test_machine_monitor"
+        # Note we copy it to "...2.exe" which is then moved to "test_machine_monitor.exe"
+        # by the PowerShell script.
+        dest: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor2.exe"
 
-# TODO(erikrose): Give the same treatment to the Foundry Bot executable once
-# it's built for Windows (b/264880169): copy over a funny-named version, then
-# have the PowerShell script rename it on startup.
+    - name: Copy Foundry Bot.
+      win_get_url:
+        url: "{{ file_server }}/foundry_bot/build/{{ os_and_arch }}/bot.1"
+        # This is moved to bot.1.exe by the PowerShell script.
+        dest: "C:\\Users\\{{ skolo_account }}\\bin\\bot.new.exe"
 
 - name: Copy over PowerShell script that launches test_machine_monitor.
   template:
