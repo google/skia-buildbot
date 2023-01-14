@@ -30,6 +30,10 @@ Riddler <.@riddleme.com>
 Wrote comment over here
 Batman <batman@gotham.com>
 	`
+
+	authorsContentWithDependabotRegex = `
+GitHub Dependabot <(\d+)\+dependabot\[bot\]@users.noreply.github.com>
+`
 )
 
 func TestVerify_Authors(t *testing.T) {
@@ -53,6 +57,7 @@ func TestVerify_Authors(t *testing.T) {
 
 		{authorsFileContent: authorsMalformedContent, changeAuthor: "batman@gotham.com", expectedState: types.VerifierSuccessState},
 		{authorsFileContent: authorsMalformedContent, changeAuthor: "riddler@riddleme.com", expectedState: types.VerifierFailureState},
+		{authorsFileContent: authorsContentWithDependabotRegex, changeAuthor: "49699333+dependabot[bot]@users.noreply.github.com", expectedState: types.VerifierSuccessState},
 	}
 	for _, test := range tests {
 		// Instantiate test change.
