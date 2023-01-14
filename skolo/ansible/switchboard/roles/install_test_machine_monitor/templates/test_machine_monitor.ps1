@@ -41,7 +41,7 @@ sleep 10
 .\test_machine_monitor.exe `
   --config=prod.json `
   --prom_port=:{{ all.prometheus.monitoring.ports.test_machine_monitor}} `
-  --metadata_url=http://metadata:{{ all.metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token `
+  --metadata_url={{ metadata_url }} `
   {% if install_test_machine_monitor__start_swarming is true %}
   --python_exe={{ win_python3_path }}\python.exe `
   --start_swarming `

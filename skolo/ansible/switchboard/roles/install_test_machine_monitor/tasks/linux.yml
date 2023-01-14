@@ -1,4 +1,5 @@
-- name: Copy test_machine_monitor executable.
+- name: Copy over test_machine_monitor executable (Skolo)
+  when: zone == 'skolo'
   become: true
   get_url:
     url:
@@ -6,35 +7,82 @@
       }}/test_machine_monitor/build/{{ ansible_facts['system'] }}/{{
       ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
-
-- name: Set test_machine_monitor permissions.
-  become: true
-  file:
-    path: /usr/local/bin/test_machine_monitor
     owner: root
     group: root
     mode: 0755
 
-- name: Install Foundry Bot.
-  when: ansible_facts['architecture'] == 'x86_64'
-  # Haven't got it compiling for ARM yet.
-  block:
-    - name: Copy Foundry Bot executable.
-      become: true
-      get_url:
-        url:
-          "http://metadata:{{ all.jumphost_file_server
-          }}/foundry_bot/build/{{ ansible_facts['system'] }}/{{
-          ansible_facts['architecture'] }}/bot.1"
-        dest: /usr/local/bin/bot.1
+- name: Copy over test_machine_monitor executable (GCE)
+  when: zone == 'gce'
+  become: true
+  copy:
+    src:
+      "{{ test_machine_monitor_directory_path
+      }}/build/{{
+      ansible_facts['system'] }}/{{
+      ansible_facts['architecture']
+      }}/test_machine_monitor"
+    dest: /usr/local/bin/test_machine_monitor
+    owner: root
+    group: root
+    mode: 0755
 
-    - name: Set Foundry Bot permissions.
+- name: Install Foundry Bot (Skolo)
+  when: ansible_facts['architecture'] == 'x86_64' and zone == 'skolo'
+  # Haven't got it compiling for ARM yet.
+  become: true
+  get_url:
+    url:
+      "http://metadata:{{ all.jumphost_file_server
+      }}/foundry_bot/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/bot.1"
+    dest: /usr/local/bin/bot.1
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install Foundry Bot (GCE)
+  when: ansible_facts['architecture'] == 'x86_64' and zone == 'gce'
+  # Haven't got it compiling for ARM yet.
+  become: true
+  copy:
+    src:
+      "{{ foundry_bot_directory_path
+      }}/build/{{
+      ansible_facts['system'] }}/{{
+      ansible_facts['architecture']
+      }}/bot.1"
+    dest: /usr/local/bin/bot.1
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Check that /etc/systemd/system/swarming_bot.service exists
+  stat:
+    path: /etc/systemd/system/swarming_bot.service
+  register: swarming_service_stat
+
+- name: Clean up swarming systemd service
+  when:
+    install_test_machine_monitor__start_swarming and
+    swarming_service_stat.stat.exists
+  block:
+    - name: Disable and stop swarming_bot service
+      become: true
+      systemd:
+        enabled: false
+        state: stopped
+        name: swarming_bot
+
+    - name: Remove /etc/systemd/system/swarming_bot.service
       become: true
       file:
-        path: /usr/local/bin/bot.1
-        owner: root
-        group: root
-        mode: 0755
+        path: /etc/systemd/system/swarming_bot.service
+        state: absent
+
+    - name: Reload systemctl daemon
+      become: true
+      systemd:
+        daemon_reload: true
 
 - name: Check that ~chrome-bot/.config/autostart/swarming.desktop exists
   stat:

@@ -37,7 +37,7 @@
       <string>/usr/local/bin/test_machine_monitor</string>
       <string>--config=prod.json</string>
       <string>--prom_port=:{{ all.prometheus.monitoring.ports.test_machine_monitor }}</string>
-      <string>--metadata_url=http://metadata:{{ all.metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token</string>
+      <string>--metadata_url={{ metadata_url }}</string>
       {% if install_test_machine_monitor__start_swarming is true %}
       <string>--python_exe=/usr/local/bin/python3</string>
       <string>--start_swarming</string>

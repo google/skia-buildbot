@@ -10,11 +10,17 @@
     get_ansible_binaries_application: test_machine_monitor
     get_ansible_binaries_version: '{{ test_machine_monitor_version }}'
 
+# Necessary because this role instantiates get_ansible_binaries multiple times.
+- name: Remember directory where test_machine_monitor was copied.
+  set_fact:
+    test_machine_monitor_directory_path: '{{ get_ansible_binaries_directory.path }}'
+
 - name: Copy test_machine_monitor exe's to lighttpd dir on every jumphost.
+  when: zone == 'skolo'
   delegate_to: 127.0.0.1
   run_once: true
   command:
-    'rsync -rz {{ get_ansible_binaries_directory.path }}/build chrome-bot@{{
+    'rsync -rz {{ test_machine_monitor_directory_path }}/build chrome-bot@{{
     item }}:/home/chrome-bot/www/test_machine_monitor'
   loop: "{{groups['jumphosts']}}"
 
@@ -25,11 +31,17 @@
     get_ansible_binaries_application: foundry_bot
     get_ansible_binaries_version: '{{ foundry_bot_version }}'
 
+# Necessary because this role instantiates get_ansible_binaries multiple times.
+- name: Remember directory where foundry_bot was copied.
+  set_fact:
+    foundry_bot_directory_path: '{{ get_ansible_binaries_directory.path }}'
+
 - name: Copy Foundry Bot binaries to lighttpd dir on every jumphost.
+  when: zone == 'skolo'
   delegate_to: 127.0.0.1
   run_once: true
   command:
-    'rsync -rz {{ get_ansible_binaries_directory.path }}/build chrome-bot@{{
+    'rsync -rz {{ foundry_bot_directory_path }}/build chrome-bot@{{
     item }}:/home/chrome-bot/www/foundry_bot'
   loop: "{{groups['jumphosts']}}"
 
