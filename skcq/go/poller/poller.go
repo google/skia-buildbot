@@ -250,10 +250,13 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 			if err := cr.Submit(ctx, ci); err != nil {
 				if strings.Contains(err.Error(), gerrit.ErrMergeConflict) {
 					sklog.Infof("[%d] Gerrit rejected submission due to merge conflict: %s", ci.Issue, err.Error())
-					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."), "SkCQ merge conflict")
+					cr.RemoveFromCQ(ctx, ci, "Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works.", "SkCQ merge conflict")
 				} else if strings.Contains(err.Error(), gerrit.ErrUnsubmittedDependend) {
 					sklog.Infof("[%d] Gerrit rejected submission due to unsubmitted dependend: %s", ci.Issue, err.Error())
 					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to unsubmitted dependend.\n\n%s", err.Error()), "SkCQ unsubmitted dependend")
+				} else if strings.Contains(err.Error(), gerrit.ErrNoChanges) {
+					sklog.Infof("[%d] Gerrit rejected submission due to empty commit: %s", ci.Issue, err.Error())
+					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to empty commit.\n\n%s", err.Error()), "SkCQ empty commit")
 				} else {
 					sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
 					return

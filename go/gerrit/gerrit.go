@@ -183,6 +183,10 @@ const (
 	// that a dependend CL has not been submitted yet.
 	ErrUnsubmittedDependend = "Depends on change that was not submitted"
 
+	// ErrEmptyCommit as a substring of an error message indicates that
+	// submission was rejected due to an empty commit.
+	ErrEmptyCommit = "Change could not be merged because the commit is empty"
+
 	// ErrNoChanges as a substring of an error message indicates that there were
 	// no changes to apply. Generally we can ignore this error.
 	ErrNoChanges = "no changes were made"
