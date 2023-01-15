@@ -251,6 +251,9 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 				if strings.Contains(err.Error(), gerrit.ErrMergeConflict) {
 					sklog.Infof("[%d] Gerrit rejected submission due to merge conflict: %s", ci.Issue, err.Error())
 					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."), "SkCQ merge conflict")
+				} else if strings.Contains(err.Error(), gerrit.ErrUnsubmittedDependend) {
+					sklog.Infof("[%d] Gerrit rejected submission due to unsubmitted dependend: %s", ci.Issue, err.Error())
+					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to unsubmitted dependend.\n\n%s", err.Error()), "SkCQ unsubmitted dependend")
 				} else {
 					sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
 					return

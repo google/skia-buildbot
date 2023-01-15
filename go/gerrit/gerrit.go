@@ -179,6 +179,10 @@ const (
 	// merge conflict occurred.
 	ErrMergeConflict = "conflict during merge"
 
+	// ErrUnsubmittedDependend as a substring of an error message indicates
+	// that a dependend CL has not been submitted yet.
+	ErrUnsubmittedDependend = "Depends on change that was not submitted"
+
 	// ErrNoChanges as a substring of an error message indicates that there were
 	// no changes to apply. Generally we can ignore this error.
 	ErrNoChanges = "no changes were made"
