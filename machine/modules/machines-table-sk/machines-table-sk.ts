@@ -16,7 +16,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import {
   Annotation,
-  AttachedDevice, FrontendDescription, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
+  AttachedDevice, Description, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
 
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -103,21 +103,21 @@ const checkResponse = async (resp: Response): Promise<void> => {
   }
 };
 
-// Sort functions for different clumns, i.e. values in FrontendDescription.
+// Sort functions for different clumns, i.e. values in Description.
 
 // Mode no longer exists, so this is a no-op.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const sortByMode = (a: FrontendDescription, b: FrontendDescription): number => a.MaintenanceMode.localeCompare(b.MaintenanceMode);
+export const sortByMode = (a: Description, b: Description): number => a.MaintenanceMode.localeCompare(b.MaintenanceMode);
 
-export const sortByAttachedDevice = (a: FrontendDescription, b: FrontendDescription): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
+export const sortByAttachedDevice = (a: Description, b: Description): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
 
-export const sortByAnnotation = (a: FrontendDescription, b: FrontendDescription): number => a.Annotation.Message.localeCompare(b.Annotation.Message);
+export const sortByAnnotation = (a: Description, b: Description): number => a.Annotation.Message.localeCompare(b.Annotation.Message);
 
-export const sortByNote = (a: FrontendDescription, b: FrontendDescription): number => a.Note.Message.localeCompare(b.Note.Message);
+export const sortByNote = (a: Description, b: Description): number => a.Note.Message.localeCompare(b.Note.Message);
 
-export const sortByVersion = (a: FrontendDescription, b: FrontendDescription): number => a.Version.localeCompare(b.Version);
+export const sortByVersion = (a: Description, b: Description): number => a.Version.localeCompare(b.Version);
 
-export const sortByPowerCycle = (a: FrontendDescription, b: FrontendDescription): number => {
+export const sortByPowerCycle = (a: Description, b: Description): number => {
   const powerCycleSort = sortBooleans(a.PowerCycle, b.PowerCycle);
   if (powerCycleSort === 0) {
     return a.PowerCycleState.localeCompare(b.PowerCycleState);
@@ -125,39 +125,39 @@ export const sortByPowerCycle = (a: FrontendDescription, b: FrontendDescription)
   return powerCycleSort;
 };
 
-export const sortByLastUpated = (a: FrontendDescription, b: FrontendDescription): number => a.LastUpdated.localeCompare(b.LastUpdated);
+export const sortByLastUpated = (a: Description, b: Description): number => a.LastUpdated.localeCompare(b.LastUpdated);
 
-export const sortByBattery = (a: FrontendDescription, b: FrontendDescription): number => a.Battery - b.Battery;
+export const sortByBattery = (a: Description, b: Description): number => a.Battery - b.Battery;
 
-export const sortByRunningSwarmingTask = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.RunningSwarmingTask, b.RunningSwarmingTask);
+export const sortByRunningSwarmingTask = (a: Description, b: Description): number => sortBooleans(a.RunningSwarmingTask, b.RunningSwarmingTask);
 
-export const sortByLaunchedSwarming = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.LaunchedSwarming, b.LaunchedSwarming);
+export const sortByLaunchedSwarming = (a: Description, b: Description): number => sortBooleans(a.LaunchedSwarming, b.LaunchedSwarming);
 
-export const sortByDeviceUptime = (a: FrontendDescription, b: FrontendDescription): number => a.DeviceUptime - b.DeviceUptime;
+export const sortByDeviceUptime = (a: Description, b: Description): number => a.DeviceUptime - b.DeviceUptime;
 
-export const sortByDevice = (a: FrontendDescription, b: FrontendDescription): number => pretty_device_name_as_string(a).localeCompare(pretty_device_name_as_string(b));
+export const sortByDevice = (a: Description, b: Description): number => pretty_device_name_as_string(a).localeCompare(pretty_device_name_as_string(b));
 
-export const sortByQuarantined = (a: FrontendDescription, b: FrontendDescription): number => {
+export const sortByQuarantined = (a: Description, b: Description): number => {
   const qa = a.Dimensions!.quarantined?.join('') || '';
   const qb = b.Dimensions!.quarantined?.join('') || '';
   return qa.localeCompare(qb);
 };
 
-export const sortByMachineID = (a: FrontendDescription, b: FrontendDescription): number => {
+export const sortByMachineID = (a: Description, b: Description): number => {
   const qa = a.Dimensions!.id?.join('') || '';
   const qb = b.Dimensions!.id?.join('') || '';
   return qa.localeCompare(qb);
 };
 
-export const sortByRecovering = (a: FrontendDescription, b: FrontendDescription): number => a.Recovering.localeCompare(b.Recovering);
+export const sortByRecovering = (a: Description, b: Description): number => a.Recovering.localeCompare(b.Recovering);
 
-export const sortByIsQuarantined = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.IsQuarantined, b.IsQuarantined);
+export const sortByIsQuarantined = (a: Description, b: Description): number => sortBooleans(a.IsQuarantined, b.IsQuarantined);
 
 // Do not change the location of these functions, i.e. their index, as that would
 // change the meaning of URLs already in the wild. Always add new sort functions
 // to the end of the list, and if a sort function is no-longer used replace it with
-// a no-op function, e.g. (a: FrontendDescription, b: FrontendDescription): number => 0.
-const sortFunctionsByColumn: compareFunc<FrontendDescription>[] = [
+// a no-op function, e.g. (a: Description, b: Description): number => 0.
+const sortFunctionsByColumn: compareFunc<Description>[] = [
   sortByMachineID,
   sortByAttachedDevice,
   sortByDevice,
@@ -176,7 +176,7 @@ const sortFunctionsByColumn: compareFunc<FrontendDescription>[] = [
   sortByIsQuarantined,
 ];
 
-const temps = (machine: FrontendDescription): TemplateResult => {
+const temps = (machine: Description): TemplateResult => {
   const temperatures = machine.Temperature;
   if (!temperatures) {
     return html``;
@@ -207,9 +207,9 @@ const temps = (machine: FrontendDescription): TemplateResult => {
   `;
 };
 
-const lastSeen = (machine: FrontendDescription): TemplateResult => html`${diffDate(machine.LastUpdated)}`;
+const lastSeen = (machine: Description): TemplateResult => html`${diffDate(machine.LastUpdated)}`;
 
-const isRunning = (machine: FrontendDescription): TemplateResult => (machine.RunningSwarmingTask
+const isRunning = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
   ? html`
         <cached-icon-sk title="Running"></cached-icon-sk>
       `
@@ -217,7 +217,7 @@ const isRunning = (machine: FrontendDescription): TemplateResult => (machine.Run
 
 const asList = (arr: string[] | null) => (arr === null ? '' : arr.join(' | '));
 
-const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
+const launchedSwarming = (machine: Description): TemplateResult => {
   if (!machine.LaunchedSwarming) {
     return html``;
   }
@@ -236,7 +236,7 @@ const annotation = (ann: Annotation): TemplateResult => {
   `;
 };
 
-const imageVersion = (machine: FrontendDescription): TemplateResult => {
+const imageVersion = (machine: Description): TemplateResult => {
   if (machine.Version) {
     return html`${machine.Version}`;
   }
@@ -244,27 +244,27 @@ const imageVersion = (machine: FrontendDescription): TemplateResult => {
 };
 
 /** Displays the device uptime, truncated to the minute. */
-const deviceUptime = (machine: FrontendDescription): TemplateResult => html`
+const deviceUptime = (machine: Description): TemplateResult => html`
   ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
 `;
 
 /** Returns the CSS class that should decorate the LastUpdated value. */
-export const outOfSpecIfTooOld = (machine: FrontendDescription): string => {
+export const outOfSpecIfTooOld = (machine: Description): string => {
   const lastUpdated = machine.LastUpdated;
   const diff = (Date.now() - Date.parse(lastUpdated));
   return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
 };
 
 /** Returns the CSS class that should decorate the Uptime value. */
-export const uptimeOutOfSpecIfTooOld = (machine: FrontendDescription): string => (machine.DeviceUptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
+export const uptimeOutOfSpecIfTooOld = (machine: Description): string => (machine.DeviceUptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
 
 // Returns the device_type separated with vertical bars and a trailing device
 // alias if that name is known.
-const pretty_device_name = (machine: FrontendDescription): TemplateResult => html`${pretty_device_name_as_string(machine)}`;
+const pretty_device_name = (machine: Description): TemplateResult => html`${pretty_device_name_as_string(machine)}`;
 
 // Returns the device_type separated with vertical bars and a trailing device
 // alias if that name is known.
-export const pretty_device_name_as_string = (machine: FrontendDescription): string => {
+export const pretty_device_name_as_string = (machine: Description): string => {
   const devices = machine.Dimensions?.device_type;
 
   if (!devices) {
@@ -280,19 +280,19 @@ export const pretty_device_name_as_string = (machine: FrontendDescription): stri
   return `${devices.join(' | ')} ${alias}`;
 };
 
-const quarantined = (machine: FrontendDescription): TemplateResult => html`${machine.Dimensions!.quarantined}`;
+const quarantined = (machine: Description): TemplateResult => html`${machine.Dimensions!.quarantined}`;
 
-const battery = (machine: FrontendDescription): TemplateResult => html`${machine.Battery}`;
+const battery = (machine: Description): TemplateResult => html`${machine.Battery}`;
 
 // Column stores information about a single column in the table.
 class Column {
   name: string;
 
-  row: (machine: FrontendDescription)=> TemplateResult;
+  row: (machine: Description)=> TemplateResult;
 
-  compare: compareFunc<FrontendDescription> | null;
+  compare: compareFunc<Description> | null;
 
-  className: ((machine: FrontendDescription)=> string) | null;
+  className: ((machine: Description)=> string) | null;
 
   computedClipValue: (()=> Promise<string>) | null;
 
@@ -307,9 +307,9 @@ class Column {
    */
   constructor(
     name: string,
-    row: (machine: FrontendDescription)=> TemplateResult,
-    compare: compareFunc<FrontendDescription> | null,
-    className: ((machine: FrontendDescription)=> string) | null = null,
+    row: (machine: Description)=> TemplateResult,
+    compare: compareFunc<Description> | null,
+    className: ((machine: Description)=> string) | null = null,
     computedClipValue: (()=> Promise<string>) | null = null,
   ) {
     this.name = name;
@@ -339,7 +339,7 @@ class Column {
     return html`&nbsp;<clipboard-sk .calculatedValue=${this.computedClipValue}></clipboard-sk>`;
   }
 
-  rowValue(machine: FrontendDescription): TemplateResult {
+  rowValue(machine: Description): TemplateResult {
     if (this.className === null) {
       return html`<td>${this.row(machine)}</td>`;
     }
@@ -358,9 +358,9 @@ export class MachinesTableSk extends ElementSk {
 
   deviceEditor: DeviceEditorSk | null = null;
 
-  private sortHistory: SortHistory<FrontendDescription> = new SortHistory(sortFunctionsByColumn);
+  private sortHistory: SortHistory<Description> = new SortHistory(sortFunctionsByColumn);
 
-  private filterer: FilterArray<FrontendDescription> = new FilterArray();
+  private filterer: FilterArray<Description> = new FilterArray();
 
   private hiddenColumns: ColumnTitles[] = ['Launched Swarming', 'Version', 'Annotation'];
 
@@ -479,7 +479,7 @@ export class MachinesTableSk extends ElementSk {
       ),
       Annotation: new Column(
         'Annotation',
-        (machine: FrontendDescription) => annotation(machine.Annotation),
+        (machine: Description) => annotation(machine.Annotation),
         sortByAnnotation,
       ),
       Version: new Column(
@@ -496,10 +496,10 @@ export class MachinesTableSk extends ElementSk {
   }
 
   async allDisplayedMachineIDs(): Promise<string> {
-    return this.orderedFilteredRows().map((d: FrontendDescription) => d.Dimensions!.id![0]).join('\n');
+    return this.orderedFilteredRows().map((d: Description) => d.Dimensions!.id![0]).join('\n');
   }
 
-  private orderedFilteredRows(): FrontendDescription[] {
+  private orderedFilteredRows(): Description[] {
     const ret = this.filterer.matchingValues();
     ret.sort(this.sortHistory.compare.bind(this.sortHistory));
     return ret;
@@ -529,7 +529,7 @@ export class MachinesTableSk extends ElementSk {
   }
 
   // eslint-disable-next-line no-use-before-define
-  toggleModeElement(machine: FrontendDescription): TemplateResult {
+  toggleModeElement(machine: Description): TemplateResult {
     return html`
     <button
       class="mode"
@@ -541,11 +541,11 @@ export class MachinesTableSk extends ElementSk {
   `;
   }
 
-  recovering(machine: FrontendDescription): TemplateResult {
+  recovering(machine: Description): TemplateResult {
     return html`${machine.Recovering}`;
   }
 
-  powerCycle(machine: FrontendDescription): TemplateResult {
+  powerCycle(machine: Description): TemplateResult {
     return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
@@ -561,7 +561,7 @@ export class MachinesTableSk extends ElementSk {
   `;
   }
 
-  clearQuarantine(machine: FrontendDescription): TemplateResult {
+  clearQuarantine(machine: Description): TemplateResult {
     return html`
     <block-icon-sk
       title="Clear the quarantine"
@@ -572,7 +572,7 @@ export class MachinesTableSk extends ElementSk {
   `;
   }
 
-  editDeviceIcon(machine: FrontendDescription): TemplateResult {
+  editDeviceIcon(machine: Description): TemplateResult {
     return ((machine.RunningSwarmingTask || machine.AttachedDevice !== 'ssh')
       ? html``
       : html`
@@ -584,7 +584,7 @@ export class MachinesTableSk extends ElementSk {
         `);
   }
 
-  note(machine: FrontendDescription): TemplateResult {
+  note(machine: Description): TemplateResult {
     return html`
       <edit-icon-sk
           class="edit_note clickable"
@@ -592,7 +592,7 @@ export class MachinesTableSk extends ElementSk {
           `;
   }
 
-  deleteMachine(machine: FrontendDescription): TemplateResult {
+  deleteMachine(machine: Description): TemplateResult {
     return html`
       <delete-icon-sk
         title="Remove the machine from the database."
@@ -602,7 +602,7 @@ export class MachinesTableSk extends ElementSk {
       `;
   }
 
-  dimensions(machine: FrontendDescription): TemplateResult {
+  dimensions(machine: Description): TemplateResult {
     if (!machine.Dimensions) {
       return html`<div>Unknown</div>`;
     }
@@ -663,7 +663,7 @@ export class MachinesTableSk extends ElementSk {
     return ColumnOrder.filter((name) => !this.hiddenColumns.includes(name)).map((columnName) => this.columns![columnName].header(this));
   }
 
-  tableRow(machine: FrontendDescription): TemplateResult[] {
+  tableRow(machine: Description): TemplateResult[] {
     if (!machine.Dimensions || !machine.Dimensions.id) {
       return [];
     }
@@ -678,7 +678,7 @@ export class MachinesTableSk extends ElementSk {
     `;
   }
 
-  private attachedDeviceOptions(machine: FrontendDescription): TemplateResult[] {
+  private attachedDeviceOptions(machine: Description): TemplateResult[] {
     return attachedDeviceDisplayNamesOrder.map((key: string) => html`
       <option
         value=${attachedDeviceDisplayName[key]}
@@ -687,7 +687,7 @@ export class MachinesTableSk extends ElementSk {
       </option>`);
   }
 
-  private machineLink(machine: FrontendDescription): TemplateResult {
+  private machineLink(machine: Description): TemplateResult {
     return html`
       <a
         href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
@@ -699,7 +699,7 @@ export class MachinesTableSk extends ElementSk {
     `;
   }
 
-  private attachedDevice(machine: FrontendDescription): TemplateResult {
+  private attachedDevice(machine: Description): TemplateResult {
     return html`
     <select
       @input=${(e: InputEvent) => this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
@@ -707,7 +707,7 @@ export class MachinesTableSk extends ElementSk {
     </select>`;
   }
 
-  sortArrow(fn: compareFunc<FrontendDescription>): TemplateResult {
+  sortArrow(fn: compareFunc<Description>): TemplateResult {
     const column = sortFunctionsByColumn.indexOf(fn);
     if (column === -1) {
       errorMessage(`Invalid compareFunc: ${fn.name}`);
@@ -788,7 +788,7 @@ export class MachinesTableSk extends ElementSk {
     await this.fetchCheckAndUpdate(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
   }
 
-  async editNote(id: string, machine: FrontendDescription): Promise<void> {
+  async editNote(id: string, machine: Description): Promise<void> {
     const editedAnnotation = await this.noteEditor!.edit(machine.Note);
     if (!editedAnnotation) {
       return;

@@ -384,7 +384,7 @@ func TestSetChromeOSInfo_SuppliedDimensionsChange(t *testing.T) {
 	require.Equal(t, fakeTime, retDesc.LastUpdated)
 }
 
-func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t *testing.T) {
+func TestApiMachineDescriptionHandler_GoodMachineID_Description(t *testing.T) {
 	ctx, desc, s, router, w := setupForTest(t)
 
 	storeMock := s.store.(*mocks.Store)
@@ -396,10 +396,10 @@ func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t
 	// Make the request.
 	router.ServeHTTP(w, r)
 
-	var actual rpc.FrontendDescription
+	var actual machine.Description
 	err := json.Unmarshal(w.Body.Bytes(), &actual)
 	require.NoError(t, err)
-	assert.Equal(t, rpc.ToFrontendDescription(desc), actual)
+	assert.Equal(t, desc, actual)
 }
 
 func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t *testing.T) {

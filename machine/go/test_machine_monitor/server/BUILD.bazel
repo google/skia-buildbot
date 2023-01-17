@@ -21,7 +21,6 @@ go_test(
     embed = [":server"],
     deps = [
         "//machine/go/machine",
-        "//machine/go/machineserver/rpc",
         "//machine/go/test_machine_monitor/machine",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

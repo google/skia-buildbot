@@ -133,7 +133,7 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 	m := &Machine{
 		ssh:                ssh.ExeImpl{},
 		sshMachineLocation: sshFile,
-		description:        rpc.FrontendDescription{SSHUserIP: testUserIP},
+		description:        machine.Description{SSHUserIP: testUserIP},
 	}
 	actual, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(
 		"Test_FakeExe_ExitCodeOne", // pretend LSBRelease failed
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -179,7 +179,7 @@ func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 		"Test_FakeExe_ExitCodeOne", // pretend uptime fails
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -189,7 +189,7 @@ func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T
 		"Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS",
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -241,7 +241,7 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 		startSwarming:    true,
 		startTime:        time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		interrogateTimer: noop.Float64SummaryMetric{},
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			AttachedDevice: machine.AttachedDeviceAdb,
 		},
 	}
@@ -275,7 +275,7 @@ func goodIOSInterrogationResult(timePlaceholder time.Time) (*Machine, machine.Ev
 		startSwarming:    true,
 		startTime:        timePlaceholder,
 		interrogateTimer: noop.Float64SummaryMetric{},
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			AttachedDevice: machine.AttachedDeviceIOS,
 		},
 	}
@@ -359,7 +359,7 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		ssh:                ssh.ExeImpl{},
 		sshMachineLocation: sshFile,
 		MachineID:          "some-machine",
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			SSHUserIP:      testUserIP,
 			AttachedDevice: machine.AttachedDeviceSSH,
 		},
@@ -407,7 +407,7 @@ func TestRebootDevice_AndroidDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		adb: adb.New(),
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimAndroidDevices: []string{"sprout"},
 			},
@@ -428,7 +428,7 @@ func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 
 	m := &Machine{
 		adb: adb.New(),
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimAndroidDevices: []string{"sprout"},
 			},
@@ -444,7 +444,7 @@ func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{
-		description: rpc.FrontendDescription{},
+		description: machine.Description{},
 	}
 
 	require.NoError(t, m.RebootDevice(ctx))
@@ -456,7 +456,7 @@ func TestRebootDevice_IOSDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		ios: ios.New(),
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimOS: []string{"iOS", "iOS-1.2.3"},
 			},
@@ -475,7 +475,7 @@ func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		ssh: ssh.ExeImpl{},
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			SSHUserIP: testUserIP,
 		},
 	}
@@ -492,7 +492,7 @@ func TestRebootDevice_ChromeOSDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) 
 
 	m := &Machine{
 		ssh: ssh.ExeImpl{},
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			SSHUserIP: testUserIP,
 		},
 	}
@@ -529,7 +529,7 @@ func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T
 	m := &Machine{
 		httpSink:         eventSink,
 		startTime:        start,
-		description:      rpc.ToFrontendDescription(desc),
+		description:      desc,
 		adb:              adb.New(),
 		interrogateTimer: metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		MachineID:        "my-test-bot-001",
@@ -575,7 +575,7 @@ func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *te
 	m := &Machine{
 		httpSink:                   eventSink,
 		startTime:                  start,
-		description:                rpc.ToFrontendDescription(desc),
+		description:                desc,
 		adb:                        adb.New(),
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": "my-test-bot-001"}),
@@ -619,7 +619,7 @@ func TestStartInterrogation_TriggerInterrogationChannel_InterrogationIsDone(t *t
 	triggerInterrogationCh := make(chan bool, 1)
 	m := &Machine{
 		httpSink:               httpSink,
-		description:            rpc.ToFrontendDescription(desc),
+		description:            desc,
 		adb:                    adb.New(),
 		interrogateTimer:       metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		MachineID:              "my-test-bot-001",
@@ -919,7 +919,7 @@ func TestRetrieveDescription_EndpointReturnsError_DescriptionIsNotUpdated(t *tes
 	err := m.retrieveDescription(context.Background())
 	require.Error(t, err)
 	require.True(t, *called)
-	require.Equal(t, rpc.FrontendDescription{}, m.description)
+	require.Equal(t, machine.Description{}, m.description)
 }
 
 func TestRetrieveDescription_EndpointReturnsInvalidJSON_DescriptionIsNotUpdated(t *testing.T) {
@@ -938,12 +938,12 @@ func TestRetrieveDescription_EndpointReturnsInvalidJSON_DescriptionIsNotUpdated(
 	err := m.retrieveDescription(context.Background())
 	require.Error(t, err)
 	require.True(t, *called)
-	require.Equal(t, rpc.FrontendDescription{}, m.description)
+	require.Equal(t, machine.Description{}, m.description)
 	require.Equal(t, int64(0), m.descriptionWatchArrivalCounter.Get())
 }
 
 func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(t *testing.T) {
-	desc := rpc.FrontendDescription{}
+	desc := machine.Description{}
 	var capturedRequest *http.Request
 	u, called, client := setupLocalServerWithCallback(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedRequest = r
@@ -993,7 +993,7 @@ func getMachineWithHomeDir(t *testing.T) *Machine {
 	return &Machine{
 		MachineID: machineID,
 		homeDir:   t.TempDir(),
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			AttachedDevice: machine.AttachedDeviceNone,
 		},
 		interrogateTimer: metrics2.GetFloat64SummaryMetric("just_a_test"),
@@ -1050,7 +1050,7 @@ func TestIsAvailable_NilMachine_ReturnsFalse(t *testing.T) {
 
 func TestIsAvailable_AvailableMachine_ReturnsTrue(t *testing.T) {
 	m := &Machine{
-		description: rpc.FrontendDescription{
+		description: machine.Description{
 			MaintenanceMode: "",
 			IsQuarantined:   false,
 			Recovering:      "",

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/machine/go/machine"
-	"go.skia.org/infra/machine/go/machineserver/rpc"
 	botmachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
@@ -77,7 +76,7 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	s, err := New(&botmachine.Machine{}, make(chan bool))
 	require.NoError(t, err)
-	s.machine.UpdateDescription(rpc.FrontendDescription{
+	s.machine.UpdateDescription(machine.Description{
 		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}, "gpu": {}},
 	})
 

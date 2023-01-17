@@ -19,7 +19,7 @@ export interface Annotation {
 	Timestamp: string;
 }
 
-export interface FrontendDescription {
+export interface Description {
 	MaintenanceMode: string;
 	IsQuarantined: boolean;
 	Recovering: string;
@@ -34,8 +34,10 @@ export interface FrontendDescription {
 	Temperature: { [key: string]: number };
 	RunningSwarmingTask: boolean;
 	LaunchedSwarming: boolean;
+	RecoveryStart: string;
 	DeviceUptime: number;
 	SSHUserIP: string;
+	SuppliedDimensions: SwarmingDimensions;
 	Dimensions: SwarmingDimensions;
 }
 
@@ -45,4 +47,4 @@ export type AttachedDevice = "nodevice" | "adb" | "ios" | "ssh";
 
 export type PowerCycleState = "not_available" | "available" | "in_error";
 
-export type ListMachinesResponse = FrontendDescription[];
+export type ListMachinesResponse = Description[];

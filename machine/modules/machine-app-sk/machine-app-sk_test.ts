@@ -4,14 +4,14 @@ import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { MachineAppSk } from './index';
-import { FrontendDescription } from '../json';
+import { Description } from '../json';
 
 /**
  * Mock the machines-table-sk JSON endpoint to return a valid response.
  */
 function mockMachinesResponse(): void {
   const ARBITRARY_DATE = '2020-04-21T17:33:09.638275Z';
-  const arbitraryResponse: Partial<FrontendDescription> = {
+  const arbitraryResponse: Partial<Description> = {
     Battery: 100,
     Dimensions: {
       id: ['skia-rpi2-rack4-shelf1-002'],

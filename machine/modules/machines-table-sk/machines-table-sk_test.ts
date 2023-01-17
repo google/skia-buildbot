@@ -10,11 +10,11 @@ import {
   MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name_as_string, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByIsQuarantined, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRecovering, sortByRunningSwarmingTask, sortByVersion,
 } from './machines-table-sk';
 import {
-  FrontendDescription, ListMachinesResponse, SetNoteRequest,
+  Description, ListMachinesResponse, SetNoteRequest,
 } from '../json';
 import { compareFunc } from '../sort';
 
-function mockMachinesResponse(param: ListMachinesResponse | Partial<FrontendDescription>[]): void {
+function mockMachinesResponse(param: ListMachinesResponse | Partial<Description>[]): void {
   fetchMock.get('/_/machines', param);
 }
 
@@ -403,37 +403,37 @@ describe('machines-table-sk', () => {
   describe('outOfSpecIfTooOld', () => {
     it('returns an empty string if LastModified is recent enough', () => {
       const now = new Date(Date.now());
-      const machine: Partial<FrontendDescription> = { LastUpdated: now.toString() };
-      assert.equal(outOfSpecIfTooOld(machine as FrontendDescription), '');
+      const machine: Partial<Description> = { LastUpdated: now.toString() };
+      assert.equal(outOfSpecIfTooOld(machine as Description), '');
     });
 
     it('returns outOfSpec if LastModified is too old', () => {
       const old = new Date(Date.now() - 2 * MAX_LAST_UPDATED_ACCEPTABLE_MS);
-      const machine: Partial<FrontendDescription> = { LastUpdated: old.toString() };
-      assert.equal(outOfSpecIfTooOld(machine as FrontendDescription), 'outOfSpec');
+      const machine: Partial<Description> = { LastUpdated: old.toString() };
+      assert.equal(outOfSpecIfTooOld(machine as Description), 'outOfSpec');
     });
   });
 
   describe('pretty_device_name', () => {
     it('returns an empty string on null', () => {
-      const machine: Partial<FrontendDescription> = { Dimensions: { } };
-      assert.equal('', pretty_device_name_as_string(machine as FrontendDescription));
+      const machine: Partial<Description> = { Dimensions: { } };
+      assert.equal('', pretty_device_name_as_string(machine as Description));
     });
     it('returns Pixel 5 for redfin.', () => {
-      const machine: Partial<FrontendDescription> = { Dimensions: { device_type: ['redfin'] } };
-      assert.equal('redfin (Pixel 5)', pretty_device_name_as_string(machine as FrontendDescription));
+      const machine: Partial<Description> = { Dimensions: { device_type: ['redfin'] } };
+      assert.equal('redfin (Pixel 5)', pretty_device_name_as_string(machine as Description));
     });
     it('returns the last match in a list', () => {
-      const machine: Partial<FrontendDescription> = { Dimensions: { device_type: ['herolte', 'universal8890'] } };
-      assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name_as_string(machine as FrontendDescription));
+      const machine: Partial<Description> = { Dimensions: { device_type: ['herolte', 'universal8890'] } };
+      assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name_as_string(machine as Description));
     });
   });
 
   // Utiltiy function that tests the compare function passed in against
-  // FrontendDescriptions with the value of its 'key' set to 'aValue' and
+  // Descriptions with the value of its 'key' set to 'aValue' and
   // 'bValue' respectively. Note that the values passed in must be in the order
   // aValue < bValue.
-  const testCompareFunc = <T>(key: string, fn: compareFunc<FrontendDescription>, aValue: T, bValue: T) => {
+  const testCompareFunc = <T>(key: string, fn: compareFunc<Description>, aValue: T, bValue: T) => {
     const a: Record<string, T> = {};
     a[key] = aValue;
     const b: Record<string, T> = {};

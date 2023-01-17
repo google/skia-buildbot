@@ -38,9 +38,7 @@ import (
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
 	sseChangeSink "go.skia.org/infra/machine/go/machine/change/sink/sse"
 	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
-	"go.skia.org/infra/machine/go/machine/processor"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
-	"go.skia.org/infra/machine/go/machine/store"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machine/store/cdb"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -87,7 +85,7 @@ type server struct {
 
 	sserServer sseChangeSink.SSE
 
-	processor processor.Processor
+	processor machineProcessor.Processor
 
 	login alogin.Login
 }
@@ -126,7 +124,7 @@ func new(args []string) (*server, error) {
 
 	processor := machineProcessor.New(ctx)
 
-	var store store.Store
+	var store machineStore.Store
 	if instanceConfig.ConnectionString != "" {
 		db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
 		if err != nil {
@@ -256,7 +254,7 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
 	}
-	sendJSONResponse(rpc.ToListMachinesResponse(descriptions), w)
+	sendJSONResponse(descriptions, w)
 }
 
 func (s *server) triggerDescriptionUpdateEvent(ctx context.Context, id string) {
@@ -542,7 +540,7 @@ func (s *server) apiMachineDescriptionHandler(w http.ResponseWriter, r *http.Req
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
 	}
-	sendJSONResponse(rpc.ToFrontendDescription(desc), w)
+	sendJSONResponse(desc, w)
 }
 
 func (s *server) apiPowerCycleListHandler(w http.ResponseWriter, r *http.Request) {

@@ -111,7 +111,7 @@ type Machine struct {
 
 	// description is provided by the machine state server. This tells us what
 	// to tell swarming, what our current mode is, etc.
-	description rpc.FrontendDescription
+	description machine.Description
 
 	// sshMachineLocation is the name and path of the file to write the JSON data that specifies
 	// to recipes how to communicate with the device under test.
@@ -340,7 +340,7 @@ func (m *Machine) retrieveDescription(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to retrieve description from %q", m.machineDescriptionURL)
 	}
-	var desc rpc.FrontendDescription
+	var desc machine.Description
 	if err := json.NewDecoder(resp.Body).Decode(&desc); err != nil {
 		return skerr.Wrapf(err, "Failed to decode description from %q", m.machineDescriptionURL)
 	}
@@ -380,7 +380,7 @@ func (m *Machine) startDescriptionWatch(ctx context.Context) {
 // UpdateDescription applies any change in behavior based on the new given description. This
 // impacts what we tell Swarming, what mode we are in, if we should communicate with a device
 // via SSH, etc.
-func (m *Machine) UpdateDescription(desc rpc.FrontendDescription) {
+func (m *Machine) UpdateDescription(desc machine.Description) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.description = desc

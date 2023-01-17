@@ -44,6 +44,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: false,
   DeviceUptime: 167,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -81,6 +84,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 266,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -118,6 +124,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 183,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -155,6 +164,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 167,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -192,6 +204,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 234,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: 'Low power.',
@@ -233,6 +248,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 343,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -270,6 +288,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 657,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -311,6 +332,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 660,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: 'Too hot.',
@@ -353,6 +377,9 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 891,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
+
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -394,4 +421,6 @@ export const descriptions: ListMachinesResponse = [{
   LaunchedSwarming: true,
   DeviceUptime: 899,
   SSHUserIP: '',
+  RecoveryStart: '2022-02-26T16:40:38.008347Z',
+  SuppliedDimensions: {},
 }];
