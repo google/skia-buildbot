@@ -2,6 +2,7 @@ package poller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -21,8 +22,7 @@ import (
 	types_mocks "go.skia.org/infra/skcq/go/types/mocks"
 )
 
-func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, expectedOverallState types.VerifierState, dryRun bool) {
-	currentChangesCache := map[string]*types.CurrentlyProcessingChange{}
+func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, expectedOverallState types.VerifierState, dryRun bool, submitError error) {
 	httpClient := httputils.NewTimeoutClient()
 	publicFEInstanceURL := "https://public-fe-url/"
 	corpFEInstanceURL := "https://corp-fe-url/"
@@ -41,41 +41,45 @@ func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, e
 	changePatchsetID := "123/5"
 
 	// Mock db.
-	dbClient := &db_mocks.DB{}
+	dbClient := db_mocks.NewDB(t)
 	dbClient.On("PutChangeAttempt", testutils.AnyContext, mock.AnythingOfType("*types.ChangeAttempt"), db.GetChangesCol(false)).Return(nil).Once()
 
 	// Mock current changes cache.
-	cc := &caches_mocks.CurrentChangesCache{}
-	cc.On("Get", testutils.AnyContext, dbClient).Return(currentChangesCache).Once()
+	cc := caches_mocks.NewCurrentChangesCache(t)
 	cc.On("Add", testutils.AnyContext, changePatchsetID, ci.Subject, "batman@gotham.com", ci.Project, ci.Branch, dryRun, false, ci.Issue, int64(5)).Return(startTime, false, nil).Once()
-	cc.On("Remove", testutils.AnyContext, changePatchsetID).Return(nil).Once()
+	if expectedOverallState != types.VerifierWaitingState {
+		cc.On("Remove", testutils.AnyContext, changePatchsetID).Return(nil).Once()
+	}
 
 	// Mock cfg reader.
 	skcfg := &config.SkCQCfg{}
-	cfgReader := &cfg_mocks.ConfigReader{}
+	cfgReader := cfg_mocks.NewConfigReader(t)
 	cfgReader.On("GetSkCQCfg", testutils.AnyContext).Return(skcfg, nil).Once()
 
+	// Mock throttler maanger.
+	tm := types_mocks.NewThrottlerManager(t)
+
 	// Mock codereview.
-	cr := &cr_mocks.CodeReview{}
+	cr := cr_mocks.NewCodeReview(t)
 	cr.On("IsDryRun", testutils.AnyContext, ci).Return(dryRun).Once()
 	cr.On("IsCQ", testutils.AnyContext, ci).Return(!dryRun)
 	cr.On("GetEarliestEquivalentPatchSetID", ci).Return(int64(5)).Once()
 	cr.On("GetLatestPatchSetID", ci).Return(int64(5)).Twice()
-	if expectedOverallState != types.VerifierWaitingState {
-		cr.On("RemoveFromCQ", testutils.AnyContext, ci, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Once()
-	}
 	if !dryRun && expectedOverallState == types.VerifierSuccessState {
-		cr.On("Submit", testutils.AnyContext, ci).Return(nil).Once()
+		cr.On("Submit", testutils.AnyContext, ci).Return(submitError).Once()
+		if submitError != nil {
+			cr.On("RemoveFromCQ", testutils.AnyContext, ci, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Once()
+		} else {
+			tm.On("UpdateThrottler", "skia/main", mock.AnythingOfType("time.Time"), skcfg.ThrottlerCfg).Once()
+		}
+	} else if expectedOverallState != types.VerifierWaitingState {
+		cr.On("RemoveFromCQ", testutils.AnyContext, ci, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Once()
 	}
 
 	// Mock verifier manager.
-	vm := &types_mocks.VerifiersManager{}
+	vm := types_mocks.NewVerifiersManager(t)
 	vm.On("GetVerifiers", testutils.AnyContext, skcfg, ci, false, cfgReader).Return([]types.Verifier{}, []string{}, nil).Once()
 	vm.On("RunVerifiers", testutils.AnyContext, ci, []types.Verifier{}, startTime).Return(testVerifierStatuses).Once()
-
-	// Mock throttler maanger.
-	tm := &types_mocks.ThrottlerManager{}
-	tm.On("UpdateThrottler", "skia/main", mock.AnythingOfType("time.Time"), skcfg.ThrottlerCfg).Once()
 
 	processCL(context.Background(), vm, ci, cfgReader, clsInThisRound, cr, cc, httpClient, dbClient, nil, publicFEInstanceURL, corpFEInstanceURL, tm)
 }
@@ -87,7 +91,7 @@ func TestProcessCL_DryRun_FailureOverallState(t *testing.T) {
 		{State: types.VerifierFailureState, Name: "Verifier2", Reason: "Reason2"},
 		{State: types.VerifierWaitingState, Name: "Verifier3", Reason: "Reason3"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierFailureState, true)
+	testProcessCL(t, testVerifierStatuses, types.VerifierFailureState, true, nil)
 }
 
 func TestProcessCL_DryRun_SuccessOverallState(t *testing.T) {
@@ -96,7 +100,7 @@ func TestProcessCL_DryRun_SuccessOverallState(t *testing.T) {
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
 		{State: types.VerifierSuccessState, Name: "Verifier2", Reason: "Reason2"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, true)
+	testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, true, nil)
 }
 
 func TestProcessCL_DryRun_WaitingOverallState(t *testing.T) {
@@ -106,7 +110,7 @@ func TestProcessCL_DryRun_WaitingOverallState(t *testing.T) {
 		{State: types.VerifierWaitingState, Name: "Verifier2", Reason: "Reason2"},
 		{State: types.VerifierSuccessState, Name: "Verifier3", Reason: "Reason3"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, true)
+	testProcessCL(t, testVerifierStatuses, types.VerifierWaitingState, true, nil)
 }
 
 func TestProcessCL_CQRun_FailureOverallState(t *testing.T) {
@@ -116,7 +120,7 @@ func TestProcessCL_CQRun_FailureOverallState(t *testing.T) {
 		{State: types.VerifierFailureState, Name: "Verifier2", Reason: "Reason2"},
 		{State: types.VerifierWaitingState, Name: "Verifier3", Reason: "Reason3"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierFailureState, false)
+	testProcessCL(t, testVerifierStatuses, types.VerifierFailureState, false, nil)
 }
 
 func TestProcessCL_CQRun_WaitingOverallState(t *testing.T) {
@@ -125,7 +129,7 @@ func TestProcessCL_CQRun_WaitingOverallState(t *testing.T) {
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
 		{State: types.VerifierWaitingState, Name: "Verifier2", Reason: "Reason2"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierWaitingState, false)
+	testProcessCL(t, testVerifierStatuses, types.VerifierWaitingState, false, nil)
 }
 
 func TestProcessCL_CQRun_SuccessOverallState(t *testing.T) {
@@ -134,7 +138,19 @@ func TestProcessCL_CQRun_SuccessOverallState(t *testing.T) {
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
 		{State: types.VerifierSuccessState, Name: "Verifier2", Reason: "Reason2"},
 	}
-	testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, false)
+	testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, false, nil)
+}
+
+func TestProcessCL_CQRun_SubmitFailed(t *testing.T) {
+
+	testVerifierStatuses := []*types.VerifierStatus{
+		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
+		{State: types.VerifierSuccessState, Name: "Verifier2", Reason: "Reason2"},
+	}
+	for _, submitErrSubstr := range []string{gerrit.ErrMergeConflict, gerrit.ErrUnsubmittedDependend, gerrit.ErrNoChanges} {
+		submitError := errors.New("some_prefix " + submitErrSubstr + " some_suffix")
+		testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, false, submitError)
+	}
 }
 
 func TestCleanupCL(t *testing.T) {
