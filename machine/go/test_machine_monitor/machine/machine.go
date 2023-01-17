@@ -25,7 +25,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
-	pubsubChangeSource "go.skia.org/infra/machine/go/machine/change/source"
+	changeSource "go.skia.org/infra/machine/go/machine/change/source"
 	sseChangeSource "go.skia.org/infra/machine/go/machine/change/source/sse"
 	eventSink "go.skia.org/infra/machine/go/machine/event/sink"
 	"go.skia.org/infra/machine/go/machine/event/sink/httpsink"
@@ -71,7 +71,7 @@ type Machine struct {
 
 	// changeSource emits events when the machine Description has changed on the
 	// server, as sent by Server-Sent Events (SSE).
-	sseChangeSource pubsubChangeSource.Source
+	sseChangeSource changeSource.Source
 
 	// adb makes calls to the adb server.
 	adb adb.Adb
@@ -313,8 +313,8 @@ func (m *Machine) Start(ctx context.Context) error {
 	return nil
 }
 
-// Start a loop that scans for local devices and sends pubsub events with all
-// the data every 30s.
+// Start a loop that scans for local devices and sends Events with all the data
+// every 30s.
 func (m *Machine) startInterrogateLoop(ctx context.Context) {
 	timer := time.NewTicker(interrogateDuration)
 	defer timer.Stop()

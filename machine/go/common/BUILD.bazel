@@ -5,12 +5,5 @@ go_library(
     srcs = ["common.go"],
     importpath = "go.skia.org/infra/machine/go/common",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/executil",
-        "//go/skerr",
-        "//machine/go/machineserver/config",
-        "@com_google_cloud_go_pubsub//:pubsub",
-        "@org_golang_google_api//option",
-        "@org_golang_x_oauth2//google",
-    ],
+    deps = ["//go/executil"],
 )

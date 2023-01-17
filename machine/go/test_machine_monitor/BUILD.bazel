@@ -13,7 +13,6 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/pubsub",
         "//go/recentschannel",
         "//go/sklog",
         "//machine/go/configs",

@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
-	pubsubUtils "go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -109,8 +108,6 @@ func new(args []string) (*server, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
-	pubsubUtils.EnsureNotEmulator()
 
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, flags.configFlag)

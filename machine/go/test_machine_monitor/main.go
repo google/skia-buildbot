@@ -8,7 +8,6 @@ import (
 	"io/fs"
 
 	"go.skia.org/infra/go/common"
-	pubsubUtils "go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/recentschannel"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
@@ -64,7 +63,6 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	pubsubUtils.EnsureNotEmulator()
 	if err != nil {
 		sklog.Fatalf("Failed to open config file: %q: %s", *configFlag, err)
 	}
