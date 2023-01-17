@@ -29,7 +29,6 @@ var (
 	// Required properties for this task.
 	projectId       = flag.String("project_id", "", "ID of the Google Cloud project.")
 	wd              = flag.String("workdir", ".", "Working directory")
-	casInstance     = flag.String("cas-instance", "", "CAS instance")
 	cmdIsTaskDriver = flag.Bool("command-is-task-driver", false, "True if the provided command is a task driver.")
 
 	// input and output replace most of the below flags.
@@ -123,7 +122,7 @@ func main() {
 		if err := cipd.Ensure(ctx, client, workdir, req.CipdPackages...); err != nil {
 			return err
 		}
-		if err := cas.Download(ctx, workdir, *casInstance, ts, &cas.CASDownload{
+		if err := cas.Download(ctx, workdir, *casFlags.Instance, ts, &cas.CASDownload{
 			Path:   ".",
 			Digest: req.CasInput,
 		}); err != nil {
@@ -182,7 +181,7 @@ func main() {
 		// Upload CAS outputs. Note that we do this regardless of whether the
 		// sub-command succeeded.
 		// TODO(borenet): Should we provide a pathway for CAS exclusions?
-		casOutput, err := cas.Upload(ctx, workdir, *casInstance, ts, req.Outputs, nil)
+		casOutput, err := cas.Upload(ctx, workdir, *casFlags.Instance, ts, req.Outputs, nil)
 		if err != nil {
 			return err
 		}
