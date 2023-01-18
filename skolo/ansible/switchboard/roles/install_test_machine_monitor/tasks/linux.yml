@@ -27,8 +27,7 @@
     mode: 0755
 
 - name: Install Foundry Bot (Skolo)
-  when: ansible_facts['architecture'] == 'x86_64' and zone == 'skolo'
-  # Haven't got it compiling for ARM yet.
+  when: zone == 'skolo'
   become: true
   get_url:
     url:
@@ -41,8 +40,7 @@
     mode: 0755
 
 - name: Install Foundry Bot (GCE)
-  when: ansible_facts['architecture'] == 'x86_64' and zone == 'gce'
-  # Haven't got it compiling for ARM yet.
+  when: zone == 'gce'
   become: true
   copy:
     src:
