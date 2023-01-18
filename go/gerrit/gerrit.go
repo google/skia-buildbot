@@ -1681,3 +1681,19 @@ func (g *Gerrit) doRequest(req *http.Request) (*http.Response, error) {
 	}
 	return resp, err
 }
+
+// ParseGerritURLAndProject extracts the Gerrit URL and project name from the
+// given Gitiles repo URL.
+func ParseGerritURLAndProject(gitilesRepoURL string) (string, string, error) {
+	parsed, err := url.Parse(gitilesRepoURL)
+	if err != nil {
+		return "", "", skerr.Wrap(err)
+	}
+	project := strings.TrimPrefix(strings.TrimSuffix(parsed.Path, ".git"), "/")
+	splitHost := strings.Split(parsed.Host, ".")
+	splitHost[0] = splitHost[0] + "-review"
+	parsed.Host = strings.Join(splitHost, ".")
+	parsed.Path = ""
+	gerritURL := parsed.String()
+	return gerritURL, project, nil
+}
