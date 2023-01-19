@@ -1,38 +1,99 @@
 # This file is based on
 # https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/intel-graphics-driver-skylake.yml.
 
-# Install Intel Graphics Driver for Skylake and later GPUs.
+# Install Intel Graphics Driver for Skylake.
 
 - name: Create Temp
   win_file:
     path: C:\Temp
     state: directory
 
-# For v25.20.100.6519, the Intel driver download page only has a ZIP available. If we want to
-# switch back to using the EXE in the future, see git history.
-- name: Copy the Intel Graphics Driver Skylake ZIP to the host
+# Actual driver we will install (see comments below).
+#
+# Downloaded on 2023-01-18 from:
+# https://www.intel.com/content/www/us/en/download/762755/intel-6th-10th-gen-processor-graphics-windows.html.
+# Direct link to the .zip file:
+# https://downloadmirror.intel.com/764512/gfx_win_101.2115.zip.
+- name: Copy Intel® 6th-10th Gen Processor Graphics driver version 31.0.101.2115 (gfx_win_101.2115.zip) to the host
   win_copy:
-    src: "{{ win_package_src }}/Intel Graphics Skylake igfx_win10_100.7463.zip"
-    dest: C:\Temp\intel_gfx.zip
+    src: "{{ win_package_src }}/gfx_win_101.2115.zip"
+    dest: C:\Temp\gfx_win_101.2115.zip
 
-- name: Extract the Intel Graphics Skylake driver ZIP
+- name: Unzip gfx_win_101.2115.zip
   win_unzip:
-    src: C:\Temp\intel_gfx.zip
-    dest: C:\Temp\Intel
+    src: C:\Temp\gfx_win_101.2115.zip
+    dest: C:\Temp\gfx_win_101.2115
 
-# The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
-- name: Install Intel Graphics Driver for Skylake and later
-  # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
-  # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
-  # some reason (e.g. Windows Update). "-s" means silent.
-  win_command: C:\Temp\Intel\igxpin.exe -overwrite -s
+# We WILL NOT install these drivers, but we do need the Installer.exe program in this archive (see
+# comments below).
+#
+# Downloaded on 2023-01-18 from:
+# https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html.
+# Direct link to the .zip file:
+# https://downloadmirror.intel.com/764788/gfx_win_101.4032.zip.
+- name: Copy Intel® Arc™ & Iris® Xe Graphics driver version 31.0.101.4032 (gfx_win_101.4032.zip) to the host (500MB, can be slow)
+  win_copy:
+    src: "{{ win_package_src }}/gfx_win_101.4032.zip"
+    dest: C:\Temp\gfx_win_101.4032.zip
 
-- name: Cleanup Intel
+- name: Unzip gfx_win_101.4032.zip
+  win_unzip:
+    src: C:\Temp\gfx_win_101.4032.zip
+    dest: C:\Temp\gfx_win_101.4032
+
+# The Installer.exe program distributed in the gfx_win_101.2115.zip archive has a bug that causes
+# it force interactive mode even when --silent is provided. This causes the installer to fail.
+# Example run:
+#
+#     PS C:\Users\chrome-bot> C:\Temp\gfx_win_101.2115\Installer.exe --overwrite --silent --report C:\Temp\report.txt
+#     PS C:\Users\chrome-bot> cat C:\Temp\report.txt
+#     ...
+#     2023/01/18 23:03:58.706|WARN|Non-Interactive mode flag: True. Forcing interactive mode. ||
+#     2023/01/18 23:03:58.717|ERROR|Forcing interactive mode failed. ||
+#     2023/01/18 23:03:58.717|INFO|Closing the user interface window. ||
+#     2023/01/18 23:03:58.717|INFO|Exiting application with exit code 1... ||
+#     ...
+#
+# This is a known issue:
+# https://www.intel.com/content/www/us/en/support/articles/000093421/graphics.html.
+#
+# As per the above link, the workaround is to replace the Installer.exe binary in the
+# gfx_win_101.2115.zip archive with the more recent Installer.exe binary in the
+# gfx_win_101.4032.zip archive.
+#
+# See also:
+# https://community.intel.com/t5/Graphics/Intel-DCH-driver-Silent-Install-Non-Interactive/m-p/1447457/highlight/true#M113019.
+- name: Copy Installer.exe from gfx_win_101.4032.zip as NewInstaller.exe inside gfx_win_101.2115 directory (1.2GB, can be slow)
+  win_copy:
+    remote_src: true
+    src: C:\Temp\gfx_win_101.4032\Installer.exe
+    dest: C:\Temp\gfx_win_101.2115\NewInstaller.exe
+
+# Run with --help to see all command-line options. In case of errors, inspect C:\Temp\report.txt.
+- name: Install Intel Graphics Driver
+  win_command: C:\Temp\gfx_win_101.2115\NewInstaller.exe --overwrite --silent --report C:\Temp\report.txt
+
+- name: Cleanup gfx_win_101.2115.zip
   win_file:
-    path: C:\Temp\Intel
+    path: C:\Temp\gfx_win_101.2115.zip
     state: absent
 
-- name: Cleanup ZIP
+- name: Cleanup gfx_win_101.2115
   win_file:
-    path: C:\Temp\intel_gfx.zip
+    path: C:\Temp\gfx_win_101.2115
+    state: absent
+
+- name: Cleanup gfx_win_101.4032.zip
+  win_file:
+    path: C:\Temp\gfx_win_101.4032.zip
+    state: absent
+
+- name: Cleanup gfx_win_101.4032
+  win_file:
+    path: C:\Temp\gfx_win_101.4032
+    state: absent
+
+- name: Cleanup report.txt
+  win_file:
+    path: C:\Temp\report.txt
     state: absent
