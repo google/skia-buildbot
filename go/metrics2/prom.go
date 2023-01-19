@@ -197,7 +197,7 @@ func (p *promClient) commonGet(measurement string, tags ...map[string]string) (s
 	keys := []string{}
 	for k, v := range rawTags {
 		key := clean(k)
-		cleanTags[key] = v
+		cleanTags[key] = strings.ToValidUTF8(v, "")
 		keys = append(keys, key)
 	}
 
