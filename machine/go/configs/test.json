@@ -3,10 +3,6 @@
     "project": "skia-public",
     "topic": "machine-events-test"
   },
-  "store": {
-    "project": "skia-firestore",
-    "instance": "prod"
-  },
   "desc_source": {
     "project": "skia-public",
     "topic": "machineserver-events-test"

@@ -121,19 +121,15 @@ func new(args []string) (*server, error) {
 
 	processor := machineProcessor.New(ctx)
 
-	var store machineStore.Store
-	if instanceConfig.ConnectionString != "" {
-		db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		store = cdb.New(db)
-	} else {
-		store, err = machineStore.NewFirestoreImpl(ctx, flags.local, instanceConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
+	if instanceConfig.ConnectionString == "" {
+		sklog.Fatal("ConnectionString must be supplied in the instance config")
 	}
+
+	db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	store := cdb.New(db)
 
 	httpSource, err := httpEventSource.New()
 	if err != nil {
