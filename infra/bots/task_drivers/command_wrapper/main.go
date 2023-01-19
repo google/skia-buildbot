@@ -80,7 +80,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if len(casDownloads) != 1 {
+		if len(casDownloads) > 1 {
 			sklog.Fatalf("Only one CAS digest is supported; found %d", len(casDownloads))
 		}
 		req.CasInput = casDownloads[0].Digest
