@@ -118,7 +118,7 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 		}
 	}
 
-	auditCmd := executil.CommandContext(ctx, "npm", "audit", "--json", "--audit-level=high")
+	auditCmd := executil.CommandContext(ctx, "npm", "audit", "--json", "--audit-level=high", "--omit=dev")
 	auditCmd.Dir = a.workDir
 	sklog.Info(auditCmd.String())
 	b, err := auditCmd.Output()

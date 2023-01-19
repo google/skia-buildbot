@@ -139,7 +139,7 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 
 	// Check the input arguments to make sure they were as expected.
 	args := executil.OriginalArgs()
-	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high"}, args)
+	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high", "--omit=dev"}, args)
 
 	auditResp, err := json.Marshal(&types.NpmAuditOutput{
 		Metadata: types.NpmAuditMetadata{
@@ -166,7 +166,7 @@ func Test_FakeExe_NPM_Audit_ReturnsNoHighIssues(t *testing.T) {
 
 	// Check the input arguments to make sure they were as expected.
 	args := executil.OriginalArgs()
-	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high"}, args)
+	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high", "--omit=dev"}, args)
 
 	auditResp, err := json.Marshal(&types.NpmAuditOutput{
 		Metadata: types.NpmAuditMetadata{
