@@ -27,29 +27,30 @@
   win_command: C:\Temp\getgpu.exe
   register: getgpu
 
-- name: Print out GPU
+- name: Print out display adapters
   debug:
-    msg: 'Detected GPU: {{ getgpu.stdout }}'
+    msg: 'Detected display adapters:
+{{ getgpu.stdout }}'
 
 - name: Install Nvidia driver
   import_tasks: nvidia.yml
-  when: getgpu.stdout is match(".*Nvidia.*")
+  when: getgpu.stdout is regex(".*Nvidia.*")
 
 - name: Install Radeon driver
   import_tasks: radeon.yml
-  when: getgpu.stdout is match(".*Radeon.*")
+  when: getgpu.stdout is regex(".*Radeon.*")
 
 - name: Install Skylake driver
   import_tasks: skylake.yml
-  when: getgpu.stdout is match(".*Skylake.*")
+  when: getgpu.stdout is regex(".*Skylake.*")
 
 - name: Install Broadwell driver
   import_tasks: broadwell.yml
-  when: getgpu.stdout is match(".*Broadwell.*")
+  when: getgpu.stdout is regex(".*Broadwell.*")
 
 - name: Install Iris Xe driver
   import_tasks: irisxe.yml
-  when: getgpu.stdout is match(".*Iris\(R\) Xe.*")
+  when: getgpu.stdout is regex(".*Iris\(R\) Xe.*")
 
 - name: Cleanup getgpu.exe
   win_file:
