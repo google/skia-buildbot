@@ -211,7 +211,7 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
+		Version: "git_revision:9f6c2de25cce548433f4d0301bbde675a65a2f95",
 	},
 	"skia/tools/presubmit/${platform}": {
 		Path:    "task_drivers",
