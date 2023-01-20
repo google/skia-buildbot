@@ -64,6 +64,20 @@
           "36250902"
         ]
       }
+    },
+    "luci-milo": {
+      "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
+      "git_branch": "main",
+      "package_json_dir": "milo/ui",
+      "packages_allow_list": [],
+      "trusted_scopes": [],
+      "monorail_config": {
+        "instance_name": "chromium",
+        "owner": "weiweilin@google.com",
+        "component_def_ids": [
+          "36252057"
+        ]
+      }
     }
   }
 }
