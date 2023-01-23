@@ -213,6 +213,11 @@ if (!(Test-Path ($swarm_worker_dir))) {
   $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json
   curl $swarming/bot_code?bot_id=$hostname -Headers @{"Authorization"="Bearer " + $metadataJson.access_token} -OutFile $swarm_worker_dir/swarming_bot.zip
 }
+
+# Tell Swarming not to manage its own autostart configuration, as it is handled in this file. See:
+# https://chromium.googlesource.com/infra/luci/luci-py/+/3c15545f8bf9052c81a7d2a40705dc152e864053/appengine/swarming/swarming_bot/bot_code/bot_main.py#613
+$env:SWARMING_EXTERNAL_BOT_SETUP = "1"
+
 cmd /c "python $swarm_worker_dir/swarming_bot.zip start_bot"
 
 banner "The Task ended"
