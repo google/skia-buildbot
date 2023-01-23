@@ -51,6 +51,20 @@
         ]
       }
     },
+    "chromium-dash": {
+      "repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal.git",
+      "git_branch": "main",
+      "package_json_dir": "appengine/chromiumdash",
+      "packages_allow_list": [],
+      "trusted_scopes": [],
+      "monorail_config": {
+        "instance_name": "chromium",
+        "owner": "dtu@google.com",
+        "component_def_ids": [
+          "36250390"
+        ]
+      }
+    },
     "luci-analysis": {
       "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
       "git_branch": "main",
