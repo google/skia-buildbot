@@ -30,10 +30,10 @@
       "packages_allow_list": [],
       "trusted_scopes": [],
       "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "zhangtiff@google.com",
+        "instance_name": "monorail",
+        "owner": "dtu@google.com",
         "component_def_ids": [
-          "36250649"
+          "36250322"
         ]
       }
     },
@@ -45,7 +45,7 @@
       "trusted_scopes": [],
       "monorail_config": {
         "instance_name": "chromium",
-        "owner": "andrewjc@google.com",
+        "owner": "dtu@google.com",
         "component_def_ids": [
           "36250649"
         ]
