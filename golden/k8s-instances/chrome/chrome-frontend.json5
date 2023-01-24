@@ -15,6 +15,13 @@
     defaultCorpus: "android-render-tests",
     title: "Chrome Gold",
   },
+  grouping_param_keys_by_corpus: {
+    "android-render-tests": ["name", "source_type"],
+    "android-render-tests-internal": ["name", "source_type"],
+    "chrome-gpu": ["name", "source_type"],
+    "finch-smoke-tests": ["name", "source_type"],
+    "gtest-pixeltests": ["name", "source_type"],
+  },
   prom_port: ":20000",
   ready_port: ":8000",
   public_site_url: "https://chrome-public-gold.skia.org",
