@@ -40,7 +40,7 @@ export class ARBTableSk extends ElementSk {
   <div>
     Filter: <input type="text"
         value="${ele.filter}"
-        @input="${(e: InputEvent) => {ele.filter = (e.target as HTMLInputElement).value}}"
+        @input="${(e: InputEvent) => { ele.filter = (e.target as HTMLInputElement).value }}"
         ></input>
   </div>
   <table>
@@ -52,7 +52,7 @@ export class ARBTableSk extends ElementSk {
       <th></th>
     </tr>
     ${ele.filtered.map(
-      (st) => html`
+    (st) => html`
         <tr>
           <td>
             <a href="/r/${st.rollerId}"
@@ -65,7 +65,7 @@ export class ARBTableSk extends ElementSk {
           <td>${LastCheckInSpan(st)}</td>
         </tr>
       `,
-    )}
+  )}
   </table>
 `;
 
@@ -75,7 +75,7 @@ export class ARBTableSk extends ElementSk {
   private state: State = {
     filter: '',
   };
-  private stateHasChanged = () => {};
+  private stateHasChanged = () => { };
 
   constructor() {
     super(ARBTableSk.template);
@@ -88,13 +88,14 @@ export class ARBTableSk extends ElementSk {
   set filter(filter: string) {
     this.state.filter = filter;
     this.stateHasChanged();
+    this.updateFiltered();
   }
 
   connectedCallback() {
     super.connectedCallback();
     this.stateHasChanged = stateReflector(
-      /* getState */ () => (this.state as unknown) as HintableObject,
-      /* setState */ (newState) => {
+      /* getState */() => (this.state as unknown) as HintableObject,
+      /* setState */(newState) => {
         this.state = (newState as unknown) as State;
         this.updateFiltered();
       },
