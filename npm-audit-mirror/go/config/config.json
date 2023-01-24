@@ -79,6 +79,20 @@
         ]
       }
     },
+    "luci-bisection": {
+      "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
+      "git_branch": "main",
+      "package_json_dir": "bisection/frontend/ui",
+      "packages_allow_list": [],
+      "trusted_scopes": [],
+      "monorail_config": {
+        "instance_name": "chromium",
+        "owner": "aredulla@google.com",
+        "component_def_ids": [
+          "36250204"
+        ]
+      }
+    },
     "luci-milo": {
       "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
       "git_branch": "main",
