@@ -9,6 +9,8 @@
 
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
+import { HintableObject } from 'common-sk/modules/hintable';
+import { stateReflector } from 'common-sk/modules/stateReflector';
 import { define } from 'elements-sk/define';
 import 'elements-sk/styles/table';
 
@@ -29,11 +31,17 @@ import { GetLastCheckInTime, LastCheckInSpan } from '../utils';
  */
 const hideOutdatedRollersThreshold = 7 * 24 * 60 * 60 * 1000; // 7 days.
 
+class State {
+  filter: string = ''; // Regular expression used to filter rollers.
+}
+
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
   <div>
-    Filter: <input id="filter" type="text" @input="${ele.updateFiltered
-    }"></input>
+    Filter: <input type="text"
+        value="${ele.filter}"
+        @input="${(e: InputEvent) => {ele.filter = (e.target as HTMLInputElement).value}}"
+        ></input>
   </div>
   <table>
     <tr>
@@ -62,18 +70,35 @@ export class ARBTableSk extends ElementSk {
 `;
 
   private rollers: AutoRollMiniStatus[] = [];
-
   private filtered: AutoRollMiniStatus[] = [];
-
   private rpc: AutoRollService;
+  private state: State = {
+    filter: '',
+  };
+  private stateHasChanged = () => {};
 
   constructor() {
     super(ARBTableSk.template);
     this.rpc = GetAutoRollService(this);
   }
 
+  get filter(): string {
+    return this.state.filter;
+  }
+  set filter(filter: string) {
+    this.state.filter = filter;
+    this.stateHasChanged();
+  }
+
   connectedCallback() {
     super.connectedCallback();
+    this.stateHasChanged = stateReflector(
+      /* getState */ () => (this.state as unknown) as HintableObject,
+      /* setState */ (newState) => {
+        this.state = (newState as unknown) as State;
+        this.updateFiltered();
+      },
+    );
     this.reload();
   }
 
@@ -99,11 +124,9 @@ export class ARBTableSk extends ElementSk {
 
   private updateFiltered() {
     this.filtered = this.rollers;
-
-    const filterInput = $$<HTMLInputElement>('#filter', this);
-    if (!!filterInput && !!filterInput.value) {
+    if (this.filter) {
       // If a filter was provided in the text box, use that.
-      const regex = new RegExp(filterInput!.value);
+      const regex = new RegExp(this.filter);
       this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => (
         st.rollerId.match(regex)
         || st.childName.match(regex)
