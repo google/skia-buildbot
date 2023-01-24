@@ -1959,13 +1959,18 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
 	defer span.End()
 
+	trace.BoolAttribute("fromCache", false)
+
 	// Return the baseline from the cache if possible.
 	baselineCacheKey := "primary"
 	if clID != "" {
 		baselineCacheKey = fmt.Sprintf("%s_%s", crs, clID)
 	}
 	if val, ok := wh.baselineCache.Get(baselineCacheKey); ok {
-		return val.(frontend.BaselineV2Response), nil
+		res := val.(frontend.BaselineV2Response)
+		trace.BoolAttribute("fromCache", true)
+		trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations)))
+		return res, nil
 	}
 
 	statement := `WITH
@@ -2034,6 +2039,7 @@ WHERE label = 'n' OR label = 'p'`
 		ChangelistID:     clID,
 		Expectations:     baseline,
 	}
+	trace.Int64Attribute("numExpectationsReturned", int64(len(response.Expectations)))
 
 	// Cache the computed baseline.
 	baselineCacheEntryTTL := baselineCachePrimaryBranchEntryTTL
