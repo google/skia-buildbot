@@ -120,6 +120,40 @@ gold_launcher(
     default_corpus = "gm",
     gcs_bucket = "skia-infra-gm",
     git_repo_url = "https://skia.googlesource.com/skia.git",
+    grouping_param_keys_by_corpus = {
+        "canvaskit": [
+            "name",
+            "source_type",
+        ],
+        "colorImage": [
+            "name",
+            "source_type",
+        ],
+        "gm": [
+            "name",
+            "source_type",
+        ],
+        "image": [
+            "name",
+            "source_type",
+        ],
+        "old-skp": [
+            "name",
+            "source_type",
+        ],
+        "pathkit": [
+            "name",
+            "source_type",
+        ],
+        "skp": [
+            "name",
+            "source_type",
+        ],
+        "svg": [
+            "name",
+            "source_type",
+        ],
+    },
     known_hashes_gcs_path = "skia-infra-gm/hash_files/gold-prod-hashes.txt",
     materialized_view_corpora = [
         "canvaskit",
@@ -153,6 +187,12 @@ gold_launcher(
     default_corpus = "infra",
     gcs_bucket = "skia-gold-skia-infra",
     git_repo_url = "https://skia.googlesource.com/buildbot.git",
+    grouping_param_keys_by_corpus = {
+        "infra": [
+            "name",
+            "source_type",
+        ],
+    },
     known_hashes_gcs_path = "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
     site_url = "https://skia-infra-gold.skia.org",
     sql_database = "skiainfra",

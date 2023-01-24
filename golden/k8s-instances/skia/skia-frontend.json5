@@ -9,6 +9,16 @@
     defaultCorpus: "gm",
     title: "Skia Gold",
   },
+  grouping_param_keys_by_corpus: {
+    canvaskit: ["name", "source_type"],
+    colorImage: ["name", "source_type"],
+    gm: ["name", "source_type"],
+    image: ["name", "source_type"],
+    "old-skp": ["name", "source_type"],
+    pathkit: ["name", "source_type"],
+    skp: ["name", "source_type"],
+    svg: ["name", "source_type"],
+  },
   materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days

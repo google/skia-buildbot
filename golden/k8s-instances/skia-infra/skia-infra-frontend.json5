@@ -8,6 +8,9 @@
     defaultCorpus: "infra",
     title: "Skia Infra Gold",
   },
+  grouping_param_keys_by_corpus: {
+    infra: ["name", "source_type"],
+  },
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",

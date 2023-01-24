@@ -93,12 +93,13 @@ const (
 
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
-	DB            *pgxpool.Pool
-	GCSClient     storage.GCSClient
-	IgnoreStore   ignore.Store
-	ReviewSystems []clstore.ReviewSystem
-	Search2API    search.API
-	WindowSize    int
+	DB                        *pgxpool.Pool
+	GCSClient                 storage.GCSClient
+	IgnoreStore               ignore.Store
+	ReviewSystems             []clstore.ReviewSystem
+	Search2API                search.API
+	WindowSize                int
+	GroupingParamKeysByCorpus map[string][]string
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -1346,12 +1347,49 @@ func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 // GroupingsHandler returns a map from corpus name to the list of keys that comprise the corpus
 // grouping.
+//
+// If this Gold instance's JSON5 config includes a dictionary of grouping param keys by corpus,
+// this method returns it. Otherwise, this method reads the grouping param keys by corpus from the
+// status cache.
+//
+// For large Gold instances (e.g. Skia, Chrome) it is important to provide a dictionary of grouping
+// param keys by corpus in its JSON5 config because:
+//
+//   - The status cache is periodically populated by a goroutine that runs a slow SQL query (~13
+//     minutes in the case of the Skia instance).
+//   - Upon launching an instance, the status cache remains empty for several minutes until said
+//     goroutine finishes running the aforementioned slow SQL query for the first time.
+//   - During that time, this RPC (/json/v1/groupings) returns an empty dictionary if the JSON5
+//     config does not include a dictionary of grouping param keys by corpus.
+//   - The "goldctl imgtest add" command hits this RPC to validate that the test being added
+//     includes all the params required by its corpus' grouping.
+//   - If the RPC returns an empty map, goldctl reports "grouping params for corpus X are unknown",
+//     which causes spurious test failures in the associated CI system.
+//
+// Some possible alternatives:
+//
+//   - Write a fast SQL query specifically for /json/v1/groupings, but that's probably hard with
+//     the current schema. It might require factoring the corpora out into their own table.
+//   - Delay starting the webserver until the status cache is populated, but that would be at the
+//     expense of a much longer startup time for large instances.
 func (wh *Handlers) GroupingsHandler(w http.ResponseWriter, r *http.Request) {
 	_, span := trace.StartSpan(r.Context(), "web_GroupingsHandler")
 	defer span.End()
-	// This should be an incredibly cheap call and therefore does not count against any quota.
+
+	// We will read the grouping param keys by corpus from the status cache. This should be an
+	// incredibly cheap call and therefore does not count against any quota.
 	wh.statusCacheMutex.RLock()
 	defer wh.statusCacheMutex.RUnlock()
+
+	// If the status cache's corpora status list is empty, and if this Gold instance's JSON5 config
+	// includes a dictionary of grouping param keys by corpus, return it.
+	if len(wh.statusCache.CorpStatus) == 0 && len(wh.GroupingParamKeysByCorpus) != 0 {
+		res := frontend.GroupingsResponse{
+			GroupingParamKeysByCorpus: wh.GroupingParamKeysByCorpus,
+		}
+		sendJSONResponse(w, res)
+		return
+	}
 
 	res := frontend.GroupingsResponse{
 		GroupingParamKeysByCorpus: map[string][]string{},

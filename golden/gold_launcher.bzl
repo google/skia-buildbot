@@ -29,6 +29,7 @@ cat > config.json5 <<EOF
     defaultCorpus: "{default_corpus}",
     title: "{title}",
   }},
+  grouping_param_keys_by_corpus: {grouping_param_keys_by_corpus},
   materialized_view_corpora: {materialized_view_corpora},
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
@@ -100,6 +101,7 @@ def gold_launcher(
         sql_database,
         known_hashes_gcs_path,
         window_size,
+        grouping_param_keys_by_corpus = None,
         materialized_view_corpora = None):
     """Launches a local gold_frontend instance that talks to a production database.
 
@@ -112,7 +114,7 @@ def gold_launcher(
         default_corpus: Default corpus, e.g. "gm".
         title: Title shown in the Gold UI, e.g. "Skia Gold".
         gcs_bucket: GCS bucket where digests are found, e.g. "skia-infra-gm".
-        code_review_systems: A list dictionaries with keys "id", "flavor", "gerrit_url" and
+        code_review_systems: A list of dictionaries with keys "id", "flavor", "gerrit_url" and
             "url_template".
         git_repo_url: Git repository URL, e.g. "https://skia.googlesource.com/skia.git".
         site_url: URL of the Gold instance, e.g. "https://gold.skia.org".
@@ -122,11 +124,16 @@ def gold_launcher(
         window_size: Window size, e.g. 256.
         materialized_view_corpora: Array with the materialized view corpora, e.g.
             ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"]. Optional.
+        grouping_param_keys_by_corpus: A dictionary where the keys are corpus names and the values
+            are a list of param keys, e.g. {"foo": ["a", "b"], "bar": ["c", "d"]}. Optional.
+
     """
     formatted_runner_script = _RUNNER_SCRIPT.format(
         bazel_target_name = "//%s:%s" % (native.package_name(), name),
         default_corpus = default_corpus,
         title = title,
+        grouping_param_keys_by_corpus =
+            grouping_param_keys_by_corpus if grouping_param_keys_by_corpus else "null",
         materialized_view_corpora =
             materialized_view_corpora if materialized_view_corpora else "null",
         gcs_bucket = gcs_bucket,

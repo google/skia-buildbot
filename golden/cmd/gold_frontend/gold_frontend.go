@@ -72,6 +72,15 @@ type frontendServerConfig struct {
 	// Configuration settings that will get passed to the frontend (see modules/settings.ts)
 	FrontendConfig frontendConfig `json:"frontend"`
 
+	// GroupingParamKeysByCorpus is a map from corpus name to the list of keys that comprise the
+	// corpus' grouping.
+	//
+	// TODO(lovisolo): Should this be mandatory? Pros: speedups (see the /json/v1/groupings RPC
+	//                 handler), consistency across instances, inches us closer towards supporting
+	//                 heterogeneous groupings. Cons: harder to define new corpora (requires
+	//                 redeploying Gold), sensitive corpus names.
+	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus" optional:"true"`
+
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
 
@@ -377,12 +386,13 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []c
 // mustMakeWebHandlers returns a new web.Handlers.
 func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		DB:            db,
-		GCSClient:     gsClient,
-		IgnoreStore:   ignoreStore,
-		ReviewSystems: reviewSystems,
-		Search2API:    s2a,
-		WindowSize:    fsc.WindowSize,
+		DB:                        db,
+		GCSClient:                 gsClient,
+		IgnoreStore:               ignoreStore,
+		ReviewSystems:             reviewSystems,
+		Search2API:                s2a,
+		WindowSize:                fsc.WindowSize,
+		GroupingParamKeysByCorpus: fsc.GroupingParamKeysByCorpus,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
