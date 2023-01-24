@@ -566,6 +566,7 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	}
 	louhiRepos := []gitiles.GitilesRepo{
 		gitiles.NewRepo("https://skia.googlesource.com/buildbot.git", louhiHttpClient),
+		gitiles.NewRepo("https://skia.googlesource.com/k8s-config.git", louhiHttpClient),
 		gitiles.NewRepo("https://skia.googlesource.com/skia-autoroll-internal-config.git", louhiHttpClient),
 	}
 	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject, g, louhiRepos); err != nil {
