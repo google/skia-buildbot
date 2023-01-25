@@ -147,7 +147,7 @@ func TestProcessCL_CQRun_SubmitFailed(t *testing.T) {
 		{State: types.VerifierSuccessState, Name: "Verifier1", Reason: "Reason1"},
 		{State: types.VerifierSuccessState, Name: "Verifier2", Reason: "Reason2"},
 	}
-	for _, submitErrSubstr := range []string{gerrit.ErrMergeConflict, gerrit.ErrUnsubmittedDependend, gerrit.ErrNoChanges} {
+	for _, submitErrSubstr := range []string{gerrit.ErrMergeConflict, gerrit.ErrUnsubmittedDependend, gerrit.ErrEmptyCommit} {
 		submitError := errors.New("some_prefix " + submitErrSubstr + " some_suffix")
 		testProcessCL(t, testVerifierStatuses, types.VerifierSuccessState, false, submitError)
 	}

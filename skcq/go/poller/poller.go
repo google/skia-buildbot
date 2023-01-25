@@ -254,7 +254,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 				} else if strings.Contains(err.Error(), gerrit.ErrUnsubmittedDependend) {
 					sklog.Infof("[%d] Gerrit rejected submission due to unsubmitted dependend: %s", ci.Issue, err.Error())
 					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to unsubmitted dependend.\n\n%s", err.Error()), "SkCQ unsubmitted dependend")
-				} else if strings.Contains(err.Error(), gerrit.ErrNoChanges) {
+				} else if strings.Contains(err.Error(), gerrit.ErrEmptyCommit) {
 					sklog.Infof("[%d] Gerrit rejected submission due to empty commit: %s", ci.Issue, err.Error())
 					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to empty commit.\n\n%s", err.Error()), "SkCQ empty commit")
 				} else {
