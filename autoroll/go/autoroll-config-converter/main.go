@@ -10,18 +10,23 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
 	"text/template"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
@@ -32,6 +37,7 @@ import (
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -208,7 +214,7 @@ func main() {
 			if err != nil {
 				return skerr.Wrapf(err, "failed to read template file %s", tmplPath)
 			}
-			generatedConfigs, err := processTemplate(ctx, path, string(tmplContents), vars)
+			generatedConfigs, err := processTemplate(ctx, client, path, string(tmplContents), vars)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to process template file %s", path)
 			}
@@ -379,7 +385,7 @@ func convertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 }
 
 // processTemplate converts a single template into at least one config.
-func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *TemplateVars) (map[string][]byte, error) {
+func processTemplate(ctx context.Context, client *http.Client, srcPath, tmplContents string, vars *TemplateVars) (map[string][]byte, error) {
 	// Read and execute the template.
 	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(funcMap).Parse(tmplContents)
 	if err != nil {
@@ -397,6 +403,20 @@ func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *Te
 	}
 	sklog.Infof("  Found %d configs in %s", len(configs.Config), srcPath)
 
+	// Filter out any rollers whose required GCS artifacts do not exist.
+	filteredConfigs := make([]*config.Config, 0, len(configs.Config))
+	for _, cfg := range configs.Config {
+		missing, err := gcsArtifactIsMissing(ctx, client, cfg)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to check whether GCS artifact exists for %s (from %s)", cfg.RollerName, srcPath)
+		}
+		if missing {
+			sklog.Warningf("Skipping roller %s; required GCS artifact does not exist.", cfg.RollerName)
+		} else {
+			filteredConfigs = append(filteredConfigs, cfg)
+		}
+	}
+
 	// Split off the template file name and the "templates" directory name.
 	srcPathSplit := []string{}
 	for _, elem := range strings.Split(srcPath, string(filepath.Separator)) {
@@ -406,8 +426,8 @@ func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *Te
 	}
 	srcRelPath := filepath.Join(srcPathSplit...)
 
-	changes := make(map[string][]byte, len(configs.Config))
-	for _, cfg := range configs.Config {
+	changes := make(map[string][]byte, len(filteredConfigs))
+	for _, cfg := range filteredConfigs {
 		encBytes, err := protoMarshalOptions.Marshal(cfg)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "failed to encode config from %q", srcPath)
@@ -415,6 +435,42 @@ func processTemplate(ctx context.Context, srcPath, tmplContents string, vars *Te
 		changes[filepath.Join(srcRelPath, cfg.RollerName+".cfg")] = encBytes
 	}
 	return changes, nil
+}
+
+func gcsArtifactIsMissing(ctx context.Context, client *http.Client, cfg *config.Config) (bool, error) {
+	pcrm := cfg.GetParentChildRepoManager()
+	if pcrm == nil {
+		return false, nil
+	}
+	semVerGCSChild := pcrm.GetSemverGcsChild()
+	if semVerGCSChild == nil {
+		return false, nil
+	}
+	gcsChild := semVerGCSChild.Gcs
+	if gcsChild == nil {
+		// This shouldn't happen with a valid config.
+		return false, nil
+	}
+	regex, err := regexp.Compile(semVerGCSChild.VersionRegex)
+	if err != nil {
+		return false, skerr.Wrapf(err, "failed compiling regex for %s", cfg.RollerName)
+	}
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	gcsClient := gcsclient.New(storageClient, gcsChild.GcsBucket)
+	missing := true
+	if err := gcsClient.AllFilesInDirectory(ctx, gcsChild.GcsPath, func(item *storage.ObjectAttrs) error {
+		if regex.MatchString(path.Base(item.Name)) {
+			missing = false
+			return iterator.Done
+		}
+		return nil
+	}); err != nil && err != iterator.Done {
+		return false, skerr.Wrapf(err, "failed searching %s/%s", gcsChild.GcsBucket, gcsChild.GcsPath)
+	}
+	return missing, nil
 }
 
 func makeMap(elems ...interface{}) (map[string]interface{}, error) {
