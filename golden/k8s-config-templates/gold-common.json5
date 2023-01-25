@@ -1,7 +1,7 @@
 {
     "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2023-01-24T20_17_05Z-lovisolo-572a68b-clean",
     "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2023-01-24T20_18_55Z-lovisolo-572a68b-clean",
-    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2023-01-25T01_57_01Z-lovisolo-8666a7b-clean",
+    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2023-01-25T20_54_52Z-lovisolo-c754b35-clean",
     "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2023-01-24T20_22_24Z-lovisolo-572a68b-clean",
     "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2023-01-24T20_23_18Z-lovisolo-572a68b-clean",
     "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2023-01-24T20_24_32Z-lovisolo-572a68b-clean",
