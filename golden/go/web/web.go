@@ -1959,7 +1959,7 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
 	defer span.End()
 
-	trace.BoolAttribute("fromCache", false)
+	span.AddAttributes(trace.BoolAttribute("fromCache", false))
 
 	// Return the baseline from the cache if possible.
 	baselineCacheKey := "primary"
@@ -1968,8 +1968,9 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	}
 	if val, ok := wh.baselineCache.Get(baselineCacheKey); ok {
 		res := val.(frontend.BaselineV2Response)
-		trace.BoolAttribute("fromCache", true)
-		trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations)))
+		span.AddAttributes(
+			trace.BoolAttribute("fromCache", true),
+			trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations))))
 		return res, nil
 	}
 
@@ -2039,7 +2040,7 @@ WHERE label = 'n' OR label = 'p'`
 		ChangelistID:     clID,
 		Expectations:     baseline,
 	}
-	trace.Int64Attribute("numExpectationsReturned", int64(len(response.Expectations)))
+	span.AddAttributes(trace.Int64Attribute("numExpectationsReturned", int64(len(response.Expectations))))
 
 	// Cache the computed baseline.
 	baselineCacheEntryTTL := baselineCachePrimaryBranchEntryTTL
