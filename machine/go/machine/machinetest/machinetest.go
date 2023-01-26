@@ -29,10 +29,11 @@ var FullyFilledInDescription = machine.Description{
 		Timestamp: MockTime,
 	},
 	Dimensions: machine.SwarmingDimensions{
-		machine.DimID: []string{"skia-e-linux-202"},
-		"foo":         []string{"bar"},
-		"alpha":       []string{"beta", "gamma"},
-		"task_type":   []string{"swarming"},
+		machine.DimID:   []string{"skia-e-linux-202"},
+		machine.DimPool: []string{machine.PoolSkia},
+		"foo":           []string{"bar"},
+		"alpha":         []string{"beta", "gamma"},
+		"task_type":     []string{"swarming"},
 	},
 	SuppliedDimensions: machine.SwarmingDimensions{
 		"gpu": []string{"some-gpu"},

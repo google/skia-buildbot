@@ -209,6 +209,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			machine.DimDeviceType: []string{"sargo"},
 			machine.DimOS:         []string{"Android"},
 			machine.DimID:         []string{"skia-rpi2-0001"},
+			machine.DimPool:       []string{machine.PoolSkia},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            machine.BadBatteryLevel,
@@ -236,6 +237,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		machine.DimPool:       []string{machine.PoolSkia},
 	}
 
 	// An event arrives without any device info.
@@ -291,6 +293,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		machine.DimPool:       []string{machine.PoolSkia},
 	}
 	previous.MaintenanceMode = "jcgregorio 2022-11-08"
 
@@ -350,6 +353,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DimOS:          []string{"Android"},
 		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
 		machine.DimID:          []string{"skia-rpi2-0001"},
+		machine.DimPool:        []string{machine.PoolSkia},
 	}
 
 	// An event arrives with the device restored.
@@ -446,6 +450,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 		Dimensions: machine.SwarmingDimensions{
 			machine.DimID:          []string{"skia-rpi2-0001"},
 			machine.DimQuarantined: []string{"Recovering: Battery low."},
+			machine.DimPool:        []string{machine.PoolSkia},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            9,
@@ -911,6 +916,7 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"cpu":                  []string{"x86", "x86_64"},
 			"gpu":                  []string{"none"},
 			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+			machine.DimPool:        []string{machine.PoolSkia},
 		},
 	}
 	event := machine.Event{
@@ -950,6 +956,7 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"chromeos_milestone": []string{"89"},             // added
 			"release_version":    []string{"13729.56.0"},     // added
 			// quarantined was removed.
+			machine.DimPool: []string{machine.PoolSkia},
 		},
 		Annotation: machine.Annotation{
 			User:      machineUserName,
@@ -973,10 +980,11 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":  []string{"skia-rpi2-0001"},
-			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu": []string{"x86", "x86_64"},
-			"gpu": []string{"none"},
+			"id":            []string{"skia-rpi2-0001"},
+			"os":            []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":           []string{"x86", "x86_64"},
+			"gpu":           []string{"none"},
+			machine.DimPool: []string{machine.PoolSkia},
 		},
 	}
 	event := machine.Event{
@@ -1004,6 +1012,7 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"cpu":                  []string{"x86", "x86_64"},
 			"gpu":                  []string{"none"},
 			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
+			machine.DimPool:        []string{machine.PoolSkia},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{
@@ -1035,6 +1044,7 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"chromeos_channel":   []string{"stable-channel"},
 			"chromeos_milestone": []string{"89"},
 			"release_version":    []string{"13729.56.0"},
+			machine.DimPool:      []string{machine.PoolSkia},
 		},
 	}
 	event := machine.Event{
@@ -1065,6 +1075,7 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"chromeos_milestone":   []string{"89"},
 			"release_version":      []string{"13729.56.0"},
 			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
+			machine.DimPool:        []string{machine.PoolSkia},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{

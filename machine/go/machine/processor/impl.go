@@ -116,6 +116,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	}
 
 	_ = machine.SetSwarmingQuarantinedMessage(&next)
+	machine.SetSwarmingPool(&next)
 	setQuarantineMetrics(next)
 
 	return next

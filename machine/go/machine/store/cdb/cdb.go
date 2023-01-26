@@ -170,6 +170,10 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 			newD.Dimensions[machine.DimTaskType] = []string{string(machine.Swarming)}
 		}
 
+		if !newD.HasValidPool() {
+			machine.SetSwarmingPool(&newD)
+		}
+
 		// Normalize times so they appear consistent in the database.
 		newD.RecoveryStart = newD.RecoveryStart.UTC().Truncate(time.Millisecond)
 		newD.LastUpdated = newD.LastUpdated.UTC().Truncate(time.Millisecond)

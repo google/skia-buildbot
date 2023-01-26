@@ -1,6 +1,7 @@
 package machine_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -136,4 +137,38 @@ func TestDescription_InMaintenanceMode_ReturnsTrueIfHasMaintenanceModeMessage(t 
 
 func TestDescription_InMaintenanceMode_ReturnsFalseIfMaintenanceModeMessageIsEmpty(t *testing.T) {
 	require.False(t, machine.Description{}.InMaintenanceMode())
+}
+
+func TestSetSwarmingPool_NameStartsWithSkiaI_PoolSetToSkiaInternal(t *testing.T) {
+	d := machine.NewDescription(context.Background())
+	d.Dimensions["id"] = []string{"skia-i-rpi-001"}
+	machine.SetSwarmingPool(&d)
+	require.Equal(t, machine.PoolSkiaInternal, d.Dimensions.GetDimensionValueOrEmptyString(machine.DimPool))
+}
+
+func TestSetSwarmingPool_AllOtherMachinesGoInTheSkiaPool(t *testing.T) {
+	d := machine.NewDescription(context.Background())
+	d.Dimensions["id"] = []string{"skia-rpi2-rack4-shelf1-002"}
+	machine.SetSwarmingPool(&d)
+	require.Equal(t, machine.PoolSkia, d.Dimensions.GetDimensionValueOrEmptyString(machine.DimPool))
+}
+
+func TestHasValidPool_OnlyOneValidPool_ReturnsTrue(t *testing.T) {
+	ctx := context.Background()
+	d := machine.NewDescription(ctx)
+	d.Dimensions[machine.DimPool] = []string{machine.PoolSkia}
+	require.True(t, d.HasValidPool())
+}
+
+func TestHasValidPool_NoPoolKey_ReturnsFalse(t *testing.T) {
+	ctx := context.Background()
+	d := machine.NewDescription(ctx)
+	require.False(t, d.HasValidPool())
+}
+
+func TestHasValidPool_TwoOrMorePoolNames_ReturnsFalse(t *testing.T) {
+	ctx := context.Background()
+	d := machine.NewDescription(ctx)
+	d.Dimensions[machine.DimPool] = []string{machine.PoolSkia, machine.PoolSkiaInternal}
+	require.False(t, d.HasValidPool())
 }

@@ -144,9 +144,10 @@ func TestStore_ZeroLengthDimensionsAreDiscarded_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	expected := machine.SwarmingDimensions{
-		"keep":        {"a", "b"},
-		machine.DimID: {machineID1},
-		"task_type":   []string{"swarming"},
+		"keep":          {"a", "b"},
+		machine.DimID:   {machineID1},
+		"task_type":     []string{"swarming"},
+		machine.DimPool: []string{machine.PoolSkia},
 	}
 	require.Equal(t, expected, stored.Dimensions)
 	expected = machine.SwarmingDimensions{

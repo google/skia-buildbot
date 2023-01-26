@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -25,7 +26,9 @@ func (s SwarmingDimensions) Copy() SwarmingDimensions {
 	return n
 }
 
-func (s SwarmingDimensions) getDimensionValueOrEmptyString(key string) string {
+// GetDimensionValueOrEmptyString returns the last string in the value slice at
+// the given key, or the empty string if the key doesn't exist.
+func (s SwarmingDimensions) GetDimensionValueOrEmptyString(key string) string {
 	if values, ok := s[key]; ok && len(values) > 0 {
 		return values[len(values)-1]
 	}
@@ -39,9 +42,9 @@ func (s SwarmingDimensions) AsMetricsTags() map[string]string {
 	// Note that all metrics with the same name must have the exact same set of
 	// tag keys so we can't just stuff all the Dimensions into the tags.
 	return map[string]string{
-		DimID:         s.getDimensionValueOrEmptyString(DimID),
-		DimOS:         s.getDimensionValueOrEmptyString(DimOS),
-		DimDeviceType: s.getDimensionValueOrEmptyString(DimDeviceType),
+		DimID:         s.GetDimensionValueOrEmptyString(DimID),
+		DimOS:         s.GetDimensionValueOrEmptyString(DimOS),
+		DimDeviceType: s.GetDimensionValueOrEmptyString(DimDeviceType),
 	}
 }
 
@@ -59,6 +62,7 @@ const (
 	DimCPU                    = "cpu"
 	DimGPU                    = "gpu"
 	DimTaskType               = "task_type"
+	DimPool                   = "pool"
 
 	BadBatteryLevel = -99
 )
@@ -76,6 +80,15 @@ const (
 )
 
 var AllTaskRequestorStates = []TaskRequestor{Swarming, SkTask}
+
+// Pool names.
+const (
+	PoolSkia         = "Skia"
+	PoolSkiaInternal = "SkiaInternal"
+)
+
+// AllValidPools contains all valid pool names.
+var AllValidPools = []string{PoolSkia, PoolSkiaInternal}
 
 // PowerCycleState is the state of powercycling for a single machine.
 type PowerCycleState string
@@ -220,6 +233,13 @@ func (d Description) InMaintenanceMode() bool {
 	return d.MaintenanceMode != ""
 }
 
+// HasValidPool returns true if the pool dimension is valid.
+func (d Description) HasValidPool() bool {
+	pool, ok := d.Dimensions[DimPool]
+
+	return ok && len(pool) == 1 && util.In(pool[0], AllValidPools)
+}
+
 // DestFromDescription returns a slice of interface containing pointers to every public member
 // of Description. This is useful in code that stores the Description in an SQL database.
 //
@@ -271,6 +291,16 @@ func SetSwarmingQuarantinedMessage(d *Description) bool {
 		return true
 	}
 	return false
+}
+
+// SetSwarmingPool based on the machine id.
+func SetSwarmingPool(d *Description) {
+	machineName := d.Dimensions.GetDimensionValueOrEmptyString("id")
+	if strings.HasPrefix(machineName, "skia-i-") {
+		d.Dimensions[DimPool] = []string{PoolSkiaInternal}
+	} else {
+		d.Dimensions[DimPool] = []string{PoolSkia}
+	}
 }
 
 // NewDescription returns a new Description instance. It describes an available machine with no
