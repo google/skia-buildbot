@@ -46,7 +46,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -86,7 +86,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -126,7 +126,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -166,7 +166,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -206,7 +206,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: 'Low power.',
@@ -250,7 +250,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -290,7 +290,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -334,7 +334,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: 'Too hot.',
@@ -379,7 +379,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
-
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }, {
   MaintenanceMode: '',
   Recovering: '',
@@ -423,4 +423,5 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
   RecoveryStart: '2022-02-26T16:40:38.008347Z',
   SuppliedDimensions: {},
+  TaskStarted: '2022-02-26T16:40:38.008347Z',
 }];

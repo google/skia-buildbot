@@ -118,6 +118,7 @@ describe('SortHistory', () => {
       },
       RecoveryStart: '2022-02-26T16:40:38.008347Z',
       SuppliedDimensions: {},
+      TaskStarted: '2022-02-26T16:40:38.008347Z',
     };
 
     // Now create desc2 based on its differences from desc1.

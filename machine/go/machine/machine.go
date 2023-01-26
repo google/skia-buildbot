@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // SwarmingDimensions is for de/serializing swarming dimensions:
@@ -57,9 +58,24 @@ const (
 	DimCores                  = "cores"
 	DimCPU                    = "cpu"
 	DimGPU                    = "gpu"
+	DimTaskType               = "task_type"
 
 	BadBatteryLevel = -99
 )
+
+// TaskRequestor is the system that is allowed to schedule jobs on a machine.
+// This is the value type for the Dimension keyed by DimTaskType.
+type TaskRequestor string
+
+const (
+	// Swarming is allowed to schedule tasks.
+	Swarming TaskRequestor = "swarming"
+
+	// SkTask means Skia Task Scheduler is allowed to schedule tasks.
+	SkTask TaskRequestor = "sktask"
+)
+
+var AllTaskRequestorStates = []TaskRequestor{Swarming, SkTask}
 
 // PowerCycleState is the state of powercycling for a single machine.
 type PowerCycleState string
@@ -113,6 +129,7 @@ type Annotation struct {
 
 // Description is the current state of a single machine.
 type Description struct {
+
 	// MaintenanceMode is non-empy if someone manually puts the machine into
 	// this mode. The value will be the user's email address and the date of the
 	// change.
@@ -174,6 +191,15 @@ type Description struct {
 	// it can run.
 	Dimensions SwarmingDimensions `sql:"dimensions JSONB NOT NULL"`
 
+	// TaskRequest, if present, will be the trigger that launches a task.
+	//
+	// To kill a running TaskRequest, just modify the Description to delete the TaskRequest, i.e. TaskRequest = null.
+	TaskRequest *types.TaskRequest `sql:"task_request JSONB" json:",omitempty"`
+
+	// TaskStarted records when a task was started. This value is set on
+	// machineserver during Update.
+	TaskStarted time.Time `sql:"task_started TIMESTAMPTZ NOT NULL"`
+
 	// Create a computed column with the machine id to use as the primary key.
 	machineIDComputed struct{} `sql:"machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED"`
 
@@ -219,6 +245,8 @@ func DestFromDescription(d *Description) []interface{} {
 		&d.SSHUserIP,
 		&d.SuppliedDimensions,
 		&d.Dimensions,
+		&d.TaskRequest,
+		&d.TaskStarted,
 	}
 }
 
@@ -263,6 +291,10 @@ func (d Description) Copy() Description {
 	ret.Temperature = map[string]float64{}
 	for k, v := range d.Temperature {
 		ret.Temperature[k] = v
+	}
+	if d.TaskRequest != nil {
+		tr := *d.TaskRequest
+		ret.TaskRequest = &tr
 	}
 	return ret
 }

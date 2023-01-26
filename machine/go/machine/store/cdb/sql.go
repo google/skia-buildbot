@@ -23,6 +23,8 @@ const Schema = `CREATE TABLE IF NOT EXISTS Description (
   ssh_user_ip STRING NOT NULL DEFAULT '',
   supplied_dimensions JSONB NOT NULL,
   dimensions JSONB NOT NULL,
+  task_request JSONB,
+  task_started TIMESTAMPTZ NOT NULL,
   machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED,
   INVERTED INDEX dimensions_gin (dimensions),
   INDEX by_powercycle (powercycle)
@@ -49,4 +51,6 @@ var Description = []string{
 	"ssh_user_ip",
 	"supplied_dimensions",
 	"dimensions",
+	"task_request",
+	"task_started",
 }

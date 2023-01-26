@@ -165,9 +165,15 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 		newD.Dimensions = sanitizeDimensions(newD.Dimensions)
 		newD.SuppliedDimensions = sanitizeDimensions(newD.SuppliedDimensions)
 
+		// Default to a DimTaskType of Swarming if not set.
+		if len(newD.Dimensions[machine.DimTaskType]) == 0 {
+			newD.Dimensions[machine.DimTaskType] = []string{string(machine.Swarming)}
+		}
+
 		// Normalize times so they appear consistent in the database.
 		newD.RecoveryStart = newD.RecoveryStart.UTC().Truncate(time.Millisecond)
 		newD.LastUpdated = newD.LastUpdated.UTC().Truncate(time.Millisecond)
+		newD.TaskStarted = newD.TaskStarted.UTC().Truncate(time.Millisecond)
 
 		// Write the updated value.
 		_, err = tx.Exec(ctx, Statements[Update], machine.DestFromDescription(&newD)...)

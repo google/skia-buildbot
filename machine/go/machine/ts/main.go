@@ -29,6 +29,7 @@ func main() {
 	generator.AddIgnoreNil(rpc.ListMachinesResponse{})
 	generator.AddUnion(machine.AllAttachedDevices)
 	generator.AddUnion(machine.AllPowerCycleStates)
+	generator.AddUnion(machine.AllTaskRequestorStates)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

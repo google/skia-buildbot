@@ -29,6 +29,7 @@ go_test(
         "//machine/go/machine",
         "//machine/go/machine/machinetest",
         "//machine/go/machine/store/cdb/cdbtest",
+        "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_stretchr_testify//require",
     ],
 )

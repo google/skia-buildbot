@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var MockTime = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
@@ -31,6 +32,7 @@ var FullyFilledInDescription = machine.Description{
 		machine.DimID: []string{"skia-e-linux-202"},
 		"foo":         []string{"bar"},
 		"alpha":       []string{"beta", "gamma"},
+		"task_type":   []string{"swarming"},
 	},
 	SuppliedDimensions: machine.SwarmingDimensions{
 		"gpu": []string{"some-gpu"},
@@ -46,4 +48,8 @@ var FullyFilledInDescription = machine.Description{
 	RecoveryStart:       MockTime,
 	DeviceUptime:        MockDuration,
 	SSHUserIP:           "root@skia-sparky360-03",
+	TaskRequest: &types.TaskRequest{
+		Command: []string{"./helloworld"},
+	},
+	TaskStarted: MockTime,
 }
