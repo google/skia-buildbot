@@ -111,7 +111,7 @@ func main() {
 	if *baseapp.Local {
 		criaTs = ts
 	} else {
-		criaTs, err = auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
+		criaTs, err = auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, "", "", auth.ScopeUserinfoEmail)
 		if err != nil {
 			sklog.Fatal(err)
 		}

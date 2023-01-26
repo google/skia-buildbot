@@ -34,10 +34,11 @@ const defaultSkiaRepo = "skia"
 var (
 	host               = flag.String("host", "tree-status.skia.org", "HTTP service host")
 	modifyGroup        = flag.String("modify_group", "project-skia-committers", "The chrome infra auth group to use for who is allowed to change tree status.")
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
+	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "Path to a local file, or name of a GCP secret, containing the JWT key for the service account that has access to chrome infra auth.")
 	namespace          = flag.String("namespace", "tree-status-staging", "The Cloud Datastore namespace.")
-	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+	dsProject          = flag.String("ds-project", "skia-public", "Name of the GCP project used for Datastore.")
 	repos              = common.NewMultiStringFlag("repo", nil, "These repos will have tree status endpoints.")
+	secretProject      = flag.String("secret-project", "skia-infra-public", "Name of the GCP project used for secret management.")
 	internalPort       = flag.String("internal_port", "", "HTTP internal service address (eg: ':8001' for unauthenticated in-cluster requests.")
 )
 
@@ -70,7 +71,7 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 
-	dsClient, err = datastore.NewClient(context.Background(), *project, option.WithTokenSource(ts))
+	dsClient, err = datastore.NewClient(context.Background(), *dsProject, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize Cloud Datastore for tree status")
 	}
@@ -101,7 +102,7 @@ func New() (baseapp.App, error) {
 
 	var modify allowed.Allow
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
+		ts, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, *secretProject, *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, err
 		}

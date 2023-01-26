@@ -144,7 +144,7 @@ func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
 // project - The project name, i.e. "google.com:skia-buildbots".
 // ns      - The datastore namespace to store data into.
 func Init(project string, ns string) error {
-	tok, err := auth.NewDefaultJWTServiceAccountTokenSource("https://www.googleapis.com/auth/datastore")
+	tok, err := auth.NewDefaultJWTServiceAccountTokenSource(context.TODO(), "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return err
 	}

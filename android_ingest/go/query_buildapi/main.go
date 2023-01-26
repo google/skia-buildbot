@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 
@@ -20,7 +21,8 @@ var (
 func main() {
 	common.Init()
 	// Create a new auth'd client.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", "", androidbuildinternal.AndroidbuildInternalScope)
+	ctx := context.Background()
+	ts, err := auth.NewJWTServiceAccountTokenSource(ctx, "", "", "", "", androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}

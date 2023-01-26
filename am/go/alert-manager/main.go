@@ -74,8 +74,9 @@ type server struct {
 func New() (baseapp.App, error) {
 	var allow allowed.Allow
 	var assign allowed.Allow
+	ctx := context.Background()
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
+		ts, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, "", "", auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +96,6 @@ func New() (baseapp.App, error) {
 
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
-	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, err

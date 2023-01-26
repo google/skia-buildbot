@@ -10,6 +10,7 @@ go_library(
         "//go/exec",
         "//go/httputils",
         "//go/metadata",
+        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -295,34 +296,58 @@ func saveToken(cacheFilePath string, tok *oauth2.Token) error {
 	return nil
 }
 
+// getJWT attempts to retrieve JWT JSON Service Account data from the following
+// sources, in order:
+//
+// * GCE metadata
+// * Local file
+// * GCP secrets
+func getJWT(ctx context.Context, metadataName, fileName, secretProject, secretName string) ([]byte, error) {
+	if metadataName == "" {
+		metadataName = metadata.JWT_SERVICE_ACCOUNT
+	}
+	if fileName == "" {
+		fileName = defaultJwtFilename
+	}
+	jwt, err := metadata.ProjectGet(metadataName)
+	if err == nil {
+		sklog.Infof("Read JWT from metadata %s", metadataName)
+		return []byte(jwt), nil
+	}
+	body, err := ioutil.ReadFile(fileName)
+	if err == nil {
+		sklog.Infof("Read JWT from file %s", fileName)
+		return body, nil
+	}
+	secretClient, err := secret.NewClient(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed creating secret client after failing to retrieve JWT via metadata %q and file %q", metadataName, fileName)
+	}
+	s, err := secretClient.Get(ctx, secretProject, secretName, secret.VersionLatest)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed retrieving secret %q from project %q after failing to retrieve JWT via metadata %q and file %q", secretName, secretProject, metadataName, fileName)
+	}
+	return []byte(s), nil
+}
+
 // NewJWTServiceAccountTokenSource creates a new oauth2.TokenSource that
 // is loaded first by attempting to load JWT JSON Service Account data from GCE
 // Project Level metadata, and if that fails falls back to loading the data
-// from a local file.
+// from a local file, followed by GCP secrets if the local file fails.
 //
 //   metadataname - The name of the GCE project level metadata key that holds the JWT JSON. If empty a default is used.
 //   filename - The name of the local file that holds the JWT JSON. If empty a default is used.
-func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...string) (oauth2.TokenSource, error) {
-	if metadataname == "" {
-		metadataname = metadata.JWT_SERVICE_ACCOUNT
-	}
-	if filename == "" {
-		filename = defaultJwtFilename
-	}
-	var body []byte
-	jwt, err := metadata.ProjectGet(metadataname)
+//   secretProject - The GCP project containing the GCP secret which holds the JWT JSON.
+//   secretName - The name of the GCP secret which holds the JWT JSON.
+func NewJWTServiceAccountTokenSource(ctx context.Context, metadataname, filename, secretProject, secretName string, scopes ...string) (oauth2.TokenSource, error) {
+	body, err := getJWT(ctx, metadataname, filename, secretProject, secretName)
 	if err != nil {
-		body, err = ioutil.ReadFile(filename)
-		if err != nil {
-			return nil, skerr.Fmt("Couldn't find JWT via metadata %q or in a local file %q.", metadataname, filename)
-		}
-		sklog.Infof("Read from file %s", filename)
-	} else {
-		body = []byte(jwt)
+		return nil, skerr.Wrap(err)
 	}
+
 	// TODO(dogben): Ok to add metrics?
 	tokenClient := httputils.DefaultClientConfig().Client()
-	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, tokenClient)
 	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
 	if err != nil {
 		sklog.Errorf("Invalid JWT/JSON for token source: %s", body)
@@ -335,8 +360,8 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 // is loaded first by attempting to load JWT JSON Service Account data from GCE
 // Project Level metadata, and if that fails falls back to loading the data
 // from a local file.
-func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
-	return NewJWTServiceAccountTokenSource("", "", scopes...)
+func NewDefaultJWTServiceAccountTokenSource(ctx context.Context, scopes ...string) (oauth2.TokenSource, error) {
+	return NewJWTServiceAccountTokenSource(ctx, "", "", "", "", scopes...)
 }
 
 // keyFormat is used to extract some information from a JSON encoded service

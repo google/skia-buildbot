@@ -31,6 +31,7 @@ var (
 
 func main() {
 	common.Init()
+	ctx := context.Background()
 	matches, err := filepath.Glob(filepath.Join(*dir, "*.cpp"))
 	if err != nil {
 		sklog.Fatalf("Failed searching for files: %s", err)
@@ -46,7 +47,7 @@ func main() {
 	var w io.WriteCloser = os.Stdout
 	if *dest != "" {
 		if strings.HasPrefix(*dest, "gs://") {
-			ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.ScopeReadWrite)
+			ts, err := auth.NewDefaultJWTServiceAccountTokenSource(ctx, auth.ScopeReadWrite)
 			if err != nil {
 				sklog.Fatalf("Problem setting up client OAuth: %s", err)
 			}

@@ -78,7 +78,7 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 		}
 	} else {
 		var err error
-		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("", a.ServiceAccount, gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
+		tokenSrc, err = auth.NewJWTServiceAccountTokenSource(context.TODO(), "", a.ServiceAccount, "", "", gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "instantiating JWT auth token source")
 		}

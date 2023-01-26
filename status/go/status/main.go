@@ -102,7 +102,7 @@ var (
 
 // flags
 var (
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
+	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "Path to a local file, or name of a GCP secret, containing the JWT key for the service account that has access to chrome infra auth.")
 	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
@@ -114,6 +114,7 @@ var (
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	secretProject               = flag.String("secret-project", "skia-infra-public", "Name of the GCP project used for secret management.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{TaskID}} as placeholder.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
@@ -349,7 +350,7 @@ func main() {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
 
-	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
+	criaTs, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, *secretProject, *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
 	}

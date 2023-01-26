@@ -80,7 +80,7 @@ func NewServiceAccountToken(fp string, isKeyFile bool) (*ServiceAccountToken, er
 	rv.updateFn = rv.readTokenFromFile
 	if isKeyFile {
 		var err error
-		rv.tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", fp, compute.CloudPlatformScope, auth.ScopeUserinfoEmail)
+		rv.tokenSrc, err = auth.NewJWTServiceAccountTokenSource(context.TODO(), "#bogus", fp, "", "", compute.CloudPlatformScope, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, err
 		}
