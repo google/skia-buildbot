@@ -158,7 +158,7 @@ func (b *busyBots) Filter(bots []*types.Machine) []*types.Machine {
 			rv = append(rv, bot)
 		}
 	}
-	b.recordBotMetrics(FILTER_MINUS_PENDING_TASKS, bots)
+	b.recordBotMetrics(FILTER_MINUS_PENDING_TASKS, rv)
 	return rv
 }
 
