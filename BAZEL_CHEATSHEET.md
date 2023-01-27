@@ -62,14 +62,10 @@ Run `make gazelle` from the repository's root directory.
 
 ### TypeScript support
 
-Currently, Gazelle only generates front-end Bazel targets for the directories explicitly listed in
-`//bazel/gazelle/frontend/allowlist.go`. Edit this file to enable generation of front-end targets
-for your app.
-
 TypeScript support is provided via a custom Gazelle extension which can be found in
 `//bazel/gazelle/frontend`.
 
-Tip: see [here](#testing-typescript-code) for details on how this extension decides which rule to
+Tip: See [here](#testing-typescript-code) for details on how this extension decides which rule to
 generate for a given TypeScript file.
 
 ## Buildifier
@@ -589,8 +585,7 @@ command. When compiling Skia, for example, this reduces compile time by 2-3x.
 Sandboxing can make diagnosing failing rules a bit harder. To see what command got run and to be
 able to view the sandbox after failure, add `--subcommands --sandbox_debug` to the command.
 
-
-### BUILD Debugging
+### BUILD.bazel file debugging
 
 Bazel builds fast and correct by making use of cached outputs and reusing them when
 the input file is identical. This can make it hard to debug a slow or non-deterministic
