@@ -847,11 +847,18 @@ export class AlertManagerSk extends HTMLElement {
       // Find all incidents included in the range during shift click.
       const incidents_included_in_range: string[] = [];
 
-      // The incidents we go through for shift click selections will be
-      // different for bot-centric vs normal view.
-      const incidents = this.isBotCentricView
-        ? ([] as Incident[]).concat(...Object.values(this.bots_to_incidents))
-        : this.incidents;
+
+      let incidents: Incident[] = [];
+      if (this.state.tab === 0) {
+        // Use "my" incidents if we are on the "Mine" tab.
+        incidents = this.getMyIncidents();
+      } else {
+        // The incidents we go through for shift click selections will be
+        // different for bot-centric vs normal view.
+        incidents = this.isBotCentricView
+          ? ([] as Incident[]).concat(...Object.values(this.bots_to_incidents))
+          : this.incidents;
+      }
 
       incidents.some((i) => {
         if (i.key === this.last_checked_incident
