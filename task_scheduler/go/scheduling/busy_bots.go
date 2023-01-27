@@ -184,7 +184,9 @@ func (b *busyBots) RefreshTasks(pending []*types.TaskResult) {
 	b.pendingTasks = trie.New()
 	for _, t := range pending {
 		dims := types.DimensionsFromTags(t.Tags)
-		b.pendingTasks.Insert(dims, t.ID)
+		if len(dims) > 0 {
+			b.pendingTasks.Insert(dims, t.ID)
+		}
 	}
 
 	taskIds := util.StringSet{}

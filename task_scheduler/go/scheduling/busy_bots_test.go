@@ -8,33 +8,32 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+func bot(id string, dims map[string][]string) *types.Machine {
+	dimsFlat := make([]string, 0, len(dims))
+	for key, values := range dims {
+		for _, val := range values {
+			dimsFlat = append(dimsFlat, fmt.Sprintf("%s:%s", key, val))
+		}
+	}
+	return &types.Machine{
+		ID:         id,
+		Dimensions: dimsFlat,
+	}
+}
+
+func task(id string, dims map[string]string) *types.TaskResult {
+	tags := make(map[string][]string, len(dims))
+	for k, v := range dims {
+		tagKey := fmt.Sprintf("%s%s", types.SWARMING_TAG_DIMENSION_PREFIX, k)
+		tags[tagKey] = []string{v}
+	}
+	return &types.TaskResult{
+		ID:   id,
+		Tags: tags,
+	}
+}
+
 func TestBusyBots(t *testing.T) {
-
-	bot := func(id string, dims map[string][]string) *types.Machine {
-		dimsFlat := make([]string, 0, len(dims))
-		for key, values := range dims {
-			for _, val := range values {
-				dimsFlat = append(dimsFlat, fmt.Sprintf("%s:%s", key, val))
-			}
-		}
-		return &types.Machine{
-			ID:         id,
-			Dimensions: dimsFlat,
-		}
-	}
-
-	task := func(id string, dims map[string]string) *types.TaskResult {
-		tags := make(map[string][]string, len(dims))
-		for k, v := range dims {
-			tagKey := fmt.Sprintf("%s%s", types.SWARMING_TAG_DIMENSION_PREFIX, k)
-			tags[tagKey] = []string{v}
-		}
-		return &types.TaskResult{
-			ID:   id,
-			Tags: tags,
-		}
-	}
-
 	// No bots are busy.
 	bb := newBusyBots(BusyBotsDebugLoggingOff)
 	b1 := bot("b1", map[string][]string{
@@ -81,4 +80,25 @@ func TestBusyBots(t *testing.T) {
 	// Test supersets of dimensions.
 	bb.RefreshTasks([]*types.TaskResult{t1, t2, t3})
 	assertdeep.Equal(t, []*types.Machine{b3}, bb.Filter([]*types.Machine{b1, b2, b3, b4}))
+}
+
+func TestBusyBots_TaskHasNoKnownDimensions_NoBotAppearsBusy(t *testing.T) {
+	b1 := bot("b1", map[string][]string{
+		"pool": {"Skia"},
+		"os":   {"Linux"},
+	})
+	b2 := bot("b2", map[string][]string{
+		"pool": {"Skia"},
+		"os":   {"Windows"},
+	})
+	bots := []*types.Machine{b1, b2}
+
+	bb := newBusyBots(BusyBotsDebugLoggingOff)
+
+	// Add a task which has no known dimensions.
+	t1 := task("t1", map[string]string{})
+	bb.RefreshTasks([]*types.TaskResult{t1})
+
+	// No bots should appear busy.
+	assertdeep.Equal(t, bots, bb.Filter(bots))
 }
