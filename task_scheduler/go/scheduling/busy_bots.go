@@ -46,19 +46,28 @@ func init() {
 	sort.Strings(includeDimensions)
 }
 
+type BusyBotsDebugLog bool
+
+const (
+	BusyBotsDebugLoggingOn  BusyBotsDebugLog = true
+	BusyBotsDebugLoggingOff BusyBotsDebugLog = false
+)
+
 // busyBots is a struct used for marking a bot as busy while it runs a Task.
 type busyBots struct {
 	// map[<filter>]map[<dimensionsString>]<count of bots>
 	freeBotMetrics map[string]map[string]metrics2.Int64Metric
 	pendingTasks   *trie.Trie
 	mtx            sync.Mutex
+	debug          BusyBotsDebugLog
 }
 
 // newBusyBots returns a busyBots instance.
-func newBusyBots() *busyBots {
+func newBusyBots(debug BusyBotsDebugLog) *busyBots {
 	return &busyBots{
 		freeBotMetrics: map[string]map[string]metrics2.Int64Metric{},
 		pendingTasks:   trie.New(),
+		debug:          debug,
 	}
 }
 
@@ -139,9 +148,15 @@ func (b *busyBots) Filter(bots []*types.Machine) []*types.Machine {
 	b.recordBotMetrics(FILTER_ALL_FREE_BOTS, bots)
 	matched := make(map[string]bool, len(bots))
 	rv := make([]*types.Machine, 0, len(bots))
+	if b.debug {
+		sklog.Debugf("Busy Bots: %s", b.pendingTasks.String())
+	}
 	for _, bot := range bots {
 		// Find matching tasks.
 		matches := b.pendingTasks.SearchSubset(bot.Dimensions)
+		if b.debug {
+			sklog.Debugf("%s (%v) matched: %v", bot.ID, bot.Dimensions)
+		}
 		// Choose the first non-empty entry and pretend that
 		// this bot is busy with that task.
 		var e string

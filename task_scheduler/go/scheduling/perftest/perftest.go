@@ -336,7 +336,7 @@ func main() {
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
 	}
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", "", taskCfgCache, nil, nil, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", "", taskCfgCache, nil, nil, "", scheduling.BusyBotsDebugLoggingOff)
 	assertNoError(err)
 
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()

@@ -122,7 +122,7 @@ type TaskScheduler struct {
 	window                window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors map[string]types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, cdPool, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors map[string]types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, cdPool, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, debugBusyBots BusyBotsDebugLog) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -154,7 +154,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 
 	s := &TaskScheduler{
 		skipTasks:             bl,
-		busyBots:              newBusyBots(),
+		busyBots:              newBusyBots(debugBusyBots),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		cdPool:                cdPool,
 		db:                    d,

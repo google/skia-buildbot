@@ -52,6 +52,7 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	cdPool            = flag.String("cd_pool", "", "Swarming pool used only for continuous deployment tasks.")
+	debugBusyBots     = flag.Bool("debug-busy-bots", false, "If set, dump debug information in the busy-bots module.")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
@@ -167,7 +168,7 @@ func main() {
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
 	}
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *swarmingPools, *cdPool, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *swarmingPools, *cdPool, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance, scheduling.BusyBotsDebugLog(*debugBusyBots))
 	if err != nil {
 		sklog.Fatal(err)
 	}

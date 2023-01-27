@@ -36,7 +36,7 @@ func TestBusyBots(t *testing.T) {
 	}
 
 	// No bots are busy.
-	bb := newBusyBots()
+	bb := newBusyBots(BusyBotsDebugLoggingOff)
 	b1 := bot("b1", map[string][]string{
 		"pool": {"Skia"},
 	})
