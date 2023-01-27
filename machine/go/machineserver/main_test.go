@@ -51,7 +51,7 @@ const (
 	sshUserIP2 = "chrome-bot@skia-spin513-002"
 )
 
-func setupForTest(t *testing.T) (context.Context, machine.Description, *server, *mux.Router, *httptest.ResponseRecorder) {
+func setupForTestLocalOrProd(t *testing.T, local bool) (context.Context, machine.Description, *server, *mux.Router, *httptest.ResponseRecorder) {
 	ctx := now.TimeTravelingContext(fakeTime)
 	desc := machine.NewDescription(ctx)
 	desc.Dimensions = machine.SwarmingDimensions{
@@ -68,7 +68,7 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 
 	s := &server{
 		flags: &flags{
-			local: true,
+			local: local,
 		},
 		store: storeMock,
 
@@ -85,10 +85,22 @@ func setupForTest(t *testing.T) (context.Context, machine.Description, *server, 
 	return ctx, desc, s, router, w
 }
 
+func setupForTest(t *testing.T) (context.Context, machine.Description, *server, *mux.Router, *httptest.ResponseRecorder) {
+	return setupForTestLocalOrProd(t, true)
+}
+
 func newAuthorizedRequest(method, target string, body io.Reader) *http.Request {
 	ret := httptest.NewRequest(method, target, body)
 	ret.Header.Add(authproxy.WebAuthRoleHeaderName, string(roles.Editor))
 	return ret
+}
+
+func TestMachineMainPageHandler_UnauthorizedRequest_Status401(t *testing.T) {
+	_, _, _, router, w := setupForTestLocalOrProd(t, false)
+	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
+	router.ServeHTTP(w, r)
+
+	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {

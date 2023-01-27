@@ -104,11 +104,6 @@ func new(args []string) (*server, error) {
 		common.FlagSetOpt(flagSet),
 	)
 
-	err := flagSet.Parse(args)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, flags.configFlag)
 	if err != nil {
@@ -619,8 +614,8 @@ func gzip(h http.Handler) http.Handler {
 }
 
 func (s *server) editor(h http.Handler) http.Handler {
-	if s.flags.local {
-		proxylogin.ForceRoleMiddleware(s.login, roles.Editor)(h)
+	if !s.flags.local {
+		return proxylogin.ForceRoleMiddleware(s.login, roles.Editor)(h)
 	}
 	return h
 }
