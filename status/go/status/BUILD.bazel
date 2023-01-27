@@ -20,6 +20,7 @@ go_library(
         "//go/httputils",
         "//go/login",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//status/go/capacity",

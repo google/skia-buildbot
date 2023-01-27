@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
@@ -428,7 +429,7 @@ func main() {
 			for roller, friendlyName := range subMap {
 				s, err := autorollStatusDB.Get(ctx, roller)
 				if err != nil {
-					return err
+					return skerr.Wrapf(err, "retrieving status for %s", roller)
 				}
 				miniStatus := s.AutoRollMiniStatus
 				url := fmt.Sprintf("https://%s/r/%s", host, roller)

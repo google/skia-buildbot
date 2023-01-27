@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -166,7 +167,7 @@ func NewDatastoreDB() *DatastoreDB {
 func (d *DatastoreDB) Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 	buf := bytes.NewBuffer(nil)
 	if err := gob.NewEncoder(buf).Encode(st); err != nil {
-		return err
+		return skerr.Wrapf(err, "encoding status for %s", rollerName)
 	}
 	w := &DsStatusWrapper{
 		Data:   buf.Bytes(),
@@ -174,10 +175,10 @@ func (d *DatastoreDB) Set(ctx context.Context, rollerName string, st *AutoRollSt
 	}
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		_, err := tx.Put(key(rollerName), w)
-		return err
+		return skerr.Wrapf(err, "inserting status for %s into DB", rollerName)
 	})
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "inserting status for %s into DB", rollerName)
 	}
 
 	// Optionally export the mini version of the internal roller's status
@@ -188,7 +189,7 @@ func (d *DatastoreDB) Set(ctx context.Context, rollerName string, st *AutoRollSt
 		}
 		buf := bytes.NewBuffer(nil)
 		if err := gob.NewEncoder(buf).Encode(exportStatus); err != nil {
-			return err
+			return skerr.Wrapf(err, "encoding status for %s (export)", rollerName)
 		}
 		w := &DsStatusWrapper{
 			Data:   buf.Bytes(),
@@ -199,10 +200,10 @@ func (d *DatastoreDB) Set(ctx context.Context, rollerName string, st *AutoRollSt
 			k.Namespace = ds.AUTOROLL_NS
 			k.Parent.Namespace = ds.AUTOROLL_NS
 			_, err := tx.Put(k, w)
-			return err
+			return skerr.Wrapf(err, "inserting status for %s into DB (export)", rollerName)
 		})
 		if err != nil {
-			return err
+			return skerr.Wrapf(err, "inserting status for %s into DB (export)", rollerName)
 		}
 	}
 	return nil
@@ -212,11 +213,11 @@ func (d *DatastoreDB) Set(ctx context.Context, rollerName string, st *AutoRollSt
 func (d *DatastoreDB) Get(ctx context.Context, rollerName string) (*AutoRollStatus, error) {
 	var w DsStatusWrapper
 	if err := ds.DS.Get(ctx, key(rollerName), &w); err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "reading status for %s from DB", rollerName)
 	}
 	rv := new(AutoRollStatus)
 	if err := gob.NewDecoder(bytes.NewReader(w.Data)).Decode(rv); err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "decoding status for %s", rollerName)
 	}
 	return rv, nil
 }
