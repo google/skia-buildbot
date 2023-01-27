@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
@@ -118,7 +119,10 @@ func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if srv.flags.local {
 		srv.loadTemplates()
 	}
-	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{}); err != nil {
+	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+		// Look in //scrap/pages/BUILD.bazel for where the nonce templates are injected.
+		"Nonce": secure.CSPNonce(r.Context()),
+	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
