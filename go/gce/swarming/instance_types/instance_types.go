@@ -39,11 +39,12 @@ const (
 
 var (
 	// "Constants"
-	SETUP_SCRIPT_LINUX_PATH    = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
-	SETUP_SCRIPT_WIN_PATH      = filepath.Join("scripts", "win_setup.ps1")
-	STARTUP_SCRIPT_WIN_PATH    = filepath.Join("scripts", "win_startup.ps1")
-	CHROME_BOT_SCRIPT_WIN_PATH = filepath.Join("scripts", "chromebot-schtask.ps1")
-	NODE_SETUP_PATH            = filepath.Join("third_party", "node", "setup_6.x")
+	SETUP_SCRIPT_LINUX_PATH         = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
+	SETUP_SCRIPT_LINUX_ANSIBLE_PATH = filepath.Join("go", "gce", "swarming", "setup-script-linux-ansible.sh")
+	SETUP_SCRIPT_WIN_PATH           = filepath.Join("scripts", "win_setup.ps1")
+	STARTUP_SCRIPT_WIN_PATH         = filepath.Join("scripts", "win_startup.ps1")
+	CHROME_BOT_SCRIPT_WIN_PATH      = filepath.Join("scripts", "chromebot-schtask.ps1")
+	NODE_SETUP_PATH                 = filepath.Join("third_party", "node", "setup_6.x")
 
 	externalNamePrefixRegexp = regexp.MustCompile("^skia-e-")
 )
@@ -199,6 +200,11 @@ func GetLinuxScripts(ctx context.Context, checkoutRoot, workdir string) (string,
 		return "", "", err
 	}
 	return filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH), string(nodeSetupBytes), nil
+}
+
+// Returns the path to the setup script that only installs Ansible dependencies, given a local checkout.
+func GetLinuxScriptsForAnsible(checkoutRoot string) string {
+	return filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_ANSIBLE_PATH)
 }
 
 // Returns the setup, startup, and chrome-bot scripts, given a local checkout.

@@ -1,15 +1,19 @@
-# tasks file for rfkill
-- name: Install rfkill
-  become: true
-  apt:
-    update_cache: yes
-    pkg:
-      - rfkill
+# We only run rfkill on Skolo machines because GCE machines do not have wireless connectivity, and
+# rfkill fails if it cannot find wireless adapters.
+- name: Block WiFi and Bluetooth on Skolo Linux machines.
+  when: ansible_facts['system']|lower == 'linux' and zone == 'skolo'
+  block:
+    - name: Install rfkill.
+      become: true
+      apt:
+        update_cache: yes
+        pkg:
+          - rfkill
 
-- name: block wifi
-  become: true
-  shell: rfkill block wifi
+    - name: Block WiFi.
+      become: true
+      shell: rfkill block wifi
 
-- name: block bluetooth
-  become: true
-  shell: rfkill block bluetooth
+    - name: Block Bluetooth.
+      become: true
+      shell: rfkill block bluetooth

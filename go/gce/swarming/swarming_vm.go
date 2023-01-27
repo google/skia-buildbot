@@ -64,7 +64,9 @@ var (
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
-	workdir        = flag.String("workdir", ".", "Working directory.")
+	// TODO(lovisolo): Delete this flag once all instances are set up exclusively via Ansible.
+	ansible = flag.Bool("ansible", false, "Only install dependencies needed for Ansible (SSH, Python, etc.). Skip everything else (Swarming, test_machine_monitor, etc.).")
+	workdir = flag.String("workdir", ".", "Working directory.")
 )
 
 func main() {
@@ -97,9 +99,22 @@ func main() {
 	ctx := context.Background()
 	var setupScript, startupScript, chromebotScript, nodeSetup string
 	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+		if *ansible {
+			sklog.Fatal("Flag --ansible is not supported for Windows instances at this time.")
+		}
 		setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
-	} else {
+	} else if *instanceType == instance_types.INSTANCE_TYPE_CT {
+		// TODO(lovisolo): Should we configure CT instances via Ansible as well?
+		if *ansible {
+			sklog.Fatal("Flag --ansible is not supported for CT instances at this time.")
+		}
 		setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
+	} else {
+		if *ansible {
+			setupScript = instance_types.GetLinuxScriptsForAnsible(checkoutRoot)
+		} else {
+			setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
+		}
 	}
 	if err != nil {
 		sklog.Fatal(err)

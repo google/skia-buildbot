@@ -4,6 +4,7 @@
   gather_facts: true
 
   roles:
+    - fix_gce_linux_apt
     - stop_sleeping
     - create_chrome_bot_user
     - copy_authorized_keys

@@ -1,0 +1,18 @@
+# Based on
+# https://skia.googlesource.com/buildbot/+/bd000c01fd40ce58a8c4272e7d234fc289939972/go/gce/swarming/setup-script-linux.sh.
+- name: Fix apt on Linux GCE machines.
+  when: ansible_facts['system']|lower == 'linux' and zone == 'gce'
+  block:
+    - name: Fix some problems with GPG keys.
+      become: yes
+      shell: |
+        apt update 2>&1 1>/dev/null \
+          | sed -ne 's/.*NO_PUBKEY //p' \
+          | while read key; do if ! [[ ${keys[*]} =~ "$key" ]]; then apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key"; keys+=("$key"); fi; done
+      args:
+        executable: /bin/bash
+
+    - name: Run "apt-get update --allow-releaseinfo-change" because a new Debian version was released since the base image was created.
+      become: yes
+      shell:
+        apt-get update --allow-releaseinfo-change
