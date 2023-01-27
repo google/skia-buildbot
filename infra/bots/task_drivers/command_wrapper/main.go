@@ -83,7 +83,9 @@ func main() {
 		if len(casDownloads) > 1 {
 			sklog.Fatalf("Only one CAS digest is supported; found %d", len(casDownloads))
 		}
-		req.CasInput = casDownloads[0].Digest
+		if len(casDownloads) > 0 {
+			req.CasInput = casDownloads[0].Digest
+		}
 
 		req.Name = *taskName
 		req.TaskSchedulerTaskID = *taskId
