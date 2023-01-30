@@ -45,6 +45,7 @@ _validate_domain 3600 IN CNAME _validate_domain.pki.goog.
 
 ;;; These apps have been migrated to the skia-infra-public project.
 autoroll  300      IN A 34.110.212.89
+status    300      IN A 34.110.212.89
 
 ;;; Master A record. Hosted in the GCP project skia-public.
 @         300      IN A 35.201.76.220
