@@ -7,4 +7,4 @@
 #
 # The command will throw errors for records which already exist. These can be
 # safely ignored.
-gcloud dns record-sets import --zone skia-org --zone-file-format skia.org.zone
+gcloud dns record-sets import --project skia-public --delete-all-existing --zone skia-org --zone-file-format skia.org.zone
