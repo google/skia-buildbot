@@ -26,13 +26,14 @@ import (
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/pubsub/sub"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -40,13 +41,11 @@ import (
 
 // flags
 var (
-	assignGroup        = flag.String("assign_group", "google/skia-root@google.com", "The chrome infra auth group to use for users incidents can be assigned to.")
-	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	host               = flag.String("host", "am.skia.org", "HTTP service host")
-	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
-	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
-	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+	assignGroup  = flag.String("assign_group", "google/skia-root@google.com", "The chrome infra auth group to use for users incidents can be assigned to.")
+	host         = flag.String("host", "am.skia.org", "HTTP service host")
+	namespace    = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
+	internalPort = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
+	project      = flag.String("project", "skia-public", "The Google Cloud project name.")
 
 	silenceRecentlyExpiredDuration = flag.Duration("recently_expired_duration", 2*time.Hour, "Incidents with silences that recently expired within this duration are shown with an icon.")
 )
@@ -66,39 +65,28 @@ type server struct {
 	incidentStore *incident.Store
 	silenceStore  *silence.Store
 	templates     *template.Template
-	allow         allowed.Allow // Who is allowed to use the site.
 	assign        allowed.Allow // A list of people that incidents can be assigned to.
+	alogin        *proxylogin.ProxyLogin
 }
 
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
-	var allow allowed.Allow
 	var assign allowed.Allow
 	ctx := context.Background()
+
+	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub, auth.ScopeUserinfoEmail, "https://www.googleapis.com/auth/datastore")
+	if err != nil {
+		return nil, err
+	}
+
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, "", "", auth.ScopeUserinfoEmail)
-		if err != nil {
-			return nil, err
-		}
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-		allow, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
-		if err != nil {
-			return nil, err
-		}
 		assign, err = allowed.NewAllowedFromChromeInfraAuth(client, *assignGroup)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 		assign = allowed.NewAllowedFromList([]string{"betty@example.org", "fred@example.org", "barney@example.org", "wilma@example.org"})
-	}
-
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
-
-	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
-	if err != nil {
-		return nil, err
 	}
 
 	if *namespace == "" {
@@ -119,8 +107,8 @@ func New() (baseapp.App, error) {
 	srv := &server{
 		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash"}),
 		silenceStore:  silence.NewStore(ds.DS),
-		allow:         allow,
 		assign:        assign,
+		alogin:        proxylogin.NewWithDefaults(),
 	}
 	srv.loadTemplates()
 
@@ -212,7 +200,7 @@ type addNoteRequest struct {
 func (srv *server) user(r *http.Request) string {
 	user := "barney@example.org"
 	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
+		user = string(srv.alogin.LoggedInAs(r))
 	}
 	return user
 }
@@ -650,7 +638,6 @@ func (srv *server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.mainHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 
 	// GETs
 	r.HandleFunc("/_/emails", srv.emailsHandler).Methods("GET")
@@ -680,7 +667,7 @@ func (srv *server) AddHandlers(r *mux.Router) {
 func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 	ret := []mux.MiddlewareFunc{}
 	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
+		ret = append(ret, proxylogin.ForceRoleMiddleware(srv.alogin, roles.Viewer))
 	}
 	return ret
 }
