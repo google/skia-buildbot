@@ -1,10 +1,22 @@
 - hosts: all
   user: chrome-bot
-  gather_facts: false
+  gather_facts: true
 
   tasks:
-    - name: Print out hostname
-      command: hostname
+    - name: Windows
+      when: ansible_facts['system']|lower == 'win32nt'
+      block:
+      - name: Print out hostname
+        win_command: hostname
 
-    - name: Print out current user (chrome-bot)
-      command: whoami
+      - name: Print out current user (chrome-bot)
+        win_command: whoami
+
+    - name: POSIX
+      when: ansible_facts['system']|lower != 'win32nt'
+      block:
+      - name: Print out hostname
+        command: hostname
+
+      - name: Print out current user (chrome-bot)
+        command: whoami

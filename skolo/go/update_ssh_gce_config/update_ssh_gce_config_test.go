@@ -45,6 +45,12 @@ Host skia-e-gce-101
   Hostname 2.2.2.2
 Host skia-e-gce-102
   Hostname 3.3.3.3
+Host skia-e-gce-200
+  Hostname 4.4.4.4
+Host skia-e-gce-201
+  Hostname 5.5.5.5
+Host skia-e-gce-202
+  Hostname 6.6.6.6
 Host skia-e-gce-300
   Hostname 7.7.7.7
 Host skia-e-gce-301
@@ -67,20 +73,20 @@ func Test_FakeExe_Gcloud(t *testing.T) {
 		"instances",
 		"list",
 		"--project=skia-swarming-bots",
-		"--format=csv(name, networkInterfaces[0].accessConfigs[0].natIP, disks[0].licenses[0])",
+		"--format=csv(name, networkInterfaces[0].accessConfigs[0].natIP)",
 		"--filter=name~skia-e-*",
 		"--sort-by=name",
 	}, executil.OriginalArgs())
-	fmt.Printf(`name,nat_ip,licenses
-skia-e-gce-100,1.1.1.1,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
-skia-e-gce-101,2.2.2.2,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
-skia-e-gce-102,3.3.3.3,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
-skia-e-gce-200,4.4.4.4,https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2019-dc
-skia-e-gce-201,5.5.5.5,https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2019-dc
-skia-e-gce-202,6.6.6.6,https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2019-dc
-skia-e-gce-300,7.7.7.7,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
-skia-e-gce-301,8.8.8.8,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
-skia-e-gce-302,9.9.9.9,https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
+	fmt.Printf(`name,nat_ip
+skia-e-gce-100,1.1.1.1
+skia-e-gce-101,2.2.2.2
+skia-e-gce-102,3.3.3.3
+skia-e-gce-200,4.4.4.4
+skia-e-gce-201,5.5.5.5
+skia-e-gce-202,6.6.6.6
+skia-e-gce-300,7.7.7.7
+skia-e-gce-301,8.8.8.8
+skia-e-gce-302,9.9.9.9
 `)
 	os.Exit(0)
 }
