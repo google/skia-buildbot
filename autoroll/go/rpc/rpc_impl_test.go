@@ -668,15 +668,17 @@ func TestConvertRevision(t *testing.T) {
 
 	_, rollers, _ := setup(t)
 	rev := rollers["roller1"].Status.Get().NotRolledRevisions[0]
+	rev.InvalidReason = "bad"
 
 	// Use Copy to ensure that the test checks all of the fields. Note that it
 	// only checks top-level fields and does not dig into member structs.
 	assertdeep.Copy(t, &Revision{
-		Description: rev.Description,
-		Display:     rev.Display,
-		Id:          rev.Id,
-		Time:        timestamppb.New(rev.Timestamp),
-		Url:         rev.URL,
+		Description:   rev.Description,
+		Display:       rev.Display,
+		Id:            rev.Id,
+		InvalidReason: "bad",
+		Time:          timestamppb.New(rev.Timestamp),
+		Url:           rev.URL,
 	}, convertRevision(rev))
 }
 

@@ -58,6 +58,7 @@ export function GetFakeStatus(): AutoRollStatus {
         description: '[PartitionAlloc] More (UN)LIKELY annotations.',
         display: 'd489e255b1e9',
         id: 'd489e255b1e9d0a1cab1f7d1f043761399617f9b',
+        invalidReason: '',
         time: '2021-01-11T15:23:01Z',
         url:
           'https://chromium.googlesource.com/chromium/src.git/+show/d489e255b1e9d0a1cab1f7d1f043761399617f9b',

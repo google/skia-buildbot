@@ -152,6 +152,7 @@ export interface Revision {
   description: string;
   time?: string;
   url: string;
+  invalidReason: string;
 }
 
 interface RevisionJSON {
@@ -160,6 +161,7 @@ interface RevisionJSON {
   description?: string;
   time?: string;
   url?: string;
+  invalid_reason?: string;
 }
 
 const JSONToRevision = (m: RevisionJSON): Revision => {
@@ -169,6 +171,7 @@ const JSONToRevision = (m: RevisionJSON): Revision => {
     description: m.description || "",
     time: m.time,
     url: m.url || "",
+    invalidReason: m.invalid_reason || "",
   };
 };
 

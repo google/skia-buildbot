@@ -347,6 +347,7 @@ export class ARBStatusSk extends ElementSk {
             <th>Revision</th>
             <th>Description</th>
             <th>Timestamp</th>
+            <th>Invalid Reason</th>
             <th>Requester</th>
             <th>Requested at</th>
             <th>Roll</th>
@@ -372,6 +373,9 @@ export class ARBStatusSk extends ElementSk {
                   ${rollCandidate.revision.time
                 ? localeTime(new Date(rollCandidate.revision.time!))
                 : html``}
+                </td>
+                <td>
+                  ${rollCandidate.revision.invalidReason}
                 </td>
                 <td>
                   ${rollCandidate.roll ? rollCandidate.roll.requester : html``}
@@ -939,6 +943,7 @@ export class ARBStatusSk extends ElementSk {
               description: '',
               display: resp.roll!.revision,
               id: resp.roll!.revision,
+              invalidReason: '',
               time: '',
               url: '',
             },
@@ -1095,6 +1100,7 @@ export class ARBStatusSk extends ElementSk {
         description: '',
         display: req.revision,
         id: req.revision,
+        invalidReason: '',
         time: '',
         url: '',
       };

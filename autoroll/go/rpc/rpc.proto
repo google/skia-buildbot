@@ -175,6 +175,8 @@ message Revision {
   google.protobuf.Timestamp time = 4;
   // url where more details can be found about the Revision.
   string url = 5;
+  // invalid_reason, if set, indicates why this Revision is not valid.
+  string invalid_reason = 6;
 }
 
 // AutoRollConfig describes the configuration for a roller.

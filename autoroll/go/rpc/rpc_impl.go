@@ -622,11 +622,12 @@ func convertStrategyChange(inp *strategy.StrategyChange) (*StrategyChange, error
 
 func convertRevision(inp *revision.Revision) *Revision {
 	return &Revision{
-		Description: inp.Description,
-		Display:     inp.Display,
-		Id:          inp.Id,
-		Time:        timestamppb.New(inp.Timestamp),
-		Url:         inp.URL,
+		Description:   inp.Description,
+		Display:       inp.Display,
+		Id:            inp.Id,
+		Time:          timestamppb.New(inp.Timestamp),
+		Url:           inp.URL,
+		InvalidReason: inp.InvalidReason,
 	}
 }
 
