@@ -7,9 +7,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//am/go/types",
+        "//go/alogin/proxylogin",
         "//go/auditlog",
         "//go/ds",
-        "//go/login",
         "//go/skerr",
         "//go/sklog",
     ],

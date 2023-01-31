@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"go.skia.org/infra/am/go/types"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -17,16 +17,17 @@ import (
 const getLogsLimit = 200
 
 // Log outputs the action/user/body to stdout and persists it in datastore.
-func Log(r *http.Request, action string, body interface{}) {
+func Log(r *http.Request, action string, body interface{}, alogin *proxylogin.ProxyLogin) {
 	// Log to stdout.
-	auditlog.Log(r, action, body)
+	user := alogin.LoggedInAs(r)
+	auditlog.LogWithUser(r, string(user), action, body)
 
 	// Add the log to datastore to display in UI. Doing this in a Go routine
 	// to avoid introducing latency in the UI.
 	go func() {
 		a := types.AuditLog{
 			Action:    action,
-			User:      login.LoggedInAs(r),
+			User:      string(user),
 			Body:      fmt.Sprintf("%+v", body),
 			Timestamp: time.Now().Unix(),
 		}
