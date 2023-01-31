@@ -29,7 +29,7 @@ Also rolling transitive DEPS:
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
@@ -69,7 +69,7 @@ Also rolling transitive DEPS:
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
@@ -112,7 +112,7 @@ Also rolling transitive DEPS:
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
@@ -151,7 +151,7 @@ func TestNamedTemplateAndroid_Minimal(t *testing.T) {
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
@@ -189,7 +189,7 @@ Please enable autosubmit on changes if possible when approving them.
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:

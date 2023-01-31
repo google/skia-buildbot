@@ -19,6 +19,7 @@ var (
 	// message.
 	tmplCommitMsg = template.Must(parseCommitMsgTemplate(tmplFooterDefault, tmplNameCommitMsg, `
 {{- define "subject" }}{{ template "defaultSubject" . }}{{ end -}}
+{{- define "manual" }}{{ template "defaultManualMessage" . }}{{ end -}}
 {{- define "revisions" }}{{ template "defaultRevisions" . }}{{ end -}}
 {{- define "boilerplate" }}{{ template "defaultBoilerplate" . }}{{ end -}}
 {{- define "footer" }}{{ template "defaultFooter" . }}{{ end -}}
@@ -29,6 +30,8 @@ var (
 	tmplSkeleton = template.Must(parseCommitMsgTemplate(nil, tmplNameSkeleton,
 		`{{ template "subject" . }}
 
+{{ template "manual" . }}
+
 {{ template "revisions" . }}
 
 {{ template "boilerplate" . }}
@@ -38,10 +41,14 @@ var (
 
 	tmplNameSubjectDefault = "defaultSubject"
 	tmplSubjectDefault     = template.Must(parseCommitMsgTemplate(tmplSkeleton, tmplNameSubjectDefault,
-		`Roll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{ if .IncludeRevisionCount}} ({{ len .Revisions }} revision{{ if gt (len .Revisions) 1 }}s{{ end }}){{ end }}`))
+		`{{ if .ManualRollRequester }}Manual r{{ else }}R{{ end }}oll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{ if .IncludeRevisionCount}} ({{ len .Revisions }} revision{{ if gt (len .Revisions) 1 }}s{{ end }}){{ end }}`))
+
+	tmplNameManualDefault = "defaultManualMessage"
+	tmplManualDefault     = template.Must(parseCommitMsgTemplate(tmplSubjectDefault, tmplNameManualDefault,
+		`{{ if .ManualRollRequester }}Manual roll requested by {{.ManualRollRequester}}{{ end }}`))
 
 	tmplNameRevisionsDefault = "defaultRevisions"
-	tmplRevisionsDefault     = template.Must(parseCommitMsgTemplate(tmplSubjectDefault, tmplNameRevisionsDefault,
+	tmplRevisionsDefault     = template.Must(parseCommitMsgTemplate(tmplManualDefault, tmplNameRevisionsDefault,
 		`{{ if .ChildLogURL }}{{ .ChildLogURL }}
 
 {{ end -}}
@@ -60,7 +67,7 @@ Also rolling transitive DEPS:
 		`If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 {{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
+Please CC {{stringsJoin (mergeNoDuplicates .Reviewers .Contacts) ","}} on the revert to ensure that a human
 is aware of the problem.
 
 {{ if .ChildBugLink -}}To file a bug in {{ .ChildName }}: {{ .ChildBugLink }}{{ end }}

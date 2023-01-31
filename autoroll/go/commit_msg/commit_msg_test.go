@@ -90,8 +90,8 @@ func TestMakeVars(t *testing.T) {
 		b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, fakeChildBugLink, fakeParentBugLink, fakeTransitiveDeps)
 		require.NoError(t, err)
 		fn(b)
-		from, to, revs, reviewers, _ := FakeCommitMsgInputs()
-		vars, err := makeVars(c, reg.Vars(), b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers)
+		from, to, revs, reviewers, contacts, _, manualRollRequester := FakeCommitMsgInputs()
+		vars, err := makeVars(c, reg.Vars(), b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers, contacts, manualRollRequester)
 		require.NoError(t, err)
 
 		// Bugs.
@@ -201,7 +201,7 @@ func TestQuotedLines(t *testing.T) {
 	b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
 	require.NoError(t, err)
 
-	from, to, revs, reviewers, _ := FakeCommitMsgInputs()
+	from, to, revs, reviewers, contacts, _, manualRollRequester := FakeCommitMsgInputs()
 	for _, rev := range revs {
 		rev.Details += `
 
@@ -209,7 +209,7 @@ Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
 `
 	}
 
-	msg, err := b.Build(from, to, revs, reviewers, false)
+	msg, err := b.Build(from, to, revs, reviewers, contacts, false, manualRollRequester)
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
 
@@ -236,7 +236,7 @@ Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC reviewer@google.com on the revert to ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:

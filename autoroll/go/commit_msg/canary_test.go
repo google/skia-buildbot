@@ -39,10 +39,10 @@ func TestNamedTemplateCanary_WithExternalChangeId(t *testing.T) {
 	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
 		BuiltIn: config.CommitMsgConfig_CANARY,
 	}
-	from, to, revs, emails, canary := FakeCommitMsgInputs()
+	from, to, revs, reviewers, contacts, canary, manualRollRequester := FakeCommitMsgInputs()
 	to.ExternalChangeId = "12345"
 
-	result, err := b.Build(from, to, revs, emails, canary)
+	result, err := b.Build(from, to, revs, reviewers, contacts, canary, manualRollRequester)
 	require.NoError(t, err)
 	require.Equal(t, `Canary roll fake/child/src to cccccccccccc
 
