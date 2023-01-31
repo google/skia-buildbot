@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "poolstest",
+    srcs = ["poolstest.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/pools/poolstest",
+    visibility = ["//visibility:public"],
+    deps = ["//machine/go/machineserver/config"],
+)

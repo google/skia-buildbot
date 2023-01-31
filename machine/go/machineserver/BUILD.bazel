@@ -23,6 +23,7 @@ go_library(
         "//machine/go/machine/change/sink",
         "//machine/go/machine/change/sink/sse",
         "//machine/go/machine/event/source/httpsource",
+        "//machine/go/machine/pools",
         "//machine/go/machine/processor",
         "//machine/go/machine/store",
         "//machine/go/machine/store/cdb",

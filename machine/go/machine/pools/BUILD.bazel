@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pools",
+    srcs = ["pools.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/pools",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+        "//machine/go/machine",
+        "//machine/go/machineserver/config",
+    ],
+)
+
+go_test(
+    name = "pools_test",
+    srcs = ["pools_test.go"],
+    embed = [":pools"],
+    deps = [
+        "//machine/go/machine",
+        "//machine/go/machine/pools/poolstest",
+        "//machine/go/machineserver/config",
+        "@com_github_stretchr_testify//require",
+    ],
+)

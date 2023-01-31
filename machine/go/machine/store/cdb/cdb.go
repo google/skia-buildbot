@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machine/pools"
 	"go.skia.org/infra/machine/go/machine/store"
 )
 
@@ -107,13 +108,15 @@ type Tables struct {
 
 // Store implements ../store.Store.
 type Store struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
+	pools *pools.Pools
 }
 
 // New returns a new *Store that uses the give Pool.
-func New(db *pgxpool.Pool) *Store {
+func New(db *pgxpool.Pool, pools *pools.Pools) *Store {
 	return &Store{
-		db: db,
+		db:    db,
+		pools: pools,
 	}
 }
 
@@ -170,8 +173,8 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 			newD.Dimensions[machine.DimTaskType] = []string{string(machine.Swarming)}
 		}
 
-		if !newD.HasValidPool() {
-			machine.SetSwarmingPool(&newD)
+		if !s.pools.HasValidPool(newD) {
+			s.pools.SetSwarmingPool(&newD)
 		}
 
 		// Normalize times so they appear consistent in the database.

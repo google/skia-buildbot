@@ -37,6 +37,7 @@ import (
 	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
 	sseChangeSink "go.skia.org/infra/machine/go/machine/change/sink/sse"
 	httpEventSource "go.skia.org/infra/machine/go/machine/event/source/httpsource"
+	"go.skia.org/infra/machine/go/machine/pools"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machine/store/cdb"
@@ -120,11 +121,16 @@ func new(args []string) (*server, error) {
 		sklog.Fatal("ConnectionString must be supplied in the instance config")
 	}
 
+	pools, err := pools.New(instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	store := cdb.New(db)
+	store := cdb.New(db, pools)
 
 	httpSource, err := httpEventSource.New()
 	if err != nil {

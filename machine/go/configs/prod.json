@@ -1,3 +1,13 @@
 {
-  "connection_string": "postgresql://root@machineserver-cockroachdb-public:26257/machineserver?sslmode=disable"
+  "connection_string": "postgresql://root@machineserver-cockroachdb-public:26257/machineserver?sslmode=disable",
+  "pools": [
+    {
+      "name": "SkiaInternal",
+      "regex": "^skia-i-"
+    },
+    {
+      "name": "Skia",
+      "regex": "^skia-"
+    }
+  ]
 }

@@ -11,6 +11,8 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/machinetest"
+	"go.skia.org/infra/machine/go/machine/pools"
+	"go.skia.org/infra/machine/go/machine/pools/poolstest"
 	"go.skia.org/infra/machine/go/machine/store/cdb"
 	"go.skia.org/infra/machine/go/machine/store/cdb/cdbtest"
 )
@@ -47,8 +49,10 @@ const (
 func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	ctx := context.Background()
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
-	s := cdb.New(db)
-	err := s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
+	p, err := pools.New(poolstest.PoolConfigForTesting)
+	require.NoError(t, err)
+	s := cdb.New(db, p)
+	err = s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID1}
 		return ret
@@ -74,11 +78,18 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 
 }
 
-func TestStore_UpdateAndGetFullyRoundTripTheDescription_Success(t *testing.T) {
+func setupForTestWithEmptyStore(t *testing.T) (context.Context, *cdb.Store, machine.Description) {
 	ctx := context.Background()
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
-	s := cdb.New(db)
+	p, err := pools.New(poolstest.PoolConfigForTesting)
+	require.NoError(t, err)
+	s := cdb.New(db, p)
 	full := machinetest.FullyFilledInDescription.Copy()
+	return ctx, s, full
+}
+
+func TestStore_UpdateAndGetFullyRoundTripTheDescription_Success(t *testing.T) {
+	ctx, s, full := setupForTestWithEmptyStore(t)
 
 	// CockroachDB can only store times down to the millisecond, so truncate
 	// what we store, so we are equal once we've round-tripped through the
@@ -100,10 +111,7 @@ func TestStore_UpdateAndGetFullyRoundTripTheDescription_Success(t *testing.T) {
 }
 
 func TestStore_NilTaskDescriptorFullyRoundTrips_Success(t *testing.T) {
-	ctx := context.Background()
-	db := cdbtest.NewCockroachDBForTests(t, "desc")
-	s := cdb.New(db)
-	full := machinetest.FullyFilledInDescription.Copy()
+	ctx, s, full := setupForTestWithEmptyStore(t)
 	full.TaskRequest = nil
 
 	machineID := full.Dimensions[machine.DimID][0]
@@ -119,9 +127,7 @@ func TestStore_NilTaskDescriptorFullyRoundTrips_Success(t *testing.T) {
 }
 
 func TestStore_ZeroLengthDimensionsAreDiscarded_Success(t *testing.T) {
-	ctx := context.Background()
-	db := cdbtest.NewCockroachDBForTests(t, "desc")
-	s := cdb.New(db)
+	ctx, s, _ := setupForTestWithEmptyStore(t)
 	d := machine.NewDescription(ctx)
 	d.Dimensions = machine.SwarmingDimensions{
 		"keep":        {"a", "b"},
