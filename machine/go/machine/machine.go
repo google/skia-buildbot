@@ -211,7 +211,7 @@ type Description struct {
 
 	// TaskStarted records when a task was started. This value is set on
 	// machineserver during Update.
-	TaskStarted time.Time `sql:"task_started TIMESTAMPTZ NOT NULL"`
+	TaskStarted time.Time `sql:"task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ"`
 
 	// Create a computed column with the machine id to use as the primary key.
 	machineIDComputed struct{} `sql:"machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED"`

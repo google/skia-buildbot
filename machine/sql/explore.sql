@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS Description (
 	dimensions jsonb NOT NULL,
 	task_request jsonb,
 	task_started timestamptz NOT NULL,
-	machine_id STRING PRIMARY KEY AS (dimensions -> 'id' ->> 0) STORED,
+	machine_id STRING PRIMARY KEY AS (
+dimensions -> 'id' ->> 0) STORED,
 	INVERTED INDEX dimensions_gin (dimensions),
 	INDEX by_powercycle (powercycle),
 );
@@ -64,21 +65,18 @@ CREATE TABLE IF NOT EXISTS Description (
 	ssh_user_ip STRING NOT NULL DEFAULT '',
 	supplied_dimensions jsonb NOT NULL,
 	dimensions jsonb NOT NULL,
-	machine_id STRING PRIMARY KEY AS (dimensions -> 'id' ->> 0) STORED,
+	machine_id STRING PRIMARY KEY AS (
+dimensions -> 'id' ->> 0) STORED,
 	INVERTED INDEX dimensions_gin (dimensions),
 	INDEX by_powercycle (powercycle)
 );
 
 -- Statements needed to migrate from V1 to V2.
-ALTER TABLE
-	Description
-ADD
-	COLUMN IF NOT EXISTS task_request jsonb;
+ALTER TABLE Description
+	ADD COLUMN IF NOT EXISTS task_request jsonb;
 
-ALTER TABLE
-	Description
-ADD
-	COLUMN IF NOT EXISTS task_started timestamptz NOT NULL;
+ALTER TABLE Description
+	ADD COLUMN IF NOT EXISTS task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ;
 
 SHOW COLUMNS
 FROM
@@ -91,26 +89,26 @@ CREATE TABLE IF NOT EXISTS Description (
 	maintenance_mode STRING NOT NULL DEFAULT '',
 	is_quarantined bool NOT NULL DEFAULT FALSE,
 	powercycle bool NOT NULL DEFAULT FALSE,
-	machine_id STRING PRIMARY KEY AS (dimensions -> 'id' ->> 0) STORED,
+	machine_id STRING PRIMARY KEY AS (
+dimensions -> 'id' ->> 0) STORED,
 	INDEX by_powercycle (powercycle),
 	INVERTED INDEX dimensions_gin (dimensions)
 );
 
-INSERT INTO
-	Description (powercycle, dimensions)
-VALUES
-	(
-		FALSE,
-		'{ "id": ["skia-e-linux-150"], "cores": ["6"], "cpu": ["x86","x86-64"], "os": ["Linux","Debian","Debian-11","Debian-11.2"]}'
-	),
-	(
-		TRUE,
-		'{ "id": ["skia-e-linux-151"], "cores": ["6"], "cpu": ["x86","x86-64"], "os": ["Linux","Debian","Debian-11","Debian-11.6"]}'
-	),
-	(
-		TRUE,
-		'{ "id": ["skia-e-mac-201"],  "cores": ["8"], "cpu": ["arm","arm-64"], "os": ["Mac","Mac-12","Mac-12.1"]}'
-	) ON CONFLICT DO NOTHING;
+INSERT INTO Description (
+	powercycle,
+	dimensions)
+VALUES (
+	FALSE,
+	'{ "id": ["skia-e-linux-150"], "cores": ["6"], "cpu": ["x86","x86-64"], "os": ["Linux","Debian","Debian-11","Debian-11.2"]}'),
+(
+	TRUE,
+	'{ "id": ["skia-e-linux-151"], "cores": ["6"], "cpu": ["x86","x86-64"], "os": ["Linux","Debian","Debian-11","Debian-11.6"]}'),
+(
+	TRUE,
+	'{ "id": ["skia-e-mac-201"],  "cores": ["8"], "cpu": ["arm","arm-64"], "os": ["Mac","Mac-12","Mac-12.1"]}')
+ON CONFLICT
+	DO NOTHING;
 
 SELECT
 	'Show how to do a single param query' AS desc;
@@ -190,3 +188,4 @@ FROM
 	Description
 WHERE
 	machine_id = 'skia - e - linux - 151';
+

@@ -253,7 +253,7 @@ ALTER TABLE Description
 	ADD COLUMN IF NOT EXISTS task_request jsonb;
 
 ALTER TABLE Description
-	ADD COLUMN IF NOT EXISTS task_started timestamptz NOT NULL;
+	ADD COLUMN IF NOT EXISTS task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ;
 `
 
 const indexes = `
