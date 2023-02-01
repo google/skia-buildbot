@@ -73,7 +73,7 @@ var (
 )
 
 // SwarmingInit initializes Swarming globally.
-func SwarmingInit(ctx context.Context, serviceAccountFile string) error {
+func SwarmingInit(ctx context.Context) error {
 	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE, compute.CloudPlatformScope)
 	if err != nil {
 		return skerr.Wrapf(err, "Problem setting up default token source")

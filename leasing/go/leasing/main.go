@@ -24,11 +24,11 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"google.golang.org/api/iterator"
 
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -59,28 +59,17 @@ var (
 	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
 	artifactsDir               = flag.String("artifacts_dir", "", "The directory to find leasing server's artifacts.")
 	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
-	serviceAccountFile         = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 	poolDetailsUpdateFrequency = flag.Duration("pool_details_update_freq", 5*time.Minute, "How often to call swarming API to refresh the details of supported pools.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
 	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 
-	// OAUTH params
-	authAllowList = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
-
 	poolToDetails      map[string]*types.PoolDetails
 	poolToDetailsMutex sync.Mutex
+
+	alogin *proxylogin.ProxyLogin
 )
-
-type ClientConfig struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-
-type ClientSecretJSON struct {
-	Installed ClientConfig `json:"installed"`
-}
 
 // New implements baseapp.Constructor.
 func New() (baseapp.App, error) {
@@ -94,16 +83,10 @@ func New() (baseapp.App, error) {
 	// Initialize mailing library.
 	MailInit()
 
-	var allow allowed.Allow
-	if !*baseapp.Local {
-		allow = allowed.NewAllowedFromList([]string{*authAllowList})
-	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
-	}
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
+	alogin = proxylogin.NewWithDefaults()
 
 	// Initialize swarming.
-	if err := SwarmingInit(ctx, *serviceAccountFile); err != nil {
+	if err := SwarmingInit(ctx); err != nil {
 		sklog.Fatalf("Failed to init swarming: %s", err)
 	}
 
@@ -160,39 +143,26 @@ func (srv *Server) loadTemplates() {
 func (srv *Server) user(r *http.Request) string {
 	user := "barney@example.org"
 	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
+		user = string(alogin.LoggedInAs(r))
 	}
 	return user
 }
 
 // AddHandlers implements baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
-	// For login/logout.
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	// Get task status will be used from swarming bots.
 	r.HandleFunc(getTaskStatusURI, srv.statusHandler).Methods("GET")
 
 	// All endpoints that require authentication should be added to this router.
-	appRouter := mux.NewRouter()
-	appRouter.HandleFunc("/", srv.indexHandler)
-	appRouter.HandleFunc(myLeasesURI, srv.myLeasesHandler)
-	appRouter.HandleFunc(allLeasesURI, srv.allLeasesHandler)
-	appRouter.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
-	appRouter.HandleFunc(getSupportedPoolsPostURI, srv.supportedPoolsHandler).Methods("POST")
-	appRouter.HandleFunc(getLeasesPostURI, srv.getLeasesHandler).Methods("POST")
-	appRouter.HandleFunc(addTaskPostURI, srv.addTaskHandler).Methods("POST")
-	appRouter.HandleFunc(extendTaskPostURI, srv.extendTaskHandler).Methods("POST")
-	appRouter.HandleFunc(expireTaskPostURI, srv.expireTaskHandler).Methods("POST")
-
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
-	appHandler := http.Handler(appRouter)
-	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.DEFAULT_REDIRECT_URL)
-	}
-
-	r.PathPrefix("/").Handler(appHandler)
+	r.HandleFunc("/", srv.indexHandler)
+	r.HandleFunc(myLeasesURI, srv.myLeasesHandler)
+	r.HandleFunc(allLeasesURI, srv.allLeasesHandler)
+	r.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
+	r.HandleFunc(getSupportedPoolsPostURI, srv.supportedPoolsHandler).Methods("POST")
+	r.HandleFunc(getLeasesPostURI, srv.getLeasesHandler).Methods("POST")
+	r.HandleFunc(addTaskPostURI, srv.addTaskHandler).Methods("POST")
+	r.HandleFunc(extendTaskPostURI, srv.extendTaskHandler).Methods("POST")
+	r.HandleFunc(expireTaskPostURI, srv.expireTaskHandler).Methods("POST")
 }
 
 func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +174,6 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 // Status represents the status of a Swarming task.
@@ -242,8 +211,6 @@ func (srv *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
-	return
 }
 
 func (srv *Server) poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -340,11 +307,10 @@ func (srv *Server) leasesHandlerHelper(w http.ResponseWriter, r *http.Request, f
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 func (srv *Server) myLeasesHandler(w http.ResponseWriter, r *http.Request) {
-	srv.leasesHandlerHelper(w, r, login.LoggedInAs(r))
+	srv.leasesHandlerHelper(w, r, string(alogin.LoggedInAs(r)))
 }
 
 func (srv *Server) allLeasesHandler(w http.ResponseWriter, r *http.Request) {
@@ -459,7 +425,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		task.DeviceType = ""
 	}
 	// Add the username of the requester.
-	task.Requester = login.LoggedInAs(r)
+	task.Requester = string(alogin.LoggedInAs(r))
 	// Add the created time.
 	task.Created = time.Now()
 	// Set to pending.
@@ -513,7 +479,11 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 // AddMiddleware implements baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+	ret := []mux.MiddlewareFunc{}
+	if !*baseapp.Local {
+		ret = append(ret, proxylogin.ForceRoleMiddleware(alogin, roles.Viewer))
+	}
+	return ret
 }
 
 func main() {

@@ -88,9 +88,8 @@ func taskCancelled(k *datastore.Key, t *types.Task) error {
 func getCompletedStateStr(failure bool) string {
 	if failure {
 		return swarming.TASK_STATE_COMPLETED + " (FAILURE)"
-	} else {
-		return swarming.TASK_STATE_COMPLETED + " (SUCCESS)"
 	}
+	return swarming.TASK_STATE_COMPLETED + " (SUCCESS)"
 }
 
 // checkForUnexpectedStates checks to see if the new state falls in a list of unexpected states.
