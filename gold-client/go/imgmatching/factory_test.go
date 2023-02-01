@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/imgmatching/sample_area"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
@@ -126,7 +127,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 	}
 }
 
-// commonMaxDifferentPixelsTestCases returns test cases for the PixelDeltaThreshold
+// commonPixelDeltaThresholdTestCases returns test cases for the PixelDeltaThreshold
 // optional key.
 //
 // These tests are shared between TestMakeMatcher_FuzzyMatching and
@@ -505,6 +506,312 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 				assert.Equal(t, SobelFuzzyMatching, algorithmName)
 				assert.Equal(t, &tc.want, matcher)
 			}
+		})
+	}
+}
+
+func TestMakeMatcher_SampleAreaMatching_Error(t *testing.T) {
+	type sampleAreaErrorTestCase struct {
+		name                            string
+		sampleAreaWidth                 string
+		maxDifferentPixelsPerArea       string
+		sampleAreaChannelDeltaThreshold string
+		error                           string
+	}
+
+	maxIntSqrt := int(math.Sqrt(math.MaxInt32))
+
+	tests := []sampleAreaErrorTestCase{
+		// Missing cases.
+		{
+			name:                            "sample area width: missing, returns error",
+			sampleAreaWidth:                 missing,
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `required image matching parameter not found: "sample_area_width"`,
+		},
+		{
+			name:                            "max different pixels per area: missing, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       missing,
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `required image matching parameter not found: "sample_area_max_different_pixels_per_area"`,
+		},
+		{
+			name:                            "all parameters missing, returns error",
+			sampleAreaWidth:                 missing,
+			maxDifferentPixelsPerArea:       missing,
+			sampleAreaChannelDeltaThreshold: missing,
+			error:                           "required image matching parameter not found",
+		},
+		// Empty cases.
+		{
+			name:                            "sample area width: empty, returns error",
+			sampleAreaWidth:                 "",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `image matching parameter "sample_area_width" cannot be empty`,
+		},
+		{
+			name:                            "max different pixels per area: empty, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `image matching parameter "sample_area_max_different_pixels_per_area" cannot be empty`,
+		},
+		{
+			name:                            "sample area channel delta threshold: empty, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "",
+			error:                           `image matching parameter "sample_area_channel_delta_threshold" cannot be empty`,
+		},
+		// Non-integer cases.
+		{
+			name:                            "sample area width: non-integer value, returns error",
+			sampleAreaWidth:                 "not an integer",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "invalid syntax",
+		},
+		{
+			name:                            "max different pixels per area: non-integer value, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "not an integer",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "invalid syntax",
+		},
+		{
+			name:                            "sample area channel delta threshold: non-integer value, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "not an integer",
+			error:                           "invalid syntax",
+		},
+		// Non-32-bit integer cases.
+		{
+			name:                            "sample area width: non-32-bit integer (math.MinInt32 - 1), returns error",
+			sampleAreaWidth:                 fmt.Sprintf("%d", math.MinInt32-1),
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "out of range",
+		},
+		{
+			name:                            "sample area width: non-32-bit integer (math.MaxInt32 + 1), returns error",
+			sampleAreaWidth:                 fmt.Sprintf("%d", math.MaxInt32+1),
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "out of range",
+		},
+		{
+			name:                            "max different pixels per area: non-32-bit integer (math.MinInt32 - 1), returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       fmt.Sprintf("%d", math.MinInt32-1),
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "out of range",
+		},
+		{
+			name:                            "max different pixels per area: non-32-bit integer (math.MaxInt32 + 1), returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       fmt.Sprintf("%d", math.MaxInt32+1),
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           "out of range",
+		},
+		{
+			name:                            "sample area channel delta threshold: non-32-bit integer (math.MinInt32 - 1), returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: fmt.Sprintf("%d", math.MinInt32-1),
+			error:                           "out of range",
+		},
+		{
+			name:                            "sample area channel delta threshold: non-32-bit integer (math.MaxInt32 + 1), returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: fmt.Sprintf("%d", math.MaxInt32+1),
+			error:                           "out of range",
+		},
+		// Under lower limit cases.
+		{
+			name:                            "sample area width: value < 1, returns error",
+			sampleAreaWidth:                 "0",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           fmt.Sprintf(`image matching parameter "sample_area_width" must be between 1 and %d, was: 0`, maxIntSqrt),
+		},
+		{
+			name:                            "max different pixels per area: value < 0, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "-1",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `image matching parameter "sample_area_max_different_pixels_per_area" must be between 0 and 4, was: -1`,
+		},
+		{
+			name:                            "sample area channel delta threshold: value < 0, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "-1",
+			error:                           `image matching parameter "sample_area_channel_delta_threshold" must be between 0 and 255, was: -1`,
+		},
+		// Over upper limit cases.
+		{
+			name:                            "sample area width: value > max int 32 square root, returns error",
+			sampleAreaWidth:                 fmt.Sprintf("%d", maxIntSqrt+1),
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           fmt.Sprintf(`image matching parameter "sample_area_width" must be between 1 and %d, was: %d`, maxIntSqrt, maxIntSqrt+1),
+		},
+		{
+			name:                            "max different pixels per area: value > number of sampled pixels, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "5",
+			sampleAreaChannelDeltaThreshold: "0",
+			error:                           `image matching parameter "sample_area_max_different_pixels_per_area" must be between 0 and 4, was: 5`,
+		},
+		{
+			name:                            "sample area channel delta threshold: value > 255, returns error",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "256",
+			error:                           `image matching parameter "sample_area_channel_delta_threshold" must be between 0 and 255, was: 256`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			optionalKeys := map[string]string{
+				AlgorithmNameOptKey: string(SampleAreaMatching),
+			}
+			if tc.sampleAreaWidth != missing {
+				optionalKeys[string(SampleAreaWidth)] = tc.sampleAreaWidth
+			}
+			if tc.maxDifferentPixelsPerArea != missing {
+				optionalKeys[string(MaxDifferentPixelsPerArea)] = tc.maxDifferentPixelsPerArea
+			}
+			if tc.sampleAreaChannelDeltaThreshold != missing {
+				optionalKeys[string(SampleAreaChannelDeltaThreshold)] = tc.sampleAreaChannelDeltaThreshold
+			}
+
+			_, _, err := MakeMatcher(optionalKeys)
+
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tc.error)
+		})
+	}
+}
+
+func TestMakeMatcher_SampleAreaMatching_Success(t *testing.T) {
+	type sampleAreaSuccessTestCase struct {
+		name                            string
+		sampleAreaWidth                 string
+		maxDifferentPixelsPerArea       string
+		sampleAreaChannelDeltaThreshold string
+		want                            sample_area.Matcher
+	}
+
+	maxIntSqrt := int(math.Sqrt(math.MaxInt32))
+
+	tests := []sampleAreaSuccessTestCase{
+		// Missing cases.
+		{
+			name:                            "sample area channel delta threshold: missing, uses default",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: missing,
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 2,
+				MaxDifferentPixelsPerArea:       0,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		// At lower limit cases.
+		{
+			name:                            "sample area width: value = lower limit, success",
+			sampleAreaWidth:                 "1",
+			maxDifferentPixelsPerArea:       "1",
+			sampleAreaChannelDeltaThreshold: "0",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 1,
+				MaxDifferentPixelsPerArea:       1,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		{
+			name:                            "max different pixels per area: value = lower limit, success",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 2,
+				MaxDifferentPixelsPerArea:       0,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		{
+			name:                            "sample area channel delta threshold: value = lower limit, success",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "1",
+			sampleAreaChannelDeltaThreshold: "0",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 2,
+				MaxDifferentPixelsPerArea:       1,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		// At upper limit cases.
+		{
+			name:                            "sample area width: value = upper limit, success",
+			sampleAreaWidth:                 fmt.Sprintf("%d", maxIntSqrt),
+			maxDifferentPixelsPerArea:       "0",
+			sampleAreaChannelDeltaThreshold: "0",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 maxIntSqrt,
+				MaxDifferentPixelsPerArea:       0,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		{
+			name:                            "max different pixels per area: value = upper limit, success",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "4",
+			sampleAreaChannelDeltaThreshold: "0",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 2,
+				MaxDifferentPixelsPerArea:       4,
+				SampleAreaChannelDeltaThreshold: 0,
+			},
+		},
+		{
+			name:                            "sample area channel delta threshold: value = upper limit, success",
+			sampleAreaWidth:                 "2",
+			maxDifferentPixelsPerArea:       "1",
+			sampleAreaChannelDeltaThreshold: "255",
+			want: sample_area.Matcher{
+				SampleAreaWidth:                 2,
+				MaxDifferentPixelsPerArea:       1,
+				SampleAreaChannelDeltaThreshold: 255,
+			},
+		},
+		// Between limits cases already handled by the lower limit cases for the
+		// other arguments.
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			optionalKeys := map[string]string{
+				AlgorithmNameOptKey: string(SampleAreaMatching),
+			}
+			optionalKeys[string(SampleAreaWidth)] = tc.sampleAreaWidth
+			optionalKeys[string(MaxDifferentPixelsPerArea)] = tc.maxDifferentPixelsPerArea
+			if tc.sampleAreaChannelDeltaThreshold != missing {
+				optionalKeys[string(SampleAreaChannelDeltaThreshold)] = tc.sampleAreaChannelDeltaThreshold
+			}
+
+			algorithmName, matcher, err := MakeMatcher(optionalKeys)
+
+			assert.NoError(t, err)
+			assert.Equal(t, SampleAreaMatching, algorithmName)
+			assert.Equal(t, &tc.want, matcher)
 		})
 	}
 }

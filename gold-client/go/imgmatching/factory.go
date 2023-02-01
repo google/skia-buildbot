@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/imgmatching/sample_area"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
@@ -36,6 +37,13 @@ func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error)
 			return "", nil, skerr.Wrap(err)
 		}
 		return FuzzyMatching, matcher, nil
+
+	case SampleAreaMatching:
+		matcher, err := makeSampleAreaMatcher(optionalKeys)
+		if err != nil {
+			return "", nil, skerr.Wrap(err)
+		}
+		return SampleAreaMatching, matcher, nil
 
 	case SobelFuzzyMatching:
 		matcher, err := makeSobelFuzzyMatcher(optionalKeys)
@@ -73,6 +81,44 @@ func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
 		MaxDifferentPixels:     maxDifferentPixels,
 		PixelDeltaThreshold:    pixelDeltaThreshold,
 		IgnoredBorderThickness: ignoredBorderThickness,
+	}, nil
+}
+
+// makeSampleAreaMatcher returns a sample_area.Matcher instance set up with the
+// parameter values in the given optional keys map.
+func makeSampleAreaMatcher(optionalKeys map[string]string) (*sample_area.Matcher, error) {
+	// Determine the width/height of each sample that will be compared between the
+	// two images. We need to set the max lower since we will be squaring the
+	// value later.
+	maxIntSqrt := math.Sqrt(math.MaxInt32)
+	sampleAreaWidth, err := getAndValidateIntParameter(
+		SampleAreaWidth, 1, int(maxIntSqrt), true /* =required */, optionalKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Determine how many pixels in the sample area are allowed to differ and
+	// still be treated as a successful comparison.
+	maxDifferentPixels, err := getAndValidateIntParameter(
+		MaxDifferentPixelsPerArea, 0, sampleAreaWidth*sampleAreaWidth,
+		true /* =required */, optionalKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Determine what the tolerance is for slightly different pixels. This is the
+	// maximum per-pixel, per-channel delta allowed. Defaults to 0 if not
+	// specified.
+	sampleAreaChannelDeltaThreshold, err := getAndValidateIntParameter(
+		SampleAreaChannelDeltaThreshold, 0, 255, false /* =required */, optionalKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return &sample_area.Matcher{
+		SampleAreaWidth:                 sampleAreaWidth,
+		MaxDifferentPixelsPerArea:       maxDifferentPixels,
+		SampleAreaChannelDeltaThreshold: sampleAreaChannelDeltaThreshold,
 	}, nil
 }
 

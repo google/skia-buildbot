@@ -10,6 +10,7 @@ type AlgorithmName string
 const (
 	ExactMatching      = AlgorithmName("exact")
 	FuzzyMatching      = AlgorithmName("fuzzy")
+	SampleAreaMatching = AlgorithmName("sample_area")
 	SobelFuzzyMatching = AlgorithmName("sobel")
 )
 
@@ -33,4 +34,16 @@ const (
 	// EdgeThreshold is the optional key used to specify the EdgeThreshold parameter of the
 	// SobelFuzzyMatching algorithm.
 	EdgeThreshold = AlgorithmParamOptKey("sobel_edge_threshold")
+
+	// SampleAreaWidth is the optional key used to specify the SampleAreaWidth
+	// parameter of the SampleAreaMatching algorithm.
+	SampleAreaWidth = AlgorithmParamOptKey("sample_area_width")
+
+	// MaxDifferentPixelsPerArea is the optional key used to specify the
+	// MaxDifferentPixelsPerArea parameter of the SampleAreaMatching algorithm.
+	MaxDifferentPixelsPerArea = AlgorithmParamOptKey("sample_area_max_different_pixels_per_area")
+
+	// SampleAreaChannelDeltaThreshold is the optional key used to specify the
+	// SampleAreaChannelDeltaThreshold parameter of the SampleAreaMatching algorithm.
+	SampleAreaChannelDeltaThreshold = AlgorithmParamOptKey("sample_area_channel_delta_threshold")
 )
