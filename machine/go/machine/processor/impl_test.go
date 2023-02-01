@@ -209,7 +209,6 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			machine.DimDeviceType: []string{"sargo"},
 			machine.DimOS:         []string{"Android"},
 			machine.DimID:         []string{"skia-rpi2-0001"},
-			machine.DimPool:       []string{machine.PoolSkia},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            machine.BadBatteryLevel,
@@ -237,7 +236,6 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
-		machine.DimPool:       []string{machine.PoolSkia},
 	}
 
 	// An event arrives without any device info.
@@ -249,10 +247,8 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		},
 	}
 
-	// The dimensions should not change, except for the addition of the
-	// quarantine message, which tells swarming to quarantine this machine.
+	// The dimensions should not change.
 	expectedDims := previous.Dimensions.Copy()
-	expectedDims[machine.DimQuarantined] = []string{`Recovering: Device ["sargo"] has gone missing`}
 
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
@@ -293,9 +289,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
-		machine.DimPool:       []string{machine.PoolSkia},
 	}
-	previous.MaintenanceMode = "jcgregorio 2022-11-08"
 
 	// An event arrives with the device still attached.
 	props := strings.Join([]string{
@@ -316,11 +310,6 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 			GetProp: props,
 		},
 	}
-	// The dimensions should not change except for the quarantine message.
-	expected := previous.Dimensions.Copy()
-	expected[machine.DimQuarantined] = []string{
-		"Maintenance: jcgregorio 2022-11-08, Recovering: Device [\"sargo\"] has gone missing",
-	}
 
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
@@ -328,8 +317,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
-	assert.Equal(t, expected, next.Dimensions)
-	assert.NotEmpty(t, next.MaintenanceMode)
+	assert.True(t, next.IsRecovering())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -353,7 +341,6 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DimOS:          []string{"Android"},
 		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
 		machine.DimID:          []string{"skia-rpi2-0001"},
-		machine.DimPool:        []string{machine.PoolSkia},
 	}
 
 	// An event arrives with the device restored.
@@ -377,8 +364,6 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	}
 
 	expectedDims := previous.Dimensions.Copy()
-	// The machine should no longer be quarantined via dimensions.
-	delete(expectedDims, machine.DimQuarantined)
 
 	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
@@ -448,9 +433,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 			Timestamp: serverTime,
 		},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:          []string{"skia-rpi2-0001"},
-			machine.DimQuarantined: []string{"Recovering: Battery low."},
-			machine.DimPool:        []string{machine.PoolSkia},
+			machine.DimID: []string{"skia-rpi2-0001"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            9,
@@ -577,7 +560,6 @@ Current cooling devices from HAL:
 	assert.Equal(t, "Too hot.", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
 	assert.Equal(t, next.Recovering, "Too hot.")
-	assert.Equal(t, []string{"Recovering: Too hot."}, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
@@ -800,7 +782,6 @@ Current cooling devices from HAL:
 	assert.Equal(t, "Battery low. Too hot.", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
 	assert.Equal(t, "Battery low. Too hot.", next.Recovering)
-	assert.Equal(t, []string{"Recovering: Battery low. Too hot."}, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
@@ -911,12 +892,10 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                   []string{"skia-rpi2-0001"},
-			"os":                   []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu":                  []string{"x86", "x86_64"},
-			"gpu":                  []string{"none"},
-			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
-			machine.DimPool:        []string{machine.PoolSkia},
+			"id":  []string{"skia-rpi2-0001"},
+			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu": []string{"x86", "x86_64"},
+			"gpu": []string{"none"},
 		},
 	}
 	event := machine.Event{
@@ -955,8 +934,6 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"chromeos_channel":   []string{"stable-channel"}, // added
 			"chromeos_milestone": []string{"89"},             // added
 			"release_version":    []string{"13729.56.0"},     // added
-			// quarantined was removed.
-			machine.DimPool: []string{machine.PoolSkia},
 		},
 		Annotation: machine.Annotation{
 			User:      machineUserName,
@@ -980,11 +957,10 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":            []string{"skia-rpi2-0001"},
-			"os":            []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu":           []string{"x86", "x86_64"},
-			"gpu":           []string{"none"},
-			machine.DimPool: []string{machine.PoolSkia},
+			"id":  []string{"skia-rpi2-0001"},
+			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu": []string{"x86", "x86_64"},
+			"gpu": []string{"none"},
 		},
 	}
 	event := machine.Event{
@@ -1007,12 +983,10 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                   []string{"skia-rpi2-0001"},
-			"os":                   []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu":                  []string{"x86", "x86_64"},
-			"gpu":                  []string{"none"},
-			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
-			machine.DimPool:        []string{machine.PoolSkia},
+			"id":  []string{"skia-rpi2-0001"},
+			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu": []string{"x86", "x86_64"},
+			"gpu": []string{"none"},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{
@@ -1044,7 +1018,6 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"chromeos_channel":   []string{"stable-channel"},
 			"chromeos_milestone": []string{"89"},
 			"release_version":    []string{"13729.56.0"},
-			machine.DimPool:      []string{machine.PoolSkia},
 		},
 	}
 	event := machine.Event{
@@ -1067,15 +1040,13 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                   []string{"skia-rpi2-0001"},
-			machine.DimOS:          []string{"ChromeOS"},
-			"cpu":                  []string{"arm"},
-			"gpu":                  []string{"MaliT654"},
-			"chromeos_channel":     []string{"stable-channel"},
-			"chromeos_milestone":   []string{"89"},
-			"release_version":      []string{"13729.56.0"},
-			machine.DimQuarantined: []string{"Recovering: Device \"root@my-chromebook\" has gone missing"},
-			machine.DimPool:        []string{machine.PoolSkia},
+			"id":                 []string{"skia-rpi2-0001"},
+			machine.DimOS:        []string{"ChromeOS"},
+			"cpu":                []string{"arm"},
+			"gpu":                []string{"MaliT654"},
+			"chromeos_channel":   []string{"stable-channel"},
+			"chromeos_milestone": []string{"89"},
+			"release_version":    []string{"13729.56.0"},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{
@@ -1258,81 +1229,6 @@ func TestProcessAndroidEvent_NotPowerCycled_NotPowerCycleRetained(t *testing.T) 
 	event := androidEvent(false)
 	next := processAndroidEvent(ctx, previous, event)
 	assert.False(t, next.PowerCycle)
-}
-
-func TestProcessorImpl_setQuarantineMetrics(t *testing.T) {
-
-	tests := []struct {
-		name                string
-		desc                machine.Description
-		expectedMaintenance int64
-		expectedRecovering  int64
-		expectedQuarantined int64
-	}{
-		{
-			name: "Machine is available",
-			desc: machine.Description{
-				MaintenanceMode: "",
-				Recovering:      "",
-				IsQuarantined:   false,
-			},
-			expectedMaintenance: 0,
-			expectedRecovering:  0,
-			expectedQuarantined: 0,
-		},
-		{
-			name: "Manually put into maintenance mode.",
-			desc: machine.Description{
-				MaintenanceMode: "alice@example.com",
-				Recovering:      "",
-				IsQuarantined:   false,
-			},
-			expectedMaintenance: 1,
-			expectedRecovering:  0,
-			expectedQuarantined: 0,
-		},
-		{
-			name: "Machine is recovering",
-			desc: machine.Description{
-				MaintenanceMode: "",
-				Recovering:      "Too hot.",
-				IsQuarantined:   false,
-			},
-			expectedMaintenance: 0,
-			expectedRecovering:  1,
-			expectedQuarantined: 0,
-		},
-		{
-			name: "Machine was quarantined by failing an infra step",
-			desc: machine.Description{
-				MaintenanceMode: "",
-				Recovering:      "",
-				IsQuarantined:   true,
-			},
-			expectedMaintenance: 0,
-			expectedRecovering:  0,
-			expectedQuarantined: 1,
-		},
-		{
-			name: "Machine has multiple reasons for being quarantined",
-			desc: machine.Description{
-				MaintenanceMode: "bob@example.com",
-				Recovering:      "Low charge.",
-				IsQuarantined:   true,
-			},
-			expectedMaintenance: 1,
-			expectedRecovering:  1,
-			expectedQuarantined: 1,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			setQuarantineMetrics(tt.desc)
-			require.Equal(t, tt.expectedMaintenance, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), maintenanceTag).Get())
-			require.Equal(t, tt.expectedRecovering, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), recoveringTag).Get())
-			require.Equal(t, tt.expectedQuarantined, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), quarantineTag).Get())
-		})
-	}
 }
 
 func Test_handleGeneralFields(t *testing.T) {

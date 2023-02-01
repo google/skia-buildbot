@@ -8,7 +8,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/now",
-        "//go/util",
         "//task_scheduler/go/types",
     ],
 )

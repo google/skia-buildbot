@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/machinetest"
 	"go.skia.org/infra/machine/go/machine/pools"
@@ -337,4 +338,79 @@ func Test_V1ToV2SchemaMigration(t *testing.T) {
 
 	// Test the test, make sure at least one known column is present.
 	require.Equal(t, "text", v1toV2Schema.ColumnNameAndType["machine_id"])
+}
+
+func TestSetQuarantineMetrics_Success(t *testing.T) {
+
+	tests := []struct {
+		name                string
+		desc                machine.Description
+		expectedMaintenance int64
+		expectedRecovering  int64
+		expectedQuarantined int64
+	}{
+		{
+			name: "Machine is available",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  0,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Manually put into maintenance mode.",
+			desc: machine.Description{
+				MaintenanceMode: "alice@example.com",
+				Recovering:      "",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 1,
+			expectedRecovering:  0,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Machine is recovering",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "Too hot.",
+				IsQuarantined:   false,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  1,
+			expectedQuarantined: 0,
+		},
+		{
+			name: "Machine was quarantined by failing an infra step",
+			desc: machine.Description{
+				MaintenanceMode: "",
+				Recovering:      "",
+				IsQuarantined:   true,
+			},
+			expectedMaintenance: 0,
+			expectedRecovering:  0,
+			expectedQuarantined: 1,
+		},
+		{
+			name: "Machine has multiple reasons for being quarantined",
+			desc: machine.Description{
+				MaintenanceMode: "bob@example.com",
+				Recovering:      "Low charge.",
+				IsQuarantined:   true,
+			},
+			expectedMaintenance: 1,
+			expectedRecovering:  1,
+			expectedQuarantined: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cdb.SetQuarantineMetrics(tt.desc)
+			require.Equal(t, tt.expectedMaintenance, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), cdb.MaintenanceTag).Get())
+			require.Equal(t, tt.expectedRecovering, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), cdb.RecoveringTag).Get())
+			require.Equal(t, tt.expectedQuarantined, metrics2.GetInt64Metric("machine_processor_device_quarantine_state", tt.desc.Dimensions.AsMetricsTags(), cdb.QuarantineTag).Get())
+		})
+	}
 }

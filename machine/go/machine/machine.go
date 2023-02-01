@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -233,13 +232,6 @@ func (d Description) InMaintenanceMode() bool {
 	return d.MaintenanceMode != ""
 }
 
-// HasValidPool returns true if the pool dimension is valid.
-func (d Description) HasValidPool() bool {
-	pool, ok := d.Dimensions[DimPool]
-
-	return ok && len(pool) == 1 && util.In(pool[0], AllValidPools)
-}
-
 // DestFromDescription returns a slice of interface containing pointers to every public member
 // of Description. This is useful in code that stores the Description in an SQL database.
 //
@@ -291,16 +283,6 @@ func SetSwarmingQuarantinedMessage(d *Description) bool {
 		return true
 	}
 	return false
-}
-
-// SetSwarmingPool based on the machine id.
-func SetSwarmingPool(d *Description) {
-	machineName := d.Dimensions.GetDimensionValueOrEmptyString("id")
-	if strings.HasPrefix(machineName, "skia-i-") {
-		d.Dimensions[DimPool] = []string{PoolSkiaInternal}
-	} else {
-		d.Dimensions[DimPool] = []string{PoolSkia}
-	}
 }
 
 // NewDescription returns a new Description instance. It describes an available machine with no

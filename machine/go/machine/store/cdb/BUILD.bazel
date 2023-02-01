@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machine/store/cdb",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "//go/sql/sqlutil",
         "//machine/go/machine",
@@ -27,6 +28,7 @@ go_test(
     deps = [
         ":cdb",
         "//go/deepequal/assertdeep",
+        "//go/metrics2",
         "//machine/go/machine",
         "//machine/go/machine/machinetest",
         "//machine/go/machine/pools",

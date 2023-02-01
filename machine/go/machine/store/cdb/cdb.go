@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
@@ -177,6 +178,9 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 			s.pools.SetSwarmingPool(&newD)
 		}
 
+		_ = machine.SetSwarmingQuarantinedMessage(&newD)
+		SetQuarantineMetrics(newD)
+
 		// Normalize times so they appear consistent in the database.
 		newD.RecoveryStart = newD.RecoveryStart.UTC().Truncate(time.Millisecond)
 		newD.LastUpdated = newD.LastUpdated.UTC().Truncate(time.Millisecond)
@@ -189,6 +193,24 @@ func (s *Store) Update(ctx context.Context, machineID string, updateCallback sto
 		}
 		return nil
 	})
+}
+
+var (
+	MaintenanceTag = map[string]string{"state": "Maintenance"}
+	QuarantineTag  = map[string]string{"state": "Quarantined"}
+	RecoveringTag  = map[string]string{"state": "Recovering"}
+)
+
+// Reflects MaintenanceMode, Quarantined, and Recovering into metrics.
+func SetQuarantineMetrics(d machine.Description) {
+	m := metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), MaintenanceTag)
+	m.Update(d.InMaintenanceMode())
+
+	m = metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), QuarantineTag)
+	m.Update(d.IsQuarantined)
+
+	m = metrics2.GetBoolMetric("machine_processor_device_quarantine_state", d.Dimensions.AsMetricsTags(), RecoveringTag)
+	m.Update(d.IsRecovering())
 }
 
 // Get implements ../store.Store.

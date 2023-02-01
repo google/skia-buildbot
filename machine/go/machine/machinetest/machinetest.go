@@ -34,6 +34,9 @@ var FullyFilledInDescription = machine.Description{
 		"foo":           []string{"bar"},
 		"alpha":         []string{"beta", "gamma"},
 		"task_type":     []string{"swarming"},
+		machine.DimQuarantined: []string{
+			"Maintenance: jcgregorio 2022-11-08, Forced Quarantine, Recovering: too hot",
+		},
 	},
 	SuppliedDimensions: machine.SwarmingDimensions{
 		"gpu": []string{"some-gpu"},
