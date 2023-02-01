@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/gold-client/go/imgmatching"
+	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -81,6 +82,8 @@ func (m *matchEnv) Match(ctx context.Context, leftFile, rightFile string) {
 
 	// Print out algorithm-specific debug information.
 	switch algorithmName {
+	case imgmatching.ExactMatching:
+		printOutExactDebugInfo(ctx, matcher.(*exact.Matcher))
 	case imgmatching.FuzzyMatching:
 		printOutFuzzyDebugInfo(ctx, matcher.(*fuzzy.Matcher))
 	case imgmatching.SobelFuzzyMatching:
@@ -121,6 +124,11 @@ func makeOptionalKeys(algorithmName string, parameters []string) (map[string]str
 	}
 
 	return keys, nil
+}
+
+// printOutExactDebugInfo prints out stats debug info reported by the given exact.Matcher.
+func printOutExactDebugInfo(ctx context.Context, matcher *exact.Matcher) {
+	printDebugInfoItem(ctx, "Last different pixel found", matcher.LastDifferentPixelFound())
 }
 
 // printOutFuzzyDebugInfo prints out stats reported by the given fuzzy.Matcher.

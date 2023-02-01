@@ -15,7 +15,7 @@ type testMatcher interface {
 	Match(expected, actual image.Image) bool
 }
 
-// Matcher is a non-exact image matching algorithm.
+// Matcher is an image matching algorithm.
 //
 // It extends the fuzzy.Matcher algorithm by performing edge detection using the Sobel operator[1]
 // and ignoring any pixels that are part of an edge.

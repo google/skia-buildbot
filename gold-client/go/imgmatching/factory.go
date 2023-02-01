@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -27,8 +28,7 @@ func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error)
 
 	switch algorithmName {
 	case ExactMatching:
-		// No Matcher implementation necessary for exact matching as this is done ad-hoc.
-		return ExactMatching, nil, nil
+		return ExactMatching, &exact.Matcher{}, nil
 
 	case FuzzyMatching:
 		matcher, err := makeFuzzyMatcher(optionalKeys)

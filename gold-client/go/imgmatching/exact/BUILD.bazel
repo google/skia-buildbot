@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "exact",
+    srcs = ["exact.go"],
+    importpath = "go.skia.org/infra/gold-client/go/imgmatching/exact",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "exact_test",
+    srcs = ["exact_test.go"],
+    embed = [":exact"],
+    deps = [
+        "//golden/go/image/text",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

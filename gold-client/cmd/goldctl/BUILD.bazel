@@ -22,6 +22,7 @@ go_library(
         "//gold-client/go/auth",
         "//gold-client/go/goldclient",
         "//gold-client/go/imgmatching",
+        "//gold-client/go/imgmatching/exact",
         "//gold-client/go/imgmatching/fuzzy",
         "//gold-client/go/imgmatching/sobel",
         "//golden/go/jsonio",

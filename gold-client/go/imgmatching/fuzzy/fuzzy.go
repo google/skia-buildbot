@@ -5,7 +5,7 @@ import (
 	"image/draw"
 )
 
-// Matcher is a non-exact image matching algorithm.
+// Matcher is an image matching algorithm.
 //
 // It considers two images to be equal if the following two conditions are met:
 //   - Both images are of equal size.

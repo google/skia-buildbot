@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
 func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
-
 	_, _, err := MakeMatcher(map[string]string{
 		AlgorithmNameOptKey: "FakeAlgorithm",
 	})
@@ -21,23 +21,21 @@ func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 }
 
 func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
-
 	algorithmName, matcher, err := MakeMatcher(map[string]string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, ExactMatching, algorithmName)
-	assert.Nil(t, matcher)
+	assert.Equal(t, matcher, &exact.Matcher{})
 }
 
 func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *testing.T) {
-
 	algorithmName, matcher, err := MakeMatcher(map[string]string{
 		AlgorithmNameOptKey: string(ExactMatching),
 	})
 
 	assert.NoError(t, err)
 	assert.Equal(t, ExactMatching, algorithmName)
-	assert.Nil(t, matcher)
+	assert.Equal(t, matcher, &exact.Matcher{})
 }
 
 // missing is a sentinel value used to represent missing parameter values.
@@ -288,7 +286,6 @@ func commonIgnoredBorderThicknessTestCases() []fuzzyMatchingTestCase {
 }
 
 func TestMakeMatcher_FuzzyMatching(t *testing.T) {
-
 	tests := []fuzzyMatchingTestCase{
 		{
 			name:                   "all parameters missing, returns error",
@@ -332,7 +329,6 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 }
 
 func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
-
 	type sobelFuzzyMatchingTestCase struct {
 		name                   string
 		edgeThreshold          string
