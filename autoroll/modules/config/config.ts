@@ -16,6 +16,13 @@ export enum PreUploadStep {
   CHROMIUM_ROLL_WEBGPU_CTS = "CHROMIUM_ROLL_WEBGPU_CTS",
 }
 
+export enum Mode {
+  RUNNING = "RUNNING",
+  STOPPED = "STOPPED",
+  DRY_RUN = "DRY_RUN",
+  OFFLINE = "OFFLINE",
+}
+
 export enum CommitMsgConfig_BuiltIn {
   DEFAULT = "DEFAULT",
   ANDROID = "ANDROID",
@@ -89,6 +96,7 @@ export interface Config {
   safetyThrottle?: ThrottleConfig;
   transitiveDeps?: TransitiveDepConfig[];
   useWorkloadIdentity: boolean;
+  validModes?: Mode[];
 }
 
 interface ConfigJSON {
@@ -123,6 +131,7 @@ interface ConfigJSON {
   safety_throttle?: ThrottleConfigJSON;
   transitive_deps?: TransitiveDepConfigJSON[];
   use_workload_identity?: boolean;
+  valid_modes?: string[];
 }
 
 export interface CommitMsgConfig {

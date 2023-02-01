@@ -32,6 +32,7 @@ export function GetFakeStatus(): AutoRollStatus {
       rollerId: 'skia-skiabot-test',
       supportsManualRolls: true,
       timeWindow: 'M-F 04:00-08:00',
+      validModes: [],
     },
     fullHistoryUrl:
       'https://skia-review.googlesource.com/q/owner:skia-autoroll@skia-public.iam.gserviceaccount.com',

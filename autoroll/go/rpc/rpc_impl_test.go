@@ -408,9 +408,16 @@ func TestSetMode(t *testing.T) {
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
 
-	// Check results.
-	roller.Mode.(*modes_mocks.ModeHistory).On("Add", ctx, modes.ModeDryRun, editor, req.Message).Return(nil)
+	// Check error for invalid mode for this roller.
 	req.RollerId = roller.Cfg.RollerName
+	roller.Cfg.ValidModes = []config.Mode{config.Mode_RUNNING, config.Mode_STOPPED, config.Mode_OFFLINE}
+	res, err = srv.SetMode(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error invalid_argument: mode requested mode is not allowed for this roller; valid modes: [RUNNING STOPPED OFFLINE]")
+
+	// Ensure no error when ValidModes is not set. Check for a valid result.
+	roller.Cfg.ValidModes = nil
+	roller.Mode.(*modes_mocks.ModeHistory).On("Add", ctx, modes.ModeDryRun, editor, req.Message).Return(nil)
 	res, err = srv.SetMode(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
@@ -420,6 +427,12 @@ func TestSetMode(t *testing.T) {
 	assertdeep.Equal(t, &SetModeResponse{
 		Status: expect,
 	}, res)
+
+	// Ensure no error when ValidModes is set.
+	roller.Cfg.ValidModes = []config.Mode{config.Mode_RUNNING, config.Mode_DRY_RUN, config.Mode_STOPPED, config.Mode_OFFLINE}
+	roller.Mode.(*modes_mocks.ModeHistory).On("Add", ctx, modes.ModeDryRun, editor, req.Message).Return(nil)
+	_, err = srv.SetMode(ctx, req)
+	require.NoError(t, err)
 }
 
 func TestSetStrategy(t *testing.T) {
@@ -686,6 +699,7 @@ func TestConvertConfig(t *testing.T) {
 
 	_, rollers, _ := setup(t)
 	cfg := rollers["roller1"].Cfg
+	cfg.ValidModes = []config.Mode{config.Mode_RUNNING, config.Mode_STOPPED, config.Mode_OFFLINE}
 
 	// Use Copy to ensure that the test checks all of the fields. Note that it
 	// only checks top-level fields and does not dig into member structs.
@@ -696,6 +710,7 @@ func TestConvertConfig(t *testing.T) {
 		RollerId:            cfg.RollerName,
 		SupportsManualRolls: cfg.SupportsManualRolls,
 		TimeWindow:          cfg.TimeWindow,
+		ValidModes:          []Mode{Mode_RUNNING, Mode_STOPPED, Mode_OFFLINE},
 	}, convertConfig(cfg))
 }
 
