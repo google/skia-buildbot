@@ -35,6 +35,7 @@ http_archive(
     strip_prefix = "buildtools-4.0.0",
     urls = gcs_mirror_url(
         sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
+        # Fix after https://github.com/bazelbuild/buildtools/issues/1135 is addressed
         url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
     ),
 )
@@ -49,6 +50,7 @@ http_archive(
     strip_prefix = "rules_python-0.8.1",
     urls = gcs_mirror_url(
         sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
+        # Update after a release with https://github.com/bazelbuild/rules_python/pull/1032 lands
         url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.1.tar.gz",
     ),
 )
@@ -113,12 +115,12 @@ switched_rules_by_language(
 # Needed by @com_github_bazelbuild_remote_apis.
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+    sha256 = "6dd0f6b20094910fbb7f1f7908688df01af2d4f6c5c21331b9f636048674aebf",
     strip_prefix = "protobuf-3.14.0",
-    urls = [
-        "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
-        "https://github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
-    ],
+    urls = gcs_mirror_url(
+        sha256 = "6dd0f6b20094910fbb7f1f7908688df01af2d4f6c5c21331b9f636048674aebf",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protobuf-all-3.14.0.tar.gz",
+    ),
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -133,6 +135,7 @@ http_archive(
     strip_prefix = "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d",
     urls = gcs_mirror_url(
         sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
+        # b/267219467
         url = "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip",
     ),
 )
@@ -144,6 +147,7 @@ http_archive(
     strip_prefix = "grpc-93e8830070e9afcbaa992c75817009ee3f4b63a0",  # v1.24.3 with fixes
     urls = gcs_mirror_url(
         sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
+        # Fix after https://github.com/grpc/grpc/issues/32259 is resolved
         url = "https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip",
     ),
 )
@@ -208,6 +212,7 @@ http_archive(
     strip_prefix = "rules_sass-1.49.8",
     urls = gcs_mirror_url(
         sha256 = "6cca1c3b77185ad0a421888b90679e345d7b6db7a8c9c905807fe4581ea6839a",
+        # Fix after https://github.com/bazelbuild/rules_sass/issues/147 is addressed
         url = "https://github.com/bazelbuild/rules_sass/archive/1.49.8.zip",
     ),
 )
