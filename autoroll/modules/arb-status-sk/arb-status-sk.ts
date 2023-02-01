@@ -502,7 +502,7 @@ export class ARBStatusSk extends ElementSk {
         <td>Mode:</td>
         <td>
           <select id="modeSelect">
-            ${(ele.status.config?.validModes || Object.keys(Mode)).map((mode: string) => html`
+            ${Object.keys(Mode).map((mode: string) => html`
               <option
                 value="${mode}"
                 ?selected="${mode === ele.status?.mode?.mode}"

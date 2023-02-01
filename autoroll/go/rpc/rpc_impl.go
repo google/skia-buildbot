@@ -279,22 +279,6 @@ func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*Set
 	default:
 		return nil, twirp.InvalidArgumentError("mode", "invalid mode")
 	}
-	if len(roller.Cfg.ValidModes) > 0 {
-		// Note: this assumes that the Mode enums in rpc.proto and config.proto
-		// are in sync.
-		modeConv := config.Mode(req.Mode)
-		isValidMode := false
-		validModeStrs := make([]string, 0, len(roller.Cfg.ValidModes))
-		for _, validMode := range roller.Cfg.ValidModes {
-			validModeStrs = append(validModeStrs, validMode.String())
-			if modeConv == validMode {
-				isValidMode = true
-			}
-		}
-		if !isValidMode {
-			return nil, twirp.InvalidArgumentError("mode", fmt.Sprintf("requested mode is not allowed for this roller; valid modes: %v", validModeStrs))
-		}
-	}
 	if err := roller.Mode.Add(ctx, mode, user, req.Message); err != nil {
 		return nil, err
 	}
@@ -656,13 +640,6 @@ func convertRevisions(inp []*revision.Revision) []*Revision {
 }
 
 func convertConfig(inp *config.Config) *AutoRollConfig {
-	var validModes []Mode
-	if len(inp.ValidModes) > 0 {
-		validModes = make([]Mode, 0, len(inp.ValidModes))
-		for _, m := range inp.ValidModes {
-			validModes = append(validModes, Mode(m))
-		}
-	}
 	return &AutoRollConfig{
 		ChildBugLink:        inp.ChildBugLink,
 		ParentBugLink:       inp.ParentBugLink,
@@ -670,7 +647,6 @@ func convertConfig(inp *config.Config) *AutoRollConfig {
 		RollerId:            inp.RollerName,
 		SupportsManualRolls: inp.SupportsManualRolls,
 		TimeWindow:          inp.TimeWindow,
-		ValidModes:          validModes,
 	}
 }
 
