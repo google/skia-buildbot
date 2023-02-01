@@ -347,7 +347,7 @@ def sk_page(
         ts_deps = [],
         sass_deps = [],
         sk_element_deps = [],
-        assets_serving_path = "/",
+        assets_serving_path = "",
         copy_files = None,
         nonce = None):
     """Builds a static HTML page, and its CSS and JavaScript development and production bundles.
@@ -563,8 +563,10 @@ def sk_page(
     # HTML files. #
     ###############
 
-    if assets_serving_path.endswith("/"):
-        assets_serving_path = assets_serving_path[:-1]
+    # Add a slash at the end of the assets_serving_path, but not if the string is empty, as that
+    # would turn the "" relative path into the "/" absolute path.
+    if assets_serving_path != "" and not assets_serving_path.endswith("/"):
+        assets_serving_path += "/"
 
     # Generates file development/<name>.html.
     html_insert_assets(
@@ -572,9 +574,9 @@ def sk_page(
         html_src = html_file,
         html_out = "%s/%s.html" % (DEV_OUT_DIR, name),
         js_src = "%s/%s.js" % (DEV_OUT_DIR, name),
-        js_serving_path = "%s/%s.js" % (assets_serving_path, name),
+        js_serving_path = "%s%s.js" % (assets_serving_path, name),
         css_src = "%s/%s.css" % (DEV_OUT_DIR, name),
-        css_serving_path = "%s/%s.css" % (assets_serving_path, name),
+        css_serving_path = "%s%s.css" % (assets_serving_path, name),
         nonce = nonce,
     )
 
@@ -584,9 +586,9 @@ def sk_page(
         html_src = html_file,
         html_out = "%s/%s.html" % (PROD_OUT_DIR, name),
         js_src = "%s/%s.js" % (PROD_OUT_DIR, name),
-        js_serving_path = "%s/%s.js" % (assets_serving_path, name),
+        js_serving_path = "%s%s.js" % (assets_serving_path, name),
         css_src = "%s/%s.css" % (PROD_OUT_DIR, name),
-        css_serving_path = "%s/%s.css" % (assets_serving_path, name),
+        css_serving_path = "%s%s.css" % (assets_serving_path, name),
         nonce = nonce,
     )
 
