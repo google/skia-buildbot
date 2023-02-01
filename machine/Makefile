@@ -35,6 +35,14 @@ start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
 
+# Presumes you've already run:
+#
+#    make build
+#
+#    kubectl port-forward service/machineserver-cockroachdb 25001:26257
+#
+# Run "bazel build //perf/..." after making any frontend changes to pick up the
+# change without restarting the golang server.
 run-local-instance: build
 	../_bazel_bin/machine/go/machineserver/machineserver_/machineserver --local --resources_dir ../_bazel_bin/machine/pages/development
 

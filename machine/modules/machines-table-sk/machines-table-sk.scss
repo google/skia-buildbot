@@ -11,6 +11,10 @@ machines-table-sk {
 
   div.dimensions {
     width: max-content;
+
+    td {
+      padding-left: 8px;
+    }
   }
 
   details {

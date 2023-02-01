@@ -8,6 +8,10 @@ Date.now = () => fakeNow;
 
 fetchMock.get('/_/machines', descriptions);
 
-const element = new MachinesTableSk();
-document.body.appendChild(element);
-element.update();
+(async () => {
+  const element = new MachinesTableSk();
+  document.body.appendChild(element);
+  await element.update();
+
+  element.querySelectorAll<HTMLDetailsElement>('details.dimensions')[1]!.open = true;
+})();
