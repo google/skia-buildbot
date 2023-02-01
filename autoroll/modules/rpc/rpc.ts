@@ -182,6 +182,7 @@ export interface AutoRollConfig {
   rollerId: string;
   supportsManualRolls: boolean;
   timeWindow: string;
+  validModes?: Mode[];
 }
 
 interface AutoRollConfigJSON {
@@ -191,6 +192,7 @@ interface AutoRollConfigJSON {
   roller_id?: string;
   supports_manual_rolls?: boolean;
   time_window?: string;
+  valid_modes?: string[];
 }
 
 const JSONToAutoRollConfig = (m: AutoRollConfigJSON): AutoRollConfig => {
@@ -201,6 +203,7 @@ const JSONToAutoRollConfig = (m: AutoRollConfigJSON): AutoRollConfig => {
     rollerId: m.roller_id || "",
     supportsManualRolls: m.supports_manual_rolls || false,
     timeWindow: m.time_window || "",
+    validModes: (m.valid_modes || []) as Mode[],
   };
 };
 

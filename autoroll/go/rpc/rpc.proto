@@ -195,6 +195,9 @@ message AutoRollConfig {
   // time_window describes the limitations, if any, on when the autoroller is
   // allowed to upload roll CLs.
   string time_window = 4;
+  // valid_modes lists the valid modes for the roller. If not specified, all
+  // modes are allowed.
+  repeated Mode valid_modes = 7;
 }
 
 // ModeChange describes one instance of an autoroller's mode being changed.

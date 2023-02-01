@@ -502,7 +502,7 @@ export class ARBStatusSk extends ElementSk {
         <td>Mode:</td>
         <td>
           <select id="modeSelect">
-            ${Object.keys(Mode).map((mode: string) => html`
+            ${ele.validModes.map((mode: string) => html`
               <option
                 value="${mode}"
                 ?selected="${mode === ele.status?.mode?.mode}"
@@ -510,7 +510,7 @@ export class ARBStatusSk extends ElementSk {
               >
                 ${mode.toLowerCase().replace('_', ' ')}
               </option>
-              `,
+              `
       )}
           </select>
         </td>
@@ -588,6 +588,8 @@ export class ARBStatusSk extends ElementSk {
   private strategyChangePending: boolean = false;
 
   private timeout: number = 0;
+
+  private validModes: Mode[] = Object.keys(Mode).map((key) => Mode[key as keyof typeof Mode]);
 
   constructor() {
     super(ARBStatusSk.template);
@@ -1168,8 +1170,12 @@ export class ARBStatusSk extends ElementSk {
 
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
+    this.validModes = Object.keys(Mode).map((key) => Mode[key as keyof typeof Mode]);
     if (status.config) {
       this.rollWindowStart = this.computeRollWindowStart(status.config);
+      if ((status.config.validModes || []).length > 0) {
+        this.validModes = status.config.validModes!;
+      }
     }
     this.status = status;
     console.log('Loaded status.');

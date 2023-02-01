@@ -90,5 +90,6 @@ export function GetFakeConfig(): Config {
       subject: '',
       logLevel: NotifierConfig_LogLevel.SILENT,
     }],
+    validModes: [],
   };
 }
