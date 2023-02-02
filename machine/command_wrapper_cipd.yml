@@ -1,0 +1,5 @@
+package: skia/internal/command_wrapper
+description: Builds of command_wrapper for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

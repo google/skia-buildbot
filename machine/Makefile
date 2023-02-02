@@ -104,6 +104,63 @@ build_and_upload_test_machine_monitor: build_test_machine_monitor_for_all_archs
 release_test_machine_monitor: build_and_upload_test_machine_monitor
 	../bash/ansible-release.sh test_machine_monitor ${VERSION}
 
+build_command_wrapper_for_all_archs:
+	rm -rf ./build
+
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=arm64 \
+	go build \
+	  -o ./build/Linux/aarch64/command_wrapper \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	  ../infra/bots/task_drivers/command_wrapper
+
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/command_wrapper \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ../infra/bots/task_drivers/command_wrapper
+
+	CGO_ENABLED=0 \
+	GOOS=darwin \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Darwin/x86_64/command_wrapper \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ../infra/bots/task_drivers/command_wrapper
+
+	CGO_ENABLED=0 \
+	GOOS=darwin \
+	GOARCH=arm64 \
+	go build \
+	 -o ./build/Darwin/arm64/command_wrapper \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ../infra/bots/task_drivers/command_wrapper
+
+	CGO_ENABLED=0 \
+	GOOS=windows \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Win32NT/64-bit/command_wrapper \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ../infra/bots/task_drivers/command_wrapper
+
+build_and_upload_command_wrapper: build_command_wrapper_for_all_archs
+	cipd create -pkg-def=command_wrapper_cipd.yml --tag version:${VERSION}
+
+	#
+	# The instance can be retrieved using the version tag:
+	#
+	#   cipd install --root=/tmp/sometempdir skia/internal/command_wrapper version:${VERSION}
+
+# After running this, you may want to deploy install the tmm executable. To do so, see
+# //skolo/ansible/switchboard/roles/install_test_machine_monitor/README.md
+release_command_wrapper: build_and_upload_command_wrapper
+	../bash/ansible-release.sh command_wrapper ${VERSION}
+
+
 .PHONY: build generate serve testjs release push push_bazel \
     release_firestore_emulator start_firestore_emulator start_pubsub_emulator \
     build run-local-instance build \
