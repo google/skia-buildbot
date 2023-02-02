@@ -8,6 +8,5 @@ go_library(
     deps = [
         "//go/auth",
         "//go/gce",
-        "//go/gce/swarming/instance_types",
     ],
 )

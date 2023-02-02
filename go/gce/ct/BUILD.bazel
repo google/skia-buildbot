@@ -7,10 +7,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/exec",
         "//go/gce",
         "//go/gce/ct/instance_types",
-        "//go/gce/swarming/instance_types",
         "//go/git",
         "//go/sklog",
         "//go/util",
