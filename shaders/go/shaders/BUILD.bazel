@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -22,4 +23,11 @@ go_binary(
     name = "shaders",
     embed = [":shaders_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "shaders_test",
+    srcs = ["main_test.go"],
+    embed = [":shaders_lib"],
+    deps = ["@com_github_stretchr_testify//require"],
 )

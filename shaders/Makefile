@@ -61,3 +61,6 @@ build-placeholders:
 	touch build/canvaskit/canvaskit.js
 	touch build/canvaskit/canvaskit.wasm
 	touch build/version.js
+
+testgo:
+	go test ./go/...

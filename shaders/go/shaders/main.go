@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
@@ -47,7 +48,7 @@ func new() (baseapp.App, error) {
 				Type: "sksl",
 				Body: blueNeuronShaderBody,
 				SKSLMetaData: &scrap.SKSLMetaData{
-					ImageURL: "/dist/mandrill.png",
+					ImageURL: "/img/mandrill.png",
 				},
 			},
 		})
@@ -64,6 +65,29 @@ func new() (baseapp.App, error) {
 	}
 	srv.loadTemplates()
 	return srv, nil
+}
+
+// isResourcePathCorsSafe determines if an image is OK to serve to another
+// origin. |p| is the resource path relative to the /img directory.
+func isResourcePathCorsSafe(p string) bool {
+	return strings.HasSuffix(p, ".png")
+}
+
+// makeCorsResourceHandler is an HTTP handler function designed for serving files from the
+// /img directory allowing cross-origin requests. It will only serve images deemed to be
+// OK for other sites to access.
+func makeCorsResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !isResourcePathCorsSafe(r.URL.Path) {
+			err := skerr.Fmt("%q is not an image", r.URL.Path)
+			httputils.ReportError(w, err, "Resource not an image.", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		fileServer.ServeHTTP(w, r)
+	}
 }
 
 func (srv *server) loadTemplates() {
@@ -138,6 +162,13 @@ func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/debug", srv.debugHandler)
 	r.HandleFunc("/_/load/{hashOrName:[@0-9a-zA-Z-_]+}", srv.loadHandler).Methods("GET")
 	r.HandleFunc("/_/save/", srv.saveHandler).Methods("POST")
+
+	// /img/ is an alias for /dist/ and serves(almost) the same files.
+	// It differs from the /dist/ resource handler (defined in baseapp) in two ways:
+	//
+	// 1. The resource handler allows cross-origin resource fetches.
+	// 2. Only shader images are allowed - all other requests will fail.
+	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.HandlerFunc(makeCorsResourceHandler(*baseapp.ResourcesDir))))
 }
 
 // See baseapp.App.
