@@ -154,15 +154,24 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc(getTaskStatusURI, srv.statusHandler).Methods("GET")
 
 	// All endpoints that require authentication should be added to this router.
-	r.HandleFunc("/", srv.indexHandler)
-	r.HandleFunc(myLeasesURI, srv.myLeasesHandler)
-	r.HandleFunc(allLeasesURI, srv.allLeasesHandler)
-	r.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
-	r.HandleFunc(getSupportedPoolsPostURI, srv.supportedPoolsHandler).Methods("POST")
-	r.HandleFunc(getLeasesPostURI, srv.getLeasesHandler).Methods("POST")
-	r.HandleFunc(addTaskPostURI, srv.addTaskHandler).Methods("POST")
-	r.HandleFunc(extendTaskPostURI, srv.extendTaskHandler).Methods("POST")
-	r.HandleFunc(expireTaskPostURI, srv.expireTaskHandler).Methods("POST")
+	appRouter := mux.NewRouter()
+	appRouter.HandleFunc("/", srv.indexHandler)
+	appRouter.HandleFunc(myLeasesURI, srv.myLeasesHandler)
+	appRouter.HandleFunc(allLeasesURI, srv.allLeasesHandler)
+	appRouter.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
+	appRouter.HandleFunc(getSupportedPoolsPostURI, srv.supportedPoolsHandler).Methods("POST")
+	appRouter.HandleFunc(getLeasesPostURI, srv.getLeasesHandler).Methods("POST")
+	appRouter.HandleFunc(addTaskPostURI, srv.addTaskHandler).Methods("POST")
+	appRouter.HandleFunc(extendTaskPostURI, srv.extendTaskHandler).Methods("POST")
+	appRouter.HandleFunc(expireTaskPostURI, srv.expireTaskHandler).Methods("POST")
+
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
+	appHandler := http.Handler(appRouter)
+	if !*baseapp.Local {
+		appHandler = proxylogin.ForceRoleMiddleware(alogin, roles.Viewer)(appHandler)
+	}
+
+	r.PathPrefix("/").Handler(appHandler)
 }
 
 func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -479,11 +488,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 // AddMiddleware implements baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
-	if !*baseapp.Local {
-		ret = append(ret, proxylogin.ForceRoleMiddleware(alogin, roles.Viewer))
-	}
-	return ret
+	return []mux.MiddlewareFunc{}
 }
 
 func main() {
