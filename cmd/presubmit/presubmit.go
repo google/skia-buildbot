@@ -489,22 +489,8 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 		{regex: regexp.MustCompile(`http\.Head`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`http\.Post`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`http\.PostForm`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
-		{regex: regexp.MustCompile(`os\.Interrupt`),
-			suggestion: "AtExit in go.skia.org/go/cleanup",
-			exceptions: []*regexp.Regexp{
-				// These are mocks which specifically need to listen for interrupts because that's
-				// what the process we're mocking does. There is also one spot that sends a SIGINT
-				// to gracefully shut down a Foundry Bot child process.
-				regexp.MustCompile(`machine/go/test_machine_monitor/foundrybotcustodian/.*\.go`),
-			},
-		},
-		{regex: regexp.MustCompile(`signal\.Notify`), suggestion: "AtExit in go.skia.org/go/cleanup",
-			exceptions: []*regexp.Regexp{
-				// This is a mock which specifically needs to listen for a SIGINT because that's
-				// what the process we're mocking does.
-				regexp.MustCompile(`machine/go/test_machine_monitor/foundrybotcustodian/.*_test\.go`),
-			},
-		},
+		{regex: regexp.MustCompile(`os\.Interrupt`), suggestion: "AtExit in go.skia.org/go/cleanup"},
+		{regex: regexp.MustCompile(`signal\.Notify`), suggestion: "AtExit in go.skia.org/go/cleanup"},
 		{regex: regexp.MustCompile(`syscall\.SIGINT`), suggestion: "AtExit in go.skia.org/go/cleanup"},
 		{regex: regexp.MustCompile(`syscall\.SIGTERM`), suggestion: "AtExit in go.skia.org/go/cleanup"},
 		{regex: regexp.MustCompile(`syncmap\.Map`), suggestion: "sync.Map, added in go 1.9"},

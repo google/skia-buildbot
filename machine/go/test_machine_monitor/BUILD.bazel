@@ -13,11 +13,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/recentschannel",
         "//go/sklog",
         "//machine/go/configs",
         "//machine/go/machineserver/config",
-        "//machine/go/test_machine_monitor/foundrybotcustodian",
         "//machine/go/test_machine_monitor/machine",
         "//machine/go/test_machine_monitor/server",
         "//machine/go/test_machine_monitor/swarming",

@@ -117,19 +117,12 @@ type Machine struct {
 	// to recipes how to communicate with the device under test.
 	sshMachineLocation string
 
-	// startFoundryBot signifies whether to start the Foundry Bot daemon which runs Bazel RBE tasks.
-	startFoundryBot bool
-
-	// descriptionRetrievalCallback is called whenever a new machine state is pulled from
-	// machineserver. It is passed the new state.
-	descriptionRetrievalCallback func(*Machine)
-
 	// This channel emits a value if a round of interrogation must take place immediately.
 	triggerInterrogationCh <-chan bool
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, startFoundryBot bool, descriptionRetrievalCallback func(*Machine), triggerInterrogationCh <-chan bool) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string, triggerInterrogationCh <-chan bool) (*Machine, error) {
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -187,9 +180,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		interrogateTimer:               metrics2.GetFloat64SummaryMetric("test_machine_monitor_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures:     metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		descriptionWatchArrivalCounter: metrics2.GetCounter("test_machine_monitor_description_watch_arrival", map[string]string{"machine": machineID}),
-		startFoundryBot:                startFoundryBot,
 		homeDir:                        homeDir,
-		descriptionRetrievalCallback:   descriptionRetrievalCallback,
 		triggerInterrogationCh:         triggerInterrogationCh,
 	}, nil
 }
@@ -345,9 +336,6 @@ func (m *Machine) retrieveDescription(ctx context.Context) error {
 		return skerr.Wrapf(err, "Failed to decode description from %q", m.machineDescriptionURL)
 	}
 	m.UpdateDescription(desc)
-	if m.descriptionRetrievalCallback != nil {
-		m.descriptionRetrievalCallback(m)
-	}
 	m.descriptionWatchArrivalCounter.Inc(1)
 	return nil
 }

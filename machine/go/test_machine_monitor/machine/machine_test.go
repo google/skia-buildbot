@@ -950,13 +950,11 @@ func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(
 		err := json.NewEncoder(w).Encode(desc)
 		require.NoError(t, err)
 	})
-	calledRetrievalCallback := false
 
 	m := &Machine{
 		client:                         client,
 		machineDescriptionURL:          u.String(),
 		descriptionWatchArrivalCounter: metrics2.GetCounter("bot_config_machine_description_watch_arrival", map[string]string{"machine": machineID}),
-		descriptionRetrievalCallback:   func(*Machine) { calledRetrievalCallback = true },
 	}
 	m.descriptionWatchArrivalCounter.Reset()
 
@@ -964,7 +962,6 @@ func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(
 	require.NoError(t, err)
 	require.Equal(t, u.Path, capturedRequest.URL.Path)
 	require.True(t, *called)
-	require.True(t, calledRetrievalCallback)
 	require.Equal(t, desc, m.description)
 	require.Equal(t, int64(1), m.descriptionWatchArrivalCounter.Get())
 }
