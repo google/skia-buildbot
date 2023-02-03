@@ -23,7 +23,7 @@ wasm_libs:
 
 .PHONY: push
 push: release
-	pushk shaders
+	$(BAZEL) run --config=mayberemote //shaders:pushk_shader_container
 
 bazel_release_ci:
 	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
