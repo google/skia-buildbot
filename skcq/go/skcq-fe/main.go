@@ -17,10 +17,11 @@ import (
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skcq/go/db"
 	"go.skia.org/infra/skcq/go/types"
@@ -37,7 +38,6 @@ var (
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
 	ctx := context.Background()
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, nil)
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal("Could not create token source: %s", err)
@@ -51,6 +51,7 @@ func New() (baseapp.App, error) {
 
 	srv := &Server{
 		dbClient: dbClient,
+		alogin:   proxylogin.NewWithDefaults(),
 	}
 	srv.loadTemplates()
 
@@ -61,6 +62,7 @@ func New() (baseapp.App, error) {
 type Server struct {
 	dbClient  db.DB
 	templates *template.Template
+	alogin    *proxylogin.ProxyLogin
 }
 
 func (srv *Server) loadTemplates() {
@@ -72,11 +74,6 @@ func (srv *Server) loadTemplates() {
 
 // See baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
-	// For login/logout.
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
-
 	// SkCQ handlers.
 	r.HandleFunc("/", srv.indexHandler).Methods("GET")
 	r.HandleFunc("/verifiers_detail/{change_id:[0-9]+}/{patchset_id:[0-9]+}", srv.verifiersDetailHandler).Methods("GET")
@@ -102,7 +99,6 @@ func (srv *Server) verifiersDetailHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 func (srv *Server) getChangeAttemptsHandler(w http.ResponseWriter, r *http.Request) {
@@ -172,12 +168,14 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 // See baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+	if *baseapp.Local {
+		return []mux.MiddlewareFunc{}
+	}
+	return []mux.MiddlewareFunc{proxylogin.ForceRoleMiddleware(srv.alogin, roles.Viewer)}
 }
 
 func main() {

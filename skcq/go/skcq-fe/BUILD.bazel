@@ -6,10 +6,11 @@ go_library(
     importpath = "go.skia.org/infra/skcq/go/skcq-fe",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/alogin/proxylogin",
         "//go/auth",
         "//go/baseapp",
         "//go/httputils",
-        "//go/login",
+        "//go/roles",
         "//go/sklog",
         "//skcq/go/db",
         "//skcq/go/types",
