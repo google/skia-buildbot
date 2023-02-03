@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"os"
 	"path"
 	"runtime"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -18,11 +20,16 @@ const (
 	SETUP_SCRIPT      = "~/setup_script.sh"
 )
 
-func BaseConfig() *gce.Instance {
+func BaseConfig() (*gce.Instance, error) {
 	// The setup script has to be run in an interactive terminal. Make sure
 	// it ends up on the machine and we'll ask the user to run it.
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
+
+	setupScriptBytes, err := os.ReadFile(path.Join(dir, "setup-script.sh"))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
@@ -34,11 +41,11 @@ func BaseConfig() *gce.Instance {
 		Name:        INSTANCE_NAME,
 		Os:          gce.OS_LINUX,
 		Scopes:      []string{auth.ScopeAllCloudAPIs},
-		SetupScript: path.Join(dir, "setup-script.sh"),
+		SetupScript: string(setupScriptBytes),
 		User:        gce.USER_DEFAULT,
 	}
 
-	return vm
+	return vm, nil
 }
 
 func main() {
@@ -53,7 +60,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	vm := BaseConfig()
+	vm, err := BaseConfig()
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Delete the instance if it already exists, to ensure that we're in a
 	// clean state.

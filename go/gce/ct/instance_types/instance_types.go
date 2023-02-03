@@ -2,11 +2,13 @@ package instance_types
 
 import (
 	"fmt"
-	"path"
+	"os"
+	"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -20,9 +22,9 @@ const (
 )
 
 // Base config for CT GCE instances.
-func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
+func CT20170602(name string, useSSDDataDisk bool) (*gce.Instance, error) {
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Dir(path.Dir(filename))
+	dir := filepath.Dir(filepath.Dir(filename))
 	dataDisk := &gce.Disk{
 		Name:      fmt.Sprintf("%s-data", name),
 		SizeGb:    300,
@@ -31,6 +33,10 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 	}
 	if useSSDDataDisk {
 		dataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	}
+	setupScriptBytes, err := os.ReadFile(filepath.Join(dir, "setup-script.sh"))
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
@@ -51,31 +57,45 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 			auth.ScopePubsub,
 			auth.ScopeGerrit,
 		},
-		SetupScript: path.Join(dir, "setup-script.sh"),
+		SetupScript: string(setupScriptBytes),
 		Tags:        []string{"use-swarming-auth"},
 		User:        gce.USER_CHROME_BOT,
-	}
+	}, nil
 }
 
 // CT GCE instances.
-func CTWorkerInstance(num int) *gce.Instance {
-	return CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), false /* useSSDDataDisk */)
+func CTWorkerInstance(num int) (*gce.Instance, error) {
+	vm, err := CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), false /* useSSDDataDisk */)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return vm, nil
 }
 
-func CTMasterInstance(num int) *gce.Instance {
-	return CT20170602(fmt.Sprintf("ct-master-%03d", num), false /* useSSDDataDisk */)
+func CTMasterInstance(num int) (*gce.Instance, error) {
+	vm, err := CT20170602(fmt.Sprintf("ct-master-%03d", num), false /* useSSDDataDisk */)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return vm, nil
 }
 
 // CT Android Builder GCE instances.
-func CTAndroidBuilderInstance(num int) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num), true /* useSSDDataDisk */)
+func CTAndroidBuilderInstance(num int) (*gce.Instance, error) {
+	vm, err := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num), true /* useSSDDataDisk */)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
-	return vm
+	return vm, nil
 }
 
 // CT Linux Builder GCE instances.
-func CTLinuxBuilderInstance(num int) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
+func CTLinuxBuilderInstance(num int) (*gce.Instance, error) {
+	vm, err := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
-	return vm
+	return vm, nil
 }

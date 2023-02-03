@@ -81,16 +81,20 @@ func main() {
 	group := util.NewNamedErrGroup()
 	for _, num := range instanceNums {
 		var vm *gce.Instance
+		var err error
 		if *androidBuilder {
-			vm = instance_types.CTAndroidBuilderInstance(num)
+			vm, err = instance_types.CTAndroidBuilderInstance(num)
 		} else if *linuxBuilder {
-			vm = instance_types.CTLinuxBuilderInstance(num)
+			vm, err = instance_types.CTLinuxBuilderInstance(num)
 		} else if *master {
-			vm = instance_types.CTMasterInstance(num)
+			vm, err = instance_types.CTMasterInstance(num)
 		} else if *worker {
-			vm = instance_types.CTWorkerInstance(num)
+			vm, err = instance_types.CTWorkerInstance(num)
 		} else {
 			sklog.Fatal("Must specify exactly one of the builder flags or --master or --worker")
+		}
+		if err != nil {
+			sklog.Fatal(err)
 		}
 
 		group.Go(vm.Name, func() error {

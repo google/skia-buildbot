@@ -111,7 +111,7 @@ func main() {
 		setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
 	} else {
 		if *ansible {
-			setupScript = instance_types.GetLinuxScriptsForAnsible(checkoutRoot)
+			setupScript, err = instance_types.GetLinuxScriptsForAnsible(checkoutRoot)
 		} else {
 			setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
 		}

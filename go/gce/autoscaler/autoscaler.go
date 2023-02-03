@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
@@ -57,12 +58,16 @@ type Autoscaler struct {
 
 // Helper function for creating lists of instances. The given range is
 // inclusive.
-func GetInstanceRange(min, max int, getInstance func(int) *gce.Instance) []*gce.Instance {
+func GetInstanceRange(min, max int, getInstance func(int) (*gce.Instance, error)) ([]*gce.Instance, error) {
 	rv := make([]*gce.Instance, 0, max-min+1)
 	for i := min; i <= max; i++ {
-		rv = append(rv, getInstance(i))
+		vm, err := getInstance(i)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, vm)
 	}
-	return rv
+	return rv, nil
 }
 
 // Helper function for creating lists of instances.

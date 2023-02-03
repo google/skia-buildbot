@@ -9,6 +9,7 @@ go_library(
         "//go/auth",
         "//go/exec",
         "//go/gce",
+        "//go/skerr",
         "//go/util",
     ],
 )

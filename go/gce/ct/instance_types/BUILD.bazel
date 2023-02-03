@@ -8,5 +8,6 @@ go_library(
     deps = [
         "//go/auth",
         "//go/gce",
+        "//go/skerr",
     ],
 )

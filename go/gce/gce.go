@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -450,21 +449,20 @@ type Instance struct {
 	// Auth scopes for the instance.
 	Scopes []string
 
-	// Path to a setup script for the instance, optional. Should be either
-	// absolute or relative to CWD. The setup script runs once after the
-	// instance is created. For Windows, this is assumed to be a PowerShell
-	// script and runs during sysprep. For Linux, the script needs to be
-	// executable via the shell (ie. use a shebang for Python scripts).
+	// Contents of a setup script for the instance, optional. The setup script
+	// runs once after the instance is created. For Windows, this is assumed to
+	// be a PowerShell script and runs during sysprep. For Linux, the script
+	// needs to be executable via the shell (ie. use a shebang for Python
+	// scripts).
 	SetupScript string
 
 	// The service account to use for this instance. Required.
 	ServiceAccount string
 
-	// Path to a startup script for the instance, optional. Should be either
-	// absolute or relative to CWD. The startup script runs as root every
-	// time the instance starts up. For Windows, this is assumed to be a
-	// PowerShell script. For Linux, the script needs to be executable via
-	// the shell (ie. use a shebang for Python scripts).
+	// Contents of a startup script for the instance, optional. The startup
+	// script runs as root every time the instance starts up. For Windows, this
+	// is assumed to be a PowerShell script. For Linux, the script needs to be
+	// executable via the shell (ie. use a shebang for Python scripts).
 	StartupScript string
 
 	// Tags for the instance.
@@ -474,27 +472,19 @@ type Instance struct {
 	User string
 }
 
-// scriptToMetadata reads the given script and inserts it into the Instance's
-// metadata.
-func scriptToMetadata(vm *Instance, key, path string) error {
-	var script string
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	script = string(b)
+// scriptToMetadata inserts the given script into the Instance's metadata.
+func scriptToMetadata(vm *Instance, key, scriptContents string) {
 	if vm.Os == OS_WINDOWS {
-		script = util.ToDos(script)
+		scriptContents = util.ToDos(scriptContents)
 	}
 	if vm.Metadata == nil {
 		vm.Metadata = map[string]string{}
 	}
-	vm.Metadata[key] = script
-	return nil
+	vm.Metadata[key] = scriptContents
 }
 
 // setupScriptToMetadata reads the setup script and returns a MetadataItems.
-func setupScriptToMetadata(vm *Instance) error {
+func setupScriptToMetadata(vm *Instance) {
 	key := SETUP_SCRIPT_KEY_WIN
 	if vm.Os != OS_WINDOWS {
 		key = SETUP_SCRIPT_KEY_LINUX
@@ -503,16 +493,16 @@ func setupScriptToMetadata(vm *Instance) error {
 		}
 		vm.MetadataDownloads[SETUP_SCRIPT_PATH_LINUX] = fmt.Sprintf(metadata.METADATA_URL, metadata.LEVEL_INSTANCE, SETUP_SCRIPT_KEY_LINUX)
 	}
-	return scriptToMetadata(vm, key, vm.SetupScript)
+	scriptToMetadata(vm, key, vm.SetupScript)
 }
 
 // startupScriptToMetadata reads the startup script and returns a MetadataItems.
-func startupScriptToMetadata(vm *Instance) error {
+func startupScriptToMetadata(vm *Instance) {
 	key := "startup-script"
 	if vm.Os == OS_WINDOWS {
 		key = "windows-startup-script-ps1"
 	}
-	return scriptToMetadata(vm, key, vm.StartupScript)
+	scriptToMetadata(vm, key, vm.StartupScript)
 }
 
 // validateDataDisks validates the data disk definitions.
@@ -595,9 +585,7 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 		vm.MaintenancePolicy = MAINTENANCE_POLICY_MIGRATE
 	}
 	if vm.SetupScript != "" {
-		if err := setupScriptToMetadata(vm); err != nil {
-			return err
-		}
+		setupScriptToMetadata(vm)
 	}
 	if vm.ServiceAccount == "" {
 		return fmt.Errorf("ServiceAccount is required.")
@@ -609,9 +597,7 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 		// that the startup script runs after the setup script, we have
 		// to wait to set the startup-script metadata item until after
 		// we have manually run the setup script.
-		if err := startupScriptToMetadata(vm); err != nil {
-			return err
-		}
+		startupScriptToMetadata(vm)
 	}
 	metadata := make([]*compute.MetadataItems, 0, len(vm.Metadata))
 	for k, v := range vm.Metadata {
@@ -1143,9 +1129,7 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 			// one can log the variable rv here to debug if scripts aren't working.
 		}
 		if vm.StartupScript != "" {
-			if err := startupScriptToMetadata(vm); err != nil {
-				return err
-			}
+			startupScriptToMetadata(vm)
 			if err := g.SetMetadata(vm, vm.Metadata); err != nil {
 				return err
 			}

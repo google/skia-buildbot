@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
 	"path"
 	"runtime"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -24,9 +26,14 @@ var (
 	internal = flag.Bool("internal", false, "Whether to create an image for internal bots.")
 )
 
-func BaseConfig(serviceAccount string) *gce.Instance {
+func BaseConfig(serviceAccount string) (*gce.Instance, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
+
+	setupScriptBytes, err := os.ReadFile(path.Join(dir, "setup-script.sh"))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
@@ -39,11 +46,11 @@ func BaseConfig(serviceAccount string) *gce.Instance {
 		Os:             gce.OS_LINUX,
 		Scopes:         []string{auth.ScopeAllCloudAPIs},
 		ServiceAccount: serviceAccount,
-		SetupScript:    path.Join(dir, "setup-script.sh"),
+		SetupScript:    string(setupScriptBytes),
 		User:           gce.USER_CHROME_BOT,
 	}
 
-	return vm
+	return vm, nil
 }
 
 func main() {
@@ -64,7 +71,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	vm := BaseConfig(serviceAccount)
+	vm, err := BaseConfig(serviceAccount)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Delete the instance if it already exists, to ensure that we're in a
 	// clean state.

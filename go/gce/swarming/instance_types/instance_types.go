@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -50,7 +51,7 @@ var (
 )
 
 // Base configs for Swarming GCE instances.
-func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath, nodeSetupScript, sourceImage string) *gce.Instance {
+func Swarming20180406(name string, machineType, serviceAccount, setupScript, nodeSetupScript, sourceImage string) *gce.Instance {
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
@@ -71,7 +72,7 @@ func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath,
 		Name:              name,
 		Os:                gce.OS_LINUX,
 		ServiceAccount:    serviceAccount,
-		SetupScript:       setupScriptPath,
+		SetupScript:       setupScript,
 		Scopes:            []string{auth.ScopeAllCloudAPIs, auth.ScopeUserinfoEmail},
 		Tags:              []string{"use-swarming-auth"},
 		User:              USER_CHROME_BOT,
@@ -83,51 +84,51 @@ func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath,
 }
 
 // Linux GCE instances.
-func linuxSwarmingBot(num int, machineType, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	return Swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+func linuxSwarmingBot(num int, machineType, setupScript, nodeSetupScript string) *gce.Instance {
+	return Swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
 }
 
 // Micro Linux GCE instances.
-func LinuxMicro(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_F1_MICRO, setupScriptPath, nodeSetupScript)
+func LinuxMicro(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_F1_MICRO, setupScript, nodeSetupScript)
 	vm.DataDisks[0].SizeGb = 10
 	return vm
 }
 
 // Small Linux GCE instances.
-func LinuxSmall(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHMEM_2, setupScriptPath, nodeSetupScript)
+func LinuxSmall(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHMEM_2, setupScript, nodeSetupScript)
 }
 
 // Medium Linux GCE instances.
-func LinuxMedium(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, nodeSetupScript)
+func LinuxMedium(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16, setupScript, nodeSetupScript)
 }
 
 // Large Linux GCE instances.
-func LinuxLarge(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, nodeSetupScript)
+func LinuxLarge(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64, setupScript, nodeSetupScript)
 }
 
 // Linux GCE instances with GPUs.
-func LinuxGpu(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
+func LinuxGpu(num int, setupScript, nodeSetupScript string) *gce.Instance {
 	// Max 8 CPUs when using a GPU.
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8, setupScriptPath, nodeSetupScript)
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8, setupScript, nodeSetupScript)
 	vm.Gpu = true
 	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE // Required for GPUs.
 	return vm
 }
 
 // Linux GCE instances with AMD CPUs (skbug.com/10269).
-func LinuxAmd(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_N2D_STANDARD_16, setupScriptPath, nodeSetupScript)
+func LinuxAmd(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_N2D_STANDARD_16, setupScript, nodeSetupScript)
 	vm.MinCpuPlatform = gce.CPU_PLATFORM_AMD
 	return vm
 }
 
 // Linux GCE instances with Skylake CPUs.
-func LinuxSkylake(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	vm := LinuxMedium(num, setupScriptPath, nodeSetupScript)
+func LinuxSkylake(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	vm := LinuxMedium(num, setupScript, nodeSetupScript)
 	vm.MinCpuPlatform = gce.CPU_PLATFORM_SKYLAKE
 	return vm
 }
@@ -155,8 +156,8 @@ func Dev(vm *gce.Instance) *gce.Instance {
 }
 
 // Skia CT bots.
-func SkiaCT(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+func SkiaCT(num int, setupScript, nodeSetupScript string) *gce.Instance {
+	vm := Swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
 	vm.DataDisks[0].SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
 	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-3"
@@ -164,7 +165,7 @@ func SkiaCT(num int, setupScriptPath, nodeSetupScript string) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript, bootDiskType string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, startupScript, chromebotScript, bootDiskType string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
 	vm.BootDisk.Type = bootDiskType
 	vm.DataDisks = nil
@@ -173,75 +174,74 @@ func AddWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript, bootDis
 	// chrome-bot scheduled task script.
 	vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
 	vm.Os = gce.OS_WINDOWS
-	vm.StartupScript = startupScriptPath
+	vm.StartupScript = startupScript
 	return vm
 }
 
 // Windows GCE instances.
-func WinSwarmingBot(name, machineType, setupScriptPath, startupScriptPath, chromebotScript, bootDiskType string) *gce.Instance {
-	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, "", WIN_SOURCE_IMAGE)
-	return AddWinConfigs(vm, startupScriptPath, chromebotScript, bootDiskType)
+func WinSwarmingBot(name, machineType, setupScript, startupScript, chromebotScript, bootDiskType string) *gce.Instance {
+	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, "", WIN_SOURCE_IMAGE)
+	return AddWinConfigs(vm, startupScript, chromebotScript, bootDiskType)
 }
 
 // Medium Windows GCE instances.
-func WinMedium(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinMedium(num int, setupScript, startupScript, chromebotScript string) *gce.Instance {
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScript, startupScript, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Large Windows GCE instances.
-func WinLarge(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinLarge(num int, setupScript, startupScript, chromebotScript string) *gce.Instance {
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScript, startupScript, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
-// Returns the path to the setup script, given a local checkout.
+// Returns the contents of the VM setup script and NodeJS setup script, given a local checkout.
 func GetLinuxScripts(ctx context.Context, checkoutRoot, workdir string) (string, string, error) {
-	nodeSetupBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, NODE_SETUP_PATH))
+	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH))
 	if err != nil {
-		return "", "", err
+		return "", "", skerr.Wrap(err)
 	}
-	return filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH), string(nodeSetupBytes), nil
+	nodeSetupBytes, err := os.ReadFile(filepath.Join(checkoutRoot, NODE_SETUP_PATH))
+	if err != nil {
+		return "", "", skerr.Wrap(err)
+	}
+	return string(setupScriptBytes), string(nodeSetupBytes), nil
 }
 
-// Returns the path to the setup script that only installs Ansible dependencies, given a local checkout.
-func GetLinuxScriptsForAnsible(checkoutRoot string) string {
-	return filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_ANSIBLE_PATH)
+// Returns the contents of the setup script that only installs Ansible dependencies, given a local
+// checkout.
+func GetLinuxScriptsForAnsible(checkoutRoot string) (string, error) {
+	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_ANSIBLE_PATH))
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return string(setupScriptBytes), nil
 }
 
-// Returns the setup, startup, and chrome-bot scripts, given a local checkout.
-// Writes the scripts into the given workdir.
+// Returns the contents of the setup, startup, and chrome-bot scripts, given a local checkout.
 func GetWindowsScripts(ctx context.Context, checkoutRoot, workdir string) (string, string, string, error) {
 	pw, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/win-chrome-bot.txt")
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", skerr.Wrap(err)
 	}
 	pw = strings.TrimSpace(pw)
 
-	setupBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_WIN_PATH))
+	setupScriptTemplateBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_WIN_PATH))
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", skerr.Wrap(err)
 	}
-	setupScript := strings.Replace(string(setupBytes), "CHROME_BOT_PASSWORD", pw, -1)
+	setupScript := util.ToDos(strings.Replace(string(setupScriptTemplateBytes), "CHROME_BOT_PASSWORD", pw, -1))
 
-	setupPath := filepath.Join(workdir, "setup-script.ps1")
-	if err := ioutil.WriteFile(setupPath, []byte(setupScript), os.ModePerm); err != nil {
-		return "", "", "", err
-	}
-
-	startupBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, STARTUP_SCRIPT_WIN_PATH))
+	startupScriptTemplateBytes, err := os.ReadFile(filepath.Join(checkoutRoot, STARTUP_SCRIPT_WIN_PATH))
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", skerr.Wrap(err)
 	}
-	startupScript := strings.Replace(string(startupBytes), "CHROME_BOT_PASSWORD", pw, -1)
-	startupPath := filepath.Join(workdir, "startup-script.ps1")
-	if err := ioutil.WriteFile(startupPath, []byte(startupScript), os.ModePerm); err != nil {
-		return "", "", "", err
-	}
+	startupScript := util.ToDos(strings.Replace(string(startupScriptTemplateBytes), "CHROME_BOT_PASSWORD", pw, -1))
 
 	// Return the chrome-bot script itself, not its path.
 	chromebotBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, CHROME_BOT_SCRIPT_WIN_PATH))
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", skerr.Wrap(err)
 	}
 	chromebotScript := util.ToDos(string(chromebotBytes))
-	return setupPath, startupPath, chromebotScript, nil
+	return setupScript, startupScript, chromebotScript, nil
 }
