@@ -5,9 +5,9 @@
 ## Description
 
 Installs `test_machine_monitor` to the machine and arranges for it to run at
-startup. Installs Foundry Bot as well, which TMM optionally uses to field Bazel
-RBE tasks. Does _not_ restart `test_machine_monitor` or Foundry Bot if an old
-copy is already running; reboot to bring up the new version.
+startup. Installs command_wrapper as well, which TMM optionally uses to field
+Kingsford tasks. Does _not_ restart `test_machine_monitor` if an old copy is
+already running; reboot to bring up the new version.
 
 ## Variables Required
 
@@ -17,9 +17,6 @@ Requires `gather_facts` to detect the target operating system.
 
 `install_test_machine_monitor__start_swarming` controls whether
 `test_machine_monitor` should be passed the `--start_swarming` flag.
-
-`start_foundry_bot` controls whether `test_machine_monitor` should run Foundry
-Bot and field Bazel RBE requests, via the `--start_foundry_bot` flag.
 
 `install_test_machine_monitor__linux_run_under_desktop` determines if the
 Swarming launched from `test_machine_monitor` needs access to a graphical
@@ -60,11 +57,11 @@ $ ansible-playbook ./switchboard/install_test_machine_monitor.yml \
   --extra-vars test_machine_monitor_version=2021-09-19T15:36:31Z-jcgregorio-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
 ```
 
-A similar `foundry_bot_version` variable specifies the version of Foundry Bot to
-be deployed:
+A similar `command_wrapper_version` variable specifies the version of
+command_wrapper to be deployed:
 
 ```
 $ ansible-playbook ./switchboard/install_test_machine_monitor.yml \
   -l skia-rpi2-rack4-shelf4-006 \
-  --extra-vars foundry_bot_version=2022-12-30T02_28_24Z-erikrose-8e5ecae-dirty
+  --extra-vars command_wrapper_version=2022-12-30T02_28_24Z-erikrose-8e5ecae-dirty
 ```

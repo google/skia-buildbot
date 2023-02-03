@@ -1,5 +1,5 @@
 # Launches the test_machine_monitor executable, but not before checking if there
-# is an updated executable. Also look for a new version of Foundry Bot, and
+# is an updated executable. Also look for a new version of command_wrapper, and
 # install it if present.
 #
 # Background: On Windows, you can't delete or overwrite an executable that is
@@ -35,7 +35,7 @@ function Update-Executables {
 }
 
 Update-Executables -New '.\test_machine_monitor2.exe' -Old '.\test_machine_monitor.exe'
-Update-Executables -New '.\bot.new.exe' -Old '.\bot.1.exe'
+Update-Executables -New '.\command_wrapper2.exe' -Old '.\command_wrapper.exe'
 
 # Set environment.
 {% if install_test_machine_monitor__start_swarming is true %}
