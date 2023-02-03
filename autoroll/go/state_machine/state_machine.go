@@ -333,28 +333,28 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
-		return nil
+		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_STOPPED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
-		return nil
+		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Dry run failed; closing this roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
-		return nil
+		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", roll.RollingTo())); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because one or more new commits have landed.")
-		return nil
+		return s.a.UpdateRepos(ctx)
 	})
 	f(F_SWITCH_TO_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.SwitchToDryRun(ctx); err != nil {
