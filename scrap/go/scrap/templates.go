@@ -91,7 +91,7 @@ var templates = map[string]string{
 	"svg-cpp":       svgCpp,
 	"svg-js":        "",
 	"sksl-cpp":      skslCpp,
-	"sksl-js":       "",
+	"sksl-js":       skslJavaScript,
 	"particles-cpp": "",
 	"particles-js":  "",
 }
@@ -155,3 +155,70 @@ const skslCpp = `void draw(SkCanvas *canvas) {
     p.setShader(myShader);
     canvas->drawPaint(p);
 }`
+
+const skslJavaScript = `const loadImage = fetch("https://shaders.skia.org/img/mandrill.png")
+  .then((response) => response.arrayBuffer());
+
+Promise.all([loadImage]).then((values) => {
+  const [imageData] = values;
+  const img = CanvasKit.MakeImageFromEncoded(imageData);
+  const imgShader = img.makeShaderCubic(
+    CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp, 1 / 3, 1 / 3);
+
+  const surface = CanvasKit.MakeCanvasSurface(canvas.id);
+  if (!surface) {
+    throw "Could not make surface";
+  }
+  const skcanvas = surface.getCanvas();
+  const paint = new CanvasKit.Paint();
+  const startTimeMs = Date.now();
+  let mouseClickX = 250;
+  let mouseClickY = 250;
+  let mouseDragX = 250;
+  let mouseDragY = 250;
+  let lastMousePressure = 0;
+
+  const prog = ` + "`" + `
+    // Inputs supplied by shaders.skia.org:
+    uniform float3 iResolution;      // Viewport resolution (pixels)
+    uniform float  iTime;            // Shader playback time (s)
+    uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
+    uniform float3 iImageResolution; // iImage1 resolution (pixels)
+    uniform shader iImage1;          // An input image.
+{{ range bodyStringSlice .Body }}
+    {{.}}{{end}}
+    ` + "`" + `;
+
+  const effect = CanvasKit.RuntimeEffect.Make(prog);
+
+  function drawFrame(canvas) {
+    const uniforms = [
+      512, 512, 1,                                      // iResolution
+      (Date.now() - startTimeMs) / 1000,                // iTime
+      mouseDragX, mouseDragY, mouseClickX, mouseClickY, // iMouse
+      img.width(), img.height(), 1];                    // iImageResolution
+    const children = [
+      imgShader                                         // iImage1
+    ];
+    const shader = effect.makeShaderWithChildren(uniforms, children);
+    paint.setShader(shader);
+    skcanvas.drawPaint(paint);
+    shader.delete();
+    surface.requestAnimationFrame(drawFrame);
+  }
+  surface.requestAnimationFrame(drawFrame);
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pressure && !lastMousePressure) {
+      mouseClickX = e.offsetX;
+      mouseClickY = e.offsetY;
+    }
+    lastMousePressure = e.pressure;
+    if (!e.pressure) {
+      return;
+    }
+    mouseDragX = e.offsetX;
+    mouseDragY = e.offsetY;
+  });
+}); // from the Promise.all
+`
