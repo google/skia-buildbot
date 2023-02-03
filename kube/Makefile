@@ -9,8 +9,7 @@ test:
 	go test ./go/...
 
 release_auth_proxy:
-	CGO_ENABLED=0 GOOS=linux go install -a ./cmd/auth-proxy
-	./build_auth_proxy_release
+	$(BAZEL) run --config=mayberemote //kube/cmd/auth-proxy:push_auth-proxy-container
 
 release_basealpine:
 	docker pull alpine:3.9
@@ -20,6 +19,6 @@ push: release_auth_proxy
 	pushk auth-proxy
 
 pushk_authproxy: release_auth_proxy
-	pushk auth-proxy
+	$(BAZEL) run --config=mayberemote //kube/cmd/auth-proxy:pushk_auth-proxy-container
 
 include kube.mk

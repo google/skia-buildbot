@@ -1,3 +1,4 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -15,4 +16,18 @@ go_binary(
     name = "auth-proxy",
     embed = [":auth-proxy_lib"],
     visibility = ["//visibility:public"],
+)
+
+skia_app_container(
+    name = "auth-proxy-container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//kube/cmd/auth-proxy:auth-proxy",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/auth-proxy",
+    repository = "skia-public/auth-proxy",
 )
