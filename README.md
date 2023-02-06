@@ -21,62 +21,44 @@ $ mkdir $GOPATH
 $ cd buildbot
 ```
 
-Using `go get` will fetch the repository into your GOPATH directory along with
-all the Go dependencies. You will need to set GOPATH and GO111MODULE=on. E.g.:
+# Install dependencies
+
+Almost all applications are built with Bazel, and bazelisk is the recommended
+tool to ensure you have the right version of bazel installed:
 
 ```
-$ export GOPATH=${WORKDIR}
-$ export GO111MODULE=on
-$ go get -u -t go.skia.org/infra/...
-$ cd ${GOPATH}/src/go.skia.org/infra/
+go install github.com/bazelbuild/bazelisk@latest
+go install github.com/bazelbuild/buildtools/buildifier@latest
+go install github.com/kisielk/errcheck@latest
+go install golang.org/x/tools/cmd/goimports@latest
+go install github.com/mikefarah/yq/v4@latest
+go install go.chromium.org/luci/client/cmd/...@latest
 ```
 
-Note: go.skia.org is a custom import path and will only work if used like the
-examples [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
-
-Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin
-dir to your path. Optionally run `npm install npm -g`, as suggested by the
-[npm getting started doc](https://docs.npmjs.com/getting-started/installing-node#updating-npm).
-
-Install other dependencies:
+## Install other dependencies:
 
 ```
-$ sudo apt-get install \
-    jq \
-    python-django
-$ go get -u \
-    github.com/kisielk/errcheck \
-    golang.org/x/tools/cmd/goimports \
-    go.chromium.org/luci/client/cmd/isolate \
-    go get github.com/mikefarah/yq/v4
+sudo apt-get install jq
 ```
 
-Build ~everything:
+# Build ~everything
 
 ```
-$ make all
+bazelisk build --config=mayberemote //...
+```
+
+# Test everything
+
+```
+bazelisk test --config=mayberemote //...
 ```
 
 # Generated Code
 
-Some code is generated using `go generate` with external binaries. First,
-install the version of protoc referenced in the
-[asset creation script](https://skia.googlesource.com/skia/+show/master/infra/bots/assets/protoc/create.py)
-and ensure it is on your PATH before other versions of protoc.
-
-Install the necessary go packages:
+To update generated code run the following in any directory:
 
 ```
-$ go get -u \
-  github.com/golang/protobuf/protoc-gen-go \
-  golang.org/x/tools/cmd/stringer \
-  google.golang.org/grpc \
-```
-
-To generate code run in this directory:
-
-```
-$ go generate ./...
+go generate ./...
 ```
 
 # Running unit tests
@@ -86,5 +68,5 @@ Install [Cloud SDK](https://cloud.google.com/sdk/).
 Use this command to run the presubmit tests:
 
 ```
-$ ./run_unittests --small
+./run_unittests --small
 ```
