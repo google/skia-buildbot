@@ -35,6 +35,7 @@ export function GetFakeConfig(): Config {
       includeTests: true,
       builtIn: CommitMsgConfig_BuiltIn.DEFAULT,
       custom: '',
+      wordWrap: 72,
     },
     gerrit: {
       url: 'https://skia-review.googlesource.com',

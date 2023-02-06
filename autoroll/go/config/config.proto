@@ -121,6 +121,9 @@ message CommitMsgConfig {
     // extra_footers are any extra footers which should be added to all roll
     // commit messages.
     repeated string extra_footers = 11;
+    // word_wrap indicates that the commit message should be limited to the
+    // given number of characters per line if provided.
+    int32 word_wrap = 12;
 
     // BuiltIn lists the built-in commit message templates.
     enum BuiltIn {

@@ -67,6 +67,7 @@ type Builder struct {
 	reg            *config_vars.Registry
 	serverURL      string
 	transitiveDeps []*config.TransitiveDepConfig
+	wordWrapChars  int
 }
 
 // NewBuilder returns a Builder instance.
@@ -94,16 +95,17 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 		reg:            reg,
 		serverURL:      serverURL,
 		transitiveDeps: transitiveDeps,
+		wordWrapChars:  int(c.WordWrap),
 	}, nil
 }
 
 // Build a commit message for the given roll.
 func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string) (string, error) {
-	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers, contacts, canary, manualRollRequester)
+	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers, contacts, canary, manualRollRequester, b.wordWrapChars)
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string) (string, error) {
+func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string, wordWrapChars int) (string, error) {
 	vars, err := makeVars(c, cv, childName, parentName, serverURL, childBugLink, parentBugLink, transitiveDeps, from, to, rolling, reviewers, contacts, manualRollRequester)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -129,11 +131,19 @@ func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, 
 		return "", skerr.Wrap(err)
 	}
 
+	// Apply word wrapping if configured to do so.
+	msg := buf.String()
+	if wordWrapChars > 0 {
+		// Apply word wrapping to all but the first line.
+		split := strings.SplitN(msg, "\n", 2)
+		msg = split[0] + "\n" + util.WordWrap(split[1], wordWrapChars)
+	}
+
 	// Templates make whitespace tricky when they involve optional sections. To
 	// ensure that the message looks reasonable, limit to two newlines in a row
 	// (ie. at most one empty line), and ensure that the message ends in exactly
 	// one newline.
-	msg := limitEmptyLinesRegex.ReplaceAllString(buf.String(), "\n\n")
+	msg = limitEmptyLinesRegex.ReplaceAllString(msg, "\n\n")
 	msg = newlineAtEndRegex.ReplaceAllString(msg, "\n")
 
 	return msg, nil

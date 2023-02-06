@@ -603,3 +603,43 @@ func TestFirstNonEmpty(t *testing.T) {
 func TestSplitLines_StripsTrailingNewline(t *testing.T) {
 	assert.Equal(t, []string{"this", "that"}, SplitLines("this\nthat\n"))
 }
+
+func TestWordWrap(t *testing.T) {
+	check := func(inp, expect string) {
+		require.Equal(t, expect, WordWrap(inp, 20))
+	}
+	/*check(`blah blah blah`, `blah blah blah`)
+		check(`blah blah blah blah blah`, `blah blah blah blah
+	blah`)
+		check(`blahblahblahblahblahblah`, `blahblahblahblahblah
+	blah`)
+		check(
+			`blah blah
+	threeshortwords thatshouldsplit toseparatelines
+	thisisareallylongwordthatshouldbebrokenupontothreelines
+	blahblahblah blah blah`,
+			`blah blah
+	threeshortwords
+	thatshouldsplit
+	toseparatelines
+	thisisareallylongwor
+	dthatshouldbebrokenu
+	pontothreelines
+	blahblahblah blah
+	blah`)
+		check(`Ünicðdéchäractersshouldbehandledcorrectly`,
+			`Ünicðdéchäracterssho
+	uldbehandledcorrectl
+	y`)
+		check(`Consume	spaces   appropriately    to avoid    weird                       breaks`,
+			`Consume	spaces
+	appropriately    to
+	avoid    weird
+	breaks`)
+		check(`    longwordafterspaces`, `    longwordafterspa
+	ces`)*/
+	check(`here are some words that split onto multiple lines.`,
+		`here are some words
+that split onto
+multiple lines.`)
+}
