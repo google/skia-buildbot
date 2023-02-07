@@ -199,3 +199,47 @@ func TestTemplateHelper_bodyStringSlice_ReturnsExpectedSlice(t *testing.T) {
 	test("TwoLines", []string{"foo ", " bar"}, "foo \n bar")
 	test("EmptyBody", []string{""}, "")
 }
+
+func TestGetSkSLImageURL_WithValidPathsAndURLs_ReturnsObjectsShaderURL(t *testing.T) {
+	test := func(name, expected string, body ScrapBody) {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, expected, getSkSLImageURL(body))
+		})
+	}
+	test("DistNotModified", "https://shaders.skia.org/dist/soccer.png",
+		ScrapBody{
+			Type:         SKSL,
+			Body:         "",
+			SKSLMetaData: &SKSLMetaData{ImageURL: "/dist/soccer.png"}})
+	test("RelativeImgUnicode", "https://shaders.skia.org/img/世界.png",
+		ScrapBody{
+			Type:         SKSL,
+			Body:         "",
+			SKSLMetaData: &SKSLMetaData{ImageURL: "/img/世界.png"}})
+	test("NonRelativeURL", "https://example.com/my_image.png",
+		ScrapBody{
+			Type:         SKSL,
+			Body:         "",
+			SKSLMetaData: &SKSLMetaData{ImageURL: "https://example.com/my_image.png"}})
+}
+
+func TestGetSkSLImageURL_WithInvalidSkSLScrap_ReturnsDefaultShaderURL(t *testing.T) {
+	test := func(name, expected string, body ScrapBody) {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, expected, getSkSLImageURL(body))
+		})
+	}
+	test("NotSkSL", "https://shaders.skia.org/img/mandrill.png",
+		ScrapBody{
+			Type:              Particle,
+			Body:              "",
+			ParticlesMetaData: &ParticlesMetaData{}})
+	test("NilSKSLMetaData", "https://shaders.skia.org/img/mandrill.png",
+		ScrapBody{
+			Type: SKSL,
+			Body: ""})
+	test("EmptyImageURL", "https://shaders.skia.org/img/mandrill.png",
+		ScrapBody{
+			Type:         SKSL,
+			SKSLMetaData: &SKSLMetaData{ImageURL: ""}})
+}

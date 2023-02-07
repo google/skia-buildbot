@@ -64,10 +64,24 @@ func bodyStringSlice(body string) []string {
 	return strings.Split(body, "\n")
 }
 
+func getSkSLImageURL(body ScrapBody) string {
+	const defaultShaderImageURL = "https://shaders.skia.org/img/mandrill.png"
+	if body.Type != SKSL || body.SKSLMetaData == nil || len(body.SKSLMetaData.ImageURL) == 0 {
+		return defaultShaderImageURL
+	}
+
+	if body.SKSLMetaData.ImageURL[0] == '/' {
+		return "https://shaders.skia.org" + body.SKSLMetaData.ImageURL
+	}
+
+	return body.SKSLMetaData.ImageURL
+}
+
 // funcMap are the template helper functions available in each template.
 var funcMap = template.FuncMap{
 	"bodyAsQuotedStringSlice": bodyAsQuotedStringSlice,
 	"bodyStringSlice":         bodyStringSlice,
+	"getSkSLImageURL":         getSkSLImageURL,
 }
 
 func loadTemplates() (templateMap, error) {
@@ -156,7 +170,7 @@ const skslCpp = `void draw(SkCanvas *canvas) {
     canvas->drawPaint(p);
 }`
 
-const skslJavaScript = `const loadImage = fetch("https://shaders.skia.org/img/mandrill.png")
+const skslJavaScript = `const loadImage = fetch("{{ getSkSLImageURL . }}")
   .then((response) => response.arrayBuffer());
 
 Promise.all([loadImage]).then((values) => {
