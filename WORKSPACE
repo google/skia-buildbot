@@ -522,13 +522,7 @@ http_file(
 ###########
 
 # The following archives were taken from
-# https://github.com/protocolbuffers/protobuf/releases/tag/v3.3.0. In order to prevent diffs, the
-# version should match that of the protoc CIPD package, see
-# https://skia.googlesource.com/skia/+/e7cdb8e4e38f9b6af38ad65c6770ada3d42656d7/infra/bots/assets/protoc/create.py#16.
-#
-# Note that protoc v3.3.0 precedes M1 Macs and thus there is no arm64 binary. We can fix this by
-# updating protoc to a more recent version.
-
+# https://github.com/protocolbuffers/protobuf/releases/tag/v21.12.
 PROTOC_BUILD_FILE_CONTENT = """
 exports_files(["bin/protoc"], visibility = ["//visibility:public"])
 """
@@ -536,19 +530,19 @@ exports_files(["bin/protoc"], visibility = ["//visibility:public"])
 http_archive(
     name = "protoc_linux_x64",
     build_file_content = PROTOC_BUILD_FILE_CONTENT,
-    sha256 = "feb112bbc11ea4e2f7ef89a359b5e1c04428ba6cfa5ee628c410eccbfe0b64c3",
+    sha256 = "3a4c1e5f2516c639d3079b1586e703fc7bcfa2136d58bda24d1d54f949c315e8",
     urls = gcs_mirror_url(
-        sha256 = "feb112bbc11ea4e2f7ef89a359b5e1c04428ba6cfa5ee628c410eccbfe0b64c3",
-        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip",
+        sha256 = "3a4c1e5f2516c639d3079b1586e703fc7bcfa2136d58bda24d1d54f949c315e8",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-linux-x86_64.zip",
     ),
 )
 
 http_archive(
     name = "protoc_mac_x64",
     build_file_content = PROTOC_BUILD_FILE_CONTENT,
-    sha256 = "d752ba0ea67239e327a48b2f23da0e673928a9ff06ee530319fc62200c0aff89",
+    sha256 = "9448ff40278504a7ae5139bb70c962acc78c32d8fc54b4890a55c14c68b9d10a",
     urls = gcs_mirror_url(
-        sha256 = "d752ba0ea67239e327a48b2f23da0e673928a9ff06ee530319fc62200c0aff89",
-        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.3.0/protoc-3.3.0-osx-x86_64.zip",
+        sha256 = "9448ff40278504a7ae5139bb70c962acc78c32d8fc54b4890a55c14c68b9d10a",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-osx-x86_64.zip",
     ),
 )
