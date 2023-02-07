@@ -100,9 +100,10 @@ func main() {
 	var setupScript, startupScript, chromebotScript, nodeSetup string
 	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
 		if *ansible {
-			sklog.Fatal("Flag --ansible is not supported for Windows instances at this time.")
+			setupScript, err = instance_types.GetWindowsSetupScriptForAnsible(ctx, checkoutRoot, wdAbs)
+		} else {
+			setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
 		}
-		setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
 	} else if *instanceType == instance_types.INSTANCE_TYPE_CT {
 		// TODO(lovisolo): Should we configure CT instances via Ansible as well?
 		if *ansible {
@@ -215,7 +216,8 @@ func main() {
 					return err
 				}
 
-				if strings.Contains(vm.Os, "Win") {
+				// TODO(lovisolo): Delete once all Windows machines are set up via Ansible.
+				if strings.Contains(vm.Os, "Win") && !*ansible {
 					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 7*time.Minute); err != nil {
 						return err
 					}

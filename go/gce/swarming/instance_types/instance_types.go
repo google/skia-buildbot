@@ -1,7 +1,9 @@
 package instance_types
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,6 +16,7 @@ import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -43,6 +46,7 @@ var (
 	SETUP_SCRIPT_LINUX_PATH         = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
 	SETUP_SCRIPT_LINUX_ANSIBLE_PATH = filepath.Join("go", "gce", "swarming", "setup-script-linux-ansible.sh")
 	SETUP_SCRIPT_WIN_PATH           = filepath.Join("scripts", "win_setup.ps1")
+	SETUP_SCRIPT_WIN_ANSIBLE_PATH   = filepath.Join("go", "gce", "swarming", "setup-win-ansible.ps1")
 	STARTUP_SCRIPT_WIN_PATH         = filepath.Join("scripts", "win_startup.ps1")
 	CHROME_BOT_SCRIPT_WIN_PATH      = filepath.Join("scripts", "chromebot-schtask.ps1")
 	NODE_SETUP_PATH                 = filepath.Join("third_party", "node", "setup_6.x")
@@ -169,10 +173,16 @@ func AddWinConfigs(vm *gce.Instance, startupScript, chromebotScript, bootDiskTyp
 	vm.BootDisk.SizeGb = 300
 	vm.BootDisk.Type = bootDiskType
 	vm.DataDisks = nil
-	// Most of the Windows setup, including the gitconfig/netrc, occurs in
-	// the setup and startup scripts, which also install and schedule the
-	// chrome-bot scheduled task script.
-	vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
+	// Machines set up via Ansible have an empty chromebotScript, so this only applies to machines
+	// not set up via Ansible.
+	//
+	// TODO(lovisolo): Delete once all GCE Windows machines are set up via Ansible.
+	if chromebotScript != "" {
+		// Most of the Windows setup, including the gitconfig/netrc, occurs in
+		// the setup and startup scripts, which also install and schedule the
+		// chrome-bot scheduled task script.
+		vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
+	}
 	vm.Os = gce.OS_WINDOWS
 	vm.StartupScript = startupScript
 	return vm
@@ -244,4 +254,59 @@ func GetWindowsScripts(ctx context.Context, checkoutRoot, workdir string) (strin
 	}
 	chromebotScript := util.ToDos(string(chromebotBytes))
 	return setupScript, startupScript, chromebotScript, nil
+}
+
+// Returns the setup script, given a local checkout. Writes the script into the given workdir.
+func GetWindowsSetupScriptForAnsible(ctx context.Context, checkoutRoot, workdir string) (string, error) {
+	chromeBotSkoloPassword, err := getChromeBotSkoloPassword(ctx, checkoutRoot)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	setupScriptTemplateBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_WIN_ANSIBLE_PATH))
+	if err != nil {
+		return "", err
+	}
+	setupScript := strings.Replace(string(setupScriptTemplateBytes), "CHROME_BOT_PASSWORD", chromeBotSkoloPassword, -1)
+	return setupScript, nil
+}
+
+// getChromeBotSkoloPassword retrieves the chrome-bot Skolo password from Berglas.
+func getChromeBotSkoloPassword(ctx context.Context, checkoutRoot string) (string, error) {
+	// Read secret using Berglas.
+	berglasOutput := bytes.Buffer{}
+	cmd := &exec.Command{
+		Name:           "/bin/bash",
+		Args:           []string{filepath.Join(checkoutRoot, "kube", "secrets", "get-secret.sh"), "etc", "ansible-secret-vars"},
+		CombinedOutput: &berglasOutput,
+	}
+	if err := exec.Run(ctx, cmd); err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Parse Berglas output.
+	berglasSecret := struct {
+		ApiVersion string `yaml:"apiVersion"`
+		Data       struct {
+			SecretsYml string `yaml:"secrets.yml"`
+		} `yaml:"data"`
+	}{}
+	if err := yaml.Unmarshal(berglasOutput.Bytes(), &berglasSecret); err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Decode and parse the secrets.yml file inside the Berglas secret.
+	secretsYmlBytes, err := base64.StdEncoding.DecodeString(berglasSecret.Data.SecretsYml)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	secretsYml := struct {
+		Secrets struct {
+			SkoloPassword string `yaml:"skolo_password"`
+		} `yaml:"secrets"`
+	}{}
+	if err := yaml.Unmarshal(secretsYmlBytes, &secretsYml); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return secretsYml.Secrets.SkoloPassword, nil
 }
