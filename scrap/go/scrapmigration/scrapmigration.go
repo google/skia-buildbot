@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/scrap/go/scrap"
+	"google.golang.org/api/iterator"
 )
 
 const (
@@ -95,16 +96,16 @@ func updateScrap(ctx context.Context, bucket *storage.BucketHandle, name string,
 }
 
 // switchSkSLScrapDistToImg will change a SkSL scrap object's ImageURL
-// /dist to /img. |id| is the SkSL scrap ID in string form. Will return a
-// boolean value indicating whether the object was updated in the GCS bucket.
-func switchSkSLScrapDistToImg(ctx context.Context, bucket *storage.BucketHandle, id string) (bool, error) {
-	name := getSkSLIdObjName(id)
+// /dist to /img. |name| refers to the full object name e.g. "scraps/sksl/<id>".
+// Will return a boolean value indicating whether the object was updated in
+// the GCS bucket.
+func switchSkSLScrapDistToImg(ctx context.Context, bucket *storage.BucketHandle, name string) (bool, error) {
 	body, err := readScrap(ctx, bucket, name)
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
 	if body.Type != scrap.SKSL {
-		return false, skerr.Fmt("Object %s is in the %s with incorrect type", id, skslPrefix)
+		return false, skerr.Fmt("Object %s is in the %s with incorrect type", name, skslPrefix)
 	}
 	if body.SKSLMetaData == nil {
 		// Some objects have no metadata value - not an error.
@@ -133,7 +134,7 @@ func switchSingleSkSLScrapDistToImg(bucketName, id string) (bool, error) {
 	}
 	defer gcsc.Close()
 	bucket := gcsc.Bucket(bucketName)
-	return switchSkSLScrapDistToImg(ctx, bucket, id)
+	return switchSkSLScrapDistToImg(ctx, bucket, getSkSLIdObjName(id))
 }
 
 // switchDefaultSkSLScrapDistToImg will ensure the defult scrap, i.e.
@@ -154,9 +155,51 @@ func switchDefaultSkSLScrapDistToImg() error {
 	return nil
 }
 
+// Update all SkSL scraps so that any ImageURL values refer to an image
+// in /img/ instead of /dist/. This function will return on the first
+// failure.
+func switchAllSkSLScrapDistToImg() (numChanged, totalCount int, err error) {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return 0, 0, skerr.Wrap(err)
+	}
+	defer client.Close()
+
+	bucket := client.Bucket(bucketName)
+	it := bucket.Objects(ctx, &storage.Query{
+		Prefix: skslPrefix,
+	})
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		totalCount++
+		if err != nil {
+			return 0, 0, skerr.Wrapf(err, "Bucket: %q, prefix: %q", bucketName, skslPrefix)
+		}
+		changed, err := switchSkSLScrapDistToImg(ctx, bucket, attrs.Name)
+		if err != nil {
+			return 0, 0, skerr.Wrap(err)
+		}
+		if changed {
+			numChanged++
+		}
+	}
+	return numChanged, totalCount, nil
+
+}
+
 func main() {
 	err := switchDefaultSkSLScrapDistToImg()
 	if err != nil {
 		log.Fatalf("Error updating default object: %q", err)
 	}
+
+	numChanged, count, err := switchAllSkSLScrapDistToImg()
+	if err != nil {
+		log.Fatalf("Error updating all SkSL objects: %q", err)
+	}
+	fmt.Printf("Successfully updated %d objects out of %d SkSL scraps", numChanged, count)
 }

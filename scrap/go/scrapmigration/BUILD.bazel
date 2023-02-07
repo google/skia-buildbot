@@ -10,6 +10,7 @@ go_library(
         "//go/skerr",
         "//scrap/go/scrap",
         "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//iterator",
     ],
 )
 
