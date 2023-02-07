@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "scrapmigration_lib",
+    srcs = ["scrapmigration.go"],
+    importpath = "go.skia.org/infra/scrap/go/scrapmigration",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//scrap/go/scrap",
+        "@com_google_cloud_go_storage//:storage",
+    ],
+)
+
+go_test(
+    name = "scrapmigration_test",
+    srcs = ["scrapmigration_test.go"],
+    embed = [":scrapmigration_lib"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
+
+go_binary(
+    name = "scrapmigration",
+    embed = [":scrapmigration_lib"],
+    visibility = ["//visibility:public"],
+)
