@@ -847,37 +847,43 @@ func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.Tri
 		userID = req.ImageMatchingAlgorithm
 	}
 
-	deltas, err := wh.convertToDeltas(ctx, req)
+	allDeltas, err := wh.convertToDeltas(ctx, req)
 	if err != nil {
 		return skerr.Wrapf(err, "getting groupings")
 	}
-	if len(deltas) == 0 {
+	if len(allDeltas) == 0 {
 		return nil
 	}
-	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(deltas))))
+	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(allDeltas))))
 
-	err = crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
+	// If this number is too big, the query can take a long time to land (many retries) and in
+	// extreme cases, exceed the number of parameters a SQL query can support.
+	const maxTriageBatchSize = 1000
+	return util.ChunkIter(len(allDeltas), maxTriageBatchSize, func(startIdx int, endIdx int) error {
+		deltas := allDeltas[startIdx:endIdx]
+		err = crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
+			if err != nil {
+				return err
+			}
+			err = fillPreviousLabel(ctx, tx, deltas, newRecordID)
+			if err != nil {
+				return err
+			}
+			err = writeDeltas(ctx, tx, deltas)
+			if err != nil {
+				return err
+			}
+			if branch == "" {
+				return applyDeltasToPrimary(ctx, tx, deltas)
+			}
+			return applyDeltasToBranch(ctx, tx, deltas, branch)
+		})
 		if err != nil {
-			return err
+			return skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(deltas), userID, branch)
 		}
-		err = fillPreviousLabel(ctx, tx, deltas, newRecordID)
-		if err != nil {
-			return err
-		}
-		err = writeDeltas(ctx, tx, deltas)
-		if err != nil {
-			return err
-		}
-		if branch == "" {
-			return applyDeltasToPrimary(ctx, tx, deltas)
-		}
-		return applyDeltasToBranch(ctx, tx, deltas, branch)
+		return nil
 	})
-	if err != nil {
-		return skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(deltas), userID, branch)
-	}
-	return nil
 }
 
 // convertToDeltas converts in triage request (a map) into a slice of deltas. These deltas are
@@ -1022,37 +1028,43 @@ func (wh *Handlers) triage3(ctx context.Context, userID string, req frontend.Tri
 		userID = req.ImageMatchingAlgorithm
 	}
 
-	deltas, err := convertTriageDeltasToExpectationDeltaRows(req.Deltas)
+	allDeltas, err := convertTriageDeltasToExpectationDeltaRows(req.Deltas)
 	if err != nil {
 		return frontend.TriageResponse{}, skerr.Wrapf(err, "converting TriageDeltas to ExpectationDeltaRows")
 	}
-	if len(deltas) == 0 {
+	if len(allDeltas) == 0 {
 		return frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, nil
 	}
 
-	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(deltas))))
+	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(allDeltas))))
 
-	err = crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		if err := verifyExpectationDeltaRowsLabelBefore(ctx, tx, deltas, branch); err != nil {
-			// Could be a triageConflictError if any of the LabelBefore fields do not match their
-			// expected value. This error is handled outside of the transaction.
-			return err
-		}
-		newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
-		if err != nil {
-			return err
-		}
-		for i := range deltas {
-			deltas[i].ExpectationRecordID = newRecordID
-		}
-		err = writeDeltas(ctx, tx, deltas)
-		if err != nil {
-			return err
-		}
-		if branch == "" {
-			return applyDeltasToPrimary(ctx, tx, deltas)
-		}
-		return applyDeltasToBranch(ctx, tx, deltas, branch)
+	// If this number is too big, the query can take a long time to land (many retries) and in
+	// extreme cases, exceed the number of parameters a SQL query can support.
+	const maxTriageBatchSize = 1000
+	err = util.ChunkIter(len(allDeltas), maxTriageBatchSize, func(startIdx int, endIdx int) error {
+		deltas := allDeltas[startIdx:endIdx]
+		return crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			if err := verifyExpectationDeltaRowsLabelBefore(ctx, tx, deltas, branch); err != nil {
+				// Could be a triageConflictError if any of the LabelBefore fields do not match
+				// their expected value. This error is handled outside of the transaction.
+				return err
+			}
+			newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
+			if err != nil {
+				return err
+			}
+			for i := range deltas {
+				deltas[i].ExpectationRecordID = newRecordID
+			}
+			err = writeDeltas(ctx, tx, deltas)
+			if err != nil {
+				return err
+			}
+			if branch == "" {
+				return applyDeltasToPrimary(ctx, tx, deltas)
+			}
+			return applyDeltasToBranch(ctx, tx, deltas, branch)
+		})
 	})
 	if err != nil {
 		// If any of the deltas' LabelBefore do not match the corresponding entries in the
@@ -1074,7 +1086,7 @@ func (wh *Handlers) triage3(ctx context.Context, userID string, req frontend.Tri
 				},
 			}, nil
 		}
-		return frontend.TriageResponse{}, skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(deltas), userID, branch)
+		return frontend.TriageResponse{}, skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(allDeltas), userID, branch)
 	}
 	return frontend.TriageResponse{Status: frontend.TriageResponseStatusOK}, nil
 }
