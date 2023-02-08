@@ -1,0 +1,21 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/skolo-settings.yml.
+
+- name: Fail if platform unsupported.
+  fail:
+    msg: This role is Windows-only.
+  when: ansible_facts['system']|lower not in ['win32nt']
+
+- name: Skolo settings.
+  import_tasks: skolo.yml
+  when: zone == 'skolo'
+
+- name: GCE settings.
+  import_tasks: gce.yml
+  when: zone == 'gce'
+
+- name: Disable disk indexing
+  win_service:
+    name: WSearch
+    start_mode: disabled
+    state: stopped

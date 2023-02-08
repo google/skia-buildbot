@@ -3,7 +3,7 @@
   gather_facts: true
 
   roles:
-    - set_win_skolo_settings
+    - set_win_settings
     - install_win_gpu_drivers
     - copy_authorized_keys
     - copy_service_account_key

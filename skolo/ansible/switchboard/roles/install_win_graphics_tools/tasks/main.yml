@@ -7,6 +7,12 @@
 # - https://docs.microsoft.com/en-us/visualstudio/debugger/graphics/getting-started-with-visual-studio-graphics-diagnostics
 # - https://superuser.com/questions/1614143/how-to-enable-the-new-optional-features-using-powershell
 - name: Install Graphics Tools for Windows 10.
+  # For some reason, on GCE Windows machines this command fails with "Access is denied". lovisolo@
+  # tried running this command as a scheduled task, as suggested in
+  # https://superuser.com/questions/1537081/elevating-to-admin-rights-when-running-in-a-ssh-shell-on-windows,
+  # but the task failed due to lack of elevated privileges. This should not matter as the DirectX
+  # Graphics Tools aren't needed on GCE machines.
+  when: zone == 'skolo'
   win_command: powershell.exe -
   args:
     stdin: Add-WindowsCapability -Online -Name Tools.Graphics.DirectX~~~~0.0.1.0

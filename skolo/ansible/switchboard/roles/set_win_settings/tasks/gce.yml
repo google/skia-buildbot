@@ -1,0 +1,9 @@
+- name: Set auto logon settings for chrome-bot
+  community.windows.win_auto_logon:
+    username: chrome-bot
+    password: "{{ secrets.skolo_password }}"
+
+- name: Uninstall Windows Defender
+  win_feature:
+    name: Windows-Defender
+    state: absent

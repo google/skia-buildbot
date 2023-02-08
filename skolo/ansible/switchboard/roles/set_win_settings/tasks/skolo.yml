@@ -1,11 +1,3 @@
-# This file is based on
-# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/skolo-settings.yml.
-
-- name: Fail if platform unsupported.
-  fail:
-    msg: This role is Windows-only.
-  when: ansible_facts['system']|lower not in ['win32nt']
-
 - name: Set time zone to EST
   win_timezone:
     timezone: Eastern Standard Time
@@ -107,12 +99,6 @@
     -DisableBlockAtFirstSeen $True -DisableIOAVProtection $True
     -DisableIntrusionPreventionSystem $True -DisableRealtimeMonitoring $True
     -MAPSReporting Disabled -PUAProtection Disabled"
-
-- name: Disable disk indexing
-  win_service:
-    name: WSearch
-    start_mode: disabled
-    state: stopped
 
 # Note: This does not seem to enable RDP unless it was previously enabled via the UI and
 # subsequently disabled. lovisolo@ has not found a way to enable RDP from Ansible on a fresh

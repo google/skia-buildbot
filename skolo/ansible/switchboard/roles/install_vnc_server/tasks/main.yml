@@ -1,6 +1,12 @@
 - name: Install UltraVNC server for Windows.
   import_tasks: win.yml
-  when: ansible_facts['system']|lower == "win32nt"
+  # GCE Windows machines have RDP enabled by default, so VNC is not necessary.
+  #
+  # As a reminder, we aim to have RDP enabled on all machines (Skolo, GCE, etc.) as it usually
+  # works better than VNC (faster, resolution adapts to window size, etc.). We only install VNC on
+  # Skolo machines so we can enable RDP via the Settings app. We have yet to find a reliable way to
+  # enable RDP via Powershell.
+  when: zone == 'skolo' and ansible_facts['system']|lower == "win32nt"
 
 - name: Other platforms.
   fail:
