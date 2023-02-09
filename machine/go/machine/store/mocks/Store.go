@@ -53,6 +53,29 @@ func (_m *Store) Get(ctx context.Context, machineID string) (machine.Description
 	return r0, r1
 }
 
+// GetFreeMachines provides a mock function with given fields: ctx, pool
+func (_m *Store) GetFreeMachines(ctx context.Context, pool string) ([]machine.Description, error) {
+	ret := _m.Called(ctx, pool)
+
+	var r0 []machine.Description
+	if rf, ok := ret.Get(0).(func(context.Context, string) []machine.Description); ok {
+		r0 = rf(ctx, pool)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]machine.Description)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, pool)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // List provides a mock function with given fields: ctx
 func (_m *Store) List(ctx context.Context) ([]machine.Description, error) {
 	ret := _m.Called(ctx)

@@ -2,12 +2,16 @@ package cdb_test
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/machine/go/machine"
@@ -45,6 +49,8 @@ const (
 	machineID1 = "skia-linux-101"
 	machineID2 = "skia-linux-102"
 	machineID3 = "skia-linux-103"
+
+	pool = "Skia"
 )
 
 func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
@@ -56,12 +62,16 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	err = s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID1}
+		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		return ret
 	})
 	require.NoError(t, err)
 	err = s.Update(ctx, machineID2, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID2}
+		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		ret.PowerCycle = false
 		return ret
 	})
@@ -69,6 +79,8 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	err = s.Update(ctx, machineID3, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID3}
+		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		ret.PowerCycle = true
 		ret.IsQuarantined = true
 		return ret
@@ -224,7 +236,81 @@ func TestStore_Delete_MachineDoesNotExist_Success(t *testing.T) {
 	require.NoError(t, err)
 }
 
-const V1Schema = `CREATE TABLE IF NOT EXISTS Description (
+func TestGetFreeMachines_AllMachinesRunningTasks_ReturnsZeroMatches(t *testing.T) {
+	// The added machines in setupForTest are running tasks, so this should return 0 machines.
+	ctx, s := setupForTest(t)
+	descriptions, err := s.GetFreeMachines(ctx, "Skia")
+	require.NoError(t, err)
+	require.Len(t, descriptions, 0)
+}
+
+func clearRunningTest(t *testing.T, ctx context.Context, s *cdb.Store, machineID string) machine.Description {
+	var ret machine.Description
+	err := s.Update(ctx, machineID, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.TaskRequest = nil
+		return ret
+	})
+	require.NoError(t, err)
+	return ret
+}
+
+func setTaskTypeAndPool(t *testing.T, ctx context.Context, s *cdb.Store, machineID, pool string, taskType machine.TaskRequestor) machine.Description {
+	var ret machine.Description
+	err := s.Update(ctx, machineID, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.Dimensions[machine.DimTaskType] = []string{string(taskType)}
+		ret.Dimensions[machine.DimPool] = []string{pool}
+		return ret
+	})
+	require.NoError(t, err)
+	return ret
+}
+
+func TestGetFreeMachines_OneMachineNotRunningTasks_ReturnsMatchingMachine(t *testing.T) {
+	ctx, s := setupForTest(t)
+
+	expected := clearRunningTest(t, ctx, s, machineID2)
+	descriptions, err := s.GetFreeMachines(ctx, "Skia")
+	require.NoError(t, err)
+	require.Len(t, descriptions, 1)
+	deepequal.DeepEqual(expected, descriptions[0])
+}
+
+func TestGetFreeMachines_TwoMachinesNotRunningTasksOnlyOneInTheRightPool_ReturnsMatchingMachine(t *testing.T) {
+	ctx, s := setupForTest(t)
+
+	// machineID2 should match.
+	expected := clearRunningTest(t, ctx, s, machineID2)
+
+	// We also clear the running test from machineID1, but changing the pool
+	// with cause it to not match.
+	_ = clearRunningTest(t, ctx, s, machineID1)
+	_ = setTaskTypeAndPool(t, ctx, s, machineID1, "SkiaInternal", machine.SkTask)
+	descriptions, err := s.GetFreeMachines(ctx, "Skia")
+	require.NoError(t, err)
+	require.Len(t, descriptions, 1)
+	deepequal.DeepEqual(expected, descriptions[0])
+}
+
+func TestGetFreeMachines_TwoMachinesNotRunningTasksOnlyOneWithTheRightTaskType_ReturnsMatchingMachine(t *testing.T) {
+	ctx, s := setupForTest(t)
+
+	// machineID3 should match.
+	expected := clearRunningTest(t, ctx, s, machineID3)
+
+	// Also clear machineID2, but change the task_type, which should cause it to
+	// no longer match.
+	_ = clearRunningTest(t, ctx, s, machineID2)
+	_ = setTaskTypeAndPool(t, ctx, s, machineID2, pool, machine.Swarming)
+
+	descriptions, err := s.GetFreeMachines(ctx, "Skia")
+	require.NoError(t, err)
+	require.Len(t, descriptions, 1)
+	deepequal.DeepEqual(expected, descriptions[0])
+}
+
+const LiveSchema = `CREATE TABLE IF NOT EXISTS Description (
 	maintenance_mode STRING NOT NULL DEFAULT '',
 	is_quarantined BOOL NOT NULL DEFAULT FALSE,
 	recovering STRING NOT NULL DEFAULT '',
@@ -244,39 +330,66 @@ const V1Schema = `CREATE TABLE IF NOT EXISTS Description (
 	ssh_user_ip STRING NOT NULL DEFAULT '',
 	supplied_dimensions JSONB NOT NULL,
 	dimensions JSONB NOT NULL,
+	task_request JSONB,
+	task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ,
 	machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED,
 	INVERTED INDEX dimensions_gin (dimensions),
 	INDEX by_powercycle (powercycle)
   );`
 
-const V1ToV2 = `
+const FromLiveToNext = `
 ALTER TABLE Description
-	ADD COLUMN IF NOT EXISTS task_request jsonb;
+	ADD COLUMN IF NOT EXISTS running_task bool AS (task_request IS NOT NULL) STORED;
 
-ALTER TABLE Description
-	ADD COLUMN IF NOT EXISTS task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ;
+CREATE INDEX by_running_task ON Description (running_task);
+
+CREATE TABLE IF NOT EXISTS TaskResult (
+	result JSONB NOT NULL,
+	id STRING PRIMARY KEY NOT NULL,
+	machine_id STRING NOT NULL,
+	finished TIMESTAMPTZ NOT NULL,
+	status STRING NOT NULL DEFAULT '',
+	INDEX by_machine_id (machine_id),
+	INDEX by_status (status)
+  );
 `
 
-const indexes = `
+// Returns all expected table names in a string with table names in single
+// quotes and separated by commas, appropriate for using in an SQL query.
+//
+// For example:
+//     "'description', 'taskresult'"
+func tableNames() string {
+	tableNames := []string{}
+	for _, structField := range reflect.VisibleFields(reflect.TypeOf(cdb.Tables{})) {
+		tableNames = append(tableNames, fmt.Sprintf("'%s'", strings.ToLower(structField.Name)))
+	}
+	return strings.Join(tableNames, ",")
+}
+
+// Query to return the indexes for all tables.
+var indexes = fmt.Sprintf(`
 SELECT
   indexname,
   indexdef
 FROM
   pg_indexes
 WHERE
-  tablename = 'description'
-`
+  tablename IN (%s);
+`, tableNames())
 
-const types = `
+// Query to return the types for each column in all tables.
+var types = fmt.Sprintf(`
 SELECT
     column_name,
     data_type
 FROM
     information_schema.columns
 WHERE
-    table_name = 'description'
-`
+    table_name IN (%s);
+`, tableNames())
 
+// schema describes the schema for all tables.
 type schema struct {
 	ColumnNameAndType map[string]string
 	IndexNameAndDef   map[string]string
@@ -314,10 +427,9 @@ func getSchema(t *testing.T, db *pgxpool.Pool) schema {
 		ColumnNameAndType: colNameAndType,
 		IndexNameAndDef:   indexNameAndDef,
 	}
-
 }
 
-func Test_V1ToV2SchemaMigration(t *testing.T) {
+func Test_LiveToNextSchemaMigration(t *testing.T) {
 	ctx := context.Background()
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 
@@ -325,11 +437,13 @@ func Test_V1ToV2SchemaMigration(t *testing.T) {
 
 	_, err := db.Exec(ctx, "DROP TABLE IF EXISTS Description")
 	require.NoError(t, err)
-
-	_, err = db.Exec(ctx, V1Schema)
+	_, err = db.Exec(ctx, "DROP TABLE IF EXISTS TaskResult")
 	require.NoError(t, err)
 
-	_, err = db.Exec(ctx, V1ToV2)
+	_, err = db.Exec(ctx, LiveSchema)
+	require.NoError(t, err)
+
+	_, err = db.Exec(ctx, FromLiveToNext)
 	require.NoError(t, err)
 
 	v1toV2Schema := getSchema(t, db)

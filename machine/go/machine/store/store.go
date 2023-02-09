@@ -32,4 +32,7 @@ type Store interface {
 
 	// Delete removes a machine from the database.
 	Delete(ctx context.Context, machineID string) error
+
+	// Get a list of Kingsford machines that aren't running tasks.
+	GetFreeMachines(ctx context.Context, pool string) ([]machine.Description, error)
 }

@@ -34,8 +34,10 @@ CREATE TABLE IF NOT EXISTS Description (
 	task_started timestamptz NOT NULL,
 	machine_id STRING PRIMARY KEY AS (
 dimensions -> 'id' ->> 0) STORED,
+	running_task bool NOT NULL AS (
+task_request != NULL) STORED,
 	INVERTED INDEX dimensions_gin (dimensions),
-	INDEX by_powercycle (powercycle),
+	INDEX by_powercycle (powercycle)
 );
 
 SHOW COLUMNS
@@ -76,7 +78,7 @@ ALTER TABLE Description
 	ADD COLUMN IF NOT EXISTS task_request jsonb;
 
 ALTER TABLE Description
-	ADD COLUMN IF NOT EXISTS task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ;
+	ADD COLUMN IF NOT EXISTS task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::timestamptz;
 
 SHOW COLUMNS
 FROM
@@ -91,8 +93,12 @@ CREATE TABLE IF NOT EXISTS Description (
 	powercycle bool NOT NULL DEFAULT FALSE,
 	machine_id STRING PRIMARY KEY AS (
 dimensions -> 'id' ->> 0) STORED,
+	task_request jsonb,
+	running_task bool AS (
+task_request IS NOT NULL) STORED,
 	INDEX by_powercycle (powercycle),
-	INVERTED INDEX dimensions_gin (dimensions)
+	INVERTED INDEX dimensions_gin (dimensions),
+	INDEX by_running_task (running_task)
 );
 
 INSERT INTO Description (
@@ -111,7 +117,7 @@ ON CONFLICT
 	DO NOTHING;
 
 SELECT
-	'Show how to do a single param query' AS desc;
+	'Show how to do a single param query' AS comment;
 
 SELECT
 	machine_id
@@ -119,10 +125,10 @@ FROM
 	Description
 WHERE
 	-- Note that value of the key-value pair still needs to be inside an array:
-	dimensions @ > '{"cpu": ["arm-64"]}';
+	dimensions @> '{"cpu": ["arm-64"]}';
 
 SELECT
-	'Demonstrate we are not doing full table scans.' AS desc;
+	'Demonstrate we are not doing full table scans.' AS comment;
 
 EXPLAIN
 SELECT
@@ -130,26 +136,26 @@ SELECT
 FROM
 	Description
 WHERE
-	dimensions @ > '{"cpu": ["x86-64"]}'
-	AND dimensions @ > '{"os": ["Debian-11.6"]}';
+	dimensions @> '{"cpu": ["x86-64"]}'
+	AND dimensions @> '{"os": ["Debian-11.6"]}';
 
 SELECT
 	machine_id
 FROM
 	Description
 WHERE
-	dimensions @ > '{"cpu": ["x86-64"]}'
-	AND dimensions @ > '{"os": ["Debian-11.6"]}';
+	dimensions @> '{"cpu": ["x86-64"]}'
+	AND dimensions @> '{"os": ["Debian-11.6"]}';
 
 SELECT
-	'Force Quarantine a machine' AS desc;
+	'Force Quarantine a machine' AS comment;
 
 UPDATE
 	Description
 SET
 	is_quarantined = TRUE
 WHERE
-	dimensions @ > '{"id": ["skia-e-linux-150"]}';
+	dimensions @> '{"id": ["skia-e-linux-150"]}';
 
 SELECT
 	machine_id
@@ -159,7 +165,7 @@ WHERE
 	is_quarantined = FALSE;
 
 SELECT
-	'List powercycle' AS desc;
+	'List powercycle' AS comment;
 
 SELECT
 	machine_id
@@ -169,7 +175,7 @@ WHERE
 	powercycle = TRUE;
 
 SELECT
-	'Demonstrate we are not doing full table scans.' AS desc;
+	'Demonstrate we are not doing full table scans.' AS comment;
 
 EXPLAIN
 SELECT
@@ -180,12 +186,53 @@ WHERE
 	powercycle = TRUE;
 
 SELECT
-	'Get by id' AS desc;
+	'Get by id' AS comment;
 
 SELECT
 	machine_id
 FROM
 	Description
 WHERE
-	machine_id = 'skia - e - linux - 151';
+	machine_id = 'skia-e-linux-151';
+
+SELECT
+	'Select open machines, those not running tasks.' AS comment;
+
+SELECT
+	machine_id
+FROM
+	Description@by_running_task
+WHERE
+	running_task = FALSE;
+
+SELECT
+	'Stuff some JSON in task_request for a single row.' AS comment;
+
+UPDATE
+	Description
+SET
+	task_request = '{"A": "B"}'
+WHERE
+	machine_id = 'skia-e-linux-151';
+
+SELECT
+	'Now show that machine does not show up as available.' AS comment;
+
+SELECT
+	machine_id
+FROM
+	Description@by_running_task
+WHERE
+	running_task = FALSE;
+
+SELECT
+	'Show that we used the index' AS comment;
+
+EXPLAIN
+SELECT
+	machine_id
+FROM
+	Description@by_running_task
+WHERE
+	running_task = FALSE;
 

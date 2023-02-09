@@ -27,6 +27,7 @@ go_test(
     srcs = ["cdb_test.go"],
     deps = [
         ":cdb",
+        "//go/deepequal",
         "//go/deepequal/assertdeep",
         "//go/metrics2",
         "//machine/go/machine",

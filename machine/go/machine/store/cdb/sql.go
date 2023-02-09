@@ -26,8 +26,10 @@ const Schema = `CREATE TABLE IF NOT EXISTS Description (
   task_request JSONB,
   task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ,
   machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED,
+  running_task bool AS (task_request IS NOT NULL) STORED,
   INVERTED INDEX dimensions_gin (dimensions),
-  INDEX by_powercycle (powercycle)
+  INDEX by_powercycle (powercycle),
+  INDEX by_running_task (running_task)
 );
 CREATE TABLE IF NOT EXISTS TaskResult (
   result JSONB NOT NULL,

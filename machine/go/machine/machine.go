@@ -215,11 +215,18 @@ type Description struct {
 	// Create a computed column with the machine id to use as the primary key.
 	machineIDComputed struct{} `sql:"machine_id STRING PRIMARY KEY AS (dimensions->'id'->>0) STORED"`
 
+	// Create a computed column that records if the task_request column is NULL,
+	// so we can quickly query for machines that aren't running tasks.
+	runningTask struct{} `sql:"running_task bool AS (task_request IS NOT NULL) STORED"`
+
 	// Create generalized inverted index (GIN) for Dimensions.
 	dimensionsIndex struct{} `sql:"INVERTED INDEX dimensions_gin (dimensions)"`
 
 	// Create an index for the powercycle column.
 	powerCycleIndex struct{} `sql:"INDEX by_powercycle (powercycle)"`
+
+	// Create an index for  the running_task column.
+	taskRequestIndex struct{} `sql:"INDEX by_running_task (running_task)"`
 }
 
 // IsRecovering returns true if the machine is recoving, i.e. has a non-empty Recovering message.

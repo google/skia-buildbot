@@ -38,6 +38,7 @@ const (
 	ListPowerCycle
 	List
 	Delete
+	GetFreeMachines
 )
 
 var (
@@ -100,6 +101,16 @@ DELETE FROM
 WHERE
 	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
 `,
+	GetFreeMachines: fmt.Sprintf(`
+SELECT
+	%s
+FROM
+	Description@by_running_task
+WHERE
+	running_task = FALSE
+AND
+	dimensions @> CONCAT('{"task_type": ["sktask"], "pool":["', $1, '"]}')::JSONB
+`, descriptionAllNonComputedColumns),
 }
 
 // Tables represents all SQL tables used by machineserver.
@@ -276,4 +287,25 @@ func (s *Store) Delete(ctx context.Context, machineID string) error {
 		return wrappedErrorForID(err, machineID)
 	}
 	return nil
+}
+
+// GetFreeMachines implements ../store.Store.
+func (s *Store) GetFreeMachines(ctx context.Context, pool string) ([]machine.Description, error) {
+	var ret []machine.Description
+
+	rows, err := s.db.Query(ctx, Statements[GetFreeMachines], pool)
+	if err != nil {
+		return nil, wrappedError(err)
+	}
+
+	for rows.Next() {
+		d := machine.NewDescription(ctx)
+		err := rows.Scan(machine.DestFromDescription(&d)...)
+		if err != nil {
+			return nil, wrappedError(err)
+		}
+		ret = append(ret, d)
+	}
+
+	return ret, nil
 }
