@@ -105,6 +105,7 @@ WHERE
 // Tables represents all SQL tables used by machineserver.
 type Tables struct {
 	Description []machine.Description
+	TaskResult  []machine.TaskResult
 }
 
 // Store implements ../store.Store.

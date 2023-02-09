@@ -36,15 +36,18 @@ type TaskRequest struct {
 }
 
 // TaskResult describes a Task after it has been triggered.
+//
+// Note that the JSON annotations are only used by machineserver to store this struct in
+// CockroachDB as a JSONB field.
 type TaskResult struct {
-	CasOutput string
-	Created   time.Time
-	Finished  time.Time
-	ID        string
-	MachineID string
-	Started   time.Time
-	Status    TaskStatus
-	Tags      map[string][]string
+	CasOutput string              `json:"cas_output"`
+	Created   time.Time           `json:"created"`
+	Finished  time.Time           `json:"finished"`
+	ID        string              `json:"id"`
+	MachineID string              `json:"machine_id"`
+	Started   time.Time           `json:"started"`
+	Status    TaskStatus          `json:"status"`
+	Tags      map[string][]string `json:"tags"`
 }
 
 // Machine describes a machine which can run tasks.

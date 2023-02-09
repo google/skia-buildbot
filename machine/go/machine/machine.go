@@ -425,3 +425,17 @@ func NewEvent() Event {
 		EventType: EventTypeRawState,
 	}
 }
+
+// TaskResult is a task result.
+type TaskResult struct {
+	// TaskResult from Task Scheduler stored as JSONB so that it may change without affecting
+	// machineserver code.
+	TaskResult types.TaskResult `sql:"result JSONB NOT NULL"`
+	// ID should match the TaskResult's ID.
+	ID           string           `sql:"id STRING NOT NULL PRIMARY KEY"`
+	MachineID    string           `sql:"machine_id STRING NOT NULL"`
+	Finished     time.Time        `sql:"finished TIMESTAMPTZ NOT NULL"`
+	Status       types.TaskStatus `sql:"status STRING NOT NULL DEFAULT ''"`
+	machineIndex struct{}         `sql:"INDEX by_machine_id (machine_id)"`
+	statusIndex  struct{}         `sql:"INDEX by_status (status)"`
+}

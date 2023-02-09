@@ -29,6 +29,15 @@ const Schema = `CREATE TABLE IF NOT EXISTS Description (
   INVERTED INDEX dimensions_gin (dimensions),
   INDEX by_powercycle (powercycle)
 );
+CREATE TABLE IF NOT EXISTS TaskResult (
+  result JSONB NOT NULL,
+  id STRING NOT NULL PRIMARY KEY,
+  machine_id STRING NOT NULL,
+  finished TIMESTAMPTZ NOT NULL,
+  status STRING NOT NULL DEFAULT '',
+  INDEX by_machine_id (machine_id),
+  INDEX by_status (status)
+);
 `
 
 var Description = []string{
@@ -53,4 +62,12 @@ var Description = []string{
 	"dimensions",
 	"task_request",
 	"task_started",
+}
+
+var TaskResult = []string{
+	"result",
+	"id",
+	"machine_id",
+	"finished",
+	"status",
 }
