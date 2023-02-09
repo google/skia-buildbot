@@ -186,22 +186,23 @@ func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error 
 // and FileInfo.
 func (r *Repo) ReadObject(ctx context.Context, path, ref string) (os.FileInfo, []byte, error) {
 	path = strings.TrimSuffix(path, "/")
-	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.url, ref, path))
+	url := fmt.Sprintf(DownloadURL, r.url, ref, path)
+	resp, err := r.get(ctx, url)
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrapf(err, "fetching %s", url)
 	}
 	defer util.Close(resp.Body)
 	var buf bytes.Buffer
 	d := base64.NewDecoder(base64.StdEncoding, resp.Body)
 	if _, err := io.Copy(&buf, d); err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrapf(err, "fetching %s", url)
 	}
 	content := buf.Bytes()
 	mh := resp.Header.Get(ModeHeader)
 	typ := resp.Header.Get(TypeHeader)
 	fi, err := git.MakeFileInfo(path, mh, git.ObjectType(typ), len(content))
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrapf(err, "fetching %s", url)
 	}
 	return fi, content, nil
 }

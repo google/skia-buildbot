@@ -192,7 +192,7 @@ func MakeFileInfo(name, mode string, typ ObjectType, size int) (fs.FileInfo, err
 		isDir = true
 		fileMode = fileMode | os.ModeDir
 	}
-	if typ != ObjectTypeTree && typ != ObjectTypeBlob {
+	if typ != ObjectTypeTree && typ != ObjectTypeBlob && typ != ObjectTypeCommit {
 		return nil, skerr.Fmt("Invalid file type %q", typ)
 	}
 	return vfs.FileInfo{
