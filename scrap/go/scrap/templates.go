@@ -77,11 +77,37 @@ func getSkSLImageURL(body ScrapBody) string {
 	return body.SKSLMetaData.ImageURL
 }
 
+// Return the SkSL scrap custom uniform values as a C++/JavaScript array
+// literal subset. For example, the template will have a template similar to:
+//
+// const uniforms = [
+//
+//	  0.5, 0.5,
+//		... // Other values.
+//		{{ getSkSLCustomUniforms . }}
+//
+// ];
+//
+// and this function will return a string similar to:
+// `// A comment:
+//
+//	val1, val2, val3`
+//
+// If the scrap contains no custom uniforms then an ampty string will be returned.
+func getSkSLCustomUniforms(body ScrapBody) string {
+	if body.Type != SKSL || body.SKSLMetaData == nil || len(body.SKSLMetaData.Uniforms) == 0 {
+		return ""
+	}
+	vals := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(body.SKSLMetaData.Uniforms)), ", "), "[]")
+	return fmt.Sprintf("\n      // User supplied uniform values:\n      %s", vals)
+}
+
 // funcMap are the template helper functions available in each template.
 var funcMap = template.FuncMap{
 	"bodyAsQuotedStringSlice": bodyAsQuotedStringSlice,
 	"bodyStringSlice":         bodyStringSlice,
 	"getSkSLImageURL":         getSkSLImageURL,
+	"getSkSLCustomUniforms":   getSkSLCustomUniforms,
 }
 
 func loadTemplates() (templateMap, error) {
@@ -210,7 +236,9 @@ Promise.all([loadImage]).then((values) => {
       512, 512, 1,                                      // iResolution
       (Date.now() - startTimeMs) / 1000,                // iTime
       mouseDragX, mouseDragY, mouseClickX, mouseClickY, // iMouse
-      img.width(), img.height(), 1];                    // iImageResolution
+      img.width(), img.height(), 1,                     // iImageResolution
+{{ getSkSLCustomUniforms . }}
+    ];
     const children = [
       imgShader                                         // iImage1
     ];

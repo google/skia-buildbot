@@ -147,7 +147,97 @@ Promise.all([loadImage]).then((values) => {
       512, 512, 1,                                      // iResolution
       (Date.now() - startTimeMs) / 1000,                // iTime
       mouseDragX, mouseDragY, mouseClickX, mouseClickY, // iMouse
-      img.width(), img.height(), 1];                    // iImageResolution
+      img.width(), img.height(), 1,                     // iImageResolution
+
+    ];
+    const children = [
+      imgShader                                         // iImage1
+    ];
+    const shader = effect.makeShaderWithChildren(uniforms, children);
+    paint.setShader(shader);
+    skcanvas.drawPaint(paint);
+    shader.delete();
+    surface.requestAnimationFrame(drawFrame);
+  }
+  surface.requestAnimationFrame(drawFrame);
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pressure && !lastMousePressure) {
+      mouseClickX = e.offsetX;
+      mouseClickY = e.offsetY;
+    }
+    lastMousePressure = e.pressure;
+    if (!e.pressure) {
+      return;
+    }
+    mouseDragX = e.offsetX;
+    mouseDragY = e.offsetY;
+  });
+}); // from the Promise.all
+`
+
+	require.Equal(t, expected, b.String())
+}
+
+func TestTemplateExpand_SkSLWithMetadataToJavaScript_ResponseIncludesMetadata(t *testing.T) {
+	tmplMap, err := loadTemplates()
+	require.NoError(t, err)
+	var b bytes.Buffer
+	body := ScrapBody{
+		Type:         SKSL,
+		Body:         "half4 main(in vec2 fragCoord ) {\n    uniform float  iSomeSlider;\n    return vec4( result, iSomeSlider );\n}",
+		SKSLMetaData: &SKSLMetaData{Uniforms: []float32{0.5}},
+	}
+	err = tmplMap[JS][SKSL].Execute(&b, body)
+	require.NoError(t, err)
+	expected := `const loadImage = fetch("https://shaders.skia.org/img/mandrill.png")
+  .then((response) => response.arrayBuffer());
+
+Promise.all([loadImage]).then((values) => {
+  const [imageData] = values;
+  const img = CanvasKit.MakeImageFromEncoded(imageData);
+  const imgShader = img.makeShaderCubic(
+    CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp, 1 / 3, 1 / 3);
+
+  const surface = CanvasKit.MakeCanvasSurface(canvas.id);
+  if (!surface) {
+    throw "Could not make surface";
+  }
+  const skcanvas = surface.getCanvas();
+  const paint = new CanvasKit.Paint();
+  const startTimeMs = Date.now();
+  let mouseClickX = 250;
+  let mouseClickY = 250;
+  let mouseDragX = 250;
+  let mouseDragY = 250;
+  let lastMousePressure = 0;
+
+  const prog = ` + "`" + `
+    // Inputs supplied by shaders.skia.org:
+    uniform float3 iResolution;      // Viewport resolution (pixels)
+    uniform float  iTime;            // Shader playback time (s)
+    uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
+    uniform float3 iImageResolution; // iImage1 resolution (pixels)
+    uniform shader iImage1;          // An input image.
+
+    half4 main(in vec2 fragCoord ) {
+        uniform float  iSomeSlider;
+        return vec4( result, iSomeSlider );
+    }
+    ` + "`" + `;
+
+  const effect = CanvasKit.RuntimeEffect.Make(prog);
+
+  function drawFrame(canvas) {
+    const uniforms = [
+      512, 512, 1,                                      // iResolution
+      (Date.now() - startTimeMs) / 1000,                // iTime
+      mouseDragX, mouseDragY, mouseClickX, mouseClickY, // iMouse
+      img.width(), img.height(), 1,                     // iImageResolution
+
+      // User supplied uniform values:
+      0.5
+    ];
     const children = [
       imgShader                                         // iImage1
     ];
@@ -242,4 +332,43 @@ func TestGetSkSLImageURL_WithInvalidSkSLScrap_ReturnsDefaultShaderURL(t *testing
 		ScrapBody{
 			Type:         SKSL,
 			SKSLMetaData: &SKSLMetaData{ImageURL: ""}})
+}
+
+func TestGetSkSLCustomUniforms_WithUniformValues_ReturnsCorrectStringForm(t *testing.T) {
+	test := func(name, expected string, body ScrapBody) {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, expected, getSkSLCustomUniforms(body))
+		})
+	}
+	test("OneValue", "\n      // User supplied uniform values:\n      0.1",
+		ScrapBody{
+			Type:         SKSL,
+			Body:         "",
+			SKSLMetaData: &SKSLMetaData{Uniforms: []float32{0.1}}})
+	test("TwoValues", "\n      // User supplied uniform values:\n      0.1, 0.2",
+		ScrapBody{
+			Type:         SKSL,
+			Body:         "",
+			SKSLMetaData: &SKSLMetaData{Uniforms: []float32{0.1, 0.2}}})
+}
+
+func TestGetSkSLCustomUniforms_WithoutUniformValues_ReturnsEmptyString(t *testing.T) {
+	test := func(name string, body ScrapBody) {
+		t.Run(name, func(t *testing.T) {
+			require.Empty(t, getSkSLCustomUniforms(body))
+		})
+	}
+	test("NotSkSL",
+		ScrapBody{
+			Type:              Particle,
+			Body:              "",
+			ParticlesMetaData: &ParticlesMetaData{}})
+	test("NilSKSLMetaData",
+		ScrapBody{
+			Type: SKSL,
+			Body: ""})
+	test("NoUniformValues",
+		ScrapBody{
+			Type:         SKSL,
+			SKSLMetaData: &SKSLMetaData{Uniforms: []float32{}}})
 }
