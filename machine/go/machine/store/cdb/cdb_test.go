@@ -2,10 +2,7 @@ package cdb_test
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -14,12 +11,14 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/machinetest"
 	"go.skia.org/infra/machine/go/machine/pools"
 	"go.skia.org/infra/machine/go/machine/pools/poolstest"
 	"go.skia.org/infra/machine/go/machine/store/cdb"
 	"go.skia.org/infra/machine/go/machine/store/cdb/cdbtest"
+	"go.skia.org/infra/machine/go/machine/store/cdb/expectedschema"
 )
 
 func Test_Statements_SprintfReturnsCorrectResults(t *testing.T) {
@@ -58,7 +57,8 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 	p, err := pools.New(poolstest.PoolConfigForTesting)
 	require.NoError(t, err)
-	s := cdb.New(db, p)
+	s, err := cdb.New(db, p)
+	require.NoError(t, err)
 	err = s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID1}
@@ -96,7 +96,8 @@ func setupForTestWithEmptyStore(t *testing.T) (context.Context, *cdb.Store, mach
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 	p, err := pools.New(poolstest.PoolConfigForTesting)
 	require.NoError(t, err)
-	s := cdb.New(db, p)
+	s, err := cdb.New(db, p)
+	require.NoError(t, err)
 	full := machinetest.FullyFilledInDescription.Copy()
 	return ctx, s, full
 }
@@ -354,86 +355,18 @@ CREATE TABLE IF NOT EXISTS TaskResult (
   );
 `
 
-// Returns all expected table names in a string with table names in single
-// quotes and separated by commas, appropriate for using in an SQL query.
-//
-// For example:
-//     "'description', 'taskresult'"
-func tableNames() string {
-	tableNames := []string{}
-	for _, structField := range reflect.VisibleFields(reflect.TypeOf(cdb.Tables{})) {
-		tableNames = append(tableNames, fmt.Sprintf("'%s'", strings.ToLower(structField.Name)))
-	}
-	return strings.Join(tableNames, ",")
-}
-
-// Query to return the indexes for all tables.
-var indexes = fmt.Sprintf(`
-SELECT
-  indexname,
-  indexdef
-FROM
-  pg_indexes
-WHERE
-  tablename IN (%s);
-`, tableNames())
-
-// Query to return the types for each column in all tables.
-var types = fmt.Sprintf(`
-SELECT
-    column_name,
-    data_type
-FROM
-    information_schema.columns
-WHERE
-    table_name IN (%s);
-`, tableNames())
-
-// schema describes the schema for all tables.
-type schema struct {
-	ColumnNameAndType map[string]string
-	IndexNameAndDef   map[string]string
-}
-
-func getSchema(t *testing.T, db *pgxpool.Pool) schema {
-	ctx := context.Background()
-	rows, err := db.Query(ctx, types)
+func GetSchema(t *testing.T, db *pgxpool.Pool) *schema.Description {
+	ret, err := schema.GetDescription(db, cdb.Tables{})
 	require.NoError(t, err)
-
-	colNameAndType := map[string]string{}
-	for rows.Next() {
-		var colName string
-		var colType string
-		err := rows.Scan(&colName, &colType)
-		require.NoError(t, err)
-		colNameAndType[colName] = colType
-	}
-
-	rows, err = db.Query(ctx, indexes)
-	require.NoError(t, err)
-
-	indexNameAndDef := map[string]string{}
-	for rows.Next() {
-		var indexName string
-		var indexDef string
-		err := rows.Scan(&indexName, &indexDef)
-		require.NoError(t, err)
-		indexNameAndDef[indexName] = indexDef
-	}
-
-	require.NotEmpty(t, indexNameAndDef)
-	require.NotEmpty(t, colNameAndType)
-	return schema{
-		ColumnNameAndType: colNameAndType,
-		IndexNameAndDef:   indexNameAndDef,
-	}
+	require.NotEmpty(t, ret.ColumnNameAndType)
+	return ret
 }
 
 func Test_LiveToNextSchemaMigration(t *testing.T) {
 	ctx := context.Background()
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 
-	v2Schema := getSchema(t, db)
+	expectedSchema := GetSchema(t, db)
 
 	_, err := db.Exec(ctx, "DROP TABLE IF EXISTS Description")
 	require.NoError(t, err)
@@ -446,12 +379,23 @@ func Test_LiveToNextSchemaMigration(t *testing.T) {
 	_, err = db.Exec(ctx, FromLiveToNext)
 	require.NoError(t, err)
 
-	v1toV2Schema := getSchema(t, db)
+	migratedSchema := GetSchema(t, db)
 
-	assertdeep.Equal(t, v2Schema, v1toV2Schema)
+	assertdeep.Equal(t, expectedSchema, migratedSchema)
 
 	// Test the test, make sure at least one known column is present.
-	require.Equal(t, "text", v1toV2Schema.ColumnNameAndType["machine_id"])
+	require.Equal(t, "text def: nullable:NO", migratedSchema.ColumnNameAndType["description.machine_id"])
+}
+
+func TestExportedSchemaIsUpToDate(t *testing.T) {
+	db := cdbtest.NewCockroachDBForTests(t, "desc")
+
+	currentSchema := GetSchema(t, db)
+	expectedSchema, err := expectedschema.Load()
+	require.NoError(t, err)
+
+	// If this test fails run `make generate_sql_schema`.
+	assertdeep.Equal(t, *currentSchema, expectedSchema)
 }
 
 func TestSetQuarantineMetrics_Success(t *testing.T) {

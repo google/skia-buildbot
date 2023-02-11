@@ -14,12 +14,16 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/pools"
 	"go.skia.org/infra/machine/go/machine/store"
+	"go.skia.org/infra/machine/go/machine/store/cdb/expectedschema"
 )
 
 const (
@@ -126,11 +130,25 @@ type Store struct {
 }
 
 // New returns a new *Store that uses the give Pool.
-func New(db *pgxpool.Pool, pools *pools.Pools) *Store {
+func New(db *pgxpool.Pool, pools *pools.Pools) (*Store, error) {
+	// Confirm the database has the right schema.
+	expectedSchema, err := expectedschema.Load()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	actual, err := schema.GetDescription(db, Tables{})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
+		return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)
+	}
+
 	return &Store{
 		db:    db,
 		pools: pools,
-	}
+	}, nil
 }
 
 // wrappedError unwraps and re-wraps a pgconn.PgError to give more details on

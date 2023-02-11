@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "schema",
+    srcs = ["schema.go"],
+    importpath = "go.skia.org/infra/go/sql/schema",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "schema_test",
+    srcs = ["schema_test.go"],
+    embed = [":schema"],
+    deps = [
+        "//go/emulators",
+        "//go/emulators/cockroachdb_instance",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//require",
+    ],
+)

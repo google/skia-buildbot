@@ -1,0 +1,39 @@
+{
+  "ColumnNameAndType": {
+    "description.annotation": "jsonb def: nullable:NO",
+    "description.attached_device": "text def:'nodevice':::STRING nullable:NO",
+    "description.battery": "bigint def:0:::INT8 nullable:NO",
+    "description.device_uptime": "integer def:0:::INT8 nullable:YES",
+    "description.dimensions": "jsonb def: nullable:NO",
+    "description.is_quarantined": "boolean def:false nullable:NO",
+    "description.last_updated": "timestamp with time zone def: nullable:NO",
+    "description.launched_swarming": "boolean def:false nullable:NO",
+    "description.machine_id": "text def: nullable:NO",
+    "description.maintenance_mode": "text def:'':::STRING nullable:NO",
+    "description.note": "jsonb def: nullable:NO",
+    "description.powercycle": "boolean def:false nullable:NO",
+    "description.powercycle_state": "text def:'not_available':::STRING nullable:NO",
+    "description.recovering": "text def:'':::STRING nullable:NO",
+    "description.recovery_start": "timestamp with time zone def: nullable:NO",
+    "description.running_swarmingtask": "boolean def:false nullable:NO",
+    "description.running_task": "boolean def: nullable:YES",
+    "description.ssh_user_ip": "text def:'':::STRING nullable:NO",
+    "description.supplied_dimensions": "jsonb def: nullable:NO",
+    "description.task_request": "jsonb def: nullable:YES",
+    "description.task_started": "timestamp with time zone def:0:::INT8::TIMESTAMPTZ nullable:NO",
+    "description.temperatures": "jsonb def: nullable:NO",
+    "description.version": "text def:'':::STRING nullable:NO",
+    "taskresult.finished": "timestamp with time zone def: nullable:NO",
+    "taskresult.id": "text def: nullable:NO",
+    "taskresult.machine_id": "text def: nullable:NO",
+    "taskresult.result": "jsonb def: nullable:NO",
+    "taskresult.status": "text def:'':::STRING nullable:NO"
+  },
+  "IndexNames": [
+    "description.dimensions_gin",
+    "description.by_running_task",
+    "description.by_powercycle",
+    "taskresult.by_status",
+    "taskresult.by_machine_id"
+  ]
+}

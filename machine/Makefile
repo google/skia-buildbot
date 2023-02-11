@@ -6,7 +6,11 @@ build:
 test:
 	$(BAZEL) test --config=mayberemote //machine/...
 
-generate:
+# Requires the CockroachDB emulator to be running.
+generate_sql_schema:
+	go run ./go/machine/store/cdb/exportschema --out ./go/machine/store/cdb/expectedschema/schema.json
+
+generate: generate_sql_schema
 	go generate ./go/...
 
 serve:

@@ -130,7 +130,10 @@ func new(args []string) (*server, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	store := cdb.New(db, pools)
+	store, err := cdb.New(db, pools)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	httpSource, err := httpEventSource.New()
 	if err != nil {
