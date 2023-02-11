@@ -223,6 +223,9 @@ def skia_app_container(
         ],
     )
 
+    # pushk expects the second half of the repository name as an argument.
+    pushk_image_name = repository.split("/")[1]
+
     # The container_push rule outputs two files: <name>, which is a script that uploads the
     # container to GCR, and <name>.digest, which contains the SHA256 digest of the container.
     #
@@ -236,7 +239,7 @@ def skia_app_container(
         "container_push_script=$${container_push_base_dir}/push_%s",
         "",
         "$$container_push_script && $(rootpath //kube/go/pushk) --use-temp-checkout %s",
-    ]) % (name, name, name)
+    ]) % (name, name, pushk_image_name)
 
     native.genrule(
         name = "gen_pushk_" + name,
