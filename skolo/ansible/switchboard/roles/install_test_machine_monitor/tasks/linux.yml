@@ -26,34 +26,6 @@
     group: root
     mode: 0755
 
-- name: Install Foundry Bot (Skolo)
-  when: zone == 'skolo'
-  become: true
-  get_url:
-    url:
-      "http://metadata:{{ all.jumphost_file_server
-      }}/foundry_bot/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/bot.1"
-    dest: /usr/local/bin/bot.1
-    owner: root
-    group: root
-    mode: 0755
-
-- name: Install Foundry Bot (GCE)
-  when: zone == 'gce'
-  become: true
-  copy:
-    src:
-      "{{ foundry_bot_directory_path
-      }}/build/{{
-      ansible_facts['system'] }}/{{
-      ansible_facts['architecture']
-      }}/bot.1"
-    dest: /usr/local/bin/bot.1
-    owner: root
-    group: root
-    mode: 0755
-
 - name: Check that /etc/systemd/system/swarming_bot.service exists
   stat:
     path: /etc/systemd/system/swarming_bot.service
