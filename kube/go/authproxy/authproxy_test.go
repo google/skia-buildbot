@@ -397,3 +397,15 @@ func TestToAuthType_ValidType_ReturnsTypeUnchanged(t *testing.T) {
 func TestToAuthType_UnknownTypes_ReturnsInvalid(t *testing.T) {
 	require.Equal(t, Invalid, ToAuthType("this is not a valid auth type"))
 }
+
+func TestParseTargetPort_OnlyPortIsSupplied_LocalhostUsedAsDomain(t *testing.T) {
+	got, err := parseTargetPort(":8000")
+	require.NoError(t, err)
+	require.Equal(t, "http://localhost:8000", got.String())
+}
+
+func TestParseTargetPort_FullURLIsSupplied_LocalhostInNotAddedToDomain(t *testing.T) {
+	got, err := parseTargetPort("http://foo:8000")
+	require.NoError(t, err)
+	require.Equal(t, "http://foo:8000", got.String())
+}

@@ -172,7 +172,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.StringVar(&a.promPort, "prom-port", ":20000", "Metrics service address (e.g., ':10110')")
 	fs.StringVar(&a.criaGroup, "cria_group", "", "The chrome infra auth group to use for restricting access. Example: 'google/skia-staff@google.com'")
 	fs.BoolVar(&a.local, "local", false, "Running locally if true. As opposed to in production.")
-	fs.StringVar(&a.targetPort, "target_port", ":9000", "The port we are proxying to.")
+	fs.StringVar(&a.targetPort, "target_port", ":9000", "The port we are proxying to, or a full URL.")
 	fs.BoolVar(&a.allowPost, "allow_post", false, "Allow POST requests to bypass auth.")
 	fs.StringVar(&a.allowedFrom, "allowed_from", "", "A comma separated list of of domains and email addresses that are allowed to access the site. Example: 'google.com'")
 	fs.BoolVar(&a.passive, "passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
@@ -244,8 +244,7 @@ func New(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	targetURL := fmt.Sprintf("http://localhost%s", ret.targetPort)
-	target, err := url.Parse(targetURL)
+	target, err := parseTargetPort(ret.targetPort)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -254,6 +253,14 @@ func New(ctx context.Context) (*App, error) {
 	ret.registerCleanup()
 
 	return ret, nil
+}
+
+// Parses either a port, e.g. ":8000", or a full URL into a *url.URL.
+func parseTargetPort(u string) (*url.URL, error) {
+	if strings.HasPrefix(u, ":") {
+		return url.Parse(fmt.Sprintf("http://localhost%s", u))
+	}
+	return url.Parse(u)
 }
 
 func (a *App) populateLegacyAllowedRoles(criaClient *http.Client) error {
