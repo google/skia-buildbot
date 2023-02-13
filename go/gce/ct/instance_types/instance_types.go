@@ -1,10 +1,8 @@
 package instance_types
 
 import (
+	_ "embed"
 	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
@@ -21,10 +19,11 @@ const (
 	LINUX_SOURCE_IMAGE = "projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190722a"
 )
 
+//go:embed setup-script.sh
+var embeddedSetupScript string
+
 // Base config for CT GCE instances.
 func CT20170602(name string, useSSDDataDisk bool) (*gce.Instance, error) {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filepath.Dir(filename))
 	dataDisk := &gce.Disk{
 		Name:      fmt.Sprintf("%s-data", name),
 		SizeGb:    300,
@@ -33,10 +32,6 @@ func CT20170602(name string, useSSDDataDisk bool) (*gce.Instance, error) {
 	}
 	if useSSDDataDisk {
 		dataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
-	}
-	setupScriptBytes, err := os.ReadFile(filepath.Join(dir, "setup-script.sh"))
-	if err != nil {
-		return nil, skerr.Wrap(err)
 	}
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
@@ -57,7 +52,7 @@ func CT20170602(name string, useSSDDataDisk bool) (*gce.Instance, error) {
 			auth.ScopePubsub,
 			auth.ScopeGerrit,
 		},
-		SetupScript: string(setupScriptBytes),
+		SetupScript: embeddedSetupScript,
 		Tags:        []string{"use-swarming-auth"},
 		User:        gce.USER_CHROME_BOT,
 	}, nil

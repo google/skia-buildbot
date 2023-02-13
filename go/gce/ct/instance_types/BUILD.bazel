@@ -1,8 +1,10 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "instance_types",
     srcs = ["instance_types.go"],
+    embedsrcs = ["setup-script.sh"],
     importpath = "go.skia.org/infra/go/gce/ct/instance_types",
     visibility = ["//visibility:public"],
     deps = [
@@ -10,4 +12,11 @@ go_library(
         "//go/gce",
         "//go/skerr",
     ],
+)
+
+go_test(
+    name = "instance_types_test",
+    srcs = ["instance_types_test.go"],
+    embed = [":instance_types"],
+    deps = ["@com_github_stretchr_testify//assert"],
 )
