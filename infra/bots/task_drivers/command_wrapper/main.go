@@ -195,48 +195,49 @@ func main() {
 		}
 
 		// Write the TaskResult.
-		status := types.TASK_STATUS_SUCCESS
-		if runErr != nil {
-			// TODO(borenet): We need to determine whether the sub-command
-			// failed with a normal or infra error. I'm not sure of the best
-			// way to do this; in the past other systems have used a designated
-			// exit code to specify an infra error.
-			status = types.TASK_STATUS_FAILURE
-		}
-		// We're just echoing the requested tags back. Because we won't be using
-		// a separate DB, we have no need for tags for searching the DB.
-		tags := make(map[string][]string, len(req.Tags))
-		for _, tag := range req.Tags {
-			split := strings.SplitN(tag, ":", 2)
-			if len(split) == 2 {
-				tags[split[0]] = []string{split[1]}
+		if *output != "" {
+			status := types.TASK_STATUS_SUCCESS
+			if runErr != nil {
+				// TODO(borenet): We need to determine whether the sub-command
+				// failed with a normal or infra error. I'm not sure of the best
+				// way to do this; in the past other systems have used a designated
+				// exit code to specify an infra error.
+				status = types.TASK_STATUS_FAILURE
+			}
+			// We're just echoing the requested tags back. Because we won't be using
+			// a separate DB, we have no need for tags for searching the DB.
+			tags := make(map[string][]string, len(req.Tags))
+			for _, tag := range req.Tags {
+				split := strings.SplitN(tag, ":", 2)
+				if len(split) == 2 {
+					tags[split[0]] = []string{split[1]}
+				}
+			}
+			result := types.TaskResult{
+				CasOutput: casOutput,
+				// TODO(borenet): The separate Created and Started timestamps are
+				// relics of Swarming, where we'd request a task and it would be
+				// Created when Swarming inserted it into its DB but would not be
+				// Started until the task was matched to a machine and actually
+				// began running. I don't know that we need that distinction in the
+				// new world, or at least we may not need to obtain that information
+				// from the TaskExecutor. Instead, we can just use the timestamp at
+				// which Task Scheduler send the TaskRequest.
+				Created:  time.Time{},
+				Finished: time.Now(),
+				ID:       req.TaskSchedulerTaskID,
+				Started:  startTs,
+				Status:   status,
+				Tags:     tags,
+			}
+			b, err := json.Marshal(&result)
+			if err != nil {
+				return err
+			}
+			if err := os_steps.WriteFile(ctx, *output, b, os.ModePerm); err != nil {
+				return err
 			}
 		}
-		result := types.TaskResult{
-			CasOutput: casOutput,
-			// TODO(borenet): The separate Created and Started timestamps are
-			// relics of Swarming, where we'd request a task and it would be
-			// Created when Swarming inserted it into its DB but would not be
-			// Started until the task was matched to a machine and actually
-			// began running. I don't know that we need that distinction in the
-			// new world, or at least we may not need to obtain that information
-			// from the TaskExecutor. Instead, we can just use the timestamp at
-			// which Task Scheduler send the TaskRequest.
-			Created:  time.Time{},
-			Finished: time.Now(),
-			ID:       req.TaskSchedulerTaskID,
-			Started:  startTs,
-			Status:   status,
-			Tags:     tags,
-		}
-		b, err := json.Marshal(&result)
-		if err != nil {
-			return err
-		}
-		if err := os_steps.WriteFile(ctx, *output, b, os.ModePerm); err != nil {
-			return err
-		}
-
 		return nil
 	}); err != nil {
 		td.Fatal(ctx, err)
