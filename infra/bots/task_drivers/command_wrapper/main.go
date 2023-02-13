@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/compute/v1"
 )
 
 var (
@@ -116,7 +116,7 @@ func main() {
 		}
 
 		// Download CIPD and CAS inputs.
-		client, tokenSource, err := auth_steps.InitHttpClient(ctx, *local, auth.ScopeUserinfoEmail)
+		client, tokenSource, err := auth_steps.InitHttpClient(ctx, *local, compute.CloudPlatformScope)
 		if err != nil {
 			return err
 		}
