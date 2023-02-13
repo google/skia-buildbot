@@ -119,3 +119,10 @@ func CopyFile(ctx context.Context, src, dst string) error {
 		return util.CopyFile(src, dst)
 	})
 }
+
+// Chdir is a wrapper for os.Chdir.
+func Chdir(ctx context.Context, dir string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("chdir %s", dir)).Infra(), func(context.Context) error {
+		return os.Chdir(dir)
+	})
+}

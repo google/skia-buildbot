@@ -108,11 +108,18 @@ func main() {
 		if err != nil {
 			return err
 		}
-		if err := os_steps.RemoveAll(ctx, workdir); err != nil {
-			return err
-		}
-		if err := os_steps.MkdirAll(ctx, workdir); err != nil {
-			return err
+		// If we're relying on an external service (ie. Swarming) to populate
+		// the working directory, deleting CWD will cause problems.
+		if *wd != "." {
+			if err := os_steps.RemoveAll(ctx, workdir); err != nil {
+				return err
+			}
+			if err := os_steps.MkdirAll(ctx, workdir); err != nil {
+				return err
+			}
+			if err := os_steps.Chdir(ctx, workdir); err != nil {
+				return err
+			}
 		}
 
 		// Download CIPD and CAS inputs.
