@@ -124,11 +124,13 @@ func main() {
 		if err := cipd.Ensure(ctx, client, workdir, req.CipdPackages...); err != nil {
 			return err
 		}
-		if err := cas.Download(ctx, workdir, *casFlags.Instance, ts, &cas.CASDownload{
-			Path:   ".",
-			Digest: req.CasInput,
-		}); err != nil {
-			return err
+		if *casFlags.Instance != "" {
+			if err := cas.Download(ctx, workdir, *casFlags.Instance, ts, &cas.CASDownload{
+				Path:   ".",
+				Digest: req.CasInput,
+			}); err != nil {
+				return err
+			}
 		}
 		return nil
 
@@ -183,9 +185,13 @@ func main() {
 		// Upload CAS outputs. Note that we do this regardless of whether the
 		// sub-command succeeded.
 		// TODO(borenet): Should we provide a pathway for CAS exclusions?
-		casOutput, err := cas.Upload(ctx, workdir, *casFlags.Instance, ts, req.Outputs, nil)
-		if err != nil {
-			return err
+		var casOutput string
+		if *casFlags.Instance != "" {
+			var err error
+			casOutput, err = cas.Upload(ctx, workdir, *casFlags.Instance, ts, req.Outputs, nil)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Write the TaskResult.
