@@ -115,11 +115,11 @@ switched_rules_by_language(
 # Needed by @com_github_bazelbuild_remote_apis.
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "6dd0f6b20094910fbb7f1f7908688df01af2d4f6c5c21331b9f636048674aebf",
-    strip_prefix = "protobuf-3.14.0",
+    sha256 = "b8ab9bbdf0c6968cf20060794bc61e231fae82aaf69d6e3577c154181991f576",
+    strip_prefix = "protobuf-3.18.1",
     urls = gcs_mirror_url(
-        sha256 = "6dd0f6b20094910fbb7f1f7908688df01af2d4f6c5c21331b9f636048674aebf",
-        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protobuf-all-3.14.0.tar.gz",
+        sha256 = "b8ab9bbdf0c6968cf20060794bc61e231fae82aaf69d6e3577c154181991f576",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.18.1/protobuf-all-3.18.1.tar.gz",
     ),
 )
 
