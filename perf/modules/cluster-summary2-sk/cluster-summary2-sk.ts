@@ -41,6 +41,7 @@ import '../commit-detail-panel-sk';
 import '../plot-simple-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
+import '../commit-range-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { errorMessage } from '../errorMessage';
@@ -268,6 +269,11 @@ export class ClusterSummary2Sk extends ElementSk {
         Permlink
       </a>
       <a id="rangelink" href="" target="_blank"></a>
+      <commit-range-sk
+        .trace=${ele.summary.centroid}
+        .commitIndex=${ele.graph?.xbar || -1}
+        .header=${ele.frame?.dataframe?.header || null}
+      ></commit-range-sk>
     </div>
     <collapse-sk class="wordCloudCollapse" closed>
       <word-cloud-sk .items=${ele.summary.param_summaries2}></word-cloud-sk>

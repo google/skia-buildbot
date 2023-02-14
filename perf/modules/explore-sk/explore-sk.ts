@@ -28,6 +28,7 @@ import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
 import '../commit-detail-panel-sk';
+import '../commit-range-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
 import '../ingest-file-links-sk';
@@ -75,6 +76,7 @@ import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pi
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
+import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -348,6 +350,8 @@ export class ExploreSk extends ElementSk {
 
   private helpDialog: HTMLDialogElement | null = null;
 
+  private commitRangeSk: CommitRangeSk |null = null;
+
   constructor() {
     super(ExploreSk.template);
   }
@@ -610,6 +614,7 @@ export class ExploreSk extends ElementSk {
             <code><pre id=logEntry></pre></code>
           </div>
           <div>
+            <commit-range-sk></commit-range-sk>
             <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
             <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
             <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
@@ -654,6 +659,7 @@ export class ExploreSk extends ElementSk {
     this.queryDialog = this.querySelector('#query-dialog');
     this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
+    this.commitRangeSk = this.querySelector('commit-range-sk');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1016,6 +1022,11 @@ export class ExploreSk extends ElementSk {
         break;
       }
     }
+
+    // Populate the commit-range-sk element.
+    this.commitRangeSk!.trace = trace;
+    this.commitRangeSk!.commitIndex = e.detail.x;
+    this.commitRangeSk!.header = this._dataframe.header;
 
     if (prevCommit !== -1) {
       for (let c = commit - 1; c > prevCommit; c--) {

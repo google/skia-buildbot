@@ -11,6 +11,7 @@ sk_element(
         "//perf/modules/plot-simple-sk",
         "//perf/modules/triage2-sk",
         "//perf/modules/word-cloud-sk",
+        "//perf/modules/commit-range-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

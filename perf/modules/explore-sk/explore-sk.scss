@@ -192,6 +192,11 @@ explore-sk {
 
   tabs-panel-sk {
     border-radius: 0;
+
+    commit-range-sk {
+      display: block;
+      margin-left: 12px;
+    }
   }
 
   #query-dialog {

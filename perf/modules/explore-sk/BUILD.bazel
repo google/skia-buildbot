@@ -17,6 +17,7 @@ sk_element(
         "//perf/modules/ingest-file-links-sk",
         "//perf/modules/pivot-query-sk",
         "//perf/modules/pivot-table-sk",
+        "//perf/modules/commit-range-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

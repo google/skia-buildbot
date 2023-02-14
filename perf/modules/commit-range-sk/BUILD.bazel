@@ -1,0 +1,47 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":commit-range-sk-demo",
+)
+
+sk_element(
+    name = "commit-range-sk",
+    sass_srcs = ["commit-range-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//perf/modules/json:index_ts_lib",
+        "@npm//common-sk",
+        "//perf/modules/window:window_ts_lib",
+    ],
+    ts_srcs = [
+        "commit-range-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "commit-range-sk-demo",
+    html_file = "commit-range-sk-demo.html",
+    sk_element_deps = [":commit-range-sk"],
+    ts_deps = [
+        "@npm//fetch-mock",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "commit-range-sk-demo.ts",
+)
+
+karma_test(
+    name = "commit-range-sk_test",
+    src = "commit-range-sk_test.ts",
+    deps = [
+        ":commit-range-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
