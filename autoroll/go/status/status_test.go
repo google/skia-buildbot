@@ -56,13 +56,12 @@ func TestCopyStatus(t *testing.T) {
 	assertdeep.Copy(t, v, v.Copy())
 }
 
-func TestStatus(t *testing.T) {
+func testDB(t *testing.T, db DB) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_STATUS)
 
-	// No data in the datastore, but we shouldn't return an error.
+	// No data in the DB, but we shouldn't return an error.
 	rollerName := "test-roller"
-	db := NewDatastoreDB()
 	c, err := NewCache(ctx, db, rollerName)
 	require.NoError(t, err)
 
@@ -114,4 +113,8 @@ func TestStatus(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &AutoRollStatus{}, c2.Get())
 	require.Equal(t, &AutoRollMiniStatus{}, c2.GetMini())
+}
+
+func TestDatastoreDB(t *testing.T) {
+	testDB(t, NewDatastoreDB())
 }

@@ -10,6 +10,7 @@ go_library(
         "//autoroll/go/config/db",
         "//autoroll/go/manual",
         "//autoroll/go/rpc",
+        "//autoroll/go/status",
         "//autoroll/go/unthrottle",
         "//go/allowed",
         "//go/auth",

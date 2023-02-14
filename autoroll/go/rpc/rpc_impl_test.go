@@ -237,16 +237,17 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 	ctx := context.Background()
 	cdb := &config_db_mocks.DB{}
 	mdb := &manual_mocks.DB{}
+	sdb := &status_mocks.DB{}
 	r1 := makeRoller(ctx, t, "roller1", mdb)
 	r2 := makeRoller(ctx, t, "roller2", mdb)
 	rollers := map[string]*AutoRoller{
 		r1.Cfg.RollerName: r1,
 		r2.Cfg.RollerName: r2,
 	}
-	loadRollersFunc = func(context.Context, db.DB) (map[string]*AutoRoller, context.CancelFunc, error) {
+	loadRollersFunc = func(context.Context, status.DB, db.DB) (map[string]*AutoRoller, context.CancelFunc, error) {
 		return rollers, func() {}, nil
 	}
-	srv, err := NewAutoRollServer(ctx, cdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
+	srv, err := NewAutoRollServer(ctx, sdb, cdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
 	require.NoError(t, err)
 	return ctx, rollers, srv
 }

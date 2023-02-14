@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/db"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -98,7 +99,11 @@ func main() {
 	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
 		sklog.Fatal(err)
 	}
-	arb, err := NewAutoRoller(ctx, &cfg, client, ts)
+	statusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatalf("Failed to create status DB: %s", err)
+	}
+	arb, err := NewAutoRoller(ctx, &cfg, client, statusDB)
 	if err != nil {
 		sklog.Fatal(err)
 	}

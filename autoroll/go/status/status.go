@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -130,6 +131,8 @@ type DB interface {
 	Get(ctx context.Context, rollerName string) (*AutoRollStatus, error)
 	// Set a new AutoRollStatus for the given roller.
 	Set(ctx context.Context, rollerName string, st *AutoRollStatus) error
+	// Close cleans up resources used by the DB.
+	Close() error
 }
 
 // Fake ancestor we supply for all AutoRollStatus, to force strong consistency.
@@ -222,4 +225,20 @@ func (d *DatastoreDB) Get(ctx context.Context, rollerName string) (*AutoRollStat
 	return rv, nil
 }
 
+// Close implements DB.
+func (d *DatastoreDB) Close() error {
+	return nil
+}
+
 var _ DB = &DatastoreDB{}
+
+// NewDB returns a MultiDB which uses Datastore as the
+// primary DB and also writes to Firestore.
+func NewDB(ctx context.Context, project, namespace, instance string, ts oauth2.TokenSource) (MultiDB, error) {
+	dsDB := NewDatastoreDB()
+	fsDB, err := NewFirestoreDBWithParams(ctx, project, namespace, instance, ts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return NewMultiDB([]DB{dsDB, fsDB})
+}

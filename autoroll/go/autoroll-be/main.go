@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
@@ -303,6 +304,12 @@ func main() {
 		}
 	}
 
+	sklog.Info("Creating status DB.")
+	statusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatalf("Failed to create status DB: %s", err)
+	}
+
 	sklog.Info("Creating manual roll DB.")
 	manualRolls, err := manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
@@ -323,7 +330,7 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, manualRolls)
+	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
 	}

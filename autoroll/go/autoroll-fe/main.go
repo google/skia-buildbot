@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/rpc"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -397,6 +398,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	statusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatalf("Failed to create status DB: %s", err)
+	}
 	configDB, err := db.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
@@ -426,7 +431,7 @@ func main() {
 	}
 	editAllow := allowed.Googlers()
 	adminAllow := allowed.Googlers()
-	srv, err = rpc.NewAutoRollServer(ctx, configDB, manualRollDB, throttleDB, viewAllow, editAllow, adminAllow, *configRefreshInterval)
+	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, manualRollDB, throttleDB, viewAllow, editAllow, adminAllow, *configRefreshInterval)
 	if err != nil {
 		sklog.Fatal(err)
 	}

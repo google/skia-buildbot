@@ -18,6 +18,7 @@ go_library(
         "//go/chrome_branch",
         "//go/common",
         "//go/ds",
+        "//go/firestore",
         "//go/gerrit",
         "//go/github",
         "//go/httputils",

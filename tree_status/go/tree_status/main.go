@@ -40,6 +40,7 @@ var (
 	repos              = common.NewMultiStringFlag("repo", nil, "These repos will have tree status endpoints.")
 	secretProject      = flag.String("secret-project", "skia-infra-public", "Name of the GCP project used for secret management.")
 	internalPort       = flag.String("internal_port", "", "HTTP internal service address (eg: ':8001' for unauthenticated in-cluster requests.")
+	firestoreInstance  = flag.String("firestore_instance", "production", "Firestore instance to use, eg. \"production\"")
 )
 
 var (
@@ -84,7 +85,7 @@ func New() (baseapp.App, error) {
 	if skiaRepoSpecified {
 		// Start watching for statuses with autorollers specified. Only supported for
 		// the default repo (skia).
-		autorollDB, err = AutorollersInit(ctx, defaultSkiaRepo, ts)
+		autorollDB, err = AutorollersInit(ctx, defaultSkiaRepo, *firestoreInstance, ts)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Could not init autorollers")
 		}

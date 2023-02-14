@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
@@ -35,10 +36,11 @@ import (
 )
 
 var (
-	configFile = flag.String("config", "", "Config file to parse. Required.")
-	compare    = flag.Bool("compare", false, "Compare the generated commit message against the most recent actual commit message.")
-	serverURL  = flag.String("server_url", "", "Server URL. Optional.")
-	workdir    = flag.String("workdir", "", "Working directory. If not set, a temporary directory is created.")
+	configFile        = flag.String("config", "", "Config file to parse. Required.")
+	compare           = flag.Bool("compare", false, "Compare the generated commit message against the most recent actual commit message.")
+	serverURL         = flag.String("server_url", "", "Server URL. Optional.")
+	workdir           = flag.String("workdir", "", "Working directory. If not set, a temporary directory is created.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 )
 
 func main() {
@@ -47,6 +49,9 @@ func main() {
 	// Validation.
 	if *configFile == "" {
 		log.Fatal("--config is required.")
+	}
+	if *firestoreInstance == "" {
+		log.Fatal("--firestore_instance is required.")
 	}
 
 	ctx := context.Background()
@@ -158,7 +163,10 @@ func main() {
 			log.Fatal(err)
 		}
 
-		statusDB := status.NewDatastoreDB()
+		statusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+		if err != nil {
+			log.Fatalf("Failed to create status DB: %s", err)
+		}
 		st, err := statusDB.Get(ctx, cfg.RollerName)
 		if err != nil {
 			log.Fatal(err)

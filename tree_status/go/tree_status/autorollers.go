@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -86,11 +87,14 @@ L:
 	}
 }
 
-func AutorollersInit(ctx context.Context, repo string, ts oauth2.TokenSource) (status.DB, error) {
+func AutorollersInit(ctx context.Context, repo, firestoreInstance string, ts oauth2.TokenSource) (status.DB, error) {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize Cloud Datastore for autorollers")
 	}
-	db := status.NewDatastoreDB()
+	db, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, ds.AUTOROLL_NS, firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatalf("Failed to create status DB: %s", err)
+	}
 
 	// Start goroutine to watch for rollers.
 	go func() {

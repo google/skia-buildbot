@@ -59,8 +59,8 @@ func (s *AutoRollServer) GetHandler() http.Handler {
 
 // NewAutoRollServer returns an AutoRollServer instance.
 // If configRefreshInterval is zero, the configs are not refreshed.
-func NewAutoRollServer(ctx context.Context, configDB db.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
-	rollers, cancelPolling, err := loadRollersFunc(ctx, configDB)
+func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
+	rollers, cancelPolling, err := loadRollersFunc(ctx, statusDB, configDB)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to load roller configs from DB")
 	}
@@ -74,7 +74,7 @@ func NewAutoRollServer(ctx context.Context, configDB db.DB, manualRollDB manual.
 	srv.handler = twirp_auth.Middleware(NewAutoRollServiceServer(srv, nil))
 	if configRefreshInterval != time.Duration(0) {
 		go util.RepeatCtx(ctx, configRefreshInterval, func(ctx context.Context) {
-			rollers, cancelPolling, err = loadRollersFunc(ctx, configDB)
+			rollers, cancelPolling, err = loadRollersFunc(ctx, statusDB, configDB)
 			if err != nil {
 				sklog.Errorf("Failed to refresh rollers: %s", err)
 				return
@@ -93,7 +93,7 @@ func NewAutoRollServer(ctx context.Context, configDB db.DB, manualRollDB manual.
 // various databases used for each roller.  Returns a map containing the rollers
 // themselves and a context.CancelFunc which can be used to stop the polling
 // loops for the rollers, eg. when loadRollers is to be called again.
-func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller, rvCancel context.CancelFunc, rvErr error) {
+func loadRollers(ctx context.Context, statusDB status.DB, configDB db.DB) (rv map[string]*AutoRoller, rvCancel context.CancelFunc, rvErr error) {
 	configs, err := configDB.GetAll(ctx)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -121,8 +121,7 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 				sklog.Errorf("Failed to retrieve mode history for %s: %s", cfg.RollerName, err)
 			}
 		})
-		arbStatusDB := status.NewDatastoreDB()
-		arbStatus, err := status.NewCache(ctx, arbStatusDB, cfg.RollerName)
+		arbStatus, err := status.NewCache(ctx, statusDB, cfg.RollerName)
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
