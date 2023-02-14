@@ -15,7 +15,7 @@ const (
 	fsApp = "autoroll"
 
 	// Collection name for AutoRollStatus.
-	collectionStatus = "Configs"
+	collectionStatus = "status"
 
 	// Firestore-related constants.
 	defaultAttempts = 3
