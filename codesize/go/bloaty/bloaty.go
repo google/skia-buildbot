@@ -59,7 +59,7 @@ const (
 //
 // The parameter should contain the output of a Bloaty invocation such as the following:
 //
-//     $ bloaty <path/to/binary> -d compileunits,symbols -n 0 --tsv
+//	$ bloaty <path/to/binary> -d compileunits,symbols -n 0 --tsv
 func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 	if strings.TrimSpace(bloatyOutput) == "" {
 		return nil, skerr.Fmt("empty input")

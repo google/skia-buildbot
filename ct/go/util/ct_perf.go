@@ -27,13 +27,13 @@ import (
 // AddCTRunDataToPerf converts and uploads data from the CT run to CT's perf instance.
 //
 // It does the following:
-// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+show/master
-// 2) Constructs a results struct in the format of https://skia.googlesource.com/buildbot/+doc/master/perf/FORMAT.md
-//    Ensures that the results struct has as key the runID, groupName and the git hash from (1).
-//    Populates the results struct using the output CSV file from CT's run.
-// 3) Create JSON file from the results struct.
-// 4) Uploads the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
-//    It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
+//  1. Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+show/master
+//  2. Constructs a results struct in the format of https://skia.googlesource.com/buildbot/+doc/master/perf/FORMAT.md
+//     Ensures that the results struct has as key the runID, groupName and the git hash from (1).
+//     Populates the results struct using the output CSV file from CT's run.
+//  3. Create JSON file from the results struct.
+//  4. Uploads the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
+//     It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
 //
 // For example, it converts the following example CSV file:
 //
@@ -43,43 +43,42 @@ import (
 //
 // into
 //
-//  {
-//    "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
-//    "runID" : "rmistry-xyz",
-//    "key" : {
-//      "group_name" : "BGPT perf"
-//    },
-//    "results" : {
-//      "http://www.reuters.com" : {
-//        "default" : {
-//          "paint_op_count": 805.0,
-//          "pixels_rasterized": 1310720.0,
-//          "rasterize_time (ms)": 2.449,
-//          "record_time_caching_disabled (ms)": 1.128,
-//          "record_time_subsequence_caching_disabled (ms)": 0.283,
-//          "painter_memory_usage (B)": 25856.0,
-//          "record_time_construction_disabled (ms)": 0.335,
-//          "options" : {
-//            "page_rank" : 480,
-//          },
-//        },
-//      "http://www.rediff.com" : {
-//        "default" : {
-//          "paint_op_count": 643.0,
-//          "pixels_rasterized": 1310720.0,
-//          "rasterize_time (ms)": 2.894,
-//          "record_time_caching_disabled (ms)": 0.998,
-//          "record_time_subsequence_caching_disabled (ms)": 0.209,
-//          "painter_memory_usage (B)": 24856.0,
-//          "record_time_construction_disabled (ms)": 0.242,
-//          "options" : {
-//            "page_rank" : 490,
-//          },
-//        },
-//      }
-//    }
-//  }
-//
+//	{
+//	  "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
+//	  "runID" : "rmistry-xyz",
+//	  "key" : {
+//	    "group_name" : "BGPT perf"
+//	  },
+//	  "results" : {
+//	    "http://www.reuters.com" : {
+//	      "default" : {
+//	        "paint_op_count": 805.0,
+//	        "pixels_rasterized": 1310720.0,
+//	        "rasterize_time (ms)": 2.449,
+//	        "record_time_caching_disabled (ms)": 1.128,
+//	        "record_time_subsequence_caching_disabled (ms)": 0.283,
+//	        "painter_memory_usage (B)": 25856.0,
+//	        "record_time_construction_disabled (ms)": 0.335,
+//	        "options" : {
+//	          "page_rank" : 480,
+//	        },
+//	      },
+//	    "http://www.rediff.com" : {
+//	      "default" : {
+//	        "paint_op_count": 643.0,
+//	        "pixels_rasterized": 1310720.0,
+//	        "rasterize_time (ms)": 2.894,
+//	        "record_time_caching_disabled (ms)": 0.998,
+//	        "record_time_subsequence_caching_disabled (ms)": 0.209,
+//	        "painter_memory_usage (B)": 24856.0,
+//	        "record_time_construction_disabled (ms)": 0.242,
+//	        "options" : {
+//	          "page_rank" : 490,
+//	        },
+//	      },
+//	    }
+//	  }
+//	}
 func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults, gitExec string, gs *GcsUtil) error {
 	// Set uniqueID and create the workdir.
 	uniqueID := fmt.Sprintf("%s-%d", runID, time.Now().Unix())

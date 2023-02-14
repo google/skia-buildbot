@@ -98,13 +98,12 @@ func baseImageName(s string) string {
 // addDockerProdTag adds the "prod" tag to the specified docker image in buildInfo.
 //
 // These steps are done here:
-// * "docker login ..." This is done every time this function is run instead of once at startup because
-//   the login seems to expire after sometime, maybe related to the oauth2 AccessToken expiration time.
-// * "docker pull ..." To populate the local cache with the image we want to tag.
-// * "docker tag ..." This tags the image.
-// * "docker push ..."" This pushes the newly tagged image to the remote repository.
-//   Example of remote repository: https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/infra
-//
+//   - "docker login ..." This is done every time this function is run instead of once at startup because
+//     the login seems to expire after sometime, maybe related to the oauth2 AccessToken expiration time.
+//   - "docker pull ..." To populate the local cache with the image we want to tag.
+//   - "docker tag ..." This tags the image.
+//   - "docker push ..."" This pushes the newly tagged image to the remote repository.
+//     Example of remote repository: https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/infra
 func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) error {
 	// Retry a few times if there are errors. Sometimes the access token expires between the login and the push.
 	NUM_ATTEMPTS := 2

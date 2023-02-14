@@ -10,6 +10,7 @@ import (
 )
 
 // FS is a filesystem with the schema.json file.
+//
 //go:embed schema.json
 var FS embed.FS
 

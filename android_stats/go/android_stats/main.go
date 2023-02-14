@@ -55,26 +55,26 @@ func reportStats(device, serial, stat string, val interface{}) {
 // reports the data into metrics.
 //
 // The script produces data in this format:
-// {
-//   "Nexus_5X": {
-//     "002e3da61560d3d4": {
-//       "battery": {
-//         "ac": 0,
-//         "health": 2,
-//         "level": 100,
-//         "max": 500000,
-//         "present": 1,
-//         "status": 5,
-//         "temp": 282,
-//         "usb": 1,
-//         "voltage": 4311,
-//         "wireless": 0
-//       },
-//       "temperature": 28.0
-//     }
-//   }
-// }
 //
+//	{
+//	  "Nexus_5X": {
+//	    "002e3da61560d3d4": {
+//	      "battery": {
+//	        "ac": 0,
+//	        "health": 2,
+//	        "level": 100,
+//	        "max": 500000,
+//	        "present": 1,
+//	        "status": 5,
+//	        "temp": 282,
+//	        "usb": 1,
+//	        "voltage": 4311,
+//	        "wireless": 0
+//	      },
+//	      "temperature": 28.0
+//	    }
+//	  }
+//	}
 func generateStats(ctx context.Context) error {
 	output, err := exec.RunSimple(ctx, *statsScript)
 	if err != nil {

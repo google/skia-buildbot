@@ -29,10 +29,10 @@ type ICTAutoscaler interface {
 
 // The CTAutoscaler is a CT friendly wrapper around autoscaler.Autoscaller
 // It does the following:
-// * Automatically brings up all CT GCE instances when a GCE task is registered
-//   and no other GCE tasks are running.
-// * Automatically brings down all CT GCE instances when there are no registered
-//   GCE tasks.
+//   - Automatically brings up all CT GCE instances when a GCE task is registered
+//     and no other GCE tasks are running.
+//   - Automatically brings down all CT GCE instances when there are no registered
+//     GCE tasks.
 type CTAutoscaler struct {
 	a                autoscaler.IAutoscaler
 	s                swarming.ApiClient

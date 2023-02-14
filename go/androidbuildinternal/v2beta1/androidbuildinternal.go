@@ -6,31 +6,31 @@
 
 // Package androidbuildinternal provides access to the .
 //
-// Creating a client
+// # Creating a client
 //
 // Usage example:
 //
-//   import "go.skia.org/infra/go/androidbuildinternal/v2beta1"
-//   ...
-//   ctx := context.Background()
-//   androidbuildinternalService, err := androidbuildinternal.NewService(ctx)
+//	import "go.skia.org/infra/go/androidbuildinternal/v2beta1"
+//	...
+//	ctx := context.Background()
+//	androidbuildinternalService, err := androidbuildinternal.NewService(ctx)
 //
 // In this example, Google Application Default Credentials are used for authentication.
 //
 // For information on how to create and obtain Application Default Credentials, see https://developers.google.com/identity/protocols/application-default-credentials.
 //
-// Other authentication options
+// # Other authentication options
 //
 // To use an API key for authentication (note: some APIs do not support API keys), use option.WithAPIKey:
 //
-//   androidbuildinternalService, err := androidbuildinternal.NewService(ctx, option.WithAPIKey("AIza..."))
+//	androidbuildinternalService, err := androidbuildinternal.NewService(ctx, option.WithAPIKey("AIza..."))
 //
 // To use an OAuth token (e.g., a user token obtained via a three-legged OAuth flow), use option.WithTokenSource:
 //
-//   config := &oauth2.Config{...}
-//   // ...
-//   token, err := config.Exchange(ctx, ...)
-//   androidbuildinternalService, err := androidbuildinternal.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
+//	config := &oauth2.Config{...}
+//	// ...
+//	token, err := config.Exchange(ctx, ...)
+//	androidbuildinternalService, err := androidbuildinternal.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 //
 // See https://godoc.org/google.golang.org/api/option/ for details on options.
 package androidbuildinternal // import "go.skia.org/infra/go/androidbuildinternal/v2beta1"
@@ -10198,14 +10198,15 @@ func (c *AnalyzerresultListCall) Patchset(patchset string) *AnalyzerresultListCa
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "canceled"
-//   "completeFail"
-//   "completePass"
-//   "completeSkip"
-//   "error"
-//   "inProgress"
-//   "timedOut"
-//   "unknown"
+//
+//	"canceled"
+//	"completeFail"
+//	"completePass"
+//	"completeSkip"
+//	"error"
+//	"inProgress"
+//	"timedOut"
+//	"unknown"
 func (c *AnalyzerresultListCall) Status(status string) *AnalyzerresultListCall {
 	c.urlParams_.Set("status", status)
 	return c
@@ -10838,9 +10839,10 @@ func (c *BranchListCall) Disabled(disabled bool) *BranchListCall {
 // "excludeIfEmptyFields":
 //
 // Possible values:
-//   "buildPrefix"
-//   "buildUpdateAcl"
-//   "flashstation"
+//
+//	"buildPrefix"
+//	"buildUpdateAcl"
+//	"flashstation"
 func (c *BranchListCall) ExcludeIfEmptyFields(excludeIfEmptyFields ...string) *BranchListCall {
 	c.urlParams_.SetMulti("excludeIfEmptyFields", append([]string{}, excludeIfEmptyFields...))
 	return c
@@ -11837,10 +11839,11 @@ func (r *BuildService) Get(buildId string, target string) *BuildGetCall {
 // ExtraFields sets the optional parameter "extraFields":
 //
 // Possible values:
-//   "all"
-//   "changeInfo"
-//   "pinnedManifest"
-//   "prebuiltChangeInfo"
+//
+//	"all"
+//	"changeInfo"
+//	"pinnedManifest"
+//	"prebuiltChangeInfo"
 func (c *BuildGetCall) ExtraFields(extraFields ...string) *BuildGetCall {
 	c.urlParams_.SetMulti("extraFields", append([]string{}, extraFields...))
 	return c
@@ -12183,18 +12186,19 @@ func (c *BuildListCall) BugId(bugId string) *BuildListCall {
 // BuildAttemptStatus sets the optional parameter "buildAttemptStatus":
 //
 // Possible values:
-//   "abandoned"
-//   "building"
-//   "built"
-//   "complete"
-//   "error"
-//   "new"
-//   "pending"
-//   "pendingGerritUpload"
-//   "popped"
-//   "synced"
-//   "syncing"
-//   "testing"
+//
+//	"abandoned"
+//	"building"
+//	"built"
+//	"complete"
+//	"error"
+//	"new"
+//	"pending"
+//	"pendingGerritUpload"
+//	"popped"
+//	"synced"
+//	"syncing"
+//	"testing"
 func (c *BuildListCall) BuildAttemptStatus(buildAttemptStatus string) *BuildListCall {
 	c.urlParams_.Set("buildAttemptStatus", buildAttemptStatus)
 	return c
@@ -12209,11 +12213,12 @@ func (c *BuildListCall) BuildId(buildId string) *BuildListCall {
 // BuildType sets the optional parameter "buildType":
 //
 // Possible values:
-//   "external"
-//   "local"
-//   "pending"
-//   "submitted"
-//   "train"
+//
+//	"external"
+//	"local"
+//	"pending"
+//	"submitted"
+//	"train"
 func (c *BuildListCall) BuildType(buildType string) *BuildListCall {
 	c.urlParams_.Set("buildType", buildType)
 	return c
@@ -12241,10 +12246,11 @@ func (c *BuildListCall) ExternalId(externalId string) *BuildListCall {
 // ExtraFields sets the optional parameter "extraFields":
 //
 // Possible values:
-//   "all"
-//   "changeInfo"
-//   "pinnedManifest"
-//   "prebuiltChangeInfo"
+//
+//	"all"
+//	"changeInfo"
+//	"pinnedManifest"
+//	"prebuiltChangeInfo"
 func (c *BuildListCall) ExtraFields(extraFields ...string) *BuildListCall {
 	c.urlParams_.SetMulti("extraFields", append([]string{}, extraFields...))
 	return c
@@ -12315,10 +12321,11 @@ func (c *BuildListCall) Signed(signed bool) *BuildListCall {
 // SortingType sets the optional parameter "sortingType":
 //
 // Possible values:
-//   "baseBuildId"
-//   "buildId" (default)
-//   "creationTimestamp"
-//   "default"
+//
+//	"baseBuildId"
+//	"buildId" (default)
+//	"creationTimestamp"
+//	"default"
 func (c *BuildListCall) SortingType(sortingType string) *BuildListCall {
 	c.urlParams_.Set("sortingType", sortingType)
 	return c
@@ -12976,11 +12983,12 @@ func (r *BuildService) Pop(buildpoprequest *BuildPopRequest) *BuildPopCall {
 // BuildType sets the optional parameter "buildType":
 //
 // Possible values:
-//   "external"
-//   "local"
-//   "pending"
-//   "submitted"
-//   "train"
+//
+//	"external"
+//	"local"
+//	"pending"
+//	"submitted"
+//	"train"
 func (c *BuildPopCall) BuildType(buildType string) *BuildPopCall {
 	c.urlParams_.Set("buildType", buildType)
 	return c
@@ -15192,9 +15200,10 @@ func (r *BuildattemptService) Get(buildId string, target string, resourceId stri
 // ExtraFields sets the optional parameter "extraFields":
 //
 // Possible values:
-//   "all"
-//   "buildProp"
-//   "repoConfig"
+//
+//	"all"
+//	"buildProp"
+//	"repoConfig"
 func (c *BuildattemptGetCall) ExtraFields(extraFields ...string) *BuildattemptGetCall {
 	c.urlParams_.SetMulti("extraFields", append([]string{}, extraFields...))
 	return c
@@ -15519,9 +15528,10 @@ func (r *BuildattemptService) List(buildId string, target string) *BuildattemptL
 // ExtraFields sets the optional parameter "extraFields":
 //
 // Possible values:
-//   "all"
-//   "buildProp"
-//   "repoConfig"
+//
+//	"all"
+//	"buildProp"
+//	"repoConfig"
 func (c *BuildattemptListCall) ExtraFields(extraFields ...string) *BuildattemptListCall {
 	c.urlParams_.SetMulti("extraFields", append([]string{}, extraFields...))
 	return c
@@ -16042,11 +16052,12 @@ func (r *BuildidService) List(branch string) *BuildidListCall {
 // BuildType sets the optional parameter "buildType":
 //
 // Possible values:
-//   "external"
-//   "local"
-//   "pending"
-//   "submitted"
-//   "train"
+//
+//	"external"
+//	"local"
+//	"pending"
+//	"submitted"
+//	"train"
 func (c *BuildidListCall) BuildType(buildType string) *BuildidListCall {
 	c.urlParams_.Set("buildType", buildType)
 	return c
@@ -16704,10 +16715,11 @@ func (c *BuildrequestListCall) PageToken(pageToken string) *BuildrequestListCall
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "complete"
-//   "failed"
-//   "inProgress"
-//   "pending"
+//
+//	"complete"
+//	"failed"
+//	"inProgress"
+//	"pending"
 func (c *BuildrequestListCall) Status(status string) *BuildrequestListCall {
 	c.urlParams_.Set("status", status)
 	return c
@@ -16716,7 +16728,8 @@ func (c *BuildrequestListCall) Status(status string) *BuildrequestListCall {
 // Type sets the optional parameter "type":
 //
 // Possible values:
-//   "rollup"
+//
+//	"rollup"
 func (c *BuildrequestListCall) Type(type_ string) *BuildrequestListCall {
 	c.urlParams_.Set("type", type_)
 	return c
@@ -19520,10 +19533,11 @@ func (c *ImagerequestListCall) PageToken(pageToken string) *ImagerequestListCall
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "complete"
-//   "failed"
-//   "inProgress"
-//   "pending"
+//
+//	"complete"
+//	"failed"
+//	"inProgress"
+//	"pending"
 func (c *ImagerequestListCall) Status(status string) *ImagerequestListCall {
 	c.urlParams_.Set("status", status)
 	return c
@@ -19532,16 +19546,17 @@ func (c *ImagerequestListCall) Status(status string) *ImagerequestListCall {
 // Type sets the optional parameter "type":
 //
 // Possible values:
-//   "accessories"
-//   "firmware"
-//   "gms"
-//   "hexagon"
-//   "looseOta"
-//   "mainlineModules"
-//   "ota"
-//   "release"
-//   "tos"
-//   "userdebug"
+//
+//	"accessories"
+//	"firmware"
+//	"gms"
+//	"hexagon"
+//	"looseOta"
+//	"mainlineModules"
+//	"ota"
+//	"release"
+//	"tos"
+//	"userdebug"
 func (c *ImagerequestListCall) Type(type_ string) *ImagerequestListCall {
 	c.urlParams_.Set("type", type_)
 	return c
@@ -21603,11 +21618,12 @@ func (c *MachineListCall) BuildPlatform(buildPlatform string) *MachineListCall {
 // BuildType sets the optional parameter "buildType":
 //
 // Possible values:
-//   "external"
-//   "local"
-//   "pending"
-//   "submitted"
-//   "train"
+//
+//	"external"
+//	"local"
+//	"pending"
+//	"submitted"
+//	"train"
 func (c *MachineListCall) BuildType(buildType string) *MachineListCall {
 	c.urlParams_.Set("buildType", buildType)
 	return c
@@ -21628,19 +21644,20 @@ func (c *MachineListCall) MaxResults(maxResults int64) *MachineListCall {
 // Operation sets the optional parameter "operation":
 //
 // Possible values:
-//   "booting"
-//   "building"
-//   "built"
-//   "copying"
-//   "finish"
-//   "idle"
-//   "popping"
-//   "preparing"
-//   "queueBuild"
-//   "resetBuild"
-//   "start"
-//   "synced"
-//   "syncing"
+//
+//	"booting"
+//	"building"
+//	"built"
+//	"copying"
+//	"finish"
+//	"idle"
+//	"popping"
+//	"preparing"
+//	"queueBuild"
+//	"resetBuild"
+//	"start"
+//	"synced"
+//	"syncing"
 func (c *MachineListCall) Operation(operation string) *MachineListCall {
 	c.urlParams_.Set("operation", operation)
 	return c
@@ -21667,8 +21684,9 @@ func (c *MachineListCall) PoolName(poolName string) *MachineListCall {
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "offline"
-//   "online"
+//
+//	"offline"
+//	"online"
 func (c *MachineListCall) Status(status string) *MachineListCall {
 	c.urlParams_.Set("status", status)
 	return c
@@ -26636,13 +26654,14 @@ func (c *TestresultListCall) PageToken(pageToken string) *TestresultListCall {
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "cancelled"
-//   "completeFail"
-//   "completePass"
-//   "error"
-//   "inProgress"
-//   "infraError"
-//   "unknown"
+//
+//	"cancelled"
+//	"completeFail"
+//	"completePass"
+//	"error"
+//	"inProgress"
+//	"infraError"
+//	"unknown"
 func (c *TestresultListCall) Status(status string) *TestresultListCall {
 	c.urlParams_.Set("status", status)
 	return c
@@ -27632,15 +27651,16 @@ func (c *WorknodeListCall) PageToken(pageToken string) *WorknodeListCall {
 // Status sets the optional parameter "status":
 //
 // Possible values:
-//   "cancelled"
-//   "complete"
-//   "created"
-//   "failed"
-//   "pending"
-//   "running"
-//   "scheduled"
-//   "unknownWorkNodeStatus"
-//   "waiting"
+//
+//	"cancelled"
+//	"complete"
+//	"created"
+//	"failed"
+//	"pending"
+//	"running"
+//	"scheduled"
+//	"unknownWorkNodeStatus"
+//	"waiting"
 func (c *WorknodeListCall) Status(status ...string) *WorknodeListCall {
 	c.urlParams_.SetMulti("status", append([]string{}, status...))
 	return c
@@ -27649,39 +27669,40 @@ func (c *WorknodeListCall) Status(status ...string) *WorknodeListCall {
 // WorkExecutorTypes sets the optional parameter "workExecutorTypes":
 //
 // Possible values:
-//   "abssWorkerSmokeTest"
-//   "androidStudioBuild"
-//   "atpTest"
-//   "automergeMergePath"
-//   "bisectionFinished"
-//   "bisectionStep"
-//   "chaselistBackendSmokeTest"
-//   "dummyNode"
-//   "fetchChangesRequest"
-//   "gerritPollerMonitorRequest"
-//   "gerritSelfserviceOperations"
-//   "imageRequest"
-//   "mainlineConductor"
-//   "manifestAssembler"
-//   "mergeServiceOperations"
-//   "partialRerun"
-//   "pendingChangeBuild"
-//   "pendingChangeFinished"
-//   "presubmitAnalysis"
-//   "presubmitAnalysisFinished"
-//   "presubmitPreflight"
-//   "releaseRequest"
-//   "selfserviceOperations"
-//   "selfserviceSecureOperations"
-//   "signingAdminOperations"
-//   "signingAdminSecureOperations"
-//   "signingWorkerSmokeTest"
-//   "submittedBuild"
-//   "submittedBuildRequest"
-//   "testGroupFinished"
-//   "testProvider"
-//   "trybotFinished"
-//   "unknownWorkExecutorType"
+//
+//	"abssWorkerSmokeTest"
+//	"androidStudioBuild"
+//	"atpTest"
+//	"automergeMergePath"
+//	"bisectionFinished"
+//	"bisectionStep"
+//	"chaselistBackendSmokeTest"
+//	"dummyNode"
+//	"fetchChangesRequest"
+//	"gerritPollerMonitorRequest"
+//	"gerritSelfserviceOperations"
+//	"imageRequest"
+//	"mainlineConductor"
+//	"manifestAssembler"
+//	"mergeServiceOperations"
+//	"partialRerun"
+//	"pendingChangeBuild"
+//	"pendingChangeFinished"
+//	"presubmitAnalysis"
+//	"presubmitAnalysisFinished"
+//	"presubmitPreflight"
+//	"releaseRequest"
+//	"selfserviceOperations"
+//	"selfserviceSecureOperations"
+//	"signingAdminOperations"
+//	"signingAdminSecureOperations"
+//	"signingWorkerSmokeTest"
+//	"submittedBuild"
+//	"submittedBuildRequest"
+//	"testGroupFinished"
+//	"testProvider"
+//	"trybotFinished"
+//	"unknownWorkExecutorType"
 func (c *WorknodeListCall) WorkExecutorTypes(workExecutorTypes ...string) *WorknodeListCall {
 	c.urlParams_.SetMulti("workExecutorTypes", append([]string{}, workExecutorTypes...))
 	return c

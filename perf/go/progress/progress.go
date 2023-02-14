@@ -8,11 +8,11 @@
 // The dryrun progress information contains different info with different stages
 // and steps. For example, dryrun progress looks like this:
 //
-//   Step: 1/1
-//   Query: "sub_result=max_rss_mb"
-//   Stage: Looking for regressions in query results.
-//   Commit: 51643
-//   Details: "Filtered Traces: Num Before: 95 Num After: 92 Delta: 3"
+//	Step: 1/1
+//	Query: "sub_result=max_rss_mb"
+//	Stage: Looking for regressions in query results.
+//	Commit: 51643
+//	Details: "Filtered Traces: Num Before: 95 Num After: 92 Delta: 3"
 //
 // Which is just a series of key/value pairs of strings. So our common Progress
 // interface allows for creating a set of key/value pairs to be displayed, along
@@ -73,16 +73,15 @@ type SerializedProgress struct {
 // FinishedWithResults() at the outermost calling level. For example, in an HTTP
 // handler function you can kick off a long running process like this:
 //
-//    prog := new Progress()
-//    go func() {
-//        err, value := SomeLongRunningFuncThatOnlyReturnsWhenItsDone(ctx, prog)
-//        if err != nil {
-//            prog.Error("Some failure message")
-//        } else {
-//            prog.FinishedWithResults(value)
-//        }
-//    }()
-//
+//	prog := new Progress()
+//	go func() {
+//	    err, value := SomeLongRunningFuncThatOnlyReturnsWhenItsDone(ctx, prog)
+//	    if err != nil {
+//	        prog.Error("Some failure message")
+//	    } else {
+//	        prog.FinishedWithResults(value)
+//	    }
+//	}()
 type Progress interface {
 	// Message adds or updates a message in a progress recorder. If the key
 	// matches an existing message it will replace that key's value.

@@ -37,10 +37,11 @@ var FlagSet *flag.FlagSet = flag.CommandLine
 // into two phases, preinit() and init().
 //
 // The desired order for all Opts is:
-//  0 - base
-//  1 - cloudlogging
-//  3 - prometheus
-//  4 - slog
+//
+//	0 - base
+//	1 - cloudlogging
+//	3 - prometheus
+//	4 - slog
 //
 // Construct the Opts that are desired and pass them to common.InitWith(), i.e.:
 //
@@ -49,7 +50,6 @@ var FlagSet *flag.FlagSet = flag.CommandLine
 //		common.PrometheusOpt(promPort),
 //		common.CloudLoggingOpt(),
 //	)
-//
 type Opt interface {
 	// order is the sort order that Opts are executed in.
 	order() int
@@ -157,7 +157,6 @@ type metricsLoggingInitOpt struct {
 }
 
 // MetricsLoggingOpt creates an Opt to initialize logging and record metrics when passed to InitWith().
-//
 func MetricsLoggingOpt() Opt {
 	return &metricsLoggingInitOpt{}
 }

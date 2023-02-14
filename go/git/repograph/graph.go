@@ -54,10 +54,10 @@ func (c *Commit) AddParent(p *Commit) {
 // error will bubble to the top and be returned. Here's an example of printing
 // out the entire ancestry of a given commit:
 //
-// commit.Recurse(func(c *Commit) error {
-// 	sklog.Info(c.Hash)
-// 	return nil
-// })
+//	commit.Recurse(func(c *Commit) error {
+//		sklog.Info(c.Hash)
+//		return nil
+//	})
 //
 // If the passed-in function returns no errors other than ErrStopRecursing,
 // Recurse() will never return an error.
@@ -650,10 +650,11 @@ func (r *Graph) GetAll() map[string]*Commit {
 // set of commits:
 //
 // commits := []string{...}
-// err := repo.RecurseCommits(commits, func(c *Commit) error {
-//	sklog.Info(c.Hash)
-//	return nil
-// })
+//
+//	err := repo.RecurseCommits(commits, func(c *Commit) error {
+//		sklog.Info(c.Hash)
+//		return nil
+//	})
 func (r *Graph) RecurseCommits(commits []string, f func(*Commit) error) error {
 	visited := make(map[*Commit]bool, r.Len())
 	for _, hash := range commits {
@@ -679,10 +680,10 @@ func (r *Graph) RecurseCommits(commits []string, f func(*Commit) error) error {
 // properly terminating other branches. The error will bubble to the top and be
 // returned. Here's an example of printing out all of the commits in the repo:
 //
-// repo.RecurseAllBranches(func(c *Commit) error {
-//      sklog.Info(c.Hash)
-//      return nil
-// })
+//	repo.RecurseAllBranches(func(c *Commit) error {
+//	     sklog.Info(c.Hash)
+//	     return nil
+//	})
 func (r *Graph) RecurseAllBranches(f func(*Commit) error) error {
 	return r.RecurseCommits(r.Branches(), f)
 }

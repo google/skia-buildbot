@@ -22,32 +22,32 @@ const (
 // URLMock implements http.RoundTripper but returns mocked responses. It
 // provides two methods for mocking responses to requests for particular URLs:
 //
-// - Mock: Adds a fake response for the given URL to be used every time a
-//         request is made for that URL.
+//   - Mock: Adds a fake response for the given URL to be used every time a
+//     request is made for that URL.
 //
-// - MockOnce: Adds a fake response for the given URL to be used one time.
-//         MockOnce may be called multiple times for the same URL in order to
-//         simulate the response changing over time. Takes precedence over mocks
-//         specified using Mock.
+//   - MockOnce: Adds a fake response for the given URL to be used one time.
+//     MockOnce may be called multiple times for the same URL in order to
+//     simulate the response changing over time. Takes precedence over mocks
+//     specified using Mock.
 //
 // Examples:
 //
-//    // Mock out a URL to always respond with the same body.
-//    m := NewURLMock()
-//    m.Mock("https://www.google.com", MockGetDialogue([]byte("Here's a response.")))
-//    res, _ := m.Client().Get("https://www.google.com")
-//    respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
+//	// Mock out a URL to always respond with the same body.
+//	m := NewURLMock()
+//	m.Mock("https://www.google.com", MockGetDialogue([]byte("Here's a response.")))
+//	res, _ := m.Client().Get("https://www.google.com")
+//	respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
 //
-//    // Mock out a URL to give different responses.
-//    m.MockOnce("https://www.google.com", MockGetDialogue([]byte("hi")))
-//    m.MockOnce("https://www.google.com", MockGetDialogue([]byte("Second response.")))
-//    res1, _ := m.Client().Get("https://www.google.com")
-//    body1, _ := ioutil.ReadAll(res1.Body)  // body1 == []byte("hi")
-//    res2, _ := m.Client().Get("https://www.google.com")
-//    body2, _ := ioutil.ReadAll(res2.Body)  // body2 == []byte("Second response.")
-//    // Fall back on the value previously set using Mock():
-//    res3, _ := m.Client().Get("https://www.google.com")
-//    body3, _ := ioutil.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
+//	// Mock out a URL to give different responses.
+//	m.MockOnce("https://www.google.com", MockGetDialogue([]byte("hi")))
+//	m.MockOnce("https://www.google.com", MockGetDialogue([]byte("Second response.")))
+//	res1, _ := m.Client().Get("https://www.google.com")
+//	body1, _ := ioutil.ReadAll(res1.Body)  // body1 == []byte("hi")
+//	res2, _ := m.Client().Get("https://www.google.com")
+//	body2, _ := ioutil.ReadAll(res2.Body)  // body2 == []byte("Second response.")
+//	// Fall back on the value previously set using Mock():
+//	res3, _ := m.Client().Get("https://www.google.com")
+//	body3, _ := ioutil.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
 type URLMock struct {
 	mtx        sync.Mutex
 	mockAlways map[string]MockDialogue

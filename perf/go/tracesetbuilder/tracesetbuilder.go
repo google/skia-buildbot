@@ -72,10 +72,10 @@ func (m *mergeWorker) Close() {
 
 // TraceSetBuilder builds a TraceSet from traces found in Tiles.
 //
-//  The mergeWorkers are selected based on the md5 hash of the decoded key for
-//  a trace, this ensures that the same trace id will always be processed by
-//  the same mergeWorker. This way we ensure that each mergeWorker sees only
-//  their subset of the traces and we can avoid mutexes.
+//	The mergeWorkers are selected based on the md5 hash of the decoded key for
+//	a trace, this ensures that the same trace id will always be processed by
+//	the same mergeWorker. This way we ensure that each mergeWorker sees only
+//	their subset of the traces and we can avoid mutexes.
 //
 // The Build() func will consolidate all the work of the mergeWorkers
 // and shut down the worker pools. Because of that a TraceSetBuilder

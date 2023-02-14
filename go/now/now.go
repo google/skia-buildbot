@@ -16,18 +16,17 @@ type contextKeyType string
 // That is, in a test, you can write a value into a context to use as the return
 // value of Now().
 //
-//    var mockTime = time.Unix(0, 12).UTC()
-//    ctx = context.WithValue(ctx, now.ContextKey, mockTime)
+//	var mockTime = time.Unix(0, 12).UTC()
+//	ctx = context.WithValue(ctx, now.ContextKey, mockTime)
 //
 // The value set can also be a function that returns a time.Time.
 //
-//    var monotonicTime int64 = 0
-//    var mockTimeProvider = func() time.Time {
-//      monotonicTime += 1
-//	    return time.Unix(monotonicTime, 0).UTC()
-//    }
-//    ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(mockTimeProvider))
-//
+//	   var monotonicTime int64 = 0
+//	   var mockTimeProvider = func() time.Time {
+//	     monotonicTime += 1
+//		    return time.Unix(monotonicTime, 0).UTC()
+//	   }
+//	   ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(mockTimeProvider))
 const ContextKey contextKeyType = "overwriteNow"
 
 // NowProvider is the type of function that can also be passed as a context
@@ -55,12 +54,13 @@ func Now(ctx context.Context) time.Time {
 // TimeTravelCtx is a test utility that makes it easy to change the apparent time. It embeds a
 // context that contains a NowProvider to overwrite the time returned by now.Now(ctx). As an
 // example of how this might be used in a test:
-//     ctx := now.TimeTravelingContext(tsOne)
-//     result1 := myTestFunction(ctx, "param one")
-//     // simulate fast forwarding 2 minutes
-//     ctx.SetTime(tsOne.Add(2 * time.Minute))
-//     result2 := myTestFunction(ctx, "another param")
-//     // do assertions on result1 and result2
+//
+//	ctx := now.TimeTravelingContext(tsOne)
+//	result1 := myTestFunction(ctx, "param one")
+//	// simulate fast forwarding 2 minutes
+//	ctx.SetTime(tsOne.Add(2 * time.Minute))
+//	result2 := myTestFunction(ctx, "another param")
+//	// do assertions on result1 and result2
 type TimeTravelCtx struct {
 	context.Context
 

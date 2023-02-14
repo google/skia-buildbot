@@ -15,23 +15,25 @@ const kNumDecoderGoroutines = 10
 //
 // // FooEncoder encodes Foos into bytes via GOB encoding. Not safe for
 // // concurrent use.
-// type FooEncoder {
-// 	util.GobEncoder
-// }
+//
+//	type FooEncoder {
+//		util.GobEncoder
+//	}
 //
 // // Next returns one of the Foox provided to Process (in arbitrary order) and
 // // its serialized bytes. If any items remain, returns the item, the
 // // serialized bytes, nil. If all items have been returned, returns nil, nil,
 // // nil. If an error is encountered, returns nil, nil, error.
-// func (e *FooEncoder) Next() (*Foo, []byte, error) {
-//	item, serialized, err := e.GobEncoder.Next()
-//	if err != nil {
-//		return nil, nil, err
-//	} else if item == nil {
-//		return nil, nil, nil
+//
+//	func (e *FooEncoder) Next() (*Foo, []byte, error) {
+//		item, serialized, err := e.GobEncoder.Next()
+//		if err != nil {
+//			return nil, nil, err
+//		} else if item == nil {
+//			return nil, nil, nil
+//		}
+//		return item.(*Foo), serialized, nil
 //	}
-//	return item.(*Foo), serialized, nil
-// }
 type GobEncoder struct {
 	err    error
 	items  []interface{}
@@ -83,34 +85,37 @@ func (e *GobEncoder) Next() (interface{}, []byte, error) {
 //
 // FooDecoder decodes bytes into Foos via GOB decoding. Not safe for
 // concurrent use.
-// type FooDecoder struct {
-//	*util.GobDecoder
-// }
+//
+//	type FooDecoder struct {
+//		*util.GobDecoder
+//	}
 //
 // // NewFooDecoder returns a FooDecoder instance.
-// func NewFooDecoder() *FooDecoder {
-//	return &FooDecoder{
-//		GobDecoder: util.NewGobDecoder(func() interface{} {
-//			return &Foo{}
-//		}, func(ch <-chan interface{}) interface{} {
-//			items := []*Foo{}
-//			for item := range ch {
-//				items = append(items, item.(*Foo))
-//			}
-//			return items
-//		}),
+//
+//	func NewFooDecoder() *FooDecoder {
+//		return &FooDecoder{
+//			GobDecoder: util.NewGobDecoder(func() interface{} {
+//				return &Foo{}
+//			}, func(ch <-chan interface{}) interface{} {
+//				items := []*Foo{}
+//				for item := range ch {
+//					items = append(items, item.(*Foo))
+//				}
+//				return items
+//			}),
+//		}
 //	}
-// }
 //
 // // Result returns all decoded Foos provided to Process (in arbitrary order), or
 // // any error encountered.
-// func (d *FooDecoder) Result() ([]*Foo, error) {
-//	res, err := d.GobDecoder.Result()
-//	if err != nil {
-//		return nil, err
+//
+//	func (d *FooDecoder) Result() ([]*Foo, error) {
+//		res, err := d.GobDecoder.Result()
+//		if err != nil {
+//			return nil, err
+//		}
+//		return res.([]*Foo), nil
 //	}
-//	return res.([]*Foo), nil
-// }
 type GobDecoder struct {
 	// input contains the incoming byte slices. Process() sends on this
 	// channel, decode() receives from it, and Result() closes it.
@@ -134,20 +139,20 @@ type GobDecoder struct {
 // goroutine-safe function which returns a zero-valued instance of the type
 // being decoded, eg.
 //
-// func() interface{} {
-//	return &MyType{}
-// }
+//	func() interface{} {
+//		return &MyType{}
+//	}
 //
 // The second argument is a function which collects decoded instances of that
 // type from a channel and returns a slice, eg.
 //
-// func(ch <-chan interface{}) interface{} {
-//	items := []*MyType{}
-//	for item := range ch {
-//		items = append(items, item.(*MyType))
+//	func(ch <-chan interface{}) interface{} {
+//		items := []*MyType{}
+//		for item := range ch {
+//			items = append(items, item.(*MyType))
+//		}
+//		return items
 //	}
-//	return items
-// }
 func NewGobDecoder(newItem func() interface{}, collect func(<-chan interface{}) interface{}) *GobDecoder {
 	d := &GobDecoder{
 		input:       make(chan []byte, kNumDecoderGoroutines*2),

@@ -96,7 +96,8 @@ func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 // TestNewHandlers_FullFront_EndMissingPieces_Failure makes sure that if we omit values from
 // HandlersConfig, NewHandlers returns an error.
 // TODO(kjlubick) Add a case for FullFrontEnd with all pieces when we have mocks for all
-//   remaining services.
+//
+//	remaining services.
 func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 	hc := HandlersConfig{}
 	_, err := NewHandlers(hc, FullFrontEnd)

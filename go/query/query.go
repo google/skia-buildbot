@@ -5,11 +5,11 @@
 // that the parameter names appear in alphabetical order, and each name=value
 // pair is delimited by a comma. For example, this map:
 //
-//  a := map[string]string{"d": "w", "a": "b", "c": "d"}
+//	a := map[string]string{"d": "w", "a": "b", "c": "d"}
 //
 // Would be serialized as this key:
 //
-//   ,a=b,c=d,d=w,
+//	,a=b,c=d,d=w,
 //
 // Structured keys are a serialization of a map[string]string, so duplicate
 // parameter names are not allowed.
@@ -17,8 +17,7 @@
 // Structured key parameter names and values are restricted to the following
 // chars:
 //
-//   [a-zA-Z0-9._-]
-//
+//	[a-zA-Z0-9._-]
 package query
 
 import (
@@ -236,40 +235,38 @@ func (q queryParam) Key() string {
 // or false if a given key matches the query. For example, this query will find all
 // keys that have a value of 565 for 'config' and true for 'debug':
 //
-//		q := New(url.Values{"config": []string{"565"}, "debug": []string{"true"}})
+//	q := New(url.Values{"config": []string{"565"}, "debug": []string{"true"}})
 //
 // This will find all keys that have a value of '565' or '8888':
 //
-//		q := New(url.Values{"config": []string{"565", "8888"}})
+//	q := New(url.Values{"config": []string{"565", "8888"}})
 //
 // If the first parameter value is preceeded with an '!' then the match is negated,
 // i.e. this query will match all keys that have a 'config' param, but whose value
 // is not '565'.
 //
-//		q := New(url.Values{"config": []string{"!565"}})
+//	q := New(url.Values{"config": []string{"!565"}})
 //
 // If the parameter value is '*' then the match will match all keys that have
 // that parameter name. I.e. this will match all keys that have a parameter
 // named 'config', regardless of the value:
 //
-//		q := New(url.Values{"config": []string{"*"}})
+//	q := New(url.Values{"config": []string{"*"}})
 //
 // If the parameter value begins with '~' then the rest of the value is interpreted
 // as a regular expression. I.e. this will match all keys that have a parameter
 // named 'arch' that begin with 'x':
 //
-//		q := New(url.Values{"arch": []string{"~^x"}})
-//
+//	q := New(url.Values{"arch": []string{"~^x"}})
 //
 // Here is more complex example that matches all tests that have the 'name'
 // parameter with a value of 'desk_nytimes.skp', a 'config' param that does not
 // equal '565' or '8888', and has an 'extra_config' parameter of any value.
 //
-//	  q := New(url.Values{
-//        "name": "desk_nytimes.skp",
-//        "config": []string{"!565", "8888"},
-//        "extra_config": []string{"*"}})
-//
+//		  q := New(url.Values{
+//	       "name": "desk_nytimes.skp",
+//	       "config": []string{"!565", "8888"},
+//	       "extra_config": []string{"*"}})
 type Query struct {
 	// These are in alphabetical order of parameter name.
 	params []queryParam
@@ -431,36 +428,35 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 //
 // That is, if you have a Params:
 //
-//    Params{"config":"8888", "arch":"x86"}
+//	Params{"config":"8888", "arch":"x86"}
 //
 // And a ParamSet:
 //
-//    ps := &paramtools.ParamSet{
-//    	ParamSet: paramtools.ParamSet{
-//    	  "config": []string{"565", "8888", "gpu"},
-//    	  "arch":   []string{"x86", "arm", "riscv"},
-//        "foo":    []string{"bar"},
-//    	},
-//    }
+//	ps := &paramtools.ParamSet{
+//		ParamSet: paramtools.ParamSet{
+//		  "config": []string{"565", "8888", "gpu"},
+//		  "arch":   []string{"x86", "arm", "riscv"},
+//	    "foo":    []string{"bar"},
+//		},
+//	}
 //
 // It would return the ParamSet:
 //
-//    ParamSet{
-//      "config": ["8888"],
-//      "arch":   ["x86"],
-//    }
+//	ParamSet{
+//	  "config": ["8888"],
+//	  "arch":   ["x86"],
+//	}
 //
 // Then a query of the form:
 //
-//    url.Values{"arch": []string{"x86", "risc-v"}, "config": []string{"*"}}
+//	url.Values{"arch": []string{"x86", "risc-v"}, "config": []string{"*"}}
 //
 // Would return:
 //
-//    ParamSet{
-//      "arch": ["x86", "risc-v"],
-//      "config": ["8888", "565", "gpu"],
-//    }
-//
+//	ParamSet{
+//	  "arch": ["x86", "risc-v"],
+//	  "config": ["8888", "565", "gpu"],
+//	}
 func (q *Query) QueryPlan(ps paramtools.ReadOnlyParamSet) (paramtools.ParamSet, error) {
 	ret := paramtools.NewParamSet()
 	for _, part := range q.params {

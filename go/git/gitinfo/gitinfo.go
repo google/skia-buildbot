@@ -375,16 +375,15 @@ func (g *GitInfo) Timestamp(hash string) time.Time {
 //
 // Example response:
 //
-//    commit b7988a21fdf23cc4ace6145a06ea824aa85db099
-//    Author: Joe Gregorio <jcgregorio@google.com>
-//    Date:   Tue Aug 5 16:19:48 2014 -0400
+//	commit b7988a21fdf23cc4ace6145a06ea824aa85db099
+//	Author: Joe Gregorio <jcgregorio@google.com>
+//	Date:   Tue Aug 5 16:19:48 2014 -0400
 //
-//        A description of the commit.
+//	    A description of the commit.
 //
-//    perf/go/skiaperf/perf.go
-//    perf/go/types/types.go
-//    perf/res/js/logic.js
-//
+//	perf/go/skiaperf/perf.go
+//	perf/go/types/types.go
+//	perf/res/js/logic.js
 func (g *GitInfo) Log(ctx context.Context, begin, end string) (string, error) {
 	command := []string{"log", "--name-only"}
 	hashrange := begin
@@ -426,7 +425,7 @@ func (g *GitInfo) LogFine(ctx context.Context, begin, end string, args ...string
 // LogArgs is the same as Log() but appends all the 'args' to the Log
 // request to allow finer control of the log output. I.e. you could call:
 //
-//   LogArgs("--since=2015-10-24", "--format=format:%ct", "infra/bots/assets/skp/VERSION")
+//	LogArgs("--since=2015-10-24", "--format=format:%ct", "infra/bots/assets/skp/VERSION")
 func (g *GitInfo) LogArgs(ctx context.Context, args ...string) (string, error) {
 	command := []string{"log"}
 	command = append(command, args...)

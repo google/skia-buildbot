@@ -113,7 +113,7 @@ func (p ParamSet) AddParams(ps Params) {
 
 // AddParamsFromKey is the same as calling
 //
-//   paramset.AddParams(NewParams(key))
+//	paramset.AddParams(NewParams(key))
 //
 // but without creating the intermediate Params.
 //

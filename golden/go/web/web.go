@@ -513,7 +513,8 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 // page at the time of writing.)
 //
 // TODO(lovisolo): Delete this RPC once the details page, and all links to it, include the
-//                 necessary grouping information.
+//
+//	necessary grouping information.
 func (wh *Handlers) GroupingForTestHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_GroupingForTestHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
@@ -808,9 +809,10 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 // It accepts a POST'd JSON serialization of TriageRequest and updates
 // the expectations.
 // TODO(kjlubick) In V3, this should take groupings, not test names. Additionally, to avoid race
-//   conditions where users triage the same thing at the same time, the request should include
-//   before and after. Finally, to avoid confusion on CLs, we should fail to apply changes
-//   on closed CLs (skbug.com/12122)
+//
+//	conditions where users triage the same thing at the same time, the request should include
+//	before and after. Finally, to avoid confusion on CLs, we should fail to apply changes
+//	on closed CLs (skbug.com/12122)
 func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandlerV2", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
@@ -1929,8 +1931,8 @@ func (wh *Handlers) KnownHashesHandler(w http.ResponseWriter, r *http.Request) {
 // BaselineHandlerV2 returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //
-//    /json/expectations
-//    /json/expectations?issue=123456
+//	/json/expectations
+//	/json/expectations?issue=123456
 //
 // The "issue" parameter indicates the changelist ID for which we would like to
 // retrieve the baseline. In that case the returned options will be a blend of
@@ -2701,7 +2703,7 @@ type ignoredTrace struct {
 	Label expectations.Label
 }
 
-//startIgnoredTraceCacheProcess will periodically update the cache of ignored traces.
+// startIgnoredTraceCacheProcess will periodically update the cache of ignored traces.
 func (wh *Handlers) startIgnoredTraceCacheProcess(ctx context.Context) {
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "web_warmIgnoredTraceCacheCycle", trace.WithSampler(trace.AlwaysSample()))

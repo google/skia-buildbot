@@ -1114,7 +1114,7 @@ MatchingTraces AS (
 // similar to the technique we use for ignore rules, chosen to maximize consistent performance
 // by using the inverted key index. The keys and values are hardcoded into the string instead
 // of being passed in as arguments because kjlubick@ was not able to use the placeholder values
-//to compare JSONB types removed from a JSONB object to a string while still using the indexes.
+// to compare JSONB types removed from a JSONB object to a string while still using the indexes.
 func joinedTracesStatement(filters []filterSets, corpus string) string {
 	statement := ""
 	for i, filter := range filters {

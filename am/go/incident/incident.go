@@ -528,12 +528,10 @@ func (s *Store) GetRecentlyResolvedInRangeWithID(d, id string) ([]Incident, erro
 // durationThreshold is less than durationPercentage then the incidents are
 // determined to be flaky. Eg: 0.50 for 50%. 1 for 100%.
 //
-//
 // Summary: The function uses the following to determine flakiness-
-// * durationPercentage of incidents lasted less than durationThreshold.
-// * Number of incidents must be >= durationThreshold to have sufficient sample
-//   size.
-//
+//   - durationPercentage of incidents lasted less than durationThreshold.
+//   - Number of incidents must be >= durationThreshold to have sufficient sample
+//     size.
 func AreIncidentsFlaky(incidents []Incident, numThreshold int, durationThreshold int64, durationPercentage float32) bool {
 	if len(incidents) < numThreshold {
 		return false

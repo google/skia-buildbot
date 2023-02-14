@@ -432,20 +432,21 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 // The output from dumpsys battery looks like:
 //
 // Current Battery Service state:
-//  AC powered: true
-//  USB powered: false
-//  Wireless powered: false
-//  Max charging current: 1500000
-//  Max charging voltage: 5000000
-//  Charge counter: 2448973
-//  status: 2
-//  health: 2
-//  present: true
-//  level: 94
-//  scale: 100
-//  voltage: 4248
-//  temperature: 280
-//  technology: Li-ion
+//
+//	AC powered: true
+//	USB powered: false
+//	Wireless powered: false
+//	Max charging current: 1500000
+//	Max charging voltage: 5000000
+//	Charge counter: 2448973
+//	status: 2
+//	health: 2
+//	present: true
+//	level: 94
+//	scale: 100
+//	voltage: 4248
+//	temperature: 280
+//	technology: Li-ion
 func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 	levelMatch := batteryLevel.FindStringSubmatch(batteryDumpSys)
 	if levelMatch == nil {
@@ -479,36 +480,36 @@ func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 //
 // The output from `adb shell dumpsys thermalservice` looks like:
 //
-//    IsStatusOverride: false
-//    ThermalEventListeners:
-//    	callbacks: 1
-//    	killed: false
-//    	broadcasts count: -1
-//    ThermalStatusListeners:
-//    	callbacks: 1
-//    	killed: false
-//    	broadcasts count: -1
-//    Thermal Status: 0
-//    Cached temperatures:
-//     Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
-//    	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
-//    	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
-//    	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
-//    	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
-//    HAL Ready: true
-//    HAL connection:
-//    	Sdhms connected: yes
-//    Current temperatures from HAL:
-//    	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
-//    	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
-//    	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
-//    	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
-//    	Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
-//    Current cooling devices from HAL:
-//    	CoolingDevice{mValue=0, mType=2, mName=TYPE_CPU}
-//    	CoolingDevice{mValue=0, mType=3, mName=TYPE_GPU}
-//    	CoolingDevice{mValue=0, mType=1, mName=TYPE_BATTERY}
-//    	CoolingDevice{mValue=1, mType=4, mName=TYPE_MODEM}
+//	IsStatusOverride: false
+//	ThermalEventListeners:
+//		callbacks: 1
+//		killed: false
+//		broadcasts count: -1
+//	ThermalStatusListeners:
+//		callbacks: 1
+//		killed: false
+//		broadcasts count: -1
+//	Thermal Status: 0
+//	Cached temperatures:
+//	 Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+//		Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+//		Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+//		Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+//		Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+//	HAL Ready: true
+//	HAL connection:
+//		Sdhms connected: yes
+//	Current temperatures from HAL:
+//		Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+//		Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+//		Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+//		Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+//		Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+//	Current cooling devices from HAL:
+//		CoolingDevice{mValue=0, mType=2, mName=TYPE_CPU}
+//		CoolingDevice{mValue=0, mType=3, mName=TYPE_GPU}
+//		CoolingDevice{mValue=0, mType=1, mName=TYPE_BATTERY}
+//		CoolingDevice{mValue=1, mType=4, mName=TYPE_MODEM}
 //
 // We are only interested in the temperatures found in the 'Current temperatures from HAL'
 // section and we return the max of all the temperatures found there.

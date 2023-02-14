@@ -65,7 +65,7 @@ func ParseConfigHelper(confMap map[string]interface{}, ret map[string]interface{
 // into a single map[string]interface.  If parseConf is true, all config values
 // are converted to strings.  If strict is true, will return an error for
 // unsupported types, missing data, etc.  If emptyQuotes is true, config values
-// which are empty strings are replaced with empty single quotes ('').
+// which are empty strings are replaced with empty single quotes (”).
 func LoadConfigFiles(parseConf, strict, emptyQuotes bool, configFileNames ...string) (map[string]interface{}, error) {
 	ret := map[string]interface{}{}
 	for _, configFile := range configFileNames {

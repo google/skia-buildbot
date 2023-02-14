@@ -108,12 +108,12 @@ type TaskDB interface {
 
 // UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
 // db.PutTasks(f()) repeatedly until one of the following happen:
-//  - f or db.PutTasks returns an error, which is then returned from
-//    UpdateTasksWithRetries;
-//  - PutTasks succeeds, in which case UpdateTasksWithRetries returns the updated
-//    Tasks returned by f;
-//  - retries are exhausted, in which case UpdateTasksWithRetries returns
-//    ErrConcurrentUpdate.
+//   - f or db.PutTasks returns an error, which is then returned from
+//     UpdateTasksWithRetries;
+//   - PutTasks succeeds, in which case UpdateTasksWithRetries returns the updated
+//     Tasks returned by f;
+//   - retries are exhausted, in which case UpdateTasksWithRetries returns
+//     ErrConcurrentUpdate.
 //
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
@@ -143,6 +143,7 @@ func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.T
 //  3. calls db.PutTask() on the updated task
 //  4. repeats from step 1 as long as PutTasks returns ErrConcurrentUpdate and
 //     retries have not been exhausted.
+//
 // Returns the updated task if it was successfully updated in the DB.
 // Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
 // Immediately returns any error returned from f or from PutTasks (except

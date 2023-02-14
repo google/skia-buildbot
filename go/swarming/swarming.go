@@ -1,5 +1,5 @@
 /*
-	Constants for swarming.
+Constants for swarming.
 */
 package swarming
 

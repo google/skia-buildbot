@@ -84,14 +84,15 @@ func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, pa
 // algorithm will be used:
 // * Check in the DB to see if an audit issue has been filed.
 // * If issue has not been filed:
-//   * File a new issue and add it to the DB.
+//   - File a new issue and add it to the DB.
+//
 // * Else if issue has been filed:
-//   * Check to see if the issue has been closed.
-//   * If issue is closed:
-//     * Check to see if the issue is closed more than fileAuditIssueAfterThreshold duration ago.
-//     * If it is older then file a new issue and add it to the DB.
-//     * Else do nothing.
-//   * Else if issue is still open then do nothing.
+//   - Check to see if the issue has been closed.
+//   - If issue is closed:
+//   - Check to see if the issue is closed more than fileAuditIssueAfterThreshold duration ago.
+//   - If it is older then file a new issue and add it to the DB.
+//   - Else do nothing.
+//   - Else if issue is still open then do nothing.
 //
 // StartAudit implements the types.ProjectAudit interface.
 func (a *NpmProjectAudit) StartAudit(ctx context.Context, pollInterval time.Duration) {

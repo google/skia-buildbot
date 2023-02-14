@@ -387,12 +387,12 @@ func IsViewer(r *http.Request) bool {
 // A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
 // that, we only want one field which is 'email'.
 //
-// {
-//   "iss":"accounts.google.com",
-//   "sub":"110642259984599645813",
-//   "email":"jcgregorio@google.com",
-//   ...
-// }
+//	{
+//	  "iss":"accounts.google.com",
+//	  "sub":"110642259984599645813",
+//	  "email":"jcgregorio@google.com",
+//	  ...
+//	}
 type decodedIDToken struct {
 	Email string `json:"email"`
 	ID    string `json:"sub"`
@@ -449,7 +449,7 @@ func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) 
 // Note that this doesn't revoke the 'email' grant, so logging in later will
 // still be fast. Users can always visit
 //
-//   https://security.google.com/settings/security/permissions
+//	https://security.google.com/settings/security/permissions
 //
 // to revoke any grants they make.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -633,16 +633,15 @@ type LoginStatus struct {
 
 // StatusHandler returns the login status of the user as JSON that looks like:
 //
-// {
-//   "Email":     "fred@example.com",
-//   "ID":        "12342...34324",
-//   "LoginURL":  "https://..."
-//   "IsAGoogler": false,
-//   "IsViewer":   true,
-//   "IsEditor":   true,
-//   "IsAdmin:     false
-// }
-//
+//	{
+//	  "Email":     "fred@example.com",
+//	  "ID":        "12342...34324",
+//	  "LoginURL":  "https://..."
+//	  "IsAGoogler": false,
+//	  "IsViewer":   true,
+//	  "IsEditor":   true,
+//	  "IsAdmin:     false
+//	}
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("StatusHandler")
 	w.Header().Set("Content-Type", "application/json")

@@ -16,8 +16,9 @@ func newArpNameGetter() arpNameGetter {
 }
 
 // Example line with named groups annotated:
-//   skia-rpi-072             ether   b8:27:eb:bc:62:2f   C                     eno1
-//   <hostname  >                     <mac_address    >
+//
+//	skia-rpi-072             ether   b8:27:eb:bc:62:2f   C                     eno1
+//	<hostname  >                     <mac_address    >
 var arpLineMatcher = regexp.MustCompile(`^(?P<hostname>\S+)\s+ether\s+(?P<mac_address>\S+)\s+`)
 
 // GetDeviceNamesAddresses implements the nameAddressGetter interface.

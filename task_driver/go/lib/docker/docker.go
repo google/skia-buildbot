@@ -236,19 +236,20 @@ func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArg
 // "Step N/M : ACTION value"
 //
 // Examples:
-//   Step 1/7 : FROM debian:testing-slim
-//   ---> e205e0c9e7f5
-//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
-//   ---> Using cache
-//   ---> 5b8240d40b63
+//
+//	Step 1/7 : FROM debian:testing-slim
+//	---> e205e0c9e7f5
+//	Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
+//	---> Using cache
+//	---> 5b8240d40b63
 //
 // OR
 //
-//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
-//   ---> Running in 9402d36e7474
-//   Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
-//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
-//   Step 6/7 : USER skia
+//	Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
+//	---> Running in 9402d36e7474
+//	Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
+//	Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
+//	Step 6/7 : USER skia
 func Build(ctx context.Context, args ...string) error {
 	return log_parser.RunRegexp(ctx, dockerStepRegex, ".", append([]string{dockerCmd}, args...))
 }

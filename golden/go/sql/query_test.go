@@ -176,7 +176,8 @@ SELECT trace_id FROM Traces WHERE keys -> 'province' = '"Ontario"') x;`)
 }
 
 // Locally, this ran at about 70ms per operation for 36400 Traces. It did a zig-zag join on the
-//  keys and then a lookup join on that.
+//
+//	keys and then a lookup join on that.
 func BenchmarkAndIN_AllKeysHaveASingleValue(b *testing.B) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, b)

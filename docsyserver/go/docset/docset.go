@@ -79,10 +79,10 @@ type entry struct {
 // be a directory with enough space to handle many checkouts of the
 // documentation. It has the following structure:
 //
-//  {workDir}
-//    /content/{issue}/ - A patched checkout of the documentation in the
-//      docPath of the respository, with /main/ representing the main branch at HEAD.
-//    /destination/{issue}/ - The docsy rendered version of /content/{issue}.
+//	{workDir}
+//	  /content/{issue}/ - A patched checkout of the documentation in the
+//	    docPath of the respository, with /main/ representing the main branch at HEAD.
+//	  /destination/{issue}/ - The docsy rendered version of /content/{issue}.
 //
 // The background processes will monitor all current issues and update them to
 // more recent patchsets periodically and also remove both /content/{issue}/ and
@@ -132,7 +132,6 @@ type docSet struct {
 // docsyDir is the directory containing Docsy. See https://docsy.dev.
 //
 // repoURL is the URL of the repo passed to 'git clone'.
-//
 func New(workDir string, docPath string, docsyDir string, repoURL string, codeReview codereview.CodeReview, docsy docsy.Docsy) *docSet {
 	ret := &docSet{
 		codeReview: codeReview,

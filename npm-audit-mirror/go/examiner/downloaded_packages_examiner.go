@@ -70,16 +70,16 @@ func NewDownloadedPackagesExaminer(ctx context.Context, trustedScopes []string, 
 // * Check to see if it has a trusted scope. If it does then continue with next package.
 // * Check the package against the global NPM registry to see if has been created less than a week ago.
 // * If above check is true then:
-//     * Check in the DB to see if an examiner issue has been filed for this project+package.
-//     * If issue has not been filed:
-//         * File a new issue and add it to the DB.
-//     * Else if issue has been filed:
-//         * Check to see if the issue has been closed.
-//         * If issue is closed:
-//             * Check to see if the issue is closed more than fileExaminerIssueAfterThreshold duration ago.
-//             * If it is older then file a new issue and add it to the DB.
-//             * Else do nothing.
-//         * Else if issue is still open then do nothing.
+//   - Check in the DB to see if an examiner issue has been filed for this project+package.
+//   - If issue has not been filed:
+//   - File a new issue and add it to the DB.
+//   - Else if issue has been filed:
+//   - Check to see if the issue has been closed.
+//   - If issue is closed:
+//   - Check to see if the issue is closed more than fileExaminerIssueAfterThreshold duration ago.
+//   - If it is older then file a new issue and add it to the DB.
+//   - Else do nothing.
+//   - Else if issue is still open then do nothing.
 func (dpe *DownloadedPackagesExaminer) StartExamination(ctx context.Context, pollInterval time.Duration) {
 	liveness := metrics2.NewLiveness("npm_examiner", map[string]string{
 		"project": dpe.projectMirror.GetProjectName(),
@@ -150,13 +150,15 @@ func (dpe *DownloadedPackagesExaminer) oneExaminationCycle(ctx context.Context, 
 // runBugFilingLogic runs this algorithm:
 // * Check in the DB to see if an examiner issue has been filed for this project+package.
 // * If issue has not been filed:
-//   * File a new issue and add it to the DB.
+//   - File a new issue and add it to the DB.
+//
 // * Else if issue has been filed:
-//   * Check to see if the issue has been closed.
-//   * If issue is closed:
-//     * Check to see if the issue is closed more than fileExaminerIssueAfterThreshold duration ago.
-//     * If it is older then file a new issue and add it to the DB.
-//     * Else do nothing.
+//   - Check to see if the issue has been closed.
+//   - If issue is closed:
+//   - Check to see if the issue is closed more than fileExaminerIssueAfterThreshold duration ago.
+//   - If it is older then file a new issue and add it to the DB.
+//   - Else do nothing.
+//
 // * Else if issue is still open then do nothing.
 func (dpe *DownloadedPackagesExaminer) runBugFilingLogic(ctx context.Context, projectName, packageName string) error {
 	// Construct key to use in the DB. Package names can contain "/" so sanitize the name.

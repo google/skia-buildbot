@@ -60,7 +60,8 @@ func Server20170928(name string) *gce.Instance {
 
 // Main takes a map of string -> gce.Instance to initialize in the given zone.
 // The string keys are nicknames for the instances (e.g. "prod", "staging").
-//  Only the instance specified by the --instance flag will be created.
+//
+//	Only the instance specified by the --instance flag will be created.
 func Main(zone string, instances map[string]*gce.Instance) {
 	common.Init()
 

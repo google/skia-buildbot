@@ -17,36 +17,35 @@
 // When each sser.Server handles that request it the sends the message to every
 // client connnected to that Pod that is listening on that stream. (5)
 //
-//
-//                             +---------------------------+
-//                             |                           |
-//                             | Pod 1                     |
-//                             |                           |
-//                         +-----> :7000/api/json/v1/send  |
-//                         |   |                           |  (1) Client A - listen on "foo"
-//                         |   |   :8000/events     <-------------------------------------------
-//                         |   |                           |  (5) Client A receives "my message"
-//                         |   +---------------------------+
-//                         |
-//                         |   +---------------------------+
-//                         |   |                           |
-//                    (4)  +---| Pod 2                     |
-//     HTTP Post to every  |   |                           |  (3) Send(ctx, "foo", "my message")
-//     peer Pods internal  +-----> :7000/api/json/v1/send  |
-//     port.               |   |                           |
-//                         |   |   :8000/events            |
-//                         |   |                           |
-//                         |   +---------------------------+
-//                         |
-//                         |   +---------------------------+
-//                         |   |                           |
-//                         |   | Pod N                     |
-//                         |   |                           |
-//                         +-----> :7000/api/json/v1/send  |
-//                             |                           |  (2) Client B - listen on "foo"
-//                             |   :8000/events    <--------------------------------------------
-//                             |                           |  (5) Client B receives "my message"
-//                             +---------------------------+
+//	                        +---------------------------+
+//	                        |                           |
+//	                        | Pod 1                     |
+//	                        |                           |
+//	                    +-----> :7000/api/json/v1/send  |
+//	                    |   |                           |  (1) Client A - listen on "foo"
+//	                    |   |   :8000/events     <-------------------------------------------
+//	                    |   |                           |  (5) Client A receives "my message"
+//	                    |   +---------------------------+
+//	                    |
+//	                    |   +---------------------------+
+//	                    |   |                           |
+//	               (4)  +---| Pod 2                     |
+//	HTTP Post to every  |   |                           |  (3) Send(ctx, "foo", "my message")
+//	peer Pods internal  +-----> :7000/api/json/v1/send  |
+//	port.               |   |                           |
+//	                    |   |   :8000/events            |
+//	                    |   |                           |
+//	                    |   +---------------------------+
+//	                    |
+//	                    |   +---------------------------+
+//	                    |   |                           |
+//	                    |   | Pod N                     |
+//	                    |   |                           |
+//	                    +-----> :7000/api/json/v1/send  |
+//	                        |                           |  (2) Client B - listen on "foo"
+//	                        |   :8000/events    <--------------------------------------------
+//	                        |                           |  (5) Client B receives "my message"
+//	                        +---------------------------+
 //
 // Finding all the peer Pods is handled via the Kubernetes API, and any changes
 // to the peers are handled through a watch, so the list of peers is always up

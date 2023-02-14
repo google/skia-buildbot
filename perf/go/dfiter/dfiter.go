@@ -25,10 +25,10 @@ var ErrInsufficientData = errors.New("insufficient data")
 
 // DataFrameIterator is an iterator that produces DataFrames.
 //
-// for it.Next() {
-//   df, err := it.Value(ctx)
-//   // Do something with df.
-// }
+//	for it.Next() {
+//	  df, err := it.Value(ctx)
+//	  // Do something with df.
+//	}
 type DataFrameIterator interface {
 	Next() bool
 	Value(ctx context.Context) (*dataframe.DataFrame, error)

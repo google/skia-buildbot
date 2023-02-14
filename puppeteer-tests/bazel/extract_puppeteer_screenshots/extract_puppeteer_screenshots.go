@@ -2,7 +2,7 @@
 //
 // Usage:
 //
-//     $ bazel run //:extract_puppeteer_screenshots -- --output_dir=<output directory>
+//	$ bazel run //:extract_puppeteer_screenshots -- --output_dir=<output directory>
 //
 // Under Bazel, Puppeteer tests save screenshots inside $TEST_UNDECLARED_OUTPUTS_DIR, which is set
 // by the "bazel test" command. Screenshots, and any other undeclared outputs of a test, can be

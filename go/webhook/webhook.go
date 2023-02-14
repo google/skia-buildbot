@@ -117,10 +117,11 @@ func NewRequest(method, urlStr string, body []byte) (*http.Request, error) {
 }
 
 // Authenticates a webhook request.
-//  - If an error occurs reading r.Body, returns nil and the error.
-//  - If the request could not be authenticated as a webhook request, returns the contents of r.Body
-//    and an error.
-//  - Otherwise, returns the contents of r.Body and nil.
+//   - If an error occurs reading r.Body, returns nil and the error.
+//   - If the request could not be authenticated as a webhook request, returns the contents of r.Body
+//     and an error.
+//   - Otherwise, returns the contents of r.Body and nil.
+//
 // In all cases, closes r.Body.
 func AuthenticateRequest(r *http.Request) ([]byte, error) {
 	defer skutil.Close(r.Body)

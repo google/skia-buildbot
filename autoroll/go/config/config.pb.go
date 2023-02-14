@@ -480,6 +480,7 @@ type Config struct {
 	// code_review provides configuration for code review.
 	//
 	// Types that are assignable to CodeReview:
+	//
 	//	*Config_Gerrit
 	//	*Config_Github
 	//	*Config_Google3
@@ -489,6 +490,7 @@ type Config struct {
 	// repo_manager provides configuration for the repo manager.
 	//
 	// Types that are assignable to RepoManager:
+	//
 	//	*Config_ParentChildRepoManager
 	//	*Config_AndroidRepoManager
 	//	*Config_CommandRepoManager
@@ -893,6 +895,7 @@ type CommitMsgConfig struct {
 	// If not specified, the default template is used.
 	//
 	// Types that are assignable to Template:
+	//
 	//	*CommitMsgConfig_BuiltIn_
 	//	*CommitMsgConfig_Custom
 	Template isCommitMsgConfig_Template `protobuf_oneof:"template"`
@@ -1809,6 +1812,7 @@ type ParentChildRepoManagerConfig struct {
 	// parent is the entity which depends on the child and receives the rolls.
 	//
 	// Types that are assignable to Parent:
+	//
 	//	*ParentChildRepoManagerConfig_CopyParent
 	//	*ParentChildRepoManagerConfig_DepsLocalGithubParent
 	//	*ParentChildRepoManagerConfig_DepsLocalGerritParent
@@ -1819,6 +1823,7 @@ type ParentChildRepoManagerConfig struct {
 	// child is the entity which is depended on by the parent and is rolled.
 	//
 	// Types that are assignable to Child:
+	//
 	//	*ParentChildRepoManagerConfig_CipdChild
 	//	*ParentChildRepoManagerConfig_FuchsiaSdkChild
 	//	*ParentChildRepoManagerConfig_GitCheckoutChild
@@ -3402,6 +3407,7 @@ type NotifierConfig struct {
 	// config provides configuration for the specific type of notifier.
 	//
 	// Types that are assignable to Config:
+	//
 	//	*NotifierConfig_Email
 	//	*NotifierConfig_Chat
 	//	*NotifierConfig_Monorail
@@ -3902,8 +3908,11 @@ type VersionFileConfig struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// path within the repo of the file which pins the dependency. The name of
 	// the file dictates how we read and write the revision pin:
+	//
 	//   - If `regex` is set, the name of this file is ignored.
+	//
 	//   - `DEPS`: we parse the file as a DEPS file using a Python parser.
+	//
 	//   - `*.pyl`: we assume the file contains a Python literal composed of
 	//     dictionaries and lists. In this case, the `id` field must be a dot-
 	//     separated path from the root of the object to the field which
@@ -3912,19 +3921,19 @@ type VersionFileConfig struct {
 	//     example, the id `key1.key2.id=my-dependency-id.revision` would
 	//     traverse the following literal to find the revision ID:
 	//
-	//         {
-	//           "key1": {
-	//             "key2": [
-	//               {
-	//                 "id": "my-dependency-id",
-	//                 "revision": "12345",
-	//               },
-	//             ],
-	//           },
-	//         }
+	//     {
+	//     "key1": {
+	//     "key2": [
+	//     {
+	//     "id": "my-dependency-id",
+	//     "revision": "12345",
+	//     },
+	//     ],
+	//     },
+	//     }
 	//
-	//    - Otherwise, we assume that the file's sole contents are the revision
-	//      ID and we read or write the entirety of the file.
+	//   - Otherwise, we assume that the file's sole contents are the revision
+	//     ID and we read or write the entirety of the file.
 	Path string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	// regex which is used to extract the existing revision of the dependency
 	// and to update the pin to the new revision. Optional.

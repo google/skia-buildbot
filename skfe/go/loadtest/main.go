@@ -3,7 +3,6 @@ loadtest is a simple loadtesting tool.
 
 The tool spins up N workers to make requests, then pumps M requests through
 those workers and reports how long that took.
-
 */
 package main
 

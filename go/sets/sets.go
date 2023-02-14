@@ -26,16 +26,16 @@ func allZeroes(s []int) bool {
 //
 // For example:
 //
-//    CartesianProduct([]int{3, 2})
+//	CartesianProduct([]int{3, 2})
 //
 // Will produce the following int slices:
 //
-//    {2, 1},
-//    {1, 1},
-//    {0, 1},
-//    {2, 0},
-//    {1, 0},
-//    {0, 0},
+//	{2, 1},
+//	{1, 1},
+//	{0, 1},
+//	{2, 0},
+//	{1, 0},
+//	{0, 0},
 //
 // Each setSize must be greater than one.
 func CartesianProduct(setSizes []int) (<-chan []int, error) {

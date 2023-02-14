@@ -44,8 +44,9 @@ func (e *edgeswitchPortGetter) GetDevicePortsAddresses(ctx context.Context) ([]p
 }
 
 // Example line with named groups annotated:
-//   1        b8:27:eb:83:06:91   0/42                   42       Learned
-//            <mac_address    >                      <interface>
+//
+//	1        b8:27:eb:83:06:91   0/42                   42       Learned
+//	         <mac_address    >                      <interface>
 var edgeswitchLine = regexp.MustCompile(`^\S+\s+(?P<mac_address>[0-9A-Fa-f:]+)\s+\S+\s+(?P<interface>\d+)\s+\S+`)
 
 // parseSSHResult looks at the lines output by the EdgeSwitchClient. These are

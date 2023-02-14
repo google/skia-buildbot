@@ -291,17 +291,17 @@ func scrapHandler(w http.ResponseWriter, r *http.Request) {
 //
 // The URLs look like:
 //
-//   /i/cbb8dee39e9f1576cd97c2d504db8eee_raster.png
-//   /i/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
-//   /i/cbb8dee39e9f1576cd97c2d504db8eee.pdf
-//   /i/cbb8dee39e9f1576cd97c2d504db8eee.skp
+//	/i/cbb8dee39e9f1576cd97c2d504db8eee_raster.png
+//	/i/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
+//	/i/cbb8dee39e9f1576cd97c2d504db8eee.pdf
+//	/i/cbb8dee39e9f1576cd97c2d504db8eee.skp
 //
 // or
 //
-//   /i/@some_name.png
-//   /i/@some_name_gpu.png
-//   /i/@some_name.pdf
-//   /i/@some_name.skp
+//	/i/@some_name.png
+//	/i/@some_name_gpu.png
+//	/i/@some_name.pdf
+//	/i/@some_name.skp
 func imageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	id := mux.Vars(r)["id"]
@@ -328,7 +328,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 //
 // The URLs look like:
 //
-//   /s/NNN
+//	/s/NNN
 //
 // Where NNN is the id of the source image.
 func sourceHandler(w http.ResponseWriter, r *http.Request) {

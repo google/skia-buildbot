@@ -12,13 +12,13 @@ import (
 //
 // Example
 //
-//      &cli.Command{
-//          Name:        "my-command",
-//          Action: func(c *cli.Context) error {
-//              urfavecli.LogFlags(c)
-//              // Do command stuff.
-//          },
-//      },
+//	&cli.Command{
+//	    Name:        "my-command",
+//	    Action: func(c *cli.Context) error {
+//	        urfavecli.LogFlags(c)
+//	        // Do command stuff.
+//	    },
+//	},
 func LogFlags(cliContext *cli.Context) {
 	for _, flag := range cliContext.App.Flags {
 		name := flag.Names()[0]

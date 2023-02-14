@@ -60,7 +60,6 @@ type Converter struct {
 }
 
 // New creates a new *Converter.
-//
 func New(lookup Lookup) *Converter {
 	return &Converter{
 		lookup: lookup,

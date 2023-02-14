@@ -148,14 +148,13 @@ func checkTags(tags map[string]string) error {
 // adds a gauge for it. For example, to compute the sum of all int64 events over
 // a 24-hour period:
 //
-//      s.AggregateMetric("my-stream", myTags, 24*time.Hour, func(ev []Event) (float64, error) {
-//              sum := int64(0)
-//              for _, e := range ev {
-//                      sum += decodeInt64(e)
-//              }
-//              return float64(sum), nil
-//      })
-//
+//	s.AggregateMetric("my-stream", myTags, 24*time.Hour, func(ev []Event) (float64, error) {
+//	        sum := int64(0)
+//	        for _, e := range ev {
+//	                sum += decodeInt64(e)
+//	        }
+//	        return float64(sum), nil
+//	})
 func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, period time.Duration, agg AggregateFn) error {
 	mx := &metric{
 		measurement: m.measurement,
@@ -199,7 +198,6 @@ func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, pe
 //		}
 //		return rv
 //	})
-//
 func (m *EventMetrics) DynamicMetric(stream string, tags map[string]string, period time.Duration, agg DynamicAggregateFn) error {
 	mx := &dynamicMetric{
 		measurement: m.measurement,

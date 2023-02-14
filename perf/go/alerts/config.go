@@ -31,13 +31,12 @@ var (
 )
 
 // Direction a step takes that will cause an alert.
-//
 type Direction string
 
 // The values for the Direction enum. Run 'go generate' if you
 // add/remove/update these values. You must have 'stringer' installed, i.e.
 //
-//    go get golang.org/x/tools/cmd/stringer
+//	go get golang.org/x/tools/cmd/stringer
 const (
 	BOTH Direction = "BOTH"
 	UP   Direction = "UP"
@@ -52,13 +51,12 @@ var AllDirections = []Direction{
 }
 
 // ConfigState is the current state of an alerts.Config.
-//
 type ConfigState string
 
 // The values for the AlertConfigState enum. Run 'go generate' if you
 // add/remove/update these values. You must have 'stringer' installed, i.e.
 //
-//    go get golang.org/x/tools/cmd/stringer
+//	go get golang.org/x/tools/cmd/stringer
 const (
 	ACTIVE  ConfigState = "ACTIVE"
 	DELETED ConfigState = "DELETED"
@@ -190,6 +188,7 @@ func newCombinationFromParams(keys []string, p paramtools.Params) Combination {
 // all the GroupBy combinations possible for the given ParamSet.
 //
 // I.e. for:
+//
 //	ps := paramtools.ParamSet{
 //		"model":  []string{"nexus4", "nexus6", "nexus6"},
 //		"config": []string{"565", "8888", "nvpr"},
@@ -206,7 +205,6 @@ func newCombinationFromParams(keys []string, p paramtools.Params) Combination {
 //		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "8888"}},
 //		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
 //	}
-//
 func (c *Alert) GroupCombinations(ps paramtools.ReadOnlyParamSet) ([]Combination, error) {
 	keys := c.GroupedBy()
 	keys = sort.StringSlice(keys)

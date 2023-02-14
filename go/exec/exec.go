@@ -3,6 +3,7 @@
 // Example usage:
 //
 // Simple command with argument:
+//
 //	   err := exec.Run(ctx, &exec.Command{
 //		 Name: "touch",
 //		 Args: []string{file},
@@ -10,21 +11,21 @@
 //
 // More complicated example:
 //
-//    output := bytes.Buffer{}
-//    err := exec.Run(ctx, &exec.Command{
-//      Name: "make",
-//      Args: []string{"all"},
-//      // Set environment:
-//      Env: []string{fmt.Sprintf("GOPATH=%s", projectGoPath)},
-//      // Set working directory:
-//      Dir: projectDir,
-//      // Capture output:
-//      CombinedOutput: &output,
-//      // Set a timeout:
-//      Timeout: 10*time.Minute,
-//    })
+//	   output := bytes.Buffer{}
+//	   err := exec.Run(ctx, &exec.Command{
+//	     Name: "make",
+//	     Args: []string{"all"},
+//	     // Set environment:
+//	     Env: []string{fmt.Sprintf("GOPATH=%s", projectGoPath)},
+//	     // Set working directory:
+//	     Dir: projectDir,
+//	     // Capture output:
+//	     CombinedOutput: &output,
+//	     // Set a timeout:
+//	     Timeout: 10*time.Minute,
+//	   })
 //
-//	For testing, see exec_testutil.go and exec.CommandCollector.
+//		For testing, see exec_testutil.go and exec.CommandCollector.
 package exec
 
 import (

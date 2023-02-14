@@ -8,31 +8,31 @@
 //
 // For product documentation, see: https://chromium.googlesource.com/infra/infra/+doc/master/appengine/monorail/doc/api.md
 //
-// Creating a client
+// # Creating a client
 //
 // Usage example:
 //
-//   import "go.skia.org/infra/go/monorail/v1"
-//   ...
-//   ctx := context.Background()
-//   monorailService, err := monorail.NewService(ctx)
+//	import "go.skia.org/infra/go/monorail/v1"
+//	...
+//	ctx := context.Background()
+//	monorailService, err := monorail.NewService(ctx)
 //
 // In this example, Google Application Default Credentials are used for authentication.
 //
 // For information on how to create and obtain Application Default Credentials, see https://developers.google.com/identity/protocols/application-default-credentials.
 //
-// Other authentication options
+// # Other authentication options
 //
 // To use an API key for authentication (note: some APIs do not support API keys), use option.WithAPIKey:
 //
-//   monorailService, err := monorail.NewService(ctx, option.WithAPIKey("AIza..."))
+//	monorailService, err := monorail.NewService(ctx, option.WithAPIKey("AIza..."))
 //
 // To use an OAuth token (e.g., a user token obtained via a three-legged OAuth flow), use option.WithTokenSource:
 //
-//   config := &oauth2.Config{...}
-//   // ...
-//   token, err := config.Exchange(ctx, ...)
-//   monorailService, err := monorail.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
+//	config := &oauth2.Config{...}
+//	// ...
+//	token, err := config.Exchange(ctx, ...)
+//	monorailService, err := monorail.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 //
 // See https://godoc.org/google.golang.org/api/option/ for details on options.
 package monorail // import "go.skia.org/infra/go/monorail/v1"
@@ -2653,10 +2653,11 @@ func (r *GroupsService) Create(groupName string, whoCanViewMembers string) *Grou
 // ExtGroupType sets the optional parameter "ext_group_type":
 //
 // Possible values:
-//   "BAGGINS"
-//   "CHROME_INFRA_AUTH"
-//   "COMPUTED"
-//   "MDB"
+//
+//	"BAGGINS"
+//	"CHROME_INFRA_AUTH"
+//	"COMPUTED"
+//	"MDB"
 func (c *GroupsCreateCall) ExtGroupType(extGroupType string) *GroupsCreateCall {
 	c.urlParams_.Set("ext_group_type", extGroupType)
 	return c
@@ -2966,10 +2967,11 @@ func (r *GroupsService) Update(groupName string, protoapipb2v1groupcitizens *Pro
 // ExtGroupType sets the optional parameter "ext_group_type":
 //
 // Possible values:
-//   "BAGGINS"
-//   "CHROME_INFRA_AUTH"
-//   "COMPUTED"
-//   "MDB"
+//
+//	"BAGGINS"
+//	"CHROME_INFRA_AUTH"
+//	"COMPUTED"
+//	"MDB"
 func (c *GroupsUpdateCall) ExtGroupType(extGroupType string) *GroupsUpdateCall {
 	c.urlParams_.Set("ext_group_type", extGroupType)
 	return c
@@ -2990,9 +2992,10 @@ func (c *GroupsUpdateCall) LastSyncTime(lastSyncTime int64) *GroupsUpdateCall {
 // WhoCanViewMembers sets the optional parameter "who_can_view_members":
 //
 // Possible values:
-//   "ANYONE"
-//   "MEMBERS"
-//   "OWNERS"
+//
+//	"ANYONE"
+//	"MEMBERS"
+//	"OWNERS"
 func (c *GroupsUpdateCall) WhoCanViewMembers(whoCanViewMembers string) *GroupsUpdateCall {
 	c.urlParams_.Set("who_can_view_members", whoCanViewMembers)
 	return c
@@ -3626,13 +3629,14 @@ func (c *IssuesListCall) AdditionalProject(additionalProject ...string) *IssuesL
 // Can sets the optional parameter "can":
 //
 // Possible values:
-//   "all" (default)
-//   "new"
-//   "open"
-//   "owned"
-//   "reported"
-//   "starred"
-//   "to_verify"
+//
+//	"all" (default)
+//	"new"
+//	"open"
+//	"owned"
+//	"reported"
+//	"starred"
+//	"to_verify"
 func (c *IssuesListCall) Can(can string) *IssuesListCall {
 	c.urlParams_.Set("can", can)
 	return c

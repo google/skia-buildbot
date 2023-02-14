@@ -34,7 +34,9 @@ func (st *StackTrace) String() string {
 // main.go: 70
 // A typical call may look like skerr.CallStack(6, 1), which returns
 // [{File:alpha.go, Line:123}, {File:beta.go, Line:456},...,
-//  {File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
+//
+//	{File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
+//
 // CallStack and padding the response with a dummy value, since the stack was not tall enough to
 // show 6 items, starting at the second one.
 func CallStack(height, startAt int) []StackTrace {
@@ -139,7 +141,8 @@ func Fmt(fmtStr string, args ...interface{}) error {
 // Wrapf adds context and stack trace info to err. Existing stack trace info will be preserved. The
 // return value will be of type ErrorWithContext.
 // Example: sklog.Wrapf(err, "When loading %d items from %s", count, url)
-//  If err is nil, nil is returned instead.
+//
+//	If err is nil, nil is returned instead.
 func Wrapf(err error, fmtStr string, args ...interface{}) error {
 	if err == nil {
 		return nil

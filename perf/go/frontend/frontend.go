@@ -228,7 +228,6 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 
 // newParamsetProvider returns a regression.ParamsetProvider which produces a paramset
 // for the current tiles.
-//
 func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetProvider {
 	return func() paramtools.ReadOnlyParamSet {
 		return pf.Get()
@@ -529,10 +528,10 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 // Building a DataFrame can take a long time to complete, so we run the request
 // in a Go routine and break the building of DataFrames into three separate
 // requests:
-//  * Start building the DataFrame (_/frame/start), which returns an identifier of the long
-//    running request, {id}.
-//  * Query the status of the running request (_/frame/status/{id}).
-//  * Finally return the constructed DataFrame (_/frame/results/{id}).
+//   - Start building the DataFrame (_/frame/start), which returns an identifier of the long
+//     running request, {id}.
+//   - Query the status of the running request (_/frame/status/{id}).
+//   - Finally return the constructed DataFrame (_/frame/results/{id}).
 func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fr := frame.NewFrameRequest()
@@ -713,18 +712,18 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 // keysHandler handles the POST requests of a list of keys.
 //
-//    {
-//       "keys": [
-//            ",arch=x86,...",
-//            ",arch=x86,...",
-//       ]
-//    }
+//	{
+//	   "keys": [
+//	        ",arch=x86,...",
+//	        ",arch=x86,...",
+//	   ]
+//	}
 //
 // And returns the ID of the new shortcut to that list of keys:
 //
-//   {
-//     "id": 123456,
-//   }
+//	{
+//	  "id": 123456,
+//	}
 func (f *Frontend) keysHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := f.shortcutStore.Insert(r.Context(), r.Body)
 	if err != nil {
@@ -996,14 +995,14 @@ type RegressionRangeResponse struct {
 // regressionRangeHandler accepts a POST'd JSON serialized RegressionRangeRequest
 // and returns a serialized JSON RegressionRangeResponse:
 //
-//    {
-//      header: [ "query1", "query2", "query3", ...],
-//      table: [
-//        { cid: cid1, columns: [ Regression, Regression, Regression, ...], },
-//        { cid: cid2, columns: [ Regression, null,       Regression, ...], },
-//        { cid: cid3, columns: [ Regression, Regression, Regression, ...], },
-//      ]
-//    }
+//	{
+//	  header: [ "query1", "query2", "query3", ...],
+//	  table: [
+//	    { cid: cid1, columns: [ Regression, Regression, Regression, ...], },
+//	    { cid: cid2, columns: [ Regression, null,       Regression, ...], },
+//	    { cid: cid3, columns: [ Regression, Regression, Regression, ...], },
+//	  ]
+//	}
 //
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request) {

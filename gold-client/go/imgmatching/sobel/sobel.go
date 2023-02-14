@@ -21,12 +21,12 @@ type testMatcher interface {
 // and ignoring any pixels that are part of an edge.
 //
 // The algorithm performs the following steps:
-//   1. It applies the Sobel operator to the expected image, producing a 0 to 255 value per pixel
-//      indicating how likely it is to be part of an edge.
-//   2. It zeroes-out any (x,y) coordinates on *both* images where the aforementioned value exceeds
-//      EdgeThreshold. Note that this assumes both images are of equal size.
-//   3. It passes the two resulting images to the fuzzy.Matcher algorithm (using parameters
-//      MaxDifferentPixels and PixelDeltaThreshold) and returns its return value.
+//  1. It applies the Sobel operator to the expected image, producing a 0 to 255 value per pixel
+//     indicating how likely it is to be part of an edge.
+//  2. It zeroes-out any (x,y) coordinates on *both* images where the aforementioned value exceeds
+//     EdgeThreshold. Note that this assumes both images are of equal size.
+//  3. It passes the two resulting images to the fuzzy.Matcher algorithm (using parameters
+//     MaxDifferentPixels and PixelDeltaThreshold) and returns its return value.
 //
 // [1] https://en.wikipedia.org/wiki/Sobel_operator
 type Matcher struct {

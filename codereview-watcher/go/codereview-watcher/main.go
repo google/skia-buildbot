@@ -71,12 +71,12 @@ var (
 // startPoller does the following:
 // * Queries github for all open pull requests.
 // * For each pull request:
-//   * Check to see if CLA is signed and the copybara importer ran.
-//   * If CLA and importer ran then check to see if we have already commented on the PR.
-//   * If not commented yet, then add an informative comment for the external contributor.
-//   * Check the corresponding Gerrit change to see if it is closed. If it is closed:
-//     * Close the PR with an informative comment pointing to the Gerrit change.
-//     * If Gerrit change was abandoned then add the abandon text to the above comment.
+//   - Check to see if CLA is signed and the copybara importer ran.
+//   - If CLA and importer ran then check to see if we have already commented on the PR.
+//   - If not commented yet, then add an informative comment for the external contributor.
+//   - Check the corresponding Gerrit change to see if it is closed. If it is closed:
+//   - Close the PR with an informative comment pointing to the Gerrit change.
+//   - If Gerrit change was abandoned then add the abandon text to the above comment.
 func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient *gerrit.Gerrit, dbClient *db.FirestoreDB, repoName string) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("codereview_watcher_%s", strings.ReplaceAll(repoName, "-", "_")))
 	util.RepeatCtx(ctx, *pollInterval, func(ctx context.Context) {

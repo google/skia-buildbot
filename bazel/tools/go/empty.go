@@ -2,8 +2,8 @@
 // any directories named "go" or "cmd" (see [1]). If the directory does not define any Go packages,
 // the Go test runner fails with an error like this:
 //
-//     go: warning: "./..." matched no packages
-//     no packages to test
+//	go: warning: "./..." matched no packages
+//	no packages to test
 //
 // This file can be deleted once //run_unittests.go is removed.
 //

@@ -2,14 +2,14 @@
 //
 // That is, given a set of traces:
 //
-//    types.TraceSet{
-//      ",arch=arm,config=8888,":   types.Trace{1, 0, 0},
-//      ",arch=arm,config=565,":    types.Trace{0, 2, 0},
-//      ",arch=arm,config=gles,":   types.Trace{0, 0, 3},
-//      ",arch=intel,config=8888,": types.Trace{1, 2, 3},
-//      ",arch=intel,config=565,":  types.Trace{1, 2, 3},
-//      ",arch=intel,config=gles,": types.Trace{1, 2, 3},
-//    }
+//	types.TraceSet{
+//	  ",arch=arm,config=8888,":   types.Trace{1, 0, 0},
+//	  ",arch=arm,config=565,":    types.Trace{0, 2, 0},
+//	  ",arch=arm,config=gles,":   types.Trace{0, 0, 3},
+//	  ",arch=intel,config=8888,": types.Trace{1, 2, 3},
+//	  ",arch=intel,config=565,":  types.Trace{1, 2, 3},
+//	  ",arch=intel,config=gles,": types.Trace{1, 2, 3},
+//	}
 //
 // You may want to compare how 'arm' machines compare to 'intel' machines. If
 // the traces were stored in a spreadsheet then answering that question would
@@ -20,17 +20,17 @@
 //
 // So if we created a pivot Request of the form:
 //
-//     req := Request {
-//       GroupBy:   []string{"arch"},
-//       Operation: Sum,
-//     }
+//	req := Request {
+//	  GroupBy:   []string{"arch"},
+//	  Operation: Sum,
+//	}
 //
 // it would pivot those traces and return summary traces:
 //
-//    types.TraceSet{
-//      ",arch=arm,":   types.Trace{1, 2, 3},
-//      ",arch=intel,": types.Trace{3, 6, 9},
-//    }
+//	types.TraceSet{
+//	  ",arch=arm,":   types.Trace{1, 2, 3},
+//	  ",arch=intel,": types.Trace{3, 6, 9},
+//	}
 //
 // Note how the trace ids only contain keys that appear in the GroupBy list, as
 // these new traces represent each group.
@@ -39,18 +39,18 @@
 // summarize the data further into a table, so we can optionally apply Summary
 // operations that will be applied to the resulting traces:
 //
-//     req := Request {
-//       GroupBy:   []string{"arch"},
-//       Operation: Sum,
-//       Summary: []Operation{Avg},
-//     }
+//	req := Request {
+//	  GroupBy:   []string{"arch"},
+//	  Operation: Sum,
+//	  Summary: []Operation{Avg},
+//	}
 //
 // Applied to the same traces above we now get:
 //
-//    types.TraceSet{
-//      ",arch=arm,":   types.Trace{2}, // (1+2+3)/3
-//      ",arch=intel,": types.Trace{6}, // (3+6+9)/3
-//    }
+//	types.TraceSet{
+//	  ",arch=arm,":   types.Trace{2}, // (1+2+3)/3
+//	  ",arch=intel,": types.Trace{6}, // (3+6+9)/3
+//	}
 //
 // Note that muliple Summary operations can be applied, and each one will
 // generate its own column in the resulting TraceSet.

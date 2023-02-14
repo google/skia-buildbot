@@ -2,7 +2,7 @@
 //
 // Before running this command you must run:
 //
-//    $ kubectl port-forward service/machineserver-cockroachdb-public 25001:26257
+//	$ kubectl port-forward service/machineserver-cockroachdb-public 25001:26257
 package main
 
 import (

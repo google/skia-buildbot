@@ -153,7 +153,9 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 // getResultFilePath returns that path in GCS where the result file should be stored.
 //
 // The path follows the path described here:
-//    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
+//
+//	https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
+//
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
 func (r *resultState) getResultFilePath(ctx context.Context) string {

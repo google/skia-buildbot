@@ -90,10 +90,10 @@ type ClientConfig struct {
 }
 
 // DefaultClientConfig returns a ClientConfig with reasonable defaults.
-//  - Timeouts are DIAL_TIMEOUT and REQUEST_TIMEOUT.
-//  - Retries are enabled with the values from DefaultBackOffConfig().
-//  - Non-2xx responses are not considered errors.
-//  - Metrics are enabled.
+//   - Timeouts are DIAL_TIMEOUT and REQUEST_TIMEOUT.
+//   - Retries are enabled with the values from DefaultBackOffConfig().
+//   - Non-2xx responses are not considered errors.
+//   - Metrics are enabled.
 func DefaultClientConfig() ClientConfig {
 	return ClientConfig{
 		DialTimeout:     DIAL_TIMEOUT,
@@ -277,17 +277,17 @@ type ResponsePagination struct {
 // 10 tries the sequence will be (values in seconds) and assuming we go over the
 // max_elapsed_time on the 10th try:
 //
-//  request#     retry_interval     randomized_interval
-//  1             0.5                [0.25,   0.75]
-//  2             0.75               [0.375,  1.125]
-//  3             1.125              [0.562,  1.687]
-//  4             1.687              [0.8435, 2.53]
-//  5             2.53               [1.265,  3.795]
-//  6             3.795              [1.897,  5.692]
-//  7             5.692              [2.846,  8.538]
-//  8             8.538              [4.269, 12.807]
-//  9            12.807              [6.403, 19.210]
-//  10           19.210              backoff.Stop
+//	request#     retry_interval     randomized_interval
+//	1             0.5                [0.25,   0.75]
+//	2             0.75               [0.375,  1.125]
+//	3             1.125              [0.562,  1.687]
+//	4             1.687              [0.8435, 2.53]
+//	5             2.53               [1.265,  3.795]
+//	6             3.795              [1.897,  5.692]
+//	7             5.692              [2.846,  8.538]
+//	8             8.538              [4.269, 12.807]
+//	9            12.807              [6.403, 19.210]
+//	10           19.210              backoff.Stop
 func NewConfiguredBackOffTransport(config *BackOffConfig, base http.RoundTripper) http.RoundTripper {
 	return &BackOffTransport{
 		Transport:     base,
@@ -576,11 +576,11 @@ func AddMetricsToClient(c *http.Client) *http.Client {
 // h - The http.Handler to wrap.
 //
 // Example:
-//    if !*local {
-//      h := httputils.HTTPS(h)
-//    }
-//    http.Handle("/", h)
 //
+//	if !*local {
+//	  h := httputils.HTTPS(h)
+//	}
+//	http.Handle("/", h)
 func HTTPS(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) == "http" {
@@ -603,11 +603,11 @@ func HTTPS(h http.Handler) http.Handler {
 // h - The http.Handler to wrap.
 //
 // Example:
-//    if !*local {
-//      h := httputils.HealthzAndHTTPS(h)
-//    }
-//    http.Handle("/", h)
 //
+//	if !*local {
+//	  h := httputils.HealthzAndHTTPS(h)
+//	}
+//	http.Handle("/", h)
 func HealthzAndHTTPS(h http.Handler) http.Handler {
 	return Healthz(HTTPS(h))
 }
@@ -615,11 +615,11 @@ func HealthzAndHTTPS(h http.Handler) http.Handler {
 // Healthz handles healthchecks at /healthz and GFE healthchecks at /.
 //
 // Example:
-//    if !*local {
-//      h := httputils.Healthz(h)
-//    }
-//    http.Handle("/", h)
 //
+//	if !*local {
+//	  h := httputils.Healthz(h)
+//	}
+//	http.Handle("/", h)
 func Healthz(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
@@ -678,11 +678,11 @@ func PostWithContext(ctx context.Context, c *http.Client, url, contentType strin
 // to every response.
 //
 // Example:
-//    if !*local {
-//      h := httputils.CrossOriginResourcePolicy(h)
-//    }
-//    http.Handle("/", h)
 //
+//	if !*local {
+//	  h := httputils.CrossOriginResourcePolicy(h)
+//	}
+//	http.Handle("/", h)
 func CrossOriginResourcePolicy(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")

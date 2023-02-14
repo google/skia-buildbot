@@ -18,8 +18,8 @@ import (
 
 // sourceFileBody is a source file that contains the following keys:
 //
-//    ,config=8888,name=mytest,sub_result=min_ms,
-//    ,config=565,name=mytest,sub_result=min_ms,
+//	,config=8888,name=mytest,sub_result=min_ms,
+//	,config=565,name=mytest,sub_result=min_ms,
 const sourceFileBody = `{
     "gitHash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
     "issue": "327697",

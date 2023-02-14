@@ -31,8 +31,8 @@ type AllowedFromList struct {
 // and email addresses.
 //
 // Example:
-//   a := NewAllowedFromList([]string{"google.com", "chromium.org", "someone@example.org"})
 //
+//	a := NewAllowedFromList([]string{"google.com", "chromium.org", "someone@example.org"})
 func NewAllowedFromList(emailsAndDomains []string) *AllowedFromList {
 	domains := map[string]bool{}
 	emails := map[string]bool{}

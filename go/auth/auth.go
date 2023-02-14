@@ -42,10 +42,11 @@ type gcloudTokenSource struct {
 // the locally authorized gcloud command line tool, i.e. it gets them from
 // running:
 //
-//    gcloud auth print-access-token
+//	gcloud auth print-access-token
 //
 // projectId - The name of the GCP project, e.g. 'skia-public'. If empty, "", then
-//    the default project id for gcloud is used.
+//
+//	the default project id for gcloud is used.
 func NewGCloudTokenSource(projectId string) oauth2.TokenSource {
 	ts := &gcloudTokenSource{
 		projectId: projectId,
@@ -335,10 +336,10 @@ func getJWT(ctx context.Context, metadataName, fileName, secretProject, secretNa
 // Project Level metadata, and if that fails falls back to loading the data
 // from a local file, followed by GCP secrets if the local file fails.
 //
-//   metadataname - The name of the GCE project level metadata key that holds the JWT JSON. If empty a default is used.
-//   filename - The name of the local file that holds the JWT JSON. If empty a default is used.
-//   secretProject - The GCP project containing the GCP secret which holds the JWT JSON.
-//   secretName - The name of the GCP secret which holds the JWT JSON.
+//	metadataname - The name of the GCE project level metadata key that holds the JWT JSON. If empty a default is used.
+//	filename - The name of the local file that holds the JWT JSON. If empty a default is used.
+//	secretProject - The GCP project containing the GCP secret which holds the JWT JSON.
+//	secretName - The name of the GCP secret which holds the JWT JSON.
 func NewJWTServiceAccountTokenSource(ctx context.Context, metadataname, filename, secretProject, secretName string, scopes ...string) (oauth2.TokenSource, error) {
 	body, err := getJWT(ctx, metadataname, filename, secretProject, secretName)
 	if err != nil {
@@ -387,9 +388,9 @@ type keyFormat struct {
 // value of the Key can be changed via -ldflags to pass an -X flag to the
 // linker, for example
 //
-//    go build \
-//    -ldflags="-X 'main.Key=${SERVICE_ACCOUNT_KEY_IN_BASE64}' " \
-//    ./go/foo
+//	go build \
+//	-ldflags="-X 'main.Key=${SERVICE_ACCOUNT_KEY_IN_BASE64}' " \
+//	./go/foo
 func NewTokenSourceFromKeyString(ctx context.Context, local bool, keyAsBase64String string, scopes ...string) (oauth2.TokenSource, error) {
 	if local {
 		return google.DefaultTokenSource(ctx, scopes...)

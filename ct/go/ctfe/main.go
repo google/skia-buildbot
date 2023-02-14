@@ -231,12 +231,12 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 // repeatedTasksScheduler looks for all tasks that contain repeat_after_days
 // set to > 0 and schedules them when the specified time comes.
 // The function does the following:
-// 1. Look for tasks that need to be scheduled in the next 5 minutes.
-// 2. Loop over these tasks.
-//   2.1 Schedule the task again and set repeat_after_days to what it
-//       originally was.
-//   2.2 Update the original task and set repeat_after_days to 0 since the
-//       newly created task will now replace it.
+//  1. Look for tasks that need to be scheduled in the next 5 minutes.
+//  2. Loop over these tasks.
+//     2.1 Schedule the task again and set repeat_after_days to what it
+//     originally was.
+//     2.2 Update the original task and set repeat_after_days to 0 since the
+//     newly created task will now replace it.
 func repeatedTasksScheduler(ctx context.Context) {
 
 	for range time.Tick(*tasksSchedulerWaitTime) {

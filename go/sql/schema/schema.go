@@ -15,7 +15,8 @@ import (
 // table names in a string slice with table names lowercased.
 //
 // For example:
-//     "description", "taskresult"
+//
+//	"description", "taskresult"
 func TableNames(tables interface{}) []string {
 	ret := []string{}
 	for _, structField := range reflect.VisibleFields(reflect.TypeOf(tables)) {

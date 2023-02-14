@@ -70,13 +70,13 @@ func GetSkiaHash(client *http.Client) (string, error) {
 // dependencies needed to compile Skia have been installed (e.g. the latest
 // version of gyp).
 //
-//   branch - The empty string signifies the main branch.
-//   gitHash - The git hash to check out Skia at.
-//   path - The path to check Skia out into.
-//   depotToolsPath - The depot_tools directory.
-//   clean - If true clean out the directory before cloning Skia.
-//   installDeps - If true then run tools/install_dependencies.sh before
-//       sync. The calling user should be sudo capable.
+//	branch - The empty string signifies the main branch.
+//	gitHash - The git hash to check out Skia at.
+//	path - The path to check Skia out into.
+//	depotToolsPath - The depot_tools directory.
+//	clean - If true clean out the directory before cloning Skia.
+//	installDeps - If true then run tools/install_dependencies.sh before
+//	    sync. The calling user should be sudo capable.
 //
 // It returns an error on failure.
 func DownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
@@ -142,13 +142,13 @@ func DownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath str
 // and check it out to the specified gitHash for the specified branch. Upon
 // success, any dependencies needed to compile Skia have been installed.
 //
-//   branch - The empty string signifies the main branch.
-//   gitHash - The git hash to check out Skia at.
-//   path - The path to check Skia out into.
-//   depotToolsPath - The depot_tools directory.
-//   clean - If true clean out the directory before cloning Skia.
-//   installDeps - If true then run tools/install_dependencies.sh before
-//       syncing. The calling user should be sudo capable.
+//	branch - The empty string signifies the main branch.
+//	gitHash - The git hash to check out Skia at.
+//	path - The path to check Skia out into.
+//	depotToolsPath - The depot_tools directory.
+//	clean - If true clean out the directory before cloning Skia.
+//	installDeps - If true then run tools/install_dependencies.sh before
+//	    syncing. The calling user should be sudo capable.
 //
 // It returns an error on failure.
 func GNDownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
@@ -241,12 +241,12 @@ func GNDownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath s
 
 // GNGen runs GN on Skia.
 //
-//   path       - The absolute path to the Skia checkout, should be the same
-//                path passed to DownloadSkiaGN.
-//   depotTools - The path to depot_tools.
-//   outSubDir  - The name of the sub-directory under 'out' to build in.
-//   args       - A slice of strings to pass to gn --args. See the skia
-//                BUILD.gn and https://skia.org/user/quick/gn.
+//	path       - The absolute path to the Skia checkout, should be the same
+//	             path passed to DownloadSkiaGN.
+//	depotTools - The path to depot_tools.
+//	outSubDir  - The name of the sub-directory under 'out' to build in.
+//	args       - A slice of strings to pass to gn --args. See the skia
+//	             BUILD.gn and https://skia.org/user/quick/gn.
 //
 // The results of the build are stored in path/skia/out/<outSubDir>.
 func GNGen(ctx context.Context, path, depotTools, outSubDir string, args []string) error {
@@ -271,11 +271,11 @@ func GNGen(ctx context.Context, path, depotTools, outSubDir string, args []strin
 
 // GNNinjaBuild builds the given target using ninja.
 //
-//   path - The absolute path to the Skia checkout as passed into DownloadSkiaGN.
-//   depotToolsPath - The depot_tools directory.
-//   outSubDir - The name of the sub-directory under 'out' to build in.
-//   target - The specific target to build. Pass in the empty string to build all targets.
-//   verbose - If the build's std out should be logged (usally quite long)
+//	path - The absolute path to the Skia checkout as passed into DownloadSkiaGN.
+//	depotToolsPath - The depot_tools directory.
+//	outSubDir - The name of the sub-directory under 'out' to build in.
+//	target - The specific target to build. Pass in the empty string to build all targets.
+//	verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns the build logs and any errors on failure.
 func GNNinjaBuild(ctx context.Context, path, depotToolsPath, outSubDir, target string, verbose bool) (string, error) {
@@ -305,12 +305,12 @@ func GNNinjaBuild(ctx context.Context, path, depotToolsPath, outSubDir, target s
 
 // NinjaBuild builds the given target using ninja.
 //
-//   skiaPath - The absolute path to the Skia checkout.
-//   depotToolsPath - The depot_tools directory.
-//   extraEnv - Any additional environment variables that need to be set.  Can be nil.
-//   build - The type of build to perform.
-//   target - The build target, e.g. "SampleApp" or "most".
-//   verbose - If the build's std out should be logged (usally quite long)
+//	skiaPath - The absolute path to the Skia checkout.
+//	depotToolsPath - The depot_tools directory.
+//	extraEnv - Any additional environment variables that need to be set.  Can be nil.
+//	build - The type of build to perform.
+//	target - The build target, e.g. "SampleApp" or "most".
+//	verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns an error on failure.
 func NinjaBuild(ctx context.Context, skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
@@ -335,9 +335,9 @@ func NinjaBuild(ctx context.Context, skiaPath, depotToolsPath string, extraEnv [
 
 // CMakeBuild runs /skia/cmake/cmake_build to build Skia.
 //
-//   path       - The absolute path to the Skia checkout.
-//   depotTools - The path to depot_tools.
-//   build      - Is the type of build to perform.
+//	path       - The absolute path to the Skia checkout.
+//	depotTools - The path to depot_tools.
+//	build      - Is the type of build to perform.
 //
 // The results of the build are stored in path/CMAKE_OUTDIR.
 func CMakeBuild(ctx context.Context, path, depotTools string, build ReleaseType) error {
@@ -367,20 +367,19 @@ func CMakeBuild(ctx context.Context, path, depotTools string, build ReleaseType)
 
 // CMakeCompileAndLink will compile the given files into an executable.
 //
-//   path - the absolute path to the Skia checkout.
-//   out - A filename, either absolute, or relative to path, to write the exe.
-//   filenames - Absolute paths to the files to compile.
-//   extraIncludeDirs - Entra directories to search for includes.
-//   extraLinkFlags - Entra linker flags.
+//	path - the absolute path to the Skia checkout.
+//	out - A filename, either absolute, or relative to path, to write the exe.
+//	filenames - Absolute paths to the files to compile.
+//	extraIncludeDirs - Entra directories to search for includes.
+//	extraLinkFlags - Entra linker flags.
 //
 // Returns the stdout+stderr of the compiler and a non-nil error if the compile failed.
 //
 // Should run something like:
 //
-//   $ c++ @skia_compile_arguments.txt fiddle_main.cpp \
-//         draw.cpp @skia_link_arguments.txt -lOSMesa \
-//         -o myexample
-//
+//	$ c++ @skia_compile_arguments.txt fiddle_main.cpp \
+//	      draw.cpp @skia_link_arguments.txt -lOSMesa \
+//	      -o myexample
 func CMakeCompileAndLink(ctx context.Context, path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string, build ReleaseType) (string, error) {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
@@ -429,15 +428,14 @@ func CMakeCompileAndLink(ctx context.Context, path, out string, filenames []stri
 
 // CMakeCompile will compile the given files into an executable.
 //
-//   path - the absolute path to the Skia checkout.
-//   out - A filename, either absolute, or relative to path, to write the .o file.
-//   filenames - Absolute paths to the files to compile.
+//	path - the absolute path to the Skia checkout.
+//	out - A filename, either absolute, or relative to path, to write the .o file.
+//	filenames - Absolute paths to the files to compile.
 //
 // Should run something like:
 //
-//   $ c++ @skia_compile_arguments.txt fiddle_main.cpp \
-//         -o fiddle_main.o
-//
+//	$ c++ @skia_compile_arguments.txt fiddle_main.cpp \
+//	      -o fiddle_main.o
 func CMakeCompile(ctx context.Context, path, out string, filenames []string, extraIncludeDirs []string, build ReleaseType) error {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)

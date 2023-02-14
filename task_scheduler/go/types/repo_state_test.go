@@ -44,12 +44,14 @@ func TestCopyRepoState(t *testing.T) {
 // fake1.git:
 //
 // c0--c1------c3--c4--
-//       \-c2-----/
+//
+//	\-c2-----/
 //
 // fake2.git:
 //
 // c0--c1--c2------c4--c5--
-//           \-c3-----/
+//
+//	\-c3-----/
 func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map) {
 
 	ctx := context.Background()

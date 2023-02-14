@@ -364,17 +364,17 @@ type commitGetter interface {
 // previous task which part or all of the blamelist was "stolen" from (see
 // below). There are three cases:
 //
-// 1. The new task tests commits which have not yet been tested. Trace commit
-//    history, accumulating commits until we find commits which have been tested
-//    by previous tasks.
+//  1. The new task tests commits which have not yet been tested. Trace commit
+//     history, accumulating commits until we find commits which have been tested
+//     by previous tasks.
 //
-// 2. The new task runs at the same commit as a previous task. This is a retry,
-//    so the entire blamelist of the previous task is "stolen".
+//  2. The new task runs at the same commit as a previous task. This is a retry,
+//     so the entire blamelist of the previous task is "stolen".
 //
-// 3. The new task runs at a commit which is in a previous task's blamelist, but
-//    no task has run at the same commit. This is a bisect. Trace commit
-//    history, "stealing" commits from the previous task until we find a commit
-//    which was covered by a *different* previous task.
+//  3. The new task runs at a commit which is in a previous task's blamelist, but
+//     no task has run at the same commit. This is a bisect. Trace commit
+//     history, "stealing" commits from the previous task until we find a commit
+//     which was covered by a *different* previous task.
 //
 // Args:
 //   - cache:      TaskCache instance.
@@ -1579,7 +1579,8 @@ func (s *TaskScheduler) GetSkipTasks() *skip_tasks.DB {
 // -1.0    if no task has ever included this commit for this task spec.
 // 1.0     if a task was run for this task spec AT this commit.
 // 1.0 / N if a task for this task spec has included this commit, where N is
-//         the number of commits included in the task.
+//
+//	the number of commits included in the task.
 //
 // This function gives the sum of the testedness for a blamelist of N commits.
 func testedness(n int) float64 {

@@ -290,7 +290,8 @@ func (g *GitBuilder) AcceptPushes(ctx context.Context) {
 //
 // older           newer
 // c0--c1------c3--c4--
-//       \-c2-----/
+//
+//	\-c2-----/
 //
 // Returns the commit hashes in order from c0-c4.
 func GitSetup(ctx context.Context, g *GitBuilder) []string {

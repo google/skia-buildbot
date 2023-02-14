@@ -411,14 +411,15 @@ func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) e
 // To avoid costly execution from happening after the error context is cancelled, it is recommended
 // to include a context short-circuit inside of the loop processing the subslice:
 // var xs []string
-// util.ChunkIterParallel(ctx, len(xs), 10, func(ctx context.Context, start, stop int) error {
-//   for _, tr := range xs[start:stop] {
-//     if err := ctx.Err(); err != nil {
-//       return err
-//     }
-//     // Do work here.
-//   }
-// }
+//
+//	util.ChunkIterParallel(ctx, len(xs), 10, func(ctx context.Context, start, stop int) error {
+//	  for _, tr := range xs[start:stop] {
+//	    if err := ctx.Err(); err != nil {
+//	      return err
+//	    }
+//	    // Do work here.
+//	  }
+//	}
 func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
 	if chunkSize < 1 {
 		return skerr.Fmt("chunk size may not be less than 1 (saw %d)", chunkSize)

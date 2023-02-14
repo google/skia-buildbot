@@ -436,7 +436,9 @@ func (g *GitHub) ReRequestLatestCheckSuite(ref string) error {
 // and https://developer.github.com/v3/repos/commits/#get-a-single-commit
 // for the API documentation.
 // Note: This combines checks from both ListCheckRunsForRef and GetCombinedStatus.
-//       For flutter/engine on 12/2/19 GetCombinedStatus returned luci-engine and sign-cla.
+//
+//	For flutter/engine on 12/2/19 GetCombinedStatus returned luci-engine and sign-cla.
+//
 // TODO(rmistry): Use only Checks API when Flutter is moved completely to it.
 func (g *GitHub) GetChecks(ref string) ([]*Check, error) {
 	totalChecks := []*Check{}

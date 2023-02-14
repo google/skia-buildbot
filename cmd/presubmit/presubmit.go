@@ -5,7 +5,9 @@
 // If any presubmits fail, there will be errors logged to stdout and the exit code will be non-zero.
 //
 // This should be invoked from the root of the repo via Bazel like
-//	 bazel run //cmd/presubmit
+//
+//	bazel run //cmd/presubmit
+//
 // See presubmit.sh for a helper that pipes in the correct value for repo_dir.
 package main
 

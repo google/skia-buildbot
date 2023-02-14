@@ -236,11 +236,11 @@ func invertBSlice(a []byte) []byte {
 //
 // For example:
 //
-//     toKey("git_master-skia", "razor-userdebug", "1814540")
+//	toKey("git_master-skia", "razor-userdebug", "1814540")
 //
 // Returns
 //
-//     "git_master-skia:razor-userdebug:<inverted bytes of 00000000000001814540>"
+//	"git_master-skia:razor-userdebug:<inverted bytes of 00000000000001814540>"
 func toKey(branch, target, buildID string) ([]byte, error) {
 	id, err := strconv.Atoi(buildID)
 	if err != nil {

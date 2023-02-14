@@ -406,7 +406,7 @@ func (g *diffWorkGatherer) addNewGroupingsForProcessing(ctx context.Context, gro
 }
 
 // startChangelistsDiffWork starts the process that periodically creates rows in the SQL DB for
-///diff workers to calculate diffs for images produced by CLs.
+// /diff workers to calculate diffs for images produced by CLs.
 func startChangelistsDiffWork(ctx context.Context, gatherer *diffWorkGatherer, ptc periodicTasksConfig) {
 	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
 		"task": "calculateChangelistsDiffWork",

@@ -77,9 +77,9 @@ func testImportAllowed(importer, importee string) bool {
 }
 
 // TestImports verifies that we follow some basic rules for imports:
-// 1. No non-test package imports a test package, with the exception of those
-//    listed in legacyTestImportExceptions.
-// 2. No packages use CGO.
+//  1. No non-test package imports a test package, with the exception of those
+//     listed in legacyTestImportExceptions.
+//  2. No packages use CGO.
 //
 // These checks are combined into one test because LoadAllPackageData is slow.
 func TestImports(t *testing.T) {

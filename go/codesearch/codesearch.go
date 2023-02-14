@@ -5,21 +5,21 @@
 // The query needs to be bracketed by search_request=[b|e] query parameters.
 //
 // For example:
-//    https://cs.chromium.org/codesearch/json/search_request:1
-//       ?search_request=b
-//       &query=file%3A.md+file%3A%5Esrc%2Fthird_party%2Fskia%2F+package%3A%5Echromium%24
-//       &max_num_results=20
-//       &results_offset=0
-//       &search_request=e
+//
+//	https://cs.chromium.org/codesearch/json/search_request:1
+//	   ?search_request=b
+//	   &query=file%3A.md+file%3A%5Esrc%2Fthird_party%2Fskia%2F+package%3A%5Echromium%24
+//	   &max_num_results=20
+//	   &results_offset=0
+//	   &search_request=e
 //
 // The URL for a file.name of "src/third_party/skia/site/roles.md" is
 //
-//    https://cs.chromium.org/chromium/src/third_party/skia/site/roles.md
+//	https://cs.chromium.org/chromium/src/third_party/skia/site/roles.md
 //
 // To jump to a specific line:
 //
-//    https://cs.chromium.org/chromium/src/third_party/skia/site/roles.md?l=2
-//
+//	https://cs.chromium.org/chromium/src/third_party/skia/site/roles.md?l=2
 package codesearch
 
 import (

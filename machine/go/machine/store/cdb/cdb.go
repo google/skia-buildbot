@@ -53,14 +53,13 @@ var (
 //
 // In the below statements you might see something like:
 //
-//    CONCAT('{"id": ["', $1, '"]}')::JSONB
+//	CONCAT('{"id": ["', $1, '"]}')::JSONB
 //
 // This allows building up a JSONB expression while still allowing the use of
 // placeholders, like '$1'. The following will not work, since the $1 is inside
 // a string and thus not substituted.
 //
-//    '{"id": ["$1"]}'
-//
+//	'{"id": ["$1"]}'
 var Statements = map[statement]string{
 	GetAndLockRow: fmt.Sprintf(`
 SELECT

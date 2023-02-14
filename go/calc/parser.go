@@ -133,8 +133,7 @@ func parse(input string) (*Node, error) {
 //
 // Something of the form:
 //
-//    fn(arg1, args2)
-//
+//	fn(arg1, args2)
 func parseExp(l *lexer) (*Node, error) {
 	it := l.nextItem()
 	if it.typ != itemIdentifier {
@@ -159,7 +158,7 @@ func parseExp(l *lexer) (*Node, error) {
 //
 // Something of the form:
 //
-//    arg1, arg2, arg3
+//	arg1, arg2, arg3
 //
 // It terminates when it sees a closing paren, or an invalid token.
 func parseArgs(l *lexer, p *Node) error {

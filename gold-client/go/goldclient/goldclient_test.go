@@ -569,10 +569,11 @@ func TestFinalizeNormal(t *testing.T) {
 // the client from disk and then finalize.
 //
 // This is essentially a test for
-//   goldctl imgtest init
-//   goldctl imgtest add
-//   goldctl imgtest add
-//   goldctl imgtest finalize
+//
+//	goldctl imgtest init
+//	goldctl imgtest add
+//	goldctl imgtest add
+//	goldctl imgtest finalize
 func TestInitAddFinalize(t *testing.T) {
 	// We read and write to disk a little
 

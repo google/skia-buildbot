@@ -8,11 +8,11 @@
 // The dryrun progress information contains different info with different stages
 // and steps.
 //
-//   Step: 1/1
-//   Query: "sub_result=max_rss_mb"
-//   Looking for regressions in query results.
-//     Commit: 51643
-//     Details: "Filtered Traces: Num Before: 95 Num After: 92 Delta: 3"
+//	Step: 1/1
+//	Query: "sub_result=max_rss_mb"
+//	Looking for regressions in query results.
+//	  Commit: 51643
+//	  Details: "Filtered Traces: Num Before: 95 Num After: 92 Delta: 3"
 //
 // The Progress type is for tracking a single long running process, and Tracker
 // keeps track of multiple Progresses.

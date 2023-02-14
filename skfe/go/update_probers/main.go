@@ -1,7 +1,6 @@
 // update_probers is a command line application that updates the
 // "envoy-redirects" section of probersk.json5 with all the redirects in
 // envoy-starter.json.
-//
 package main
 
 import (

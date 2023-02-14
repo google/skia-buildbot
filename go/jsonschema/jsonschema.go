@@ -7,37 +7,35 @@
 // appliation, `/foo/generate/main.go`, which uses go:generate to emit a schema
 // file.
 //
+//	//go:generate bazelisk run --config=mayberemote //:go -- run .
+//	package main
 //
-//    //go:generate bazelisk run --config=mayberemote //:go -- run .
-//    package main
+//	import (
+//	  "go.skia.org/infra/go/jsonschema"
+//	  "go.skia.org/infra/foo"
+//	)
 //
-//    import (
-//      "go.skia.org/infra/go/jsonschema"
-//      "go.skia.org/infra/foo"
-//    )
-//
-//    func main() {
-//      jsonschema.GenerateSchema("../schema.json", &foo.MyConfiguration{})
-//    }
+//	func main() {
+//	  jsonschema.GenerateSchema("../schema.json", &foo.MyConfiguration{})
+//	}
 //
 // Note that running "go generate" on that file will drop `schema.json` file in
 // the foo directory. Now add a `Validate` function to `foo.go` that uses the
 // schema file, which we can make accessible by embedding it:
 //
-//    import (
+//	import (
 //
-//      _ "embed" // For embed functionality.
+//	  _ "embed" // For embed functionality.
 //
-//    )
+//	)
 //
-//    //go:embed schema.json
-//    var schema []byte
+//	//go:embed schema.json
+//	var schema []byte
 //
-//    func ValidateFooFile(ctx context.Context, document []byte) error {
-//      validationErrors, err := jsonschema.Validate(ctx, document, schema)
-//      ...
-//    }
-//
+//	func ValidateFooFile(ctx context.Context, document []byte) error {
+//	  validationErrors, err := jsonschema.Validate(ctx, document, schema)
+//	  ...
+//	}
 package jsonschema
 
 import (

@@ -62,19 +62,19 @@ var (
 // startPoller does the following:
 // 1) Loop through all supported branch dependencies in the config file.
 // 2) For each config:
-//   * Query gerrit for open cherrypicks in the source repo+branch.
-//   * For each open cherrypick:
-//     * Check in-memory cache to see if we already processed this change. If
-//       in cache, continue with the next cherrypick in step 2 above.
-//     * Check DB to see if we already processed this change. If in DB, then
-//       add to the cache and continue with the next cherrypick in step 2 above.
-//     * If cherrypick is not in cache or DB:
-//       * Check to see if the change is a cherrypick and if the cherrypick
-//         already exists in the target repo+branch.
-//       * If change is not a cherrypick or cherrypick does not exist in the
-//         target repo+branch:
-//         * Add a reminder comment to the cherrypick.
-//       * Mark the cherrypick as processed in the in-memory cache and in the DB.
+//   - Query gerrit for open cherrypicks in the source repo+branch.
+//   - For each open cherrypick:
+//   - Check in-memory cache to see if we already processed this change. If
+//     in cache, continue with the next cherrypick in step 2 above.
+//   - Check DB to see if we already processed this change. If in DB, then
+//     add to the cache and continue with the next cherrypick in step 2 above.
+//   - If cherrypick is not in cache or DB:
+//   - Check to see if the change is a cherrypick and if the cherrypick
+//     already exists in the target repo+branch.
+//   - If change is not a cherrypick or cherrypick does not exist in the
+//     target repo+branch:
+//   - Add a reminder comment to the cherrypick.
+//   - Mark the cherrypick as processed in the in-memory cache and in the DB.
 func startPoller(ctx context.Context, gerritClient *gerrit.Gerrit, dbClient *db.FirestoreDB, branchDeps []*config.SupportedBranchDep) {
 	liveness := metrics2.NewLiveness("cherrypick_watcher")
 	util.RepeatCtx(ctx, *pollInterval, func(ctx context.Context) {

@@ -46,28 +46,27 @@ type SingleMeasurement struct {
 // fastest time it took to run a test, and also the median and max time. In that
 // case you could structure the results as:
 //
-//    {
-//      "key": {
-//        "test": "some_test_name"
-//      },
-//      "measurements": {
-//        "ms": [
-//          {
-//            "value": "min",
-//            "measurement": 1.2,
-//          },
-//          {
-//            "value": "max"
-//            "measurement": 2.4,
-//          },
-//          {
-//            "value": "median",
-//            "measurement": 1.5,
-//          }
-//        ]
-//      }
-//    }
-//
+//	{
+//	  "key": {
+//	    "test": "some_test_name"
+//	  },
+//	  "measurements": {
+//	    "ms": [
+//	      {
+//	        "value": "min",
+//	        "measurement": 1.2,
+//	      },
+//	      {
+//	        "value": "max"
+//	        "measurement": 2.4,
+//	      },
+//	      {
+//	        "value": "median",
+//	        "measurement": 1.5,
+//	      }
+//	    ]
+//	  }
+//	}
 type Result struct {
 	// Key contains key=value pairs will be part of the trace id.
 	Key map[string]string `json:"key"`
@@ -85,85 +84,85 @@ type Result struct {
 //
 // For example, a file that looks like this:
 //
-//    {
-//        "version": 1,
-//        "git_hash": "cd5...663",
-//        "key": {
-//            "config": "8888",
-//            "arch": "x86"
-//        },
-//        "results": [
-//            {
-//                "key": {
-//                    "test": "a_test_with_just_a_single_measurement",
-//                    "units": "s"
-//                },
-//                "measurement": 123.4
-//            },
-//            {
-//                "key": {
-//                    "test": "draw_a_circle",
-//                    "units": "ms"
-//                },
-//                "measurements": {
-//                    "stat": [
-//                        {
-//                            "value": "min",
-//                            "measurement": 1.2
-//                        },
-//                        {
-//                            "value": "max",
-//                            "measurement": 2.4
-//                        },
-//                        {
-//                            "value": "median",
-//                            "measurement": 1.5
-//                        }
-//                    ]
-//                }
-//            },
-//            {
-//                "key": {
-//                    "test": "draw_my_animation",
-//                    "units": "Hz"
-//                },
-//                "measurements": {
-//                    "stat": [
-//                        {
-//                            "value": "min",
-//                            "measurement": 20
-//                        },
-//                        {
-//                            "value": "max",
-//                            "measurement": 30
-//                        },
-//                        {
-//                            "value": "median",
-//                            "measurement": 22
-//                        }
-//                    ]
-//                }
-//            }
-//        ],
-//        "links": {
-//            "details": "https://example.com/a-link-to-details-about-this-test-run"
-//        }
-//    }
+//	{
+//	    "version": 1,
+//	    "git_hash": "cd5...663",
+//	    "key": {
+//	        "config": "8888",
+//	        "arch": "x86"
+//	    },
+//	    "results": [
+//	        {
+//	            "key": {
+//	                "test": "a_test_with_just_a_single_measurement",
+//	                "units": "s"
+//	            },
+//	            "measurement": 123.4
+//	        },
+//	        {
+//	            "key": {
+//	                "test": "draw_a_circle",
+//	                "units": "ms"
+//	            },
+//	            "measurements": {
+//	                "stat": [
+//	                    {
+//	                        "value": "min",
+//	                        "measurement": 1.2
+//	                    },
+//	                    {
+//	                        "value": "max",
+//	                        "measurement": 2.4
+//	                    },
+//	                    {
+//	                        "value": "median",
+//	                        "measurement": 1.5
+//	                    }
+//	                ]
+//	            }
+//	        },
+//	        {
+//	            "key": {
+//	                "test": "draw_my_animation",
+//	                "units": "Hz"
+//	            },
+//	            "measurements": {
+//	                "stat": [
+//	                    {
+//	                        "value": "min",
+//	                        "measurement": 20
+//	                    },
+//	                    {
+//	                        "value": "max",
+//	                        "measurement": 30
+//	                    },
+//	                    {
+//	                        "value": "median",
+//	                        "measurement": 22
+//	                    }
+//	                ]
+//	            }
+//	        }
+//	    ],
+//	    "links": {
+//	        "details": "https://example.com/a-link-to-details-about-this-test-run"
+//	    }
+//	}
 //
 // Will produce this set of trace ids and values:
 //
-//    Hash:
-//      cd5...663
-//    Measurements:
-//      ,arch=x86,config=8888,test=a_test_with_just_a_single_measurement,units=s, = 123.4
-//      ,arch=x86,config=8888,stat=min,test=draw_a_circle,units=ms, = 1.2
-//      ,arch=x86,config=8888,stat=max,test=draw_a_circle,units=ms, = 2.4
-//      ,arch=x86,config=8888,stat=median,test=draw_a_circle,units=ms, = 1.5
-//      ,arch=x86,config=8888,stat=min,test=draw_my_animation,units=Hz, = 20
-//      ,arch=x86,config=8888,stat=max,test=draw_my_animation,units=Hz, = 30
-//      ,arch=x86,config=8888,stat=median,test=draw_my_animation,units=Hz, = 22
-//    Links:
-//      details: https://example.com/a-link-to-details-about-this-test-run
+//	Hash:
+//	  cd5...663
+//	Measurements:
+//	  ,arch=x86,config=8888,test=a_test_with_just_a_single_measurement,units=s, = 123.4
+//	  ,arch=x86,config=8888,stat=min,test=draw_a_circle,units=ms, = 1.2
+//	  ,arch=x86,config=8888,stat=max,test=draw_a_circle,units=ms, = 2.4
+//	  ,arch=x86,config=8888,stat=median,test=draw_a_circle,units=ms, = 1.5
+//	  ,arch=x86,config=8888,stat=min,test=draw_my_animation,units=Hz, = 20
+//	  ,arch=x86,config=8888,stat=max,test=draw_my_animation,units=Hz, = 30
+//	  ,arch=x86,config=8888,stat=median,test=draw_my_animation,units=Hz, = 22
+//	Links:
+//	  details: https://example.com/a-link-to-details-about-this-test-run
 //
 // Key value pair charactes should come from [0-9a-zA-Z\_], particularly note no
 // spaces or ':' characters.

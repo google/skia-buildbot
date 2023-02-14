@@ -22,10 +22,10 @@ import (
 type MD5Hash [md5.Size]byte
 
 // TraceID and the other related types are declared as byte slices instead of MD5Hash because
-// 1) we want to avoid copying around the the array data every time (reminder: in Golang, arrays
-//   are passed by value); and
-// 2) passing arrays into the pgx driver is a little awkward (it only accepts slices so we would
-//   have to turn the arrays into slices before passing in and if we forget, it's a runtime error).
+//  1. we want to avoid copying around the the array data every time (reminder: in Golang, arrays
+//     are passed by value); and
+//  2. passing arrays into the pgx driver is a little awkward (it only accepts slices so we would
+//     have to turn the arrays into slices before passing in and if we forget, it's a runtime error).
 type TraceID []byte
 type GroupingID []byte
 type OptionsID []byte
@@ -121,6 +121,7 @@ const (
 // Note: If a table is added/removed/renamed, it is important to re-run //golden/cmd/sqlinit
 // for all instances to make sure the backup schedules continue to work (they will fail if a table
 // is missing or silently not backup new tables).
+//
 //go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file sql.go --output_pkg schema
 type Tables struct {
 	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
@@ -629,7 +630,8 @@ func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
 // traces per commit. This table is effectively an index for getting just that data. Note, this
 // contains Keys.
 // TODO(kjlubick) Add another table to hold Options, so we can distinguish between the two
-//   and properly search by them.
+//
+//	and properly search by them.
 type PrimaryBranchParamRow struct {
 	// TileID indicates which tile the given Key and Value were seen on in the primary branch.
 	// This is a foreign key into the Commits table.

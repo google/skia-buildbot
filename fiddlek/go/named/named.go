@@ -56,10 +56,10 @@ func New(st NameStore) *Named {
 
 // Add a named fiddle.
 //
-//   name      - The name of the fidde, w/o the @ prefix.
-//   hash      - The fiddle hash.
-//   user      - The email of the user that created the name.
-//   overwrite - True if the write should proceed if the name already exists.
+//	name      - The name of the fidde, w/o the @ prefix.
+//	hash      - The fiddle hash.
+//	user      - The email of the user that created the name.
+//	overwrite - True if the write should proceed if the name already exists.
 func (n *Named) Add(name, hash, user string, overwrite bool) error {
 	if !fiddleNameRe.MatchString(name) {
 		return fmt.Errorf("Not a valid fiddle name %q", name)

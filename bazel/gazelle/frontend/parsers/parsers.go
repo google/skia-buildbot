@@ -9,10 +9,10 @@
 // The following alternatives were ruled out because of their high implementation and maintenance
 // cost:
 //
-//  - Using third-party parsers written in Go (none exist at this time).
-//  - Generate real parsers using e.g. Goyacc (https://pkg.go.dev/golang.org/x/tools/cmd/goyacc).
-//  - Use the TypeScript compiler API to inspect the AST of a TypeScript file (requires calling
-//    Node.js code from Gazelle).
+//   - Using third-party parsers written in Go (none exist at this time).
+//   - Generate real parsers using e.g. Goyacc (https://pkg.go.dev/golang.org/x/tools/cmd/goyacc).
+//   - Use the TypeScript compiler API to inspect the AST of a TypeScript file (requires calling
+//     Node.js code from Gazelle).
 package parsers
 
 import (
@@ -124,18 +124,18 @@ func ParseTSImports(source string) []string {
 
 // sassImportRegexps match the following kinds of Sass imports:
 //
-//     @import 'foo';
-//     @use 'foo';
-//     @use 'foo' as bar;
-//     @use 'foo' with (
-//       $bar: 1px
-//     );
-//     @forward 'foo';
-//     @forward 'foo' as foo-*;
-//     @forward 'foo' hide $bar, $baz;
-//     @forward 'foo' with (
-//       $bar: $1px
-//     );
+//	@import 'foo';
+//	@use 'foo';
+//	@use 'foo' as bar;
+//	@use 'foo' with (
+//	  $bar: 1px
+//	);
+//	@forward 'foo';
+//	@forward 'foo' as foo-*;
+//	@forward 'foo' hide $bar, $baz;
+//	@forward 'foo' with (
+//	  $bar: $1px
+//	);
 //
 // See https://sass-lang.com/documentation/at-rules.
 var sassImportRegexps = []*regexp.Regexp{

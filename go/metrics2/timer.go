@@ -23,7 +23,8 @@ type timer struct {
 // NewTimer creates and returns a new started timer.
 //
 // makeUnique - True if the measurement name needs to made unique, which means
-//              to append 'name' to 'timer'.
+//
+//	to append 'name' to 'timer'.
 func newTimer(c Client, name string, makeUnique bool, tagsList ...map[string]string) Timer {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
@@ -64,11 +65,10 @@ func NewTimer(name string, tags ...map[string]string) Timer {
 // The standard way to use FuncTimer is at the top of the func you
 // want to measure:
 //
-// func myfunc() {
-//    defer metrics2.FuncTimer().Stop()
-//    ...
-// }
-//
+//	func myfunc() {
+//	   defer metrics2.FuncTimer().Stop()
+//	   ...
+//	}
 func FuncTimer() Timer {
 	pc, _, _, _ := runtime.Caller(1)
 	f := runtime.FuncForPC(pc)

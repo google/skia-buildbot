@@ -3,7 +3,7 @@
 //
 // Setting up a port-forward from a kubernetes pod is simple:
 //
-//    $ kubectl port-forward mypod 8888:5000
+//	$ kubectl port-forward mypod 8888:5000
 //
 // The above will setup a port-forward, i.e. it will listen on port 8888
 // locally, forwarding the traffic to 5000 in the pod named "mypod".
@@ -51,7 +51,8 @@ type ReversePortForward struct {
 // podName - The name of the pod found in the cluster pointed to by the kubeconfig file.
 // podPort - The port to forward from within the pod.
 // localaddress - The address we want the incoming connection to be forwarded
-//    to, something like "localhost:22"
+//
+//	to, something like "localhost:22"
 func New(kubeconfig []byte, localaddress string, useNcRev bool) (*ReversePortForward, error) {
 	var kubeConfigGetter clientcmd.KubeconfigGetter = func() (*api.Config, error) {
 		return clientcmd.Load(kubeconfig)
@@ -74,11 +75,11 @@ func New(kubeconfig []byte, localaddress string, useNcRev bool) (*ReversePortFor
 // Note that as connections are made and then closed this function may return,
 // so it should be called from within a loop, e.g.:
 //
-// for {
-//    if err := rpf.Start(ctx); err != nil {
-//		sklog.Error(err)
-//	  }
-// }
+//	for {
+//	   if err := rpf.Start(ctx); err != nil {
+//			sklog.Error(err)
+//		  }
+//	}
 func (r *ReversePortForward) Start(ctx context.Context, podName string, podPort int) error {
 	fmt.Println("Begin")
 	// First start a connection to the localaddress.

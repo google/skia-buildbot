@@ -182,22 +182,22 @@ func hasDisableLoggingRequestResponse(options []Option) bool {
 // can have Bazel inject an attribute with a template for the nonce to all
 // <script> and <link> tags via the sk_page rule's nonce attribute, e.g.
 //
-//    load("//infra-sk:index.bzl", "sk_page")
+//	load("//infra-sk:index.bzl", "sk_page")
 //
-//    sk_page(
-//        name = "index",
-//        html_file = "index.html",
-//        nonce = "{% .Nonce %}",
-//        ...
-//    )
+//	sk_page(
+//	    name = "index",
+//	    html_file = "index.html",
+//	    nonce = "{% .Nonce %}",
+//	    ...
+//	)
 //
 // And then include that nonce when expanding any pages:
 //
-//     if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-//       "Nonce": secure.CSPNonce(r.Context()),
-//     }); err != nil {
-//      sklog.Errorf("Failed to expand template: %s", err)
-//     }
+//	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+//	  "Nonce": secure.CSPNonce(r.Context()),
+//	}); err != nil {
+//	 sklog.Errorf("Failed to expand template: %s", err)
+//	}
 //
 // Since our audience is small and only uses modern browsers we shouldn't need
 // any further XSS protection. For example, even if a user is logged into

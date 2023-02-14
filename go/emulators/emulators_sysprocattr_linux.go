@@ -11,7 +11,7 @@ import "syscall"
 // This function uses a Linux-only field of the syscall.SysProcAttr struct. Trying to compile this
 // file for a non-Linux target will result in the following compilation error:
 //
-//     unknown field 'Pdeathsig' in struct literal of type syscall.SysProcAttr
+//	unknown field 'Pdeathsig' in struct literal of type syscall.SysProcAttr
 //
 // For this reason, this file is annotated with a "+build linux" build tag, which will exclude it
 // from compilation for non-Linux targets. A separate, noop implementation for all other compilation

@@ -229,9 +229,9 @@ func New(ctx context.Context, local bool) (*store, error) {
 
 // writeMediaFile writes a file to Google Storage. It also adds it to the cache.
 //
-//    media - The type of the file to write.
-//    fiddleHash - The hash of the fiddle.
-//    b64 - The contents of the media file base64 encoded.
+//	media - The type of the file to write.
+//	fiddleHash - The hash of the fiddle.
+//	b64 - The contents of the media file base64 encoded.
 func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 	if b64 == "" && media != TXT {
 		return fmt.Errorf("An empty file is not a valid %s file.", string(media))

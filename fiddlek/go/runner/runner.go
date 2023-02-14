@@ -148,8 +148,8 @@ func (r *Runner) fiddlerIPsRefresher() {
 // prepCodeToCompile adds the line numbers and the right prefix code
 // to the fiddle so it compiles and links correctly.
 //
-//    code - The code to compile.
-//    opts - The user's options about how to run that code.
+//	code - The code to compile.
+//	opts - The user's options about how to run that code.
 //
 // Returns the prepped code.
 func (r *Runner) prepCodeToCompile(code string, opts *types.Options) string {
@@ -259,7 +259,7 @@ func (r *Runner) singleRun(ctx context.Context, url string, body io.Reader) (*ty
 
 // Run executes fiddle_run and then parses the JSON output into types.Results.
 //
-//    local - Boolean, true if we are running locally.
+//	local - Boolean, true if we are running locally.
 func (r *Runner) Run(ctx context.Context, local bool, req *types.FiddleContext) (*types.Result, error) {
 	ctx, span := trace.StartSpan(ctx, "run.Run")
 	defer span.End()

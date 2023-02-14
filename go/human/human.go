@@ -36,8 +36,7 @@ var choices = []struct {
 //
 // For making human friendly dates:
 //
-//  1st, 2nd, 3rd, etc.
-//
+//	1st, 2nd, 3rd, etc.
 func suffix(day int) string {
 	// The rules are pretty simple, everything ends in "th", except numbers that
 	// end in 1, 2 or 3 which end in "st", "nd" and "rd" respectively. The only
@@ -86,8 +85,7 @@ type Tick struct {
 // JSON that Flot consumes, which is an array of 2 element arrays. The 2 element
 // arrays contain an x offset and then a label as a string. For example:
 //
-//   [ [ 0.5, "Saturday" ], [ 1.5, "Sunday" ] ]
-//
+//	[ [ 0.5, "Saturday" ], [ 1.5, "Sunday" ] ]
 func ToFlot(ticks []*Tick) []interface{} {
 	ret := []interface{}{}
 	for _, t := range ticks {

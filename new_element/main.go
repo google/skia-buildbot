@@ -3,7 +3,6 @@
 //
 //go:generate rm -rf modules/example-control-sk
 //go:generate bazelisk run --config=mayberemote //:go -- run main.go --element-name example-control-sk --app-name example-app-name
-//
 package main
 
 import (

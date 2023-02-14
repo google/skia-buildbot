@@ -5,21 +5,20 @@
 //
 // Every Python script must support the following flags:
 //
-//     -b BROWSER, --browser=BROWSER
-//                           The browser to use to run MotionMark in.
-//     -s SUITE, --suite=SUITE
-//                           Run only the specified suite of tests.
-//     -e EXECUTABLE, --executable-path=EXECUTABLE
-//                           Path to the executable to the driver binary.
-//     -a ARGUMENTS, --arguments=ARGUMENTS
-//                           Extra arguments to pass to the browser.
-//     -g GITHASH, --githash=GITHASH
-//                           A git-hash associated with this run.
-//     -o OUTPUT, --output=OUTPUT
-//                           Path to the output json file.
-//     --extra-keys=KEY_VALUE_PAIRS
-//                           A comma separated list of key,value pairs.
-//
+//	-b BROWSER, --browser=BROWSER
+//	                      The browser to use to run MotionMark in.
+//	-s SUITE, --suite=SUITE
+//	                      Run only the specified suite of tests.
+//	-e EXECUTABLE, --executable-path=EXECUTABLE
+//	                      Path to the executable to the driver binary.
+//	-a ARGUMENTS, --arguments=ARGUMENTS
+//	                      Extra arguments to pass to the browser.
+//	-g GITHASH, --githash=GITHASH
+//	                      A git-hash associated with this run.
+//	-o OUTPUT, --output=OUTPUT
+//	                      Path to the output json file.
+//	--extra-keys=KEY_VALUE_PAIRS
+//	                      A comma separated list of key,value pairs.
 package compui
 
 import (

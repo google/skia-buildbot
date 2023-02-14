@@ -282,14 +282,14 @@ type parseGitRevLogStreamProcessSingleCommit func(commit Commit) error
 
 // parseGitRevLogStream parses the input stream for input of the form:
 //
-//     commit 6079a7810530025d9877916895dd14eb8bb454c0
-//     Joe Gregorio <joe@bitworking.org>
-//     Change #9
-//     1584837783
-//     commit 977e0ef44bec17659faf8c5d4025c5a068354817
-//     Joe Gregorio <joe@bitworking.org>
-//     Change #8
-//     1584837783
+//	commit 6079a7810530025d9877916895dd14eb8bb454c0
+//	Joe Gregorio <joe@bitworking.org>
+//	Change #9
+//	1584837783
+//	commit 977e0ef44bec17659faf8c5d4025c5a068354817
+//	Joe Gregorio <joe@bitworking.org>
+//	Change #8
+//	1584837783
 //
 // And calls the parseGitRevLogStreamProcessSingleCommit function with each
 // entry it finds. The passed in Commit has all valid fields except
@@ -358,18 +358,18 @@ func pull(ctx context.Context, gitFullPath, dir string) error {
 // This command will list all new commits since 6286e... in chronological
 // order.
 //
-//     git rev-list HEAD ^6286e.. --pretty=" %aN <%aE>%n%s%n%ct" --reverse
+//	git rev-list HEAD ^6286e.. --pretty=" %aN <%aE>%n%s%n%ct" --reverse
 //
 // It produces the following output of the form:
 //
-//     commit 6079a7810530025d9877916895dd14eb8bb454c0
-//     Joe Gregorio <joe@bitworking.org>
-//     Change #9
-//     1584837783
-//     commit 977e0ef44bec17659faf8c5d4025c5a068354817
-//     Joe Gregorio <joe@bitworking.org>
-//     Change #8
-//     1584837783
+//	commit 6079a7810530025d9877916895dd14eb8bb454c0
+//	Joe Gregorio <joe@bitworking.org>
+//	Change #9
+//	1584837783
+//	commit 977e0ef44bec17659faf8c5d4025c5a068354817
+//	Joe Gregorio <joe@bitworking.org>
+//	Change #8
+//	1584837783
 //
 // which parseGitRevLogStream parses.
 //

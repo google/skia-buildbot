@@ -1,7 +1,8 @@
 // Command line app to process fiddles in bulk.
 //
 // Example:
-//  fiddlecli --input demo/testbulk.json --output /tmp/output.json
+//
+//	fiddlecli --input demo/testbulk.json --output /tmp/output.json
 package main
 
 import (

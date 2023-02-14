@@ -179,12 +179,13 @@ func NewPromClient() *promClient {
 // commonGet does a lot of the common work for each of the Get* funcs.
 //
 // It returns:
-//   measurement - A clean measurement name.
-//   cleanTags   - A clean set of tags.
-//   keys        - A slice of the keys of cleanTags, sorted.
-//   gaugeKey    - A name to uniquely identify the metric.
-//   gaugeVecKey - A name to uniquely identify the collection of metrics. See the Prometheus
-//                 docs about Collections.
+//
+//	measurement - A clean measurement name.
+//	cleanTags   - A clean set of tags.
+//	keys        - A slice of the keys of cleanTags, sorted.
+//	gaugeKey    - A name to uniquely identify the metric.
+//	gaugeVecKey - A name to uniquely identify the collection of metrics. See the Prometheus
+//	              docs about Collections.
 func (p *promClient) commonGet(measurement string, tags ...map[string]string) (string, map[string]string, []string, string, string) {
 	// Convert measurement to a safe name.
 	measurement = clean(measurement)

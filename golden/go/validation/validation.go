@@ -38,10 +38,12 @@ type Validation []string
 
 // StrValue validates a string value against containment in a set of options.
 // Argument:
-//     name: name of the field being validated.
-//     val: value to be validated.
-//     options: list of options, one of which value can contain.
-//     defaultVal: default value in case val is empty. Can be equal to "".
+//
+//	name: name of the field being validated.
+//	val: value to be validated.
+//	options: list of options, one of which value can contain.
+//	defaultVal: default value in case val is empty. Can be equal to "".
+//
 // If there is a problem an error message will be added to the Validation object.
 func (v *Validation) StrValue(name string, val *string, options []string, defaultVal string) {
 	if *val == "" && defaultVal != "" {

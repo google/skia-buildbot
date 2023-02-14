@@ -107,9 +107,10 @@ func Defer() {
 
 // multiString implements flag.Value, allowing it to be used as
 // var slice multiString
-// func init() {
-// 	flag.Var(&slice, "someArg", "list of frobulators")
-// }
+//
+//	func init() {
+//		flag.Var(&slice, "someArg", "list of frobulators")
+//	}
 //
 // And then a client can pass in multiple values like
 // my_executable --someArg foo --someArg bar

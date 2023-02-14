@@ -6,12 +6,13 @@
 //
 // Go implementation of the bash commands from:
 //
-//   https://stackoverflow.com/questions/34037256/does-google-container-registry-support-docker-remote-api-v2/34046435#34046435
+//	https://stackoverflow.com/questions/34037256/does-google-container-registry-support-docker-remote-api-v2/34046435#34046435
 //
 // I.e.:
-//   $ export NAME=project-id/image
-//   $ export BEARER=$(curl -u _token:$(gcloud auth print-access-token) https://gcr.io/v2/token?scope=repository:$NAME:pull | cut -d'"' -f 10)
-//   $ curl -H "Authorization: Bearer $BEARER" https://gcr.io/v2/$NAME/tags/list
+//
+//	$ export NAME=project-id/image
+//	$ export BEARER=$(curl -u _token:$(gcloud auth print-access-token) https://gcr.io/v2/token?scope=repository:$NAME:pull | cut -d'"' -f 10)
+//	$ curl -H "Authorization: Bearer $BEARER" https://gcr.io/v2/$NAME/tags/list
 package gcr
 
 import (

@@ -65,7 +65,8 @@ func singleRequest(c *http.Client, body []byte, domain string, sleep time.Durati
 // failFast - If true then fail fatally.
 // domain - The scheme and domain name to make requests to, e.g. "https://fiddle.skia.org".
 // validator - A function that does extra validation on the fiddle run results. Return true if the
-//   response is valid.
+//
+//	response is valid.
 func Do(body []byte, failFast bool, domain string, validator func(*types.RunResults) bool) (*types.RunResults, bool) {
 	c := httputils.NewTimeoutClient()
 	success := false

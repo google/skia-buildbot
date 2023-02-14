@@ -29,14 +29,13 @@ func (s *EventStream) Range(start, end time.Time) ([]*Event, error) {
 // adds a gauge for it. For example, to compute the sum of all int64 events over
 // a 24-hour period:
 //
-//      s.AggregateMetric(myTags, 24*time.Hour, func(ev []*Event) (float64, error) {
-//              sum := int64(0)
-//              for _, e := range ev {
-//                      sum += decodeInt64(e)
-//              }
-//              return float64(sum), nil
-//      })
-//
+//	s.AggregateMetric(myTags, 24*time.Hour, func(ev []*Event) (float64, error) {
+//	        sum := int64(0)
+//	        for _, e := range ev {
+//	                sum += decodeInt64(e)
+//	        }
+//	        return float64(sum), nil
+//	})
 func (s *EventStream) AggregateMetric(tags map[string]string, period time.Duration, agg AggregateFn) error {
 	return s.m.AggregateMetric(s.name, tags, period, agg)
 }
@@ -45,18 +44,17 @@ func (s *EventStream) AggregateMetric(tags map[string]string, period time.Durati
 // will be added and removed dynamically based on the results of the aggregation
 // function. Here's a toy example:
 //
-//      s.DynamicMetric(myTags, 24*time.Hour, func(ev []Event) (map[string]float64, error) {
-//              counts := map[int64]int64{}
-//              for _, e := range ev {
-//                      counts[decodeInt64(e)]++
-//              }
-//              rv := make(map[string]float64, len(counts))
-//              for k, v := range counts {
-//                      rv[fmt.Sprintf("%d", k)] = float64(v)
-//              }
-//              return rv
-//      })
-//
+//	s.DynamicMetric(myTags, 24*time.Hour, func(ev []Event) (map[string]float64, error) {
+//	        counts := map[int64]int64{}
+//	        for _, e := range ev {
+//	                counts[decodeInt64(e)]++
+//	        }
+//	        rv := make(map[string]float64, len(counts))
+//	        for k, v := range counts {
+//	                rv[fmt.Sprintf("%d", k)] = float64(v)
+//	        }
+//	        return rv
+//	})
 func (s *EventStream) DynamicMetric(tags map[string]string, period time.Duration, agg DynamicAggregateFn) error {
 	return s.m.DynamicMetric(s.name, tags, period, agg)
 }

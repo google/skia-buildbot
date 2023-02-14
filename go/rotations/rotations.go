@@ -1,5 +1,5 @@
 /*
-   Package rotations provides helpers for sheriff/trooper rotations.
+Package rotations provides helpers for sheriff/trooper rotations.
 */
 package rotations
 

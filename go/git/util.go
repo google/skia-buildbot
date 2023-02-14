@@ -87,14 +87,14 @@ func Clone(ctx context.Context, repoUrl, dest string, mirror bool) error {
 
 // LogFromTo returns a string which is used to log from one commit to another.
 // It is important to note that:
-// - The results may include the second commit but will not include the first.
-// - The results include all commits reachable from the first commit which are
-//   not reachable from the second, ie. if there is a merge in the given
-//   range, the results will include that line of history and not just the
-//   commits which are descendants of the first commit. If you want only commits
-//   which are ancestors of the second commit AND descendants of the first, you
-//   should use LogLinear, but note that the results will be empty if the first
-//   commit is not an ancestor of the second, ie. they're on different branches.
+//   - The results may include the second commit but will not include the first.
+//   - The results include all commits reachable from the first commit which are
+//     not reachable from the second, ie. if there is a merge in the given
+//     range, the results will include that line of history and not just the
+//     commits which are descendants of the first commit. If you want only commits
+//     which are ancestors of the second commit AND descendants of the first, you
+//     should use LogLinear, but note that the results will be empty if the first
+//     commit is not an ancestor of the second, ie. they're on different branches.
 func LogFromTo(from, to string) string {
 	return fmt.Sprintf("%s..%s", from, to)
 }
@@ -105,10 +105,9 @@ func LogFromTo(from, to string) string {
 // contain a valid transport protocol, e.g. https, ssh.
 // These URLs will all return 'github.com/skia-dev/textfiles':
 //
-//    "https://github.com/skia-dev/textfiles.git"
-//    "ssh://git@github.com/skia-dev/textfiles"
-//    "ssh://git@github.com:skia-dev/textfiles.git"
-//
+//	"https://github.com/skia-dev/textfiles.git"
+//	"ssh://git@github.com/skia-dev/textfiles"
+//	"ssh://git@github.com:skia-dev/textfiles.git"
 func NormalizeURL(inputURL string) (string, error) {
 	// If the scheme is ssh we have to account for the scp-like syntax with a ':'
 	const ssh = "ssh://"
@@ -155,7 +154,6 @@ func DeleteLockFiles(ctx context.Context, workdir string) error {
 // the format used by git, ie. lines taking the form:
 //
 // mode tree|blob hash name
-//
 func ParseDir(contents []byte) ([]fs.FileInfo, error) {
 	rv := []fs.FileInfo{}
 	for _, line := range strings.Split(strings.TrimSpace(string(contents)), "\n") {

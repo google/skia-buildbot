@@ -62,17 +62,17 @@ type cacheEntry struct {
 //
 // Example:
 //
-//    // During init:
-//    singleTrackerInstance := progress.NewTracker("/_/status/")
-//    router.HandleFunc("/_/status/{id:.+}", t.Handler).Methods("GET")
+//	// During init:
+//	singleTrackerInstance := progress.NewTracker("/_/status/")
+//	router.HandleFunc("/_/status/{id:.+}", t.Handler).Methods("GET")
 //
 // Then in any http handler that starts a long running progress:
 //
-//    prog := StartNewLongRunningProcess()
-//    singleTrackerInstance.Add(prog)
-//    if err := prog.JSON(w); err != nil {
-//      sklog.Error(err)
-//    }
+//	prog := StartNewLongRunningProcess()
+//	singleTrackerInstance.Add(prog)
+//	if err := prog.JSON(w); err != nil {
+//	  sklog.Error(err)
+//	}
 //
 // The serialized Progress contains the URL to make requests back to the app to
 // query the status of the long running process, which will contain the final
@@ -121,7 +121,7 @@ func (t *tracker) get(key string) (*cacheEntry, bool) {
 	return ret, ok
 }
 
-//  singleStep does a single step in the cache cleanup progress.
+// singleStep does a single step in the cache cleanup progress.
 func (t *tracker) singleStep(ctx context.Context) {
 	now := now.Now(ctx)
 	for _, key := range t.cache.Keys() {

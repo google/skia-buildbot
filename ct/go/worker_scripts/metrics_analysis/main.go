@@ -3,7 +3,6 @@
 //
 // Can be tested locally with:
 // $ go run go/worker_scripts/metrics_analysis/main.go --start_range=1 --num=3 --run_id=rmistry-test1 --benchmark_extra_args="--output-format=csv" --metric_name="loadingMetric" --local
-//
 package main
 
 import (
@@ -262,7 +261,9 @@ func downloadTrace(traceURL, destDir string, gs *util.GcsUtil) (string, error) {
 // parseTraceURL parses the provided traceURL and returns the name of the cloud bucket and
 // the path to the trace file within the cloud bucket.
 // Eg: For the traceURL https://storage.cloud.google.com/chrome-telemetry-output/xyz/retry_0/trace.html
-//     "chrome-telemetry-output" and "xyz/retry_0/trace.html" will be returned.
+//
+//	"chrome-telemetry-output" and "xyz/retry_0/trace.html" will be returned.
+//
 // If the provided URL is not in the form that cloudUrlBucketRegex expects then empty strings and an error is returned.
 func parseTraceURL(traceURL string) (string, string, error) {
 	m := cloudUrlBucketRegex.FindStringSubmatch(traceURL)

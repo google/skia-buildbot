@@ -587,7 +587,7 @@ func (g *Gerrit) GetRepoUrl() string {
 // ExtractIssueFromCommit returns the issue id by parsing the commit message of
 // a landed commit. It expects the commit message to contain one line in this format:
 //
-//     Reviewed-on: https://skia-review.googlesource.com/999999
+//	Reviewed-on: https://skia-review.googlesource.com/999999
 //
 // where the digits at the end are the issue id.
 func (g *Gerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {

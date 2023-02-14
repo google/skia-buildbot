@@ -6,10 +6,10 @@ SQL database.
 We store the name of every source file that has been ingested in the SourceFiles
 table so we can use the shorter 64 bit source_file_id in other tables.
 
-    SourceFiles (
-        source_file_id INT PRIMARY KEY DEFAULT unique_rowid(),
-        source_file TEXT UNIQUE NOT NULL
-    )
+	SourceFiles (
+	    source_file_id INT PRIMARY KEY DEFAULT unique_rowid(),
+	    source_file TEXT UNIQUE NOT NULL
+	)
 
 Each trace name, which is a structured key (See /infra/go/query) of the
 form,key1=value1,key2=value2,..., is stored either as the md5 hash of the trace
@@ -20,28 +20,28 @@ When we store the values of each trace in the TraceValues table, use the
 trace_id and the commit_number as the primary key. We also store not only the
 value but the id of the source file that the value came from.
 
-    CREATE TABLE IF NOT EXISTS TraceValues (
-        trace_id BYTES,
-        -- Id of the trace name from TraceIDS.
-        commit_number INT,
-        -- A types.CommitNumber.
-        val REAL,
-        -- The floating point measurement.
-        source_file_id INT,
-        -- Id of the source filename, from SourceFiles.
-        PRIMARY KEY (trace_id, commit_number)
-    );
+	CREATE TABLE IF NOT EXISTS TraceValues (
+	    trace_id BYTES,
+	    -- Id of the trace name from TraceIDS.
+	    commit_number INT,
+	    -- A types.CommitNumber.
+	    val REAL,
+	    -- The floating point measurement.
+	    source_file_id INT,
+	    -- Id of the source filename, from SourceFiles.
+	    PRIMARY KEY (trace_id, commit_number)
+	);
 
 Just using this table we can construct some useful queries. For example we can
 count the number of traces in a single tile, in this case the 0th tile in a
 system with a tileSize of 256:
 
-    SELECT
-        COUNT(DISTINCT trace_id)
-    FROM
-        TraceValues
-    WHERE
-        commit_number >= 0 AND commit_number < 256;
+	SELECT
+	    COUNT(DISTINCT trace_id)
+	FROM
+	    TraceValues
+	WHERE
+	    commit_number >= 0 AND commit_number < 256;
 
 The Postings table is our inverted index for looking up which trace ids contain
 which key=value pairs. For a good introduction to postings and search
@@ -60,81 +60,80 @@ In the table below we store a key_value which is the literal "key=value" part of
 a trace name, along with the tile_number and the md5 trace_id. Note that
 tile_number is just int(commitNumber/tileSize).
 
-    CREATE TABLE IF NOT EXISTS Postings (
-        -- A types.TileNumber.
-        tile_number INT,
-        -- A key value pair from a structured key, e.g. "config=8888".
-        key_value STRING NOT NULL,
-        -- md5(trace_name)
-        trace_id BYTES,
-        PRIMARY KEY (tile_number, key_value, trace_id)
-    );
+	CREATE TABLE IF NOT EXISTS Postings (
+	    -- A types.TileNumber.
+	    tile_number INT,
+	    -- A key value pair from a structured key, e.g. "config=8888".
+	    key_value STRING NOT NULL,
+	    -- md5(trace_name)
+	    trace_id BYTES,
+	    PRIMARY KEY (tile_number, key_value, trace_id)
+	);
 
 Finally, to make it fast to turn UI queries into SQL queries we store the
 ParamSet representing all the trace names in the Tile.
 
-    CREATE TABLE IF NOT EXISTS ParamSets (
-        tile_number INT,
-        param_key STRING,
-        param_value STRING,
-        PRIMARY KEY (tile_number, param_key, param_value),
-        INDEX (tile_number DESC),
-    );
+	CREATE TABLE IF NOT EXISTS ParamSets (
+	    tile_number INT,
+	    param_key STRING,
+	    param_value STRING,
+	    PRIMARY KEY (tile_number, param_key, param_value),
+	    INDEX (tile_number DESC),
+	);
 
 So for example to build a ParamSet for a tile:
 
-    SELECT
-        param_key, param_value
-    FROM
-        ParamSets
-    WHERE
-        tile_number=0;
+	SELECT
+	    param_key, param_value
+	FROM
+	    ParamSets
+	WHERE
+	    tile_number=0;
 
 To find the most recent tile:
 
-    SELECT
-        tile_number
-    FROM
-        ParamSets
-    ORDER BY
-        tile_number DESC LIMIT 1;
-
+	SELECT
+	    tile_number
+	FROM
+	    ParamSets
+	ORDER BY
+	    tile_number DESC LIMIT 1;
 
 To query for traces we first find the trace_ids of all the traces that would
 match the given query on a tile.
 
-    SELECT
-        encode(trace_id, 'hex')
-    FROM
-        Postings
-    WHERE
-        key_value IN ('config=8888', 'config=565')
-        AND tile_number = 0
-    INTERSECT
-    SELECT
-        encode(trace_id, 'hex')
-    FROM
-        Postings
-    WHERE
-        key_value IN ('arch=x86', 'arch=risc-v')
-        AND tile_number = 0;
+	SELECT
+	    encode(trace_id, 'hex')
+	FROM
+	    Postings
+	WHERE
+	    key_value IN ('config=8888', 'config=565')
+	    AND tile_number = 0
+	INTERSECT
+	SELECT
+	    encode(trace_id, 'hex')
+	FROM
+	    Postings
+	WHERE
+	    key_value IN ('arch=x86', 'arch=risc-v')
+	    AND tile_number = 0;
 
 Then once you have all the trace_ids, load the values from the TraceValues
 table.
 
-    SELECT
-        trace_id,
-        commit_number,
-        val
-    FROM
-        TraceValues
-    WHERE
-        tracevalues.commit_number >= 0
-        AND tracevalues.commit_number < 256
-        AND tracevalues.trace_id IN (
-            '\xfe385b159ff55dca481069805e5ff050',
-            '\x277262a9236d571883d47dab102070bc'
-        );
+	SELECT
+	    trace_id,
+	    commit_number,
+	    val
+	FROM
+	    TraceValues
+	WHERE
+	    tracevalues.commit_number >= 0
+	    AND tracevalues.commit_number < 256
+	    AND tracevalues.trace_id IN (
+	        '\xfe385b159ff55dca481069805e5ff050',
+	        '\x277262a9236d571883d47dab102070bc'
+	    );
 
 Look in migrations/cdb.sql for more example of raw queries using a simple
 example dataset.

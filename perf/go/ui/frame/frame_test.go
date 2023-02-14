@@ -116,9 +116,8 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 //
 // The DataFrame returned has the following Traces:
 //
-//     [",arch=x86,config=8888,"] = {1, 2, 3}
-//     [",arch=x86,config=565,"]  = {2, 4, 6}
-//
+//	[",arch=x86,config=8888,"] = {1, 2, 3}
+//	[",arch=x86,config=565,"]  = {2, 4, 6}
 func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.DataFrame, *frameRequestProcess) {
 	t.Helper()
 	dfbMock := &mocks.DataFrameBuilder{}

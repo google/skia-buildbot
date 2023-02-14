@@ -35,7 +35,8 @@ func New(db *pgxpool.Pool) *sqlStore {
 
 // SetIngested implements the ingestion.Store interface.
 // TODO(kjlubick) When the actual SQL ingestion works, change this to be a no-op (the ingesters
-//   themselves will write to this table) and WasIngested to target the SourceFiles table.
+//
+//	themselves will write to this table) and WasIngested to target the SourceFiles table.
 func (s *sqlStore) SetIngested(ctx context.Context, fileName string, ts time.Time) error {
 	sourceID := md5.Sum([]byte(fileName))
 	_, err := s.db.Exec(ctx, `

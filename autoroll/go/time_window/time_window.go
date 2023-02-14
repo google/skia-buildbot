@@ -24,20 +24,20 @@ var (
 // Parse returns a TimeWindow instance based on the given string. Times are
 // interpreted as GMT. The accepted format is as follows:
 //
-//      FullWindowExpr      = SingleDayWindowExpr(;SingleDayWindowExpr)*
-//      SingleDayWindowExpr = DayRangesExpr TimeExpr-TimeExpr
-//      DayRangesExpr       = (*|DayRangeExpr(,DayRangeExpr)*)
-//      DayRangeExpr        = DayExpr(-DayExpr)?
-//      DayExpr             = (Su|M|Tu|W|Th|F|Sa)
-//      TimeExpr            = \d\d:\d\d
+//	FullWindowExpr      = SingleDayWindowExpr(;SingleDayWindowExpr)*
+//	SingleDayWindowExpr = DayRangesExpr TimeExpr-TimeExpr
+//	DayRangesExpr       = (*|DayRangeExpr(,DayRangeExpr)*)
+//	DayRangeExpr        = DayExpr(-DayExpr)?
+//	DayExpr             = (Su|M|Tu|W|Th|F|Sa)
+//	TimeExpr            = \d\d:\d\d
 //
 // Examples:
-//   Day range:                         M-F 09:00-17:00
-//   Every day:                         * 00:00-23:59
-//   Multiple days, same time:          Sa,M-W 08:00-09:00
-//   Multiple days, different times:    Sa 08:00-09:00; M-W 12:00-03:00
-//   Wrap around to next day:           M-F 22:00-02:00
 //
+//	Day range:                         M-F 09:00-17:00
+//	Every day:                         * 00:00-23:59
+//	Multiple days, same time:          Sa,M-W 08:00-09:00
+//	Multiple days, different times:    Sa 08:00-09:00; M-W 12:00-03:00
+//	Wrap around to next day:           M-F 22:00-02:00
 func Parse(s string) (*TimeWindow, error) {
 	if s == "" {
 		// A nil TimeWindow always returns true from Test().

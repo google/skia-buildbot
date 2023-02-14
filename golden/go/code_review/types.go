@@ -48,8 +48,9 @@ type ChangelistCommenter interface {
 
 // ErrNotFound is an error used to indicate something could not be found.
 // TODO(kjlubick) This model of err checking is potentially brittle, perhaps something like
-//   https://golang.org/pkg/os/#IsExist is better, or using errors.Is
-//   https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
+//
+//	https://golang.org/pkg/os/#IsExist is better, or using errors.Is
+//	https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 var ErrNotFound = errors.New("not found")
 
 type Changelist struct {

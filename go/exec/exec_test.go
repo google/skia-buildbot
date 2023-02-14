@@ -261,9 +261,11 @@ sys.stderr.write('blue')
 
 // Previously there was a bug due to code like:
 // var outputFile *os.File
-// if outputToFile {
-// 	outputFile = ...
-// }
+//
+//	if outputToFile {
+//		outputFile = ...
+//	}
+//
 // Run(&Command{... Stdout: outputFile})
 // See http://devs.cloudimmunity.com/gotchas-and-common-mistakes-in-go-golang/index.html#nil_in_nil_in_vals
 func TestNilIO(t *testing.T) {

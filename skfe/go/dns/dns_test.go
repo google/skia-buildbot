@@ -13,8 +13,7 @@ import (
 
 // Find the name of the nameservers to use for Cloud DNS by running:
 //
-//     gcloud dns managed-zones describe skia-org
-//
+//	gcloud dns managed-zones describe skia-org
 var allNameServers = []string{
 	// These names come from running `gcloud dns managed-zones describe skia-org`.
 	"ns-cloud-c1.googledomains.com:53",

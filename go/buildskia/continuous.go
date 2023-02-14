@@ -73,13 +73,13 @@ type ContinuousBuilder struct {
 
 // New returns a new ContinuousBuilder instance.
 //
-//    workRoot - The root directory where work is stored.
-//    depotTools - The directory where depot_tools is checked out.
-//    repo - A vcs to pull hash info from.
-//    perBuild - A PerBuild callback that gets called every time a new successful build of Skia is available.
-//    preserve - The number of LKGR builds to preserve after decimation.
-//    timeBetweenBuilds - The duration between attempts to pull LGKR and built it.
-//    useGn - Use GN as the meta build system, as opposed to GYP.
+//	workRoot - The root directory where work is stored.
+//	depotTools - The directory where depot_tools is checked out.
+//	repo - A vcs to pull hash info from.
+//	perBuild - A PerBuild callback that gets called every time a new successful build of Skia is available.
+//	preserve - The number of LKGR builds to preserve after decimation.
+//	timeBetweenBuilds - The duration between attempts to pull LGKR and built it.
+//	useGn - Use GN as the meta build system, as opposed to GYP.
 //
 // Call Start() to begin the continous build Go routine.
 func New(ctx context.Context, workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
@@ -147,9 +147,9 @@ func prepDirectory(workRoot string) (string, error) {
 // The library will be checked out into workRoot + "/" + githash, where githash
 // is the githash of the LKGR of Skia.
 //
-//    force - If true then checkout and build even if the directory already exists.
-//    head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
-//    deps - If true then install Skia dependencies.
+//	force - If true then checkout and build even if the directory already exists.
+//	head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
+//	deps - If true then install Skia dependencies.
 //
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
@@ -335,10 +335,10 @@ func (b *ContinuousBuilder) startDecimation(ctx context.Context) {
 // and an error if one occurred.
 //
 // The algorithm is:
-//   Preserve all hashes that are spaced one month apart.
-//   Then if there are more than 'limit' remaining hashes
-//   remove every other one to bring the count down to 'limit'/2.
 //
+//	Preserve all hashes that are spaced one month apart.
+//	Then if there are more than 'limit' remaining hashes
+//	remove every other one to bring the count down to 'limit'/2.
 func decimate(ctx context.Context, hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, error) {
 	keep := []string{}
 	remove := []string{}

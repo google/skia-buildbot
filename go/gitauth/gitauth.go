@@ -61,12 +61,12 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 // filename - The name of the git cookie file, e.g. "~/.git-credential-cache/cookie".
 // config - If true then set the http.cookiefile config globally for git and set the user name and email globally if 'email' is not the empty string.
 // email - The email address of the authorized account. Used to set the git config user.name and user.email. Can be "", in which case user.name
-//    and user.email are not set.
+//
+//	and user.email are not set.
 //
 // If config if false then Git must be told about the location of the Cookie file, for example:
 //
-//    git config --global http.cookiefile ~/.git-credential-cache/cookie
-//
+//	git config --global http.cookiefile ~/.git-credential-cache/cookie
 func New(tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
 	if config {
 		gitExec, err := git.Executable(context.TODO())

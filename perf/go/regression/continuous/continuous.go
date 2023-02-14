@@ -73,9 +73,9 @@ type Continuous struct {
 
 // New creates a new *Continuous.
 //
-//   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
-//   numCommits - The number of commits to run the clustering over.
-//   radius - The number of commits on each side of a commit to include when clustering.
+//	provider - Produces the slice of alerts.Config's that determine the clustering to perform.
+//	numCommits - The number of commits to run the clustering over.
+//	radius - The number of commits on each side of a commit to include when clustering.
 func New(
 	perfGit *perfgit.Git,
 	shortcutStore shortcut.Store,

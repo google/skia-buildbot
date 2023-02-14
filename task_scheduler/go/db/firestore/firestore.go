@@ -93,12 +93,12 @@ func estResultSize(chunkSize time.Duration) int {
 // goroutines. In order to get the correct behavior without needing locks, the
 // caller must provide two functions:
 //
-// 1. An initializer for the results. dateRangeHelper calls this function with
-//    the number of goroutines it will use to load the results.
-// 2. A function to call for each element. The index of the calling goroutine
-//    will be provided as the first argument to this function so that the caller
-//    can distinguish results from different goroutines, thus avoiding the need
-//    for a mutex.
+//  1. An initializer for the results. dateRangeHelper calls this function with
+//     the number of goroutines it will use to load the results.
+//  2. A function to call for each element. The index of the calling goroutine
+//     will be provided as the first argument to this function so that the caller
+//     can distinguish results from different goroutines, thus avoiding the need
+//     for a mutex.
 func (d *firestoreDB) dateRangeHelper(ctx context.Context, name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
 	start = firestore.FixTimestamp(start)

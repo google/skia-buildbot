@@ -136,7 +136,6 @@ func InfraError(err error) error {
 //	if err := doSomething(); err != nil {
 //		return FailStep(ctx, err)
 //	}
-//
 func FailStep(ctx context.Context, err error) error {
 	props := getCtx(ctx).step
 	if props.IsInfra {
@@ -256,7 +255,6 @@ func NewLogStream(ctx context.Context, name string, severity Severity) io.Writer
 //	fs := s.NewFileStream("verbose")
 //	defer util.Close(fs)
 //	_, err := s.RunCwd(".", myTestProg, "--verbose", fs.FilePath())
-//
 type FileStream struct {
 	cancel  context.CancelFunc
 	ctx     context.Context

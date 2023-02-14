@@ -37,21 +37,21 @@ func muxClientNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Examples:
 //
-//    // Mock out a URL to always respond with the same body.
-//    r := mux.NewRouter()
-//    r.Schemes("https").Host("www.google.com").Methods("GET").
-//        Handler(MockGetDialogue([]byte("Here's a response.")))
-//    client := NewMuxClient(r)
-//    res, _ := client.Get("https://www.google.com")
-//    respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
+//	// Mock out a URL to always respond with the same body.
+//	r := mux.NewRouter()
+//	r.Schemes("https").Host("www.google.com").Methods("GET").
+//	    Handler(MockGetDialogue([]byte("Here's a response.")))
+//	client := NewMuxClient(r)
+//	res, _ := client.Get("https://www.google.com")
+//	respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
 //
-//    // Check that the client uses the correct ID in the request.
-//    r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-//        Queries("name", "{name}", "size", "42").
-//        HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//          t := MuxSafeT(t)
-//          assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
-//        })
+//	// Check that the client uses the correct ID in the request.
+//	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
+//	    Queries("name", "{name}", "size", "42").
+//	    HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//	      t := MuxSafeT(t)
+//	      assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+//	    })
 func NewMuxClient(r *mux.Router) *http.Client {
 	if r.NotFoundHandler == nil {
 		r.NotFoundHandler = http.HandlerFunc(muxClientNotFoundHandler)

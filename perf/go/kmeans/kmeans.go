@@ -5,7 +5,6 @@
 // type can be used as both a Clusterable and a Centroid.
 //
 // See the unit tests for examples.
-//
 package kmeans
 
 import "math"
@@ -46,8 +45,7 @@ func closestCentroid(observation Clusterable, centroids []Centroid) (int, float6
 // that the centroids array passed in gets modified so the best way to call the
 // function is:
 //
-//  centroids = Do(observations, centroids, f)
-//
+//	centroids = Do(observations, centroids, f)
 func Do(observations []Clusterable, centroids []Centroid, f CalculateCentroid) []Centroid {
 	k := len(centroids)
 

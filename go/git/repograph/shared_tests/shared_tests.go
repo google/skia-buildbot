@@ -45,7 +45,8 @@ func CommonSetup(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder,
 // The repo layout looks like this:
 //
 // c1--c2------c4--c5--
-//       \-c3-----/
+//
+//	\-c3-----/
 func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) []*repograph.Commit {
 	t0 := time.Unix(1564963200, 0) // Arbitrary time to fix commit hashes.
 	ts := t0

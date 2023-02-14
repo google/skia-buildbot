@@ -411,7 +411,7 @@ func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.L
 // import.
 //
 // If the import refers to an NPM package with a separate types declaration (e.g. "foo" and
-//"@types/foo"), the labels for both dependencies will be returned.
+// "@types/foo"), the labels for both dependencies will be returned.
 func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel label.Label, importPath string, repoRootDir string) []ruleKindAndLabel {
 	// Is this an import of another source file in the repository?
 	if strings.HasPrefix(importPath, "./") || strings.HasPrefix(importPath, "../") {
@@ -511,7 +511,7 @@ func (rslv *Resolver) getNPMPackages(path string) map[string]bool {
 //
 // This set can be regenerated via the following command:
 //
-//     $ echo "require('module').builtinModules.forEach(m => console.log(m))" | nodejs
+//	$ echo "require('module').builtinModules.forEach(m => console.log(m))" | nodejs
 //
 // See https://nodejs.org/api/module.html#module_module_builtinmodules.
 var builtInNodeJSModules = map[string]bool{

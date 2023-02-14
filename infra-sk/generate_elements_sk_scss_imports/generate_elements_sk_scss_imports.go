@@ -26,7 +26,7 @@ import (
 // This list can be regenerated with the following command, which must be run from an elements-sk
 // repository checkout:
 //
-//     $ find src | grep \.scss$ | sed -E "s/^src/elements-sk/" | sort
+//	$ find src | grep \.scss$ | sed -E "s/^src/elements-sk/" | sort
 var knownStylesheets = []string{
 	"elements-sk/checkbox-sk/checkbox-sk.scss",
 	"elements-sk/collapse-sk/collapse-sk.scss",

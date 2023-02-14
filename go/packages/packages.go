@@ -49,7 +49,6 @@ func (p *Package) String() string {
 }
 
 // Installed is a list of all the packages installed on a server.
-//
 type Installed struct {
 	// Names is a list of package names, of the form "{appname}/{appname}:{author}:{date}:{githash}.deb"
 	Names []string

@@ -226,7 +226,8 @@ func (g *MemGit) update() {
 //
 // older           newer
 // c0--c1------c3--c4--
-//       \-c2-----/
+//
+//	\-c2-----/
 //
 // Returns the commit hashes in order from c0-c4. This is analogous to
 // git_builder.FillWithBranchingHistory.

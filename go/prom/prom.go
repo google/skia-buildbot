@@ -15,11 +15,11 @@ var (
 
 // EquationFromExpr returns the equation from an expression. For example:
 //
-//      "liveness_ci_pubsub_receive_s > 60 * 60 * 24 * 2"
+//	"liveness_ci_pubsub_receive_s > 60 * 60 * 24 * 2"
 //
 // Will return:
 //
-//       "liveness_ci_pubsub_receive_s"
+//	"liveness_ci_pubsub_receive_s"
 //
 // Note that for this to work the equation needs to be on the right hand side fo
 // the expression, and there must be spaces on either side of any comparison

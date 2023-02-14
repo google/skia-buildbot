@@ -1,5 +1,5 @@
 /*
-	Used by the Leasing Server to interact with swarming.
+Used by the Leasing Server to interact with swarming.
 */
 package main
 

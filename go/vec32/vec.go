@@ -122,11 +122,11 @@ func TwoSidedStdDev(arr []float32) (float32, float32, float32, error) {
 //
 // We calculate TwoSidedStdDev:
 //
-//   median, lower, upper = TwoSidedStdDev(values)
+//	median, lower, upper = TwoSidedStdDev(values)
 //
 // Then calculate the std dev ratio (d):
 //
-//   d = (x-median)/[lower|upper]
+//	d = (x-median)/[lower|upper]
 //
 // The value of d is the difference between the last point in arr (x) and the
 // median, divided by the lower or upper standard deviation. If x > median then
@@ -246,15 +246,20 @@ func Norm(a []float32, minStdDev float32) {
 // using the first non sentinel found when searching backwards from the end.
 //
 // So
-//    [1e32, 1e32,   2, 3, 1e32, 5]
+//
+//	[1e32, 1e32,   2, 3, 1e32, 5]
+//
 // becomes
-//    [2,    2,      2, 3, 5,    5]
+//
+//	[2,    2,      2, 3, 5,    5]
 //
 // and
-//    [3, 1e32, 5, 1e32, 1e32]
-// becomes
-//    [3, 5,    5, 5,    5]
 //
+//	[3, 1e32, 5, 1e32, 1e32]
+//
+// becomes
+//
+//	[3, 5,    5, 5,    5]
 //
 // Note that a vector filled with all sentinels will be filled with 0s.
 func Fill(a []float32) {

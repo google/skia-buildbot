@@ -9,18 +9,18 @@
 // address, which can be used for audit logging. The application running behind
 // auth-proxy should then use:
 //
-//     https://pkg.go.dev/go.skia.org/infra/go/alogin/proxylogin
+//	https://pkg.go.dev/go.skia.org/infra/go/alogin/proxylogin
 //
 // When using --cria_group this application should be run using work-load
 // identity with a service account that as read access to CRIA, such as:
 //
-//     skia-auth-proxy-cria-reader@skia-public.iam.gserviceaccount.com
+//	skia-auth-proxy-cria-reader@skia-public.iam.gserviceaccount.com
 //
 // See also:
 //
-//     https://chrome-infra-auth.appspot.com/auth/groups/project-skia-auth-service-access
+//	https://chrome-infra-auth.appspot.com/auth/groups/project-skia-auth-service-access
 //
-//     https://grafana.com/blog/2015/12/07/grafana-authproxy-have-it-your-way/
+//	https://grafana.com/blog/2015/12/07/grafana-authproxy-have-it-your-way/
 package authproxy
 
 import (

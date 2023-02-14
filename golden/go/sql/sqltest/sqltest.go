@@ -201,14 +201,14 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 // the rows in, which can make for easier to debug tests.
 //
 // Usage ideas:
-//  - A test does not make any changes to a table, then asserts that the returned slices are empty.
-//  - A test adds a row, then asserts that the slice with missing rows is empty, and that the slice
-//    with new rows contains the added row.
-//  - A test deletes a row, then asserts that the slice with missing rows contains the deleted row,
-//    and that the slice with new rows is empty.
-//  - A test updates a row, then asserts that the slice with missing rows contains the affected row
-//    prior to the update, and that the slice with new rows contains the affected row after the
-//    update.
+//   - A test does not make any changes to a table, then asserts that the returned slices are empty.
+//   - A test adds a row, then asserts that the slice with missing rows is empty, and that the slice
+//     with new rows contains the added row.
+//   - A test deletes a row, then asserts that the slice with missing rows contains the deleted row,
+//     and that the slice with new rows is empty.
+//   - A test updates a row, then asserts that the slice with missing rows contains the affected row
+//     prior to the update, and that the slice with new rows contains the affected row after the
+//     update.
 func GetRowChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, t0 time.Time) (missingRows, newRows []T) {
 	getRows := func(statement string) []T {
 		rows, err := db.Query(ctx, statement)

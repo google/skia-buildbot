@@ -112,7 +112,9 @@ func main() {
 
 // matchesChangelist returns true if the given file name matches a changelist id. That is,
 // there exists "/[clid]" somewhere in the name. For example:
-//   trybot/dm-json-v1/2021/09/23/02/4140248__1/8835339621082367857/dm-1632364432749558598.json
+//
+//	trybot/dm-json-v1/2021/09/23/02/4140248__1/8835339621082367857/dm-1632364432749558598.json
+//
 // has a match for CL 4140248. It's implemented simply, meant for some adhoc re-ingestion.
 func matchesChangelist(changelistIDs *[]string, name string) bool {
 	if changelistIDs == nil || len(*changelistIDs) == 0 {

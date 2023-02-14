@@ -201,10 +201,10 @@ func TestSobel_Success(t *testing.T) {
 // TestSobel_SmallImages_Success tests various edge cases involving small images.
 //
 // Notes:
-// - In practice the sobel() function will usually be invoked with much larger images.
-// - While these edge cases are unlikely to occur in practice, they exposed a number of bugs during
-//   development (e.g. indexing and off-by-one errors). Those same bugs could be exposed with
-//   larger, more realistic images, but using small images makes it easier to debug failing tests.
+//   - In practice the sobel() function will usually be invoked with much larger images.
+//   - While these edge cases are unlikely to occur in practice, they exposed a number of bugs during
+//     development (e.g. indexing and off-by-one errors). Those same bugs could be exposed with
+//     larger, more realistic images, but using small images makes it easier to debug failing tests.
 func TestSobel_SmallImages_Success(t *testing.T) {
 
 	tests := []struct {

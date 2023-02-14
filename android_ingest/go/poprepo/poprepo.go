@@ -105,7 +105,6 @@ func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error)
 }
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
-//
 func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	rollback := false
 	defer func() {
