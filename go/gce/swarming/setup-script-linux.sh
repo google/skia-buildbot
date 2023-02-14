@@ -205,3 +205,6 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable swarming_bot.service
+
+# Give the "docker" command access to GCR.
+gcloud auth configure-docker --quiet
