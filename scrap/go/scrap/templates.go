@@ -1,14 +1,99 @@
 package scrap
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 
 	"go.skia.org/infra/go/skerr"
 )
 
+const whitespaceChars = "\n\r\t "
+
+var (
+	uniformFloatScalarRegex = regexp.MustCompile(`^float([234]?)$`)
+	uniformFloatMatrixRegex = regexp.MustCompile(`^float([234])x([234])$`)
+	uniformDefinitionRegex  = regexp.MustCompile(`^\s*uniform\s+(?P<type>float[234x]*)\s+(?P<name>i[^\s;]+)\s*;$`)
+)
+
 type templateMap map[Lang]map[Type]*template.Template
+
+// floatSliceToString will convert a slice of float32's to a string
+// representation. e.g. []float{1,2,3} will become "1, 2, 3"
+func floatSliceToString(floats []float32) string {
+	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(floats)), ", "), "[]")
+}
+
+// uniformValue represents a single instance of a uniform definition
+// in a shader script. For example a definition like:
+//
+// uniform float3 iColor;
+//
+// will have a Name of "iColor", and a Type of "float3".
+type uniformValue struct {
+	Name string
+	Type string
+}
+
+// numFloats will return the number of floats needed to represent a
+// uniformValue.
+func (u uniformValue) numFloats() (int, error) {
+	if u.Type == "float" {
+		return 1, nil
+	}
+	m := uniformFloatScalarRegex.FindStringSubmatch(u.Type)
+	if m != nil {
+		n, err := strconv.Atoi(m[1])
+		if err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		return n, nil
+	}
+	if m = uniformFloatMatrixRegex.FindStringSubmatch(u.Type); m != nil {
+		x, err := strconv.Atoi(m[1])
+		if err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		y, err := strconv.Atoi(m[2])
+		if err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		return x * y, nil
+	}
+	return 0, skerr.Fmt("Can't determine size of %q", u.Type)
+}
+
+func (u uniformValue) getCppDefinitionString(vals []float32) (string, error) {
+	switch u.Type {
+	case "float":
+		return fmt.Sprintf(`builder.uniform("%s") = %s;`, u.Name, floatSliceToString(vals[0:1])), nil
+	case "float2":
+		return fmt.Sprintf(`builder.uniform("%s") = SkV2{%s};`, u.Name, floatSliceToString(vals[0:2])), nil
+	case "float3":
+		return fmt.Sprintf(`builder.uniform("%s") = SkV3{%s};`, u.Name, floatSliceToString(vals[0:3])), nil
+	case "float4":
+		return fmt.Sprintf(`builder.uniform("%s") = SkV4{%s};`, u.Name, floatSliceToString(vals[0:4])), nil
+	case "float2x2":
+		return fmt.Sprintf(`builder.uniform("%s") = SkV4{%s};`, u.Name, floatSliceToString(vals[0:4])), nil
+	}
+	return "", skerr.Fmt("Unsupported uniform type %q", u.Type)
+}
+
+func extractBodyUniforms(body ScrapBody) ([]uniformValue, error) {
+	var uniforms []uniformValue
+	for _, line := range strings.Split(body.Body, "\n") {
+		if m := uniformDefinitionRegex.FindStringSubmatch(line); m != nil {
+			uniforms = append(uniforms, uniformValue{
+				Name: m[2],
+				Type: m[1],
+			})
+		}
+	}
+	return uniforms, nil
+}
 
 func templateName(t Type, lang Lang) string {
 	return fmt.Sprintf("%s-%s", t, lang)
@@ -49,19 +134,24 @@ func bodyAsQuotedStringSlice(body string) []string {
 	return ret
 }
 
-// bodyStringSlice is a template helper function that splits up a ScrapBody
-// into a slice of strings representing each line of the ScrapBody.
-//
-// That is, it takes "foo \nbar"
-//
-// And turns it into:
-//
-//	[]string{
-//	  "foo ",
-//	  "bar",
-//	}
-func bodyStringSlice(body string) []string {
-	return strings.Split(body, "\n")
+// indentMultilineString will indent each line of a multiline string,
+// if that line is not empty, by the number of spaces specified by |indent|.
+// Each line will also be trimmed of all trailing whitespace characters.
+func indentMultilineString(body string, indent int) string {
+	var buffer bytes.Buffer
+	first := true
+	for _, line := range strings.Split(body, "\n") {
+		if !first {
+			buffer.WriteString("\n")
+		}
+		first = false
+		line = strings.TrimRight(line, whitespaceChars)
+		if len(line) > 0 {
+			buffer.WriteString(strings.Repeat(" ", indent))
+			buffer.WriteString(line)
+		}
+	}
+	return buffer.String()
 }
 
 func getSkSLImageURL(body ScrapBody) string {
@@ -102,12 +192,50 @@ func getSkSLCustomUniforms(body ScrapBody) string {
 	return fmt.Sprintf("\n      // User supplied uniform values:\n      %s", vals)
 }
 
+// cppCustomUniformValues will return a string that is valid C++ to
+// define and initialize the custom uniforms defined in a SkSL scrap.
+func cppCustomUniformValues(body ScrapBody) string {
+	if body.Type != SKSL || body.SKSLMetaData == nil || len(body.SKSLMetaData.Uniforms) == 0 {
+		return ""
+	}
+	uniforms, err := extractBodyUniforms(body)
+	if err != nil {
+		return ""
+	}
+	requiredFloatCount := 0
+	for _, u := range uniforms {
+		num, err := u.numFloats()
+		if err != nil {
+			return "    // Cannot determine input size."
+		}
+		requiredFloatCount += num
+	}
+	if requiredFloatCount != len(body.SKSLMetaData.Uniforms) {
+		return fmt.Sprintf("    // User inputs size mismatch: %d != %d.",
+			requiredFloatCount, len(body.SKSLMetaData.Uniforms))
+	}
+	i := 0
+	var buffer bytes.Buffer
+	buffer.WriteString("    // Inputs supplied by user:\n")
+	for _, u := range uniforms {
+		s, err := u.getCppDefinitionString(body.SKSLMetaData.Uniforms[i:])
+		if err != nil {
+			return fmt.Sprintf("    // Cannot get C++ definition for %s (%s).", u.Name, u.Type)
+		}
+		buffer.WriteString(fmt.Sprintf("    %s\n", s))
+		num, _ := u.numFloats()
+		i += num
+	}
+	return buffer.String()
+}
+
 // funcMap are the template helper functions available in each template.
 var funcMap = template.FuncMap{
 	"bodyAsQuotedStringSlice": bodyAsQuotedStringSlice,
-	"bodyStringSlice":         bodyStringSlice,
 	"getSkSLImageURL":         getSkSLImageURL,
 	"getSkSLCustomUniforms":   getSkSLCustomUniforms,
+	"cppCustomUniformValues":  cppCustomUniformValues,
+	"indentMultilineString":   indentMultilineString,
 }
 
 func loadTemplates() (templateMap, error) {
@@ -172,8 +300,8 @@ const skslCpp = `void draw(SkCanvas *canvas) {
         uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
         uniform float3 iImageResolution; // iImage1 resolution (pixels)
         uniform shader iImage1;          // An input image.
-{{ range bodyStringSlice .Body }}
-        {{.}}{{end}}
+
+{{ indentMultilineString .Body 8 }}
     )";
 
     // Parse the SkSL, and create an SkRuntimeEffect object:
@@ -188,6 +316,7 @@ const skslCpp = `void draw(SkCanvas *canvas) {
         SkV3{(float)image->width(), (float)image->height(), 1.0f};
     builder.child("iImage1") =
         image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+{{ cppCustomUniformValues . }}
     sk_sp<SkShader> myShader = builder.makeShader();
 
     // Fill the surface with |myShader|:
@@ -225,8 +354,8 @@ Promise.all([loadImage]).then((values) => {
     uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
     uniform float3 iImageResolution; // iImage1 resolution (pixels)
     uniform shader iImage1;          // An input image.
-{{ range bodyStringSlice .Body }}
-    {{.}}{{end}}
+
+{{ indentMultilineString .Body 4 }}
     ` + "`" + `;
 
   const effect = CanvasKit.RuntimeEffect.Make(prog);
