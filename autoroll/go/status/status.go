@@ -240,5 +240,5 @@ func NewDB(ctx context.Context, project, namespace, instance string, ts oauth2.T
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return NewMultiDB([]DB{dsDB, fsDB})
+	return NewMultiDB([]DB{fsDB, dsDB})
 }
