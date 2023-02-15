@@ -235,5 +235,14 @@ var _ DB = &DatastoreDB{}
 // NewDB returns a MultiDB which uses Datastore as the
 // primary DB and also writes to Firestore.
 func NewDB(ctx context.Context, project, namespace, instance string, ts oauth2.TokenSource) (DB, error) {
-	return NewFirestoreDBWithParams(ctx, project, namespace, instance, ts)
+	rv, err := NewFirestoreDBWithParams(ctx, project, namespace, instance, ts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	exportDB, err := NewFirestoreDBWithParams(ctx, project, ds.AUTOROLL_NS, instance, ts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv.exportDB = exportDB
+	return rv, nil
 }

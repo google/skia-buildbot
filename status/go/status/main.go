@@ -421,7 +421,9 @@ func main() {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to initialize datastore: %s", err)
 	}
-	autorollStatusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, ds.AUTOROLL_NS, *firestoreInstance, ts)
+	// TODO(borenet): We're hard-coding the Firestore instance. We should find a
+	// way not to do so.
+	autorollStatusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, ds.AUTOROLL_NS, "production", ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create status DB: %s", err)
 	}

@@ -7,6 +7,7 @@ import (
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
 
@@ -24,8 +25,9 @@ const (
 
 // FirestoreDB implements DB using Firestore.
 type FirestoreDB struct {
-	client *firestore.Client
-	coll   *fs.CollectionRef
+	client   *firestore.Client
+	coll     *fs.CollectionRef
+	exportDB DB
 }
 
 // NewFirestoreDBWithParams returns a FirestoreDB instance using the given params.
@@ -69,6 +71,14 @@ func (d *FirestoreDB) Set(ctx context.Context, rollerID string, st *AutoRollStat
 	ref := d.coll.Doc(rollerID)
 	if _, err := ref.Set(ctx, st); err != nil {
 		return skerr.Wrap(err)
+	}
+	if d.exportDB != nil && util.In(rollerID, exportRollers) {
+		exportStatus := &AutoRollStatus{
+			AutoRollMiniStatus: st.AutoRollMiniStatus,
+		}
+		if err := d.exportDB.Set(ctx, rollerID, exportStatus); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 	return nil
 }
