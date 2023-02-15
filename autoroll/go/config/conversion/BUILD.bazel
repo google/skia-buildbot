@@ -1,0 +1,36 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "conversion",
+    srcs = ["conversion.go"],
+    embedsrcs = [
+        "autoroll-be.yaml.template",
+        "autoroll-ns.yaml.template",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/config/conversion",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/chrome_branch",
+        "//go/gcs/gcsclient",
+        "//go/gitiles",
+        "//go/skerr",
+        "//go/sklog",
+        "//kube/go/kube_conf_gen_lib",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+        "@org_golang_google_protobuf//encoding/protojson",
+        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "conversion_test",
+    srcs = ["conversion_test.go"],
+    embed = [":conversion"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

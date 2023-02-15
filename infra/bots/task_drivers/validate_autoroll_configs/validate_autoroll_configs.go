@@ -8,17 +8,20 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
+	"io/fs"
 	"io/ioutil"
+	"net/http"
 	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_driver/go/lib/os_steps"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -44,37 +47,59 @@ var (
 	}
 )
 
-func validateConfig(ctx context.Context, f string) (string, error) {
+func validateConfig(ctx context.Context, content []byte) (string, error) {
+	// Decode the config.
+	var cfg config.Config
+	if err := prototext.Unmarshal(content, &cfg); err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Validate the config.
+	if err := cfg.Validate(); err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	gerrit := cfg.GetGerrit()
+	if gerrit != nil && util.In(gerrit.Url, chromiumGerritHosts) && (gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT && gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ) {
+		return "", skerr.Fmt("Chromium rollers must use Gerrit config CHROMIUM_BOT_COMMIT")
+	}
+
+	return cfg.RollerName, nil
+}
+
+func readAndValidateConfig(ctx context.Context, f string) (string, error) {
 	var rollerName string
 	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
-		// Decode the config.
-		var cfg config.Config
-		if err := util.WithReadFile(f, func(f io.Reader) error {
-			b, err := ioutil.ReadAll(f)
+		content, err := ioutil.ReadFile(f)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		rollerName, err = validateConfig(ctx, content)
+		return skerr.Wrap(err)
+	})
+}
+
+func validateTemplate(ctx context.Context, client *http.Client, vars *conversion.TemplateVars, f string) ([]string, error) {
+	var rollerNames []string
+	err := td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
+		tmplContents, err := ioutil.ReadFile(f)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		generatedConfigs, err := conversion.ProcessTemplate(ctx, client, f, string(tmplContents), vars)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to process template file %s", f)
+		}
+		for _, cfgBytes := range generatedConfigs {
+			rollerName, err := validateConfig(ctx, cfgBytes)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
-			if err := prototext.Unmarshal(b, &cfg); err != nil {
-				return skerr.Wrap(err)
-			}
-			return nil
-		}); err != nil {
-			td.Fatalf(ctx, "%s failed validation: %s", f, err)
+			rollerNames = append(rollerNames, rollerName)
 		}
-
-		// Validate the config.
-		if err := cfg.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-
-		gerrit := cfg.GetGerrit()
-		if gerrit != nil && util.In(gerrit.Url, chromiumGerritHosts) && (gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT && gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ) {
-			return skerr.Fmt("Chromium rollers must use Gerrit config CHROMIUM_BOT_COMMIT")
-		}
-
-		rollerName = cfg.RollerName
 		return nil
 	})
+	return rollerNames, err
 }
 
 func main() {
@@ -85,34 +110,42 @@ func main() {
 	if len(*configsFlag) == 0 {
 		td.Fatalf(ctx, "--config is required.")
 	}
+	ts, err := git_steps.Init(ctx, true)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	vars, err := conversion.CreateTemplateVars(ctx, client, "", "")
+	if err != nil {
+		td.Fatalf(ctx, "Failed to create template vars: %s", err)
+	}
 
 	// Gather files to validate.
 	configFiles := []string{}
+	templateFiles := []string{}
 	for _, cfgPath := range *configsFlag {
-		f, err := os_steps.Stat(ctx, cfgPath)
-		if err != nil {
-			td.Fatal(ctx, err)
-		}
-		if f.IsDir() {
-			files, err := os_steps.ReadDir(ctx, cfgPath)
+		if err := filepath.Walk(cfgPath, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
-				td.Fatal(ctx, err)
+				return err
 			}
-			for _, f := range files {
-				// Ignore subdirectories and file names not ending with '.cfg'
-				if !f.IsDir() && strings.HasSuffix(f.Name(), ".cfg") {
-					configFiles = append(configFiles, filepath.Join(cfgPath, f.Name()))
+			if !info.IsDir() {
+				if strings.HasSuffix(info.Name(), ".cfg") {
+					configFiles = append(configFiles, path)
+				}
+				if strings.HasSuffix(info.Name(), ".tmpl") {
+					templateFiles = append(templateFiles, path)
 				}
 			}
-		} else {
-			configFiles = append(configFiles, cfgPath)
+			return nil
+		}); err != nil {
+			td.Fatal(ctx, err)
 		}
 	}
 
 	// Validate the file(s).
 	rollers := make(map[string]string, len(configFiles))
 	for _, f := range configFiles {
-		rollerName, err := validateConfig(ctx, f)
+		rollerName, err := readAndValidateConfig(ctx, f)
 		if err != nil {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
@@ -120,6 +153,18 @@ func main() {
 			td.Fatalf(ctx, "Roller %q is defined in both %s and %s", rollerName, f, otherFile)
 		}
 		rollers[rollerName] = f
+	}
+	for _, f := range templateFiles {
+		rollerNames, err := validateTemplate(ctx, client, vars, f)
+		if err != nil {
+			td.Fatalf(ctx, "%s failed validation: %s", f, err)
+		}
+		for _, rollerName := range rollerNames {
+			if otherFile, ok := rollers[rollerName]; ok {
+				td.Fatalf(ctx, "Roller %q is defined in both %s and %s", rollerName, f, otherFile)
+			}
+			rollers[rollerName] = f
+		}
 	}
 	sklog.Infof("Validated %d files.", len(configFiles))
 }
