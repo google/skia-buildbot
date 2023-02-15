@@ -199,7 +199,7 @@ func CreateTemplateVars(ctx context.Context, client *http.Client, privacySandbox
 }
 
 // ProcessTemplate converts a single template into at least one config.
-func ProcessTemplate(ctx context.Context, client *http.Client, srcPath, tmplContents string, vars *TemplateVars) (map[string][]byte, error) {
+func ProcessTemplate(ctx context.Context, client *http.Client, srcPath, tmplContents string, vars *TemplateVars, checkGCSArtifacts bool) (map[string][]byte, error) {
 	// Read and execute the template.
 	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(funcMap).Parse(tmplContents)
 	if err != nil {
@@ -220,9 +220,13 @@ func ProcessTemplate(ctx context.Context, client *http.Client, srcPath, tmplCont
 	// Filter out any rollers whose required GCS artifacts do not exist.
 	filteredConfigs := make([]*config.Config, 0, len(configs.Config))
 	for _, cfg := range configs.Config {
-		missing, err := gcsArtifactIsMissing(ctx, client, cfg)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "failed to check whether GCS artifact exists for %s (from %s)", cfg.RollerName, srcPath)
+		missing := false
+		if checkGCSArtifacts {
+			var err error
+			missing, err = gcsArtifactIsMissing(ctx, client, cfg)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "failed to check whether GCS artifact exists for %s (from %s)", cfg.RollerName, srcPath)
+			}
 		}
 		if missing {
 			sklog.Warningf("Skipping roller %s; required GCS artifact does not exist.", cfg.RollerName)

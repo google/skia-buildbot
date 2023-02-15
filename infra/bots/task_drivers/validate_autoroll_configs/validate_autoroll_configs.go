@@ -28,11 +28,12 @@ import (
 
 var (
 	// Required properties for this task.
-	projectId   = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskId      = flag.String("task_id", "", "ID of this task.")
-	taskName    = flag.String("task_name", "", "Name of the task.")
-	workdir     = flag.String("workdir", ".", "Working directory")
-	configsFlag = common.NewMultiStringFlag("config", nil, "Config file or dir of config files to validate. May be specified multiple times.")
+	projectId         = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskId            = flag.String("task_id", "", "ID of this task.")
+	taskName          = flag.String("task_name", "", "Name of the task.")
+	workdir           = flag.String("workdir", ".", "Working directory")
+	configsFlag       = common.NewMultiStringFlag("config", nil, "Config file or dir of config files to validate. May be specified multiple times.")
+	checkGCSArtifacts = flag.Bool("check-gcs-artifacts", false, "If true, filter out rollers whose GCS artifacts are missing.")
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
@@ -86,7 +87,7 @@ func validateTemplate(ctx context.Context, client *http.Client, vars *conversion
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		generatedConfigs, err := conversion.ProcessTemplate(ctx, client, f, string(tmplContents), vars)
+		generatedConfigs, err := conversion.ProcessTemplate(ctx, client, f, string(tmplContents), vars, *checkGCSArtifacts)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to process template file %s", f)
 		}

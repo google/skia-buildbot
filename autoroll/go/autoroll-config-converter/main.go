@@ -29,6 +29,7 @@ func main() {
 	dst := flag.String("dst", "", "Destination directory. Outputs will mimic the structure of the source.")
 	privacySandboxAndroidRepoURL := flag.String("privacy_sandbox_android_repo_url", "", "Repo URL for privacy sandbox on Android.")
 	privacySandboxAndroidVersionsPath := flag.String("privacy_sandbox_android_versions_path", "", "Path to the file containing the versions of privacy sandbox on Android.")
+	checkGCSArtifacts := flag.Bool("check-gcs-artifacts", true, "If true, filter out rollers whose GCS artifacts are missing.")
 	createCL := flag.Bool("create-cl", false, "If true, creates a CL if any changes were made.")
 	srcRepo := flag.String("source-repo", "", "URL of the repo which triggered this run.")
 	srcCommit := flag.String("source-commit", "", "Commit hash which triggered this run.")
@@ -115,7 +116,7 @@ func main() {
 			if err != nil {
 				return skerr.Wrapf(err, "failed to read template file %s", tmplPath)
 			}
-			generatedConfigs, err := conversion.ProcessTemplate(ctx, client, path, string(tmplContents), vars)
+			generatedConfigs, err := conversion.ProcessTemplate(ctx, client, path, string(tmplContents), vars, *checkGCSArtifacts)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to process template file %s", path)
 			}
