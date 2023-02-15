@@ -26,7 +26,7 @@ update-go-bazel-files:
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	$(BAZEL) run --config=mayberemote //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
+	$(BAZEL) run --config=mayberemote //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories -prune
 
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
