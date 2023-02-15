@@ -1,8 +1,10 @@
+// Package scrap defines the scrap types and functions on them.
 package scrap
 
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,6 +27,19 @@ type templateMap map[Lang]map[Type]*template.Template
 // representation. e.g. []float{1,2,3} will become "1, 2, 3"
 func floatSliceToString(floats []float32) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(floats)), ", "), "[]")
+}
+
+// mustWriteStringf will format a string and write it to the supplied StringWriter.
+// If the write fails then it will panic.
+//
+// Note: This is intended to be used for writes to a memory buffer where the only
+// cause of failure will be an OOM condition. Writes to any other device,
+// file, network, etc., should use a different approach and properly handle
+// any errors.
+func mustWriteStringf(w io.StringWriter, msg string, args ...interface{}) {
+	if _, err := w.WriteString(fmt.Sprintf(msg, args...)); err != nil {
+		panic(err)
+	}
 }
 
 // uniformValue represents a single instance of a uniform definition
@@ -154,17 +169,20 @@ func indentMultilineString(body string, indent int) string {
 	return buffer.String()
 }
 
-func getSkSLImageURL(body ScrapBody) string {
+func getSkSLImageURL(body ScrapBody) (string, error) {
+	if body.Type != SKSL {
+		return "", skerr.Fmt("Scrap is not of type SkSL: %v", body.Type)
+	}
 	const defaultShaderImageURL = "https://shaders.skia.org/img/mandrill.png"
-	if body.Type != SKSL || body.SKSLMetaData == nil || len(body.SKSLMetaData.ImageURL) == 0 {
-		return defaultShaderImageURL
+	if body.SKSLMetaData == nil || len(body.SKSLMetaData.ImageURL) == 0 {
+		return defaultShaderImageURL, nil
 	}
 
 	if body.SKSLMetaData.ImageURL[0] == '/' {
-		return "https://shaders.skia.org" + body.SKSLMetaData.ImageURL
+		return "https://shaders.skia.org" + body.SKSLMetaData.ImageURL, nil
 	}
 
-	return body.SKSLMetaData.ImageURL
+	return body.SKSLMetaData.ImageURL, nil
 }
 
 // Return the SkSL scrap custom uniform values as a C++/JavaScript array
@@ -189,7 +207,7 @@ func getSkSLCustomUniforms(body ScrapBody) string {
 		return ""
 	}
 	vals := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(body.SKSLMetaData.Uniforms)), ", "), "[]")
-	return fmt.Sprintf("\n      // User supplied uniform values:\n      %s", vals)
+	return fmt.Sprintf("      // User supplied uniform values:\n      %s", vals)
 }
 
 // cppCustomUniformValues will return a string that is valid C++ to
@@ -236,6 +254,11 @@ var funcMap = template.FuncMap{
 	"getSkSLCustomUniforms":   getSkSLCustomUniforms,
 	"cppCustomUniformValues":  cppCustomUniformValues,
 	"indentMultilineString":   indentMultilineString,
+	"loadImagesJS":            loadImagesJS,
+	"createRuntimeEffectsJS":  createRuntimeEffectsJS,
+	"createFragmentShadersJS": createFragmentShadersJS,
+	"putShaderOnPaintJS":      putShaderOnPaintJS,
+	"deleteShadersJS":         deleteShadersJS,
 }
 
 func loadTemplates() (templateMap, error) {
@@ -265,7 +288,7 @@ var templates = map[string]string{
 }
 
 const svgCpp = `void draw(SkCanvas* canvas) {
-    const char * svg ={{ range bodyAsQuotedStringSlice .Body }}
+    const char * svg ={{ range bodyAsQuotedStringSlice .Scrap.Body }}
         {{.}}{{end}}
 
     sk_sp<SkData> data(SkData::MakeWithoutCopy(svg, strlen(svg)));
@@ -301,7 +324,7 @@ const skslCpp = `void draw(SkCanvas *canvas) {
         uniform float3 iImageResolution; // iImage1 resolution (pixels)
         uniform shader iImage1;          // An input image.
 
-{{ indentMultilineString .Body 8 }}
+{{ indentMultilineString .Scrap.Body 8 }}
     )";
 
     // Parse the SkSL, and create an SkRuntimeEffect object:
@@ -316,7 +339,7 @@ const skslCpp = `void draw(SkCanvas *canvas) {
         SkV3{(float)image->width(), (float)image->height(), 1.0f};
     builder.child("iImage1") =
         image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-{{ cppCustomUniformValues . }}
+{{ cppCustomUniformValues .Scrap }}
     sk_sp<SkShader> myShader = builder.makeShader();
 
     // Fill the surface with |myShader|:
@@ -324,72 +347,3 @@ const skslCpp = `void draw(SkCanvas *canvas) {
     p.setShader(myShader);
     canvas->drawPaint(p);
 }`
-
-const skslJavaScript = `const loadImage = fetch("{{ getSkSLImageURL . }}")
-  .then((response) => response.arrayBuffer());
-
-Promise.all([loadImage]).then((values) => {
-  const [imageData] = values;
-  const img = CanvasKit.MakeImageFromEncoded(imageData);
-  const imgShader = img.makeShaderCubic(
-    CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp, 1 / 3, 1 / 3);
-
-  const surface = CanvasKit.MakeCanvasSurface(canvas.id);
-  if (!surface) {
-    throw "Could not make surface";
-  }
-  const skcanvas = surface.getCanvas();
-  const paint = new CanvasKit.Paint();
-  const startTimeMs = Date.now();
-  let mouseClickX = 250;
-  let mouseClickY = 250;
-  let mouseDragX = 250;
-  let mouseDragY = 250;
-  let lastMousePressure = 0;
-
-  const prog = ` + "`" + `
-    // Inputs supplied by shaders.skia.org:
-    uniform float3 iResolution;      // Viewport resolution (pixels)
-    uniform float  iTime;            // Shader playback time (s)
-    uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
-    uniform float3 iImageResolution; // iImage1 resolution (pixels)
-    uniform shader iImage1;          // An input image.
-
-{{ indentMultilineString .Body 4 }}
-    ` + "`" + `;
-
-  const effect = CanvasKit.RuntimeEffect.Make(prog);
-
-  function drawFrame(canvas) {
-    const uniforms = [
-      512, 512, 1,                                      // iResolution
-      (Date.now() - startTimeMs) / 1000,                // iTime
-      mouseDragX, mouseDragY, mouseClickX, mouseClickY, // iMouse
-      img.width(), img.height(), 1,                     // iImageResolution
-{{ getSkSLCustomUniforms . }}
-    ];
-    const children = [
-      imgShader                                         // iImage1
-    ];
-    const shader = effect.makeShaderWithChildren(uniforms, children);
-    paint.setShader(shader);
-    skcanvas.drawPaint(paint);
-    shader.delete();
-    surface.requestAnimationFrame(drawFrame);
-  }
-  surface.requestAnimationFrame(drawFrame);
-
-  canvas.addEventListener("pointermove", (e) => {
-    if (e.pressure && !lastMousePressure) {
-      mouseClickX = e.offsetX;
-      mouseClickY = e.offsetY;
-    }
-    lastMousePressure = e.pressure;
-    if (!e.pressure) {
-      return;
-    }
-    mouseDragX = e.offsetX;
-    mouseDragY = e.offsetY;
-  });
-}); // from the Promise.all
-`

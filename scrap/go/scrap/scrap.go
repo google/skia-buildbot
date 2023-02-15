@@ -254,12 +254,15 @@ func (s *scrapExchange) Expand(ctx context.Context, t Type, hashOrName string, l
 	if err := validateLang(lang); err != nil {
 		return err
 	}
-	scrapBody, err := s.LoadScrap(ctx, t, hashOrName)
+	// loadedScraps maps hashOrName to scrapNode to avoid duplicate loads.
+	loadedScraps := make(map[string]scrapNode)
+	root, err := s.loadScrapTree(ctx, t, hashOrName, loadedScraps)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to load scrap.")
 	}
-	// TODO(jcgregorio) Add helpers to the template to allow recursively loading child scraps.
-	err = s.templates[lang][t].Execute(w, scrapBody)
+	nextNodeID := 1
+	createScrapNodeNames(&root, &nextNodeID)
+	err = s.templates[lang][t].Execute(w, root)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to expand template.")
 	}
@@ -300,6 +303,33 @@ func (s *scrapExchange) LoadScrap(ctx context.Context, t Type, hashOrName string
 		return ret, skerr.Wrapf(err, "Failed to decode scrap.")
 	}
 	return ret, nil
+}
+
+// Load a scrap, identified by |hashOrName|, and all child scraps, returning the
+// root scrap node.
+func (s *scrapExchange) loadScrapTree(ctx context.Context, t Type, hashOrName string,
+	loadedScraps map[string]scrapNode) (scrapNode, error) {
+	if node, ok := loadedScraps[hashOrName]; ok {
+		return node, nil
+	}
+	body, err := s.LoadScrap(ctx, t, hashOrName)
+	if err != nil {
+		return scrapNode{}, skerr.Wrap(err)
+	}
+	node := scrapNode{Scrap: body}
+	if body.Type != SKSL || body.SKSLMetaData == nil {
+		loadedScraps[hashOrName] = node
+		return node, nil
+	}
+	for _, child := range body.SKSLMetaData.Children {
+		cnode, err := s.loadScrapTree(ctx, t, child.ScrapHashOrName, loadedScraps)
+		if err != nil {
+			return scrapNode{}, skerr.Wrap(err)
+		}
+		node.Children = append(node.Children, cnode)
+	}
+	loadedScraps[hashOrName] = node
+	return node, nil
 }
 
 // CreateScrap and return the hash by the ScrapID.

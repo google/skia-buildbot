@@ -84,7 +84,7 @@ func TestExpand_HappyPathWithHash_Success(t *testing.T) {
 
 	// Swap out a good template with a known short one.
 	oldTemplate := se.templates[CPP][SVG]
-	tmpl, err := template.New("").Parse(`const char *s = "{{ .Body }}";`)
+	tmpl, err := template.New("").Parse(`const char *s = "{{ .Scrap.Body }}";`)
 	require.NoError(t, err)
 	se.templates[CPP][SVG] = tmpl
 
