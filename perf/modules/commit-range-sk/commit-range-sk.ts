@@ -10,6 +10,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 import { CIDHandlerResponse, ColumnHeader, CommitNumber } from '../json';
 import '../window/window';
 
@@ -80,7 +81,7 @@ export class CommitRangeSk extends ElementSk {
     // First the previous commit that has data.
     let prevCommit = this._commitIndex - 1;
 
-    while (prevCommit > 0 && (this._trace[prevCommit] === 1e32 || Number.isNaN(this._trace[prevCommit]))) {
+    while (prevCommit > 0 && (this._trace[prevCommit] === MISSING_DATA_SENTINEL)) {
       prevCommit -= 1;
     }
 

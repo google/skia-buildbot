@@ -3,6 +3,7 @@ import { assert } from 'chai';
 import { CommitRangeSk } from './commit-range-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { CommitNumber } from '../json';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 describe('commit-range-sk', () => {
   const newInstance = setUpElementUnderTest<CommitRangeSk>('commit-range-sk');
@@ -40,7 +41,7 @@ describe('commit-range-sk', () => {
   });
 
   describe('converts commit ids to hashes', () => {
-    it('ignores 1e32', async () => {
+    it('ignores MISSING_DATA_SENTINEL', async () => {
       // eslint-disable-next-line dot-notation
       element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
         assert.deepEqual(cids, [64809, 64811]);
@@ -48,25 +49,11 @@ describe('commit-range-sk', () => {
           '1111111111111111111111111111111111111111',
           '3333333333333333333333333333333333333333'];
       };
-      // The 1e32 should be skipped.
-      element.trace = [12, 1e32, 13];
+      // The MISSING_DATA_SENTINEL should be skipped.
+      element.trace = [12, MISSING_DATA_SENTINEL, 13];
       await element.recalcLink();
       assert.equal(element.querySelector<HTMLAnchorElement >('a')!.href, 'http://example.com/range/1111111111111111111111111111111111111111/3333333333333333333333333333333333333333');
     });
-  });
-  it('ignores NaN', async () => {
-    // eslint-disable-next-line dot-notation
-    element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
-      assert.deepEqual(cids, [64809, 64811]);
-
-      return [
-        '1111111111111111111111111111111111111111',
-        '3333333333333333333333333333333333333333'];
-    };
-    // The NaN should be skipped.
-    element.trace = [12, NaN, 13];
-    await element.recalcLink();
-    assert.equal(element.querySelector<HTMLAnchorElement >('a')!.href, 'http://example.com/range/1111111111111111111111111111111111111111/3333333333333333333333333333333333333333');
   });
   it('returns the previous hash if there are no missing commits', async () => {
     // eslint-disable-next-line dot-notation

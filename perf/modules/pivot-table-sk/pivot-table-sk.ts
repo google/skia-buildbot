@@ -25,6 +25,7 @@ import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
 import { fromKey } from '../paramtools';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 /** The direction a column is sorted in. */
 export type direction = 'up' | 'down';
@@ -350,7 +351,7 @@ export class PivotTableSk extends ElementSk {
   private static displayValue(value: number): string {
     // TODO(jcgregorio) Have a common definition of vec32.MissingDataSentinel in
     // TS and Go code.
-    if (value === 1e32) {
+    if (value === MISSING_DATA_SENTINEL) {
       return '-';
     }
     return value.toPrecision(4);

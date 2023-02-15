@@ -8,6 +8,7 @@ import {
 import 'elements-sk/styles/buttons';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 // Create our own random number generator that's deterministic so that we get
 // consistent Gold images.
@@ -35,7 +36,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
         if (random() < 0.9) {
           trace.push(1000000 * (8 + Math.sin(i / 10) + j + random() * 1 + 10));
         } else {
-          trace.push(1e32);
+          trace.push(MISSING_DATA_SENTINEL);
         }
       }
       const id = `trace${j + n}`;

@@ -97,12 +97,11 @@ import * as d3Array from 'd3-array';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
 import { ticks } from './ticks';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
 const SPECIAL = 'special';
-
-export const MISSING_DATA_SENTINEL = 1e32;
 
 const NUM_Y_TICKS = 4;
 
@@ -900,13 +899,15 @@ export class PlotSimpleSk extends ElementSk {
     // Convert into the format we will eventually expect.
     keys.forEach((key) => {
       // You can't encode NaN in JSON, so convert sentinel values to NaN here so
-      // that dsArray functions will operate correctly.
-      lines[key]!.forEach((x, i) => {
+      // that dsArray functions will operate correctly. Make a copy so the NaN's
+      // don't migrate out of plot-simple.
+      const values = [...lines[key]!];
+      values.forEach((x, i) => {
         if (x === MISSING_DATA_SENTINEL) {
-          lines[key]![i] = NaN;
+          values[i] = NaN;
         }
       });
-      const values = lines[key]!;
+
       this.lineData.push({
         name: key,
         values,

@@ -1,4 +1,5 @@
 // Functions for generating CSV from a DataFrame.
+import { MISSING_DATA_SENTINEL } from '../const/const';
 import { ColumnHeader, DataFrame, Params } from '../json';
 import { fromKey } from '../paramtools';
 
@@ -45,10 +46,10 @@ export function dataFrameToCSV(df: DataFrame): string {
     const traceParams = traceIDToParams[traceId];
     line = sortedColumnNames.map((columnName) => traceParams[columnName] || '');
     df.traceset[traceId]!.forEach((f) => {
-      if (!Number.isNaN(f)) {
-        line.push(f);
-      } else {
+      if (f === MISSING_DATA_SENTINEL) {
         line.push('');
+      } else {
+        line.push(f);
       }
     });
     csv.push(line.join(','));

@@ -77,6 +77,7 @@ import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/p
 import { fromKey, paramsToParamSet } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -1016,8 +1017,7 @@ export class ExploreSk extends ElementSk {
     const trace = this._dataframe.traceset[e.detail.name];
     let prevCommit = -1;
     for (let i = x - 1; i >= 0; i--) {
-      // plot-simple converts all MISSING_DATA_SENTINEL's to NaNs, so we have to check for NaNs here.
-      if (!Number.isNaN(trace![i])) {
+      if (trace![i] !== MISSING_DATA_SENTINEL) {
         prevCommit = this._dataframe.header![i]!.offset;
         break;
       }

@@ -15,6 +15,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "@npm//common-sk",
         "//perf/modules/window:window_ts_lib",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "commit-range-sk.ts",
@@ -30,6 +31,7 @@ sk_page(
     ts_deps = [
         "@npm//fetch-mock",
         "@npm//common-sk",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_entry_point = "commit-range-sk-demo.ts",
 )
@@ -40,6 +42,7 @@ karma_test(
     deps = [
         ":commit-range-sk",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",

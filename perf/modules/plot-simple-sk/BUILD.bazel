@@ -37,6 +37,7 @@ sk_element(
         "@npm//d3-scale",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -55,6 +56,7 @@ sk_page(
     ts_deps = [
         "@npm//common-sk",
         "@npm//elements-sk",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_entry_point = "plot-simple-sk-demo.ts",
 )

@@ -64,6 +64,7 @@ import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk'
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 /** Defines a func that takes a number and formats it as a string. */
 type Formatter = (n: number)=> string;
@@ -446,7 +447,7 @@ export class ClusterSummary2Sk extends ElementSk {
       if (window.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
         let prevCommit = xbar - 1;
-        while (prevCommit > 0 && this.summary!.centroid![prevCommit] === 1e32) {
+        while (prevCommit > 0 && this.summary!.centroid![prevCommit] === MISSING_DATA_SENTINEL) {
           prevCommit -= 1;
         }
         const cids: CommitNumber[] = [

@@ -1,5 +1,6 @@
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 import { CommitRangeSk } from './commit-range-sk';
 
 import './index';
@@ -40,7 +41,7 @@ fetchMock.post('/_/cid/', () => ({
 
 window.customElements.whenDefined('commit-range-sk').then(async () => {
   const ele = document.querySelector<CommitRangeSk>('commit-range-sk')!;
-  ele.trace = [12, 1e32, 13];
+  ele.trace = [12, MISSING_DATA_SENTINEL, 13];
   ele.commitIndex = 2;
   ele.header = [
     {

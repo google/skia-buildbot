@@ -22,6 +22,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",

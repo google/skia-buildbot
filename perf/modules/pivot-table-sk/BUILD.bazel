@@ -20,6 +20,7 @@ sk_element(
         "//perf/modules/pivotutil:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "@npm//common-sk",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "pivot-table-sk.ts",
