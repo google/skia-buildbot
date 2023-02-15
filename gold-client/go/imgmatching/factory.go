@@ -67,9 +67,23 @@ func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
 
 	// The maximum value corresponds to the maximum possible per-channel delta sum. This assumes four
 	// channels (R, G, B, A), each represented with 8 bits; hence 1020 = 255*4.
-	pixelDeltaThreshold, err := getAndValidateIntParameter(PixelDeltaThreshold, 0, 1020, true /* =required */, optionalKeys)
+	pixelDeltaThreshold, err := getAndValidateIntParameter(PixelDeltaThreshold, 0, 1020, false /* =required */, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
+	}
+
+	// The maximum value corresponds to the maximum possible channel value. This assumes 8 bits with
+	// a max of 255 for a single channel.
+	pixelPerChannelDeltaThreshold, err := getAndValidateIntParameter(
+		PixelPerChannelDeltaThreshold, 0, 255, false /* =required */, optionalKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Ensure that at most one of the sum or per-channel options is set.
+	if pixelDeltaThreshold > 0 && pixelPerChannelDeltaThreshold > 0 {
+		return nil, skerr.Fmt(
+			"only one of %s and %s can be set", PixelDeltaThreshold, PixelPerChannelDeltaThreshold)
 	}
 
 	ignoredBorderThickness, err := getAndValidateIntParameter(IgnoredBorderThickness, 0, math.MaxInt32, false /* =required */, optionalKeys)
@@ -78,9 +92,10 @@ func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
 	}
 
 	return &fuzzy.Matcher{
-		MaxDifferentPixels:     maxDifferentPixels,
-		PixelDeltaThreshold:    pixelDeltaThreshold,
-		IgnoredBorderThickness: ignoredBorderThickness,
+		MaxDifferentPixels:            maxDifferentPixels,
+		PixelDeltaThreshold:           pixelDeltaThreshold,
+		PixelPerChannelDeltaThreshold: pixelPerChannelDeltaThreshold,
+		IgnoredBorderThickness:        ignoredBorderThickness,
 	}, nil
 }
 

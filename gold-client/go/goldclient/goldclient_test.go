@@ -1755,19 +1755,12 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 			error: "required image matching parameter not found",
 		},
 		{
-			name: "insufficient parameters: only some parameters specified",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:        string(imgmatching.FuzzyMatching),
-				string(imgmatching.MaxDifferentPixels): "0",
-			},
-			error: "required image matching parameter not found",
-		},
-		{
 			name: "invalid parameters",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
-				string(imgmatching.MaxDifferentPixels):  "not a number",
-				string(imgmatching.PixelDeltaThreshold): "not a number",
+				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.FuzzyMatching),
+				string(imgmatching.MaxDifferentPixels):            "not a number",
+				string(imgmatching.PixelDeltaThreshold):           "not a number",
+				string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
 			},
 			error: "parsing integer value",
 		},
@@ -1802,9 +1795,10 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 
 	optionalKeys := map[string]string{
-		imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
-		string(imgmatching.MaxDifferentPixels):  "0",
-		string(imgmatching.PixelDeltaThreshold): "0",
+		imgmatching.AlgorithmNameOptKey:                   string(imgmatching.FuzzyMatching),
+		string(imgmatching.MaxDifferentPixels):            "0",
+		string(imgmatching.PixelDeltaThreshold):           "0",
+		string(imgmatching.PixelPerChannelDeltaThreshold): "0",
 	}
 
 	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
@@ -1924,24 +1918,26 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 				imgmatching.AlgorithmNameOptKey:   string(imgmatching.SobelFuzzyMatching),
 				string(imgmatching.EdgeThreshold): "0",
 			},
-			error: "required image matching parameter not found",
+			error: `required image matching parameter not found: "fuzzy_max_different_pixels"`,
 		},
 		{
 			name: "insufficient parameters: only FuzzyMatching-specific parameter specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:         string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.MaxDifferentPixels):  "0",
-				string(imgmatching.PixelDeltaThreshold): "0",
+				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
+				string(imgmatching.MaxDifferentPixels):            "0",
+				string(imgmatching.PixelDeltaThreshold):           "0",
+				string(imgmatching.PixelPerChannelDeltaThreshold): "0",
 			},
 			error: "required image matching parameter not found",
 		},
 		{
 			name: "invalid parameters",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:         string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.EdgeThreshold):       "not a number",
-				string(imgmatching.MaxDifferentPixels):  "not a number",
-				string(imgmatching.PixelDeltaThreshold): "not a number",
+				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
+				string(imgmatching.EdgeThreshold):                 "not a number",
+				string(imgmatching.MaxDifferentPixels):            "not a number",
+				string(imgmatching.PixelDeltaThreshold):           "not a number",
+				string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
 			},
 			error: "parsing integer value",
 		},

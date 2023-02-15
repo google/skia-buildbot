@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/gold-client/go/imgmatching"
 )
 
-func TestMatch_Fuzzy_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
+func TestMatch_Fuzzy_NonZeroPixelDeltaThreshold_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
 
 	td := testutils.TestDataDir(t)
 
@@ -31,7 +31,35 @@ func TestMatch_Fuzzy_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
 	// Output should have numbers be right aligned.
 	assert.Equal(t, `Images match.
           Number of different pixels: 2
-       Maximum per-channel delta sum: 7
+                       Maximum delta: 7
+             Pixel comparison method: pixel delta threshold
+`, logs)
+}
+
+func TestMatch_Fuzzy_NonZeroPixelPerChannelDeltaThreshold_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
+
+	td := testutils.TestDataDir(t)
+
+	// Call imgtest match using the fuzzy match algorithm
+	ctx, output, exit := testContext(nil, nil, nil, nil)
+	env := matchEnv{
+		algorithmName: "fuzzy",
+		parameters: []string{
+			string(imgmatching.MaxDifferentPixels + ":2"),
+			string(imgmatching.PixelPerChannelDeltaThreshold + ":10"),
+		},
+	}
+	runUntilExit(t, func() {
+		env.Match(ctx, filepath.Join(td, a01Digest+".png"), filepath.Join(td, a05Digest+".png"))
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	// Output should have numbers be right aligned.
+	assert.Equal(t, `Images match.
+          Number of different pixels: 2
+                       Maximum delta: 7
+             Pixel comparison method: pixel per-channel delta threshold
 `, logs)
 }
 
@@ -57,5 +85,6 @@ func TestMatch_Sobel_ImagesAreVeryDifferent_ExitCodeZero(t *testing.T) {
 
 	assert.Contains(t, logs, `Images do not match.`, logs)
 	assert.Contains(t, logs, `Number of different pixels: 34`, logs)
-	assert.Contains(t, logs, `Maximum per-channel delta sum: 1020`, logs)
+	assert.Contains(t, logs, `Maximum delta: 1020`, logs)
+	assert.Contains(t, logs, `Pixel comparison method: pixel delta threshold`, logs)
 }

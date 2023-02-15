@@ -3,6 +3,7 @@ package fuzzy
 import (
 	"image"
 	"image/draw"
+	"math"
 )
 
 // Matcher is an image matching algorithm.
@@ -20,9 +21,10 @@ import (
 // Valid PixelDeltaThreshold values are 0 to 1020 inclusive (0 <= d{R,G,B,A} <= 255, thus
 // 0 <= dR + dG + dB + dA <= 255*4 = 1020).
 type Matcher struct {
-	MaxDifferentPixels     int
-	PixelDeltaThreshold    int
-	IgnoredBorderThickness int
+	MaxDifferentPixels            int
+	PixelDeltaThreshold           int
+	PixelPerChannelDeltaThreshold int
+	IgnoredBorderThickness        int
 
 	// Debug information about the last pair of matched images.
 	actualNumDifferentPixels int
@@ -34,6 +36,12 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 	// Images must be the same size.
 	if !expected.Bounds().Eq(actual.Bounds()) {
 		return false
+	}
+
+	// Determine which delta threshold we will be using.
+	usePerChannelThreshold := false
+	if m.PixelPerChannelDeltaThreshold > 0 {
+		usePerChannelThreshold = true
 	}
 
 	// Convert both images to NRGBA.
@@ -60,7 +68,15 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 			}
 
 			// Track maximum pixel-wise difference.
-			pixelDelta := absDiff(p1.R, p2.R) + absDiff(p1.G, p2.G) + absDiff(p1.B, p2.B) + absDiff(p1.A, p2.A)
+			var pixelDelta int
+			if usePerChannelThreshold {
+				pixelDelta = absDiff(p1.R, p2.R)
+				pixelDelta = int(math.Max(float64(pixelDelta), float64(absDiff(p1.G, p2.G))))
+				pixelDelta = int(math.Max(float64(pixelDelta), float64(absDiff(p1.B, p2.B))))
+				pixelDelta = int(math.Max(float64(pixelDelta), float64(absDiff(p1.A, p2.A))))
+			} else {
+				pixelDelta = absDiff(p1.R, p2.R) + absDiff(p1.G, p2.G) + absDiff(p1.B, p2.B) + absDiff(p1.A, p2.A)
+			}
 			if pixelDelta > m.actualMaxPixelDelta {
 				m.actualMaxPixelDelta = pixelDelta
 			}
@@ -73,8 +89,14 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 	}
 
 	// Pixel-wise differences must be below the given threshold.
-	if m.actualMaxPixelDelta > m.PixelDeltaThreshold {
-		return false
+	if usePerChannelThreshold {
+		if m.actualMaxPixelDelta > m.PixelPerChannelDeltaThreshold {
+			return false
+		}
+	} else {
+		if m.actualMaxPixelDelta > m.PixelDeltaThreshold {
+			return false
+		}
 	}
 
 	return true
@@ -85,6 +107,15 @@ func (m *Matcher) NumDifferentPixels() int { return m.actualNumDifferentPixels }
 
 // MaxPixelDelta returns the maximum per-channel delta sum between the last two matched images.
 func (m *Matcher) MaxPixelDelta() int { return m.actualMaxPixelDelta }
+
+// PixelComparisonMethod returns whether pixel comparison is being done using
+// the sum of per-channel differences or the max per-channel difference.
+func (m *Matcher) PixelComparisonMethod() string {
+	if m.PixelDeltaThreshold > 0 {
+		return "pixel delta threshold"
+	}
+	return "pixel per-channel delta threshold"
+}
 
 // absDiff takes two uint8 values m and n, computes |m - n|, and converts the result into an int
 // suitable for addition without the risk of overflowing.

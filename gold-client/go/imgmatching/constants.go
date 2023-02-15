@@ -27,6 +27,10 @@ const (
 	// algorithms FuzzyMatching and SobelFuzzyMatching.
 	PixelDeltaThreshold = AlgorithmParamOptKey("fuzzy_pixel_delta_threshold")
 
+	// PixelPerChannelDeltaThreshold is the optional key used to specify the
+	// PixelPerChannelDeltaThreshold parameter of algorithms FuzzyMatching and SobelFuzzyMatching.
+	PixelPerChannelDeltaThreshold = AlgorithmParamOptKey("fuzzy_pixel_per_channel_delta_threshold")
+
 	// IgnoredBorderThickness is the optional key used to specify the IgnoredBorderThickness
 	// parameter of algorithms FuzzyMatching and SobelFuzzyMatching.
 	IgnoredBorderThickness = AlgorithmParamOptKey("fuzzy_ignored_border_thickness")

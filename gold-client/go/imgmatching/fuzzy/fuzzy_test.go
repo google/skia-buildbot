@@ -88,7 +88,7 @@ func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
 	})
 }
 
-func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
+func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThresholdSum(t *testing.T) {
 
 	tests := []testCase{
 		{
@@ -212,6 +212,134 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 		return Matcher{
 			MaxDifferentPixels:  0,
 			PixelDeltaThreshold: 16,
+		}
+	})
+}
+
+func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelPerChannelDeltaThreshold(t *testing.T) {
+
+	tests := []testCase{
+		{
+			name: "different size images, returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			3 2
+			0x00000000 0x00000000 0x00000000
+			0x00000000 0x00000000 0x00000000`),
+			expectedToMatch: false,
+		},
+
+		{
+			name: "identical images, returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch: true,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0805FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0808FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0707FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x07,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0809FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		{
+			name: "one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+	}
+
+	runTestCases(t, tests, func() Matcher {
+		return Matcher{
+			MaxDifferentPixels:            0,
+			PixelPerChannelDeltaThreshold: 1,
 		}
 	})
 }
@@ -615,6 +743,326 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 		return Matcher{
 			MaxDifferentPixels:  2,
 			PixelDeltaThreshold: 16,
+		}
+	})
+}
+
+func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelPerChannelDeltaThreshold(t *testing.T) {
+
+	tests := []testCase{
+		{
+			name: "different size images, returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			3 2
+			0x00000000 0x00000000 0x00000000
+			0x00000000 0x00000000 0x00000000`),
+			expectedToMatch: false,
+		},
+
+		{
+			name: "identical images, returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch: true,
+		},
+
+		/////////////////////////////////////////////////////////
+		// number of different pixels = MaxDifferentPixels - 1 //
+		/////////////////////////////////////////////////////////
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in some channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in all channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0805FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold (deltas in some channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0808FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold (deltas in all channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0707FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x07,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0809FFFF 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x00000000
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0907FEFE 0x00000000
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		/////////////////////////////////////////////////////
+		// number of different pixels = MaxDifferentPixels //
+		/////////////////////////////////////////////////////
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in some channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FFFF 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in all channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0805FEFE 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold (deltas in some channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0808FFFF 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold (deltas in all channels), returns true",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0707FEFE 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x07,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0809FFFF 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x00000000 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0907FEFE 0x0100FFFF
+			0x00000000 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		/////////////////////////////////////////////////////////
+		// number of different pixels = MaxDifferentPixels + 1 //
+		/////////////////////////////////////////////////////////
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FFFF 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold - 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0805FEFE 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0808FFFF 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x08,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0707FEFE 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x07,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in some channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0809FFFF 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x09,
+		},
+
+		{
+			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelPerChannelDeltaThreshold + 1 (deltas in all channels), returns false",
+			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0000FFFF 0x0000FFFF
+			0x0000FFFF 0x00000000`),
+			image2: text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x0807FEFE 0x0100FFFF
+			0x0100FFFF 0x00000000`),
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      0x08,
+		},
+	}
+
+	runTestCases(t, tests, func() Matcher {
+		return Matcher{
+			MaxDifferentPixels:            2,
+			PixelPerChannelDeltaThreshold: 8,
 		}
 	})
 }

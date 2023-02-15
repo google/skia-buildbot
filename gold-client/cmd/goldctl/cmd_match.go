@@ -137,7 +137,8 @@ func printOutExactDebugInfo(ctx context.Context, matcher *exact.Matcher) {
 // printOutFuzzyDebugInfo prints out stats reported by the given fuzzy.Matcher.
 func printOutFuzzyDebugInfo(ctx context.Context, matcher *fuzzy.Matcher) {
 	printDebugInfoItem(ctx, "Number of different pixels", matcher.NumDifferentPixels())
-	printDebugInfoItem(ctx, "Maximum per-channel delta sum", matcher.MaxPixelDelta())
+	printDebugInfoItem(ctx, "Maximum delta", matcher.MaxPixelDelta())
+	printDebugInfoItem(ctx, "Pixel comparison method", matcher.PixelComparisonMethod())
 }
 
 // printOutSampleAreaDebugInfo prints out stats reported by the given
