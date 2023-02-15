@@ -4,6 +4,11 @@
     "flutter-try-builder@chops-service-accounts.iam.gserviceaccount.com",
     "flutter-staging-builder@chops-service-accounts.iam.gserviceaccount.com",
     "flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com",
+    // Note: gmail accounts should be in "normalized" form, that is no dots and
+    // no pluses.
+    "ianhickson@gmail.com",
+    "lavidalovett@gmail.com",
+    "taha@nevercode.io"
   ],
   client_secret_file: "/etc/skia.org/login.json",
   frontend: {
