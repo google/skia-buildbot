@@ -6,8 +6,10 @@ go_library(
     srcs = [
         "scrap.go",
         "scrap_node.go",
+        "shaders_to_fiddle_converter.go",
         "shaders_to_jsfiddle_converter.go",
         "templates.go",
+        "uniform_value.go",
     ],
     importpath = "go.skia.org/infra/scrap/go/scrap",
     visibility = ["//visibility:public"],
@@ -24,8 +26,10 @@ go_test(
     srcs = [
         "scrap_node_test.go",
         "scrap_test.go",
+        "shaders_to_fiddle_converter_test.go",
         "shaders_to_jsfiddle_converter_test.go",
         "templates_test.go",
+        "uniform_value_test.go",
     ],
     embed = [":scrap"],
     deps = [

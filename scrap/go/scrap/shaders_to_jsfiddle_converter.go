@@ -113,27 +113,6 @@ func loadImagesJS(root scrapNode) (string, error) {
 	return b.String(), nil
 }
 
-// writeDefaultUniforms writes all stock shader inputs defined by
-// shaders.skia.org for SkSL scraps that it creates using the |w|
-// writer in SkSL.
-func writeDefaultUniforms(w io.StringWriter) {
-	mustWriteStringf(w, `    // Inputs supplied by shaders.skia.org:
-    uniform float3 iResolution;      // Viewport resolution (pixels)
-    uniform float  iTime;            // Shader playback time (s)
-    uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
-    uniform float3 iImageResolution; // iImage1 resolution (pixels)
-    uniform shader iImage1;          // An input image.`)
-}
-
-func writeShaderInputDefinitions(w io.StringWriter, node scrapNode) {
-	if node.Scrap.SKSLMetaData == nil {
-		return
-	}
-	for _, child := range node.Scrap.SKSLMetaData.Children {
-		mustWriteStringf(w, "    uniform shader %s;\n", child.UniformName)
-	}
-}
-
 // writeCreateRuntimeEffects writes JavaScript code need to create the
 // runtime effect for the scrap |node| and all child nodes to |w|.
 func writeCreateRuntimeEffects(w io.StringWriter, node scrapNode) {
@@ -146,9 +125,9 @@ func writeCreateRuntimeEffects(w io.StringWriter, node scrapNode) {
 		mustWriteStringf(w, "  // Shader %q\n", node.Name)
 	}
 	mustWriteStringf(w, "  const prog%s = `\n", node.Name)
-	writeDefaultUniforms(w)
+	mustWriteStringf(w, indentMultilineString(skslDefaultInputs, 4))
 	mustWriteStringf(w, "\n")
-	writeShaderInputDefinitions(w, node)
+	writeShaderInputDefinitions(w, node, 4)
 	mustWriteStringf(w, "\n")
 	mustWriteStringf(w, indentMultilineString(node.Scrap.Body, 4))
 	mustWriteStringf(w, "\n    `;\n")
