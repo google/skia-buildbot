@@ -608,36 +608,30 @@ func TestWordWrap(t *testing.T) {
 	check := func(inp, expect string) {
 		require.Equal(t, expect, WordWrap(inp, 20))
 	}
-	/*check(`blah blah blah`, `blah blah blah`)
-		check(`blah blah blah blah blah`, `blah blah blah blah
-	blah`)
-		check(`blahblahblahblahblahblah`, `blahblahblahblahblah
-	blah`)
-		check(
-			`blah blah
-	threeshortwords thatshouldsplit toseparatelines
-	thisisareallylongwordthatshouldbebrokenupontothreelines
-	blahblahblah blah blah`,
-			`blah blah
-	threeshortwords
-	thatshouldsplit
-	toseparatelines
-	thisisareallylongwor
-	dthatshouldbebrokenu
-	pontothreelines
-	blahblahblah blah
-	blah`)
-		check(`Ünicðdéchäractersshouldbehandledcorrectly`,
-			`Ünicðdéchäracterssho
-	uldbehandledcorrectl
-	y`)
-		check(`Consume	spaces   appropriately    to avoid    weird                       breaks`,
-			`Consume	spaces
-	appropriately    to
-	avoid    weird
-	breaks`)
-		check(`    longwordafterspaces`, `    longwordafterspa
-	ces`)*/
+	check(`blah blah blah`, `blah blah blah`)
+	check(`blah blah blah blah blah`, `blah blah blah blah
+blah`)
+	check(`blahblahblahblahblahblah`, `blahblahblahblahblahblah`)
+	check(`blah blah
+threeshortwords thatshouldsplit toseparatelines
+thisisareallylongwordthatshouldnotbebrokenupontothreelines
+blahblahblah blah blah`,
+		`blah blah
+threeshortwords
+thatshouldsplit
+toseparatelines
+thisisareallylongwordthatshouldnotbebrokenupontothreelines
+blahblahblah blah
+blah`)
+	check(`Ünicðdéchäracterssho uldbehandledcorrectly`,
+		`Ünicðdéchäracterssho
+uldbehandledcorrectly`)
+	check(`Consume	spaces   appropriately    to avoid    weird                       breaks`,
+		`Consume	spaces
+appropriately    to
+avoid    weird
+breaks`)
+	check(`    longwordafterspaces`, `    longwordafterspaces`)
 	check(`here are some words that split onto multiple lines.`,
 		`here are some words
 that split onto

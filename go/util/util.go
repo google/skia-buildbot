@@ -891,10 +891,8 @@ func trimWhitespaceFromEnd(s []rune) string {
 }
 
 // WordWrap inserts newlines into the string so that no lone is longer than the
-// given lineLength. It attempts to break on word boundaries but will insert
-// line breaks in the middle of words which are longer than lineLength. Strips
-// whitespace from the ends of lines but preserves whitespace at the beginnings
-// of lines.
+// given lineLength. Only breaks on word boundaries. Strips whitespace from the
+// ends of lines but preserves whitespace at the beginnings of lines.
 func WordWrap(s string, lineLength int) string {
 	inpLines := strings.Split(s, "\n")
 	rvLines := make([]string, 0, len(inpLines))
@@ -903,7 +901,6 @@ func WordWrap(s string, lineLength int) string {
 		for {
 			// Are we done?
 			if len(line) <= lineLength {
-				fmt.Printf("1: %s\n", string(line))
 				rvLines = append(rvLines, trimWhitespaceFromEnd(line))
 				break
 			}
@@ -912,14 +909,6 @@ func WordWrap(s string, lineLength int) string {
 			splitPoints := []int{}
 			foundNonSpaceChar := false
 			for idx, char := range line {
-				// Stop when we reach the line length limit.
-				if idx == lineLength {
-					if len(splitPoints) == 0 {
-						// We've found long word; we'll have to break it.
-						splitPoints = append(splitPoints, idx)
-					}
-					break
-				}
 				// Have we reached a possible split point?
 				if wordWrapChars[char] {
 					if foundNonSpaceChar {
@@ -932,21 +921,27 @@ func WordWrap(s string, lineLength int) string {
 
 			// If we found no split points, we're done with this line.
 			if len(splitPoints) == 0 {
-				fmt.Printf("2: %s\n", string(line))
 				rvLines = append(rvLines, trimWhitespaceFromEnd(line))
 				break
 			}
 
 			// Break the line, continue processing the rest of the line.
-			splitPoint := splitPoints[len(splitPoints)-1]
-			fmt.Printf("3: %s\n", string(line[:splitPoint]))
+			splitPoint := -1
+			for _, sp := range splitPoints {
+				if sp <= lineLength {
+					splitPoint = sp
+				} else if splitPoint < 0 {
+					splitPoint = sp
+				} else {
+					break
+				}
+			}
 			rvLines = append(rvLines, trimWhitespaceFromEnd(line[:splitPoint]))
 			line = line[splitPoint:]
 			for wordWrapChars[line[0]] {
 				// Consume the space we broke on.
 				line = line[1:]
 			}
-			fmt.Printf("R: %s\n", string(line))
 		}
 	}
 	return strings.Join(rvLines, "\n")

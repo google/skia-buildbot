@@ -318,15 +318,14 @@ https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
 2020-04-16 b@google.com Commit B
 
 Also rolling transitive DEPS:
-  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeee
-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
 https://fake.server.com/r/fake-autoroll
-Please CC contact@google.com,reviewer@google.com on the revert to
-ensure that a human
+Please CC contact@google.com,reviewer@google.com on the revert to ensure
+that a human
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
