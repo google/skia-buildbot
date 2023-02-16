@@ -63,14 +63,14 @@ func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig, sqltest.Cleanup) {
+func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig) {
 	cockroachdb_instance.Require(t)
 
 	ctx := context.Background()
 
 	// This creates a new database with a different random suffix on each call
 	// (e.g. "builders_<random number>").
-	conn, cleanup := sqltest.NewCockroachDBForTests(t, "builders")
+	conn := sqltest.NewCockroachDBForTests(t, "builders")
 
 	// If we don't clear the singleton pool, newCockroachDBFromConfig will reuse the DB connection
 	// established by the last executed test case, which points to a different database than the one
@@ -88,12 +88,11 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 			ConnectionString: conn.Config().ConnString(),
 		},
 	}
-	return ctx, instanceConfig, cleanup
+	return ctx, instanceConfig
 }
 
 func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	store, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
 	require.NoError(t, err)
@@ -102,8 +101,7 @@ func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
@@ -114,8 +112,7 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 }
 
 func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	store, err := NewAlertStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
@@ -124,8 +121,7 @@ func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
@@ -136,8 +132,7 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 }
 
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	store, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
@@ -146,8 +141,7 @@ func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 }
 
 func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
@@ -158,8 +152,7 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 }
 
 func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
@@ -168,8 +161,7 @@ func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 }
 
 func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
-	defer cleanup()
+	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
@@ -186,8 +178,7 @@ func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
 	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType
 
 	// Get cockroachdb for its connection string.
-	_, cockroackdbInstanceConfig, cockroackDBCleanup := newCockroachDBConfigForTest(t)
-	defer cockroackDBCleanup()
+	_, cockroackdbInstanceConfig := newCockroachDBConfigForTest(t)
 
 	instanceConfig.DataStoreConfig.ConnectionString = cockroackdbInstanceConfig.DataStoreConfig.ConnectionString
 

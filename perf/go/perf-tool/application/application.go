@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -33,8 +32,6 @@ import (
 	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
-	"go.skia.org/infra/perf/go/sql/migrations"
-	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/trybot/samplesloader/gcssamplesloader"
 	"go.skia.org/infra/perf/go/types"
@@ -45,7 +42,6 @@ import (
 // Application contains the high level functions needed by perf-tool.
 type Application interface {
 	ConfigCreatePubSubTopics(instanceConfig *config.InstanceConfig) error
-	DatabaseMigrate(instanceConfig *config.InstanceConfig) error
 	DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
 	DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
 	DatabaseBackupRegressions(local bool, instanceConfig *config.InstanceConfig, outputFile, backupTo string) error
@@ -106,25 +102,6 @@ func (app) ConfigCreatePubSubTopics(instanceConfig *config.InstanceConfig) error
 		}
 	}
 
-	return nil
-}
-
-// DatabaseMigrate applies any migrations to the database.
-func (app) DatabaseMigrate(instanceConfig *config.InstanceConfig) error {
-
-	cockroachdbMigrations, err := cockroachdb.New()
-	if err != nil {
-		return skerr.Wrapf(err, "failed to load migrations")
-	}
-
-	// Modify the connection string so it works with the migration package.
-	connectionString := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroachdb://", 1)
-
-	err = migrations.Up(cockroachdbMigrations, connectionString)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to apply migrations to %q", connectionString)
-	}
-	fmt.Printf("Successfully applied SQL Schema migrations to %q\n", instanceConfig.DataStoreConfig.ConnectionString)
 	return nil
 }
 

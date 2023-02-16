@@ -74,20 +74,6 @@ func (_m *Application) DatabaseBackupShortcuts(local bool, instanceConfig *confi
 	return r0
 }
 
-// DatabaseMigrate provides a mock function with given fields: instanceConfig
-func (_m *Application) DatabaseMigrate(instanceConfig *config.InstanceConfig) error {
-	ret := _m.Called(instanceConfig)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*config.InstanceConfig) error); ok {
-		r0 = rf(instanceConfig)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DatabaseRestoreAlerts provides a mock function with given fields: local, instanceConfig, inputFile
 func (_m *Application) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
 	ret := _m.Called(local, instanceConfig, inputFile)

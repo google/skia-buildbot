@@ -62,8 +62,7 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 
 func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 
-	_, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
-	defer cleanup()
+	_ = sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "ingest-process")

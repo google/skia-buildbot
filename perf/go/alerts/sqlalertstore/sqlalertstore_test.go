@@ -12,11 +12,7 @@ func TestSQLAlertStore_CockroachDB(t *testing.T) {
 
 	for name, subTest := range alertstest.SubTests {
 		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewCockroachDBForTests(t, "alertstore")
-			// If this test timeouts then comment out the cleanup(), as it may hide the
-			// actual errors.
-			defer cleanup()
-
+			db := sqltest.NewCockroachDBForTests(t, "alertstore")
 			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)

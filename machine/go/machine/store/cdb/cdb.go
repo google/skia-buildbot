@@ -2,7 +2,7 @@
 // CockroachDB.
 package cdb
 
-//go:generate bazelisk run --config=mayberemote //:go -- run ./tosql --output_file sql.go --output_pkg cdb
+//go:generate bazelisk run --config=mayberemote //:go -- run ./tosql
 
 import (
 	"context"
@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
@@ -133,12 +132,12 @@ func New(db *pgxpool.Pool, pools *pools.Pools) (*Store, error) {
 	// Confirm the database has the right schema.
 	expectedSchema, err := expectedschema.Load()
 	if err != nil {
-		sklog.Fatal(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	actual, err := schema.GetDescription(db, Tables{})
 	if err != nil {
-		sklog.Fatal(err)
+		return nil, skerr.Wrap(err)
 	}
 	if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
 		return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)

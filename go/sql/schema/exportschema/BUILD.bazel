@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "exportschema_lib",
+    srcs = ["exportschema.go"],
+    importpath = "go.skia.org/infra/go/sql/schema/exportschema",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/emulators",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/schema",
+        "//go/util",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)

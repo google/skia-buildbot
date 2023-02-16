@@ -54,7 +54,7 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(7*time.Minute)))
 
 	// Init our sql database.
-	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, "git")
+	db := sqltest.NewCockroachDBForTests(t, "dbgit")
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "git")
@@ -65,7 +65,6 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 		cancel()
 		err = os.RemoveAll(tmpDir)
 		assert.NoError(t, err)
-		sqlCleanup()
 		gb.Cleanup()
 	}
 

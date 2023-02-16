@@ -22,8 +22,6 @@ go_library(
         "//perf/go/ingest/parser",
         "//perf/go/regression",
         "//perf/go/shortcut",
-        "//perf/go/sql/migrations",
-        "//perf/go/sql/migrations/cockroachdb",
         "//perf/go/tracestore",
         "//perf/go/trybot/samplesloader/gcssamplesloader",
         "//perf/go/types",

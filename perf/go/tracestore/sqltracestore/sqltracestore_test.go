@@ -35,7 +35,7 @@ var cfg = config.DataStoreConfig{
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
-	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
+	db := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
 
 	store, err := New(db, cfg)
 	require.NoError(t, err)
@@ -43,8 +43,6 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	if populateTraces {
 		populatedTestDB(t, ctx, store)
 	}
-
-	t.Cleanup(cleanup)
 
 	return ctx, store
 }

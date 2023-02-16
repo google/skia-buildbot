@@ -4,6 +4,10 @@ include ../make/bazel.mk
 build: ./modules/json/index.ts
 	$(BAZEL) build --config=mayberemote //perf/...
 
+# Requires the CockroachDB emulator to be running.
+generate_sql_schema:
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
+
 .PHONY: docs
 docs:
 	$(BAZEL) run --config=mayberemote //perf/go/perf-tool:perf-tool -- markdown > PERFTOOL.md

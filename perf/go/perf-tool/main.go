@@ -387,21 +387,6 @@ func actualMain(app application.Application) {
 				Name: "database",
 				Subcommands: []*cli.Command{
 					{
-						Name:  "migrate",
-						Usage: "Migrate the database to the latest version of the schema.",
-						Flags: []cli.Flag{
-							configFilenameFlag,
-							connectionStringFlag,
-						},
-						Action: func(c *cli.Context) error {
-							instanceConfig, err := instanceConfigFromFlags(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-							return app.DatabaseMigrate(instanceConfig)
-						},
-					},
-					{
 						Name: "backup",
 						Subcommands: []*cli.Command{
 							{

@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sql",
+    srcs = [
+        "schema.go",
+        "tables.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/sql",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/alerts/sqlalertstore/schema",
+        "//perf/go/git/schema",
+        "//perf/go/regression/sqlregressionstore/schema",
+        "//perf/go/shortcut/sqlshortcutstore/schema",
+        "//perf/go/tracestore/sqltracestore/schema",
+    ],
+)

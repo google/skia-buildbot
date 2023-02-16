@@ -237,6 +237,9 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	}
 
 	cache, err := lru.New(commitCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	ret := &Git{
 		gitFullPath:                            gitFullPath,

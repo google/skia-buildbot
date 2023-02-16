@@ -1,0 +1,38 @@
+{
+  "ColumnNameAndType": {
+    "alerts.alert": "text def: nullable:YES",
+    "alerts.config_state": "bigint def:0:::INT8 nullable:YES",
+    "alerts.id": "bigint def:unique_rowid() nullable:NO",
+    "alerts.last_modified": "bigint def: nullable:YES",
+    "commits.author": "text def: nullable:YES",
+    "commits.commit_number": "bigint def: nullable:NO",
+    "commits.commit_time": "bigint def: nullable:YES",
+    "commits.git_hash": "text def: nullable:NO",
+    "commits.subject": "text def: nullable:YES",
+    "paramsets.param_key": "text def: nullable:NO",
+    "paramsets.param_value": "text def: nullable:NO",
+    "paramsets.tile_number": "bigint def: nullable:NO",
+    "postings.key_value": "text def: nullable:NO",
+    "postings.tile_number": "bigint def: nullable:NO",
+    "postings.trace_id": "bytea def: nullable:NO",
+    "regressions.alert_id": "bigint def: nullable:NO",
+    "regressions.commit_number": "bigint def: nullable:NO",
+    "regressions.regression": "text def: nullable:YES",
+    "shortcuts.id": "text def: nullable:NO",
+    "shortcuts.trace_ids": "text def: nullable:YES",
+    "sourcefiles.source_file": "text def: nullable:NO",
+    "sourcefiles.source_file_id": "bigint def:unique_rowid() nullable:NO",
+    "tracevalues.commit_number": "bigint def: nullable:NO",
+    "tracevalues.source_file_id": "bigint def: nullable:YES",
+    "tracevalues.trace_id": "bytea def: nullable:NO",
+    "tracevalues.val": "real def: nullable:YES"
+  },
+  "IndexNames": [
+    "commits.commits_git_hash_key",
+    "paramsets.by_tile_number",
+    "postings.by_trace_id",
+    "sourcefiles.sourcefiles_source_file_key",
+    "sourcefiles.by_source_file",
+    "tracevalues.by_source_file_id"
+  ]
+}

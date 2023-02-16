@@ -6,11 +6,11 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/schema/exportschema"
-	"go.skia.org/infra/machine/go/machine/store/cdb"
+	"go.skia.org/infra/perf/go/sql"
 )
 
 func main() {
-	err := exportschema.Main(os.Args, cdb.Tables{}, cdb.Schema)
+	err := exportschema.Main(os.Args, sql.Tables{}, sql.Schema)
 	if err != nil {
 		sklog.Fatal(err)
 	}

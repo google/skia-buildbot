@@ -13,7 +13,6 @@ go_library(
         "//go/deepequal/assertdeep",
         "//go/metrics2",
         "//go/skerr",
-        "//go/sklog",
         "//go/sql/schema",
         "//go/sql/sqlutil",
         "//machine/go/machine",

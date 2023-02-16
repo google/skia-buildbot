@@ -31,8 +31,7 @@ var (
 
 func TestBuildTraceMapper(t *testing.T) {
 
-	db, cleanup := sqltest.NewCockroachDBForTests(t, "dfbuilder")
-	defer cleanup()
+	db := sqltest.NewCockroachDBForTests(t, "dfbuilder")
 
 	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
 	require.NoError(t, err)

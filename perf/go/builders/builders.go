@@ -12,8 +12,10 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/config"
@@ -26,6 +28,8 @@ import (
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
+	"go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 )
@@ -82,6 +86,24 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	cfg.MaxConns = maxPoolConnections
 	cfg.ConnConfig.Logger = pgxLogAdaptor{}
 	singletonPool, err = pgxpool.ConnectConfig(ctx, cfg)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Confirm the database has the right schema.
+	expectedSchema, err := expectedschema.Load()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	actual, err := schema.GetDescription(singletonPool, sql.Tables{})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
+		return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)
+	}
+
 	return singletonPool, err
 }
 
