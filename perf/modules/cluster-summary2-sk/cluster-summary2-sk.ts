@@ -42,7 +42,6 @@ import '../plot-simple-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
 import '../commit-range-sk';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -52,7 +51,6 @@ import {
   FrameResponse,
   ClusterSummary,
   TriageStatus,
-  Commit,
   CommitNumber,
   Status,
   ColumnHeader,
@@ -65,6 +63,7 @@ import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { lookupCids } from '../cid/cid';
 
 /** Defines a func that takes a number and formats it as a string. */
 type Formatter = (n: number)=> string;
@@ -209,15 +208,7 @@ export class ClusterSummary2Sk extends ElementSk {
    * @param An array of CommitNumbers.
    * @returns A Promise that resolves the cids and returns an Array of serialized perfgit.Commit.
    */
-  static lookupCids(cids: CommitNumber[]): Promise<CIDHandlerResponse> {
-    return fetch('/_/cid/', {
-      method: 'POST',
-      body: JSON.stringify(cids),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then(jsonOrThrow);
-  }
+  static lookupCids = lookupCids;
 
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">

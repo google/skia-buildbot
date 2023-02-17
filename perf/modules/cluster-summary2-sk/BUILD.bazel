@@ -19,10 +19,10 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
         "//perf/modules/const:const_ts_lib",
+        "//perf/modules/cid:cid_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",

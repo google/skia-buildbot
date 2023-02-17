@@ -6,28 +6,16 @@
  * uses the global `window.perf.commit_range_url`, which can be set on Perf via
  * the command line.
  */
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { lookupCids } from '../cid/cid';
 import { MISSING_DATA_SENTINEL } from '../const/const';
-import { CIDHandlerResponse, ColumnHeader, CommitNumber } from '../json';
+import { ColumnHeader, CommitNumber } from '../json';
 import '../window/window';
 
 // Converts CommitNumbers to Git hashes.
 type commitNumberToHashes = (commitNumbers: CommitNumber[])=> Promise<string[]>;
-
-/**
-   * Look up the commit ids for the given offsets and sources.
-   *
-   */
-const lookupCids = (cids: CommitNumber[]): Promise<CIDHandlerResponse> => fetch('/_/cid/', {
-  method: 'POST',
-  body: JSON.stringify(cids),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-}).then(jsonOrThrow);
 
 /** The default implementation for commitNumberToHashes run the commit numbers
  *  through cid lookup to get the hashes by making a request to the server.
