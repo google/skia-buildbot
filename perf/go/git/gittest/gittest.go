@@ -24,9 +24,6 @@ const (
 	CockroachDatabaseName = "git"
 )
 
-// CleanupFunc is the type of clean up function that NewForTest returns.
-type CleanupFunc func()
-
 var (
 	// StartTime is the time of the first commit.
 	StartTime = time.Unix(1680000000, 0)
@@ -37,7 +34,7 @@ var (
 // The repo is populated with 8 commits, one minute apart, starting at StartTime.
 //
 // The hashes for each commit are going to be random and so are returned also.
-func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig, CleanupFunc) {
+func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -61,12 +58,12 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 	require.NoError(t, err)
 
 	// Create the cleanup function.
-	clean := func() {
+	t.Cleanup(func() {
 		cancel()
 		err = os.RemoveAll(tmpDir)
 		assert.NoError(t, err)
 		gb.Cleanup()
-	}
+	})
 
 	instanceConfig := &config.InstanceConfig{
 		GitRepoConfig: config.GitRepoConfig{
@@ -74,5 +71,5 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 			Dir: filepath.Join(tmpDir, "checkout"),
 		},
 	}
-	return ctx, db, gb, hashes, instanceConfig, clean
+	return ctx, db, gb, hashes, instanceConfig
 }

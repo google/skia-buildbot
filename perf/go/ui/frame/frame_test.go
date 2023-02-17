@@ -36,8 +36,7 @@ var (
 )
 
 func TestGetSkps_Success(t *testing.T) {
-	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -57,8 +56,7 @@ func TestGetSkps_Success(t *testing.T) {
 }
 
 func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
-	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -78,8 +76,7 @@ func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 }
 
 func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
-	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 

@@ -40,9 +40,7 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 	return store.WriteTraces(context.Background(), index, params, values, ps, filename, ts)
 }
 
-type cleanupFunc func()
-
-func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git, cleanupFunc) {
+func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git) {
 	db := sqltest.NewCockroachDBForTests(t, "dfiter")
 
 	cfg := config.DataStoreConfig{
@@ -72,21 +70,16 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, instanceConfig, gitCleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, 2)
-	cleanup := func() {
-		gitCleanup()
-	}
-
-	return ctx, dfb, g, cleanup
+	return ctx, dfb, g
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is a MultipleDataframes request because Domain.Offset = 0.
 
@@ -115,8 +108,7 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is a MultipleDataframes request because Domain.Offset = 0.
 
@@ -155,8 +147,7 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is an ExactDataframeRequest because Offset != 0.
 
@@ -175,8 +166,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is an ExactDataframeRequest because Offset != 0.
 	alert := &alerts.Alert{
@@ -199,8 +189,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is an ExactDataframeRequest because Offset != 0.
 
@@ -219,8 +208,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
-	ctx, dfb, g, cleanup := newForTest(t)
-	defer cleanup()
+	ctx, dfb, g := newForTest(t)
 
 	// This is a MultipleDataframes request because Domain.Offset = 0.
 

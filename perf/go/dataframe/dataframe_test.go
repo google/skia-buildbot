@@ -129,8 +129,7 @@ func TestSlice(t *testing.T) {
 }
 
 func TestFromTimeRange_Success(t *testing.T) {
-	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -150,8 +149,7 @@ func TestFromTimeRange_Success(t *testing.T) {
 }
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
-	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 

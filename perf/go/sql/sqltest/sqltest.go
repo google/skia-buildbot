@@ -15,10 +15,6 @@ import (
 	"go.skia.org/infra/perf/go/sql"
 )
 
-// Cleanup is a function to call after the test has ended to clean up any
-// database resources.
-type Cleanup func()
-
 // NewCockroachDBForTests creates a new temporary CockroachDB database with all
 // the Schema applied for testing. It also returns a function to call to clean
 // up the database after the tests have completed.

@@ -172,8 +172,7 @@ func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *t
 }
 
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
-	ctx, _, _, hashes, instanceConfig, cleanup := gittest.NewForTest(t)
-	defer cleanup()
+	ctx, _, _, hashes, instanceConfig := gittest.NewForTest(t)
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType
 
