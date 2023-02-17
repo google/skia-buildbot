@@ -167,7 +167,7 @@ to see how these styles apply to title bars and sidebars.
     --on-secondary: var(--background);
     --on-surface: #dddddd;
     --primary-variant: var(--light-blue-100);
-    --primary: var(--blue-200);
+    --primary: #86b8e0; // #98b3f500
     --secondary: var(--green-200);
     --surface-1dp: var(--grey-800);
     --surface-2dp: var(--grey-700);
@@ -213,14 +213,22 @@ to see how these styles apply to title bars and sidebars.
   button {
     min-width: auto;
     text-align: center;
+    border-radius: 4px;
     text-transform: none;
+    background: var(--primary);
+    color: var(--on-primary);
+    fill: var(--on-primary);
     padding: 4px;
     height: fit-content;
     margin: 8px 2px;
     outline: none;
-    border: solid 1px var(--on-surface);
-
+    border: none;
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
+  }
+
+  .button-like:hover,
+  button:hover {
+    background: var(--secondary);
   }
 
   .button-like.icon,
@@ -232,7 +240,7 @@ to see how these styles apply to title bars and sidebars.
   .button-like.action,
   button.action {
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
-    border: none;
+    border: solid 1px var(--on-surface);
   }
 
   .button-like:active,
@@ -317,12 +325,15 @@ to see how these styles apply to title bars and sidebars.
   }
 
   tabs-sk {
-    > button {
+    > button,
+    > .button-like {
       border: none;
       border-bottom: solid 4px var(--on-surface);
       box-shadow: none;
+      border-radius: 0;
     }
-    > button.selected {
+    > button.selected,
+    > .button-like.selected {
       border-bottom: solid 4px var(--primary);
     }
   }
@@ -334,15 +345,11 @@ to see how these styles apply to title bars and sidebars.
   */
   details {
     summary {
+      @extend .button-like;
       display: inline-block;
-      padding: 4px;
-      background: var(--surface);
-      color: var(--on-surface);
-      border: solid 1px var(--on-surface);
       cursor: pointer;
       list-style: none;
       margin: 8px 4px 8px 0;
-      box-shadow: 2px 2px 0px 0px var(--surface-2dp);
     }
 
     summary:focus {
@@ -412,11 +419,14 @@ to see how these styles apply to title bars and sidebars.
   ::-webkit-scrollbar-thumb {
     border: solid 1px var(--on-surface);
     background: var(--surface-1dp);
+    border-radius: 4px;
+    background: var(--primary);
+    color: var(--on-primary);
   }
 
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--surface);
+    background: var(--secondary);
   }
 
   td {

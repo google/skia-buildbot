@@ -1,15 +1,25 @@
+@import '../../../infra-sk/themes.scss';
+
 job-sk {
   font-family: Arial;
 
   #cancelButton {
-    background-color: rgb(117, 112, 179);
     cursor: pointer;
+    background: var(--unexpected);
+    color: var(--on-surface);
+    fill: var(--on-surface);
   }
 
-  button > a {
-    color: inherit;
-    text-decoration: inherit;
+  #timeline {
+    @extend .button-like;
+
+    a {
+      background: var(--primary);
+      color: var(--on-primary);
+      fill: var(--on-primary);
+    }
   }
+
   td > button {
     margin: 0px;
   }

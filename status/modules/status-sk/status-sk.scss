@@ -10,6 +10,12 @@
     --header-border-color: var(--success-alpha);
     --header-font-color: var(--on-success);
 
+    button,
+    .button-like {
+      background: var(--surface-1dp);
+      color: var(--on-surface);
+    }
+
     header {
       a {
         color: var(--on-success);
@@ -32,6 +38,7 @@
         border-left: none;
         border-right: none;
         border-bottom-color: var(--surface-1dp);
+        border-radius: 0;
         width: 100%;
         text-transform: none;
         padding: 0 0.5em 0 0;

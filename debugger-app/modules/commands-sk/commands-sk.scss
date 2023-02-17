@@ -53,12 +53,16 @@ commands-sk {
       // makes the button only as tall as necessary to hold text
       button {
         margin: 2px;
+        background: var(--surface);
+        color: var(--on-surface);
       }
 
       .command-summary {
         display: flex;
         align-items: center;
         margin: 0 2px 4px 0;
+        background: var(--surface);
+        color: var(--on-surface);
       }
     }
   }

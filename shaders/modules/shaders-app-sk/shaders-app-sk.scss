@@ -94,18 +94,6 @@
     /* Debug, run, and save button */
     #shaderControls {
       margin-left: 0;
-
-      .action {
-        margin: 8px;
-        border-radius: 8px;
-        padding: 8px 16px 8px 16px;
-        background-color: #4285F4;
-        color:#FFF;
-        text-align: center;
-        font-family: var(--font);
-        font-weight: medium;
-        font-size: 0.875rem;
-      }
     }
 
     #uniformControls {
@@ -136,6 +124,7 @@
 
   details[open] {
     background: var(--surface);
+    margin: 8px 8px 8px 0;
   }
 
   details#shaderinputs {
@@ -177,18 +166,6 @@
     }
 
     /* Shader input and edit icon label */
-    summary {
-      margin: 8px;
-      border-radius: 8px;
-      padding: 8px 16px 8px 16px;
-      background-color: #4285F4;
-      color:#FFF;
-      text-align: center;
-      font-family: var(--font);
-      font-weight: medium;
-      font-size: 0.875rem;
-    }
-
     summary::-webkit-details-marker {
       display: none;
     }
@@ -215,10 +192,6 @@
   }
 
   details#image_edit[open] {
-    summary {
-      margin: 0 8px 8px 0;
-    }
-
     #image_edit_dialog {
       border: solid var(--surface-2dp) 1px;
       padding: 8px;
@@ -255,63 +228,51 @@
   .example-gallery-and-canvas-wrapper {
     display: flex;
   }
+
   /** Gallery template css */
   .gallery-container {
     display: flex;
     justify-content: center;
-    padding: 16px;
-  }
-  .thumbnails {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .thumbnails img {
-    width: 110px;
-    height: 110px;
-    top: 100px;
-    left: 80px;
-    cursor: pointer;
-  }
-  .thumbnails:hover img {
-    opacity: 0.5;
-    -webkit-transition: .3s ease-in-out;
-    transition: .3s ease-in-out;
-  }
-  .scrollbar {
-    width: 12px;
-    height: 512px;
-    background: #ccc;
-    opacity: 0.5;
-  }
-  .thumb {
-    width: 1px;
-    position: absolute;
-  }
-  .slides {
-    list-style: none;
-    margin: 0 16px;
-    display: grid;
-    grid-auto-flow: row;
-    gap: 1rem;
-    width: calc(100px + 1rem);
-    padding: 0 0.25rem;
-    height: 512px;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scroll-snap-type: y mandatory;
-    scrollbar-width: none;
-  }
-  .slides > div {
-    scroll-snap-align: start;
-  }
-  .slides img {
-    width: 100px;
-    object-fit: fill;
-    border-radius: 8px;
-  }
-  .slides::-webkit-scrollbar {
-    display: none;
+    padding: 0 8px 8px 0;
+
+    .slides {
+      display: grid;
+      gap: 1rem;
+      grid-auto-flow: row;
+      height: 512px;
+      list-style: none;
+      margin: 0 8px;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      padding: 0 0.25rem;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      width: calc(126px);
+
+      .thumbnails {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        list-style: none;
+
+        img {
+          border-radius: 8px;
+          cursor: pointer;
+          height: 110px;
+          left: 80px;
+          object-fit: fill;
+          scroll-snap-align: start;
+          top: 100px;
+          width: 100px;
+          width: 110px;
+
+          &:hover {
+            -webkit-transition: 0.3s ease-in-out;
+            opacity: 0.5;
+            transition: 0.3s ease-in-out;
+          }
+        }
+      }
+    }
   }
 }

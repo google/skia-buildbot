@@ -166,13 +166,7 @@ const exampleShaders: Array<shaderExample> = [
  */
 const exampleShadersGalleryTemplate = () => html`
     <div class="gallery-container">
-      <div class="thumbnails"></div>
-      <div class="scrollbar">
-        <div class="scrollbar-thumb"></div>
-      </div>
-      <div class="slides">
-        ${generateExampleShadersHTML()}
-      </div>
+      ${generateExampleShadersHTML()}
     </div>
   `;
 
@@ -192,9 +186,7 @@ const generateExampleShadersHTML = () => html`
 const shaderEntry = (i: shaderExample) => html`
   <li class="thumbnails">
     <a href=${`https://shaders.skia.org/?id=${i.hash}`}>
-      <div>
-        <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`}>
-      </div>
+      <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`}>
     </a>
   </li>`;
 
@@ -382,7 +374,7 @@ export class ShadersAppSk extends ElementSk {
   private static template = (ele: ShadersAppSk) => html`
   <app-sk>
     <header>
-      <a href="/">SkSL Shaders</a>
+      <a href="/"><h1>SkSL Shaders</h1></a>
       <span>
         <a
           id="githash"

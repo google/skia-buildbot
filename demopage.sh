@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -x
+
 if [[ $# -ne 1 ]]; then
   echo "Usage: $0 <path to custom element's directory>"
   echo
