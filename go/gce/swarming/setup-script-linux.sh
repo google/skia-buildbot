@@ -208,3 +208,7 @@ sudo systemctl enable swarming_bot.service
 
 # Give the "docker" command access to GCR.
 gcloud auth configure-docker --quiet
+
+# Bazel requires "zip" to download and pack test undeclared outputs as an outputs.zip archive under
+# the bazel-testlogs directory.
+sudo apt-get --assume-yes install zip
