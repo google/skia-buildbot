@@ -16,6 +16,7 @@ import (
 	manual_mocks "go.skia.org/infra/autoroll/go/manual/mocks"
 	"go.skia.org/infra/autoroll/go/modes"
 	modes_mocks "go.skia.org/infra/autoroll/go/modes/mocks"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/status"
 	status_mocks "go.skia.org/infra/autoroll/go/status/mocks"
@@ -220,7 +221,7 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 	strategyHistory.On("CurrentStrategy").Return(makeFakeStrategyChange(cfg))
 
 	manualReq := makeFakeManualRollRequest(cfg)
-	mdb.On("GetRecent", cfg.RollerName, 2 /* number of not-rolled revs in fake status */).Return([]*manual.ManualRollRequest{manualReq}, nil)
+	mdb.On("GetRecent", cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH).Return([]*manual.ManualRollRequest{manualReq}, nil)
 
 	return &AutoRoller{
 		Cfg:      cfg,
@@ -371,7 +372,7 @@ func TestGetStatus(t *testing.T) {
 	res, err = srv.GetStatus(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, len(st.NotRolledRevisions))
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &GetStatusResponse{
@@ -422,7 +423,7 @@ func TestSetMode(t *testing.T) {
 	res, err = srv.SetMode(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, len(st.NotRolledRevisions))
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetModeResponse{
@@ -472,7 +473,7 @@ func TestSetStrategy(t *testing.T) {
 	res, err = srv.SetStrategy(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, len(st.NotRolledRevisions))
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetStrategyResponse{
@@ -766,7 +767,7 @@ func TestConvertStatus(t *testing.T) {
 	require.NoError(t, err)
 	strat, err := convertStrategyChange(r.Strategy.CurrentStrategy())
 	require.NoError(t, err)
-	manualReqs, err := srv.manualRollDB.GetRecent(cfg.RollerName, len(st.NotRolledRevisions))
+	manualReqs, err := srv.manualRollDB.GetRecent(cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
 	require.NoError(t, err)
 	ms, err := convertMiniStatus(&st.AutoRollMiniStatus, cfg.RollerName, r.Mode.CurrentMode().Mode, cfg.ChildDisplayName, cfg.ParentDisplayName)
 	require.NoError(t, err)

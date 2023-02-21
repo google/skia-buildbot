@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -235,7 +236,7 @@ func (s *AutoRollServer) getStatus(ctx context.Context, rollerID string) (*AutoR
 	st := roller.Status.Get()
 	var manualReqs []*manual.ManualRollRequest
 	if roller.Cfg.SupportsManualRolls {
-		manualReqs, err = s.manualRollDB.GetRecent(roller.Cfg.RollerName, len(st.NotRolledRevisions))
+		manualReqs, err = s.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
 		if err != nil {
 			return nil, err
 		}

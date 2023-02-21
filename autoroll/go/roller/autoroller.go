@@ -914,7 +914,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			// Avoid creating rolls to the current revision.
 			from := r.GetCurrentRev()
 			if to.Id == from.Id {
-				err := skerr.Fmt("Alaredy at revision %q", from.Id)
+				err := skerr.Fmt("Already at revision %q", from.Id)
 				req.Status = manual.STATUS_COMPLETE
 				req.Result = manual.RESULT_FAILURE
 				req.ResultDetails = err.Error()
