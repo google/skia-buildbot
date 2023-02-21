@@ -18,7 +18,6 @@
 
   header {
     border-bottom: solid 1px var(--header-font-color);
-    font-size: 1rem;
   }
 
   main {
@@ -32,9 +31,8 @@
       background: var(--surface);
       color: var(--secondary);
       font-family: var(--mono-font);
-      font-size: 1.25rem;
+      font-size: 16px;
       resize: none;
-      font-size: 11px;
       margin: 0 8px 0 0;
     }
 
@@ -79,7 +77,7 @@
 
     #examples {
       margin: 0 8px 8px 0;
-      font-size: 1.25rem;
+      font-size: 16px;
     }
 
     canvas {
@@ -88,7 +86,7 @@
 
     #codeEditor {
       margin: 0 8px 8px 0;
-      font-size: 1.25rem;
+      font-size: 16px;
     }
 
     /* Debug, run, and save button */
@@ -134,13 +132,15 @@
     list-style: initial;
     box-shadow: initial;
     margin: 0 8px 8px 0;
-    font-size: 1rem;
+    font-size: 12px;
     background: var(--background);
     border: none;
 
     textarea {
       margin: 16px;
       padding: 8px;
+      font-family: var(--mono-font);
+      font-size: 12px;
     }
 
     #imageSources {
@@ -177,6 +177,7 @@
     summary {
       list-style: none;
 
+      margin-top: 0;
       edit-icon-sk {
         display: block;
         svg {
@@ -187,11 +188,11 @@
     }
   }
 
-  details#image_edit > summary::-webkit-details-marker {
-    display: none;
-  }
-
   details#image_edit[open] {
+    summary {
+      margin-top: 8px;
+    }
+
     #image_edit_dialog {
       border: solid var(--surface-2dp) 1px;
       padding: 8px;
@@ -222,7 +223,7 @@
 
     * {
       font-family: var(--mono-font);
-      font-size: 1rem;
+      font-size: 16px;
     }
   }
   .example-gallery-and-canvas-wrapper {
@@ -237,17 +238,15 @@
 
     .slides {
       display: grid;
-      gap: 1rem;
+      gap: 12px;
       grid-auto-flow: row;
       height: 512px;
       list-style: none;
       margin: 0 8px;
       overflow-y: auto;
-      overscroll-behavior-y: contain;
-      padding: 0 0.25rem;
+      padding: 0 4px;
       scroll-snap-type: y mandatory;
-      scrollbar-width: none;
-      width: calc(126px);
+      width: 140px;
 
       .thumbnails {
         display: flex;
@@ -259,11 +258,8 @@
           border-radius: 8px;
           cursor: pointer;
           height: 110px;
-          left: 80px;
           object-fit: fill;
           scroll-snap-align: start;
-          top: 100px;
-          width: 100px;
           width: 110px;
 
           &:hover {
