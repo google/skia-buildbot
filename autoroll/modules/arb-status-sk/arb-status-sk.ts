@@ -286,9 +286,13 @@ export class ARBStatusSk extends ElementSk {
               ${ele.recentRolls.map((roll: RecentRoll) => html`
                   <tr>
                     <td>
+                      ${!!roll.url ? html`
                       <a href="${roll.url}" target="_blank"
                         >${roll.subject}</a
                       >
+                      ` : html`
+                        ${roll.subject} (no CL created)
+                      `}
                     </td>
                     <td><human-date-sk .date="${roll.timestamp}" .diff="${true}"></human-date-sk></td>
                     <td>
