@@ -16,8 +16,10 @@ import (
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
 
@@ -130,8 +132,9 @@ func (in *Incident) IsSilenced(silences []silence.Silence, matchOnlyActiveSilenc
 
 // Store and retrieve Incidents from Cloud Datastore.
 type Store struct {
-	ignoredAttr []string // key-value pairs to ignore when computing IDs, such as kubernetes_pod_name, instance, and pod_template_hash.
-	ds          *datastore.Client
+	ignoredAttr         []string // key-value pairs to ignore when computing IDs, such as kubernetes_pod_name, instance, and pod_template_hash.
+	ds                  *datastore.Client
+	alertArrivalLatency metrics2.Float64SummaryMetric
 }
 
 // NewStore creates a new Store.
@@ -143,8 +146,9 @@ func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
 	ignored = append(ignored, ignoredAttr...)
 	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO)
 	return &Store{
-		ignoredAttr: ignored,
-		ds:          ds,
+		ignoredAttr:         ignored,
+		ds:                  ds,
+		alertArrivalLatency: metrics2.GetFloat64SummaryMetric("alert_manager_store_alert_arrival_latency"),
 	}
 }
 
@@ -281,6 +285,7 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 // returned error is non-nil. An example of when this could happen: If we
 // receive an alert for an incident that is no longer active.
 func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
+	defer timer.NewWithSummaryOnly(s.alertArrivalLatency).Stop()
 	// If there is a matching active alert then just update its LastUpdated
 	// value, otherwise create a new Incident and store it.
 	id, err := s.idForAlert(m)

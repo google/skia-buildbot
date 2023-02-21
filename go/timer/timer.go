@@ -70,9 +70,27 @@ func NewWithSummary(name string, m metrics2.Float64SummaryMetric) *Timer {
 	}
 }
 
+func NewWithMetricOnly(m metrics2.Float64Metric) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Name:   "",
+		Metric: m,
+	}
+}
+
+func NewWithSummaryOnly(m metrics2.Float64SummaryMetric) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Name:   "",
+		Metric: summaryWrapper{m: m},
+	}
+}
+
 func (t Timer) Stop() time.Duration {
 	duration := time.Now().Sub(t.Begin)
-	sklog.Infof("%s %v", t.Name, duration)
+	if t.Name != "" {
+		sklog.Infof("%s %v", t.Name, duration)
+	}
 	if t.Metric != nil {
 		t.Metric.Update(duration.Seconds())
 	}
