@@ -98,7 +98,7 @@
       margin-left: 0;
     }
 
-    #uniformControls > * {
+    #uniformControls>* {
       padding: 0;
       margin: 0 8px 8px 0;
     }
@@ -178,8 +178,10 @@
       list-style: none;
 
       margin-top: 0;
+
       edit-icon-sk {
         display: block;
+
         svg {
           width: 24px;
           height: 24px;
@@ -197,7 +199,7 @@
       border: solid var(--surface-2dp) 1px;
       padding: 8px;
 
-      > * {
+      >* {
         margin: 0 8px 8px 0;
       }
     }
@@ -226,12 +228,14 @@
       font-size: 16px;
     }
   }
+
   .example-gallery-and-canvas-wrapper {
     display: flex;
   }
 
   /** Gallery template css */
-  .gallery-container {
+  .gallery {
+    width: 200px;
     display: flex;
     justify-content: center;
     padding: 0 8px 8px 0;
@@ -253,10 +257,10 @@
         flex-direction: column;
         gap: 8px;
         list-style: none;
+        cursor: pointer;
 
         img {
           border-radius: 8px;
-          cursor: pointer;
           height: 110px;
           object-fit: fill;
           scroll-snap-align: start;

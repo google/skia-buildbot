@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /**
  * @module modules/shaders-app-sk
  * @description <h2><code>shaders-app-sk</code></h2>
@@ -111,6 +112,7 @@ const RAF_NOT_RUNNING = -1;
   hash: string;
   imageName: string;
 }
+
 /** An array of shader examples. Each image name must correspond to the thumbnail name */
 const exampleShaders: Array<shaderExample> = [
   {
@@ -156,7 +158,41 @@ const exampleShaders: Array<shaderExample> = [
   {
     hash: 'e3c8c172e50a69196b2f7712c307ae7099931c3addfc21075ef4ab6aeed11f71',
     imageName: 'switch-color',
-  }];
+  },
+];
+
+// Records a display name and a scrap ID for a single uniform example.
+interface uniformExample {
+  name: string;
+  id: string;
+}
+
+/** An array of shader examples. Each image name must correspond to the
+ *  thumbnail name. See create-named-scraps.sh for how to update the contents of
+ *  these named scraps.
+ */
+const uniformExamples: Array<uniformExample> = [
+  {
+    name: 'iResolution',
+    id: '@iResolution',
+  },
+  {
+    name: 'iTime',
+    id: '@iTime',
+  },
+  {
+    name: 'iMouse',
+    id: '@iMouse',
+  },
+  {
+    name: 'iImage',
+    id: '@iImage',
+  },
+  {
+    name: 'Controls',
+    id: '@inputs',
+  },
+];
 
 /**
  * A collection of thumbnail snippets that redirect to different shader examples when clicked on.
@@ -164,31 +200,43 @@ const exampleShaders: Array<shaderExample> = [
  * which in turn links to its thumbnail.
  * @returns the gallery template result
  */
-const exampleShadersGalleryTemplate = () => html`
-    <div class="gallery-container">
-      ${generateExampleShadersHTML()}
-    </div>
+const exampleShadersGalleryTemplate = (ele: ShadersAppSk) => html`
+  <div class="gallery">
+    <ol class="slides">
+      ${exampleShaders.map((i) => shaderEntry(ele, i))}
+      ${uniformExamples.map((i) => uniformExampleEntry(ele, i))}
+    </ol>
+  </div>
   `;
 
-/**
- * Iterates through example shaders and adds it to an ordered list
+/** DOM IDs must not contain an '@', so replace them, and also prepend 'x' so
+ *  that the id never starts with a number.
  */
-const generateExampleShadersHTML = () => html`
-  <ol class="slides">
-    ${exampleShaders.map((i) => shaderEntry(i))}
-  </ol>`;
+const domIDFromHashOrName = (hashOrName: string): string => {
+  hashOrName = hashOrName.replace('@', '_');
+
+  return `x${hashOrName}`;
+};
 
 /**
  * Formats each shader entry attaching the link, image source, and alternative text
  * @param i the shader example
  * @returns formated shader exanple entry div
  */
-const shaderEntry = (i: shaderExample) => html`
-  <li class="thumbnails">
-    <a href=${`https://shaders.skia.org/?id=${i.hash}`}>
+const shaderEntry = (ele: ShadersAppSk, i: shaderExample) => html`
+  <li class="thumbnails" id='${domIDFromHashOrName(i.hash)}'>
+    <a href="/?id=${i.hash}">
       <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`}>
     </a>
   </li>`;
+
+/**
+ * Formats each uniform entry attaching the link with the display text.
+ */
+const uniformExampleEntry = (ele: ShadersAppSk, uni: uniformExample) => html`
+ <li class="thumbnails" id='${domIDFromHashOrName(uni.id)}'>
+   <a href="/?id=${uni.id}">${uni.name}</a>
+ </li>`;
 
 /**
  * Formats the shader example thumbnail url
@@ -389,7 +437,7 @@ export class ShadersAppSk extends ElementSk {
       <div>
         <div class="example-gallery-and-canvas-wrapper">
           <div>
-            ${exampleShadersGalleryTemplate()}
+            ${exampleShadersGalleryTemplate(ele)}
           </div>
         <canvas
           id="player"
@@ -555,6 +603,12 @@ export class ShadersAppSk extends ElementSk {
       await this.rootShaderNode!.loadScrap(this.state.id);
       this._render();
       this.setUniformValuesToControls();
+      // If we loaded this shader from the gallery then make sure the thumbnail
+      // is scrolled into view.
+      const galleryEntry = this.querySelector(`#${domIDFromHashOrName(this.state.id)}`);
+      if (galleryEntry) {
+        galleryEntry.scrollIntoView();
+      }
       this.run();
     } catch (error) {
       doNotWait(errorMessage(error as Error, 0));
