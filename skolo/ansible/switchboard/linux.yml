@@ -12,6 +12,7 @@
     - install_collectd
     - swarming_needs
     - switchboard_needs
+    - skia_needs
     - install_test_machine_monitor
     - rfkill
     - logrotate

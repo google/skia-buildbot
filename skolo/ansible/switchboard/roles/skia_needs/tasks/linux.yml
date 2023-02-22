@@ -1,0 +1,37 @@
+# Libraries needed to run x86_64 Skia tests.
+#
+# As an example, Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-SafeStack needs these packages,
+# or it will fail because "dm" is missing necessary shared libraries.
+#
+# Based on
+# https://skia.googlesource.com/buildbot/+/911443de263af2792cfc8bfaf8d793826e2ca9e2/go/gce/swarming/setup-script-linux.sh#16
+- name: Install x86_64 libraries
+  become: true
+  apt:
+    pkg:
+      - libc++-dev
+
+# Libraries needed to run x86 (32-bit) Skia tests.
+#
+# As an example, Test-Debian10-Clang-GCE-CPU-AVX2-x86-Debug-All needs these packages, or it will
+# fail because "dm" is missing necessary shared libraries.
+#
+# Based on
+# https://skia.googlesource.com/buildbot/+/911443de263af2792cfc8bfaf8d793826e2ca9e2/go/gce/swarming/setup-script-linux.sh#32.
+- name: Support for x86 (i.e. 32-bit builds).
+  block:
+    - name: Add i386 architecture
+      become: yes
+      shell: dpkg --add-architecture i386
+
+    - name: Install x86 (i.e. 32-bit) libraries
+      become: true
+      apt:
+        update_cache: true # Run "apt-get update" before the operation.
+        pkg:
+          - libfreetype6:i386
+          - libfontconfig1:i386
+          - libgl1-mesa-glx:i386
+          - libglu1-mesa:i386
+          - libx11-6:i386
+          - libxext-dev:i386
