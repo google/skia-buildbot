@@ -51,6 +51,10 @@ var (
 		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 		instance_types.INSTANCE_TYPE_WIN_LARGE,
 	}
+
+	ansibleDirectory     = filepath.Join("skolo", "ansible")
+	linuxAnsiblePlaybook = filepath.Join("switchboard", "linux.yml")
+	winAnsiblePlaybook   = filepath.Join("switchboard", "win.yml")
 )
 
 type machineRange struct {
@@ -269,5 +273,28 @@ func main() {
 	}
 	if err := group.Wait(); err != nil {
 		sklog.Fatal(err)
+	}
+
+	// Print out ansible-playbook command if necessary.
+	//
+	// TODO(lovisolo): Run Ansible playbook unless --skip-ansible-playbook is provided.
+	if *create && *ansible {
+		playbook := linuxAnsiblePlaybook
+		if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+			playbook = winAnsiblePlaybook
+		}
+		var machines []string
+		for _, n := range instanceNums {
+			machines = append(machines, fmt.Sprintf("skia-e-gce-%03d", n))
+		}
+		commaSeparatedMachines := strings.Join(machines, ",")
+		command := fmt.Sprintf("$ ansible-playbook %s --limit %s", playbook, commaSeparatedMachines)
+		if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+			// For some reason, sometimes passwordless auth does not work on Windows machines.
+			command += " --ask-pass"
+		}
+
+		sklog.Infof("To finish setting up these machines, cd into %s, then run the following command:", filepath.Join(checkoutRoot, ansibleDirectory))
+		sklog.Infof(command)
 	}
 }
