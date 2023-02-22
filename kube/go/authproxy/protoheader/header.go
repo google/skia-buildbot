@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"strings"
 
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
@@ -56,9 +57,18 @@ func (p ProtoHeader) Init(port string, local bool) error {
 
 // LoggedInAs implements auth.Auth.
 func (p ProtoHeader) LoggedInAs(r *http.Request) string {
-	b, err := base64.StdEncoding.DecodeString(r.Header.Get(p.headerName))
+	// The header value contains a base64 encoded proto and then it's signed
+	// which adds a signature, separated by a period.
+	headerValue := r.Header.Get(p.headerName)
+	parts := strings.Split(headerValue, ".")
+	if len(parts) != 2 {
+		sklog.Errorf("Failed to find a '.' separated header value.")
+		return ""
+	}
+	// Only use the base64 encoded data before the period.
+	b, err := base64.RawURLEncoding.DecodeString(parts[0])
 	if err != nil {
-		sklog.Errorf("Failed to base64 decode header %q: %s", p.headerName, err)
+		sklog.Errorf("Failed to base64 decode header: %q error: %s", p.headerName, err)
 		return ""
 	}
 	var h Header

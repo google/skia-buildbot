@@ -34,10 +34,22 @@ func emailSerializedAsProto(t *testing.T) []byte {
 	return b
 }
 
-func protoHeaderAndRequestForTest(t *testing.T) (ProtoHeader, *http.Request) {
-	b64 := base64.StdEncoding.EncodeToString(emailSerializedAsProto(t))
+func protoHeaderMissingAPeriodInTheHeaderValueAndRequestForTest(t *testing.T) (ProtoHeader, *http.Request) {
+	b64 := base64.RawURLEncoding.EncodeToString(emailSerializedAsProto(t))
 	r := httptest.NewRequest("GET", "/", nil)
-	r.Header.Set(testHeaderName, b64)
+	r.Header.Set(testHeaderName, b64) // No ".stuff-added-after-the-dot"
+	p := ProtoHeader{
+		headerName: testHeaderName,
+		loginURL:   testLoginURL,
+	}
+
+	return p, r
+}
+
+func protoHeaderAndRequestForTest(t *testing.T) (ProtoHeader, *http.Request) {
+	b64 := base64.RawURLEncoding.EncodeToString(emailSerializedAsProto(t))
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set(testHeaderName, b64+".stuff-added-after-the-dot")
 	p := ProtoHeader{
 		headerName: testHeaderName,
 		loginURL:   testLoginURL,
@@ -58,6 +70,13 @@ func TestLoggedInAs_HappyPath(t *testing.T) {
 
 	email := p.LoggedInAs(r)
 	require.Equal(t, testEmail, email)
+}
+
+func TestLoggedInAs_MissingPeriodInHash_ReturnsEmptyString(t *testing.T) {
+	p, r := protoHeaderMissingAPeriodInTheHeaderValueAndRequestForTest(t)
+
+	email := p.LoggedInAs(r)
+	require.Empty(t, email)
 }
 
 func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
