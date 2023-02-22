@@ -98,6 +98,104 @@
     group: root
     state: link
 
+# For GCE Linux machines, place Swarming's directory in the large data partition.
+- name: Link /mnt/pd0 -> /b (GCE only)
+  when: zone == 'gce'
+  become: true
+  file:
+    src: /mnt/pd0
+    dest: /b
+    owner: chrome-bot
+    group: chrome-bot
+    state: link
+
+# Install docker.
+- name: Install Docker (GCE only)
+  when: zone == 'gce'
+  block:
+    # Downloaded from https://download.docker.com/linux/debian/gpg, as instructed in
+    # https://docs.docker.com/engine/install/debian/#install-using-the-repository.
+    - name: Copy docker.gpg
+      copy:
+        src: files/docker.gpg
+        dest: /tmp/docker.gpg
+        owner: 'chrome-bot'
+        mode: 0644
+
+    # Based on instructions at
+    # https://docs.docker.com/engine/install/debian/#install-using-the-repository.
+    - name: Install Docker
+      become: yes
+      shell: |
+        apt-get --assume-yes update
+        apt-get --assume-yes install ca-certificates curl gnupg lsb-release
+        mkdir -m 0755 -p /etc/apt/keyrings
+        cat /tmp/docker.gpg | gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+          $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        apt-get --assume-yes update
+        apt-get --assume-yes install docker-ce
+      args:
+        executable: /bin/bash
+
+    - name: Clean up docker.gpg
+      file:
+        path: /tmp/docker.gpg
+        state: absent
+
+    # Based on
+    # https://skia.googlesource.com/buildbot/+/b3ca0c7c7ebd92ede613818b0a3de8775d30ebb2/scripts/run_on_swarming_bots/install_docker.py#45
+    - name: Clear cache, which frees up 1GB in many cases
+      become: yes
+      shell: apt-get clean
+
+    - name: Stop the Docker daemon
+      become: yes
+      systemd:
+        name: docker
+        state: stopped
+
+    - name: Create /mnt/pd0/docker directory to used as the Docker data-root
+      become: yes
+      file:
+        path: /mnt/pd0/docker
+        state: directory
+        mode: 0755
+
+    # https://docs.docker.com/config/daemon/#daemon-data-directory
+    - name: Tell Docker to store images in /mnt/pd0/docker
+      become: yes
+      copy:
+        content: '{"data-root": "/mnt/pd0/docker"}'
+        dest: /etc/docker/daemon.json
+
+    - name: Add chrome-bot to the docker group
+      become: yes
+      user:
+        name: chrome-bot
+        groups: docker
+        append: yes
+
+    - name: Start the Docker daemon on startup
+      become: yes
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+# Bazel might fail to pull container images from gcr.io without this.
+- name: Authenticate Docker against GCE (GCE only)
+  when: zone == 'gce'
+  shell: gcloud auth configure-docker --quiet
+
+# Needed by Bazel to pack test undeclared outputs as an outputs.zip file inside the bazel-testlogs
+# directory.
+- name: Install "zip"
+  become: yes
+  apt:
+    name: zip
+    state: present
+
 - name: Create /b/s directory
   become: true
   file:

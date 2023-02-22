@@ -18,9 +18,13 @@
     creates:
       '{{ service_account_key.path }}/application_default_credentials.json'
 
+# We don't copy the service account key to GCE machines because it prevents Bazel from
+# authenticating against RBE. Specifically, when flag --google_default_credentials is passed, Bazel
+# will use file ~/.config/gcloud/application_default_credentials.json as its credentials instead of
+# the service account associated with the GCE machine.
 - name: Copy service account key posix.
   import_tasks: posix.yml
-  when: ansible_facts['system']|lower in ['linux', 'darwin']
+  when: ansible_facts['system']|lower in ['linux', 'darwin'] and zone == 'skolo'
 
 - name: Copy service account key win.
   import_tasks: win.yml
