@@ -53,17 +53,35 @@ var (
 	}
 )
 
+type machineRange struct {
+	min int
+	max int
+}
+
+func (r machineRange) inRange(n int) bool { return n >= r.min && n <= r.max }
+
+var instanceTypeByMachineRange = map[machineRange]string{
+	{0, 99}:    "", // Any machine type is accepted.
+	{100, 199}: instance_types.INSTANCE_TYPE_LINUX_SMALL,
+	{200, 299}: instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
+	{300, 399}: instance_types.INSTANCE_TYPE_LINUX_LARGE,
+	{400, 499}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
+	{500, 599}: instance_types.INSTANCE_TYPE_WIN_MEDIUM,
+	{600, 699}: instance_types.INSTANCE_TYPE_WIN_LARGE,
+}
+
 var (
 	// Flags.
-	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
-	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
-	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
-	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
-	dev            = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
-	dumpJson       = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
-	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
-	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
-	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	instances         = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
+	create            = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
+	delete            = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
+	deleteDataDisk    = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
+	dev               = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
+	dumpJson          = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
+	ignoreExists      = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+	instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
+	forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
+	internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
 	// TODO(lovisolo): Delete this flag once all instances are set up exclusively via Ansible.
 	ansible = flag.Bool("ansible", false, "Only install dependencies needed for Ansible (SSH, Python, etc.). Skip everything else (Swarming, test_machine_monitor, etc.).")
 	workdir = flag.String("workdir", ".", "Working directory.")
@@ -166,6 +184,27 @@ func main() {
 		getInstanceInner := getInstance
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Dev(getInstanceInner(num))
+		}
+	}
+
+	// Validate that the given instance type and machine numbers correspond with the per-type range
+	// assignment.
+	if !*forceInstanceType {
+		for _, instanceNum := range instanceNums {
+			found := false
+			for machineRange, expectedInstanceType := range instanceTypeByMachineRange {
+				if machineRange.inRange(instanceNum) {
+					found = true
+					// Empty string means any instance type is valid.
+					if expectedInstanceType != "" && *instanceType != expectedInstanceType {
+						sklog.Fatalf("Machine number %d is expected to be of instance type %s. To force a different type, re-run with --force-type.", instanceNum, expectedInstanceType)
+					}
+					break
+				}
+			}
+			if !found {
+				sklog.Fatalf("Machine number %d is not in any known machine range, and thus its expected instance type cannot be determined. To proceed anyway, re-run with --force-type.", instanceNum)
+			}
 		}
 	}
 
