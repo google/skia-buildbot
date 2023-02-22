@@ -29,6 +29,15 @@
     shell: /bin/bash
     password: "{{ secrets.skolo_password | password_hash('sha256') }}"
 
-- name:
-    Reset ssh connection to allow user changes to affect 'current login user'
-  meta: reset_connection
+# For some reason, if we don't reboot GCE Linux machines after running the above task, subsequent
+# SSH connections fail with "chrome-bot@<IP address>: Permission denied (publickey)".
+#
+# Note that this does not happen when this role is ran for the first time on a fresh GCE Linux
+# machine. It only happens on subsequent runs of this role on the same machine (for example, when
+# iterating on the linux.yml playbook).
+#
+# lovisolo@ has not checked whether Skolo Linux machines have this issue, but rebooting all
+# machines, and not just GCE ones, seems like a harmless precaution.
+- name: Reboot
+  become: true
+  reboot:
