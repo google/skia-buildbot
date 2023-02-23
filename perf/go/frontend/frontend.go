@@ -209,13 +209,14 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/html")
 		f.loadTemplates()
 		context := SkPerfConfig{
-			Radius:         f.flags.Radius,
-			KeyOrder:       strings.Split(f.flags.KeyOrder, ","),
-			NumShift:       f.flags.NumShift,
-			Interesting:    float32(f.flags.Interesting),
-			StepUpOnly:     f.flags.StepUpOnly,
-			CommitRangeURL: f.flags.CommitRangeURL,
-			DisplayGroupBy: f.flags.DisplayGroupBy,
+			Radius:                     f.flags.Radius,
+			KeyOrder:                   strings.Split(f.flags.KeyOrder, ","),
+			NumShift:                   f.flags.NumShift,
+			Interesting:                float32(f.flags.Interesting),
+			StepUpOnly:                 f.flags.StepUpOnly,
+			CommitRangeURL:             f.flags.CommitRangeURL,
+			DisplayGroupBy:             f.flags.DisplayGroupBy,
+			HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
