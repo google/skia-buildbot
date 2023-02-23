@@ -167,8 +167,6 @@ export class ClusterSummary2Sk extends ElementSk {
 
   private graph: PlotSimpleSk | null = null;
 
-  private rangelink: HTMLAnchorElement | null = null;
-
   private commits: CommitDetailPanelSk | null = null;
 
   private frame: FrameResponse | null = null;
@@ -287,7 +285,6 @@ export class ClusterSummary2Sk extends ElementSk {
     this.wordCloud = this.querySelector('.wordCloudCollapse');
     this.status = this.querySelector('#status');
     this.graph = this.querySelector('plot-simple-sk');
-    this.rangelink = this.querySelector('#rangelink');
     this.commits = this.querySelector('#commits');
     Login.then((status) => {
       this.status!.classList.toggle('disabled', status.Email === '');
@@ -432,37 +429,6 @@ export class ClusterSummary2Sk extends ElementSk {
           })
           .catch(errorMessage);
       }
-
-      // Populate rangelink.
-      if (window.perf.commit_range_url !== '') {
-        // First find the commit at step_fit, and the next previous commit that has data.
-        let prevCommit = xbar - 1;
-        while (prevCommit > 0 && this.summary!.centroid![prevCommit] === MISSING_DATA_SENTINEL) {
-          prevCommit -= 1;
-        }
-        const cids: CommitNumber[] = [
-          this.frame!.dataframe!.header![prevCommit]!.offset,
-          this.frame!.dataframe!.header![xbar]!.offset,
-        ];
-        // Run those through cid lookup to get the hashes.
-        ClusterSummary2Sk.lookupCids(cids)
-          .then((json: CIDHandlerResponse) => {
-            // Create the URL.
-            let url = window.perf.commit_range_url;
-            url = url.replace('{begin}', json.commitSlice![0].hash);
-            url = url.replace('{end}', json.commitSlice![1].hash);
-            // Now populate link, including text and href.
-            this.rangelink!.href = url;
-            this.rangelink!.innerText = 'Commits At Step';
-          })
-          .catch(errorMessage);
-      } else {
-        this.rangelink!.href = '';
-        this.rangelink!.innerText = '';
-      }
-    } else {
-      this.rangelink!.href = '';
-      this.rangelink!.innerText = '';
     }
 
     this._render();
