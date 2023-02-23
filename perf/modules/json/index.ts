@@ -195,6 +195,7 @@ export interface SkPerfConfig {
 	commit_range_url: string;
 	demo: boolean;
 	display_group_by: boolean;
+	hide_list_of_commits_on_explore: boolean;
 }
 
 export interface TriageRequest {

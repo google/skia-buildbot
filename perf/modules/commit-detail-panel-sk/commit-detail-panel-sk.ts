@@ -26,7 +26,7 @@
  * @attr {Number} selected - The index of the selected commit.
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { findParent } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../commit-detail-sk';
@@ -41,12 +41,18 @@ export interface CommitDetailPanelSkCommitSelectedDetails {
 export class CommitDetailPanelSk extends ElementSk {
   private _details: Commit[] = [];
 
+  private _hide: boolean = false;
+
   constructor() {
     super(CommitDetailPanelSk.template);
   }
 
-  private static rows = (ele: CommitDetailPanelSk) => ele._details.map(
-    (item, index) => html`
+  private static rows = (ele: CommitDetailPanelSk): TemplateResult[] => {
+    if (ele.hide) {
+      return [html``];
+    }
+    return ele._details.map(
+      (item, index) => html`
         <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
           <td>${ele._trim(item.author)}</td>
           <td>
@@ -54,7 +60,8 @@ export class CommitDetailPanelSk extends ElementSk {
           </td>
         </tr>
       `,
-  );
+    );
+  };
 
   private static template = (ele: CommitDetailPanelSk) => html`
     <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
@@ -65,6 +72,7 @@ export class CommitDetailPanelSk extends ElementSk {
     this._upgradeProperty('details');
     this._upgradeProperty('selected');
     this._upgradeProperty('selectable');
+    this._upgradeProperty('hide');
     this._render();
   }
 
@@ -143,6 +151,14 @@ export class CommitDetailPanelSk extends ElementSk {
 
   set selected(val: number) {
     this.setAttribute('selected', `${val}`);
+  }
+
+  /** @prop hide - Do not display the commit list if true.  */
+  get hide(): boolean { return this._hide; }
+
+  set hide(val: boolean) {
+    this._hide = val;
+    this._render();
   }
 }
 

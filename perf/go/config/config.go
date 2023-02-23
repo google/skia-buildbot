@@ -264,6 +264,7 @@ type FrontendFlags struct {
 	Radius                         int
 	StepUpOnly                     bool
 	DisplayGroupBy                 bool
+	HideListOfCommitsOnExplore     bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -396,6 +397,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "display_group_by",
 			Value:       false,
 			Usage:       "Show the Group By section of Alert configuration.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.HideListOfCommitsOnExplore,
+			Name:        "hide_list_of_commits_on_explore",
+			Value:       false,
+			Usage:       "Hide the commit-detail-panel-sk element on the Explore details tab.",
 		},
 	}
 }

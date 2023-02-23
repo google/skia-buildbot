@@ -79,7 +79,7 @@ describe('applyFuncToTraces', () => {
     commit_range_url: '',
     demo: true,
     display_group_by: false,
-
+    hide_list_of_commits_on_explore: false,
   };
 
   // Create a common element-sk to be used by all the tests.

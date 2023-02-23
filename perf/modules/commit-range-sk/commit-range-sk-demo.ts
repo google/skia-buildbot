@@ -14,6 +14,7 @@ window.perf = {
   interesting: 25,
   step_up_only: false,
   display_group_by: true,
+  hide_list_of_commits_on_explore: false,
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

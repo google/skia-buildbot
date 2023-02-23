@@ -616,7 +616,7 @@ export class ExploreSk extends ElementSk {
           </div>
           <div>
             <commit-range-sk></commit-range-sk>
-            <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
+            <commit-detail-panel-sk id=commits selectable .hide=${window.perf.hide_list_of_commits_on_explore}></commit-detail-panel-sk>
             <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
             <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
           </div>
