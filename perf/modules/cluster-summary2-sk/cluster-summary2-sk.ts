@@ -260,7 +260,6 @@ export class ClusterSummary2Sk extends ElementSk {
       <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}>
         Permlink
       </a>
-      <a id="rangelink" href="" target="_blank"></a>
       <commit-range-sk
         .trace=${ele.summary.centroid}
         .commitIndex=${ele.graph?.xbar || -1}
