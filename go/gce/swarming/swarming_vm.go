@@ -10,6 +10,7 @@ package main
        200-299: linux-medium
        300-399: linux-large
        400-499: linux-skylake
+         405-408: linux-amd
      500-699 (skia-e-gce-[56]..): Windows
        500-599: win-medium
        600-699: win-large
@@ -69,7 +70,9 @@ var instanceTypeByMachineRange = map[machineRange]string{
 	{100, 199}: instance_types.INSTANCE_TYPE_LINUX_SMALL,
 	{200, 299}: instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
 	{300, 399}: instance_types.INSTANCE_TYPE_LINUX_LARGE,
-	{400, 499}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
+	{400, 404}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
+	{405, 408}: instance_types.INSTANCE_TYPE_LINUX_AMD,
+	{409, 500}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
 	{500, 599}: instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 	{600, 699}: instance_types.INSTANCE_TYPE_WIN_LARGE,
 }
