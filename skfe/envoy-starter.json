@@ -1525,22 +1525,6 @@
                       ]
                     },
                     {
-                      "domains": "particle.skia.org",
-                      "name": "particle.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "particles.skia.org",
-                            "https_redirect": true,
-                            "prefix_rewrite": "/"
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "machine.skia.org",
                       "name": "machine.skia.org",
                       "routes": [

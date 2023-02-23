@@ -15,7 +15,7 @@ commit in the Skia repository. The "infra" image was created and pushed per comm
  repository.
 
 Additionally [cloudbuild.yaml](https://skia.googlesource.com/skia/+show/6f217e0f8d2e5f06e36d426becd818aeefe39919/docker/cloudbuild.yaml)
-created and pushed new images for various apps like fiddler, skottie, particles, debugger, etc.
+created and pushed new images for various apps like fiddler, skottie, debugger, etc.
 
 The [continuous-deploy](https://skia.googlesource.com/buildbot/+show/1985cd594e9f8c7bdec82b89e110df7466ee3cf8/kube/go/continuous-deploy/)
 app then ran pushk on those apps and deployed them to k8s.

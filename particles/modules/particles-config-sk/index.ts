@@ -1,1 +1,0 @@
-import './particles-config-sk';

@@ -5,17 +5,17 @@ A unified backend service for storing scraps of code across all of Skia Infrastr
 ## Overview
 
 Skia Infrastructure currently has services that store scraps of code, such as
-https://particles.skia.org. The term 'scrap' implies that the code can not stand
-on its own, such as the JSON that underlies particles, or SkSL shaders.
+https://shaders.skia.org. The term 'scrap' implies that the code can not stand
+on its own, such as the JSON that underlies SkSL shaders, or JS demos.
 
 Scrap Exchange is a unified backend service that is constructed to make it
 easier to stand up such web UIs, and to also make linking top level web UIs
 together easier, for example, going from a particle 'scrap' on
-particles.skia.org to complete C++ code on fiddle.skia.org, or complete JS code
-on jsfiddle.skia.org, that runs the particles. The scrap service has the
+shaders.skia.org to complete C++ code on fiddle.skia.org, or complete JS code
+on jsfiddle.skia.org, that runs the shaders. The scrap service has the
 following features:
 
-- Store scraps by 'type', i.e. SVG vs SkSL vs Particles.
+- Store scraps by 'type', i.e. SVG vs SkSL vs C++.
 - Load scraps via URL.
 - Store meta-data with scraps. For example, one SkSL scrap may refer to other
   child shaders, so the meta-data will contain the references to those other

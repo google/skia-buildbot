@@ -184,12 +184,10 @@ func loadTemplates() (templateMap, error) {
 
 // TODO(cmumford) Fill in the rest of the templates.
 var templates = map[string]string{
-	"svg-cpp":       svgCpp,
-	"svg-js":        "",
-	"sksl-cpp":      skslCpp,
-	"sksl-js":       skslJavaScript,
-	"particles-cpp": "",
-	"particles-js":  "",
+	"svg-cpp":  svgCpp,
+	"svg-js":   "",
+	"sksl-cpp": skslCpp,
+	"sksl-js":  skslJavaScript,
 }
 
 const svgCpp = `void draw(SkCanvas* canvas) {

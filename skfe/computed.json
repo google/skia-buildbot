@@ -1549,32 +1549,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "particles",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "particles",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "particles",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "prometheus",
           "endpoints": [
             {
@@ -3000,22 +2974,6 @@
                       ]
                     },
                     {
-                      "domains": "particle.skia.org",
-                      "name": "particle.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "particles.skia.org",
-                            "https_redirect": true,
-                            "prefix_rewrite": "/"
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "machine.skia.org",
                       "name": "machine.skia.org",
                       "routes": [
@@ -4257,23 +4215,6 @@
                           },
                           "route": {
                             "cluster": "npm-audit-mirror",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "particles.skia.org",
-                      "name": "particles.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "particles",
                             "timeout": {
                               "seconds": 600
                             }
