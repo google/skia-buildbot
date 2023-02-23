@@ -1,4 +1,4 @@
-# Libraries needed to run x86_64 Skia tests.
+# Libraries needed for x86_64 Skia builds and tests.
 #
 # As an example, Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-SafeStack needs these packages,
 # or it will fail because "dm" is missing necessary shared libraries.
@@ -10,8 +10,9 @@
   apt:
     pkg:
       - libc++-dev
+      - libxi-dev
 
-# Libraries needed to run x86 (32-bit) Skia tests.
+# Libraries needed for x86 (32-bit) Skia builds and tess.
 #
 # As an example, Test-Debian10-Clang-GCE-CPU-AVX2-x86-Debug-All needs these packages, or it will
 # fail because "dm" is missing necessary shared libraries.
@@ -21,7 +22,7 @@
 - name: Support for x86 (i.e. 32-bit builds).
   block:
     - name: Add i386 architecture
-      become: yes
+      become: true
       shell: dpkg --add-architecture i386
 
     - name: Install x86 (i.e. 32-bit) libraries
@@ -35,3 +36,39 @@
           - libglu1-mesa:i386
           - libx11-6:i386
           - libxext-dev:i386
+          - g++-multilib
+
+    - name: Link libfreetype.so.6 -> libfreetype.so
+      become: true
+      file:
+        src: /usr/lib/i386-linux-gnu/libfreetype.so.6
+        dest: /usr/lib/i386-linux-gnu/libfreetype.so
+        state: link
+
+    - name: Link libfontconfig.so.6 -> libfontconfig.so
+      become: true
+      file:
+        src: /usr/lib/i386-linux-gnu/libfontconfig.so.1
+        dest: /usr/lib/i386-linux-gnu/libfontconfig.so
+        state: link
+
+    - name: Link libGLU.so.1 -> libGLU.so
+      become: true
+      file:
+        src: /usr/lib/i386-linux-gnu/libGLU.so.1
+        dest: /usr/lib/i386-linux-gnu/libGLU.so
+        state: link
+
+    - name: Link libGL.so.1 -> libGL.so
+      become: true
+      file:
+        src: /usr/lib/i386-linux-gnu/libGL.so.1
+        dest: /usr/lib/i386-linux-gnu/libGL.so
+        state: link
+
+    - name: Link libfreetype.so.6 -> libX11.so
+      become: true
+      file:
+        src: /usr/lib/i386-linux-gnu/libX11.so.6.3.0
+        dest: /usr/lib/i386-linux-gnu/libX11.so
+        state: link
