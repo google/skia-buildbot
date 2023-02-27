@@ -155,6 +155,12 @@ skottie-sk {
 #json_editor {
   background: white;
 
+  // Need this rule to have higher specificity otherwise the common themes
+  // button background color will override it.
+  .jsoneditor-menu button {
+    background-image: url(./img/jsoneditor-icons.svg);
+  }
+
   input {
     color: black;
     background: white;
