@@ -457,6 +457,9 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	// Other domain names that are allowed to make cross-site requests to this instance.
+	AllowedHosts []string `json:"allowed_hosts,omitempty"`
+
 	// Contact is the best way to contact the team for this instance.
 	Contact string `json:"contact"`
 

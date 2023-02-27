@@ -1,5 +1,8 @@
 {
   "URL": "https://perf.skia.org",
+  "allowed_hosts": [
+    "status.skia.org"
+  ],
   "contact": "https://bugs.skia.org",
   "auth_config": {
     "header_name": "X-WEBAUTH-USER",

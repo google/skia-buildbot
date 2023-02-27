@@ -9,7 +9,6 @@ import (
 )
 
 func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
-
 	allExistingConfigs, err := filepath.Glob("../../configs/*.json")
 	require.Greater(t, len(allExistingConfigs), 0)
 	require.NoError(t, err)
@@ -21,7 +20,6 @@ func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
 }
 
 func TestInstanceConfigBytes_EmptyJSONObject_ShouldBeInValid(t *testing.T) {
-
 	_, _, err := InstanceConfigFromFile("./testdata/empty.json")
 	require.Error(t, err)
 }

@@ -10,6 +10,7 @@ go_library(
         "//go/alogin",
         "//go/alogin/proxylogin",
         "//go/auditlog",
+        "//go/baseapp",
         "//go/calc",
         "//go/email",
         "//go/httputils",
@@ -43,6 +44,7 @@ go_library(
         "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
         "@io_opencensus_go//trace",
     ],
 )

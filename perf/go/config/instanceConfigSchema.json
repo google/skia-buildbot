@@ -135,6 +135,12 @@
         "URL": {
           "type": "string"
         },
+        "allowed_hosts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "contact": {
           "type": "string"
         },

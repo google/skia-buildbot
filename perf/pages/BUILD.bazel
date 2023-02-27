@@ -36,6 +36,7 @@ sk_page(
     name = "dryrunalert",
     assets_serving_path = "/dist",
     html_file = "dryrunalert.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "dryrunalert.scss",
     sk_element_deps = [
@@ -49,6 +50,7 @@ sk_page(
     name = "help",
     assets_serving_path = "/dist",
     html_file = "help.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "help.scss",
     sk_element_deps = ["//perf/modules/perf-scaffold-sk"],
@@ -59,6 +61,7 @@ sk_page(
     name = "newindex",
     assets_serving_path = "/dist",
     html_file = "newindex.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "newindex.scss",
     sk_element_deps = [
@@ -72,6 +75,7 @@ sk_page(
     name = "triage",
     assets_serving_path = "/dist",
     html_file = "triage.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "triage.scss",
     sk_element_deps = [
@@ -85,6 +89,7 @@ sk_page(
     name = "trybot",
     assets_serving_path = "/dist",
     html_file = "trybot.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "trybot.scss",
     sk_element_deps = [

@@ -22,10 +22,12 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
@@ -130,6 +132,9 @@ type Frontend struct {
 	progressTracker progress.Tracker
 
 	loginProvider alogin.Login
+
+	// The HOST parsed out of Config.URL.
+	host string
 }
 
 // New returns a new Frontend instance.
@@ -174,7 +179,7 @@ func (f *Frontend) loadTemplatesImpl() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		f.templates = f.templates.New(filename)
+		f.templates = f.templates.New(filename).Delims("{%", "%}")
 		_, err = f.templates.Parse(contents)
 		if err != nil {
 			sklog.Fatal(err)
@@ -222,7 +227,11 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 		if err != nil {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
-		if err := f.templates.ExecuteTemplate(w, name, map[string]template.JS{"context": template.JS(string(b))}); err != nil {
+		if err := f.templates.ExecuteTemplate(w, name, map[string]interface{}{
+			"context": template.JS(string(b)),
+			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
+			"Nonce": secure.CSPNonce(r.Context()),
+		}); err != nil {
 			sklog.Error("Failed to expand template:", err)
 		}
 	}
@@ -288,6 +297,12 @@ func (f *Frontend) initialize() {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
 	}
 	cfg := config.Config
+
+	u, err := url.Parse(cfg.URL)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	f.host = u.Host
 
 	// Configure login.
 	f.loginProvider, err = proxylogin.New(
@@ -1432,6 +1447,13 @@ func (f *Frontend) Serve() {
 
 	// Resources are served directly.
 	router := mux.NewRouter()
+
+	allowedHosts := []string{f.host}
+	if len(config.Config.AllowedHosts) > 0 {
+		allowedHosts = append(allowedHosts, config.Config.AllowedHosts...)
+	}
+
+	router.Use(baseapp.SecurityMiddleware(allowedHosts, f.flags.Local, nil))
 
 	router.PathPrefix("/dist/").HandlerFunc(f.makeDistHandler())
 
