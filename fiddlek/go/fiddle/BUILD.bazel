@@ -15,6 +15,7 @@ go_library(
         "//go/common",
         "//go/httputils",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/timer",
         "//go/util",

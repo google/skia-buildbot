@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -270,6 +271,11 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	// Load the scrap.
 	typ := scrap.ToType(mux.Vars(r)["type"])
+	if typ == scrap.UnknownType {
+		err := skerr.Fmt("Unknown type: %q", mux.Vars(r)["type"])
+		httputils.ReportError(w, err, "Unknown type.", http.StatusBadRequest)
+		return
+	}
 	hashOrName := mux.Vars(r)["hashOrName"]
 	var b bytes.Buffer
 	if err := scrapClient.Expand(r.Context(), typ, hashOrName, scrap.CPP, &b); err != nil {
