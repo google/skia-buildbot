@@ -60,7 +60,7 @@ func TestTemplateExpand_SkSLToCPP_ResponseMatchesExpected(t *testing.T) {
 	expected := `void draw(SkCanvas *canvas) {
     constexpr SkV4 mousePos = SkV4{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr SkV3 viewportResolution = SkV3{256, 256, 1.0f};
-    constexpr SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
+    const SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 
     constexpr char prog[] = R"(
@@ -117,7 +117,7 @@ func TestTemplateExpand_SkSLToCPPWithMetadata_ResponseMatchesExpected(t *testing
 	expected := `void draw(SkCanvas *canvas) {
     constexpr SkV4 mousePos = SkV4{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr SkV3 viewportResolution = SkV3{256, 256, 1.0f};
-    constexpr SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
+    const SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 
     // Shader "Test":

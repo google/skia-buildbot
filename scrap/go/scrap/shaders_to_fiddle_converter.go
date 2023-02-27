@@ -157,7 +157,7 @@ func createShadersCPP(root scrapNode) (string, error) {
 const skslCpp = `void draw(SkCanvas *canvas) {
     constexpr SkV4 mousePos = SkV4{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr SkV3 viewportResolution = SkV3{256, 256, 1.0f};
-    constexpr SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
+    const SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 {{ createShadersCPP . }}
     // Fill the surface with |shader{{ .Name }}|:
