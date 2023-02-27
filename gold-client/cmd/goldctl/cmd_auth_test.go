@@ -12,8 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuth_WithGSUtil_Success(t *testing.T) {
-
+func TestAuth_NoMethodSpecified_FallsBackToGsutil(t *testing.T) {
 	workDir := t.TempDir()
 
 	env := authEnv{
@@ -32,7 +31,27 @@ func TestAuth_WithGSUtil_Success(t *testing.T) {
 This should not be used in production.`)
 	b, err := ioutil.ReadFile(filepath.Join(workDir, "auth_opt.json"))
 	require.NoError(t, err)
-	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":true}`, strings.TrimSpace(string(b)))
+	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":true,"NoAuth":false}`, strings.TrimSpace(string(b)))
+}
+
+func TestAuth_NoAuthenticationSpecified_Success(t *testing.T) {
+	workDir := t.TempDir()
+
+	env := authEnv{
+		flagWorkDir:             workDir,
+		flagUseNoAuthentication: true,
+	}
+	output := bytes.Buffer{}
+	exit := &exitCodeRecorder{}
+	ctx := executionContext(context.Background(), &output, &output, exit.ExitWithCode)
+
+	runUntilExit(t, func() {
+		env.Auth(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+	b, err := ioutil.ReadFile(filepath.Join(workDir, "auth_opt.json"))
+	require.NoError(t, err)
+	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":false,"NoAuth":true}`, strings.TrimSpace(string(b)))
 }
 
 func setupAuthWithGSUtil(t *testing.T, workDir string) {

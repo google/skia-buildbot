@@ -18,9 +18,10 @@ const (
 
 // authEnv provides the environment for the auth command.
 type authEnv struct {
-	flagServiceAccount string
-	flagUseLUCIContext bool
-	flagWorkDir        string
+	flagServiceAccount      string
+	flagUseLUCIContext      bool
+	flagUseNoAuthentication bool
+	flagWorkDir             string
 }
 
 // getAuthCmd returns the definition of the auth command.
@@ -40,6 +41,9 @@ Authenticate against GCP and the Gold instance.
 
 	// add the luci flag to use the LUCI_CONTEXT for authentication.
 	cmd.Flags().BoolVar(&env.flagUseLUCIContext, fstrLUCI, false, "Use the LUCI context to retrieve an oauth token.")
+
+	// skbug.com/14142
+	cmd.Flags().BoolVar(&env.flagUseNoAuthentication, "no-auth", false, "Use an HTTP client with no authentication.")
 
 	// add the workdir flag and make it required
 	cmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
@@ -65,6 +69,8 @@ func (a *authEnv) Auth(ctx context.Context) {
 		err = auth.InitLUCIAuth(a.flagWorkDir)
 	} else if a.flagServiceAccount != "" {
 		err = auth.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
+	} else if a.flagUseNoAuthentication {
+		err = auth.InitNoAuth(a.flagWorkDir)
 	} else {
 		logInfo(ctx, "Falling back to gsutil implementation\n")
 		logInfo(ctx, "This should not be used in production.\n")

@@ -52,13 +52,14 @@ type authOpt struct {
 	Luci           bool
 	ServiceAccount string
 	GSUtil         bool
+	NoAuth         bool // skbug.com/14142
 
 	dryRun bool // unexported, i.e. not saved to JSON
 }
 
 // Validate implements the AuthOpt interface.
 func (a *authOpt) Validate() error {
-	if !a.GSUtil && !a.Luci && a.ServiceAccount == "" {
+	if !a.GSUtil && !a.Luci && a.ServiceAccount == "" && !a.NoAuth {
 		return skerr.Fmt("No valid authentication method provided.")
 	}
 	return nil
@@ -66,7 +67,7 @@ func (a *authOpt) Validate() error {
 
 // GetHTTPClient implements the AuthOpt interface.
 func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
-	if a.GSUtil {
+	if a.GSUtil || a.NoAuth {
 		return httputils.DefaultClientConfig().WithoutRetries().Client(), nil
 	}
 	var tokenSrc oauth2.TokenSource
@@ -97,7 +98,7 @@ func (a *authOpt) GetGCSUploader(ctx context.Context) (gcsuploader.GCSUploader, 
 	if a.dryRun {
 		return &gcsuploader.DryRunImpl{}, nil
 	}
-	if a.Luci || a.ServiceAccount != "" {
+	if a.Luci || a.ServiceAccount != "" || a.NoAuth {
 		return a.httpGCSImpl(ctx)
 	}
 	return &gcsuploader.GsutilImpl{}, nil
@@ -188,6 +189,15 @@ func InitLUCIAuth(workDir string) error {
 // upon for production usage.
 func InitGSUtil(workDir string) error {
 	a := authOpt{GSUtil: true}
+	if err := a.writeToDisk(workDir); err != nil {
+		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
+	}
+	return nil
+}
+
+// InitNoAuth instantiates a workDir to use an unauthenticated HTTP client.
+func InitNoAuth(workDir string) error {
+	a := authOpt{NoAuth: true}
 	if err := a.writeToDisk(workDir); err != nil {
 		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
 	}
