@@ -1,4 +1,5 @@
 include ../make/bazel.mk
+include ../make/docker.mk
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/fiddlek/go/ts/  )
@@ -24,10 +25,10 @@ release-fiddle: build
 	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddle_container
 
 build-fiddler:
-	docker pull gcr.io/skia-public/skia-release:prod
+	$(DOCKER) pull gcr.io/skia-public/skia-release:prod
 	# Extract skia checkout from the most recently built docker container.
 	# This is built with @skia//docker/skia-wasm-release/Dockerfile
-	docker run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
+	$(DOCKER) run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
 	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-release:prod \
 	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/"
 
@@ -92,4 +93,4 @@ run_local_fiddle: build
 # Runs a local fiddler.
 .PHONY: run_local_fiddler
 run_local_fiddler:
-	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE gcr.io/skia-public/fiddler:prod --fiddle_root=/tmp --checkout=/tmp/skia/skia/ --local
+	$(DOCKER) run -ti -p8000:8000 --cap-add=SYS_PTRACE gcr.io/skia-public/fiddler:prod --fiddle_root=/tmp --checkout=/tmp/skia/skia/ --local
