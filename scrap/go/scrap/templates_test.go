@@ -94,6 +94,8 @@ func TestTemplateExpand_SkSLToCPP_ResponseMatchesExpected(t *testing.T) {
         return;
     }
 
+    canvas->clear(SK_ColorBLACK);
+
     // Fill the surface with |shader|:
     SkPaint p;
     p.setShader(shader);
@@ -156,6 +158,8 @@ func TestTemplateExpand_SkSLToCPPWithMetadata_ResponseMatchesExpected(t *testing
         SkDebugf("Cannot create shaderTest");
         return;
     }
+
+    canvas->clear(SK_ColorBLACK);
 
     // Fill the surface with |shaderTest|:
     SkPaint p;

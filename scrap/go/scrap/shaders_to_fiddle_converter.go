@@ -160,6 +160,8 @@ const skslCpp = `void draw(SkCanvas *canvas) {
     const SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 {{ createShadersCPP . }}
+    canvas->clear(SK_ColorBLACK);
+
     // Fill the surface with |shader{{ .Name }}|:
     SkPaint p;
     p.setShader(shader{{ .Name }});
