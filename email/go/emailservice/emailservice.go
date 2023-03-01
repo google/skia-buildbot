@@ -1,6 +1,7 @@
 package emailservice
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -30,10 +32,11 @@ const (
 // App is the main email service application.
 type App struct {
 	// flags
-	port       string
-	project    string
-	promPort   string
-	secretName string
+	port           string
+	project        string
+	promPort       string
+	secretName     string
+	echoServiceURL string
 
 	sendgridClient *sendgrid.Client
 	sendSuccess    metrics2.Counter
@@ -47,6 +50,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.StringVar(&a.project, "project", "skia-public", "The GCP Project that holds the secret.")
 	fs.StringVar(&a.secretName, "secret-name", "sendgrid-api-key", "The name of the GCP secret that contains the SendGrid API key..")
 	fs.StringVar(&a.promPort, "prom-port", ":20000", "Metrics service address (e.g., ':10110')")
+	fs.StringVar(&a.echoServiceURL, "echo-service-url", "", "URL of echo service.")
 
 	return fs
 }
@@ -177,6 +181,32 @@ func (a *App) incomingEmaiHandler(w http.ResponseWriter, r *http.Request) {
 
 // Run the email service. This function will only return on failure.
 func (a *App) Run() error {
+
+	// If an echo service url is supplied then launch a Go routine that pings
+	// the echo service once a minute.
+	if a.echoServiceURL != "" {
+		go func() {
+			client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/cloud-platform")
+			if err != nil {
+				sklog.Errorf("Failed building authenticated HTTP client: %s", err)
+				return
+			}
+			request := `{"request": "echo"}`
+			for range time.Tick(time.Minute) {
+				resp, err := client.Post(a.echoServiceURL, "application/json", bytes.NewReader([]byte(request)))
+				if err != nil {
+					sklog.Infof("Echo request failed: %s", err)
+					continue
+				}
+				b, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					sklog.Infof("Echo Reading response body failed: %s", err)
+					continue
+				}
+				sklog.Infof("Echo got response: %q", string(b))
+			}
+		}()
+	}
 
 	// Add all routing.
 	r := mux.NewRouter()

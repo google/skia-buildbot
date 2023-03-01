@@ -17,6 +17,7 @@ go_library(
         "@com_github_gorilla_mux//:mux",
         "@com_github_sendgrid_sendgrid_go//:sendgrid-go",
         "@com_github_sendgrid_sendgrid_go//helpers/mail",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
