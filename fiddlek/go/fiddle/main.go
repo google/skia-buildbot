@@ -44,7 +44,7 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	scrapExchange  = flag.String("scrapexchange", "scrapexchange:9000", "Scrap exchange service HTTP address.")
+	scrapExchange  = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
 	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
