@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -179,9 +178,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	util.Close(writer)
 
-	// Convert to benchData.
+	// Convert to a format the Perf can ingest.
 	buf := bytes.NewBuffer(b)
-	benchData, err := converter.Convert(buf, txLogName)
+	key, gitHash, encodedAsJSON, err := converter.Convert(buf, txLogName)
 	if err == parser.ErrIgnorable {
 		return
 	}
@@ -192,17 +191,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Record the tx_log for traceability.
-	benchData.Source = txLogName
-
-	// Write the benchData out as JSON in the right spot in Google Storage.
-	writer = bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
-	b, err = json.MarshalIndent(benchData, "", "  ")
-	if err != nil {
-		badRequest(w, r, err, "Failed to encode benchData as JSON.")
-		return
-	}
-	if _, err := writer.Write(b); err != nil {
+	// Write the JSON in the right spot in Google Storage.
+	writer = bucket.Object(upload.ObjectPath(key, gitHash, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
+	if _, err := writer.Write(encodedAsJSON); err != nil {
 		badRequest(w, r, err, "Failed to write JSON body.")
 		return
 	}

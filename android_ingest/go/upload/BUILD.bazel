@@ -6,7 +6,6 @@ go_library(
     srcs = ["upload.go"],
     importpath = "go.skia.org/infra/android_ingest/go/upload",
     visibility = ["//visibility:public"],
-    deps = ["//perf/go/ingest/format"],
 )
 
 go_test(

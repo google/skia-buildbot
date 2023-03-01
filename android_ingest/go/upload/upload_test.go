@@ -17,7 +17,7 @@ func TestObjectPath(t *testing.T) {
 	}
 
 	now := time.Date(2016, time.December, 16, 23, 0, 0, 0, time.UTC)
-	path := ObjectPath(b, "android-ingest", now, []byte("{}"))
+	path := ObjectPath(b.Key, b.Hash, "android-ingest", now, []byte("{}"))
 	assert.Equal(t, "android-ingest/2016/12/16/23/8dcc84f7dc8523dd90501a4feb1f632808337c34_build_flavor_marlin-userdebug_99914b932bd37a50b983c5e7c90ae93b.json", path)
 }
 

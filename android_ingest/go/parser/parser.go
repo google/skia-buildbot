@@ -13,9 +13,12 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingest/format"
 )
+
+const rawLogLocationKey = "raw_log_location"
 
 var (
 	// ErrIgnorable is returned from Convert if the file can safely be ignored.
@@ -53,8 +56,7 @@ type Lookup interface {
 	Lookup(buildid int64) (string, error)
 }
 
-// Converter converts a serialized *Incoming into
-// an *format.BenchData.
+// Converter converts a serialized *Incoming into an *format.BenchData.
 type Converter struct {
 	lookup Lookup
 }
@@ -66,16 +68,70 @@ func New(lookup Lookup) *Converter {
 	}
 }
 
-// Convert the serialize *Incoming JSON into an *format.BenchData.
-func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.BenchData, error) {
+// Convert the serialize *Incoming JSON into a JSON serialized format that Perf
+// supports. Also return the global keys and the buildID from the parsed file.
+func (c *Converter) Convert(incoming io.Reader, txLogName string) (map[string]string, string, []byte, error) {
 	b, err := ioutil.ReadAll(incoming)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read during convert %q: %s", txLogName, err)
+		return nil, "", nil, skerr.Wrapf(err, "Failed to read during convert %q", txLogName)
 	}
-	reader := bytes.NewReader(b)
-	in, err := Parse(reader)
+
+	key, gitHash, encodedAsJSON, err := c.convertFromV1Format(b, txLogName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse during convert %q: %s", txLogName, err)
+		return c.convertFromAndroidSpecificFormat(b, txLogName)
+	}
+	return key, gitHash, encodedAsJSON, nil
+}
+
+func (c *Converter) convertFromV1Format(b []byte, txLogName string) (map[string]string, string, []byte, error) {
+	in, err := format.Parse(bytes.NewReader(b))
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("Failed to parse during convert %q: %s", txLogName, err)
+	}
+	// The Build ID is supplied via the GitHash.
+	buildID := in.GitHash
+
+	metrics2.GetCounter("androidingest_upload_received_v1_format").Inc(1)
+	sklog.Infof("POST V1 Format for filename %q buildid: %s num metrics: %d", txLogName, buildID, len(in.Results))
+
+	// Files where the BuildId is prefixed with "P" are presubmits and don't
+	// produce any data and can be ignored.
+	if strings.HasPrefix(buildID, "P") {
+		return nil, "", nil, ErrIgnorable
+	}
+	buildid, err := strconv.ParseInt(buildID, 10, 64)
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("parse buildid %q: %q %s", buildID, txLogName, err)
+	}
+	hash, err := c.lookup.Lookup(buildid)
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("find matching hash for buildid %d: %q %s", buildid, txLogName, err)
+	}
+
+	in.GitHash = hash
+	if in.Links == nil {
+		in.Links = map[string]string{}
+	}
+	in.Links[rawLogLocationKey] = txLogName
+
+	encodedAsJSON, err := json.MarshalIndent(in, "", "  ")
+	if err != nil {
+		return nil, "", nil, skerr.Wrapf(err, "encoding benchData")
+	}
+
+	if len(in.Results) == 0 {
+		sklog.Warningf("Failed to extract any data from incoming file: %q", txLogName)
+		return nil, "", nil, ErrIgnorable
+	}
+
+	return in.Key, in.GitHash, encodedAsJSON, nil
+}
+
+// TODO(jcgregorio) This should be changed to emit the V1 Format.
+func (c *Converter) convertFromAndroidSpecificFormat(b []byte, txLogName string) (map[string]string, string, []byte, error) {
+	in, err := Parse(bytes.NewReader(b))
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("parse during convert %q: %s", txLogName, err)
 	}
 	metrics2.GetCounter("androidingest_upload_received", map[string]string{"branch": in.Branch}).Inc(1)
 	sklog.Infof("POST for filename %q buildid: %s branch: %s flavor: %s num metrics: %d", txLogName, in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
@@ -83,15 +139,15 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 	// Files where the BuildId is prefixed with "P" are presubmits and don't
 	// produce any data and can be ignored.
 	if strings.HasPrefix(in.BuildId, "P") {
-		return nil, ErrIgnorable
+		return nil, "", nil, ErrIgnorable
 	}
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse buildid %q: %q %q %s", in.BuildId, txLogName, in.Branch, err)
+		return nil, "", nil, fmt.Errorf("parse buildid %q: %q %q %s", in.BuildId, txLogName, in.Branch, err)
 	}
 	hash, err := c.lookup.Lookup(buildid)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to find matching hash for buildid %d: %q %q %s", buildid, txLogName, in.Branch, err)
+		return nil, "", nil, fmt.Errorf("find matching hash for buildid %d: %q %q %s", buildid, txLogName, in.Branch, err)
 	}
 
 	// Convert Incoming into format.BenchData, i.e. convert the following:
@@ -136,7 +192,8 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 	// Note that the incoming data doesn't have a concept similar to "config" so we just
 	// use a value of "default" for config for now.
 	benchData := &format.BenchData{
-		Hash: hash,
+		Hash:   hash,
+		Source: txLogName,
 		Key: map[string]string{
 			"build_flavor": in.BuildFlavor,
 		},
@@ -169,10 +226,16 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 	}
 	sklog.Infof("Found %d metrics of %d incoming metrics in branch %q buildid %q in file %q", len(benchData.Results), len(in.Metrics), in.Branch, in.BuildId, txLogName)
 	metrics2.GetCounter("androidingest_upload_success", map[string]string{"branch": in.Branch}).Inc(1)
-	if len(benchData.Results) == 0 {
-		sklog.Warningf("Failed to extract any data from incoming file: %q", txLogName)
-		return nil, ErrIgnorable
+
+	encodedAsJSON, err := json.MarshalIndent(benchData, "", "  ")
+	if err != nil {
+		return nil, "", nil, skerr.Wrapf(err, "encoding benchData")
 	}
 
-	return benchData, nil
+	if len(benchData.Results) == 0 {
+		sklog.Warningf("Failed to extract any data from incoming file: %q", txLogName)
+		return nil, "", nil, ErrIgnorable
+	}
+
+	return benchData.Key, benchData.Hash, encodedAsJSON, nil
 }

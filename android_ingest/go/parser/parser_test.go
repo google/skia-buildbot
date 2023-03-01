@@ -2,12 +2,17 @@ package parser
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
+
+const txLogName = "gs://some-example-bucket-name/foo/bar/file.json"
 
 func TestParse_Incoming_Success(t *testing.T) {
 	r := bytes.NewBufferString(incoming)
@@ -54,43 +59,64 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 	return "", fmt.Errorf("Failed to find buildid.")
 }
 
+func benchDataFromJSON(t *testing.T, b []byte) format.BenchData {
+	var ret format.BenchData
+	err := json.Unmarshal(b, &ret)
+	require.NoError(t, err)
+	return ret
+}
+
+func v1FormatFromJSON(t *testing.T, b []byte) format.Format {
+	var ret format.Format
+	err := json.Unmarshal(b, &ret)
+	require.NoError(t, err)
+	return ret
+}
+
 func TestConvert_ParseIncoming_Success(t *testing.T) {
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming)
-	benchData, err := c.Convert(r, "")
+	key, gitHash, encodedAsJSON, err := c.Convert(r, txLogName)
 	assert.NoError(t, err)
-	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", gitHash)
+
+	benchData := benchDataFromJSON(t, encodedAsJSON)
+
 	assert.Len(t, benchData.Results, 7)
 	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
-	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
-	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
-	assert.Equal(t, "coral", benchData.Key["device_name"])
-	assert.Equal(t, "API_29_R", benchData.Key["sdk_release_name"])
-	assert.Equal(t, "disabled", benchData.Key["jit"])
+	assert.Equal(t, "marlin-userdebug", key["build_flavor"])
+	assert.Equal(t, "google-marlin-marlin-O", key["branch"])
+	assert.Equal(t, "coral", key["device_name"])
+	assert.Equal(t, "API_29_R", key["sdk_release_name"])
+	assert.Equal(t, "disabled", key["jit"])
+	require.Equal(t, txLogName, benchData.Source)
 }
 
 func TestConvert_ParseIncoming2_Success(t *testing.T) {
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming2)
-	benchData, err := c.Convert(r, "")
-	assert.NoError(t, err)
-	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
+	key, gitHash, encodedAsJSON, err := c.Convert(r, "")
+	require.NoError(t, err)
+
+	benchData := benchDataFromJSON(t, encodedAsJSON)
+
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", gitHash)
 	assert.Len(t, benchData.Results, 1)
 	assert.Equal(t, 5439.620216, benchData.Results["coremark"]["default"]["score"])
-	assert.Equal(t, "google-angler-angler-O", benchData.Key["branch"])
+	assert.Equal(t, "google-angler-angler-O", key["branch"])
 }
 
 func TestConvert_NoMetrics_ReturnsErrIgnorable(t *testing.T) {
 	r := bytes.NewBufferString(nometrics)
 	c := New(lookupMockGood{})
-	_, err := c.Convert(r, "")
+	_, _, _, err := c.Convert(r, "")
 	assert.Contains(t, err.Error(), ErrIgnorable.Error())
 }
 
 func TestConvert_HashLookupFails_ReturnsError(t *testing.T) {
 	c := New(lookupMockBad{})
 	r := bytes.NewBufferString(incoming)
-	_, err := c.Convert(r, "")
+	_, _, _, err := c.Convert(r, "")
 	assert.Error(t, err)
 }
 
@@ -98,9 +124,77 @@ func TestConvert_IgnorePresubmitResults_ReturnsErrIgnorable(t *testing.T) {
 
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(incoming_presubmit)
-	_, err := c.Convert(r, "")
+	_, _, _, err := c.Convert(r, "")
 	assert.Equal(t, ErrIgnorable, err)
 }
+
+type lookupMockGoodCheckBuildID struct {
+	t *testing.T
+}
+
+func (l lookupMockGoodCheckBuildID) Lookup(buildid int64) (string, error) {
+	require.Equal(l.t, int64(123456), buildid)
+	return "8dcc84f7dc8523dd90501a4feb1f632808337c34", nil
+}
+
+func TestConvertAcceptsV1Format_Success(t *testing.T) {
+	c := New(lookupMockGoodCheckBuildID{t})
+	r := bytes.NewBufferString(v1Format)
+	key, gitHash, encodedAsJSON, err := c.Convert(r, txLogName)
+	require.NoError(t, err)
+
+	data := v1FormatFromJSON(t, encodedAsJSON)
+
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", gitHash)
+
+	expectedKey := map[string]string{
+		"config": "8888",
+		"arch":   "x86",
+	}
+	require.Equal(t, expectedKey, key)
+	require.Equal(t, txLogName, data.Links[rawLogLocationKey])
+	assert.Len(t, data.Results, 1)
+
+}
+
+func TestConvertAcceptsV1Format_LookupFails_ReturnsError(t *testing.T) {
+	c := New(lookupMockBad{})
+	r := bytes.NewBufferString(v1Format)
+	_, _, _, err := c.Convert(r, "")
+	require.Error(t, err)
+}
+
+const v1Format = `{
+		"version": 1,
+		"git_hash": "123456",
+		"key": {
+			"config": "8888",
+			"arch": "x86"
+		},
+		"results": [
+			{
+				"key": {
+					"test": "some_test_name"
+				},
+				"measurements": {
+					"ms": [
+						{
+							"value": "min",
+							"measurement": 1.2
+						},
+						{
+							"value": "max",
+							"measurement": 2.4
+						},
+						{
+							"value": "median",
+							"measurement": 1.5
+						}
+					]
+				}
+			}
+		]
+	}`
 
 const incoming = `{
 	"build_id": "3567162",
