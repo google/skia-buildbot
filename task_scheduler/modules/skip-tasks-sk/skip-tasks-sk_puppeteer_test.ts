@@ -13,7 +13,7 @@ describe('skip-tasks-sk', () => {
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 550, height: 550 });
-    await testBed.page.evaluate((_) => {
+    await testBed.page.evaluate(() => {
       (<ThemeChooserSk>(
         document.getElementsByTagName('theme-chooser-sk')[0]
       )).darkmode = false;
@@ -32,7 +32,7 @@ describe('skip-tasks-sk', () => {
         'skip-tasks-sk_start',
       );
       // Take a screenshot in dark mode.
-      await testBed.page.evaluate((_) => {
+      await testBed.page.evaluate(() => {
         (<ThemeChooserSk>(
           document.getElementsByTagName('theme-chooser-sk')[0]
         )).darkmode = true;

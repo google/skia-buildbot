@@ -12,7 +12,7 @@ describe('task-sk', () => {
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1429, height: 836 });
-    await testBed.page.evaluate((_) => {
+    await testBed.page.evaluate(() => {
       (<ThemeChooserSk>(
         document.getElementsByTagName('theme-chooser-sk')[0]
       )).darkmode = false;
@@ -23,7 +23,7 @@ describe('task-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'task-scheduler', 'task-sk');
       // Take a screenshot in dark mode.
-      await testBed.page.evaluate((_) => {
+      await testBed.page.evaluate(() => {
         (<ThemeChooserSk>(
           document.getElementsByTagName('theme-chooser-sk')[0]
         )).darkmode = true;

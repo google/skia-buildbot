@@ -12,7 +12,7 @@ describe('gantt-chart-sk', () => {
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1000, height: 600 });
-    await testBed.page.evaluate((_) => {
+    await testBed.page.evaluate(() => {
       (<ThemeChooserSk>(
         document.getElementsByTagName('theme-chooser-sk')[0]
       )).darkmode = false;
@@ -46,7 +46,7 @@ describe('gantt-chart-sk', () => {
         'gantt-chart-sk_simple-epochs',
       );
       // Take a screenshot in dark mode.
-      await testBed.page.evaluate((_) => {
+      await testBed.page.evaluate(() => {
         (<ThemeChooserSk>(
           document.getElementsByTagName('theme-chooser-sk')[0]
         )).darkmode = true;

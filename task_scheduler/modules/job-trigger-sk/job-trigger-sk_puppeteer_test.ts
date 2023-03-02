@@ -13,7 +13,7 @@ describe('job-trigger-sk', () => {
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 500, height: 600 });
-    await testBed.page.evaluate((_) => {
+    await testBed.page.evaluate(() => {
       (<ThemeChooserSk>(
         document.getElementsByTagName('theme-chooser-sk')[0]
       )).darkmode = false;
@@ -28,7 +28,7 @@ describe('job-trigger-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'task_scheduler', 'job-trigger-sk');
       // Take a screenshot in dark mode.
-      await testBed.page.evaluate((_) => {
+      await testBed.page.evaluate(() => {
         (<ThemeChooserSk>(
           document.getElementsByTagName('theme-chooser-sk')[0]
         )).darkmode = true;
