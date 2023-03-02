@@ -4,6 +4,7 @@ sk_page(
     name = "alerts",
     assets_serving_path = "/dist",
     html_file = "alerts.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "alerts.scss",
     sk_element_deps = [
@@ -23,6 +24,7 @@ sk_page(
     name = "clusters2",
     assets_serving_path = "/dist",
     html_file = "clusters2.html",
+    nonce = "{% .Nonce %}",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "clusters2.scss",
     sk_element_deps = [
