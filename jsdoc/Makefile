@@ -5,12 +5,13 @@ build:
 	$(BAZEL) build --config=mayberemote //jsdoc/go/...
 
 release: build
-	# Populate infra-sk directory.
-	cp ../infra-sk/dist/* infra-sk/
-
+	npm ci
 	# Populate the docs/ directory.
 	../node_modules/.bin/jsdoc -c jsdoc.config.js -d docs
 	chmod 755 -R docs
+
+	# If the elements-sk or docs doesn't seem to be updating try running `bazelisk clean --expunge`.
+	# All of this needs to eventually be moved to Bazel.
 
 	# Populate the elements-sk/ directory.
 	PWD=$(shell pwd);
@@ -30,7 +31,7 @@ release: build
 	$(BAZEL) run --config=mayberemote //jsdoc:push_jsdoc_container
 
 	# Cleanup.
-	git clean -fxq docs/* elements-sk/* infra-sk/*
+	git clean -fxq docs/* elements-sk/*
 
 push: release
 	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout jsdoc
