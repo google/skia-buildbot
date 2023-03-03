@@ -20,6 +20,7 @@ describe('commit-range-sk', () => {
       step_up_only: false,
       display_group_by: true,
       hide_list_of_commits_on_explore: false,
+      no_email: false,
     };
 
     element = newInstance((el: CommitRangeSk) => {

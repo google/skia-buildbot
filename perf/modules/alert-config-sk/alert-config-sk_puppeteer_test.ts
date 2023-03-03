@@ -27,5 +27,9 @@ describe('alert-config-sk', () => {
       await testBed.page.click('#hide_group_by');
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-group-by');
     });
+    it('does not show email if window.perf.no_email is true', async () => {
+      await testBed.page.click('#hide_email');
+      await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-email');
+    });
   });
 });

@@ -207,6 +207,7 @@ type SkPerfConfig struct {
 	Demo                       bool     `json:"demo"`                            // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
 	DisplayGroupBy             bool     `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
 	HideListOfCommitsOnExplore bool     `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
+	NoEmail                    bool     `json:"no_email"`                        // If true then hide all controls for setting and sending emails.
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {

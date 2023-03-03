@@ -285,17 +285,19 @@ export class AlertConfigSk extends ElementSk {
       label="Data is sparse, so only include commits that have data."
     ></checkbox-sk>
 
-    <h3>Where are alerts sent</h3>
-    <label for="sent">
-      Alert Destination: Comma separated list of email addresses.
-    </label>
-    <input
-      id="sent"
-      .value=${ele._config.alert}
-      @input=${(e: InputEvent) => (ele._config.alert = (e.target! as HTMLInputElement).value)}
-    />
-    <button @click=${ele.testAlert}>Test</button>
-    <spinner-sk id="alertSpinner"></spinner-sk>
+    ${window.perf.no_email ? html`` : html`
+      <h3>Where are alerts sent</h3>
+      <label for="sent">
+        Alert Destination: Comma separated list of email addresses.
+      </label>
+      <input
+        id="sent"
+        .value=${ele._config.alert}
+        @input=${(e: InputEvent) => (ele._config.alert = (e.target! as HTMLInputElement).value)}
+      />
+      <button @click=${ele.testAlert}>Test</button>
+      <spinner-sk id="alertSpinner"></spinner-sk>
+    `}
 
     <h3>Where are bugs filed</h3>
     <label for="template">

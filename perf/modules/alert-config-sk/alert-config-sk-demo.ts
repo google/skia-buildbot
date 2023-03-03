@@ -23,6 +23,14 @@ $$('#hide_group_by')!.addEventListener('click', () => {
   window.perf.display_group_by = false;
   refreshControls();
 });
+$$('#display_email')!.addEventListener('click', () => {
+  window.perf.no_email = false;
+  refreshControls();
+});
+$$('#hide_email')!.addEventListener('click', () => {
+  window.perf.no_email = true;
+  refreshControls();
+});
 
 const paramset = {
   config: ['565', '8888'],
