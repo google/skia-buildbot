@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/skerr"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
@@ -51,11 +51,14 @@ func (s *Store) PutCode(code, fiddleType string) (string, error) {
 
 	path := strings.Join([]string{fiddleType, hash, "draw.js"}, "/")
 	w := s.bucket.Object(path).NewWriter(context.Background())
-	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 
 	if n, err := w.Write([]byte(code)); err != nil {
-		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
+		_ = w.Close()
+		return "", skerr.Wrapf(err, "There was a problem storing the code. Uploaded %d bytes", n)
+	}
+	if err := w.Close(); err != nil {
+		return "", skerr.Wrap(err)
 	}
 	return hash, nil
 }
