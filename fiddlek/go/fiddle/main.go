@@ -284,7 +284,18 @@ func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the fiddle.
-	fiddleHash, err := fiddleStore.Put(b.String(), defaultFiddle.Options, nil)
+	// shaders.skia.org allows the use of any image, but fiddle only provides a small
+	// set of images. This could be enhanced (slightly) to use mandrill.png and
+	// soccer.png which are used in both applications. At present use the first
+	// image.
+	const srcImageID = 1
+	skslOptions := types.Options{
+		Width:  256,
+		Height: 256,
+		Source: srcImageID,
+	}
+
+	fiddleHash, err := fiddleStore.Put(b.String(), skslOptions, nil)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to write fiddle.", http.StatusInternalServerError)
 		return

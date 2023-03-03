@@ -42,7 +42,12 @@ func TestScrapHandler_HappyPath(t *testing.T) {
 
 	// Mock the fiddle store.
 	store := &mocks.Store{}
-	store.On("Put", code, defaultFiddle.Options, (*types.Result)(nil)).Return(hash, nil)
+	expectedOptions := types.Options{
+		Width:  256,
+		Height: 256,
+		Source: 1,
+	}
+	store.On("Put", code, expectedOptions, (*types.Result)(nil)).Return(hash, nil)
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
@@ -95,7 +100,12 @@ func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.
 
 	// Mock the fiddle store.
 	store := &mocks.Store{}
-	store.On("Put", code, defaultFiddle.Options, (*types.Result)(nil)).Return("", errMyMockError)
+	expectedOptions := types.Options{
+		Width:  256,
+		Height: 256,
+		Source: 1,
+	}
+	store.On("Put", code, expectedOptions, (*types.Result)(nil)).Return("", errMyMockError)
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
