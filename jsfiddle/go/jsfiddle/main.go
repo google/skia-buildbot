@@ -149,6 +149,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	hash, err := fiddleStore.PutCode(req.Code, req.Type)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to save fiddle.", http.StatusInternalServerError)
+		return
 	}
 	sr := saveResponse{NewURL: fmt.Sprintf("/%s/%s", req.Type, hash)}
 	w.Header().Set("Content-Type", "application/json")
