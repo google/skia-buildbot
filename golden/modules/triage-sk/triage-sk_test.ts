@@ -73,6 +73,31 @@ describe('triage-sk', () => {
         await triageSkPO.clickButton('untriaged');
         await noChangeEvent;
       });
+
+    it('all buttons enabled when not read only', async () => {
+      expect(await triageSkPO.isButtonDisabled('positive')).to.be.false;
+      expect(await triageSkPO.isButtonDisabled('negative')).to.be.false;
+      expect(await triageSkPO.isButtonDisabled('untriaged')).to.be.false;
+    });
+
+    it('all buttons disabled when read only', async () => {
+      triageSk.readOnly = true;
+      expect(await triageSkPO.isButtonDisabled('positive')).to.be.true;
+      expect(await triageSkPO.isButtonDisabled('negative')).to.be.true;
+      expect(await triageSkPO.isButtonDisabled('untriaged')).to.be.true;
+    });
+
+    it('does not change when read only', async () => {
+      triageSk.readOnly = true;
+      const noTriageEvent = noEventPromise('change');
+      await triageSkPO.clickButton('positive');
+      await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'untriaged');
+      await triageSkPO.clickButton('negative');
+      await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'untriaged');
+      await triageSkPO.clickButton('untriaged');
+      await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'untriaged');
+      await noTriageEvent;
+    });
   });
 });
 

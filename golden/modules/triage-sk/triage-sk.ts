@@ -23,22 +23,27 @@ export class TriageSk extends ElementSk {
   private static template = (el: TriageSk) => html`
     <button class="positive ${el.value === 'positive' ? 'selected' : ''}"
             @click=${() => el.buttonClicked('positive')}
+            ?disabled=${el._readOnly}
             title="Triage the left-hand image as positive.">
       <check-circle-icon-sk></check-circle-icon-sk>
     </button>
     <button class="negative ${el.value === 'negative' ? 'selected' : ''}"
             @click=${() => el.buttonClicked('negative')}
+            ?disabled=${el._readOnly}
             title="Triage the left-hand image as negative.">
       <cancel-icon-sk></cancel-icon-sk>
     </button>
     <button class="untriaged ${el.value === 'untriaged' ? 'selected' : ''}"
             @click=${() => el.buttonClicked('untriaged')}
+            ?disabled=${el._readOnly}
             title="Unset the triage status of the left-hand image.">
       <help-icon-sk></help-icon-sk>
     </button>
   `;
 
   private _value: Label = 'untriaged';
+
+  private _readOnly = false;
 
   constructor() {
     super(TriageSk.template);
@@ -55,6 +60,15 @@ export class TriageSk extends ElementSk {
 
   set value(newValue: Label) {
     this._value = newValue;
+    this._render();
+  }
+
+  get readOnly(): boolean {
+    return this._readOnly;
+  }
+
+  set readOnly(val: boolean) {
+    this._readOnly = val;
     this._render();
   }
 

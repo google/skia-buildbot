@@ -8,6 +8,10 @@ triage-sk {
     min-width: 0;
     padding: 0.6em;
 
+    &:disabled {
+      cursor: not-allowed;
+    }
+
     &.selected {
       background-color: var(--dark-white);
       border-color: var(--dark-white);

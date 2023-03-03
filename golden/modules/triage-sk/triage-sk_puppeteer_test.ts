@@ -31,6 +31,11 @@ describe('triage-sk', () => {
       await takeScreenshot(triageSk, 'gold', 'triage-sk_untriaged');
     });
 
+    it('should be read only', async () => {
+      await testBed.page.click('#read-only-checkbox');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_read-only');
+    });
+
     it('should be negative', async () => {
       await triageSkPO.clickButton('negative');
       await testBed.page.click('body'); // Remove focus from button.

@@ -14,6 +14,11 @@ triageSk.addEventListener('change', (e: Event) => log((e as CustomEvent<Label>).
 
 document.querySelector<HTMLDivElement>('#container')!.appendChild(triageSk);
 
+document.querySelector<HTMLInputElement>('#read-only-checkbox')!.addEventListener('change', (e) => {
+  const checkBox = e.target as HTMLInputElement;
+  triageSk.readOnly = checkBox.checked;
+});
+
 // Hide event log if we're within a Puppeteer test. We don't need the event log
 // to appear in any screenshots uploaded to Gold.
 if (isPuppeteerTest()) {

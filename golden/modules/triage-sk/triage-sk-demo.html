@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      #clear-selection {
-        margin-left: 0.6em;
+      #read-only-checkbox-container {
+        margin-top: 2em;
       }
       #event-log-container {
         border: 1px solid lightgrey;
@@ -22,6 +22,11 @@
   <body class="body-sk">
     <div id="container">
       <!-- A triage-sk element will be inserted here dynamically. -->
+    </div>
+
+    <div id="read-only-checkbox-container">
+      <input type="checkbox" id="read-only-checkbox"/>
+      <label for="read-only-checkbox">Read only</label>
     </div>
 
     <div id="event-log-container">
