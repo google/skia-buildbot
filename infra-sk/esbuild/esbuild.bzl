@@ -76,3 +76,36 @@ def esbuild_prod_bundle(
         visibility = visibility,
         **kwargs
     )
+
+def esbuild_node_bundle(
+        name,
+        entry_point,
+        deps = [],
+        output = None,
+        visibility = ["//visibility:public"],
+        **kwargs):
+    """Builds a Node.JS JS bundle.
+
+    This macro is a wrapper around the esbuild rule with common settings for Node.JS builds,
+    such as sourcemaps, no minification and the --platform esbuild flag set to "node".
+
+    Args:
+      name: The name of the rule.
+      entry_point: Entry-point TypeScript or JavaScript file.
+      deps: Any ts_library dependencies.
+      output: Name of the output JS file.
+      visibility: Visibility of the rule.
+      **kwargs: Any other arguments to be passed to the esbuild rule.
+    """
+    esbuild(
+        name = name,
+        entry_point = entry_point,
+        deps = deps,
+        sourcemap = "inline",
+        sources_content = True,
+        output = output,
+        platform = "node",
+        target = "node16",
+        visibility = visibility,
+        **kwargs
+    )

@@ -35,10 +35,10 @@ describe('binary-page-sk', () => {
       // Hover over the rightmost node in the tree. We use coordinates because the SVG generated
       // by the google.visualization.TreeMap is not amenable to querying.
       const treemap = await testBed.page.$('#treemap');
-      const box = await treemap.boundingBox();
+      const box = await treemap!.boundingBox();
       await testBed.page.mouse.click(
-        box.x + box.width - 50,
-        box.y + box.height - 50,
+        box!.x + box!.width - 50,
+        box!.y + box!.height - 50,
       );
 
       // Give the TreeMap a chance to redraw.

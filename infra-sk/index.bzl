@@ -7,7 +7,7 @@ load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
-load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_node_bundle", "esbuild_prod_bundle")
 load(":ts_library.bzl", _ts_library = "ts_library")
 load(":sass_library.bzl", _sass_library = "sass_library")
 
@@ -179,6 +179,7 @@ def make_label_target_explicit(label):
 def nodejs_test(
         name,
         src,
+        src_lib = None,
         data = [],
         deps = [],
         tags = [],
@@ -216,8 +217,9 @@ def nodejs_test(
     Args:
       name: Name of the target.
       src: A single TypeScript source file.
+      src_lib: A ts_library containing src. If none is provided, one will be generated.
       data: Any data dependencies.
-      deps: Any ts_library dependencies.
+      deps: Any ts_library or NPM dependencies of src. Ignored if src_lib is provided.
       tags: Tags for the generated nodejs_test rule.
       visibility: Visibility of the generated nodejs_test rule.
       env: A dictionary of additional environment variables to set when the target is executed.
@@ -231,23 +233,35 @@ def nodejs_test(
     if not _internal_skip_naming_convention_enforcement and not src.endswith("_nodejs_test.ts"):
         fail("Node.js tests must end with \"_nodejs_test.ts\".")
 
-    mocha_deps = [
-        "@npm//mocha",
-        "@npm//ts-node",
-        "//:tsconfig.json",
-    ]
+    if not src_lib:
+        src_lib = "%s_ts_lib" % name
+        ts_library(
+            name = src_lib,
+            srcs = [src],
+            deps = deps,
+        )
+
+    esbuild_node_bundle(
+        name = "%s_js_entry_point" % name,
+        entry_point = src,
+        deps = [src_lib],
+        output = "%s_js_entry_point.js" % name,
+    )
 
     _nodejs_test(
         name = name,
         entry_point = "@npm//:node_modules/mocha/bin/mocha",
-        data = data + [src] + deps + [dep for dep in mocha_deps if dep not in deps],
+        data = data + [
+            "%s_js_entry_point.js" % name,
+            # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
+            # binary.
+            src_lib,
+            "@npm//mocha",
+        ],
         templated_args = [
-            "--require ts-node/register/transpile-only",
             "--timeout 60000",
             "--colors",
-            # See https://github.com/bazelbuild/rules_nodejs/commit/fdde32fa5653999b15459c4deebfeaa86a099135.
-            "--bazel_patch_module_resolver",
-            "$(rootpath %s)" % src,
+            "$(rootpath %s)" % "%s_js_entry_point.js" % name,
         ] + (["--inspect-brk"] if wait_for_debugger else []),
         env = env,
         tags = tags,
@@ -301,6 +315,17 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         "PUPPETEER_TEST_SHOW_BROWSER": "true",
     }.update(headless_opts)
 
+    # Rather than letting the nodejs_test macro create a ts_library for the entrypoint file, we
+    # create one here. The reason is that we will define multiple nodejs_test targets with
+    # different sufixes ("_debug", "_headful"). If we do not provide a ts_library for the
+    # entrypoint file, each nodejs_test instance will define its own ts_library that outputs
+    # the same .js file, causing the build to fail.
+    ts_library(
+        name = name + "_ts_lib",
+        srcs = [src],
+        deps = deps,
+    )
+
     for debug, headful in [(False, False), (True, False), (True, True)]:
         suffix = ""
         if debug:
@@ -311,6 +336,7 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         nodejs_test(
             name = name + "_test_only" + suffix,
             src = src,
+            src_lib = name + "_ts_lib",
             tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
             deps = deps,
             wait_for_debugger = debug,

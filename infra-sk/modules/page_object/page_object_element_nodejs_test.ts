@@ -2,10 +2,10 @@ import http from 'http';
 import net from 'net';
 import express from 'express';
 import {
-  Browser, Page, ElementHandle, Serializable,
+  Browser, Page, ElementHandle,
 } from 'puppeteer';
 import { launchBrowser } from '../../../puppeteer-tests/util';
-import { PageObjectElement } from './page_object_element';
+import { PageObjectElement, Serializable } from './page_object_element';
 import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
 
 describe('PageObjectElement on Puppeter', () => {
@@ -44,7 +44,7 @@ describe('PageObjectElement on Puppeter', () => {
   afterEach(async () => { await page.close(); });
 
   // A handle for the top-level element in the HTML provided via the test bed.
-  let container: ElementHandle<HTMLElement>;
+  let container: ElementHandle<Element>;
 
   const testBed: TestBed = {
     setUpPageObjectElement: async (html: string) => {
@@ -68,7 +68,7 @@ describe('PageObjectElement on Puppeter', () => {
       return new PageObjectElement(container);
     },
 
-    evaluate: async <T extends Serializable | void = void>(fn: (el: HTMLElement)=> T) => await container.evaluate(fn) as T,
+    evaluate: async <T extends Serializable | void = void>(fn: (el: Element)=> T) => await container.evaluate(fn) as T,
   };
 
   describePageObjectElement(testBed);

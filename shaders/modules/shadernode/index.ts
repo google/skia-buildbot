@@ -13,7 +13,9 @@ import type {
   MallocObj,
   RuntimeEffect,
   Shader,
-} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+}
+// @ts-ignore
+from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 

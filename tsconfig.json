@@ -9,7 +9,6 @@
     "inlineSources": true,
     "strict": true,
     "target": "es2017",
-    "types": ["mocha", "node"],
     "rootDirs": [
       ".",
       // These are necessary for relative imports to work under the ts_project Bazel rule. See
@@ -43,5 +42,7 @@
     "./_bazel_buildbot",
     "./_bazel_out",
     "./_bazel_testlogs",
+    // TypeScript files under this directory are Go templates and thus do not compile.
+    "./new_element",
   ],
 }

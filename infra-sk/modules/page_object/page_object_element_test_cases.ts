@@ -23,10 +23,10 @@ export interface TestBed {
 
   /**
    * Evaluates the given function inside the test page, passing as the first argument the
-   * HTMLElement wrapped by the PageObjectElement returned by the most recent call to
+   * Element wrapped by the PageObjectElement returned by the most recent call to
    * setUpPageObjectElement().
    */
-  evaluate<T extends Serializable | void = void>(fn: (el: HTMLElement)=> T): Promise<T>;
+  evaluate<T extends Serializable | void = void>(fn: (el: Element)=> T): Promise<T>;
 }
 
 /**
@@ -82,7 +82,7 @@ export const describePageObjectElement = (testBed: TestBed) => {
     const poe = await testBed.setUpPageObjectElement(
       '<button onclick="this.setAttribute(\'clicked\', true)">Click me!</button>',
     );
-    const wasClicked = () => testBed.evaluate((el: HTMLElement) => el.hasAttribute('clicked'));
+    const wasClicked = () => testBed.evaluate((el: Element) => el.hasAttribute('clicked'));
 
     expect(await wasClicked()).to.be.false;
     await poe.click();
@@ -116,8 +116,8 @@ export const describePageObjectElement = (testBed: TestBed) => {
              oninput="this.setAttribute('input-event-dispatched', true)"
              onchange="this.setAttribute('change-event-dispatched', true)"/>`);
 
-    const wasInputEventDispatched = () => testBed.evaluate((el: HTMLElement) => el.hasAttribute('input-event-dispatched'));
-    const wasChangeEventDispatched = () => testBed.evaluate((el: HTMLElement) => el.hasAttribute('change-event-dispatched'));
+    const wasInputEventDispatched = () => testBed.evaluate((el: Element) => el.hasAttribute('input-event-dispatched'));
+    const wasChangeEventDispatched = () => testBed.evaluate((el: Element) => el.hasAttribute('change-event-dispatched'));
 
     expect(await wasInputEventDispatched()).to.be.false;
     expect(await wasChangeEventDispatched()).to.be.false;
@@ -134,9 +134,9 @@ export const describePageObjectElement = (testBed: TestBed) => {
              onkeypress="this.setAttribute('keypress-event-key', event.key)"
              onkeyup="this.setAttribute('keyup-event-key', event.key)"/>`);
 
-    const keydownEventKey = () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keydown-event-key'));
-    const keypressEventKey = () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keypress-event-key'));
-    const keyupEventKey = () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keyup-event-key'));
+    const keydownEventKey = () => testBed.evaluate((el: Element) => el.getAttribute('keydown-event-key'));
+    const keypressEventKey = () => testBed.evaluate((el: Element) => el.getAttribute('keypress-event-key'));
+    const keyupEventKey = () => testBed.evaluate((el: Element) => el.getAttribute('keyup-event-key'));
 
     expect(await keydownEventKey()).to.be.null;
     expect(await keypressEventKey()).to.be.null;
@@ -150,7 +150,7 @@ export const describePageObjectElement = (testBed: TestBed) => {
   it('supports applyFnToDOMNode', async () => {
     const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
     const result = await poe.applyFnToDOMNode(
-      (el, prefix, suffix) => `${prefix}${el.innerText}${suffix}`,
+      (el, prefix, suffix) => `${prefix}${(el as HTMLElement).innerText}${suffix}`,
       'The contents are: "',
       '". That is all.',
     );

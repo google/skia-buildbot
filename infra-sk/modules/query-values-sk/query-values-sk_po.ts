@@ -27,12 +27,12 @@ export class QueryValuesSkPO extends PageObject {
 
   async isInvertCheckboxChecked() {
     return (await this.invertCheckBox)
-      .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+      .applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
   }
 
   async isRegexCheckboxChecked() {
     return (await this.regexCheckBox)
-      .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+      .applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
   }
 
   async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }

@@ -39,7 +39,7 @@ describe('codesize-scaffold-sk', () => {
 
   const expectBodyClassName = async (className: string) => {
     const body = await testBed.page.$('body');
-    const classProp = await body.getProperty('className');
+    const classProp = await body!.getProperty('className');
     expect(await classProp.jsonValue()).to.equal(className);
   };
 

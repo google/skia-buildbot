@@ -7,7 +7,7 @@ import { AsyncList, PageObjectElement, PageObjectElementList } from './page_obje
  * A page object written as a subclass of PageObject will have two layers of wrapping:
  *
  *   1. The PageObject wraps a PageObjectElement.
- *   2. The PageObjectElement wraps either a DOM node (HTMLElement) or a Puppeteer handle
+ *   2. The PageObjectElement wraps either a DOM node (Element) or a Puppeteer handle
  *      (ElementHandle).
  *
  * The PageObjectElement wraps the root node of the component under test, and provides an
@@ -29,9 +29,9 @@ export abstract class PageObject {
 
   constructor(
     element:
-          HTMLElement |
-          ElementHandle<HTMLElement> |
-          Promise<ElementHandle<HTMLElement> | null> |
+          Element |
+          ElementHandle<Element> |
+          Promise<ElementHandle<Element> | null> |
           PageObjectElement,
   ) {
     if (element instanceof PageObjectElement) {

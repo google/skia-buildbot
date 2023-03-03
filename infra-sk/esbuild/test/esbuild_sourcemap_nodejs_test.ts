@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 // Inspired in
 // https://github.com/bazelbuild/rules_nodejs/blob/bca4dbeba5bf3be023aea602ea3eae2dee2ce10f/packages/esbuild/test/sourcemap/bundle_test.js#L4.
-const runfilesHelper = require(process.env.BAZEL_NODE_RUNFILES_HELPER);
+const runfilesHelper = require(process.env.BAZEL_NODE_RUNFILES_HELPER!);
 const locationBase = 'skia_infra/infra-sk/esbuild/test';
 
 function doesRunfileExist(filename: string): boolean {

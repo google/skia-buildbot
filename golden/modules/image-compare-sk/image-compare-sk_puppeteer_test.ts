@@ -44,7 +44,7 @@ describe('image-compare-sk', () => {
 
     it('zooms in and out of a specific image', async () => {
       const imageCompareSk = await testBed.page.$('#normal');
-      const imageCompareSkPO = new ImageCompareSkPO(imageCompareSk);
+      const imageCompareSkPO = new ImageCompareSkPO(imageCompareSk!);
       await imageCompareSkPO.clickImage(0);
       await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk_image-zoomed-in');
       await imageCompareSkPO.clickImage(0);

@@ -30,8 +30,8 @@ export class DotsLegendSkPO extends PageObject {
    */
   getDotBorderAndBackgroundColors(): Promise<[string, string][]> {
     return this.dots.map(async (dot: PageObjectElement) => [
-      rgbToHex(await dot.applyFnToDOMNode((el: HTMLElement) => el.style.borderColor)),
-      rgbToHex(await dot.applyFnToDOMNode((el: HTMLElement) => el.style.backgroundColor)),
+      rgbToHex(await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.borderColor)),
+      rgbToHex(await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.backgroundColor)),
     ]);
   }
 
