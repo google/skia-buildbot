@@ -108,3 +108,18 @@ func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.
 
 	require.Equal(t, 500, w.Code)
 }
+
+func TestScrapHandler_WithInvalidType_ReturnsBadRequest(t *testing.T) {
+
+	r := httptest.NewRequest("GET", "/scrap/NotAType/@smiley", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request through a mux.Router so the URL paths get parsed and
+	// routed correctly.
+	router := mux.NewRouter()
+	addHandlers(router)
+
+	router.ServeHTTP(w, r)
+
+	require.Equal(t, 404, w.Code)
+}
