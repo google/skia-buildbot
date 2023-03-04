@@ -3,6 +3,7 @@ package main
 // The webserver for jsfiddle.skia.org. It serves up the web page
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -16,16 +17,20 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/jsfiddle/go/store"
+	"go.skia.org/infra/scrap/go/client"
+	"go.skia.org/infra/scrap/go/scrap"
 )
 
 var (
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	local         = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	port          = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	resourcesDir  = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	scrapExchange = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
 )
 
 const maxFiddleSize = 100 * 1024 // 100KB ought to be enough for anyone.
@@ -35,7 +40,9 @@ var canvaskitPage []byte
 
 var knownTypes = []string{"pathkit", "canvaskit"}
 
-var fiddleStore *store.Store
+var fiddleStore store.Store
+
+var scrapClient scrap.ScrapExchange
 
 func htmlHandler(page []byte) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -176,6 +183,44 @@ func cspHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWr
 	}
 }
 
+// scrapHandler handles links to scrap exchange expanded templates and turns them into fiddles.
+func scrapHandler(w http.ResponseWriter, r *http.Request) {
+	// Load the scrap.
+	typ := scrap.ToType(mux.Vars(r)["type"])
+	if typ == scrap.UnknownType {
+		err := skerr.Fmt("Unknown type: %q", mux.Vars(r)["type"])
+		httputils.ReportError(w, err, "Unknown type.", http.StatusBadRequest)
+		return
+	}
+	hashOrName := mux.Vars(r)["hashOrName"]
+	var b bytes.Buffer
+	if err := scrapClient.Expand(r.Context(), typ, hashOrName, scrap.JS, &b); err != nil {
+		httputils.ReportError(w, err, "Failed to load templated scrap.", http.StatusInternalServerError)
+		return
+	}
+
+	// Create the jsfiddle.
+	jsfiddleHash, err := fiddleStore.PutCode(b.String(), "canvaskit")
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to save jsfiddle.", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/canvaskit/"+jsfiddleHash, http.StatusTemporaryRedirect)
+}
+
+func addHandlers(r *mux.Router) {
+	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
+	r.HandleFunc("/canvaskit", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
+	r.HandleFunc("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
+	r.HandleFunc("/pathkit", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
+	r.HandleFunc("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
+	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
+	r.HandleFunc("/", mainHandler).Methods("GET")
+	r.HandleFunc("/_/save", saveHandler).Methods("PUT")
+	r.HandleFunc("/_/code", codeHandler).Methods("GET")
+}
+
 func main() {
 	common.InitWithMust(
 		"jsfiddle",
@@ -189,6 +234,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}
+	scrapClient, err = client.New(*scrapExchange)
+	if err != nil {
+		sklog.Fatalf("Failed to create scrap exchange client: %s", err)
+	}
 
 	// Need to set the mime-type for wasm files so streaming compile works.
 	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
@@ -196,14 +245,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
-	r.HandleFunc("/canvaskit", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
-	r.HandleFunc("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
-	r.HandleFunc("/pathkit", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
-	r.HandleFunc("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
-	r.HandleFunc("/", mainHandler).Methods("GET")
-	r.HandleFunc("/_/save", saveHandler).Methods("PUT")
-	r.HandleFunc("/_/code", codeHandler).Methods("GET")
+	addHandlers(r)
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.HealthzAndHTTPS(h)

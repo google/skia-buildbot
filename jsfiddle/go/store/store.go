@@ -22,14 +22,25 @@ const (
 
 // Store is used to read and write user code and media to and from Google
 // Storage.
-type Store struct {
+type Store interface {
+	// PutCode writes the code to Google Storage.
+	// Returns the fiddleHash.
+	PutCode(code, fiddleType string) (string, error)
+
+	// PutCode writes the code to Google Storage.
+	// Returns the fiddleHash.
+	GetCode(hash, fiddleType string) (string, error)
+}
+
+// store implements Store.
+type store struct {
 	bucket *storage.BucketHandle
 }
 
-// New creates a new Store.
+// New creates a new store.
 //
 // local - True if running locally.
-func New(ctx context.Context, local bool) (*Store, error) {
+func New(ctx context.Context, local bool) (*store, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadWrite)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
@@ -39,14 +50,13 @@ func New(ctx context.Context, local bool) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)
 	}
-	return &Store{
+	return &store{
 		bucket: storageClient.Bucket(JSFIDDLE_STORAGE_BUCKET),
 	}, nil
 }
 
-// PutCode writes the code to Google Storage.
-// Returns the fiddleHash.
-func (s *Store) PutCode(code, fiddleType string) (string, error) {
+// PutCode implements Store.
+func (s *store) PutCode(code, fiddleType string) (string, error) {
 	hash := computeHash(code)
 
 	path := strings.Join([]string{fiddleType, hash, "draw.js"}, "/")
@@ -63,9 +73,8 @@ func (s *Store) PutCode(code, fiddleType string) (string, error) {
 	return hash, nil
 }
 
-// PutCode writes the code to Google Storage.
-// Returns the fiddleHash.
-func (s *Store) GetCode(hash, fiddleType string) (string, error) {
+// GetCode implements Store.
+func (s *store) GetCode(hash, fiddleType string) (string, error) {
 	path := strings.Join([]string{fiddleType, hash, "draw.js"}, "/")
 	o := s.bucket.Object(path)
 	r, err := o.NewReader(context.Background())
@@ -83,3 +92,6 @@ func computeHash(code string) string {
 	sum := sha256.Sum256([]byte(code))
 	return fmt.Sprintf("%x", sum)
 }
+
+// Confirm the *store implements Store.
+var _ Store = (*store)(nil)

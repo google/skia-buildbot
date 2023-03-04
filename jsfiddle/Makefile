@@ -36,7 +36,8 @@ bazel_release_ci:
 
 .PHONY: run-local-instance
 run-local-instance: build
-	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
+	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local \
+	--resources_dir ../_bazel_bin/jsfiddle/pages/development --scrapexchange http://localhost:9000
 
 .PHONY: run-with-custom
 run-with-custom:
@@ -54,3 +55,11 @@ build-placeholders:
 	touch build/canvaskit/canvaskit.js
 	touch build/canvaskit/canvaskit.wasm
 	touch build/version.js
+
+.PHONY: generate
+generate:
+		go generate ./go/...
+
+.PHONY: testgo
+testgo:
+	go test -v ./...
