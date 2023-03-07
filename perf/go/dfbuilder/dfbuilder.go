@@ -182,7 +182,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		ParamSet: paramSet,
 		Skip:     skip,
 	}
-	return d, nil
+	return d.Compress(), nil
 }
 
 // See DataFrameBuilder.
@@ -267,7 +267,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 		Skip:     skip,
 	}
 	triggerProgress()
-	return d, nil
+	return d.Compress(), nil
 }
 
 // findIndexForTime finds the index of the closest commit <= 'end'.

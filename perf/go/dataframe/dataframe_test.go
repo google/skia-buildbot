@@ -6,11 +6,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/vec32"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/types"
+)
+
+const (
+	e = vec32.MissingDataSentinel
 )
 
 func TestBuildParamSet(t *testing.T) {
@@ -283,9 +288,105 @@ func TestJoin(t *testing.T) {
 
 	assert.Equal(t, expectedHeader, r.Header)
 	assert.Len(t, r.TraceSet, 4)
-	e := vec32.MissingDataSentinel
 	assert.Equal(t, types.Trace{0.1, 0.2, e, 0.4}, r.TraceSet[",config=8888,arch=x86,"])
 	assert.Equal(t, types.Trace{1.1, 1.2, e, 1.4}, r.TraceSet[",config=8888,arch=arm,"])
 	assert.Equal(t, types.Trace{e, e, 4.3, 4.4}, r.TraceSet[",config=565,arch=arm,"])
 	assert.Equal(t, types.Trace{e, e, 3.3, 3.4}, r.TraceSet[",config=565,arch=x86,"])
+}
+
+func TestCompress(t *testing.T) {
+	tests := []struct {
+		name   string
+		source *DataFrame
+		want   *DataFrame
+	}{
+		{
+			name: "DropLastColumn",
+			source: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 2},
+					{Offset: 3},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, e, e},
+					",arch=arm,": []float32{e, 2, e},
+				},
+			},
+			want: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 2},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, e},
+					",arch=arm,": []float32{e, 2},
+				},
+			},
+		},
+		{
+			name: "DropSecondColumn",
+			source: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 2},
+					{Offset: 3},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, e, 3},
+					",arch=arm,": []float32{e, e, 3.1},
+				},
+			},
+			want: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 3},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, 3},
+					",arch=arm,": []float32{e, 3.1},
+				},
+			},
+		},
+
+		{
+			name: "DoNotDropAnyColumns",
+			source: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 2},
+					{Offset: 3},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, 2, 3},
+				},
+			},
+			want: &DataFrame{
+				Header: []*ColumnHeader{
+					{Offset: 1},
+					{Offset: 2},
+					{Offset: 3},
+				},
+				TraceSet: types.TraceSet{
+					",arch=x86,": []float32{1, 2, 3},
+				},
+			},
+		},
+		{
+			name: "HandlesEmptyDataFrames",
+			source: &DataFrame{
+				Header:   []*ColumnHeader{},
+				TraceSet: types.TraceSet{},
+			},
+			want: &DataFrame{
+				Header:   []*ColumnHeader{},
+				TraceSet: types.TraceSet{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assertdeep.Equal(t, tt.want, tt.source.Compress())
+		})
+	}
 }

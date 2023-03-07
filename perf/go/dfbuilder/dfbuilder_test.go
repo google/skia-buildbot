@@ -104,9 +104,9 @@ func TestBuildNew(t *testing.T) {
 	df, err := builder.NewFromQueryAndRange(ctx, now.Add(-7*time.Minute), now.Add(time.Second), q, false, progress.New())
 	require.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
-	assert.Len(t, df.Header, 8)
-	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
-	assert.Len(t, df.TraceSet[",arch=arm,config=8888,"], 8)
+	assert.Len(t, df.Header, 3)
+	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 3)
+	assert.Len(t, df.TraceSet[",arch=arm,config=8888,"], 3)
 
 	// A dense response from NewNFromQuery().
 	df, err = builder.NewNFromQuery(ctx, now, q, 4, progress.New())
@@ -134,16 +134,16 @@ func TestBuildNew(t *testing.T) {
 	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-7*time.Minute), now.Add(time.Second), q, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
-	assert.Len(t, df.Header, 8)
+	assert.Len(t, df.Header, 0)
 
 	// NewFromKeysAndRange.
 	df, err = builder.NewFromKeysAndRange(ctx, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now.Add(-7*time.Minute), now.Add(time.Second), false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
-	assert.Len(t, df.Header, 8)
+	assert.Len(t, df.Header, 3)
 	assert.Len(t, df.ParamSet, 2)
-	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
-	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 8)
+	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 3)
+	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 3)
 
 	// NewNFromKeys.
 	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, 2, progress.New())
@@ -176,7 +176,7 @@ func TestBuildNew(t *testing.T) {
 	df, err = builder.NewFromKeysAndRange(ctx, []string{}, now.Add(-7*time.Minute), now.Add(time.Second), false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
-	assert.Len(t, df.Header, 8)
+	assert.Len(t, df.Header, 0)
 
 	// Add a value that only appears in one of the tiles.
 	err = addValuesAtIndex(store, 7, map[string]float32{
@@ -191,7 +191,7 @@ func TestBuildNew(t *testing.T) {
 	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-7*time.Minute), now.Add(time.Second), q, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 1)
-	assert.Len(t, df.Header, 8)
+	assert.Len(t, df.Header, 1)
 }
 
 func TestFromIndexRange_Success(t *testing.T) {

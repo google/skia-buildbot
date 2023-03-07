@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/vec32"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
@@ -227,6 +228,57 @@ func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
 	}
 	ret.BuildParamSet()
 	return ret, nil
+}
+
+// Compress returns a DataFrame with all columns that don't contain any data
+// removed. If the DataFrame is already fully compressed then the original
+// DataFrame is returned.
+func (d *DataFrame) Compress() *DataFrame {
+	// Total up the number of data points we have for each commit.
+	counts := make([]int, len(d.Header))
+	for _, tr := range d.TraceSet {
+		for i, x := range tr {
+			if x != vec32.MissingDataSentinel {
+				counts[i]++
+			}
+		}
+	}
+
+	// Find all the colums that contain at least one non-missing data point and
+	// store the indexes of those columns into sourceIndexes.
+	sourceIndexes := []int{}
+	for i, count := range counts {
+		if count > 0 {
+			sourceIndexes = append(sourceIndexes, i)
+		}
+	}
+	n := len(sourceIndexes)
+
+	// If every column has data then there's nothing to do, this DataFrame is
+	// already fully compressed.
+	if n == len(d.Header) {
+		return d
+	}
+
+	ret := NewEmpty()
+
+	// Copy over the headers.
+	for _, sourceIndex := range sourceIndexes {
+		ret.Header = append(ret.Header, d.Header[sourceIndex])
+	}
+
+	// Create the new shorter traces.
+	for key, sourceTrace := range d.TraceSet {
+		trace := vec32.New(n)
+		for i, sourceIndex := range sourceIndexes {
+			trace[i] = sourceTrace[sourceIndex]
+		}
+		ret.TraceSet[key] = trace
+	}
+	// The ParamSet remains unchanged.
+	ret.ParamSet = d.ParamSet
+
+	return ret
 }
 
 // FromTimeRange returns the slices of ColumnHeader and int32. The slices
