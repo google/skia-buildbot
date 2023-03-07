@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
@@ -270,10 +271,13 @@ func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 	go func() {
 		path := strings.Join([]string{"fiddle", fiddleHash, p.filename}, "/")
 		w := s.bucket.Object(path).NewWriter(context.Background())
-		defer util.Close(w)
 		w.ObjectAttrs.ContentEncoding = p.contentType
 		if n, err := w.Write(body); err != nil {
+			_ = w.Close()
 			sklog.Errorf("There was a problem storing the media for %s. Uploaded %d bytes: %s", string(media), n, err)
+		}
+		if err := w.Close(); err != nil {
+			sklog.Errorf("Error closing write for %s: %s", string(media), err)
 		}
 	}()
 	return nil
@@ -288,7 +292,6 @@ func (s *store) Put(code string, options types.Options, results *types.Result) (
 	// Write code.
 	path := strings.Join([]string{"fiddle", fiddleHash, "draw.cpp"}, "/")
 	w := s.bucket.Object(path).NewWriter(context.Background())
-	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 	w.ObjectAttrs.Metadata = map[string]string{
 		WIDTH_METADATA:                  fmt.Sprintf("%d", options.Width),
@@ -308,7 +311,11 @@ func (s *store) Put(code string, options types.Options, results *types.Result) (
 		OFFSCREEN_MIPMAP_METADATA:       fmt.Sprintf("%v", options.OffScreenMipMap),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
+		_ = w.Close()
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
+	}
+	if err = w.Close(); err != nil {
+		return "", skerr.Wrap(err)
 	}
 	// Write media, if any.
 	if results == nil {
