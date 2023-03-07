@@ -514,6 +514,20 @@ export class ShadersAppSk extends ElementSk {
         >
           Debug
         </button>
+        <button
+          ?hidden=${ele.rootShaderNode?.needsSave()}
+          @click=${ele.viewInFiddle}
+          class=action
+        >
+          View in fiddle
+        </button>
+        <button
+          ?hidden=${ele.rootShaderNode?.needsSave()}
+          @click=${ele.viewInJsFiddle}
+          class=action
+         >
+          View in jsfiddle
+        </button>
       </div>
     </main>
     <footer>
@@ -829,6 +843,34 @@ export class ShadersAppSk extends ElementSk {
       window.open('/debug?local-storage', 'sksl-debug-target');
     }
     shader.delete();
+  }
+
+  private async viewInFiddle() {
+    const loadInFiddle = function (scrapID: string) {
+      const url = 'https://fiddle.skia.org/scrap/sksl/' + scrapID;
+      window.open(url);
+    }
+
+    if (this.state.id) {
+      loadInFiddle(this.state.id);
+    } else {
+      await this.saveClick();
+      loadInFiddle(this.state.id);
+    }
+  }
+
+  private async viewInJsFiddle() {
+    const loadInJSFiddle = function (scrapID: string) {
+      const url = 'https://jsfiddle.skia.org/scrap/sksl/' + scrapID;
+      window.open(url);
+    }
+
+    if (this.state.id) {
+      loadInJSFiddle(this.state.id);
+    } else {
+      await this.saveClick();
+      loadInJSFiddle(this.state.id);
+    }
   }
 
   private async runClick() {
