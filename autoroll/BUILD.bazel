@@ -77,6 +77,7 @@ skia_app_container(
                 "config",
                 "roller",
                 "mode-history",
+                "roll-history",
                 "strategy-history",
             ]
             for ext in [
