@@ -10,14 +10,30 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/iterator"
 )
 
 const (
 	// Number of rolls to return from GetRecentRolls().
-	RECENT_ROLLS_LENGTH = 10
+	RecentRollsLength = 10
+
+	// loadRollsPageSize is the maximum number of rolls retrieved in a single
+	// call to LoadRolls().
+	loadRollsPageSize = 25
 )
+
+type DB interface {
+	// Put inserts a roll into the RollsDB.
+	Put(ctx context.Context, roller string, roll *autoroll.AutoRollIssue) error
+	// Get retrieves a roll from the RollsDB.
+	Get(ctx context.Context, roller string, issue int64) (*autoroll.AutoRollIssue, error)
+	// GetRolls loads rolls from the database. Returns the rolls and a cursor
+	// which may be used to retrieve more rolls.
+	GetRolls(ctx context.Context, roller string, cursor string) ([]*autoroll.AutoRollIssue, string, error)
+}
 
 // Fake ancestor we supply for all ModeChanges, to force consistency.
 // We lose some performance this way but it keeps our tests from
@@ -51,15 +67,17 @@ type DsRoll struct {
 
 // RecentRolls is a struct used for storing and retrieving recent DEPS rolls.
 type RecentRolls struct {
+	db     DB
 	recent []*autoroll.AutoRollIssue
 	roller string
 	mtx    sync.RWMutex
 }
 
 // NewRecentRolls returns a new RecentRolls instance.
-func NewRecentRolls(ctx context.Context, roller string) (*RecentRolls, error) {
+func NewRecentRolls(ctx context.Context, db DB, roller string) (*RecentRolls, error) {
 	recentRolls := &RecentRolls{
 		roller: roller,
+		db:     db,
 	}
 	if err := recentRolls.refreshRecentRolls(ctx); err != nil {
 		return nil, err
@@ -84,35 +102,10 @@ func (r *RecentRolls) Add(ctx context.Context, roll *autoroll.AutoRollIssue) err
 		sklog.Warningf("Inserting a new roll which is already closed.")
 	}
 
-	if err := r.put(ctx, roll); err != nil {
+	if err := r.db.Put(ctx, r.roller, roll); err != nil {
 		return err
 	}
 	return r.refreshRecentRolls(ctx)
-}
-
-// put inserts the roll into the datastore.
-func (r *RecentRolls) put(ctx context.Context, roll *autoroll.AutoRollIssue) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(roll); err != nil {
-		return fmt.Errorf("Failed to encode roll: %s", err)
-	}
-	obj := &DsRoll{
-		Data:          buf.Bytes(),
-		Roller:        r.roller,
-		RollerCreated: fmt.Sprintf("%s_%s", r.roller, roll.Created.UTC().Format(util.RFC3339NanoZeroPad)),
-		RollerIssue:   fmt.Sprintf("%s_%d", r.roller, roll.Issue),
-	}
-	key := ds.NewKey(ds.KIND_AUTOROLL_ROLL)
-	key.Name = obj.RollerIssue
-	key.Parent = fakeAncestor()
-	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		_, err := tx.Put(key, obj)
-		return err
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to insert roll: %s", err)
-	}
-	return nil
 }
 
 // Update updates the given DEPS roll in the recent rolls list.
@@ -123,7 +116,7 @@ func (r *RecentRolls) Update(ctx context.Context, roll *autoroll.AutoRollIssue) 
 	if err := roll.Validate(); err != nil {
 		return err
 	}
-	if err := r.put(ctx, roll); err != nil {
+	if err := r.db.Put(ctx, r.roller, roll); err != nil {
 		return err
 	}
 	return r.refreshRecentRolls(ctx)
@@ -139,18 +132,7 @@ func (r *RecentRolls) Get(ctx context.Context, issue int64) (*autoroll.AutoRollI
 		}
 	}
 	// Fall back to retrieving from datastore.
-	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("rollerIssue =", fmt.Sprintf("%s_%d", r.roller, issue))
-	var results []*autoroll.AutoRollIssue
-	if _, err := ds.DS.GetAll(ctx, query, &results); err != nil {
-		return nil, err
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("Could not find issue %d", issue)
-	} else if len(results) == 1 {
-		return results[0], nil
-	} else {
-		return nil, fmt.Errorf("Found more than one issue matching %d", issue)
-	}
+	return r.db.Get(ctx, r.roller, issue)
 }
 
 // GetRecentRolls returns a copy of the recent rolls list.
@@ -209,34 +191,114 @@ func (r *RecentRolls) LastRoll() *autoroll.AutoRollIssue {
 	return nil
 }
 
-func (r *RecentRolls) getHistory(ctx context.Context) ([]*autoroll.AutoRollIssue, error) {
-	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("roller =", r.roller).Order("-rollerCreated").Limit(RECENT_ROLLS_LENGTH)
-	var history []*DsRoll
-	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
-		return nil, err
-	}
-	rv := make([]*autoroll.AutoRollIssue, 0, len(history))
-	for _, enc := range history {
-		roll := new(autoroll.AutoRollIssue)
-		if err := gob.NewDecoder(bytes.NewReader(enc.Data)).Decode(&roll); err != nil {
-			return nil, fmt.Errorf("Failed to decode roll: %s", err)
-		}
-		rv = append(rv, roll)
-	}
-	return rv, nil
-}
-
 // refreshRecentRolls refreshes the list of recent DEPS rolls. Assumes the
 // caller holds a write lock.
 func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
 	// Load the last N rolls.
-	history, err := r.getHistory(ctx)
+	history, _, err := r.db.GetRolls(ctx, r.roller, "")
 	if err != nil {
 		return err
+	}
+	historyLen := len(history)
+	if historyLen > RecentRollsLength {
+		historyLen = RecentRollsLength
 	}
 
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	r.recent = history
+	r.recent = history[:historyLen]
 	return nil
 }
+
+// DatastoreRollsDB implements RollsDB using Datastore.
+type DatastoreRollsDB struct{}
+
+// NewDatastoreRollsDB returns a RollsDB instance which uses Datastore.
+func NewDatastoreRollsDB(ctx context.Context) *DatastoreRollsDB {
+	return &DatastoreRollsDB{}
+}
+
+// Get implements RollsDB.
+func (d *DatastoreRollsDB) Get(ctx context.Context, roller string, issue int64) (*autoroll.AutoRollIssue, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("rollerIssue =", fmt.Sprintf("%s_%d", roller, issue))
+	var results []*autoroll.AutoRollIssue
+	if _, err := ds.DS.GetAll(ctx, query, &results); err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("Could not find issue %d", issue)
+	} else if len(results) == 1 {
+		return results[0], nil
+	} else {
+		return nil, fmt.Errorf("Found more than one issue matching %d", issue)
+	}
+}
+
+// Put implements RollsDB.
+func (d *DatastoreRollsDB) Put(ctx context.Context, roller string, roll *autoroll.AutoRollIssue) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(roll); err != nil {
+		return fmt.Errorf("Failed to encode roll: %s", err)
+	}
+	obj := &DsRoll{
+		Data:          buf.Bytes(),
+		Roller:        roller,
+		RollerCreated: fmt.Sprintf("%s_%s", roller, roll.Created.UTC().Format(util.RFC3339NanoZeroPad)),
+		RollerIssue:   fmt.Sprintf("%s_%d", roller, roll.Issue),
+	}
+	key := ds.NewKey(ds.KIND_AUTOROLL_ROLL)
+	key.Name = obj.RollerIssue
+	key.Parent = fakeAncestor()
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		_, err := tx.Put(key, obj)
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to insert roll: %s", err)
+	}
+	return nil
+}
+
+// LoadRolls implements RollsDB.
+func (d *DatastoreRollsDB) GetRolls(ctx context.Context, roller, cursor string) ([]*autoroll.AutoRollIssue, string, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("roller =", roller).Order("-rollerCreated").Limit(loadRollsPageSize)
+	if cursor != "" {
+		c, err := datastore.DecodeCursor(cursor)
+		if err != nil {
+			return nil, "", skerr.Wrap(err)
+		}
+		query = query.Start(c)
+	}
+	it := ds.DS.Run(ctx, query)
+	rv := make([]*autoroll.AutoRollIssue, 0, loadRollsPageSize)
+	var env DsRoll
+	for i := 0; i < loadRollsPageSize; i++ {
+		_, err := it.Next(&env)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, "", skerr.Wrap(err)
+		}
+		roll := new(autoroll.AutoRollIssue)
+		if err := gob.NewDecoder(bytes.NewReader(env.Data)).Decode(roll); err != nil {
+			return nil, "", fmt.Errorf("Failed to decode roll: %s", err)
+		}
+		rv = append(rv, roll)
+	}
+	// Note: Unfortunately, datastore doesn't provide any indication that we've
+	// reached the end of the results for a query, aside from returning fewer
+	// results than the provided limit. This means that the client may have to
+	// perform a call which returns zero results before it's clear that they've
+	// retrieved all of the results.
+	rvCursor := ""
+	if len(rv) == loadRollsPageSize {
+		c, err := it.Cursor()
+		if err != nil {
+			return nil, "", skerr.Wrap(err)
+		}
+		rvCursor = c.String()
+	}
+	return rv, rvCursor, nil
+}
+
+var _ DB = &DatastoreRollsDB{}

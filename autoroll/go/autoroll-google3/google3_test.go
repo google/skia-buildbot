@@ -153,7 +153,7 @@ func TestStatus(t *testing.T) {
 	recent = []*autoroll.AutoRollIssue{issue4, issue3}
 	// Rolls 3 and 4 failed, so we need 5 thru recent_rolls.RECENT_ROLLS_LENGTH + 3 to also fail for
 	// overflow.
-	for i := int64(5); i < recent_rolls.RECENT_ROLLS_LENGTH+3; i++ {
+	for i := int64(5); i < recent_rolls.RecentRollsLength+3; i++ {
 		issueI := makeIssue(i, commits[2])
 		require.NoError(t, a.AddOrUpdateIssue(ctx, issueI, http.MethodPost))
 		closeIssue(issueI, autoroll.ROLL_RESULT_FAILURE)
@@ -164,7 +164,7 @@ func TestStatus(t *testing.T) {
 	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
-	require.Equal(t, recent_rolls.RECENT_ROLLS_LENGTH+1, status.NumFailedRolls)
+	require.Equal(t, recent_rolls.RecentRollsLength+1, status.NumFailedRolls)
 	require.Equal(t, 2, status.NumNotRolledCommits)
 	require.Equal(t, issue1.RollingTo, status.LastRollRev)
 	require.Equal(t, "error message", status.Error)

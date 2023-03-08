@@ -95,7 +95,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.True(t, ok)
 	g := gerrit_testutils.NewGerritWithConfig(t, gc)
 	ctx := context.Background()
-	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
+	recent, err := recent_rolls.NewRecentRolls(ctx, recent_rolls.NewDatastoreRollsDB(ctx), "test-roller")
 	require.NoError(t, err)
 
 	// Upload and retrieve the roll.

@@ -158,7 +158,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	}
 
 	sklog.Info("Creating roll history")
-	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
+	recent, err := recent_rolls.NewRecentRolls(ctx, recent_rolls.NewDatastoreRollsDB(ctx), rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create recent rolls DB")
 	}

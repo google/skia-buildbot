@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -18,7 +19,7 @@ func TestRecentRolls(t *testing.T) {
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
 
 	// Create the RecentRolls.
-	r, err := NewRecentRolls(ctx, "test-roller")
+	r, err := NewRecentRolls(ctx, NewDatastoreRollsDB(ctx), "test-roller")
 	require.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -145,4 +146,76 @@ func TestRecentRolls(t *testing.T) {
 	require.NoError(t, r.Add(ctx, ari4))
 	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
 	check(ari4, ari3, expect)
+}
+
+func TestDatastoreRollsDB_GetRolls(t *testing.T) {
+	ctx := context.Background()
+	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
+	db := NewDatastoreRollsDB(ctx)
+	roller := uuid.New().String()
+
+	issue := int64(0)
+	now := time.Unix(1678218051, 0) // Arbitrary starting point.
+	makeRoll := func() *autoroll.AutoRollIssue {
+		issue += 1
+		now = now.Add(time.Second)
+		return &autoroll.AutoRollIssue{
+			Closed:     true,
+			Committed:  true,
+			Created:    now,
+			Issue:      issue,
+			Modified:   now,
+			Patchsets:  []int64{1},
+			Result:     autoroll.ROLL_RESULT_SUCCESS,
+			Subject:    "fake roll",
+			TryResults: []*autoroll.TryResult(nil),
+		}
+	}
+
+	// Ensure no error when no rolls exist.
+	rolls, cursor, err := db.GetRolls(ctx, roller, "")
+	require.NoError(t, err)
+	require.Equal(t, "", cursor)
+	require.Equal(t, 0, len(rolls))
+
+	// Insert a single roll.
+	r1 := makeRoll()
+	require.NoError(t, db.Put(ctx, roller, r1))
+	rolls, cursor, err = db.GetRolls(ctx, roller, "")
+	require.NoError(t, err)
+	//require.Equal(t, "", cursor)
+	require.Equal(t, 1, len(rolls))
+	require.Equal(t, rolls[0], r1)
+
+	// Insert enough rolls to necessitate multiple pages.
+	for i := 0; i < 3*loadRollsPageSize; i++ {
+		require.NoError(t, db.Put(ctx, roller, makeRoll()))
+	}
+	allRolls := []*autoroll.AutoRollIssue{}
+	// Batch 1.
+	rolls, cursor, err = db.GetRolls(ctx, roller, "")
+	require.NoError(t, err)
+	require.NotEqual(t, "", cursor)
+	require.Equal(t, loadRollsPageSize, len(rolls))
+	allRolls = append(allRolls, rolls...)
+	// Batch 2.
+	rolls, cursor, err = db.GetRolls(ctx, roller, cursor)
+	require.NoError(t, err)
+	require.NotEqual(t, "", cursor)
+	require.Equal(t, loadRollsPageSize, len(rolls))
+	allRolls = append(allRolls, rolls...)
+	// Batch 3.
+	rolls, cursor, err = db.GetRolls(ctx, roller, cursor)
+	require.NoError(t, err)
+	require.NotEqual(t, "", cursor)
+	require.Equal(t, loadRollsPageSize, len(rolls))
+	allRolls = append(allRolls, rolls...)
+	// Batch 4. Only one roll left to retrieve. Cursor should be empty.
+	rolls, cursor, err = db.GetRolls(ctx, roller, cursor)
+	require.NoError(t, err)
+	require.Equal(t, "", cursor)
+	require.Equal(t, 1, len(rolls))
+	allRolls = append(allRolls, rolls...)
+	// Ensure that we found all of the rolls we expected.
+	require.Equal(t, 76, len(allRolls))
 }

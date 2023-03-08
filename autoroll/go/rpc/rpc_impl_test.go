@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	modes_mocks "go.skia.org/infra/autoroll/go/modes/mocks"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	rolls_mocks "go.skia.org/infra/autoroll/go/recent_rolls/mocks"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/status"
 	status_mocks "go.skia.org/infra/autoroll/go/status/mocks"
@@ -28,6 +29,7 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/testutils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -221,7 +223,7 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 	strategyHistory.On("CurrentStrategy").Return(makeFakeStrategyChange(cfg))
 
 	manualReq := makeFakeManualRollRequest(cfg)
-	mdb.On("GetRecent", cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH).Return([]*manual.ManualRollRequest{manualReq}, nil)
+	mdb.On("GetRecent", cfg.RollerName, recent_rolls.RecentRollsLength).Return([]*manual.ManualRollRequest{manualReq}, nil)
 
 	return &AutoRoller{
 		Cfg:      cfg,
@@ -239,6 +241,7 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 	cdb := &config_db_mocks.DB{}
 	mdb := &manual_mocks.DB{}
 	sdb := &status_mocks.DB{}
+	rdb := &rolls_mocks.DB{}
 	r1 := makeRoller(ctx, t, "roller1", mdb)
 	r2 := makeRoller(ctx, t, "roller2", mdb)
 	rollers := map[string]*AutoRoller{
@@ -248,7 +251,7 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 	loadRollersFunc = func(context.Context, status.DB, db.DB) (map[string]*AutoRoller, context.CancelFunc, error) {
 		return rollers, func() {}, nil
 	}
-	srv, err := NewAutoRollServer(ctx, sdb, cdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
+	srv, err := NewAutoRollServer(ctx, sdb, cdb, rdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
 	require.NoError(t, err)
 	return ctx, rollers, srv
 }
@@ -288,6 +291,42 @@ func TestGetRollers(t *testing.T) {
 	assertdeep.Equal(t, &GetRollersResponse{
 		Rollers: expectRollers,
 	}, res)
+}
+
+func TestGetRolls(t *testing.T) {
+	// Setup, mocks.
+	ctx, rollers, srv := setup(t)
+	roller := rollers["roller1"]
+	req := &GetRollsRequest{
+		RollerId: "this roller doesn't exist",
+	}
+
+	// Check authorization.
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
+	res, err := srv.GetRolls(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
+	mockUser = "no-access@google.com"
+	res, err = srv.GetRolls(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
+
+	// Check error for unknown roller.
+	mockUser = viewer
+	res, err = srv.GetRolls(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error not_found: Unknown roller")
+
+	// Check results.
+	req.RollerId = roller.Cfg.RollerName
+	mockUser = viewer
+	srv.rollsDB.(*rolls_mocks.DB).On("GetRolls", testutils.AnyContext, req.RollerId, "").Return([]*autoroll.AutoRollIssue{}, "", nil)
+	res, err = srv.GetRolls(ctx, req)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 }
 
 func TestGetMiniStatus(t *testing.T) {
@@ -372,7 +411,7 @@ func TestGetStatus(t *testing.T) {
 	res, err = srv.GetStatus(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &GetStatusResponse{
@@ -423,7 +462,7 @@ func TestSetMode(t *testing.T) {
 	res, err = srv.SetMode(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetModeResponse{
@@ -473,7 +512,7 @@ func TestSetStrategy(t *testing.T) {
 	res, err = srv.SetStrategy(ctx, req)
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
-	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
+	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetStrategyResponse{
@@ -767,7 +806,7 @@ func TestConvertStatus(t *testing.T) {
 	require.NoError(t, err)
 	strat, err := convertStrategyChange(r.Strategy.CurrentStrategy())
 	require.NoError(t, err)
-	manualReqs, err := srv.manualRollDB.GetRecent(cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
+	manualReqs, err := srv.manualRollDB.GetRecent(cfg.RollerName, recent_rolls.RecentRollsLength)
 	require.NoError(t, err)
 	ms, err := convertMiniStatus(&st.AutoRollMiniStatus, cfg.RollerName, r.Mode.CurrentMode().Mode, cfg.ChildDisplayName, cfg.ParentDisplayName)
 	require.NoError(t, err)

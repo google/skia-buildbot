@@ -8,6 +8,8 @@ import "google/protobuf/timestamp.proto";
 service AutoRollService {
   // GetRollers retrieves AutoRollMiniStatuses for all known rollers.
   rpc GetRollers(GetRollersRequest) returns (GetRollersResponse);
+  // GetRolls retrieves rolls from the database.
+  rpc GetRolls(GetRollsRequest) returns (GetRollsResponse);
   // GetMiniStatus retrieves the AutoRollMiniStatus for one roller.
   rpc GetMiniStatus(GetMiniStatusRequest) returns (GetMiniStatusResponse);
   // GetStatus retrieves the AutoRollStatus for one roller.
@@ -333,6 +335,24 @@ message GetRollersRequest {}
 message GetRollersResponse {
   // rollers contains status information for all known autorollers.
   repeated AutoRollMiniStatus rollers = 1;
+}
+
+// GetRollsRequest is a request to GetRolls.
+message GetRollsRequest {
+  // roller_id is the unique identifier of the autoroller whose rolls are to be
+  // retrieved.
+  string roller_id = 1;
+  // cursor is a database-provided cursor used for pagination.
+  string cursor = 2;
+}
+
+// GetRollsResponse is a response returned by GetRolls.
+message GetRollsResponse {
+  // rolls are the rolls retrieved from the database.
+  repeated AutoRollCL rolls = 1;
+  // cursor is a database-provided cursor which can be provided to the next call
+  // to GetRolls to load more rolls.
+  string cursor = 2;
 }
 
 // GetMiniStatusRequest is a request to GetMiniStatus.

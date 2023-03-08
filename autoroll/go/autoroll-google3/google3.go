@@ -55,7 +55,7 @@ type AutoRoller struct {
 
 // NewAutoRoller returns a Google3 AutoRoller.
 func NewAutoRoller(ctx context.Context, cfg *config.Config, client *http.Client, statusDB status.DB) (*AutoRoller, error) {
-	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
+	recent, err := recent_rolls.NewRecentRolls(ctx, recent_rolls.NewDatastoreRollsDB(ctx), cfg.RollerName)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

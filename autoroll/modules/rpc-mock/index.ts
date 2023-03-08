@@ -30,8 +30,14 @@ import {
   UnthrottleResponse,
 } from '../rpc';
 
-import { GetFakeStatus, GetModeHistory, GetStrategyHistory } from './fake-status';
+import {
+  GetFakeRolls,
+  GetFakeStatus,
+  GetModeHistory,
+  GetStrategyHistory,
+} from './fake-status';
 import { GetFakeMiniStatuses } from './fake-ministatuses';
+import { GetRollsRequest, GetRollsResponse } from '../rpc/rpc';
 
 export * from './fake-status';
 
@@ -58,6 +64,13 @@ class FakeAutoRollService implements AutoRollService {
     return Promise.resolve({
       rollers: GetFakeMiniStatuses(),
     });
+  }
+
+  getRolls(_: GetRollsRequest): Promise<GetRollsResponse> {
+    return Promise.resolve({
+      rolls: GetFakeRolls(),
+      cursor: "",
+    })
   }
 
   getMiniStatus(_: GetMiniStatusRequest): Promise<GetMiniStatusResponse> {

@@ -384,6 +384,40 @@ const JSONToGetRollersResponse = (m: GetRollersResponseJSON): GetRollersResponse
   };
 };
 
+export interface GetRollsRequest {
+  rollerId: string;
+  cursor: string;
+}
+
+interface GetRollsRequestJSON {
+  roller_id?: string;
+  cursor?: string;
+}
+
+const GetRollsRequestToJSON = (m: GetRollsRequest): GetRollsRequestJSON => {
+  return {
+    roller_id: m.rollerId,
+    cursor: m.cursor,
+  };
+};
+
+export interface GetRollsResponse {
+  rolls?: AutoRollCL[];
+  cursor: string;
+}
+
+interface GetRollsResponseJSON {
+  rolls?: AutoRollCLJSON[];
+  cursor?: string;
+}
+
+const JSONToGetRollsResponse = (m: GetRollsResponseJSON): GetRollsResponse => {
+  return {
+    rolls: m.rolls && m.rolls.map(JSONToAutoRollCL),
+    cursor: m.cursor || "",
+  };
+};
+
 export interface GetMiniStatusRequest {
   rollerId: string;
 }
@@ -637,6 +671,7 @@ const JSONToUnthrottleResponse = (m: UnthrottleResponseJSON): UnthrottleResponse
 
 export interface AutoRollService {
   getRollers: (getRollersRequest: GetRollersRequest) => Promise<GetRollersResponse>;
+  getRolls: (getRollsRequest: GetRollsRequest) => Promise<GetRollsResponse>;
   getMiniStatus: (getMiniStatusRequest: GetMiniStatusRequest) => Promise<GetMiniStatusResponse>;
   getStatus: (getStatusRequest: GetStatusRequest) => Promise<GetStatusResponse>;
   setMode: (setModeRequest: SetModeRequest) => Promise<SetModeResponse>;
@@ -673,6 +708,21 @@ export class AutoRollServiceClient implements AutoRollService {
       }
 
       return resp.json().then(JSONToGetRollersResponse);
+    });
+  }
+
+  getRolls(getRollsRequest: GetRollsRequest): Promise<GetRollsResponse> {
+    const url = this.hostname + this.pathPrefix + "GetRolls";
+    let body: GetRollsRequest | GetRollsRequestJSON = getRollsRequest;
+    if (!this.writeCamelCase) {
+      body = GetRollsRequestToJSON(getRollsRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetRollsResponse);
     });
   }
 

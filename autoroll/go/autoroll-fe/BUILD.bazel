@@ -9,6 +9,7 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/config/db",
         "//autoroll/go/manual",
+        "//autoroll/go/recent_rolls",
         "//autoroll/go/rpc",
         "//autoroll/go/status",
         "//autoroll/go/unthrottle",

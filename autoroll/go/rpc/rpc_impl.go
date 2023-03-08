@@ -51,6 +51,7 @@ type AutoRollServer struct {
 	throttle      unthrottle.Throttle
 	rollers       map[string]*AutoRoller
 	rollersMtx    sync.RWMutex
+	rollsDB       recent_rolls.DB
 }
 
 // GetHandler returns the http.Handler for this AutoRollServer.
@@ -60,7 +61,7 @@ func (s *AutoRollServer) GetHandler() http.Handler {
 
 // NewAutoRollServer returns an AutoRollServer instance.
 // If configRefreshInterval is zero, the configs are not refreshed.
-func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
+func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, rollsDB recent_rolls.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
 	rollers, cancelPolling, err := loadRollersFunc(ctx, statusDB, configDB)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to load roller configs from DB")
@@ -71,6 +72,7 @@ func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, 
 		manualRollDB:  manualRollDB,
 		throttle:      throttle,
 		rollers:       rollers,
+		rollsDB:       rollsDB,
 	}
 	srv.handler = twirp_auth.Middleware(NewAutoRollServiceServer(srv, nil))
 	if configRefreshInterval != time.Duration(0) {
@@ -204,6 +206,29 @@ func (s *AutoRollServer) GetRollers(ctx context.Context, req *GetRollersRequest)
 	}, nil
 }
 
+// GetRolls implements AutoRollRPCs.
+func (s *AutoRollServer) GetRolls(ctx context.Context, req *GetRollsRequest) (*GetRollsResponse, error) {
+	// Verify that the user has view access.
+	if _, err := s.GetViewer(ctx); err != nil {
+		return nil, err
+	}
+	if _, err := s.GetRoller(req.RollerId); err != nil {
+		return nil, err
+	}
+	rolls, cursor, err := s.rollsDB.GetRolls(ctx, req.RollerId, req.Cursor)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rollsConv, err := convertRollCLs(rolls)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GetRollsResponse{
+		Rolls:  rollsConv,
+		Cursor: cursor,
+	}, nil
+}
+
 // GetMiniStatus implements AutoRollRPCs.
 func (s *AutoRollServer) GetMiniStatus(ctx context.Context, req *GetMiniStatusRequest) (*GetMiniStatusResponse, error) {
 	// Verify that the user has view access.
@@ -236,7 +261,7 @@ func (s *AutoRollServer) getStatus(ctx context.Context, rollerID string) (*AutoR
 	st := roller.Status.Get()
 	var manualReqs []*manual.ManualRollRequest
 	if roller.Cfg.SupportsManualRolls {
-		manualReqs, err = s.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RECENT_ROLLS_LENGTH)
+		manualReqs, err = s.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
 		if err != nil {
 			return nil, err
 		}

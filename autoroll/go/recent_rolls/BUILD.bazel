@@ -9,9 +9,11 @@ go_library(
     deps = [
         "//go/autoroll",
         "//go/ds",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//iterator",
     ],
 )
 
@@ -33,6 +35,7 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/ds",
         "//go/ds/testutil",
+        "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//require",
     ],
 )
