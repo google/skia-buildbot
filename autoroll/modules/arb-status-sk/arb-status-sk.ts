@@ -302,10 +302,11 @@ export class ARBStatusSk extends ElementSk {
                 `,
       )}
             </table>
+            <a href="/r/${ele.roller}/roll-history" class="small"><button>More</button></a>
           </td>
         </tr>
         <tr>
-          <td class="nowrap">Full History:</td>
+          <td class="nowrap">All CLs by owner:</td>
           <td>
             <a href="${ele.status.fullHistoryUrl}" target="_blank">
               ${ele.status.fullHistoryUrl}

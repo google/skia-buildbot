@@ -1,0 +1,38 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "arb-roll-history-sk",
+    sass_deps = [
+        "//autoroll/modules:colors_sass_lib",
+        "//infra-sk/modules:results_sass_lib",
+    ],
+    sass_srcs = ["arb-roll-history-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/human-date-sk"],
+    ts_deps = [
+        "//autoroll/modules/rpc:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "arb-roll-history-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "arb-roll-history-sk-demo",
+    html_file = "arb-roll-history-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":arb-roll-history-sk",
+    ],
+    ts_deps = ["//autoroll/modules/rpc-mock:index_ts_lib"],
+    ts_entry_point = "arb-roll-history-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":arb-roll-history-sk-demo",
+)

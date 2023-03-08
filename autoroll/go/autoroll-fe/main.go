@@ -74,6 +74,7 @@ var (
 	rollerTemplate          *template.Template = nil
 	configTemplate          *template.Template = nil
 	modeHistoryTemplate     *template.Template = nil
+	rollHistoryTemplate     *template.Template = nil
 	strategyHistoryTemplate *template.Template = nil
 
 	srv *rpc.AutoRollServer
@@ -117,6 +118,9 @@ func reloadTemplates() {
 	))
 	modeHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "mode-history.html"),
+	))
+	rollHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "roll-history.html"),
 	))
 	strategyHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "strategy-history.html"),
@@ -175,6 +179,27 @@ func modeHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		Roller:     cfg.RollerName,
 	}
 	if err := modeHistoryTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
+	}
+}
+
+func rollHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	cfg := getRoller(w, r)
+	if cfg == nil {
+		return // Errors are handled by getRoller.
+	}
+	page := struct {
+		ChildName  string
+		ParentName string
+		Roller     string
+	}{
+		ChildName:  cfg.ChildDisplayName,
+		ParentName: cfg.ParentDisplayName,
+		Roller:     cfg.RollerName,
+	}
+	if err := rollHistoryTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 	}
 }
@@ -355,6 +380,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/config", configJSONHandler)
 	rollerRouter.HandleFunc("/mode-history", modeHistoryHandler)
+	rollerRouter.HandleFunc("/roll-history", rollHistoryHandler)
 	rollerRouter.HandleFunc("/strategy-history", strategyHistoryHandler)
 	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(addCorsMiddleware(srv))
 	h := httputils.LoggingRequestResponse(r)

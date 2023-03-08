@@ -45,6 +45,17 @@ sk_page(
 )
 
 sk_page(
+    name = "roll-history",
+    assets_serving_path = "/dist",
+    html_file = "roll-history.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-scaffold-sk",
+        "//autoroll/modules/arb-roll-history-sk",
+    ],
+    ts_entry_point = "roll-history.ts",
+)
+
+sk_page(
     name = "strategy-history",
     assets_serving_path = "/dist",
     html_file = "strategy-history.html",
