@@ -1,0 +1,27 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "multi-select-sk",
+    sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
+    sass_srcs = ["multi-select-sk.scss"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "multi-select-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "multi-select-sk_test",
+    src = "multi-select-sk_test.ts",
+    deps = [
+        ":multi-select-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

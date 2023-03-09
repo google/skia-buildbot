@@ -1,0 +1,45 @@
+@import '../themes/themes';
+
+select-sk,
+select-sk > * {
+  padding: 0.6em;
+  background-color: var(--surface-1dp);
+  color: var(--on-surface);
+  border: none;
+  outline: none;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+select-sk {
+  border: solid 1px var(--on-surface);
+  display: block;
+}
+
+select-sk > [selected] {
+  background: var(--surface-2dp);
+}
+
+select-sk > * {
+  border: var(--surface-1dp) solid 1px;
+}
+
+select-sk > *:focus,
+select-sk:focus {
+  outline: dashed 2px var(--on-surface);
+  outline-offset: 3px;
+}
+
+select-sk > *:hover {
+  border: var(--surface-2dp) solid 1px;
+}
+
+select-sk > *:focus {
+  background-color: var(--surface-2dp);
+  transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+select-sk > *[selected] {
+  background-color: var(--surface-2dp);
+  color: var(--on-surface);
+}

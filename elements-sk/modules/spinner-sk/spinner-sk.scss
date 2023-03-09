@@ -1,0 +1,25 @@
+@import '../themes/themes';
+
+spinner-sk {
+  margin: 6px;
+  display: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border: 8px solid var(--primary);
+  border-left: 8px solid var(--primary-variant);
+  animation: spinner-sk-spin 1.5s infinite linear;
+}
+
+spinner-sk[active] {
+  display: inline-block;
+}
+
+@keyframes spinner-sk-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

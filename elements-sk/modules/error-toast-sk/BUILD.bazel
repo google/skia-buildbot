@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "error-toast-sk",
+    sass_srcs = ["error-toast-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/toast-sk"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+    ],
+    ts_srcs = [
+        "error-toast-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "error-toast-sk_test",
+    src = "error-toast-sk_test.ts",
+    deps = [
+        ":error-toast-sk",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//elements-sk/modules/toast-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

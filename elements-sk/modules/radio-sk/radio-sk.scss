@@ -1,0 +1,61 @@
+@import '../themes/themes';
+
+radio-sk {
+  display: block;
+  margin: 0.4em;
+}
+
+radio-sk span {
+  display: inline-block;
+}
+
+radio-sk label {
+  display: flex;
+  align-items: center;
+}
+
+radio-sk .box {
+  margin-right: 0.4em;
+  border: 4px solid var(--primary);
+  width: 16px;
+  height: 16px;
+  background: var(--background);
+  border-radius: 50%;
+}
+
+radio-sk input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+radio-sk input:checked + .box {
+  background: var(--primary);
+}
+
+radio-sk input:focus + .box {
+  outline: dashed 2px var(--primary);
+  outline-offset: 3px;
+}
+
+radio-sk:hover .box {
+  border-color: var(--primary-variant);
+}
+
+radio-sk input:checked + .box {
+  background: var(--primary);
+}
+
+radio-sk[hidden] {
+  display: none;
+}
+
+radio-sk input:disabled + .box {
+  border: 4px solid var(--disabled);
+  background: var(--background);
+}
+
+radio-sk input:disabled:checked + .box {
+  border: 4px solid var(--disabled);
+  background: var(--disabled);
+}

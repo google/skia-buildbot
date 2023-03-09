@@ -1,0 +1,25 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "radio-sk",
+    sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
+    sass_srcs = ["radio-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "radio-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "radio-sk_test",
+    src = "radio-sk_test.ts",
+    deps = [
+        ":radio-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

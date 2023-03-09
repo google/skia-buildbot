@@ -1,0 +1,40 @@
+@import '../themes/themes';
+
+multi-select-sk,
+multi-select-sk > * {
+  padding: 0.6em;
+  background-color: var(--surface-1dp);
+  color: var(--on-surface);
+  border: none;
+  outline: none;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+multi-select-sk {
+  border: solid 1px var(--on-surface);
+  display: block;
+}
+
+multi-select-sk > [selected] {
+  background: var(--surface-2dp);
+}
+
+multi-select-sk > * {
+  border: var(--surface-1dp) solid 1px;
+}
+
+multi-select-sk > *:focus,
+multi-select-sk:focus {
+  outline: dashed 2px var(--on-surface);
+  outline-offset: 3px;
+}
+
+multi-select-sk > *:hover {
+  border: var(--surface-2dp) solid 1px;
+}
+
+multi-select-sk > *[selected] {
+  background-color: var(--surface-2dp);
+  color: var(--on-surface);
+}

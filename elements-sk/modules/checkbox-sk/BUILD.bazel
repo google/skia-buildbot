@@ -1,0 +1,27 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "checkbox-sk",
+    sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
+    sass_srcs = ["checkbox-sk.scss"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+    ],
+    ts_srcs = [
+        "checkbox-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "checkbox-sk_test",
+    src = "checkbox-sk_test.ts",
+    deps = [
+        ":checkbox-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

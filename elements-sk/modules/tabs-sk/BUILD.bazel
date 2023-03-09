@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "tabs-sk",
+    sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
+    sass_srcs = ["tabs-sk.scss"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "tabs-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "tabs-sk_test",
+    src = "tabs-sk_test.ts",
+    deps = [
+        ":tabs-sk",
+        "//elements-sk/modules/tabs-panel-sk",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

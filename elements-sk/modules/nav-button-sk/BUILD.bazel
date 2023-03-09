@@ -1,0 +1,12 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "nav-button-sk",
+    sk_element_deps = ["//elements-sk/modules/nav-links-sk"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "nav-button-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

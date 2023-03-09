@@ -1,0 +1,23 @@
+@import '../themes/themes';
+
+tabs-sk > button {
+  margin: 0;
+  padding: 6px 12px;
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  color: var(--on-background);
+  fill: var(--on-background);
+  background-color: var(--background);
+  border-bottom: solid 4px var(--on-background);
+}
+
+tabs-sk > button.selected {
+  background: var(--surface);
+  border: none;
+  box-shadow: none;
+  color: var(--primary);
+  fill: var(--primary);
+  border-bottom: solid 4px var(--primary);
+  font-weight: bold;
+}

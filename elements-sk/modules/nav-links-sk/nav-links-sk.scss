@@ -1,0 +1,26 @@
+@import '../themes/themes';
+
+nav-links-sk {
+  display: none;
+  position: absolute;
+  z-index: 200;
+  border: solid 1px var(--on-surface);
+  background: var(--surface);
+  margin-left: 16px;
+}
+
+nav-links-sk[shown] {
+  display: block;
+}
+
+nav-links-sk a {
+  display: block;
+  padding: 12px;
+  background: var(--surface);
+  color: var(--on-surface);
+  fill: var(--on-surface);
+}
+
+nav-links-sk a:hover {
+  background: var(--surface-1dp);
+}

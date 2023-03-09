@@ -1,0 +1,30 @@
+/* Common Color Palette via CSS Variables.
+
+ Can be imported via:
+
+    @import '~elements-sk/colors';
+
+ Colorblind safe palette copied from http://jfly.iam.u-tokyo.ac.jp/color/#see.
+ for the regular colors. Light colors are just 50% of the regular colors.
+
+*/
+html {
+  --blue: rgb(0, 114, 178);
+  --green: rgb(0, 158, 115);
+  --red: rgb(211, 0, 0);
+  --orange: rgb(230, 159, 0);
+  --purple: rgb(204, 121, 167);
+  --brown: rgb(177, 89, 40);
+  --gray: rgb(79, 79, 79);
+  --light-blue: rgb(128, 185, 217);
+  --light-green: rgb(128, 207, 185);
+  --light-red: rgb(234, 175, 128);
+  --light-orange: rgb(243, 207, 128);
+  --light-purple: rgb(230, 188, 211);
+  --light-brown: rgb(216, 172, 148);
+  --light-gray: rgb(168, 168, 168);
+
+  --white: #ffffff;
+  --dark-white: rgb(240, 240, 240);
+  --black: #000000;
+}

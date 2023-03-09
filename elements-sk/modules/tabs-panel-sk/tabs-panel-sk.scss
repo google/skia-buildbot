@@ -1,0 +1,17 @@
+@import '../themes/themes';
+
+tabs-panel-sk {
+  display: block;
+  margin: 0;
+  padding: 16px;
+  margin-top: -4px;
+  border-radius: 4px;
+}
+
+tabs-panel-sk > div {
+  display: none;
+}
+
+tabs-panel-sk > div.selected {
+  display: block;
+}

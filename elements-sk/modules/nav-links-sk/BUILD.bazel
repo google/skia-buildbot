@@ -1,0 +1,16 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "nav-links-sk",
+    sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
+    sass_srcs = ["nav-links-sk.scss"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "nav-links-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,45 @@
+// Styles for select and options to make them look better.
+
+@import '../themes/themes';
+
+select,
+option {
+  padding: 0.6em;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  fill: var(--on-surface);
+  border: none;
+  outline: none;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+select {
+  border: solid 1px var(--on-surface);
+  margin: 0.6em;
+}
+
+select:focus {
+  outline: dashed 2px var(--on-surface);
+  outline-offset: 3px;
+}
+
+option:hover {
+  background-color: var(--surface-1dp);
+}
+
+option:focus {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+option:checked {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  fill: var(--on-primary);
+}
+
+select {
+  overflow-y: auto;
+}
