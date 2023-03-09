@@ -53,6 +53,10 @@ var (
 		// Temporary workaround for swiftshader->android roller till
 		// b/198431779 is resolved.
 		"third_party/angle/angle",
+		// Temporary workaround to fix the eSkia->WearOS roller
+		"modules/android_layout",
+		"modules/android_layout/include/eskia/layout/eskia_minikin_font.h",
+		"modules/android_layout/src/eskia_minikin_font.cc",
 	}
 )
 
