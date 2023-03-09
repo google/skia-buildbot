@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "extract",
+    srcs = ["extract.go"],
+    importpath = "go.skia.org/infra/puppeteer-tests/bazel/extract_puppeteer_screenshots/extract",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)

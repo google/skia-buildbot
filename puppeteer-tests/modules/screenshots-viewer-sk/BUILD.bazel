@@ -1,0 +1,55 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":screenshots-viewer-sk-demo",
+)
+
+sk_element(
+    name = "screenshots-viewer-sk",
+    sass_deps = ["//infra-sk:themes_sass_lib"],
+    sass_srcs = ["screenshots-viewer-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//puppeteer-tests/modules:rpc_types_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_srcs = [
+        "screenshots-viewer-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "screenshots-viewer-sk-demo",
+    html_file = "screenshots-viewer-sk-demo.html",
+    sk_element_deps = [":screenshots-viewer-sk"],
+    ts_deps = [
+        "@npm//fetch-mock",
+        ":demo_data_ts_lib",
+    ],
+    ts_entry_point = "screenshots-viewer-sk-demo.ts",
+)
+
+karma_test(
+    name = "screenshots-viewer-sk_test",
+    src = "screenshots-viewer-sk_test.ts",
+    deps = [
+        ":demo_data_ts_lib",
+        ":screenshots-viewer-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "demo_data_ts_lib",
+    srcs = ["demo_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//puppeteer-tests/modules:rpc_types_ts_lib"],
+)

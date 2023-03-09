@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "generate_typescript_rpc_types_lib",
+    srcs = ["generate_typescript_rpc_types.go"],
+    importpath = "go.skia.org/infra/puppeteer-tests/bazel/puppeteer_screenshot_server/rpc_types/generate_typescript_rpc_types",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//go/util",
+        "//puppeteer-tests/bazel/puppeteer_screenshot_server/rpc_types",
+        "@com_github_skia_dev_go2ts//:go2ts",
+    ],
+)
+
+go_binary(
+    name = "generate_typescript_rpc_types",
+    embed = [":generate_typescript_rpc_types_lib"],
+    visibility = ["//visibility:public"],
+)

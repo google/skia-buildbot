@@ -122,6 +122,17 @@ sh_binary(
     data = ["//puppeteer-tests/bazel/extract_puppeteer_screenshots"],
 )
 
+#####################################
+# Puppeteer screenshot viewer tool. #
+#####################################
+
+# Usage: "bazel run //:puppeteer_screenshot_server".
+alias(
+    name = "puppeteer_screenshot_server",
+    actual = "//puppeteer-tests/bazel/puppeteer_screenshot_server",
+    visibility = ["//visibility:public"],
+)
+
 ##################
 # Miscellaneous. #
 ##################

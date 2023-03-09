@@ -1,0 +1,46 @@
+@import '../../../infra-sk/themes';
+
+screenshots-viewer-sk {
+  display: flex;
+  flex-direction: column;
+
+  .main {
+     padding: 0 10px;
+  }
+
+  .filter {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+    input[type="text"] {
+      width: 200px;
+    }
+  }
+
+  .applications {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .application {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    figure {
+      margin: 0;
+
+      img {
+        border: 1px solid var(--on-background);
+      }
+
+      figcaption {
+        font-size: 14px;
+        font-weight: bold;
+      }
+    }
+  }
+}
