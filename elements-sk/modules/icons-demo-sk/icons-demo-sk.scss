@@ -1,0 +1,43 @@
+// This wouldn't be necessary if we imported our icons from icons-demo-sk.ts directly via
+// "import '../icons/some-icon-sk'" statements rather than via the generated icons.ts file.
+@import '../icons/icon-sk';
+
+icons-demo-sk {
+  .search {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+    input[type="text"] {
+      width: 200px;
+    }
+
+    button {
+      width: 100px;
+    }
+  }
+
+  h2, .no-results {
+    margin: 50px 0 20px;
+  }
+
+  .icons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .icon {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 0;
+    width: 200px;
+
+    figcaption {
+      color: gray;
+    }
+  }
+}

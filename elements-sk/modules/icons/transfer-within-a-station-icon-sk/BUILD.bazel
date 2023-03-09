@@ -1,0 +1,13 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "transfer-within-a-station-icon-sk",
+    sass_deps = ["//elements-sk/modules/icons:icon-sk_sass_lib"],
+    sass_srcs = ["transfer-within-a-station-icon-sk.scss"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "transfer-within-a-station-icon-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

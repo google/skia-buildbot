@@ -1,0 +1,13 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "sim-card-alert-icon-sk",
+    sass_deps = ["//elements-sk/modules/icons:icon-sk_sass_lib"],
+    sass_srcs = ["sim-card-alert-icon-sk.scss"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "sim-card-alert-icon-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,13 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "assessment-icon-sk",
+    sass_deps = ["//elements-sk/modules/icons:icon-sk_sass_lib"],
+    sass_srcs = ["assessment-icon-sk.scss"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "assessment-icon-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

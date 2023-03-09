@@ -1,0 +1,13 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "shuffle-icon-sk",
+    sass_deps = ["//elements-sk/modules/icons:icon-sk_sass_lib"],
+    sass_srcs = ["shuffle-icon-sk.scss"],
+    ts_deps = ["//elements-sk/modules:define_ts_lib"],
+    ts_srcs = [
+        "index.ts",
+        "shuffle-icon-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

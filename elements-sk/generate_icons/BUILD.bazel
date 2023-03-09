@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "generate_icons_lib",
+    srcs = ["generate_icons.go"],
+    importpath = "go.skia.org/infra/elements-sk/generate_icons",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//elements-sk/generate_icons/demo",
+        "//elements-sk/generate_icons/icon",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/untar",
+    ],
+)
+
+go_binary(
+    name = "generate_icons",
+    embed = [":generate_icons_lib"],
+    visibility = ["//visibility:public"],
+)

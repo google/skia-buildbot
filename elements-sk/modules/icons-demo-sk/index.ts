@@ -1,0 +1,1 @@
+import './icons-demo-sk';
