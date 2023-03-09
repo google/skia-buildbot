@@ -13,6 +13,8 @@ func TestIsAppPageDir_Success(t *testing.T) {
 	assert.False(t, isAppPageDir("myapp/util"))
 	assert.False(t, isAppPageDir("myapp/modules"))
 	assert.False(t, isAppPageDir("myapp/modules/my-element-sk"))
+	assert.False(t, isAppPageDir("myapp/modules/subdirectory/my-element-sk"))
+	assert.False(t, isAppPageDir("myapp/modules/subdirectory/another-subdirectory/my-element-sk"))
 	assert.False(t, isAppPageDir("myapp/pages/static"))
 	assert.True(t, isAppPageDir("myapp/pages"))
 }
@@ -36,4 +38,11 @@ func TestExtractCustomElementNameFromDir_Success(t *testing.T) {
 	ok, name := extractCustomElementNameFromDir("myapp/modules/my-element-sk")
 	assert.True(t, ok)
 	assert.Equal(t, "my-element-sk", name)
+	ok, name = extractCustomElementNameFromDir("myapp/modules/subdirectory/my-element-sk")
+	assert.True(t, ok)
+	assert.Equal(t, "my-element-sk", name)
+	ok, name = extractCustomElementNameFromDir("myapp/modules/subdirectory/another-subdirectory/my-element-sk")
+	assert.True(t, ok)
+	assert.Equal(t, "my-element-sk", name)
+
 }

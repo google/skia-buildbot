@@ -138,15 +138,16 @@ import 'net'                                  // Built-in Node.js module.
 		{
 			Path: "myapp/modules/foxtrot-sk/foxtrot-sk.ts",
 			Content: `
-import './wibble';                            // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
-import './wobble/wubble';                     // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
-import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
-import '../../../c';                          // Resolves to c/index.ts.
-import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
-import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
-import '@google-web-components/google-chart'; // Scoped NPM import.
-import 'net'                                  // Built-in Node.js module.
+import './wibble';                              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';                       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';                  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../subdirectory/juliett-sk/juliett-sk'; // Resolves to myapp/modules/subdirectory/juliett-sk/juliett-sk.ts.
+import '../../../c';                            // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';                   // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                              // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                             // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart';   // Scoped NPM import.
+import 'net'                                    // Built-in Node.js module.
 `,
 		},
 		{Path: "myapp/modules/foxtrot-sk/foxtrot-sk-demo.html"},
@@ -245,15 +246,18 @@ import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.
 		// This sk_element has neither an index.ts file nor a Sass stylesheet.
 		{Path: "myapp/modules/india-sk/india-sk.ts"},
 
-		// An app page.
-		{Path: "myapp/pages/juliett.html"},
-		{Path: "myapp/pages/juliett.scss"},
-		{Path: "myapp/pages/juliett.ts"},
+		// This sk_element is like india-sk, but is found inside a subdirectory of myapp/modules.
+		{Path: "myapp/modules/subdirectory/juliett-sk/juliett-sk.ts"},
 
 		// An app page.
 		{Path: "myapp/pages/kilo.html"},
 		{Path: "myapp/pages/kilo.scss"},
 		{Path: "myapp/pages/kilo.ts"},
+
+		// An app page.
+		{Path: "myapp/pages/lima.html"},
+		{Path: "myapp/pages/lima.scss"},
+		{Path: "myapp/pages/lima.ts"},
 
 		// Extra files in the app page directory.
 		{Path: "myapp/pages/wibble.scss"},
@@ -458,6 +462,7 @@ sk_element(
     sk_element_deps = [
         "//myapp/modules/golf-sk",
         "//myapp/modules/hotel-sk",
+        "//myapp/modules/subdirectory/juliett-sk",
     ],
     ts_deps = [
         "//c:index_ts_lib",
@@ -636,22 +641,34 @@ sk_element(
 `,
 		},
 		{
+			Path: "myapp/modules/subdirectory/juliett-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "juliett-sk",
+    ts_srcs = ["juliett-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
 			Path: "myapp/pages/BUILD.bazel",
 			Content: `
 load("//infra-sk:index.bzl", "sass_library", "sk_page", "ts_library")
-
-sk_page(
-    name = "juliett",
-    html_file = "juliett.html",
-    scss_entry_point = "juliett.scss",
-    ts_entry_point = "juliett.ts",
-)
 
 sk_page(
     name = "kilo",
     html_file = "kilo.html",
     scss_entry_point = "kilo.scss",
     ts_entry_point = "kilo.ts",
+)
+
+sk_page(
+    name = "lima",
+    html_file = "lima.html",
+    scss_entry_point = "lima.scss",
+    ts_entry_point = "lima.ts",
 )
 
 sass_library(

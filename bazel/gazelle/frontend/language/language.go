@@ -157,7 +157,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 	//     - One sass_library rule for each *.scss file.
 	//
 	// - Directories with a custom element:
-	//   - Pattern: //<app name>/modules/<custom element name ending in -sk, e.g. my-element-sk>
+	//   - Pattern: //<app name>/modules/*/<custom element name ending in -sk, e.g. my-element-sk>
 	//   - Rules generated:
 	//     - sk_element:
 	//       - Only generated if a my-element-sk.ts file is found.
@@ -239,7 +239,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 		return makeGenerateResult(args, rules, imports)
 	}
 
-	// Custom element directories follow the "<app name>/modules/<element-name-sk>" pattern.
+	// Custom element directories follow the "<app name>/modules/*/<element-name-sk>" pattern.
 	isCustomElementDir, customElementName := extractCustomElementNameFromDir(args.Dir)
 
 	// If we are in a custom element directory, it will contain at most one custom element and one
@@ -318,7 +318,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			} else if isCustomElementDir {
 				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s has no demo page.", filepath.Join(args.Rel, f), customElementName)
 			} else {
-				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s does not follow the custom element directory naming convention (<app>/modules/<element name>-sk).", filepath.Join(args.Rel, f), args.Rel)
+				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s does not follow the custom element directory naming convention (<app>/modules/*/<element name>-sk).", filepath.Join(args.Rel, f), args.Rel)
 			}
 		} else if strings.HasSuffix(f, "_test.ts") {
 			r, i := generateKarmaTestRule(f, args.Dir)
@@ -382,10 +382,10 @@ var (
 	appPagesDirRegexp = regexp.MustCompile(`(?P<app_name>(?:[[:alnum:]]|_|-)+)/pages$`)
 
 	// skElementModuleDirRegexp matches directories that might contain an sk_element, e.g.
-	//"myapp/modules/my-element-sk".
+	//"myapp/modules/*/my-element-sk".
 	//
 	// In order to support absolute paths, this regexp does not start with ^.
-	skElementModuleDirRegexp = regexp.MustCompile(`(?P<app_name>(?:[[:alnum:]]|_|-)+)/modules/(?P<element_name>(?:[[:alnum:]]|_|-)+-sk)$`)
+	skElementModuleDirRegexp = regexp.MustCompile(`(?P<app_name>(?:[[:alnum:]]|_|-)+)/modules/(?P<subdirectories>(?:[[:alnum:]]|_|-|/)*/)?(?P<element_name>(?:[[:alnum:]]|_|-)+-sk)$`)
 )
 
 // isAppPageDir returns true if the directory matches the "<app name>/pages" pattern, which
@@ -395,14 +395,14 @@ func isAppPageDir(dir string) bool {
 }
 
 // extractCustomElementNameFromDir determines whether the given directory corresponds to a custom
-// element based on the "<app name>/modules/<element-name-sk>" pattern, and returns the element name
+// element based on the "<app name>/modules/*/<element-name-sk>" pattern, and returns the element name
 // if the directory matches said pattern.
 func extractCustomElementNameFromDir(dir string) (bool, string) {
 	match := skElementModuleDirRegexp.FindStringSubmatch(dir)
-	if len(match) != 3 {
+	if len(match) != 4 {
 		return false, ""
 	}
-	return true, match[2]
+	return true, match[3]
 }
 
 // skElementSrcs groups together the various sources that could make an sk_element target.
