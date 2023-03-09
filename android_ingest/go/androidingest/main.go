@@ -192,7 +192,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the JSON in the right spot in Google Storage.
-	writer = bucket.Object(upload.ObjectPath(key, gitHash, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
+	path := upload.ObjectPath(key, gitHash, gcsPath, time.Now().UTC(), b)
+	sklog.Infof("Writing file for keys: %s and githash: %s to: %q", key, gitHash, path)
+	writer = bucket.Object(path).NewWriter(context.Background())
 	if _, err := writer.Write(encodedAsJSON); err != nil {
 		badRequest(w, r, err, "Failed to write JSON body.")
 		return
