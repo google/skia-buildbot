@@ -83,3 +83,97 @@ sass_library(
     srcs = ["results.scss"],
     visibility = ["//visibility:public"],
 )
+
+karma_test(
+    name = "dom_test",
+    src = "dom_test.ts",
+    deps = [
+        ":dom_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "dom_ts_lib",
+    srcs = ["dom.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "hintable_ts_lib",
+    srcs = ["hintable.ts"],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "human_test",
+    src = "human_test.ts",
+    deps = [
+        ":human_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "human_ts_lib",
+    srcs = ["human.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "jsonorthrow_ts_lib",
+    srcs = ["jsonOrThrow.ts"],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "object_test",
+    src = "object_test.ts",
+    deps = [
+        ":hintable_ts_lib",
+        ":object_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "object_ts_lib",
+    srcs = ["object.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":hintable_ts_lib",
+        ":query_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "query_test",
+    src = "query_test.ts",
+    deps = [
+        ":query_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "query_ts_lib",
+    srcs = ["query.ts"],
+    visibility = ["//visibility:public"],
+    deps = [":hintable_ts_lib"],
+)
+
+ts_library(
+    name = "statereflector_ts_lib",
+    srcs = ["stateReflector.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":dom_ts_lib",
+        ":hintable_ts_lib",
+        ":object_ts_lib",
+        ":query_ts_lib",
+    ],
+)
