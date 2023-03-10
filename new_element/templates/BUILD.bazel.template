@@ -10,7 +10,7 @@ sk_element(
     sass_srcs = ["{{.ElementName}}.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
+        "//elements-sk/modules:define_ts_lib",
         "@npm//lit-html",
     ],
     ts_srcs = [
