@@ -561,13 +561,20 @@ func temperatureFromAndroid(android machine.Android) (map[string]float64, bool) 
 	return ret, true
 }
 
+func shouldIgnoreTemperature(name string) bool {
+	// The "battery_cycle", on some devices, seems to be named and also behave like a
+	// non-temperature value. Ignore this value as there are other temperatures
+	// to observe - one of which is named "battery".
+	return name == "battery_cycle"
+}
+
 func findMaxTemperature(temps map[string]float64) float64 {
 	if len(temps) == 0 {
 		return badTemperature
 	}
 	max := badTemperature
-	for _, temp := range temps {
-		if temp > max {
+	for name, temp := range temps {
+		if temp > max && !shouldIgnoreTemperature(name) {
 			max = temp
 		}
 	}

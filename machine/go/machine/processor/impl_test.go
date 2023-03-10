@@ -1100,6 +1100,31 @@ func TestBatteryFromAndroidDumpSys_FailOnBadScale(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestFindMaxTemperature_EmptyMap_ReturnsBadTemp(t *testing.T) {
+	var temps map[string]float64
+	assert.Equal(t, badTemperature, findMaxTemperature(temps))
+}
+
+func TestFindMaxTemperature_NoIgnoredTemps_ReturnsMaxVal(t *testing.T) {
+	temps := map[string]float64{
+		"TYPE_CPU":      10.0,
+		"TYPE_BATTERY":  20.0,
+		"TYPE_SKIN":     30.0,
+		"TYPE_USB_PORT": 15.0,
+	}
+	assert.Equal(t, 30.0, findMaxTemperature(temps))
+}
+
+func TestFindMaxTemperature_WithIgnoredTemps_ReturnsMaxVal(t *testing.T) {
+	temps := map[string]float64{
+		"TYPE_CPU":      10.0,
+		"TYPE_BATTERY":  20.0,
+		"battery_cycle": 60.0,
+		"TYPE_USB_PORT": 15.0,
+	}
+	assert.Equal(t, 20.0, findMaxTemperature(temps))
+}
+
 func TestTemperatureFromAndroid_FindTempInThermalServiceOutput(t *testing.T) {
 	thermalServiceOutput := `IsStatusOverride: false
 ThermalEventListeners:
