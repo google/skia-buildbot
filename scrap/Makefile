@@ -1,5 +1,8 @@
 include ../make/bazel.mk
 
+PORT?=:8000
+PROM_PORT?=:20000
+
 build:
 	${BAZEL} build go/... modules/... pages/...
 
@@ -23,4 +26,7 @@ serve:
 run-local-instance: build
 	# Run "bazel build //scrap/..." after making any frontend changes
 	# to pick up the change without restarting the golang server.
-	../_bazel_bin/scrap/go/scrapexchange/scrapexchange_/scrapexchange --local --resources_dir ../_bazel_bin/scrap/pages/development --bucket=skia-public-scrap-exchange
+	../_bazel_bin/scrap/go/scrapexchange/scrapexchange_/scrapexchange --local \
+		--port $(PORT) --prom_port $(PROM_PORT) \
+		--resources_dir ../_bazel_bin/scrap/pages/development \
+		--bucket=skia-public-scrap-exchange

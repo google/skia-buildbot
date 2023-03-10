@@ -6,15 +6,18 @@ Allows trying out Skia code in the browser.
 Running locally
 ---------------
 
-To run locally:
-
-    $ make image
-
-Then in two different shells:
+In two different shells:
 
     $ make run_local_fiddle
 
     $ make run_local_fiddler
+
+Fiddler uses scrap exchange, but only for scrap conversion.
+To test these functions a local scrapexchange will need
+to be started:
+
+    # In //scrap run:
+    $ PORT=:8010 PROM_PORT=:20001 make run-local-instance
 
 Then visit http://localhost:8080
 

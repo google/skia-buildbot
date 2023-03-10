@@ -1,5 +1,8 @@
 include ../make/bazel.mk
 
+PORT?=:8000
+PROM_PORT?=:20000
+
 .PHONY: build
 build: build-placeholders
 	$(BAZEL) build --config=mayberemote //jsfiddle/...
@@ -37,7 +40,9 @@ bazel_release_ci:
 .PHONY: run-local-instance
 run-local-instance: build
 	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local \
-	--resources_dir ../_bazel_bin/jsfiddle/pages/development --scrapexchange http://localhost:9000
+	--resources_dir ../_bazel_bin/jsfiddle/pages/development \
+	--scrapexchange http://localhost:9000 --port=$(PORT) \
+	--prom_port=$(PROM_PORT)
 
 .PHONY: run-with-custom
 run-with-custom:

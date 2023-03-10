@@ -88,7 +88,9 @@ testcpp: build
 #   kubectl port-forward service/scrapexchange 9000
 .PHONY: run_local_fiddle
 run_local_fiddle: build
-	../_bazel_bin/fiddlek/go/fiddle/fiddle_/fiddle --local --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000 --dist_dir=../_bazel_bin/fiddlek/pages/development
+	../_bazel_bin/fiddlek/go/fiddle/fiddle_/fiddle --local --port=:8080 \
+		--source_image_dir=/etc/fiddle/source --scrapexchange=http://localhost:9000 \
+		--dist_dir=../_bazel_bin/fiddlek/pages/development
 
 # Runs a local fiddler.
 .PHONY: run_local_fiddler
