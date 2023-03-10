@@ -49,13 +49,15 @@ release-fiddler-ci: build
 	# Cleanup the build directory.
 	git checkout build/*
 
-push: release
+# Review section in README.md before running this target
+push_I_am_really_sure: release
 	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle fiddler
 
 push_fiddle: release-fiddle
 	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle
 
-push_fiddler: release-fiddler
+# Review section in README.md before running this target
+push_fiddler_I_am_really_sure: release-fiddler
 	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddler
 
 cli:

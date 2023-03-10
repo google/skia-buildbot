@@ -21,11 +21,37 @@ to be started:
 
 Then visit http://localhost:8080
 
-Continuous Deployment of fiddler
---------------------------------
+fiddler Deployment
+------------------
 
 The fiddler image is continuously deployed as new Skia commits come in. See
 documentation at [docker_pushes_watcher/README.md](../docker_pushes_watcher/README.md).
+
+If needed, fiddler may be manually deployed as so:
+
+    make push_fiddler_I_am_really_sure
+
+Keep in mind that a deployed dirty image will prevent (by design)
+docker-pushes-watcher from automatically pushing new images.
+To determine if a fiddler push will be clean or dirty run the
+following:
+
+    make release-fiddle
+
+To create a clean image make sure that the workspace is up-to-date
+with no modified files.
+
+NOTE: One caveat is that the glibc version on the machine performing
+the push needs to be compatible with the version on the image being
+used by fiddle. After deployment make sure to run a test fiddle to
+ensure successful compilation on fiddle.
+
+fiddle Deployment
+-----------------
+
+fiddle must be manually deployed as so:
+
+    make push_fiddle
 
 Node Pool
 ---------
