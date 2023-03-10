@@ -1,8 +1,27 @@
 import { render, html, TemplateResult } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
 import { DARKMODE_LOCALSTORAGE_KEY } from './theme-chooser-sk';
-import 'elements-sk/icon/menu-icon-sk';
-import 'elements-sk/icon/link-icon-sk';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/collapse-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/multi-select-sk';
+import '../../../elements-sk/modules/nav-button-sk';
+import '../../../elements-sk/modules/nav-links-sk';
+import '../../../elements-sk/modules/radio-sk';
+import '../../../elements-sk/modules/select-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/toast-sk';
+import '../../../elements-sk/modules/icons/alarm-icon-sk';
+import '../../../elements-sk/modules/icons/check-icon-sk';
+import '../../../elements-sk/modules/icons/create-icon-sk';
+import '../../../elements-sk/modules/icons/link-icon-sk';
+import '../../../elements-sk/modules/icons/menu-icon-sk';
+import '../../../elements-sk/modules/icons/warning-icon-sk';
 import '../app-sk';
 
 // Force the element to use the default mode set in the elements attribute.
@@ -164,4 +183,21 @@ const template = (context: example[]): TemplateResult => html`
     </tr>`)}
 `;
 
-render(template(examples), $$('#demotable')!);
+render(template(examples), document.querySelector('#demotable')!);
+
+document.querySelector('#toggle-collapse-sk')?.addEventListener('click', () => {
+  const collapseSk = document.querySelector<CollapseSk>('collapse-sk')!;
+  collapseSk.closed = !collapseSk.closed;
+});
+
+document.querySelector('#make-toast')?.addEventListener('click', () => {
+  document.querySelector<ToastSk>('toast-sk')?.show();
+});
+
+document.querySelector('#hide-toast')?.addEventListener('click', () => {
+  document.querySelector<ToastSk>('toast-sk')?.hide();
+});
+
+document.querySelector('#show-error-toast')?.addEventListener('click', () => {
+  errorMessage('Oh no, there was a problem!', 0);
+});

@@ -30,7 +30,7 @@
             </tr>
           </table>
         </section>
-        <section style="background-color: var(--surface); padding: 16px">
+        <section style="background-color: var(--surface); padding: 0 16px">
           <h1>Example Controls</h1>
           <h2 id="Buttons">Button Styles</h2>
           <button>Plain</button>
@@ -41,6 +41,8 @@
           <button class="action raised">
             <link-icon-sk></link-icon-sk>With Icon
           </button>
+          <button class=fab>+</button>
+
           <h2 id="Select">Select Styles (see also select-sk below)</h2>
           <select name="some_name" id="some_name" multiple size="3">
             <option value="option1">option1</option>
@@ -52,8 +54,10 @@
             <option value="option2">option2</option>
             <option value="option3">option3</option>
           </select>
+
           <h2>Links</h2>
           <p><a href="">Link</a></p>
+
           <h2>Details/Summary</h2>
           <details>
             <summary>Summary appears as button.</summary>
@@ -63,6 +67,7 @@
               <li>here</li>
             </ul>
           </details>
+
           <h2>Scrollbars</h2>
           <div style="width: 200px; height: 100px; overflow: auto">
             <p>
@@ -89,6 +94,7 @@
               senectus et netus et malesuada fames ac turpis egestas.
             </p>
           </div>
+
           <h2>Tables</h2>
           <table>
             <tr>
@@ -104,19 +110,106 @@
               <td>Green</td>
             </tr>
           </table>
+
+          <h2 id="Icons">Icons</h2>
+          <div>
+            <check-icon-sk></check-icon-sk>
+            <warning-icon-sk></warning-icon-sk>
+            <create-icon-sk></create-icon-sk>
+            <alarm-icon-sk></alarm-icon-sk>
+            <edit-icon-sk></edit-icon-sk>
+            <menu-icon-sk></menu-icon-sk>
+          </div>
+
+          <h2 id="Spinner">spinner-sk</h2>
+          <spinner-sk active></spinner-sk>
+
+          <h2 id="Collapse">collapse-sk</h2>
+          <button id="toggle-collapse-sk">Toggle</button>
+          <collapse-sk>
+            This is content that can be collapsed.
+          </collapse-sk>
+
+          <h2 id="Nav">nav-button-sk and nav-links-sk</h2>
+          <nav-button-sk></nav-button-sk>
+          <nav-links-sk closed>
+            <a href="">Main</a>
+            <a href="">Triage</a>
+            <a href="">Alerts</a>
+          </nav-links-sk>
+
+          <h2 id="Checkboxes">checkbox-sk</h2>
+          <checkbox-sk label="Unchecked" name=checkbox1></checkbox-sk>
+          <checkbox-sk label="Checked" name=checkbox2 checked></checkbox-sk>
+          <checkbox-sk label="Disabled Checked" disabled checked></checkbox-sk>
+          <checkbox-sk label="Disabled Unchecked" disabled></checkbox-sk>
+
+          <h2 id="Radio Buttons">radio-sk</h2>
+          <radiogroup>
+            <radio-sk          label="Unchecked"></radio-sk>
+            <radio-sk checked  label="Checked"></radio-sk>
+            <radio-sk disabled label="Disabled Unchecked"></radio-sk>
+          </radiogroup>
+
+          <h2 id="Toast">toast-sk</h2>
+          <button id="make-toast">Make toast</button>
+          <toast-sk>
+            This will disappear in 5s (the default), unless you click the Close
+            button.
+            <button id="hide-toast">Close</button>
+          </toast-sk>
+
+          <h2 id="Tabs">tabs-sk and tabs-panel-sk</h2>
+          <tabs-sk>
+            <button class=selected>Query</button>
+            <button>Results</button>
+            <button>Details</button>
+          </tabs-sk>
+          <tabs-panel-sk>
+            <div>
+              <p>This is the query tab.</p>
+              <p>This is the query tab.</p>
+              <p>This is the query tab.</p>
+              <p>This is the query tab.</p>
+            </div>
+            <div>
+              This is the results tab.
+            </div>
+            <div>
+              This is the details tab.
+            </div>
+          </tabs-panel-sk>
+
+          <h2 id="Select-And-Multiselect">select-sk and multi-select-sk</h2>
+          <select-sk>
+            <div>select</div>
+            <div>any</div>
+            <div selected>one</div>
+          </select-sk>
+          <multi-select-sk>
+            <div>select</div>
+            <div selected>any</div>
+            <div>ones</div>
+            <div>you</div>
+            <div selected>like</div>
+          </multi-select-sk>
+
+          <h2 id="Error-Toast">error-toast-sk</h2>
+          <button id="show-error-toast">Simulate an error</button>
+          <error-toast-sk></error-toast-sk>
         </section>
         <section>
           <h1>Container classes</h1>
-          <div class="primary-container-themes-sk">
+          <div class="container-example primary-container-themes-sk">
             primary-container-themes-sk
           </div>
-          <div class="secondary-container-themes-sk">
+          <div class="container-example secondary-container-themes-sk">
             secondary-container-themes-sk
           </div>
-          <div class="primary-variant-container-themes-sk">
+          <div class="container-example primary-variant-container-themes-sk">
             primary-variant-container-themes-sk
           </div>
-          <div class="error-container-themes-sk">error-container-themes-sk</div>
+          <div class="container-example error-container-themes-sk">error-container-themes-sk</div>
         </section>
         <section>
           <h1>Headings</h1>
