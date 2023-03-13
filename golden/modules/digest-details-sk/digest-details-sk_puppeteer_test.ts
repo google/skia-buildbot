@@ -13,13 +13,18 @@ describe('digest-details-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('digest-details-sk')).to.have.length(9);
+    expect(await testBed.page.$$('digest-details-sk')).to.have.length(11);
   });
 
   describe('screenshots', () => {
     it('has the left and right image', async () => {
       const digestDetailsSk = await testBed.page.$('#normal');
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk');
+    });
+
+    it('has the left and right image with triaging disallowed', async () => {
+      const digestDetailsSk = await testBed.page.$('#normal_disallow_triaging');
+      await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_disallow-triaging');
     });
 
     it('was given data with only a negative image to compare against', async () => {
@@ -30,6 +35,11 @@ describe('digest-details-sk', () => {
     it('was given no other images to compare against', async () => {
       const digestDetailsSk = await testBed.page.$('#no_refs');
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-refs');
+    });
+
+    it('was given no other images to compare against with triaging disallowed', async () => {
+      const digestDetailsSk = await testBed.page.$('#no_refs_disallow_triaging');
+      await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-refs-disallow-triaging');
     });
 
     it('is computing the closest positive and negative', async () => {

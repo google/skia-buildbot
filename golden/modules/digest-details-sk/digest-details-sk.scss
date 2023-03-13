@@ -59,6 +59,13 @@ digest-details-sk {
     triage-sk {
       margin-left: -7px;
     }
+
+    .triaging_disallowed {
+      background-color: var(--surface-1dp);
+      margin-top: 5px;
+      padding: 10px;
+      text-align: center;
+    }
   }
 
   .size_warning, .negative_warning {

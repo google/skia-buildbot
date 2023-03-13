@@ -42,6 +42,10 @@ export class DigestDetailsSkPO extends PageObject {
     return this.bySelectorAll('.metrics_and_triage .metric');
   }
 
+  private get triagingDisallowed(): PageObjectElement {
+    return this.bySelector('.metrics_and_triage .triaging_disallowed');
+  }
+
   private get sizeWarning(): PageObjectElement {
     return this.bySelector('.metrics_and_triage .size_warning');
   }
@@ -89,6 +93,10 @@ export class DigestDetailsSkPO extends PageObject {
 
   getMetrics(): Promise<string[]> {
     return this.metrics.map((metric) => metric.innerText);
+  }
+
+  async isTriagingDisallowedVisible(): Promise<boolean> {
+    return !(await this.triagingDisallowed.isEmpty());
   }
 
   async isSizeWarningVisible(): Promise<boolean> {

@@ -2,7 +2,7 @@ import './index';
 import fetchMock, { MockResponseObject } from 'fetch-mock';
 import { $$ } from 'common-sk/modules/dom';
 import {
-  typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow,
+  typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow, typicalDetailsDisallowTriaging, noRefsDisallowTriaging,
 } from './test_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
@@ -22,6 +22,12 @@ ele.groupings = groupingsResponse;
 $$('#normal')!.appendChild(ele);
 
 ele = new DigestDetailsSk();
+ele.details = typicalDetailsDisallowTriaging;
+ele.commits = twoHundredCommits;
+ele.groupings = groupingsResponse;
+$$('#normal_disallow_triaging')!.appendChild(ele);
+
+ele = new DigestDetailsSk();
 ele.details = negativeOnly;
 ele.commits = twoHundredCommits;
 ele.groupings = groupingsResponse;
@@ -32,6 +38,12 @@ ele.details = noRefs;
 ele.commits = twoHundredCommits;
 ele.groupings = groupingsResponse;
 $$('#no_refs')!.appendChild(ele);
+
+ele = new DigestDetailsSk();
+ele.details = noRefsDisallowTriaging;
+ele.commits = twoHundredCommits;
+ele.groupings = groupingsResponse;
+$$('#no_refs_disallow_triaging')!.appendChild(ele);
 
 ele = new DigestDetailsSk();
 ele.details = noRefsYet;

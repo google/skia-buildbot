@@ -53,6 +53,9 @@ function toggleButtonMouseover(canToggle: boolean) {
 
 const validRefs: RefClosest[] = ['pos', 'neg'];
 
+const DISALLOW_TRIAGING_OPTIONAL_KEY = 'disallow_triaging';
+const DISALLOW_TRIAGING_OPTIONAL_KEY_VALUE = 'true';
+
 export class DigestDetailsSk extends ElementSk {
   private static template = (ele: DigestDetailsSk) => html`
     <div class=container>
@@ -102,11 +105,35 @@ export class DigestDetailsSk extends ElementSk {
   `;
 
   private static detailsAndTriageTemplate = (ele: DigestDetailsSk) => {
+    const disallowTriaging = ele._details.paramset.hasOwnProperty(DISALLOW_TRIAGING_OPTIONAL_KEY)
+      && ele._details.paramset[DISALLOW_TRIAGING_OPTIONAL_KEY]
+        .includes(DISALLOW_TRIAGING_OPTIONAL_KEY_VALUE);
+
+    const disallowTriagingMessage = disallowTriaging
+      ? html`
+        <div class=triaging_disallowed>
+          <p>
+            Triaging is disallowed as per the <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
+            optional key.
+          </p>
+          <p>
+            If this change is expected, either update the test name to create a new grouping, or
+            update the test to remove the <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
+            optional key.
+          </p>
+        </div>
+      `
+      : '';
+
     if (!ele.right) {
       return html`
         <div class=metrics_and_triage>
-          <triage-sk @change=${ele.triageChangeHandler} .value=${ele._details.status}></triage-sk>
+          <triage-sk @change=${ele.triageChangeHandler}
+                    .value=${ele._details.status}
+                    .readOnly=${disallowTriaging}>
+          </triage-sk>
           ${DigestDetailsSk.triageHistoryTemplate(ele)}
+          ${disallowTriagingMessage}
       </div>
       `;
     }
@@ -162,8 +189,12 @@ export class DigestDetailsSk extends ElementSk {
           <span>Max RGBA:</span>
           <span>[${ele.right.maxRGBADiffs.join(',')}]</span>
         </div>
-        <triage-sk @change=${ele.triageChangeHandler} .value=${ele._details.status}></triage-sk>
+        <triage-sk @change=${ele.triageChangeHandler}
+                   .value=${ele._details.status}
+                   .readOnly=${disallowTriaging}>
+        </triage-sk>
         ${DigestDetailsSk.triageHistoryTemplate(ele)}
+        ${disallowTriagingMessage}
       </div>
     `;
   };

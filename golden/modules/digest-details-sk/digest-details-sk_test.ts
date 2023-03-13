@@ -3,8 +3,8 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from 'common-sk/modules/object';
 import { ErrorSkEventDetail } from 'elements-sk/errorMessage';
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { twoHundredCommits, typicalDetails } from './test_data';
+import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { twoHundredCommits, typicalDetails, typicalDetailsDisallowTriaging } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
 import { Label, TriageRequestV3, TriageResponse } from '../rpc_types';
@@ -183,6 +183,30 @@ describe('digest-details-sk', () => {
           + 'current label is untriaged. It is possible that another user triaged this digest. '
           + 'Try refreshing the page.',
         );
+      });
+    });
+
+    describe('triaging disallowed', () => {
+      beforeEach(() => {
+        digestDetailsSk.details = deepCopy(typicalDetailsDisallowTriaging);
+      });
+
+      it('disallows triage buttons', async () => {
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('positive')).to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('negative')).to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('untriaged')).to.be.true;
+      });
+
+      it('shows the "triaging disallowed" message', async () => {
+        expect(await digestDetailsSkPO.isTriagingDisallowedVisible()).to.be.true;
+      });
+
+      it('does not emit a "triage" event when a triage button is clicked', async () => {
+        const noTriageEventPromise = noEventPromise('triage');
+        await digestDetailsSkPO.triageSkPO.clickButton('positive');
+        await digestDetailsSkPO.triageSkPO.clickButton('negative');
+        await digestDetailsSkPO.triageSkPO.clickButton('untriaged');
+        await noTriageEventPromise;
       });
     });
   });
