@@ -87,6 +87,12 @@ message Config {
     // valid_modes lists the valid modes for the roller. If not specified, all
     // modes are allowed.
     repeated Mode valid_modes = 32;
+    // max_roll_cq_attempts indicates the maximum number of commit queue
+    // attempts before abandoning a roll CL. If not set, the default is 3.
+    int32 max_roll_cq_attempts = 33;
+    // max_roll_cls_to_same_revision indicates the maximum number of roll CLs to
+    // the same revision before giving up. If not set, the default is 3.
+    int32 max_roll_cls_to_same_revision = 34;
 }
 
 // CommitMsgConfig provides configuration for commit messages.

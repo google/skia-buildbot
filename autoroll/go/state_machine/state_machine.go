@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -69,11 +70,11 @@ const (
 	// of transitions at a time.
 	MAX_NOOP_TRANSITIONS = 10
 
-	// maxRollCQAttempts is the maximum number of CQ attempts per roll.
-	maxRollCQAttempts = 3
-	// maxRollCLsToSameRevision is the maximum number of CLs to upload to roll
-	// to the same revision.
-	maxRollCLsToSameRevision = 3
+	// defaultMaxRollCQAttempts is the maximum number of CQ attempts per roll.
+	defaultMaxRollCQAttempts = 3
+	// defaultMaxRollCLsToSameRevision is the maximum number of CLs to upload to
+	// roll to the same revision.
+	defaultMaxRollCLsToSameRevision = 3
 )
 
 // Interface for interacting with a single autoroll CL.
@@ -142,6 +143,9 @@ type AutoRollerImpl interface {
 	// Return the currently-active roll. Should return untyped nil, as
 	// opposed to RollCLImpl(nil), if no roll exists.
 	GetActiveRoll() RollCLImpl
+
+	// Return the config struct for the roller.
+	GetConfig() *config.Config
 
 	// Return the currently-rolled revision of the sub-project.
 	GetCurrentRev() *revision.Revision
@@ -257,6 +261,8 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	}
 
 	b := state_machine.NewBuilder()
+
+	maxRollCLsToSameRevision := s.getMaxRollCLsToSameRevision()
 
 	// f is a wrapper around b.F which adds a transition function which
 	// requires an active roll, returning an error if none exists. The
@@ -551,6 +557,9 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	desiredMode := s.a.GetMode()
 	state := s.s.Current()
+
+	maxRollCQAttempts := s.getMaxRollCQAttempts()
+	maxRollCLsToSameRevision := s.getMaxRollCLsToSameRevision()
 
 	// CAUTION: currentRoll may be nil, either because no active roll is
 	// expected in the current state, or because of inconsistencies in the
@@ -950,4 +959,20 @@ func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error
 // Return the current state.
 func (s *AutoRollStateMachine) Current() string {
 	return s.s.Current()
+}
+
+func (s *AutoRollStateMachine) getMaxRollCQAttempts() int {
+	rv := s.a.GetConfig().MaxRollCqAttempts
+	if rv != 0 {
+		return int(rv)
+	}
+	return defaultMaxRollCQAttempts
+}
+
+func (s *AutoRollStateMachine) getMaxRollCLsToSameRevision() int {
+	rv := s.a.GetConfig().MaxRollClsToSameRevision
+	if rv != 0 {
+		return int(rv)
+	}
+	return defaultMaxRollCLsToSameRevision
 }

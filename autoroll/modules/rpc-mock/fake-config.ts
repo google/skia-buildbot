@@ -24,6 +24,8 @@ export function GetFakeConfig(): Config {
     rollCooldown: '',
     timeWindow: '',
     supportsManualRolls: true,
+    maxRollCqAttempts: 0,
+    maxRollClsToSameRevision: 0,
     commitMsg: {
       bugProject: '',
       childLogUrlTmpl: 'https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}',

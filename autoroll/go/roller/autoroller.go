@@ -501,6 +501,11 @@ func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
 	return r.failureThrottle
 }
 
+// GetConfig implements state_machine.AutoRollerImpl.
+func (r *AutoRoller) GetConfig() *config.Config {
+	return r.cfg
+}
+
 // GetCurrentRev implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) GetCurrentRev() *revision.Revision {
 	r.statusMtx.RLock()

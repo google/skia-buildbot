@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -209,6 +210,10 @@ type TestAutoRollerImpl struct {
 	// This is in chronological order and needs to be reversed before returning
 	// it from GetLastNRollRevs.
 	rollingToHistory []string
+
+	// These can be overridden for testing.
+	maxRollCLsToSameRevision int
+	maxRollCQAttempts        int
 }
 
 // Return a TestAutoRollerImpl instance.
@@ -359,6 +364,13 @@ func (r *TestAutoRollerImpl) SuccessThrottle() *Throttler {
 // Return true if we're allowed to upload rolls.
 func (r *TestAutoRollerImpl) InRollWindow(time.Time) bool {
 	return r.rollWindowOpen
+}
+
+func (r *TestAutoRollerImpl) GetConfig() *config.Config {
+	return &config.Config{
+		MaxRollCqAttempts:        int32(r.maxRollCQAttempts),
+		MaxRollClsToSameRevision: int32(r.maxRollCLsToSameRevision),
+	}
 }
 
 // Assert that the StateMachine is in the given state.
@@ -896,7 +908,7 @@ func TestAbandonAfterTooManyAttempts(t *testing.T) {
 		checkNextState(t, sm, expectedState)
 	}
 
-	for i := 0; i < maxRollCQAttempts-1; i++ {
+	for i := 0; i < sm.getMaxRollCQAttempts()-1; i++ {
 		failCQ(S_NORMAL_FAILURE_THROTTLED)
 
 		// Hack the timer to fake that the throttling has expired, then ensure
@@ -930,7 +942,7 @@ func TestAbandonAfterTooManyAttemptsDryRun(t *testing.T) {
 		checkNextState(t, sm, expectedState)
 	}
 
-	for i := 0; i < maxRollCQAttempts-1; i++ {
+	for i := 0; i < sm.getMaxRollCQAttempts()-1; i++ {
 		failCQ(S_DRY_RUN_FAILURE_THROTTLED)
 
 		// Hack the timer to fake that the throttling has expired, then ensure
@@ -941,6 +953,39 @@ func TestAbandonAfterTooManyAttemptsDryRun(t *testing.T) {
 		r.failureThrottle = failureThrottle
 	}
 	failCQ(S_DRY_RUN_IDLE)
+}
+
+func TestAbandonAfterTooManyAttempts_Custom(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+
+	r.maxRollCQAttempts = 6
+	counterFile := "fail_counter"
+	failureThrottle, err := NewThrottler(ctx, gcsClient, counterFile, time.Hour, 1)
+	require.NoError(t, err)
+	r.failureThrottle = failureThrottle
+
+	r.SetNextRollRev("HEAD+1")
+
+	failCQ := func(expectedState string) {
+		checkNextState(t, sm, S_NORMAL_ACTIVE)
+		roll := r.GetActiveRoll().(*TestRollCLImpl)
+		roll.SetFailed()
+		checkNextState(t, sm, S_NORMAL_FAILURE)
+		checkNextState(t, sm, expectedState)
+	}
+
+	for i := 0; i < r.maxRollCQAttempts-1; i++ {
+		failCQ(S_NORMAL_FAILURE_THROTTLED)
+
+		// Hack the timer to fake that the throttling has expired, then ensure
+		// that we end up at the expected state.
+		require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+		failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
+		require.NoError(t, err)
+		r.failureThrottle = failureThrottle
+	}
+	failCQ(S_NORMAL_IDLE)
 }
 
 func TestTooManyRollCLs(t *testing.T) {
@@ -962,7 +1007,7 @@ func TestTooManyRollCLs(t *testing.T) {
 		checkNextState(t, sm, expectedState)
 	}
 	failCL := func() {
-		for i := 0; i < maxRollCQAttempts-1; i++ {
+		for i := 0; i < sm.getMaxRollCQAttempts()-1; i++ {
 			failCQ(S_NORMAL_FAILURE_THROTTLED)
 
 			// Hack the timer to fake that the throttling has expired, then ensure
@@ -975,7 +1020,7 @@ func TestTooManyRollCLs(t *testing.T) {
 		failCQ(S_NORMAL_IDLE)
 	}
 
-	for i := 0; i < maxRollCLsToSameRevision; i++ {
+	for i := 0; i < sm.getMaxRollCLsToSameRevision(); i++ {
 		failCL()
 	}
 	checkNextState(t, sm, S_TOO_MANY_CLS)
@@ -987,7 +1032,7 @@ func TestTooManyRollCLs(t *testing.T) {
 
 	// Verify that stopping or offline-ing the roller, or a manual roll landing
 	// gets us out of this state.
-	for i := 0; i < maxRollCLsToSameRevision; i++ {
+	for i := 0; i < sm.getMaxRollCLsToSameRevision(); i++ {
 		failCL()
 	}
 	checkNextState(t, sm, S_TOO_MANY_CLS)
@@ -1026,7 +1071,7 @@ func TestTooManyRollCLsDryRun(t *testing.T) {
 		checkNextState(t, sm, expectedState)
 	}
 	failCL := func() {
-		for i := 0; i < maxRollCQAttempts-1; i++ {
+		for i := 0; i < sm.getMaxRollCQAttempts()-1; i++ {
 			failCQ(S_DRY_RUN_FAILURE_THROTTLED)
 
 			// Hack the timer to fake that the throttling has expired, then ensure
@@ -1039,7 +1084,7 @@ func TestTooManyRollCLsDryRun(t *testing.T) {
 		failCQ(S_DRY_RUN_IDLE)
 	}
 
-	for i := 0; i < maxRollCLsToSameRevision; i++ {
+	for i := 0; i < sm.getMaxRollCLsToSameRevision(); i++ {
 		failCL()
 	}
 	checkNextState(t, sm, S_TOO_MANY_CLS)
@@ -1048,6 +1093,69 @@ func TestTooManyRollCLsDryRun(t *testing.T) {
 	r.SetNextRollRev("HEAD+2")
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+}
+
+func TestTooManyRollCLs_Custom(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+	r.maxRollCLsToSameRevision = 6
+
+	counterFile := "fail_counter"
+	failureThrottle, err := NewThrottler(ctx, gcsClient, counterFile, time.Hour, 1)
+	require.NoError(t, err)
+	r.failureThrottle = failureThrottle
+
+	r.SetNextRollRev("HEAD+1")
+
+	failCQ := func(expectedState string) {
+		checkNextState(t, sm, S_NORMAL_ACTIVE)
+		roll := r.GetActiveRoll().(*TestRollCLImpl)
+		roll.SetFailed()
+		checkNextState(t, sm, S_NORMAL_FAILURE)
+		checkNextState(t, sm, expectedState)
+	}
+	failCL := func() {
+		for i := 0; i < sm.getMaxRollCQAttempts()-1; i++ {
+			failCQ(S_NORMAL_FAILURE_THROTTLED)
+
+			// Hack the timer to fake that the throttling has expired, then ensure
+			// that we end up at the expected state.
+			require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+			failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
+			require.NoError(t, err)
+			r.failureThrottle = failureThrottle
+		}
+		failCQ(S_NORMAL_IDLE)
+	}
+
+	for i := 0; i < r.maxRollCLsToSameRevision; i++ {
+		failCL()
+	}
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetNextRollRev("HEAD+2")
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+
+	// Verify that stopping or offline-ing the roller, or a manual roll landing
+	// gets us out of this state.
+	for i := 0; i < r.maxRollCLsToSameRevision; i++ {
+		failCL()
+	}
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetMode(ctx, modes.ModeStopped)
+	checkNextState(t, sm, S_STOPPED)
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_TOO_MANY_CLS)
+	r.SetCurrentRev("HEAD+2")
+	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
 func TestOffline(t *testing.T) {

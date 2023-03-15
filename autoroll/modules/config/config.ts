@@ -97,6 +97,8 @@ export interface Config {
   transitiveDeps?: TransitiveDepConfig[];
   useWorkloadIdentity: boolean;
   validModes?: Mode[];
+  maxRollCqAttempts: number;
+  maxRollClsToSameRevision: number;
 }
 
 interface ConfigJSON {
@@ -132,6 +134,8 @@ interface ConfigJSON {
   transitive_deps?: TransitiveDepConfigJSON[];
   use_workload_identity?: boolean;
   valid_modes?: string[];
+  max_roll_cq_attempts?: number;
+  max_roll_cls_to_same_revision?: number;
 }
 
 export interface CommitMsgConfig {

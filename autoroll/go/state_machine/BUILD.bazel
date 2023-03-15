@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/state_machine",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/modes",
         "//autoroll/go/notifier",
         "//autoroll/go/revision",
@@ -25,6 +26,7 @@ go_test(
     srcs = ["state_machine_test.go"],
     embed = [":state_machine"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/modes",
         "//autoroll/go/notifier",
         "//autoroll/go/revision",
