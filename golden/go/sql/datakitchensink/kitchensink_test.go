@@ -43,7 +43,7 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE matches_any_ignore_rule = $1", false)
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 39, count)
+	assert.Equal(t, 40, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE matches_any_ignore_rule IS NULL")
 	count = -1
 	assert.NoError(t, row.Scan(&count))
@@ -65,19 +65,19 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	row = db.QueryRow(ctx, "SELECT count(*) from Changelists")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 5, count)
+	assert.Equal(t, 6, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from Patchsets")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 6, count)
+	assert.Equal(t, 7, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from Tryjobs")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 13, count)
+	assert.Equal(t, 14, count)
 	row = db.QueryRow(ctx, "SELECT count(*) from SecondaryBranchValues")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 47, count)
+	assert.Equal(t, 48, count)
 
 	row = db.QueryRow(ctx, "SELECT count(*) from GitCommits")
 	count = 0

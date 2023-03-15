@@ -195,6 +195,16 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 		},
 		{
+			BranchName:           "gerrit_CLdisallowtriaging",
+			GroupingID:           dks.TriangleGroupingID,
+			LastUpdated:          ts("2020-12-12T16:00:00Z"),
+			LastCalculated:       beginningOfTime,
+			CalculationLeaseEnds: beginningOfTime,
+			DigestsNotOnPrimary: []types.Digest{
+				dks.DigestB05Pos_CL,
+			},
+		},
+		{
 			BranchName:           "gerrit_CLmultipledatapoints",
 			GroupingID:           dks.SquareGroupingID,
 			LastUpdated:          ts("2020-12-12T14:00:00Z"),
@@ -272,6 +282,16 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 			CalculationLeaseEnds: sentinelTime, // not changed
 			DigestsNotOnPrimary: []types.Digest{
 				dks.DigestBlank, dks.DigestD01Pos_CL,
+			},
+		},
+		{
+			BranchName:           "gerrit_CLdisallowtriaging",
+			GroupingID:           dks.TriangleGroupingID,
+			LastUpdated:          ts("2020-12-12T16:00:00Z"),
+			LastCalculated:       beginningOfTime,
+			CalculationLeaseEnds: beginningOfTime,
+			DigestsNotOnPrimary: []types.Digest{
+				dks.DigestB05Pos_CL,
 			},
 		},
 		{

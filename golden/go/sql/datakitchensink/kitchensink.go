@@ -61,6 +61,7 @@ func RawBuilder() databuilder.TablesBuilder {
 		'L': DigestB02Pos,
 		'3': DigestB03Neg,
 		'4': DigestB04Neg,
+		'M': DigestB05Pos_CL,
 
 		'P': DigestC01Pos,
 		'Q': DigestC02Pos,
@@ -340,12 +341,11 @@ func RawBuilder() databuilder.TablesBuilder {
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
 		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
-	}).Keys([]paramtools.Params{
-		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
-		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
-		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
-	}).OptionsAll(paramtools.Params{"ext": "png"}).
-		FromTryjob(Tryjob03TaimenRGB, BuildBucketCIS, "Test-taimen-RGB", Tryjob03FileTaimenRGB, "2020-12-10T03:44:44Z")
+	}).OptionsPerPoint([]paramtools.Params{
+		{"ext": "png"},
+		{"ext": "png", "disallow_triaging": "true", "image_matching_algorithm": "positive_if_only_image"},
+		{"ext": "png"},
+	}).FromTryjob(Tryjob03TaimenRGB, BuildBucketCIS, "Test-taimen-RGB", Tryjob03FileTaimenRGB, "2020-12-10T03:44:44Z")
 	cl.AddTriageEvent(UserOne, "2020-12-10T05:00:00Z").
 		ExpectationsForGrouping(paramtools.Params{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest}).
 		Triage(DigestB01Pos, schema.LabelPositive, schema.LabelUntriaged) // accidental triage
@@ -508,6 +508,26 @@ func RawBuilder() databuilder.TablesBuilder {
 			types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest,
 		}).Positive(DigestC01Pos)
 
+	// Add a CL that defines a new test with disallow_triaging=true.
+	cl = b.AddChangelist(ChangelistIDWithDisallowTriagingTest, GerritCRS, UserOne, "add test with disallow triaging", schema.StatusOpen)
+	ps = cl.AddPatchset(PatchsetIDWithDisallowTriagingTest, "ddddddddddddddddddddddddddddddddddd77777", 1)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: AndroidOS, DeviceKey: TaimenDevice, ColorModeKey: GreyColorMode,
+	}).Digests(DigestB05Pos_CL).
+		Keys([]paramtools.Params{
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		}).OptionsAll(paramtools.Params{
+		"ext":                      "png",
+		"disallow_triaging":        "true",
+		"image_matching_algorithm": "positive_if_only_image",
+	}).FromTryjob(Tryjob14TaimenGrey, BuildBucketCIS, "Test-taimen-Grey", Tryjob14FileTaimenGrey, "2020-12-12T16:00:00Z")
+	// The digest was automatically triaged as positive by goldctl due to the positive_if_only_image
+	// image matching algorithm.
+	cl.AddTriageEvent(UserOne, "2020-12-12T17:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest,
+		}).Positive(DigestB05Pos_CL)
+
 	b.ComputeDiffMetricsFromImages(GetImgDirectory(), "2020-12-12T12:12:12Z")
 	return b
 }
@@ -538,10 +558,11 @@ const (
 	DigestA09Neg = types.Digest("a09a09a09a09a09a09a09a09a09a09a0") // large diff from A01
 
 	// Triangle Images (of note, DigestBlank is also drawn here)
-	DigestB01Pos = types.Digest("b01b01b01b01b01b01b01b01b01b01b0")
-	DigestB02Pos = types.Digest("b02b02b02b02b02b02b02b02b02b02b0") // GREY version of B01
-	DigestB03Neg = types.Digest("b03b03b03b03b03b03b03b03b03b03b0") // big diff from B01
-	DigestB04Neg = types.Digest("b04b04b04b04b04b04b04b04b04b04b0") // truncated version of B02
+	DigestB01Pos    = types.Digest("b01b01b01b01b01b01b01b01b01b01b0")
+	DigestB02Pos    = types.Digest("b02b02b02b02b02b02b02b02b02b02b0") // GREY version of B01
+	DigestB03Neg    = types.Digest("b03b03b03b03b03b03b03b03b03b03b0") // big diff from B01
+	DigestB04Neg    = types.Digest("b04b04b04b04b04b04b04b04b04b04b0") // truncated version of B02
+	DigestB05Pos_CL = types.Digest("b05b05b05b05b05b05b05b05b05b05b0") // small diff from B02
 
 	// Circle Images
 	DigestC01Pos    = types.Digest("c01c01c01c01c01c01c01c01c01c01c0")
@@ -623,19 +644,23 @@ const (
 	ChangelistIDWithMultipleDatapointsPerTrace = "CLmultipledatapoints"
 	PatchsetIDWithMultipleDatapointsPerTrace   = "PSmultipledatapoints"
 
-	Tryjob01IPhoneRGB = "tryjob_01_iphonergb"
-	Tryjob02IPad      = "tryjob_02_ipad"
-	Tryjob03TaimenRGB = "tryjob_03_taimenrgb"
-	Tryjob04Windows   = "tryjob_04_windows"
-	Tryjob05Windows   = "tryjob_05_windows"
-	Tryjob06Walleye   = "tryjob_06_walleye"
-	Tryjob07Windows   = "tryjob_07_windows"
-	Tryjob08Windows   = "tryjob_08_windows"
-	Tryjob09Windows   = "tryjob_09_windows"
-	Tryjob10Windows   = "tryjob_10_windows"
-	Tryjob11Windows   = "tryjob_11_windows"
-	Tryjob12Windows   = "tryjob_12_windows"
-	Tryjob13Windows   = "tryjob_13_windows"
+	ChangelistIDWithDisallowTriagingTest = "CLdisallowtriaging"
+	PatchsetIDWithDisallowTriagingTest   = "PSdisallowtriaging"
+
+	Tryjob01IPhoneRGB  = "tryjob_01_iphonergb"
+	Tryjob02IPad       = "tryjob_02_ipad"
+	Tryjob03TaimenRGB  = "tryjob_03_taimenrgb"
+	Tryjob04Windows    = "tryjob_04_windows"
+	Tryjob05Windows    = "tryjob_05_windows"
+	Tryjob06Walleye    = "tryjob_06_walleye"
+	Tryjob07Windows    = "tryjob_07_windows"
+	Tryjob08Windows    = "tryjob_08_windows"
+	Tryjob09Windows    = "tryjob_09_windows"
+	Tryjob10Windows    = "tryjob_10_windows"
+	Tryjob11Windows    = "tryjob_11_windows"
+	Tryjob12Windows    = "tryjob_12_windows"
+	Tryjob13Windows    = "tryjob_13_windows"
+	Tryjob14TaimenGrey = "tryjob_14_taimengrey"
 )
 
 const (
@@ -681,19 +706,20 @@ const (
 	TaimenFile9  = "gcs://skia-gold-test/dm-json-v1/2020/12/10/00/0109010901090109010901090109010901090109/waterfall/taimenfile9.json"
 	TaimenFile10 = "gcs://skia-gold-test/dm-json-v1/2020/12/11/00/0110011001100110011001100110011001100110/waterfall/taimenfile10.json"
 
-	Tryjob01FileIPhoneRGB = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/04/PS_fixes_ipad_but_not_iphone/iphonergb.json"
-	Tryjob02FileIPad      = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/ipad.json"
-	Tryjob03FileTaimenRGB = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/taimen.json"
-	Tryjob04FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/12/08/PS_adds_new_corpus/windows.json"
-	Tryjob05FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/windows.json"
-	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
-	Tryjob07FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/05/05/05/PShaslanded/windows.json"
-	Tryjob08FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/06/06/06/PSisabandoned/windows.json"
-	Tryjob09FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/07/PSmultipledatapoints/windows.json"
-	Tryjob10FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/08/PSmultipledatapoints/windows.json"
-	Tryjob11FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/09/PSmultipledatapoints/windows.json"
-	Tryjob12FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/10/PSmultipledatapoints/windows.json"
-	Tryjob13FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/11/PSmultipledatapoints/windows.json"
+	Tryjob01FileIPhoneRGB  = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/04/PS_fixes_ipad_but_not_iphone/iphonergb.json"
+	Tryjob02FileIPad       = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/ipad.json"
+	Tryjob03FileTaimenRGB  = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/taimen.json"
+	Tryjob04FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/12/08/PS_adds_new_corpus/windows.json"
+	Tryjob05FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/windows.json"
+	Tryjob06FileWalleye    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
+	Tryjob07FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/05/05/05/PShaslanded/windows.json"
+	Tryjob08FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/06/06/06/PSisabandoned/windows.json"
+	Tryjob09FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/07/PSmultipledatapoints/windows.json"
+	Tryjob10FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/08/PSmultipledatapoints/windows.json"
+	Tryjob11FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/09/PSmultipledatapoints/windows.json"
+	Tryjob12FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/10/PSmultipledatapoints/windows.json"
+	Tryjob13FileWindows    = "gcs://skia-gold-test/trybot/dm-json-v1/2020/07/07/11/PSmultipledatapoints/windows.json"
+	Tryjob14FileTaimenGrey = "gcs://skia-gold-test/trybot/dm-json-v1/2020/08/08/08/PSdisallowtriaging/taimengrey.json"
 )
 
 const (

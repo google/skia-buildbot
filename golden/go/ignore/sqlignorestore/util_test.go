@@ -66,8 +66,8 @@ func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
 	row := db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule IS NULL`)
 	var count int
 	require.NoError(t, row.Scan(&count))
-	assert.Equal(t, 41, count)
-	assert.Equal(t, 41, len(existingData.Traces))
+	assert.Equal(t, 42, count)
+	assert.Equal(t, 42, len(existingData.Traces))
 	row = db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule IS NULL`)
 	count = 0
 	require.NoError(t, row.Scan(&count))
@@ -110,8 +110,8 @@ func TestUpdateIgnoredTraces_StartsNotNull_UpdatedToCorrectValues(t *testing.T) 
 	row := db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule = FALSE`)
 	var count int
 	require.NoError(t, row.Scan(&count))
-	assert.Equal(t, 41, count)
-	assert.Equal(t, 41, len(existingData.Traces))
+	assert.Equal(t, 42, count)
+	assert.Equal(t, 42, len(existingData.Traces))
 	row = db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule = FALSE`)
 	count = 0
 	require.NoError(t, row.Scan(&count))

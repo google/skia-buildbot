@@ -598,6 +598,13 @@ func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
 	}, {
+		ChangelistID:     "gerrit_CLdisallowtriaging",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen, // not touched
+		OwnerEmail:       dks.UserOne,
+		Subject:          "add test with disallow triaging",
+		LastIngestedData: time.Date(2020, time.December, 12, 16, 0, 0, 0, time.UTC),
+	}, {
 		ChangelistID:     "gerrit_CLhaslanded",
 		System:           dks.GerritCRS,
 		Status:           schema.StatusLanded,
@@ -945,6 +952,13 @@ func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLdisallowtriaging",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen, // not touched
+		OwnerEmail:       dks.UserOne,
+		Subject:          "add test with disallow triaging",
+		LastIngestedData: time.Date(2020, time.December, 12, 16, 0, 0, 0, time.UTC),
 	}, {
 		ChangelistID:     "gerrit_CLhaslanded",
 		System:           dks.GerritCRS,

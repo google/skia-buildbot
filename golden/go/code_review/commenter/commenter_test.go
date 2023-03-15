@@ -40,6 +40,11 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 	gerritClient.On("CommentOn", testutils.AnyContext, dks.ChangelistIDThatAttemptsToFixIOS,
 		"Gold has detected about 2 new digest(s) on patchset 3.\nPlease triage them at gold.skia.org/cl/gerrit/CL_fix_ios.").Return(nil)
 
+	gerritClient.On("GetChangelist", testutils.AnyContext, dks.ChangelistIDWithDisallowTriagingTest).Return(
+		code_review.Changelist{Status: code_review.Open}, nil)
+	gerritClient.On("CommentOn", testutils.AnyContext, dks.ChangelistIDWithDisallowTriagingTest,
+		"Gold has detected about 1 new digest(s) on patchset 1.\nPlease triage them at gold.skia.org/cl/gerrit/CLdisallowtriaging.").Return(nil)
+
 	gerritInternalClient.On("GetChangelist", testutils.AnyContext, dks.ChangelistIDThatAddsNewTests).Return(
 		code_review.Changelist{Status: code_review.Open}, nil)
 	gerritInternalClient.On("CommentOn", testutils.AnyContext, dks.ChangelistIDThatAddsNewTests,
@@ -83,6 +88,13 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: true,
 	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
+		CommentedOnCL: true,
+	}, {
 		PatchsetID:    "gerrit_PShaslanded",
 		System:        dks.GerritCRS,
 		ChangelistID:  "gerrit_CLhaslanded",
@@ -120,6 +132,13 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLdisallowtriaging",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "add test with disallow triaging",
+		LastIngestedData: time.Date(2020, time.December, 12, 16, 0, 0, 0, time.UTC),
 	}, {
 		ChangelistID:     "gerrit_CLhaslanded",
 		System:           dks.GerritCRS,
@@ -190,6 +209,13 @@ func TestCommentOnCLs_NoPatchsetsNeedComments_Success(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
 		CommentedOnCL: true,
 	}, {
 		PatchsetID:    "gerrit_PShaslanded",
@@ -272,6 +298,13 @@ func TestCommentOnCLs_OnePatchsetNeedsComment_Success(t *testing.T) {
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: true,
 	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
+		CommentedOnCL: true,
+	}, {
 		PatchsetID:    "gerrit_PShaslanded",
 		System:        dks.GerritCRS,
 		ChangelistID:  "gerrit_CLhaslanded",
@@ -334,6 +367,13 @@ func TestCommentOnCLs_NoCLsInWindow_NothingUpdated(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
 		CommentedOnCL: false,
 	}, {
 		PatchsetID:    "gerrit_PShaslanded",
@@ -406,6 +446,13 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: false,
 	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
+		CommentedOnCL: false,
+	}, {
 		PatchsetID:    "gerrit_PShaslanded",
 		System:        dks.GerritCRS,
 		ChangelistID:  "gerrit_CLhaslanded",
@@ -446,6 +493,13 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLdisallowtriaging",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "add test with disallow triaging",
+		LastIngestedData: time.Date(2020, time.December, 12, 16, 0, 0, 0, time.UTC),
 	}, {
 		ChangelistID:     "gerrit_CLhaslanded",
 		System:           dks.GerritCRS,
@@ -520,6 +574,13 @@ func TestCommentOnCLs_CommentingResultsInError_ErrorLoggedNotReturned(t *testing
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: false,
 	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
+		CommentedOnCL: false,
+	}, {
 		PatchsetID:    "gerrit_PShaslanded",
 		System:        dks.GerritCRS,
 		ChangelistID:  "gerrit_CLhaslanded",
@@ -590,6 +651,13 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSdisallowtriaging",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLdisallowtriaging",
+		Order:         1,
+		GitHash:       "ddddddddddddddddddddddddddddddddddd77777",
 		CommentedOnCL: false,
 	}, {
 		PatchsetID:    "gerrit_PShaslanded",
