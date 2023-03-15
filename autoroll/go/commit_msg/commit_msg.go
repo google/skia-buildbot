@@ -110,20 +110,21 @@ func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, 
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	// Create the commit message.
+	// Create and execute the commit message template.
 	commitMsgTmpl := tmplCommitMsg
 	if canary {
 		commitMsgTmpl = namedCommitMsgTemplates[config.CommitMsgConfig_CANARY]
-	} else if c.GetCustom() != "" {
-		commitMsgTmpl, err = parseCommitMsgTemplate(tmplCommitMsg, "customCommitMsg", c.GetCustom())
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
 	} else {
 		var ok bool
 		commitMsgTmpl, ok = namedCommitMsgTemplates[c.GetBuiltIn()]
 		if !ok {
 			return "", skerr.Fmt("Unknown built-in config %q", c.GetBuiltIn())
+		}
+	}
+	if c.GetCustom() != "" {
+		commitMsgTmpl, err = parseCommitMsgTemplate(commitMsgTmpl, "customCommitMsg", c.GetCustom())
+		if err != nil {
+			return "", skerr.Wrap(err)
 		}
 	}
 	var buf bytes.Buffer

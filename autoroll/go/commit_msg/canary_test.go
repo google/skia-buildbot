@@ -10,9 +10,7 @@ import (
 func TestNamedTemplateCanary(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_CANARY,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_CANARY
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Canary roll fake/child/src to cccccccccccc
@@ -36,9 +34,7 @@ Cq-Do-Not-Cancel-Tryjobs: true
 func TestNamedTemplateCanary_WithExternalChangeId(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_CANARY,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_CANARY
 	from, to, revs, reviewers, contacts, canary, manualRollRequester := FakeCommitMsgInputs()
 	to.ExternalChangeId = "12345"
 

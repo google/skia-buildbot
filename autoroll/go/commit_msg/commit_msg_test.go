@@ -31,9 +31,7 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 		IncludeRevisionCount: true,
 		IncludeTbrLine:       true,
 		IncludeTests:         true,
-		Template: &config.CommitMsgConfig_BuiltIn_{
-			BuiltIn: config.CommitMsgConfig_DEFAULT,
-		},
+		BuiltIn:              config.CommitMsgConfig_DEFAULT,
 	}
 	// Sanity check.
 	require.NoError(t, c.Validate())
@@ -178,9 +176,7 @@ func TestNamedTemplatesValid(t *testing.T) {
 
 	cfg := fakeCommitMsgConfig(t)
 	for tmpl := range namedCommitMsgTemplates {
-		cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-			BuiltIn: tmpl,
-		}
+		cfg.BuiltIn = tmpl
 		require.NoError(t, cfg.Validate())
 	}
 }
@@ -188,15 +184,13 @@ func TestNamedTemplatesValid(t *testing.T) {
 func TestQuotedLines(t *testing.T) {
 
 	c := fakeCommitMsgConfig(t)
-	c.Template = &config.CommitMsgConfig_Custom{
-		Custom: `{{- define "revisions" -}}
+	c.Custom = `{{- define "revisions" -}}
 {{ range .Revisions }}{{ .Timestamp.Format "2006-01-02" }} {{ .Author }} {{ .Description }}
 {{ quotedLines .Details }}
 
 {{ end }}
 {{ end -}}
-`,
-	}
+`
 	reg := fakeRegistry(t)
 	b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
 	require.NoError(t, err)

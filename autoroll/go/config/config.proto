@@ -144,14 +144,12 @@ message CommitMsgConfig {
         CANARY = 3;
     }
 
-    // template specifies exactly how the commit message should be structured.
-    // If not specified, the default template is used.
-    oneof template {
-        // built_in is the name of a built-in commit message template.
-        BuiltIn built_in = 9;
-        // custom is a full custom commit message template string.
-        string custom = 10;
-    }
+    // built_in is the name of a built-in commit message template.
+    BuiltIn built_in = 9;
+    // custom is a full custom commit message template string. It is possible to
+    // specify a built-in template and then override parts of it in the custom
+    // template.
+    string custom = 10;
 }
 
 // GerritConfig provides configuration for code review using Gerrit.

@@ -256,9 +256,6 @@ func (c *Config) DefaultStrategy() string {
 
 // Validate implements util.Validator.
 func (c *CommitMsgConfig) Validate() error {
-	if c.Template == nil {
-		return skerr.Fmt("Template is required.")
-	}
 	// TODO(borenet): The commit_msg package has a test which uses fake data to
 	// execute the template and ensure that it is valid. We should make use of
 	// that somehow.

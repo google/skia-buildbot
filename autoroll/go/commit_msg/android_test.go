@@ -10,9 +10,7 @@ import (
 func TestNamedTemplateAndroid_AllFeatures(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_ANDROID,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
@@ -52,9 +50,7 @@ My-Other-Footer: Blah
 func TestNamedTemplateAndroid_NoLog(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_ANDROID,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID
 	b.cfg.IncludeLog = false
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
@@ -93,9 +89,7 @@ func TestNamedTemplateAndroid_NoBugs(t *testing.T) {
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_ANDROID,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
@@ -134,9 +128,7 @@ func TestNamedTemplateAndroid_Minimal(t *testing.T) {
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_ANDROID,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID
 	b.cfg.ChildLogUrlTmpl = ""
 	b.cfg.CqExtraTrybots = nil
 	b.cfg.IncludeLog = false
@@ -168,9 +160,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 func TestNamedTemplateAndroid_NoCR_AllFeatures(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
-		BuiltIn: config.CommitMsgConfig_ANDROID_NO_CR,
-	}
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID_NO_CR
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
@@ -185,6 +175,48 @@ Also rolling transitive DEPS:
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 Please enable autosubmit on changes if possible when approving them.
+
+If this roll has caused a breakage, revert this CL and stop the roller
+using the controls here:
+https://fake.server.com/r/fake-autoroll
+Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
+is aware of the problem.
+
+To report a problem with the AutoRoller itself, please file a bug:
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
+
+Tbr: reviewer@google.com
+Test: Presubmit checks will test this change.
+Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
+Bug: fakebugproject:1234
+Bug: fakebugproject:5678
+Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
+`, result)
+}
+
+func TestNamedTemplateAndroid_Custom(t *testing.T) {
+
+	b := fakeBuilder(t)
+	// Use a custom template which derives from the Android template.
+	b.cfg.BuiltIn = config.CommitMsgConfig_ANDROID
+	b.cfg.Custom = `{{- define "subject" -}}Custom subject{{- end -}}`
+	result, err := b.Build(FakeCommitMsgInputs())
+	require.NoError(t, err)
+	require.Equal(t, `Custom subject
+
+https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
+
+2020-04-17 c@google.com Commit C
+2020-04-16 b@google.com Commit B
+
+Also rolling transitive DEPS:
+  https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:

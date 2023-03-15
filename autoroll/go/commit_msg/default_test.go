@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config"
 )
 
 func TestNamedTemplateDefault_AllFeatures(t *testing.T) {
@@ -196,14 +195,12 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 func TestTotalOverride(t *testing.T) {
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &config.CommitMsgConfig_Custom{
-		Custom: `{{ define "commitMsg" }}Completely custom commit message.
+	b.cfg.Custom = `{{ define "commitMsg" }}Completely custom commit message.
 
 Seriously, this can be anything at all.
 
 Variables from config_vars should work, eg. m{{.Branches.Chromium.Beta.Milestone}}, v8:{{.Branches.Chromium.Beta.V8Branch}}-lkgr
-{{end}}`,
-	}
+{{end}}`
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Completely custom commit message.
