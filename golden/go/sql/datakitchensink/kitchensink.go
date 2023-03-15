@@ -227,7 +227,8 @@ func RawBuilder() databuilder.TablesBuilder {
 		IngestedFrom(walleyeFiles, walleyeTimes)
 
 	// The taimen device was added in commit index 6. It only runs the RGB Configs. 2 out of the 3
-	// traces are ignored.
+	// traces are ignored. The non-ignored trace uses the "positive_if_only_image" image matching
+	// algorithm, and has triaging disallowed via the "disallow_triaging" optional key.
 	b.AddTracesWithCommonKeys(paramtools.Params{
 		OSKey:        AndroidOS,
 		DeviceKey:    TaimenDevice,
@@ -240,7 +241,11 @@ func RawBuilder() databuilder.TablesBuilder {
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
 		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest}}).
-		OptionsAll(paramtools.Params{"ext": "png"}).
+		OptionsPerTrace([]paramtools.Params{
+			{"ext": "png"},
+			{"ext": "png", "image_matching_algorithm": "positive_if_only_image", "disallow_triaging": "true"},
+			{"ext": "png"},
+		}).
 		IngestedFrom([]string{"", "", "", "", "", "", TaimenFile7, TaimenFile8, TaimenFile9, TaimenFile10},
 			[]string{"", "", "", "", "", "", "2020-12-08T00:19:00Z", "2020-12-09T00:19:00Z", "2020-12-10T00:19:00Z", "2020-12-11T00:19:00Z"})
 
