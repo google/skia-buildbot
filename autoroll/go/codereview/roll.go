@@ -282,8 +282,13 @@ func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
 				if err2 := r.g.Abandon(ctx, r.ci, "Failed to rebase due to merge conflict; closing CL."); err2 != nil {
 					return skerr.Wrapf(err, "failed to rebase due to merge conflict and failed to abandon CL with: %s", err2)
 				}
+			} else if strings.Contains(err.Error(), gerrit.ErrCannotRebaseMergeCommits) {
+				// Ignore this error; ideally we shouldn't have tried to rebase
+				// the CL.
+				sklog.Warningf("Cannot rebase merge commit; details: %+v", rollCommit)
+			} else {
+				return skerr.Wrap(err)
 			}
-			return skerr.Wrap(err)
 		}
 		return r.Update(ctx)
 	}

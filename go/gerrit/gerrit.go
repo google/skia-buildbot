@@ -175,6 +175,10 @@ const (
 	//                +-> Last two digits of Issue ID.
 	ChangeRefPrefix = "refs/changes/"
 
+	// ErrCannotRebaseMergeCommits as a substring of an error indicates that we
+	// tried to rebase a merge commit.
+	ErrCannotRebaseMergeCommits = "Cannot rebase merge commits"
+
 	// ErrMergeConflict as a substring of an error message indicates that a
 	// merge conflict occurred.
 	ErrMergeConflict = "conflict during merge"
