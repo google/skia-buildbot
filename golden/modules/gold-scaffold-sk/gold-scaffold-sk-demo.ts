@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { testOnlySetSettings } from '../settings';
 import { GoldScaffoldSk } from './gold-scaffold-sk';
 

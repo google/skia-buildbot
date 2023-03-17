@@ -1,5 +1,5 @@
 import './index';
-import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
+import { ParamSet, toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { assert } from 'chai';
 import { removePrefix, QuerySk } from './query-sk';
 import { QuerySkPO } from './query-sk_po';

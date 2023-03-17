@@ -7,7 +7,7 @@
  * </p>
  */
 
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../infra-sk/modules/object';
 import { expect } from 'chai';
 
 /**

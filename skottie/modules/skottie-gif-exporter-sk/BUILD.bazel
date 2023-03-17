@@ -3,13 +3,16 @@ load("//infra-sk:index.bzl", "sk_element")
 sk_element(
     name = "skottie-gif-exporter-sk",
     sass_srcs = ["skottie-gif-exporter-sk.scss"],
-    sk_element_deps = ["//skottie/modules/skottie-player-sk"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-player-sk",
+        "//elements-sk/modules/select-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules/helpers:gifstorage_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

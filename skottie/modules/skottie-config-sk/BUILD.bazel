@@ -8,16 +8,18 @@ sk_demo_page_server(
 sk_element(
     name = "skottie-config-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["skottie-config-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -30,6 +32,6 @@ sk_page(
     name = "skottie-config-sk-demo",
     html_file = "skottie-config-sk-demo.html",
     sk_element_deps = [":skottie-config-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "skottie-config-sk-demo.ts",
 )

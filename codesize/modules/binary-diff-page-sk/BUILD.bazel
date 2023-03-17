@@ -10,9 +10,9 @@ sk_element(
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "binary-diff-page-sk.ts",

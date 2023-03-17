@@ -11,9 +11,9 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -26,7 +26,7 @@ sk_page(
     name = "uniform-color-sk-demo",
     html_file = "uniform-color-sk-demo.html",
     sk_element_deps = [":uniform-color-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "uniform-color-sk-demo.ts",
 )
 
@@ -46,9 +46,9 @@ karma_test(
     src = "uniform-color-sk_test.ts",
     deps = [
         ":uniform-color-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

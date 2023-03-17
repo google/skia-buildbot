@@ -1,4 +1,4 @@
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../infra-sk/modules/query';
 
 export const manyParams: ParamSet = {
   alpha_type: [

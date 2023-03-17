@@ -23,8 +23,8 @@
  *  </skottie-inline-sk>
  */
 import '../skottie-player-sk';
-import { define } from 'elements-sk/define';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { define } from '../../../elements-sk/modules/define';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';

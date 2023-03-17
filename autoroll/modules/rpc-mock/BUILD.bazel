@@ -33,6 +33,6 @@ ts_library(
         ":fake-status_ts_lib",
         "//autoroll/modules/rpc:index_ts_lib",
         "//autoroll/modules/rpc:rpc_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:query_ts_lib",
     ],
 )

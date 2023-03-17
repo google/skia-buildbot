@@ -6,9 +6,9 @@
  * ingested for it. If there are any network errors, it will log them and retry.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
 import { StatusResponse } from '../rpc_types';

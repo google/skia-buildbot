@@ -10,13 +10,12 @@
  *   force the corresponding request_type to be always set.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { RequestType } from '../json';
 
-import 'elements-sk/radio-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/radio-sk';
 import '../calendar-input-sk';
 
 // Types of domain ranges we can choose.

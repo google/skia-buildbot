@@ -9,7 +9,7 @@ sk_element(
     name = "skcq-sk",
     sass_deps = [
         "//skcq/modules:style_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["skcq-sk.scss"],
     sk_element_deps = [
@@ -17,11 +17,16 @@ sk_element(
         "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//skcq/modules/processing-table-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/folder-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/home-icon-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -9,18 +9,26 @@ sk_element(
     name = "task-scheduler-scaffold-sk",
     sass_deps = [
         "//task_scheduler/modules:colors_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["task-scheduler-scaffold-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/block-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/home-icon-sk",
+        "//elements-sk/modules/icons/search-icon-sk",
+        "//elements-sk/modules/icons/send-icon-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -12,13 +12,13 @@
  *   from the fetch response.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CountHandlerRequest, CountHandlerResponse, ParamSet } from '../json';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
   private _last_query = '';

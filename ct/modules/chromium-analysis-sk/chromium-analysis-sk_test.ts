@@ -1,10 +1,10 @@
 import './index';
 
 import sinon from 'sinon';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
-import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { benchmarks_platforms } from './test_data';
 import { pageSets } from '../pageset-selector-sk/test_data';
 import { priorities } from '../task-priority-sk/test_data';

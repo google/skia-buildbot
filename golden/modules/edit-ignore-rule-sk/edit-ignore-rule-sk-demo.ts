@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { manyParams } from '../shared_demo_data';
 import { EditIgnoreRuleSk } from './edit-ignore-rule-sk';
 import { EditIgnoreRuleSkPO } from './edit-ignore-rule-sk_po';

@@ -25,10 +25,10 @@
  *
  */
 import '../skottie-player-sk';
-import 'elements-sk/error-toast-sk';
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import '../../../elements-sk/modules/error-toast-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

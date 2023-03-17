@@ -6,13 +6,18 @@ sk_element(
     sk_element_deps = [
         "//bugs-central/modules/bugs-chart-sk",
         "//bugs-central/modules/bugs-slo-popup-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "bugs-central-sk.ts",

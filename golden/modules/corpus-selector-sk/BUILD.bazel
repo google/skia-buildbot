@@ -3,13 +3,13 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "corpus-selector-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["corpus-selector-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "corpus-selector-sk.ts",
@@ -24,7 +24,7 @@ sk_page(
     sk_element_deps = [":corpus-selector-sk"],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "corpus-selector-sk-demo.ts",
 )

@@ -10,10 +10,10 @@
  * @property seconds - Indicates that the given date is expressed in seconds, not milliseconds.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { diffDate } from 'common-sk/modules/human';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { diffDate } from '../../../infra-sk/modules/human';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { ElementSk } from '../ElementSk';
 
 export class HumanDateSk extends ElementSk {

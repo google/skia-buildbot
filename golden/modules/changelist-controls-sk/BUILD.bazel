@@ -3,15 +3,20 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "changelist-controls-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:select_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["changelist-controls-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/find-in-page-icon-sk",
+        "//elements-sk/modules/radio-sk",
+    ],
     ts_deps = [
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//infra-sk/modules:string_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "changelist-controls-sk.ts",
@@ -26,7 +31,7 @@ sk_page(
     sk_element_deps = [":changelist-controls-sk"],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "changelist-controls-sk-demo.ts",
 )
@@ -36,9 +41,9 @@ ts_library(
     srcs = ["changelist-controls-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 

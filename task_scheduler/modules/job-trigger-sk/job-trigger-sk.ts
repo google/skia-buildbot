@@ -4,7 +4,7 @@
  *
  * Provides an interface for triggering jobs.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -14,11 +14,10 @@ import {
   TriggerJobsRequest,
   TriggerJobsResponse,
 } from '../rpc';
-import 'elements-sk/icon/add-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/send-icon-sk';
-import 'elements-sk/styles/buttons';
-import { toParamSet, fromParamSet } from 'common-sk/modules/query';
+import '../../../elements-sk/modules/icons/add-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/send-icon-sk';
+import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 
 interface TriggeredJob {
   name: string;

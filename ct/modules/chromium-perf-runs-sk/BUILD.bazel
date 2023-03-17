@@ -2,14 +2,26 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "chromium-perf-runs-sk",
-    sk_element_deps = ["//ct/modules/pagination-sk"],
+    sk_element_deps = [
+        "//ct/modules/pagination-sk",
+        "//elements-sk/modules/icons/cancel-icon-sk",
+        "//elements-sk/modules/icons/check-circle-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/mode-edit-icon-sk",
+        "//elements-sk/modules/icons/redo-icon-sk",
+        "//elements-sk/modules/toast-sk",
+    ],
     ts_deps = [
         "//ct/modules/json:index_ts_lib",
         "//ct/modules:ctfe_utils_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "chromium-perf-runs-sk.ts",
@@ -27,8 +39,8 @@ sk_page(
     ],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "chromium-perf-runs-sk-demo.ts",
 )
@@ -39,11 +51,11 @@ karma_test(
     deps = [
         ":chromium-perf-runs-sk",
         ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//@types/sinon",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
         "@npm//sinon",
     ],

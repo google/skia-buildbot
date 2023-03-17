@@ -10,13 +10,14 @@ sk_demo_page_server(
 sk_element(
     name = "multi-zoom-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["multi-zoom-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -33,7 +34,7 @@ sk_page(
         ":test_data_ts_lib",
         "//golden/modules:common_ts_lib",
         "//golden/modules:demo_util_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "multi-zoom-sk-demo.ts",
 )
@@ -43,9 +44,9 @@ ts_library(
     srcs = ["multi-zoom-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 

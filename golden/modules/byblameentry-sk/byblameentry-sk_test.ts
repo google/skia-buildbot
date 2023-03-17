@@ -1,6 +1,6 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
-import { deepCopy } from 'common-sk/modules/object';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

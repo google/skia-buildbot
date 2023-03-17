@@ -15,8 +15,8 @@
  *
  * <p>
  */
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { LoginTo } from '../login';
 
 define('login-sk', class extends HTMLElement {

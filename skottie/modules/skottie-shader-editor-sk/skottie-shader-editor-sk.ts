@@ -17,7 +17,7 @@
  *              Supported values are default and presentation
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ShaderData } from './shader-replace';
 import {

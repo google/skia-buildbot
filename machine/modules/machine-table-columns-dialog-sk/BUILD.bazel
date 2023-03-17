@@ -11,11 +11,12 @@ sk_element(
         "//machine/modules/theme:theme_sass_lib",
     ],
     sass_srcs = ["machine-table-columns-dialog-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
-        "@npm//common-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "machine-table-columns-dialog-sk.ts",
@@ -28,7 +29,7 @@ sk_page(
     name = "machine-table-columns-dialog-sk-demo",
     html_file = "machine-table-columns-dialog-sk-demo.html",
     sk_element_deps = [":machine-table-columns-dialog-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "machine-table-columns-dialog-sk-demo.ts",
 )
 
@@ -48,10 +49,10 @@ karma_test(
     src = "machine-table-columns-dialog-sk_test.ts",
     deps = [
         ":machine-table-columns-dialog-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
-        "@npm//elements-sk",
     ],
 )

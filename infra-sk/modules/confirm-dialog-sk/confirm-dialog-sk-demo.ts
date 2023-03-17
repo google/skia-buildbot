@@ -1,6 +1,5 @@
-import 'elements-sk/styles/buttons';
 
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 import './index';
 import { ConfirmDialogSk } from './confirm-dialog-sk';

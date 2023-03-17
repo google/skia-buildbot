@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { BlamelistPanelSk } from './blamelist-panel-sk';
 import {
   blamelist19, clBlamelist, fakeNow, nonStandardCommits,

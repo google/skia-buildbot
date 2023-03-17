@@ -18,11 +18,19 @@ sk_element(
         "//status/modules:styles_sass_lib",
     ],
     sass_srcs = ["tree-status-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/android-icon-sk",
+        "//elements-sk/modules/icons/devices-other-icon-sk",
+        "//elements-sk/modules/icons/gesture-icon-sk",
+        "//elements-sk/modules/icons/star-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -37,8 +45,8 @@ sk_page(
     sk_element_deps = [":tree-status-sk"],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "tree-status-sk-demo.ts",
 )
@@ -60,11 +68,11 @@ karma_test(
     deps = [
         ":test_data_ts_lib",
         ":tree-status-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//@types/sinon",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
         "@npm//sinon",
     ],

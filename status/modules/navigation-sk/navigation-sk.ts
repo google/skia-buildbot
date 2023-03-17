@@ -5,14 +5,14 @@
  * Element that offers navigation links for available pages.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/icon/battery-charging-80-icon-sk';
-import 'elements-sk/icon/dashboard-icon-sk';
-import 'elements-sk/icon/devices-icon-sk';
+import '../../../elements-sk/modules/icons/battery-charging-80-icon-sk';
+import '../../../elements-sk/modules/icons/dashboard-icon-sk';
+import '../../../elements-sk/modules/icons/devices-icon-sk';
 
 export class NavigationSk extends ElementSk {
   private static template = (el: NavigationSk) => html` <div class="table">

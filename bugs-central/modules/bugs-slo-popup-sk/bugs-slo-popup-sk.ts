@@ -5,13 +5,12 @@
  * A dialog that displays all bugs that are outside SLO.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/styles/buttons';
 import { Issue } from '../json';
 
 export class BugsSLOPopupSk extends ElementSk {

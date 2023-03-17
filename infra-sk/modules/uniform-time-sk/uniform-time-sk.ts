@@ -6,14 +6,13 @@
  *
  * Displays the play/pause and rewind buttons.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
-import 'elements-sk/icon/play-arrow-icon-sk';
-import 'elements-sk/icon/pause-icon-sk';
-import 'elements-sk/icon/fast-rewind-icon-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
+import '../../../elements-sk/modules/icons/fast-rewind-icon-sk';
 import { Uniform, UniformControl } from '../uniform/uniform';
-import 'elements-sk/styles/buttons';
 
 const defaultUniform: Uniform = {
   name: 'iTime',

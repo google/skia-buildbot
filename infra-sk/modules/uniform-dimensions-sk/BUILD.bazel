@@ -11,8 +11,8 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -25,7 +25,7 @@ sk_page(
     name = "uniform-dimensions-sk-demo",
     html_file = "uniform-dimensions-sk-demo.html",
     sk_element_deps = [":uniform-dimensions-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "uniform-dimensions-sk-demo.ts",
 )
 

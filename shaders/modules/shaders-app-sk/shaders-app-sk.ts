@@ -4,15 +4,15 @@
  * @description <h2><code>shaders-app-sk</code></h2>
  *
  */
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import CodeMirror from 'codemirror';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import type {
   Canvas,
   CanvasKit,
@@ -24,12 +24,10 @@ import type {
 from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
-import 'elements-sk/icon/edit-icon-sk';
-import 'elements-sk/icon/add-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/edit-icon-sk';
+import '../../../elements-sk/modules/icons/add-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/app-sk';

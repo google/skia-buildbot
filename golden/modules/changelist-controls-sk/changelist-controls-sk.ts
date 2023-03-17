@@ -1,11 +1,10 @@
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 
-import 'elements-sk/radio-sk';
-import 'elements-sk/styles/select';
-import 'elements-sk/icon/find-in-page-icon-sk';
+import '../../../elements-sk/modules/radio-sk';
+import '../../../elements-sk/modules/icons/find-in-page-icon-sk';
 import { ChangelistSummaryResponse, TryJob } from '../rpc_types';
 
 export interface ChangelistControlsSkChangeEventDetail {

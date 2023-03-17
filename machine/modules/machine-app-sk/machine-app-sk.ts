@@ -7,14 +7,14 @@
  */
 import { html, TemplateResult } from 'lit-html';
 
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/tabs-panel-sk';
-import 'elements-sk/icon/more-vert-icon-sk';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/icons/more-vert-icon-sk';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MachinesTableSk, MachineTableSkChangeEventDetail, WaitCursor } from '../machines-table-sk';
 import '../machines-table-sk';

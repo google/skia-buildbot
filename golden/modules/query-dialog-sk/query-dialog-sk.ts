@@ -15,16 +15,15 @@
  *         the url-encoded selections.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import { ParamSet, toParamSet } from 'common-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { QuerySk, QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
-import 'elements-sk/styles/buttons';
 
 export class QueryDialogSk extends ElementSk {
   private static _template = (el: QueryDialogSk) => html`

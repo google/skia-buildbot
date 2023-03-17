@@ -5,21 +5,20 @@
  * Control that allows editing an alert.Config.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/multi-select-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/styles/buttons';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/multi-select-sk';
+import '../../../elements-sk/modules/select-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import {
   SelectSk,
   SelectSkSelectionChangedEventDetail,
-} from 'elements-sk/select-sk/select-sk';
-import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
+} from '../../../elements-sk/modules/select-sk/select-sk';
+import { MultiSelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {

@@ -9,18 +9,18 @@
  *
  */
 
-import { define } from 'elements-sk/define';
-import { $$ } from 'common-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { html, TemplateResult } from 'lit-html';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/spinner-sk';
 import '../bugs-chart-sk';
 import '../bugs-slo-popup-sk';
 
-import { HintableObject } from 'common-sk/modules/hintable';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { BugsSLOPopupSk } from '../bugs-slo-popup-sk/bugs-slo-popup-sk';
 import {

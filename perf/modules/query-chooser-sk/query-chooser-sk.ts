@@ -12,9 +12,9 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { ParamSet, toParamSet } from 'common-sk/modules/query';
+import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 
@@ -23,7 +23,6 @@ import '../../../infra-sk/modules/query-sk';
 
 import '../query-count-sk';
 
-import 'elements-sk/styles/buttons';
 
 export class QueryChooserSk extends ElementSk {
   private _dialog: HTMLDivElement | null;

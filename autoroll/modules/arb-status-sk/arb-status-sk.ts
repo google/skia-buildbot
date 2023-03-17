@@ -9,15 +9,12 @@
 
 import { html } from 'lit-html';
 
-import { $$ } from 'common-sk/modules/dom';
-import { localeTime } from 'common-sk/modules/human';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { localeTime } from '../../../infra-sk/modules/human';
 
-import { define } from 'elements-sk/define';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
-import 'elements-sk/styles/table';
-import 'elements-sk/tabs-panel-sk';
-import 'elements-sk/tabs-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/tabs-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LoginTo } from '../../../infra-sk/modules/login';

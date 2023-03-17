@@ -9,17 +9,16 @@
  */
 import { html } from 'lit-html';
 import { live } from 'lit-html/directives/live';
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
-import { deepCopy } from 'common-sk/modules/object';
-import { fromParamSet, toParamSet, ParamSet } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { deepCopy } from '../../../infra-sk/modules/object';
+import { fromParamSet, toParamSet, ParamSet } from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterDialogSk, Filters } from '../filter-dialog-sk/filter-dialog-sk';
 import { defaultCorpus } from '../settings';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/checkbox-sk';
 import '../corpus-selector-sk';
 import '../filter-dialog-sk';
 import '../trace-filter-sk';

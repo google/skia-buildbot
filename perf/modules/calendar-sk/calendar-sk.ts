@@ -21,12 +21,11 @@
  * detached to/from the appropriate containing element when it is used, for
  * example, a containing 'dialog' element.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/icon/navigate-before-icon-sk';
-import 'elements-sk/icon/navigate-next-icon-sk';
+import '../../../elements-sk/modules/icons/navigate-before-icon-sk';
+import '../../../elements-sk/modules/icons/navigate-next-icon-sk';
 
 /*
  * Most of the Date[1] object's methods return zero-indexed values, with exceptions such as

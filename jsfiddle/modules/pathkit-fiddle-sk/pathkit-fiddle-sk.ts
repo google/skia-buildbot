@@ -1,5 +1,5 @@
-import 'elements-sk/error-toast-sk';
-import { define } from 'elements-sk/define';
+import '../../../elements-sk/modules/error-toast-sk';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';

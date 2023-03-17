@@ -4,9 +4,9 @@
  *
  * The majority of the Status page.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
@@ -20,10 +20,10 @@ import '../navigation-sk';
 import '../perf-status-sk';
 import '../rotations-sk';
 import '../tree-status-sk';
-import 'elements-sk/collapse-sk';
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/expand-less-icon-sk';
-import 'elements-sk/icon/expand-more-icon-sk';
+import '../../../elements-sk/modules/collapse-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/expand-less-icon-sk';
+import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import { defaultRepo, repoUrl, treeStatusBaseUrl } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 import { RotationsSk } from '../rotations-sk/rotations-sk';

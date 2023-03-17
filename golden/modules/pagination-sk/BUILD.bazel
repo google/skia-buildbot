@@ -3,13 +3,14 @@ load("//infra-sk:index.bzl", "karma_test", "sk_element", "ts_library")
 sk_element(
     name = "pagination-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["pagination-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

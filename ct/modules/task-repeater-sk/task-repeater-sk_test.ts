@@ -1,8 +1,8 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
-import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { TaskRepeaterSk } from './task-repeater-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 

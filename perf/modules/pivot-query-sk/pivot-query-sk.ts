@@ -5,14 +5,13 @@
  * @evt pivot-changed - Emitted every time the control is changed by the user.
  * See PivotQueryChangedEventDetail.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
+import { MultiSelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, pivot } from '../json';
-import 'elements-sk/multi-select-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/styles/select';
+import '../../../elements-sk/modules/multi-select-sk';
+import '../../../elements-sk/modules/select-sk';
 import { operationDescriptions, validatePivotRequest } from '../pivotutil';
 
 const sortedOps = Object.keys(operationDescriptions).sort() as pivot.Operation[];

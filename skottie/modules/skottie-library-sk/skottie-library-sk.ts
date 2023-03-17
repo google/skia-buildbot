@@ -16,8 +16,8 @@
  *
  */
 import '../skottie-player-sk';
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import JSZip, { JSZipObject } from 'jszip';
 import { replaceTextsByLayerName, TextData } from '../skottie-text-editor-sk/text-replace';

@@ -90,7 +90,7 @@
  *
  * @attr summary {Boolean} - If present then display the summary bar.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';

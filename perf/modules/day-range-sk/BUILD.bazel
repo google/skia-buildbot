@@ -9,8 +9,8 @@ sk_element(
     sk_element_deps = ["//perf/modules/calendar-input-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "day-range-sk.ts",

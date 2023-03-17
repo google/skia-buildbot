@@ -9,13 +9,14 @@ sk_element(
     name = "theme-chooser-sk",
     sass_deps = [
         "//infra-sk:themes_sass_lib",
-        "@npm//:node_modules/elements-sk/icon/icon-sk.scss",
+        "//elements-sk/modules/icons:icon-sk_sass_lib",
     ],
     sass_srcs = ["theme-chooser-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/icons/invert-colors-icon-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

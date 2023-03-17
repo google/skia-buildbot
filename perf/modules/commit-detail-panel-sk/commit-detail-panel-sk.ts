@@ -25,9 +25,9 @@
  *
  * @attr {Number} selected - The index of the selected commit.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { findParent } from 'common-sk/modules/dom';
+import { findParent } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../commit-detail-sk';
 import { Commit } from '../json';

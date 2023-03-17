@@ -9,7 +9,7 @@
  * See https://www.shadertoy.com/view/Mss3zH for an explanation of how the
  * iMouse uniform behaves.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {

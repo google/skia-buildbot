@@ -9,21 +9,20 @@
  *
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/gesture-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/star-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/styles/select';
-import { errorMessage } from 'elements-sk/errorMessage';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/folder-icon-sk';
+import '../../../elements-sk/modules/icons/gesture-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/icons/star-icon-sk';
+import '../../../elements-sk/modules/nav-button-sk';
+import '../../../elements-sk/modules/nav-links-sk';
+import '../../../elements-sk/modules/select-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { device, getAKAStr, doImpl } from '../leasing';
 

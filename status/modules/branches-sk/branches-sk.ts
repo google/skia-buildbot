@@ -4,8 +4,8 @@
  *
  *  Custom element for displaying branches.
  */
-import { define } from 'elements-sk/define';
-import { $$ } from 'common-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';

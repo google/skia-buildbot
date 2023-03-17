@@ -2,12 +2,12 @@
  * @fileoverview A custom element for the basic demos.skia.org header.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 const template = () => html`
 <header>

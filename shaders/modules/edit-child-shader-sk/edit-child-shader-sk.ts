@@ -6,13 +6,12 @@
  *
  * May be expanded in the future to also edit the ScrapHashOrName.
  */
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChildShader } from '../json';
 import { childShaderUniformNameRegex } from '../shadernode';
-import 'elements-sk/styles/buttons';
 
 const defaultChildShader: ChildShader = {
   UniformName: 'childShader',

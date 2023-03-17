@@ -2,13 +2,12 @@
  * @fileoverview A custom element that supports a pagination.
  */
 
-import 'elements-sk/icon/first-page-icon-sk';
-import 'elements-sk/icon/last-page-icon-sk';
-import 'elements-sk/icon/chevron-left-icon-sk';
-import 'elements-sk/icon/chevron-right-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/icons/first-page-icon-sk';
+import '../../../elements-sk/modules/icons/last-page-icon-sk';
+import '../../../elements-sk/modules/icons/chevron-left-icon-sk';
+import '../../../elements-sk/modules/icons/chevron-right-icon-sk';
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

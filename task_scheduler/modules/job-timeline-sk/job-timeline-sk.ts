@@ -5,7 +5,7 @@
  * Displays a timeline of the tasks which comprise a given job, to easily
  * determine where time is being spent.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { Job, Task } from '../rpc';
 import {
   draw, Block, Lane, Data,

@@ -1,7 +1,7 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { bulkTriageDeltaInfos } from './test_data';
 import { BulkTriageSk } from './bulk-triage-sk';
 import { TriageResponse } from '../rpc_types';

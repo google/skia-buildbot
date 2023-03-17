@@ -4,21 +4,26 @@ sk_element(
     name = "alert-config-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["alert-config-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/query-sk",
         "//perf/modules/algo-select-sk",
         "//perf/modules/query-chooser-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/multi-select-sk",
+        "//elements-sk/modules/select-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "alert-config-sk.ts",
@@ -33,7 +38,7 @@ sk_page(
     sk_element_deps = [":alert-config-sk"],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "alert-config-sk-demo.ts",
 )

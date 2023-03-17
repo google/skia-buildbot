@@ -1,6 +1,6 @@
 // Functions used by more than one element.
-import { errorMessage } from 'elements-sk/errorMessage';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../elements-sk/modules/errorMessage';
+import { jsonOrThrow } from '../../infra-sk/modules/jsonOrThrow';
 import { DEVICE_ALIASES } from '../../modules/devices/devices';
 
 const UNKNOWN = 'unknown';

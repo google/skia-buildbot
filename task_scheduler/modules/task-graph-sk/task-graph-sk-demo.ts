@@ -1,4 +1,4 @@
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 import { TaskGraphSk } from './task-graph-sk';
 import { job2 } from '../rpc-mock';
 import '../../../infra-sk/modules/theme-chooser-sk';

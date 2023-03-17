@@ -1,7 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { JSONSourceSk } from './json-source-sk';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 fetchMock.post('/_/details/', () => ({ Hello: 'world!' }));
 

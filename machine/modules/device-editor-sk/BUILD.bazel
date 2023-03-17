@@ -9,14 +9,16 @@ sk_element(
     name = "device-editor-sk",
     sass_deps = [
         "//machine/modules/theme:theme_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["device-editor-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//machine/modules/json:index_ts_lib",
-        "@npm//common-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "device-editor-sk.ts",
@@ -29,7 +31,7 @@ sk_page(
     name = "device-editor-sk-demo",
     html_file = "device-editor-sk-demo.html",
     sk_element_deps = [":device-editor-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "device-editor-sk-demo.ts",
 )
 
@@ -45,9 +47,9 @@ karma_test(
     src = "device-editor-sk_test.ts",
     deps = [
         ":device-editor-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

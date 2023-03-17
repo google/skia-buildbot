@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { BugsSLOPopupSk } from './bugs-slo-popup-sk';
 import { Issue } from '../json';
 

@@ -6,7 +6,7 @@
  */
 
 import { render, svg } from 'lit-html';
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 
 import {
   Job,

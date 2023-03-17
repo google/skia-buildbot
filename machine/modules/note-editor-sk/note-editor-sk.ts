@@ -4,12 +4,11 @@
  *
  * Displays a dialog to edit an Annotation Message.
  */
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Annotation } from '../json';
-import 'elements-sk/styles/buttons';
 
 const defaultAnnotation: Annotation = {
   Message: '',

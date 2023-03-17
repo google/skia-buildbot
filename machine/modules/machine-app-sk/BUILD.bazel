@@ -13,12 +13,18 @@ sk_element(
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//machine/modules/machine-table-columns-dialog-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/more-vert-icon-sk",
+        "//elements-sk/modules/tabs-panel-sk",
+        "//elements-sk/modules/tabs-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -43,10 +49,10 @@ karma_test(
     src = "machine-app-sk_test.ts",
     deps = [
         ":machine-app-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//machine/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
     ],
 )

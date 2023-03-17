@@ -1,2 +1,2 @@
 import './index';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';

@@ -5,7 +5,7 @@ ts_library(
     srcs = ["cid.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
     ],
 )

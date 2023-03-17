@@ -2,13 +2,14 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "bugs-slo-popup-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["bugs-slo-popup-sk.scss"],
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "bugs-slo-popup-sk.ts",
@@ -23,7 +24,7 @@ sk_page(
     sk_element_deps = [":bugs-slo-popup-sk"],
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "bugs-slo-popup-sk-demo.ts",
 )

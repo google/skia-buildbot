@@ -7,16 +7,15 @@
  * </p>
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, render } from 'lit-html';
-import { localeTime, strDuration } from 'common-sk/modules/human';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
+import { localeTime, strDuration } from '../../../infra-sk/modules/human';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { escapeAndLinkify } from '../linkify';
 import { StepData, StepDisplay, TaskDriverRunDisplay } from '../../../task_driver/modules/json';
-import 'elements-sk/collapse-sk';
-import 'elements-sk/icon/launch-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/collapse-sk';
+import '../../../elements-sk/modules/icons/launch-icon-sk';
 
 /**
  * Describes the extra fields that this custom element adds to the JSON-encoded

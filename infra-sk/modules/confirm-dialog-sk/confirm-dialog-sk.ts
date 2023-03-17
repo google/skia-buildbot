@@ -22,10 +22,9 @@
  * </script>
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, render } from 'lit-html';
 
-import 'elements-sk/styles/buttons';
 
 export class ConfirmDialogSk extends HTMLElement {
   private static template = (ele: ConfirmDialogSk) => html`

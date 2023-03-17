@@ -6,11 +6,10 @@
  *
  * It emits events when the user takes actions.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/checkbox-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import '../../../elements-sk/modules/checkbox-sk';
 import { SwarmingDimensions } from '../json';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

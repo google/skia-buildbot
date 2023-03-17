@@ -1,8 +1,8 @@
 import './index';
 import '../gold-scaffold-sk';
-import { $$ } from 'common-sk/modules/dom';
-import { deepCopy } from 'common-sk/modules/object';
-import { toParamSet } from 'common-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { deepCopy } from '../../../infra-sk/modules/object';
+import { toParamSet } from '../../../infra-sk/modules/query';
 import fetchMock, { MockResponseObject } from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { SearchPageSk } from './search-page-sk';

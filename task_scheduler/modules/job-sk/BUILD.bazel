@@ -7,18 +7,26 @@ sk_demo_page_server(
 
 sk_element(
     name = "job-sk",
-    sass_deps = ["//infra-sk:themes_sass_lib"],
+    sass_deps = [
+        "//infra-sk:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:table_sass_lib",
+    ],
     sass_srcs = ["job-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/human-date-sk",
         "//task_scheduler/modules/task-graph-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
+        "//elements-sk/modules/icons/search-icon-sk",
+        "//elements-sk/modules/icons/timeline-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

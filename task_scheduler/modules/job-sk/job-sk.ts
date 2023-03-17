@@ -8,12 +8,10 @@
  *
  * @example
  */
-import { diffDate } from 'common-sk/modules/human';
-import { define } from 'elements-sk/define';
-import 'elements-sk/styles/table';
-import 'elements-sk/styles/buttons';
+import { diffDate } from '../../../infra-sk/modules/human';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   GetTaskSchedulerService,
@@ -26,9 +24,9 @@ import {
 import { TaskGraphSk } from '../task-graph-sk/task-graph-sk';
 import '../task-graph-sk';
 import '../../../infra-sk/modules/human-date-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/search-icon-sk';
-import 'elements-sk/icon/timeline-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/search-icon-sk';
+import '../../../elements-sk/modules/icons/timeline-icon-sk';
 
 const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, [

@@ -4,19 +4,21 @@ sk_element(
     name = "commit-detail-picker-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["commit-detail-picker-sk.scss"],
     sk_element_deps = [
         "//perf/modules/commit-detail-panel-sk",
         "//perf/modules/day-range-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "commit-detail-picker-sk.ts",
@@ -28,10 +30,12 @@ sk_element(
 sk_page(
     name = "commit-detail-picker-sk-demo",
     html_file = "commit-detail-picker-sk-demo.html",
-    sk_element_deps = [":commit-detail-picker-sk"],
+    sk_element_deps = [
+        ":commit-detail-picker-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//fetch-mock",
     ],
     ts_entry_point = "commit-detail-picker-sk-demo.ts",

@@ -8,7 +8,7 @@ sk_demo_page_server(
 sk_element(
     name = "list-page-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
     ],
     sass_srcs = ["list-page-sk.scss"],
     sk_element_deps = [
@@ -16,15 +16,22 @@ sk_element(
         "//golden/modules/query-dialog-sk",
         "//golden/modules/search-controls-sk",
         "//golden/modules/sort-toggle-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/icons/group-work-icon-sk",
+        "//elements-sk/modules/icons/tune-icon-sk",
     ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -74,10 +81,10 @@ karma_test(
         "//golden/modules/corpus-selector-sk:corpus-selector-sk_po_ts_lib",
         "//golden/modules/query-dialog-sk",
         "//golden/modules/query-dialog-sk:query-dialog-sk_po_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
     ],
 )

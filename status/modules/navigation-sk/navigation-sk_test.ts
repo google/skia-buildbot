@@ -1,6 +1,6 @@
 import './index';
 import { expect } from 'chai';
-import { $ } from 'common-sk/modules/dom';
+import { $ } from '../../../infra-sk/modules/dom';
 import { NavigationSk } from './navigation-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

@@ -1,8 +1,8 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
-import { deepCopy } from 'common-sk/modules/object';
-import { ErrorSkEventDetail } from 'elements-sk/errorMessage';
+import { deepCopy } from '../../../infra-sk/modules/object';
+import { ErrorSkEventDetail } from '../../../elements-sk/modules/errorMessage';
 import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { twoHundredCommits, typicalDetails, typicalDetailsDisallowTriaging } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';

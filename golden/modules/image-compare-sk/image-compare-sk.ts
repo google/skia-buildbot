@@ -6,13 +6,12 @@
  * only display one.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MultiZoomSk } from '../multi-zoom-sk/multi-zoom-sk';
 
-import 'elements-sk/icon/open-in-new-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/icons/open-in-new-icon-sk';
 import { digestDiffImagePath, digestImagePath } from '../common';
 
 import '../multi-zoom-sk';

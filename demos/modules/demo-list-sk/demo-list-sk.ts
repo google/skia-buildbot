@@ -2,11 +2,11 @@
  * @fileoverview A custom element for the basic demos.skia.org header.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
-import { errorMessage } from 'elements-sk/errorMessage';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Metadata } from '../rpc_types';
 

@@ -2,22 +2,22 @@
  * @fileoverview The bulk of the Admin Tasks page of CT.
  */
 
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/toast-sk';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/tabs-panel-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/toast-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../pageset-selector-sk';
 import '../task-repeater-sk';
 
-import { $$, $ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
-import 'elements-sk/select-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { $$, $ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/select-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

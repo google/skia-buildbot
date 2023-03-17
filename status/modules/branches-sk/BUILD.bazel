@@ -10,10 +10,10 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules:string_ts_lib",
         "//status/modules/rpc:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//status/modules:util_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "branches-sk.ts",

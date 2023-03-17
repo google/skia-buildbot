@@ -1,5 +1,5 @@
 import './index';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { Alert } from '../json';
 

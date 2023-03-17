@@ -4,8 +4,8 @@
  *
  * Constructs a single slider for a single float uniform.
  */
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';

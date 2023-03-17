@@ -4,7 +4,7 @@
  * Functions for working with CommitNumer's, aka Commit IDs.
  */
 
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import {
   CommitNumber,
   CIDHandlerResponse,

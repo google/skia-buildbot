@@ -4,7 +4,7 @@
  *
  * Provides UI for manipulating rules to prevent triggering of matching tasks.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/multi-input-sk';
@@ -16,11 +16,9 @@ import {
   GetSkipTaskRulesResponse,
   DeleteSkipTaskRuleResponse,
 } from '../rpc';
-import { $$ } from 'common-sk/modules/dom';
-import 'elements-sk/icon/add-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/table';
+import { $$ } from '../../../infra-sk/modules/dom';
+import '../../../elements-sk/modules/icons/add-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
 
 export class SkipTasksSk extends ElementSk {
   private static template = (ele: SkipTasksSk) => html`

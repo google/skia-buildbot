@@ -19,10 +19,9 @@
  */
 
 import { html } from 'lit-html';
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/styles/buttons';
 
 // MANY (2^31-1, aka math.MaxInt32) is a special value meaning the
 // server doesn't know how many items there are, only that it's more

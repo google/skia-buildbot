@@ -5,11 +5,11 @@
  * An element to display information around a single commit.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
-import { diffDate } from 'common-sk/modules/human';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
+import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../json';
 

@@ -5,33 +5,32 @@
  *   The main application element for am.skia.org.
  *
  */
-import { define } from 'elements-sk/define';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/alarm-off-icon-sk';
-import 'elements-sk/icon/comment-icon-sk';
-import 'elements-sk/icon/notifications-icon-sk';
-import 'elements-sk/icon/person-icon-sk';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/tabs-panel-sk';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/toast-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/alarm-off-icon-sk';
+import '../../../elements-sk/modules/icons/comment-icon-sk';
+import '../../../elements-sk/modules/icons/notifications-icon-sk';
+import '../../../elements-sk/modules/icons/person-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/toast-sk';
 
 import '../incident-sk';
 import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
 
-import { diffDate } from 'common-sk/modules/human';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { $, $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { diffDate } from '../../../infra-sk/modules/human';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, render, TemplateResult } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { Login } from '../../../infra-sk/modules/login';
 import { BotChooserSk } from '../bot-chooser-sk/bot-chooser-sk';
 import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';

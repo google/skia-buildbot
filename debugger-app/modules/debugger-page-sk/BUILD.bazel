@@ -15,13 +15,18 @@ sk_element(
         "//debugger-app/modules/zoom-sk",
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/tabs-panel-sk",
+        "//elements-sk/modules/tabs-sk",
     ],
     ts_deps = [
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:events_ts_lib",
         "//debugger-app/wasm_libs:canvaskit_types",  # keep
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
     ],
     ts_srcs = [
         "debugger-page-sk.ts",

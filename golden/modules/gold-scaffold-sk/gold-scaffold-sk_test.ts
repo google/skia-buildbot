@@ -1,9 +1,9 @@
 import './index';
 
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { sendBeginTask, sendEndTask } from '../common';
 import { exampleStatusData } from '../last-commit-sk/demo_data';

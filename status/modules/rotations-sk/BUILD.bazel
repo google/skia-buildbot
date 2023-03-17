@@ -14,8 +14,8 @@ sk_element(
     sk_element_deps = ["//status/modules/tree-status-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -33,8 +33,8 @@ sk_page(
     ],
     ts_deps = [
         "//status/modules/tree-status-sk:test_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "rotations-sk-demo.ts",
 )
@@ -55,9 +55,9 @@ karma_test(
     src = "rotations-sk_test.ts",
     deps = [
         ":rotations-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

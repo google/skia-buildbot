@@ -1,8 +1,8 @@
 import './machines-table-sk';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import {
   AttachedDevice, Annotation, SwarmingDimensions,
 } from '../json';

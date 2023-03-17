@@ -1,10 +1,10 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { priorities } from '../task-priority-sk/test_data';
 import { chromiumPatchResult } from '../patch-sk/test_data';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 fetchMock.config.overwriteRoutes = false;
 fetchMock.get('begin:/_/task_priorities/', priorities);

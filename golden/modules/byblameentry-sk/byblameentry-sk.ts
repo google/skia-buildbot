@@ -7,9 +7,9 @@
  * that is, a blame group of untriaged digests.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
 import { ByBlameEntry, Commit, TestRollup } from '../rpc_types';

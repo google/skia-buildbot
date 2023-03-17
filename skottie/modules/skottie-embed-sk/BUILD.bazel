@@ -11,9 +11,11 @@ sk_element(
     sk_element_deps = ["//skottie/modules/skottie-player-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

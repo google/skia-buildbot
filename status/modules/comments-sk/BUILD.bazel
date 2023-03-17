@@ -2,18 +2,24 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "comments-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["comments-sk.scss"],
     sk_element_deps = [
         "//ct/modules/input-sk",
         "//infra-sk/modules/human-date-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/icons/check-box-icon-sk",
+        "//elements-sk/modules/icons/check-box-outline-blank-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules:linkify_ts_lib",
         "//status/modules/rpc:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "comments-sk.ts",
@@ -29,7 +35,7 @@ sk_page(
     ts_deps = [
         "//status/modules/rpc-mock:index_ts_lib",
         ":test_data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "comments-sk-demo.ts",
 )
@@ -51,11 +57,11 @@ karma_test(
     deps = [
         ":comments-sk",
         ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//status/modules/rpc-mock:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )
 

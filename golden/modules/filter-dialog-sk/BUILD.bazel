@@ -7,16 +7,20 @@ sk_demo_page_server(
 
 sk_element(
     name = "filter-dialog-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["filter-dialog-sk.scss"],
     sk_element_deps = [
         "//golden/modules/trace-filter-sk",
         "//infra-sk/modules/paramset-sk",
+        "//elements-sk/modules/checkbox-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "filter-dialog-sk.ts",
@@ -29,7 +33,11 @@ sk_page(
     name = "filter-dialog-sk-demo",
     html_file = "filter-dialog-sk-demo.html",
     sk_element_deps = [":filter-dialog-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+    ],
     ts_entry_point = "filter-dialog-sk-demo.ts",
 )
 
@@ -39,10 +47,10 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":filter-dialog-sk",
+        "//elements-sk/modules/checkbox-sk",
         "//golden/modules/trace-filter-sk:trace-filter-sk_po_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 
@@ -64,9 +72,9 @@ karma_test(
     deps = [
         ":filter-dialog-sk",
         ":filter-dialog-sk_po_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

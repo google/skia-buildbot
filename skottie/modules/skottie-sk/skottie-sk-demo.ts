@@ -1,7 +1,7 @@
 import './index';
 
 import fetchMock from 'fetch-mock';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { gear, withText } from './test_gear';
 import { SkottieSk } from './skottie-sk';
 

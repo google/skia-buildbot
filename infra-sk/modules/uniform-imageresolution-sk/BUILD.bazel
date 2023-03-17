@@ -10,7 +10,7 @@ sk_element(
     sass_srcs = ["uniform-imageresolution-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "@npm//elements-sk",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -23,7 +23,7 @@ sk_page(
     name = "uniform-imageresolution-sk-demo",
     html_file = "uniform-imageresolution-sk-demo.html",
     sk_element_deps = [":uniform-imageresolution-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "uniform-imageresolution-sk-demo.ts",
 )
 

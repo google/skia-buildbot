@@ -9,15 +9,21 @@ sk_element(
     name = "skip-tasks-sk",
     sass_deps = [
         "//task_scheduler/modules:colors_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:table_sass_lib",
     ],
     sass_srcs = ["skip-tasks-sk.scss"],
-    sk_element_deps = ["//infra-sk/modules/multi-input-sk"],
+    sk_element_deps = [
+        "//infra-sk/modules/multi-input-sk",
+        "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

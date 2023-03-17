@@ -10,16 +10,15 @@
  * @evt bulk_triage_invoked - Sent just before the triage RPC is hit.
  * @evt bulk_triage_finished - Sent if the triage RPC returns success.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/view-agenda-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/view-agenda-icon-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
   BulkTriageDeltaInfo, Label, TriageDelta, TriageRequestV3,

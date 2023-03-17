@@ -1,11 +1,11 @@
 /** Shows code size statistics about a single binary. */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { load } from '@google-web-components/google-chart/loader';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import Fuse from 'fuse.js';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';

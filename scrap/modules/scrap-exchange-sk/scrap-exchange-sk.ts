@@ -3,12 +3,12 @@
  * @description <h2><code>scrap-exchange-sk</code></h2>
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 export class ScrapExchangeSk extends ElementSk {
   constructor() {

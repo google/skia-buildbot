@@ -1,7 +1,7 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import 'elements-sk/error-toast-sk';
-import { $$ } from 'common-sk/modules/dom';
+import '../../../elements-sk/modules/error-toast-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { mockIncrementalResponse, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
 import { sameTimestamp } from './test_data';

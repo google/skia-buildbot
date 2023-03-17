@@ -5,7 +5,7 @@
  *  and an image selection function so different parts of the app can send you
  *  to an image here, or you can pick one and view details about it.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { DefaultMap } from '../default-map';

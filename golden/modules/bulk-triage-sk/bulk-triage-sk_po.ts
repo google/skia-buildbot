@@ -1,4 +1,4 @@
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 

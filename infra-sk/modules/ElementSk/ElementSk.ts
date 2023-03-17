@@ -4,7 +4,7 @@
  *
  */
 import { render } from 'lit-html';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 
 /**
  * A base class that records the connected status of the element in this._connected and provides a

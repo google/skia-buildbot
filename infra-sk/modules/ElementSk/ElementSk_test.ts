@@ -1,4 +1,4 @@
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { assert } from 'chai';
 import { ElementSk } from './ElementSk';

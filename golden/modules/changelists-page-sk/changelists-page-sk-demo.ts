@@ -2,7 +2,7 @@ import './index';
 import '../gold-scaffold-sk';
 
 import fetchMock from 'fetch-mock';
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { delay } from '../demo_util';
 import { fakeNow, changelistSummaries_5, empty } from './test_data';
 import { testOnlySetSettings } from '../settings';

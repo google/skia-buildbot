@@ -1,7 +1,7 @@
 import './index';
 
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { MachineAppSk } from './index';
 import { Description } from '../json';

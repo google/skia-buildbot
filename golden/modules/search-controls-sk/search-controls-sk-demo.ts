@@ -1,6 +1,6 @@
 import './index';
-import { ParamSet, fromParamSet } from 'common-sk/modules/query';
-import { $$ } from 'common-sk/modules/dom';
+import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 
 const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];

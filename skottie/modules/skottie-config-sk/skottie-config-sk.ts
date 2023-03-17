@@ -25,11 +25,10 @@
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
  */
-import 'elements-sk/styles/buttons';
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SoundMap } from '../audio';
 import { LottieAnimation } from '../types';

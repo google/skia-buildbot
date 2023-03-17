@@ -12,12 +12,12 @@
  * @attr value - The content to put into the clipboard.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../ElementSk';
 
-import 'elements-sk/icon/content-copy-icon-sk';
+import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import '../tooltip-sk';
 import { TooltipSk } from '../tooltip-sk/tooltip-sk';
 

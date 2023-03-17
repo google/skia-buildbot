@@ -7,12 +7,12 @@
  *
  */
 
-import { $ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/checkbox-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 
 export type ColumnTitles = 'Machine' | 'Attached' | 'Device' | 'Mode' | 'Recovering' |'Power' | 'Details' | 'Quarantined' | 'Task' | 'Battery' | 'Temperature' | 'Last Seen' | 'Uptime' | 'Dimensions' | 'Launched Swarming' | 'Note' | 'Annotation' | 'Version' | 'Delete' | 'Clear Quarantine';
 

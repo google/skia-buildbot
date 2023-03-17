@@ -4,9 +4,9 @@
  *
  * Provides UI for searching the jobs in the DB.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
+import { ParamSet, toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   TaskSchedulerService,
@@ -15,10 +15,8 @@ import {
   Job,
   JobStatus,
 } from '../rpc';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/table';
-import { $$ } from 'common-sk/modules/dom';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 // Names and types of search terms.
 interface DisplaySearchTerm {

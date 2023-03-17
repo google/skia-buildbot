@@ -10,11 +10,10 @@
  *     "positive" or "negative").
  */
 
-import 'elements-sk/styles/buttons';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import { define } from 'elements-sk/define';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Label } from '../rpc_types';

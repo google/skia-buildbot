@@ -9,13 +9,16 @@ sk_element(
     sk_element_deps = [
         "//debugger-app/modules/element-doc-sk",
         "//debugger-app/modules/play-sk",
+        "//elements-sk/modules/icons/content-copy-icon-sk",
+        "//elements-sk/modules/icons/image-icon-sk",
+        "//elements-sk/modules/icons/save-icon-sk",
     ],
     ts_deps = [
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:default-map_ts_lib",
         "//debugger-app/modules:events_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "commands-sk.ts",
@@ -33,7 +36,7 @@ sk_page(
     ],
     ts_deps = [
         ":test-data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "commands-sk-demo.ts",
 )

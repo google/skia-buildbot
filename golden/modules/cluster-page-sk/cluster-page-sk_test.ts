@@ -3,7 +3,7 @@ import './index';
 import fetchMock from 'fetch-mock';
 
 import { expect } from 'chai';
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import {
   eventPromise,
   setQueryString,

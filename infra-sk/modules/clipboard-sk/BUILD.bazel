@@ -8,12 +8,15 @@ sk_demo_page_server(
 sk_element(
     name = "clipboard-sk",
     sass_srcs = ["clipboard-sk.scss"],
-    sk_element_deps = ["//infra-sk/modules/tooltip-sk"],
+    sk_element_deps = [
+        "//infra-sk/modules/tooltip-sk",
+        "//elements-sk/modules/icons/content-copy-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
-        "@npm//common-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "clipboard-sk.ts",
@@ -27,7 +30,7 @@ sk_page(
     html_file = "clipboard-sk-demo.html",
     scss_entry_point = "clipboard-sk-demo.scss",
     sk_element_deps = [":clipboard-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "clipboard-sk-demo.ts",
 )
 
@@ -47,10 +50,10 @@ karma_test(
     src = "clipboard-sk_test.ts",
     deps = [
         ":clipboard-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//infra-sk/modules/tooltip-sk",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

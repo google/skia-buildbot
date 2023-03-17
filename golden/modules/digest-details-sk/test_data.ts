@@ -1,4 +1,4 @@
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import {
   Commit, Digest, SearchResult, TestName,
 } from '../rpc_types';

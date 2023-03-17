@@ -1,4 +1,4 @@
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { EditChildShaderSk } from './edit-child-shader-sk';
 import './index';
 

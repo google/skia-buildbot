@@ -13,17 +13,17 @@
  * @attr {boolean} hide_regex - If the option to include regex in the query should be made
  *       available to the user.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import {
   MultiSelectSk,
   MultiSelectSkSelectionChangedEventDetail,
-} from 'elements-sk/multi-select-sk/multi-select-sk';
+} from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../ElementSk';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/multi-select-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/multi-select-sk';
 
 export interface QueryValuesSkQueryValuesChangedEventDetail {
   invert: boolean;

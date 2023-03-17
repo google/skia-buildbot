@@ -12,7 +12,7 @@
  * @attr value - The text to display.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 

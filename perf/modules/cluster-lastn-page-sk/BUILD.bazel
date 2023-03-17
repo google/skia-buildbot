@@ -4,6 +4,7 @@ sk_element(
     name = "cluster-lastn-page-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["cluster-lastn-page-sk.scss"],
     sk_element_deps = [
@@ -12,15 +13,19 @@ sk_element(
         "//perf/modules/commit-detail-sk",
         "//perf/modules/domain-picker-sk",
         "//perf/modules/triage-status-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "cluster-lastn-page-sk.ts",
@@ -32,10 +37,12 @@ sk_element(
 sk_page(
     name = "cluster-lastn-page-sk-demo",
     html_file = "cluster-lastn-page-sk-demo.html",
-    sk_element_deps = [":cluster-lastn-page-sk"],
+    sk_element_deps = [
+        ":cluster-lastn-page-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//fetch-mock",
     ],
     ts_entry_point = "cluster-lastn-page-sk-demo.ts",

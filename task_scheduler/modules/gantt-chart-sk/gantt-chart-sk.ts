@@ -3,9 +3,9 @@
  * @description Tools for displaying Gantt charts.
  */
 
-import { strDuration } from 'common-sk/modules/human';
+import { strDuration } from '../../../infra-sk/modules/human';
 import { render, svg } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 export interface Block {
   start: Date;

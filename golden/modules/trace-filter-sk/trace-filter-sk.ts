@@ -10,14 +10,13 @@
  *                           contains the new ParamSet.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { ParamSet, fromParamSet, toParamSet } from 'common-sk/modules/query';
-import { $$ } from 'common-sk/modules/dom';
+import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
 
-import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../query-dialog-sk';

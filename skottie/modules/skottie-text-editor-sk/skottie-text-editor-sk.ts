@@ -17,7 +17,7 @@
  *         Supported values are default and presentation
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ifDefined } from 'lit-html/directives/if-defined';
 import { ExtraLayerData, TextData } from './text-replace';

@@ -1,7 +1,7 @@
 // Utilities for autoroll frontend modules.
 
 import { html, TemplateResult } from 'lit-html';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate } from '../../infra-sk/modules/human';
 import { AutoRollMiniStatus } from './rpc';
 
 /**

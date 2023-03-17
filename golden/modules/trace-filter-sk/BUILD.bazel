@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "trace-filter-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["trace-filter-sk.scss"],
     sk_element_deps = [
         "//golden/modules/query-dialog-sk",
@@ -15,9 +16,10 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -30,7 +32,7 @@ sk_page(
     name = "trace-filter-sk-demo",
     html_file = "trace-filter-sk-demo.html",
     sk_element_deps = [":trace-filter-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "trace-filter-sk-demo.ts",
 )
 
@@ -40,10 +42,10 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//golden/modules/query-dialog-sk:query-dialog-sk_po_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "//infra-sk/modules/paramset-sk:paramset-sk_po_ts_lib",
-        "@npm//common-sk",
     ],
 )
 
@@ -65,9 +67,9 @@ karma_test(
     deps = [
         ":trace-filter-sk",
         ":trace-filter-sk_po_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

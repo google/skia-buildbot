@@ -38,10 +38,10 @@ sass_library(
     srcs = ["themes.scss"],
     visibility = ["//visibility:public"],
     deps = [
-        "@npm//:node_modules/elements-sk/styles/buttons/buttons.scss",
-        "@npm//:node_modules/elements-sk/styles/select/select.scss",
-        "@npm//:node_modules/elements-sk/styles/table/table.scss",
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+        "//elements-sk/modules/styles:table_sass_lib",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
 )

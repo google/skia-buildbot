@@ -6,10 +6,10 @@ karma_test(
     deps = [
         ":common_ts_lib",
         "//golden/modules/search-controls-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )
 
@@ -20,7 +20,8 @@ ts_library(
     deps = [
         ":rpc_types_ts_lib",
         "//golden/modules/search-controls-sk",
-        "@npm//common-sk",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
 )
 
@@ -46,7 +47,7 @@ ts_library(
     name = "shared_demo_data_ts_lib",
     srcs = ["shared_demo_data.ts"],
     visibility = ["//visibility:public"],
-    deps = ["@npm//common-sk"],
+    deps = ["//infra-sk/modules:query_ts_lib"],
 )
 
 sass_library(

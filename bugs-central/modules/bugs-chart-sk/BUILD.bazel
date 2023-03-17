@@ -9,9 +9,9 @@ sk_element(
         # the import naming convention expected by the Gazelle front-end extension, and thus needs
         # to be added manually.
         "@npm//@types/google.visualization",  # keep
-        "@npm//elements-sk",
         "@npm//lit-html",
         "@npm//@google-web-components/google-chart",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "bugs-chart-sk.ts",

@@ -8,10 +8,10 @@
  * @evt input - A CustomEvent<Date> with the new date.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/icon/date-range-icon-sk';
+import '../../../elements-sk/modules/icons/date-range-icon-sk';
 import '../calendar-sk';
 import { CalendarSk } from '../calendar-sk/calendar-sk';
 

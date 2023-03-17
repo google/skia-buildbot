@@ -1,8 +1,8 @@
 import './index';
 
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { expect } from 'chai';
 import {
   eventPromise,

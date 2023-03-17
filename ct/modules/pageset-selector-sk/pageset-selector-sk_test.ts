@@ -1,9 +1,9 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { pageSets } from './test_data';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PagesetSelectorSk } from './pageset-selector-sk';

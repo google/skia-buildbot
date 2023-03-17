@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { messageByName, messagesToErrorString, startRequest } from './progress';
 import { progress } from '../json';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
 fetchMock.config.overwriteRoutes = true;
 

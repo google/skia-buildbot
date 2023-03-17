@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "query-dialog-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["query-dialog-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/paramset-sk",
@@ -14,9 +15,10 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -29,7 +31,10 @@ sk_page(
     name = "query-dialog-sk-demo",
     html_file = "query-dialog-sk-demo.html",
     sk_element_deps = [":query-dialog-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+    ],
     ts_entry_point = "query-dialog-sk-demo.ts",
 )
 
@@ -38,11 +43,11 @@ ts_library(
     srcs = ["query-dialog-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "//infra-sk/modules/paramset-sk:paramset-sk_po_ts_lib",
         "//infra-sk/modules/query-sk:query-sk_po_ts_lib",
-        "@npm//common-sk",
     ],
 )
 
@@ -64,9 +69,10 @@ karma_test(
     deps = [
         ":query-dialog-sk",
         ":query-dialog-sk_po_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

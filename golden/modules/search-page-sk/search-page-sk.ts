@@ -4,12 +4,12 @@
  *
  */
 import { html } from 'lit-html';
-import { define } from 'elements-sk/define';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { deepCopy } from 'common-sk/modules/object';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { fromObject, fromParamSet, ParamSet } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { define } from '../../../elements-sk/modules/define';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { deepCopy } from '../../../infra-sk/modules/object';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { fromObject, fromParamSet, ParamSet } from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
 import {
@@ -29,8 +29,7 @@ import {
   StatusResponse,
 } from '../rpc_types';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/checkbox-sk';
 import '../bulk-triage-sk';
 import '../search-controls-sk';
 import '../changelist-controls-sk';

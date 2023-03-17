@@ -9,7 +9,7 @@ import 'codemirror5/addon/fold/foldcode';
 import 'codemirror5/addon/fold/foldgutter';
 import 'codemirror5/lib/codemirror';
 import 'codemirror5/mode/clike/clike'; // Syntax highlighting for c-like languages.
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import CodeMirror from 'codemirror5';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';

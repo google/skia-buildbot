@@ -1,7 +1,7 @@
 import fetchMock from 'fetch-mock';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { Commit } from '../json';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 import { CommitDetailPickerSk } from '../commit-detail-picker-sk/commit-detail-picker-sk';
 import { QuerySk } from '../../../infra-sk/modules/query-sk/query-sk';

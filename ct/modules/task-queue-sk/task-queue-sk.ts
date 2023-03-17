@@ -3,17 +3,17 @@
  * displays it as a table.
  */
 
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/toast-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/toast-sk';
 
-import { $$, DomReady } from 'common-sk/modules/dom';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { $$, DomReady } from '../../../infra-sk/modules/dom';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

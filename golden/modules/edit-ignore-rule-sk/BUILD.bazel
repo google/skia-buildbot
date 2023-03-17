@@ -13,9 +13,9 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "edit-ignore-rule-sk.ts",
@@ -31,7 +31,7 @@ sk_page(
     ts_deps = [
         "//golden/modules:shared_demo_data_ts_lib",
         ":edit-ignore-rule-sk_po_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "edit-ignore-rule-sk-demo.ts",
 )

@@ -1,7 +1,7 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 
 import { languageList } from './test_data';
 import { SuggestInputSk } from './suggest-input-sk';

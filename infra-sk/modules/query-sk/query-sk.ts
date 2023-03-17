@@ -18,10 +18,10 @@
  *       available to the user.
  * @attr {boolean} values_only - If true then only display the values selection and hide the key selection.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
-import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { ParamSet, toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../ElementSk';
 import {
   QueryValuesSk,
@@ -29,8 +29,7 @@ import {
 } from '../query-values-sk/query-values-sk';
 
 import '../query-values-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/select-sk';
 
 // The delay in ms before sending a delayed query-change event.
 const DELAY_MS = 500;

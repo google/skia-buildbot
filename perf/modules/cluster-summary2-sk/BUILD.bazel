@@ -4,6 +4,7 @@ sk_element(
     name = "cluster-summary2-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["cluster-summary2-sk.scss"],
     sk_element_deps = [
@@ -12,6 +13,7 @@ sk_element(
         "//perf/modules/triage2-sk",
         "//perf/modules/word-cloud-sk",
         "//perf/modules/commit-range-sk",
+        "//elements-sk/modules/collapse-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -19,10 +21,10 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",

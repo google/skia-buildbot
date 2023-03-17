@@ -1,7 +1,7 @@
 import './index';
 import '../tree-status-sk';
 import fetchMock from 'fetch-mock';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import {
   treeStatusResp,
   generalRoleResp,

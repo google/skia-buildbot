@@ -9,9 +9,10 @@ sk_element(
     name = "human-date-sk",
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "human-date-sk.ts",
@@ -43,9 +44,9 @@ karma_test(
     src = "human-date-sk_test.ts",
     deps = [
         ":human-date-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

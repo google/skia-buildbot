@@ -1,5 +1,5 @@
-@import 'node_modules/elements-sk/themes/color-palette.scss';
-@import 'node_modules/elements-sk/themes/themes.scss';
+@import '../../../elements-sk/modules/themes/color-palette';
+@import '../../../elements-sk/modules/themes/themes';
 
 multi-input-sk {
   .input-container {

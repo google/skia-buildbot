@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { NoteEditorSk } from './note-editor-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

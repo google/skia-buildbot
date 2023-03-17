@@ -12,8 +12,8 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/fps:fps_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

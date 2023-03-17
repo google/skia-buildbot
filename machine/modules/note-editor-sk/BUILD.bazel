@@ -9,14 +9,15 @@ sk_element(
     name = "note-editor-sk",
     sass_deps = [
         "//machine/modules/theme:theme_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["note-editor-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//machine/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -32,7 +33,7 @@ sk_page(
     sk_element_deps = [":note-editor-sk"],
     ts_deps = [
         "//machine/modules/json:index_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "note-editor-sk-demo.ts",
 )
@@ -53,10 +54,10 @@ karma_test(
     src = "note-editor-sk_test.ts",
     deps = [
         ":note-editor-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//machine/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

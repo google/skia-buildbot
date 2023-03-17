@@ -9,14 +9,20 @@ sk_element(
     name = "triage-sk",
     sass_deps = [
         "//golden/modules:colors_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["triage-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/cancel-icon-sk",
+        "//elements-sk/modules/icons/check-circle-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+    ],
     ts_deps = [
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

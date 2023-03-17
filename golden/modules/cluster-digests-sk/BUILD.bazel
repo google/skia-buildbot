@@ -13,8 +13,8 @@ sk_element(
         "@npm//@types/d3-selection",
         "@npm//d3-force",
         "@npm//d3-selection",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "cluster-digests-sk.ts",
@@ -29,7 +29,7 @@ sk_page(
     sk_element_deps = [":cluster-digests-sk"],
     ts_deps = [
         "//golden/modules/cluster-page-sk:test_data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:object_ts_lib",
     ],
     ts_entry_point = "cluster-digests-sk-demo.ts",
 )

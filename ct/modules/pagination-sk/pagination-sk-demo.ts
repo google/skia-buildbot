@@ -1,6 +1,6 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { PaginationSk } from './pagination-sk';
 
 const p = document.createElement('pagination-sk') as PaginationSk;

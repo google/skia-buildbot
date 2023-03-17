@@ -11,10 +11,11 @@ sk_element(
     sass_srcs = ["screenshots-viewer-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//puppeteer-tests/modules:rpc_types_ts_lib",
-        "@npm//common-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "screenshots-viewer-sk.ts",

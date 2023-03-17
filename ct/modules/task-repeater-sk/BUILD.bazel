@@ -11,11 +11,12 @@ sk_element(
         "//ct/modules:colors_sass_lib",
     ],
     sass_srcs = ["task-repeater-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/select-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -31,7 +32,7 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":task-repeater-sk",
     ],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "task-repeater-sk-demo.ts",
 )
 
@@ -40,10 +41,10 @@ karma_test(
     src = "task-repeater-sk_test.ts",
     deps = [
         ":task-repeater-sk",
+        "//elements-sk/modules/select-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
-        "@npm//elements-sk",
     ],
 )

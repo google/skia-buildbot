@@ -15,10 +15,10 @@
  * @property showIgnoreFailure: boolean - Display ignoreFailure field of comments.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { $$ } from 'common-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   AddCommentRequest, Comment, GetStatusService, StatusService,
@@ -27,11 +27,10 @@ import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
 import '../../../ct/modules/input-sk';
 import '../../../infra-sk/modules/human-date-sk';
-import 'elements-sk/icon/check-box-icon-sk';
-import 'elements-sk/icon/check-box-outline-blank-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/icons/check-box-icon-sk';
+import '../../../elements-sk/modules/icons/check-box-outline-blank-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 
 // Helper class for parent to set comments to display, as well as metadata
 // about them and any comments added by the user.

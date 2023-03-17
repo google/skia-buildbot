@@ -48,11 +48,11 @@
  * that contains the key and values for that row.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../ElementSk';
-import 'elements-sk/icon/add-icon-sk';
+import '../../../elements-sk/modules/icons/add-icon-sk';
 
 export interface ParamSetSkClickEventDetail {
   readonly key: string;

@@ -1,8 +1,8 @@
 import './index';
 import { expect } from 'chai';
-import { ParamSet } from 'common-sk/modules/query';
-import * as query from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { ParamSet } from '../../../infra-sk/modules/query';
+import * as query from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import {
   SearchControlsSk, SearchCriteria, SearchCriteriaHintableObject, SearchCriteriaFromHintableObject, SearchCriteriaToHintableObject,

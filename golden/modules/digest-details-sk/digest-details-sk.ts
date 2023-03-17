@@ -16,10 +16,10 @@
  *   the blamelist (an array of commits that could have made up that dot).
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { diffDate } from 'common-sk/modules/human';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import {
@@ -27,7 +27,7 @@ import {
   detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
 
-import 'elements-sk/icon/group-work-icon-sk';
+import '../../../elements-sk/modules/icons/group-work-icon-sk';
 import '../dots-sk';
 import '../dots-legend-sk';
 import '../triage-sk';

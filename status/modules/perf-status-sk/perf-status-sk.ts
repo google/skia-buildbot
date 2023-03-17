@@ -4,10 +4,10 @@
  *
  * Custom element for displaying status of Perf regressions.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertsStatus } from '../../../perf/modules/json';
 

@@ -9,8 +9,8 @@
  * @attr {string} textPrefix - Optional prefix to put before the input box.
  */
 
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ifDefined } from 'lit-html/directives/if-defined';
 

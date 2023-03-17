@@ -36,8 +36,8 @@
  *  </app-sk>
  *
  */
-import { define } from 'elements-sk/define';
-import 'elements-sk/icon/menu-icon-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/icons/menu-icon-sk';
 
 const buttonTemplate = document.createElement('template');
 buttonTemplate.innerHTML = `

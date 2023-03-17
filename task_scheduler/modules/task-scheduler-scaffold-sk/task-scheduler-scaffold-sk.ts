@@ -17,23 +17,23 @@
  * @attr {boolean} testing_offline - If we should operate entirely in offline
  *     mode.
  */
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/block-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/search-icon-sk';
-import 'elements-sk/icon/send-icon-sk';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/block-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/icons/search-icon-sk';
+import '../../../elements-sk/modules/icons/send-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
 /**
  * Moves the elements from one NodeList to the given HTMLElement.

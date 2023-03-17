@@ -8,8 +8,7 @@
  */
 
 import { html } from 'lit-html';
-import { define } from 'elements-sk/define';
-import 'elements-sk/styles/table';
+import { define } from '../../../elements-sk/modules/define';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/human-date-sk';

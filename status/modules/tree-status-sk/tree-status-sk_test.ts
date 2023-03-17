@@ -3,7 +3,7 @@ import './index';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
-import { $ } from 'common-sk/modules/dom';
+import { $ } from '../../../infra-sk/modules/dom';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { TreeStatus, TreeStatusSk } from './tree-status-sk';
 import {

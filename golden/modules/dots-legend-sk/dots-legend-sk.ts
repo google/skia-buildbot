@@ -5,7 +5,7 @@
  * A legend for the dots-sk element.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -16,9 +16,9 @@ import {
 import { detailHref, diffPageHref } from '../common';
 import { DigestStatus, Label, Params } from '../rpc_types';
 
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
 
 export class DotsLegendSk extends ElementSk {
   private static template = (el: DotsLegendSk) => html`

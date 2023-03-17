@@ -7,17 +7,16 @@
  * id.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 
-import 'elements-sk/spinner-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/spinner-sk';
 
 export class JSONSourceSk extends ElementSk {
   private _json: string;

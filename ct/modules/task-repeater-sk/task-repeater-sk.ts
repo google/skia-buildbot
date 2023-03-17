@@ -5,13 +5,13 @@
  * or weekly.
  */
 
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 
-import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/select-sk';
+import '../../../elements-sk/modules/select-sk';
 
 const frequencies = [
   { num: '0', desc: 'Never repeat' },

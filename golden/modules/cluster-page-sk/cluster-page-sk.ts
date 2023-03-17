@@ -7,12 +7,12 @@
  *
  * It is a top level element.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { fromParamSet, fromObject, ParamSet } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { fromParamSet, fromObject, ParamSet } from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk';

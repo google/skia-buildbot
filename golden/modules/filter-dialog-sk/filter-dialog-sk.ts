@@ -9,16 +9,15 @@
  *         The "detail" field of the event contains the filter values entered by the user.
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { live } from 'lit-html/directives/live';
-import { $$ } from 'common-sk/modules/dom';
-import { deepCopy } from 'common-sk/modules/object';
-import { ParamSet } from 'common-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { deepCopy } from '../../../infra-sk/modules/object';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/styles/buttons';
-import 'elements-sk/checkbox-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 import '../trace-filter-sk';
 import '../../../infra-sk/modules/paramset-sk';
 

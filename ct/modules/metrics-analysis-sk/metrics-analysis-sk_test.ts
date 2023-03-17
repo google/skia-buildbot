@@ -1,7 +1,7 @@
 import './index';
 
 import sinon from 'sinon';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { priorities } from '../task-priority-sk/test_data';

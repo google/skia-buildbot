@@ -11,15 +11,15 @@
  *
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/folder-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';

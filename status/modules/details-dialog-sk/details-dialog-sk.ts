@@ -5,12 +5,12 @@
  * @property repo {string} - The repo associated with the tasks/taskspecs/commits that will be
  * displayed.
  */
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, TemplateResult } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { $$ } from 'common-sk/modules/dom';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
@@ -22,10 +22,9 @@ import {
 } from '../settings';
 
 import '../comments-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/icon/close-icon-sk';
-import 'elements-sk/icon/content-copy-icon-sk';
-import 'elements-sk/icon/launch-icon-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
+import '../../../elements-sk/modules/icons/content-copy-icon-sk';
+import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
 
 // Type defining the text and action of the upper-right button of the dialog.

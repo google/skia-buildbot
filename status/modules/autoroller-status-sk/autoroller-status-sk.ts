@@ -7,7 +7,7 @@
  * @event rollers-update: Periodic event for updated roller status. Detail
  * is of type Array<AutorollerStatus>
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { StatusService, GetStatusService, AutorollerStatus } from '../rpc';

@@ -1,6 +1,6 @@
 import './index';
 import { expect } from 'chai';
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { TraceFilterSk } from './trace-filter-sk';
 import { TraceFilterSkPO } from './trace-filter-sk_po';

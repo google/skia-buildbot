@@ -26,10 +26,10 @@
  *   </pre>
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
-import 'elements-sk/icon/invert-colors-icon-sk';
+import '../../../elements-sk/modules/icons/invert-colors-icon-sk';
 
 /** Class applied to <body> to enable darkmode. */
 export const DARKMODE_CLASS = 'darkmode';

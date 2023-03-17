@@ -7,13 +7,12 @@
  */
 
 import '../commit-detail-panel-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/spinner-sk';
 import '../day-range-sk';
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit, CommitNumber, RangeRequest } from '../json';

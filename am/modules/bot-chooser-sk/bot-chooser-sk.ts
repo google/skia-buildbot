@@ -9,12 +9,10 @@
  * </p>
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, render, TemplateResult } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
 import { Incident } from '../json';
 
 export class BotChooserSk extends HTMLElement {

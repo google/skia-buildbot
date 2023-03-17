@@ -16,7 +16,7 @@
  * @evt toggle-command-inclusion: Emitted when a row is clicked, indicating it's
  * inclusion in the command filter should be toggled.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 

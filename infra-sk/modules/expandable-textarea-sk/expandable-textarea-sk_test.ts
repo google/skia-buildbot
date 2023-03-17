@@ -1,7 +1,7 @@
 import './index';
 
 import { ExpandableTextareaSk } from './expandable-textarea-sk';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { setUpElementUnderTest } from '../test_util';
 import { expect } from 'chai';
 import chai from 'chai';

@@ -1,4 +1,4 @@
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';

@@ -1,7 +1,7 @@
 import './index';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { BugsStatusSk } from './bugs-status-sk';
 import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
 

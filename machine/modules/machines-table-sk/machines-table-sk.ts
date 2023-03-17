@@ -10,10 +10,10 @@
  */
 import { html, TemplateResult } from 'lit-html';
 
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { diffDate, strDuration } from 'common-sk/modules/human';
-import { $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { diffDate, strDuration } from '../../../infra-sk/modules/human';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import {
   Annotation,
   AttachedDevice, Description, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
@@ -21,22 +21,20 @@ import {
 
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import '../../../infra-sk/modules/clipboard-sk';
-import 'elements-sk/error-toast-sk/index';
-import 'elements-sk/icon/block-icon-sk';
-import 'elements-sk/icon/cached-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/edit-icon-sk';
-import 'elements-sk/icon/launch-icon-sk';
-import 'elements-sk/icon/power-settings-new-icon-sk';
-import 'elements-sk/icon/warning-icon-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/icon/sort-icon-sk';
-import 'elements-sk/icon/arrow-drop-down-icon-sk';
-import 'elements-sk/icon/arrow-drop-up-icon-sk';
-import 'elements-sk/icon/clear-all-icon-sk';
-import 'elements-sk/icon/content-copy-icon-sk';
+import '../../../elements-sk/modules/error-toast-sk/index';
+import '../../../elements-sk/modules/icons/block-icon-sk';
+import '../../../elements-sk/modules/icons/cached-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/edit-icon-sk';
+import '../../../elements-sk/modules/icons/launch-icon-sk';
+import '../../../elements-sk/modules/icons/power-settings-new-icon-sk';
+import '../../../elements-sk/modules/icons/warning-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/icons/sort-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
+import '../../../elements-sk/modules/icons/clear-all-icon-sk';
+import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../device-editor-sk';

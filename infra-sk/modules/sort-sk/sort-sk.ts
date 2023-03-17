@@ -38,11 +38,11 @@
  * @attr target - The id of the container element whose children are to be sorted.
  *
  */
-import { define } from 'elements-sk/define';
-import { $, $$ } from 'common-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../ElementSk';
-import 'elements-sk/icon/arrow-drop-down-icon-sk';
-import 'elements-sk/icon/arrow-drop-up-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 
 export type SortDirection = 'down' | 'up';
 

@@ -1,7 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { eventPromise, eventSequencePromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DigestComparison, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';

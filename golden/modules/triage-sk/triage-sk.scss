@@ -1,5 +1,6 @@
+@import '../../../elements-sk/modules/styles/buttons';
 @import '../colors';
-@import 'node_modules/elements-sk/colors.scss';
+@import '../../../elements-sk/modules/colors';
 
 triage-sk {
   display: inline-block;

@@ -10,12 +10,12 @@ sk_element(
     sass_srcs = ["commit-range-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "commit-range-sk.ts",
@@ -30,8 +30,8 @@ sk_page(
     sk_element_deps = [":commit-range-sk"],
     ts_deps = [
         "@npm//fetch-mock",
-        "@npm//common-sk",
         "//perf/modules/const:const_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "commit-range-sk-demo.ts",
 )

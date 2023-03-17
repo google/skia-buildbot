@@ -5,13 +5,13 @@
  * Page to view/edit/delete ignore rules.
  */
 
-import * as human from 'common-sk/modules/human';
+import * as human from '../../../infra-sk/modules/human';
 
 import { classMap } from 'lit-html/directives/class-map';
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import {
@@ -25,11 +25,10 @@ import { ConfirmDialogSk } from '../../../infra-sk/modules/confirm-dialog-sk/con
 
 import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../edit-ignore-rule-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/info-outline-icon-sk';
-import 'elements-sk/icon/mode-edit-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/info-outline-icon-sk';
+import '../../../elements-sk/modules/icons/mode-edit-icon-sk';
 
 function trimEmail(s: string) {
   return `${s.split('@')[0]}@`;

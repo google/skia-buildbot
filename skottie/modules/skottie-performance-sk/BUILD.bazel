@@ -6,9 +6,9 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//chart.js",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

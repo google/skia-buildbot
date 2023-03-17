@@ -17,15 +17,15 @@
  *
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { findParent } from 'common-sk/modules/dom';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { findParent } from '../../../infra-sk/modules/dom';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AutorollerSnapshot } from '../json';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/radio-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/radio-sk';
 
 export class ListAutorollersSk extends ElementSk {
   private checkedAutorollers: Set<string> = new Set();

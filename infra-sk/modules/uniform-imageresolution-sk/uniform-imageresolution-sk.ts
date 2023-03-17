@@ -6,7 +6,7 @@
  *
  * Note this control doesn't display anything.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 // All source images are 512 x 512 px.

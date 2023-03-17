@@ -11,11 +11,11 @@
  * @evt refresh-page - This event bubbles, and is produced every time the data
  *   on the page should be refreshed.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/icon/pause-icon-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 

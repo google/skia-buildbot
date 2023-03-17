@@ -9,22 +9,22 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../../../ct/modules/input-sk';
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/battery-charging-80-icon-sk';
-import 'elements-sk/icon/dashboard-icon-sk';
-import 'elements-sk/icon/devices-icon-sk';
-import 'elements-sk/icon/arrow-drop-down-icon-sk';
-import 'elements-sk/icon/arrow-drop-up-icon-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { $$, DomReady } from 'common-sk/modules/dom';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/battery-charging-80-icon-sk';
+import '../../../elements-sk/modules/icons/dashboard-icon-sk';
+import '../../../elements-sk/modules/icons/devices-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { $$, DomReady } from '../../../infra-sk/modules/dom';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import {
   StatusService, GetStatusService, BotSet, BotSet_DimensionsEntry,
 } from '../rpc';

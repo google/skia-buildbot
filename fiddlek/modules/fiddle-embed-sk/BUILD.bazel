@@ -11,13 +11,17 @@ sk_element(
         "//fiddlek/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["fiddle-embed-sk.scss"],
-    sk_element_deps = ["//fiddlek/modules/fiddle-sk"],
+    sk_element_deps = [
+        "//fiddlek/modules/fiddle-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
     ts_deps = [
         "//fiddlek/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "fiddle-embed-sk.ts",
@@ -33,7 +37,7 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":fiddle-embed-sk",
     ],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "fiddle-embed-sk-demo.ts",
 )
 

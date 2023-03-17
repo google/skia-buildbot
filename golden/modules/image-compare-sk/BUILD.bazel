@@ -10,15 +10,19 @@ sk_demo_page_server(
 sk_element(
     name = "image-compare-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["image-compare-sk.scss"],
-    sk_element_deps = ["//golden/modules/multi-zoom-sk"],
+    sk_element_deps = [
+        "//golden/modules/multi-zoom-sk",
+        "//elements-sk/modules/icons/open-in-new-icon-sk",
+    ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "image-compare-sk.ts",
@@ -31,7 +35,7 @@ sk_page(
     name = "image-compare-sk-demo",
     html_file = "image-compare-sk-demo.html",
     sk_element_deps = [":image-compare-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "image-compare-sk-demo.ts",
 )
 

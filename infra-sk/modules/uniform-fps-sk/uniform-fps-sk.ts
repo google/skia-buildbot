@@ -4,7 +4,7 @@
  *
  * Displays the frames per second.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import { FPS } from '../fps/fps';

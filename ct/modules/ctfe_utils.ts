@@ -1,10 +1,10 @@
 /**
  * Utility javascript functions used across the different CT FE pages.
  */
-import { pad } from 'common-sk/modules/human';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { pad } from '../../infra-sk/modules/human';
+import { fromObject } from '../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../infra-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../elements-sk/modules/errorMessage';
 import { BenchmarksPlatformsResponse } from './json';
 
 /**

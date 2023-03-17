@@ -8,10 +8,14 @@ sk_demo_page_server(
 sk_element(
     name = "auto-refresh-sk",
     sass_srcs = ["auto-refresh-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/pause-icon-sk",
+        "//elements-sk/modules/icons/play-arrow-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "auto-refresh-sk.ts",
@@ -25,7 +29,7 @@ sk_page(
     html_file = "auto-refresh-sk-demo.html",
     scss_entry_point = "auto-refresh-sk-demo.scss",
     sk_element_deps = [":auto-refresh-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "auto-refresh-sk-demo.ts",
 )
 
@@ -45,9 +49,9 @@ karma_test(
     src = "auto-refresh-sk_test.ts",
     deps = [
         ":auto-refresh-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

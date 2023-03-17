@@ -10,11 +10,11 @@
  *
  * It should typically be wrapped in a dialog tag.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/checkbox-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 
 const previewCanvasSize = 128;
 const zoomedCanvasSize = 500;

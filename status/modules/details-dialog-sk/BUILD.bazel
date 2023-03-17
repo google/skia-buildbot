@@ -9,11 +9,15 @@ sk_element(
     name = "details-dialog-sk",
     sass_deps = [
         "//status/modules:styles_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["details-dialog-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/task-driver-sk",
         "//status/modules/comments-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/icons/content-copy-icon-sk",
+        "//elements-sk/modules/icons/launch-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -21,10 +25,12 @@ sk_element(
         "//infra-sk/modules:login_ts_lib",
         "//status/modules/rpc:index_ts_lib",
         "//status/modules:settings_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//status/modules:util_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "details-dialog-sk.ts",
@@ -44,8 +50,8 @@ sk_page(
         "//infra-sk/modules/task-driver-sk:test_data_ts_lib",
         "//status/modules:settings_ts_lib",
         ":test_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "details-dialog-sk-demo.ts",
 )
@@ -67,12 +73,12 @@ karma_test(
     deps = [
         ":details-dialog-sk",
         ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//infra-sk/modules/task-driver-sk:test_data_ts_lib",
         "//status/modules:settings_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
     ],
 )

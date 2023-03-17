@@ -1,4 +1,6 @@
-@import 'node_modules/elements-sk/colors.scss';
+@import '../../../elements-sk/modules/styles/select';
+@import '../../../elements-sk/modules/styles/buttons';
+@import '../../../elements-sk/modules/colors';
 
 email-chooser-sk {
   dialog-sk {

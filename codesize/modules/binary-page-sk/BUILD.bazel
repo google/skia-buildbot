@@ -16,10 +16,11 @@ sk_element(
         # the import naming convention expected by the Gazelle front-end extension, and thus needs
         # to be added manually.
         "@npm//@types/google.visualization",  # keep
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "@npm//fuse.js",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "binary-page-sk.ts",

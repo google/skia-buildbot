@@ -5,19 +5,18 @@
  *   The top level element for clustering traces.
  *
  */
-import { define } from 'elements-sk/define';
-import { fromObject, toParamSet } from 'common-sk/modules/query';
+import { define } from '../../../elements-sk/modules/define';
+import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/spinner-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 
 import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/sort-sk';

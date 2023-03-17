@@ -6,11 +6,14 @@ sk_element(
         "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["calendar-input-sk.scss"],
-    sk_element_deps = ["//perf/modules/calendar-sk"],
+    sk_element_deps = [
+        "//perf/modules/calendar-sk",
+        "//elements-sk/modules/icons/date-range-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "calendar-input-sk.ts",

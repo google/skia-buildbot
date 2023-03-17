@@ -1,7 +1,7 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
-import { ParamSet, fromParamSet } from 'common-sk/modules/query';
-import { deepCopy } from 'common-sk/modules/object';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { FilterDialogSk, Filters } from './filter-dialog-sk';
 
 const paramSet: ParamSet = {

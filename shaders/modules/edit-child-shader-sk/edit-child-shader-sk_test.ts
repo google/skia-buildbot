@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { EditChildShaderSk } from './edit-child-shader-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

@@ -4,25 +4,24 @@
  *
  * Main page of Perf, for exploring data.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { toParamSet, fromParamSet } from 'common-sk/modules/query';
-import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
-import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
+import { ParamSet as CommonSkParamSet } from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/tabs-panel-sk';
-import 'elements-sk/tabs-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/tabs-sk';
 
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';

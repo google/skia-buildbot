@@ -9,13 +9,22 @@ sk_element(
     sk_element_deps = [
         "//infra-sk/modules/login-sk",
         "//leasing/modules/leasing-task-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/folder-icon-sk",
+        "//elements-sk/modules/icons/gesture-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/home-icon-sk",
+        "//elements-sk/modules/icons/star-icon-sk",
+        "//elements-sk/modules/nav-button-sk",
+        "//elements-sk/modules/nav-links-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//leasing/modules/json:index_ts_lib",
         "//leasing/modules:leasing_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

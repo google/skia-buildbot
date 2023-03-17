@@ -4,11 +4,15 @@ sk_element(
     name = "alerts-page-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["alerts-page-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/paramset-sk",
         "//perf/modules/alert-config-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/icons/create-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -16,9 +20,11 @@ sk_element(
         "//perf/modules/alert:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "alerts-page-sk.ts",
@@ -30,11 +36,11 @@ sk_element(
 sk_page(
     name = "alerts-page-sk-demo",
     html_file = "alerts-page-sk-demo.html",
-    sk_element_deps = [":alerts-page-sk"],
-    ts_deps = [
-        "@npm//elements-sk",
-        "@npm//fetch-mock",
+    sk_element_deps = [
+        ":alerts-page-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
+    ts_deps = ["@npm//fetch-mock"],
     ts_entry_point = "alerts-page-sk-demo.ts",
 )
 

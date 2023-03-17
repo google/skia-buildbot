@@ -10,23 +10,21 @@
  *
  * @event fiddle-success is emitted when a run of a fiddle has completed successfully.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import '../textarea-numbers-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
-import 'elements-sk/icon/pause-icon-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/select-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
 import '../test-src-sk';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { TextareaNumbersSk } from '../textarea-numbers-sk/textarea-numbers-sk';
 import { Options, RunResults, FiddleContext } from '../json';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

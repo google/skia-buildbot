@@ -1,5 +1,5 @@
 import './index';
-import { deepCopy } from 'common-sk/modules/object';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { clusterDiffJSON } from '../cluster-page-sk/test_data';
 import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from './cluster-digests-sk';
 

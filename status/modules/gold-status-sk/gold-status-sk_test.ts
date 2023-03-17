@@ -1,7 +1,7 @@
 import './index';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { GoldStatusSk } from './gold-status-sk';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
 

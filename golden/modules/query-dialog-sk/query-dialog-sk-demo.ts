@@ -1,6 +1,6 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
-import { ParamSet, fromParamSet } from 'common-sk/modules/query';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { QueryDialogSk } from './query-dialog-sk';
 
 const queryDialogSk = new QueryDialogSk();

@@ -3,14 +3,19 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "autogrow-textarea-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["autogrow-textarea-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/collapse-sk",
+        "//elements-sk/modules/icons/expand-less-icon-sk",
+        "//elements-sk/modules/icons/expand-more-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "autogrow-textarea-sk.ts",
@@ -26,7 +31,7 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":autogrow-textarea-sk",
     ],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "autogrow-textarea-sk-demo.ts",
 )
 

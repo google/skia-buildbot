@@ -8,21 +8,21 @@
  *
  */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../leasing-task-sk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/gesture-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/star-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/folder-icon-sk';
+import '../../../elements-sk/modules/icons/gesture-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/icons/star-icon-sk';
+import '../../../elements-sk/modules/nav-button-sk';
+import '../../../elements-sk/modules/nav-links-sk';
 import { doImpl } from '../leasing';
 
 import '../../../infra-sk/modules/login-sk';

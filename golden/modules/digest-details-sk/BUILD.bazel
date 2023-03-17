@@ -11,7 +11,7 @@ sk_element(
     name = "digest-details-sk",
     sass_deps = [
         "//golden/modules:colors_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["digest-details-sk.scss"],
     sk_element_deps = [
@@ -22,15 +22,17 @@ sk_element(
         "//golden/modules/search-controls-sk",
         "//golden/modules/triage-sk",
         "//infra-sk/modules/paramset-sk",
+        "//elements-sk/modules/icons/group-work-icon-sk",
     ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//infra-sk/modules:string_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "digest-details-sk.ts",
@@ -48,9 +50,9 @@ sk_page(
         "//golden/modules:demo_util_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "digest-details-sk-demo.ts",
 )
@@ -86,13 +88,13 @@ karma_test(
         ":digest-details-sk",
         ":digest-details-sk_po_ts_lib",
         ":test_data_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//fetch-mock",
     ],
 )
@@ -103,6 +105,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//golden/modules:rpc_types_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:object_ts_lib",
     ],
 )

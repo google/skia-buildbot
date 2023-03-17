@@ -1,9 +1,9 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { pageSets } from '../pageset-selector-sk/test_data';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 fetchMock.config.overwriteRoutes = false;
 fetchMock.post('begin:/_/page_sets/', pageSets);

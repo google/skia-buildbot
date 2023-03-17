@@ -1,4 +1,4 @@
-import { toParamSet } from 'common-sk/modules/query';
+import { toParamSet } from '../../../infra-sk/modules/query';
 import {
   AutoRollService,
   AutoRollStatus,

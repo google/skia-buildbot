@@ -33,16 +33,15 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/collapse-sk';
+import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
 import '../plot-simple-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
 import '../commit-range-sk';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';

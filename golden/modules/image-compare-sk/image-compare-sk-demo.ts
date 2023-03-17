@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ImageCompareSk } from './image-compare-sk';
 
 const aDigest = '6246b773851984c726cb2e1cb13510c2';

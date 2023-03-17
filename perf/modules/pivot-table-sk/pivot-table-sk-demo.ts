@@ -1,4 +1,4 @@
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { DataFrame, pivot } from '../json';
 import './index';
 import { PivotTableSk } from './pivot-table-sk';

@@ -7,12 +7,12 @@
  *
  * See also https://pkg.go.dev/go.skia.org/infra/perf/go/ingest/format#Format
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 

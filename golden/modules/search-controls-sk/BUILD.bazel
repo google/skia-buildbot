@@ -7,18 +7,23 @@ sk_demo_page_server(
 
 sk_element(
     name = "search-controls-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["search-controls-sk.scss"],
     sk_element_deps = [
         "//golden/modules/corpus-selector-sk",
         "//golden/modules/filter-dialog-sk",
         "//golden/modules/trace-filter-sk",
+        "//elements-sk/modules/checkbox-sk",
     ],
     ts_deps = [
         "//golden/modules:settings_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -31,7 +36,10 @@ sk_page(
     name = "search-controls-sk-demo",
     html_file = "search-controls-sk-demo.html",
     sk_element_deps = [":search-controls-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+    ],
     ts_entry_point = "search-controls-sk-demo.ts",
 )
 
@@ -41,12 +49,12 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":search-controls-sk",
+        "//elements-sk/modules/checkbox-sk",
         "//golden/modules/corpus-selector-sk:corpus-selector-sk_po_ts_lib",
         "//golden/modules/filter-dialog-sk:filter-dialog-sk_po_ts_lib",
         "//golden/modules/trace-filter-sk:trace-filter-sk_po_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 
@@ -68,9 +76,10 @@ karma_test(
         ":search-controls-sk",
         ":search-controls-sk_po_ts_lib",
         "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

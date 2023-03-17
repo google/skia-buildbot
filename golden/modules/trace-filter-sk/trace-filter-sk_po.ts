@@ -1,4 +1,4 @@
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
 import { QueryDialogSkPO } from '../query-dialog-sk/query-dialog-sk_po';

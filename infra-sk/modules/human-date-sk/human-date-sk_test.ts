@@ -3,7 +3,7 @@ import './index';
 
 import { setUpElementUnderTest } from '../test_util';
 import { expect } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 describe('human-date-sk', () => {
   const newInstance = setUpElementUnderTest<HumanDateSk>('human-date-sk');

@@ -9,11 +9,11 @@
  *
  * @attr {string} algo - The algorithm name.
  */
-import 'elements-sk/select-sk';
-import { define } from 'elements-sk/define';
+import '../../../elements-sk/modules/select-sk';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $ } from 'common-sk/modules/dom';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
+import { $ } from '../../../infra-sk/modules/dom';
+import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ClusterAlgo } from '../json';
 

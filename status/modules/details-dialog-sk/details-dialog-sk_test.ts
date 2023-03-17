@@ -1,7 +1,7 @@
 import './index';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { DetailsDialogSk } from './details-dialog-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

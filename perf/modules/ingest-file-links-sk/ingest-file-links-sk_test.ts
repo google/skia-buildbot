@@ -1,8 +1,8 @@
 import './index';
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { $, $$ } from 'common-sk/modules/dom';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { IngestFileLinksSk } from './ingest-file-links-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

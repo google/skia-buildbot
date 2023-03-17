@@ -12,30 +12,29 @@
  * @event repo-changed - Occurs when user selects a repo. Event has {detail: '<new repo>'}
  */
 
-import { $, $$, DomReady } from 'common-sk/modules/dom';
-import { fromObject } from 'common-sk/modules/query';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { define } from 'elements-sk/define';
+import { $, $$, DomReady } from '../../../infra-sk/modules/dom';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
 import { classMap } from 'lit-html/directives/class-map';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../util';
 
-import 'elements-sk/radio-sk';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/select-sk';
-import 'elements-sk/icon/add-icon-sk';
-import 'elements-sk/icon/autorenew-icon-sk';
-import 'elements-sk/icon/block-icon-sk';
-import 'elements-sk/icon/comment-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/redo-icon-sk';
-import 'elements-sk/icon/texture-icon-sk';
-import 'elements-sk/icon/undo-icon-sk';
-import 'elements-sk/styles/select';
+import '../../../elements-sk/modules/radio-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/select-sk';
+import '../../../elements-sk/modules/icons/add-icon-sk';
+import '../../../elements-sk/modules/icons/autorenew-icon-sk';
+import '../../../elements-sk/modules/icons/block-icon-sk';
+import '../../../elements-sk/modules/icons/comment-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/redo-icon-sk';
+import '../../../elements-sk/modules/icons/texture-icon-sk';
+import '../../../elements-sk/modules/icons/undo-icon-sk';
 import '../branches-sk';
 import '../details-dialog-sk';
 import {

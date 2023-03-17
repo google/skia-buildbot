@@ -8,15 +8,21 @@ sk_demo_page_server(
 sk_element(
     name = "task-driver-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["task-driver-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/collapse-sk",
+        "//elements-sk/modules/icons/launch-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules:linkify_ts_lib",
         "//task_driver/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

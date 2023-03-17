@@ -14,7 +14,7 @@ sk_element(
     sk_element_deps = ["//task_scheduler/modules/gantt-chart-sk"],
     ts_deps = [
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "@npm//elements-sk",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

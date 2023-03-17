@@ -5,8 +5,8 @@ ts_library(
     srcs = ["skcq.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "@npm//common-sk",
-        "@npm//elements-sk",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
 )
 

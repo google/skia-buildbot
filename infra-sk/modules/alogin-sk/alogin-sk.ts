@@ -9,8 +9,8 @@
  *
  * @attr {string} url - The url that returns the JSON serialized alogin.Status response.
  */
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import { Status } from '../json';

@@ -1,7 +1,7 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ColumnOrder, ColumnTitles, MachineTableColumnsDialogSk } from './machine-table-columns-dialog-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

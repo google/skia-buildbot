@@ -4,17 +4,16 @@
  *
  * A page for editing all the alert configs.
  */
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/create-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
-import { define } from 'elements-sk/define';
-import { fromObject, toParamSet } from 'common-sk/modules/query';
+import { define } from '../../../elements-sk/modules/define';
+import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { Login } from '../../../infra-sk/modules/login';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

@@ -1,11 +1,10 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import {
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,
   PlotSimpleSkZoomEventDetails,
 } from './plot-simple-sk';
-import 'elements-sk/styles/buttons';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';

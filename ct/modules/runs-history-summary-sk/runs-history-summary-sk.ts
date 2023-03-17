@@ -2,14 +2,13 @@
  * @fileoverview The bulk of the Runs History page.
  */
 
-import 'elements-sk/tabs-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/tabs-sk';
 
-import { DomReady } from 'common-sk/modules/dom';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { DomReady } from '../../../infra-sk/modules/dom';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

@@ -9,13 +9,20 @@ sk_element(
     name = "pagination-sk",
     sass_deps = [
         "//ct/modules:colors_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["pagination-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/chevron-left-icon-sk",
+        "//elements-sk/modules/icons/chevron-right-icon-sk",
+        "//elements-sk/modules/icons/first-page-icon-sk",
+        "//elements-sk/modules/icons/last-page-icon-sk",
+    ],
     ts_deps = [
         "//ct/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -31,7 +38,7 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":pagination-sk",
     ],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "pagination-sk-demo.ts",
 )
 
@@ -41,10 +48,10 @@ karma_test(
     deps = [
         ":pagination-sk",
         "//ct/modules/json:index_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )
 

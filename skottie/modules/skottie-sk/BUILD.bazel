@@ -40,6 +40,9 @@ sk_element(
         "//skottie/modules/skottie-text-editor-sk",
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/collapse-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -49,12 +52,15 @@ sk_element(
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
         "@npm//@types/jsoneditor",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//jsoneditor",
         "@npm//lit-html",
         "@npm//lottie-web",
         "//skottie/modules/skottie-shader-editor-sk:shader-replace_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -70,8 +76,8 @@ sk_page(
     sk_element_deps = [":skottie-sk"],
     ts_deps = [
         ":test_gear_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "skottie-sk-demo.ts",
 )

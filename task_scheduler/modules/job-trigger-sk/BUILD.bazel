@@ -9,14 +9,20 @@ sk_element(
     name = "job-trigger-sk",
     sass_deps = [
         "//task_scheduler/modules:colors_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
     ],
     sass_srcs = ["job-trigger-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
+        "//elements-sk/modules/icons/send-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

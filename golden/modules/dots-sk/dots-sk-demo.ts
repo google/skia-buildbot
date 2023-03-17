@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { isPuppeteerTest } from '../demo_util';
 import { traces, commits } from './demo_data';
 import { DotsSk } from './dots-sk';

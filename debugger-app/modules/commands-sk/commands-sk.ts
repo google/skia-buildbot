@@ -21,15 +21,15 @@
  * the unfiltered command list for this frame.
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { PlaySk } from '../play-sk/play-sk';
 import { DefaultMap } from '../default-map';
 
-import 'elements-sk/icon/save-icon-sk';
-import 'elements-sk/icon/content-copy-icon-sk';
-import 'elements-sk/icon/image-icon-sk';
+import '../../../elements-sk/modules/icons/save-icon-sk';
+import '../../../elements-sk/modules/icons/content-copy-icon-sk';
+import '../../../elements-sk/modules/icons/image-icon-sk';
 
 import { SkpJsonCommand, SkpJsonCommandList, SkpJsonGpuOp } from '../debugger';
 

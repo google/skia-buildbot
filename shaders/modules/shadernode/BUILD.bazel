@@ -24,10 +24,10 @@ ts_library(
     srcs = ["index.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
         "//shaders/modules/json:index_ts_lib",
         "//shaders/wasm_libs:canvaskit_types",  # keep
-        "@npm//common-sk",
-        "@npm//elements-sk",
     ],
 )

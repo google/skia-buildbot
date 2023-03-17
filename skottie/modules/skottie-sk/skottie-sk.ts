@@ -9,18 +9,18 @@
  */
 import '../skottie-config-sk';
 import '../skottie-player-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/collapse-sk';
-import 'elements-sk/error-toast-sk';
-import { $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { define } from 'elements-sk/define';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/collapse-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import JSONEditor from 'jsoneditor';
 import LottiePlayer from 'lottie-web';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { SkottieGifExporterSk } from '../skottie-gif-exporter-sk/skottie-gif-exporter-sk';
 import '../skottie-gif-exporter-sk';
 import '../skottie-text-editor-sk';

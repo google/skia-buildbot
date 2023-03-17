@@ -4,7 +4,7 @@ load("//golden/demo-page-assets:index.bzl", "GOLD_DEMO_PAGE_ASSETS")
 sk_element(
     name = "cluster-page-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["cluster-page-sk.scss"],
     sk_element_deps = [
@@ -17,9 +17,12 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "cluster-page-sk.ts",
@@ -86,10 +89,10 @@ karma_test(
         "//golden/modules:settings_ts_lib",
         "//golden/modules/digest-details-sk:test_data_ts_lib",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
         "@npm//fetch-mock",
     ],
 )

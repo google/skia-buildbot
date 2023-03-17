@@ -4,15 +4,23 @@ sk_element(
     name = "bulk-triage-sk",
     sass_deps = [
         "//golden/modules:colors_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["bulk-triage-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/icons/cancel-icon-sk",
+        "//elements-sk/modules/icons/check-circle-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/view-agenda-icon-sk",
+    ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "bulk-triage-sk.ts",
@@ -27,9 +35,10 @@ sk_page(
     sk_element_deps = [":bulk-triage-sk"],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
         "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
     ],
     ts_entry_point = "bulk-triage-sk-demo.ts",
 )
@@ -39,9 +48,9 @@ ts_library(
     srcs = ["bulk-triage-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 

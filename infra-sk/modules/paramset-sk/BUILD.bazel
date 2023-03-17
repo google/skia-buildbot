@@ -8,14 +8,15 @@ sk_demo_page_server(
 sk_element(
     name = "paramset-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["paramset-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/icons/add-icon-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -29,7 +30,7 @@ sk_page(
     html_file = "paramset-sk-demo.html",
     scss_entry_point = "paramset-sk-demo.scss",
     sk_element_deps = [":paramset-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:query_ts_lib"],
     ts_entry_point = "paramset-sk-demo.ts",
 )
 
@@ -38,9 +39,9 @@ ts_library(
     srcs = ["paramset-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//common-sk",
     ],
 )
 
@@ -63,9 +64,9 @@ karma_test(
     deps = [
         ":paramset-sk",
         ":paramset-sk_po_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

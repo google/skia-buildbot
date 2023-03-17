@@ -13,8 +13,8 @@ sk_element(
     sass_srcs = ["task-graph-sk.scss"],
     ts_deps = [
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -29,11 +29,9 @@ sk_page(
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":task-graph-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
-    ts_deps = [
-        "//task_scheduler/modules/rpc-mock:index_ts_lib",
-        "@npm//elements-sk",
-    ],
+    ts_deps = ["//task_scheduler/modules/rpc-mock:index_ts_lib"],
     ts_entry_point = "task-graph-sk-demo.ts",
 )
 

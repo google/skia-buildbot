@@ -13,8 +13,8 @@ sk_element(
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:default-map_ts_lib",
         "//debugger-app/modules:events_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -6,8 +6,8 @@
  *    node.compile();
  *    const shader = node.getShader(predefinedUniformValues);
  */
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import type {
   CanvasKit,
   MallocObj,

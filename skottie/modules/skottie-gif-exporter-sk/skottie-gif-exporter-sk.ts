@@ -9,11 +9,11 @@
  * @evt start - This event is generated when the saving process starts.
  *
  */
-import { define } from 'elements-sk/define';
-import 'elements-sk/select-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/select-sk';
 import { html } from 'lit-html';
-import { bytes, diffDate } from 'common-sk/modules/human';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
+import { bytes, diffDate } from '../../../infra-sk/modules/human';
+import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';
 import gifStorage from '../helpers/gifStorage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';

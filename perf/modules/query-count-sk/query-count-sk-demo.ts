@@ -1,7 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { QueryCountSk } from './query-count-sk';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 
 let count = 11;
 

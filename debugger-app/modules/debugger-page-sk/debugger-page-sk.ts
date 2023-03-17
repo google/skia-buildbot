@@ -23,21 +23,21 @@
  *       [ debug-view-sk ]                     [ debugger- ]                     [ zoom-sk ]
  *       [               ] <- render-cursor -- [ page-sk   ] -- render-cursor -> [         ]
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { errorMessage } from 'elements-sk/errorMessage';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/tabs-panel-sk';
-import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
-import 'elements-sk/checkbox-sk';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
 import { CommandsSk } from '../commands-sk/commands-sk';
 import { TimelineSk } from '../timeline-sk/timeline-sk';
 import { PlaySk } from '../play-sk/play-sk';
 import { ZoomSk } from '../zoom-sk/zoom-sk';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 import { AndroidLayersSk } from '../android-layers-sk/android-layers-sk';
 import { ResourcesSk } from '../resources-sk/resources-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';

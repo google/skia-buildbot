@@ -5,7 +5,7 @@
  *
  * @evt move-cursor: Emitted when the user has moved the cursor by clicking or hovering.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {

@@ -1,4 +1,4 @@
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { CommitRangeSk } from './commit-range-sk';

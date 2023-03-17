@@ -4,15 +4,16 @@ sk_element(
     name = "algo-select-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["algo-select-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/select-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "algo-select-sk.ts",

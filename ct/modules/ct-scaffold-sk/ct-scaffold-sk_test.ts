@@ -2,9 +2,9 @@ import './index';
 import fetchMock from 'fetch-mock';
 
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 // TODO(lovisolo,kjlubick): Add the below to infra-sk.
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import {
   eventPromise, setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';

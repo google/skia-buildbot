@@ -4,11 +4,23 @@ sk_element(
     name = "commits-table-sk",
     sass_deps = [
         "//status/modules:styles_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
     ],
     sass_srcs = ["commits-table-sk.scss"],
     sk_element_deps = [
         "//status/modules/branches-sk",
         "//status/modules/details-dialog-sk",
+        "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/icons/autorenew-icon-sk",
+        "//elements-sk/modules/icons/block-icon-sk",
+        "//elements-sk/modules/icons/comment-icon-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/redo-icon-sk",
+        "//elements-sk/modules/icons/texture-icon-sk",
+        "//elements-sk/modules/icons/undo-icon-sk",
+        "//elements-sk/modules/radio-sk",
+        "//elements-sk/modules/select-sk",
+        "//elements-sk/modules/tabs-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -16,10 +28,14 @@ sk_element(
         "//status/modules/rpc:index_ts_lib",
         "//status/modules/rpc:status_ts_lib",
         "//status/modules:settings_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//status/modules:util_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "commits-table-sk.ts",
@@ -34,13 +50,13 @@ sk_page(
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":commits-table-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
         "//status/modules/rpc-mock:index_ts_lib",
         "//status/modules:settings_ts_lib",
         ":test_data_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "commits-table-sk-demo.ts",
 )
@@ -50,6 +66,7 @@ karma_test(
     src = "commits-table-sk_test.ts",
     deps = [
         ":commits-table-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//status/modules:settings_ts_lib",
         "//status/modules/rpc:index_ts_lib",
@@ -57,7 +74,6 @@ karma_test(
         "//status/modules/rpc-mock:test_data_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )
 

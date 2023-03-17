@@ -8,12 +8,13 @@ sk_demo_page_server(
 sk_element(
     name = "login-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["login-sk.scss"],
     ts_deps = [
         "//infra-sk/modules:login_ts_lib",
-        "@npm//elements-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -25,7 +26,9 @@ sk_element(
 sk_page(
     name = "login-sk-demo",
     html_file = "login-sk-demo.html",
-    sk_element_deps = [":login-sk"],
-    ts_deps = ["@npm//elements-sk"],
+    sk_element_deps = [
+        ":login-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
     ts_entry_point = "login-sk-demo.ts",
 )

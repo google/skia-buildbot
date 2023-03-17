@@ -1,5 +1,5 @@
-import { HintableObject } from 'common-sk/modules/hintable';
-import { fromObject } from 'common-sk/modules/query';
+import { HintableObject } from '../../infra-sk/modules/hintable';
+import { fromObject } from '../../infra-sk/modules/query';
 import { Params } from './rpc_types';
 import { SearchCriteria, SearchCriteriaToHintableObject } from './search-controls-sk/search-controls-sk';
 

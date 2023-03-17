@@ -5,7 +5,7 @@
  * Shows links to all older versions of the debugger (which do not automatically update).
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';

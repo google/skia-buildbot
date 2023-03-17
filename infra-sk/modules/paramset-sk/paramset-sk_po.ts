@@ -1,4 +1,4 @@
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { PageObject } from '../page_object/page_object';
 import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 

@@ -4,10 +4,10 @@
  *
  * Page to view details about a digest. This includes other digests similar to it and trace history.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';

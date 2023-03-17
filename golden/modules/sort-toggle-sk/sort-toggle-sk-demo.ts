@@ -1,6 +1,6 @@
 import './index';
 import { html, render } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { repeat } from 'lit-html/directives/repeat';
 import { SortToggleSk } from './sort-toggle-sk';
 

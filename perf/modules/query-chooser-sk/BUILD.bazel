@@ -9,7 +9,8 @@ sk_element(
     name = "query-chooser-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["query-chooser-sk.scss"],
     sk_element_deps = [
@@ -19,9 +20,9 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -1,6 +1,6 @@
 import './index';
 
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ChangelistControlsSk } from './changelist-controls-sk';
 import { twoPatchsets } from './test_data';
 

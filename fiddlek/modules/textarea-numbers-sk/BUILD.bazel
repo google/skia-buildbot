@@ -18,9 +18,9 @@ sk_element(
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//codemirror5",
         "@npm//@types/codemirror5",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

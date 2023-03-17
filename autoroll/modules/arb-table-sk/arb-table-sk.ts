@@ -8,11 +8,10 @@
  */
 
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { define } from 'elements-sk/define';
-import 'elements-sk/styles/table';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { define } from '../../../elements-sk/modules/define';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {

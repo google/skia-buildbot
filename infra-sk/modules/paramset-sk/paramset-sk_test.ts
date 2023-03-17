@@ -1,7 +1,7 @@
 import './index';
 
 import { expect } from 'chai';
-import { ParamSet } from 'common-sk/modules/query';
+import { ParamSet } from '../../../infra-sk/modules/query';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../test_util';
 import { ParamSetSk, ParamSetSkClickEventDetail, ParamSetSkPlusClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';

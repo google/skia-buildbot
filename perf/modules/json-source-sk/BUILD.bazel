@@ -7,14 +7,17 @@ sk_demo_page_server(
 
 sk_element(
     name = "json-source-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["json-source-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/spinner-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -26,11 +29,11 @@ sk_element(
 sk_page(
     name = "json-source-sk-demo",
     html_file = "json-source-sk-demo.html",
-    sk_element_deps = [":json-source-sk"],
-    ts_deps = [
-        "@npm//elements-sk",
-        "@npm//fetch-mock",
+    sk_element_deps = [
+        ":json-source-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
+    ts_deps = ["@npm//fetch-mock"],
     ts_entry_point = "json-source-sk-demo.ts",
 )
 

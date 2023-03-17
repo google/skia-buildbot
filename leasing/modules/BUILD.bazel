@@ -5,9 +5,9 @@ ts_library(
     srcs = ["leasing.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//modules/devices:devices_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
     ],
 )
 

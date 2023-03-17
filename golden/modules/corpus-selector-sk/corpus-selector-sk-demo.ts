@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { CorpusSelectorSk } from './corpus-selector-sk';
 import { TestCorpus, customTypeCorpora, stringCorpora } from './test_data';
 

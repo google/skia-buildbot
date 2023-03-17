@@ -13,9 +13,9 @@ sk_element(
     sass_srcs = ["suggest-input-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -33,7 +33,7 @@ sk_page(
     ],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "suggest-input-sk-demo.ts",
 )
@@ -55,10 +55,10 @@ karma_test(
     deps = [
         ":suggest-input-sk",
         ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )
 

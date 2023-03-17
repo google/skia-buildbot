@@ -35,9 +35,9 @@ sk_element(
         "@npm//@types/d3-scale",
         "@npm//d3-array",
         "@npm//d3-scale",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//perf/modules/const:const_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -49,14 +49,15 @@ sk_element(
 sk_page(
     name = "plot-simple-sk-demo",
     html_file = "plot-simple-sk-demo.html",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
+    scss_entry_point = "plot-simple-sk-demo.scss",
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         ":plot-simple-sk",
     ],
     ts_deps = [
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "//perf/modules/const:const_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "plot-simple-sk-demo.ts",
 )

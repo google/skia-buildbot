@@ -2,23 +2,23 @@
  * @fileoverview The bulk of the Metrics Analysis page of CT.
  */
 
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/toast-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/toast-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../patch-sk';
 import '../task-repeater-sk';
 import '../task-priority-sk';
 
-import { $$, $ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
-import 'elements-sk/select-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { $$, $ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/select-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

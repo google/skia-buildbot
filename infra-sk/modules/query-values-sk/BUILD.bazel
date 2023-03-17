@@ -8,16 +8,18 @@ sk_demo_page_server(
 sk_element(
     name = "query-values-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
-        "@npm//:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["query-values-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/multi-select-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -39,10 +41,10 @@ ts_library(
     srcs = ["query-values-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules:async_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@npm//elements-sk",
     ],
 )
 

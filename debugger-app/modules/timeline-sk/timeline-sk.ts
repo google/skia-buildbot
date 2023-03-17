@@ -2,7 +2,7 @@
  * @module modules/timeline-sk
  * @description An element for displaying a position in a timeline.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { PlaySk } from '../play-sk/play-sk';

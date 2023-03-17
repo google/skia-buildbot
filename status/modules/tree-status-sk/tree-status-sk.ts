@@ -9,16 +9,16 @@
  * @property baseURL: string - The base URL for getting tree status of specific repos.
  * @property repo: string - The repository we are currently looking at.
 */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { diffDate } from 'common-sk/modules/human';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { diffDate } from '../../../infra-sk/modules/human';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/icon/star-icon-sk';
-import 'elements-sk/icon/gesture-icon-sk';
-import 'elements-sk/icon/android-icon-sk';
-import 'elements-sk/icon/devices-other-icon-sk';
+import '../../../elements-sk/modules/icons/star-icon-sk';
+import '../../../elements-sk/modules/icons/gesture-icon-sk';
+import '../../../elements-sk/modules/icons/android-icon-sk';
+import '../../../elements-sk/modules/icons/devices-other-icon-sk';
 
 export interface Rotation {
   role: string;

@@ -8,11 +8,20 @@ sk_demo_page_server(
 sk_element(
     name = "play-sk",
     sass_srcs = ["play-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/keyboard-arrow-left-icon-sk",
+        "//elements-sk/modules/icons/keyboard-arrow-right-icon-sk",
+        "//elements-sk/modules/icons/pause-icon-sk",
+        "//elements-sk/modules/icons/play-arrow-icon-sk",
+        "//elements-sk/modules/icons/skip-next-icon-sk",
+        "//elements-sk/modules/icons/skip-previous-icon-sk",
+        "//elements-sk/modules/icons/video-library-icon-sk",
+    ],
     ts_deps = [
         "//debugger-app/modules:events_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

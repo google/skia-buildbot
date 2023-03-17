@@ -7,8 +7,8 @@
  *
  * The color uniform values are floats in [0, 1] and are in RGB order.
  */
-import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';

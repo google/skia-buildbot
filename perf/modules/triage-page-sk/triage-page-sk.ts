@@ -7,13 +7,13 @@
  * TODO(jcgregorio) Needs working demo page and tests.
  *
  */
-import { define } from 'elements-sk/define';
-import { equals, deepCopy } from 'common-sk/modules/object';
-import { fromObject } from 'common-sk/modules/query';
+import { define } from '../../../elements-sk/modules/define';
+import { equals, deepCopy } from '../../../infra-sk/modules/object';
+import { fromObject } from '../../../infra-sk/modules/query';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -30,9 +30,7 @@ import {
   TriageResponse,
 } from '../json';
 
-import 'elements-sk/spinner-sk';
-import 'elements-sk/styles/buttons';
-import 'elements-sk/styles/select';
+import '../../../elements-sk/modules/spinner-sk';
 
 import '../cluster-summary2-sk';
 import '../commit-detail-sk';

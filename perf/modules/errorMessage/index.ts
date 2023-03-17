@@ -1,4 +1,4 @@
-import { errorMessage as elementsErrorMessage } from 'elements-sk/errorMessage';
+import { errorMessage as elementsErrorMessage } from '../../../elements-sk/modules/errorMessage';
 
 /**
  * This is the same function as element-sk errorMessage, but defaults to a 0s

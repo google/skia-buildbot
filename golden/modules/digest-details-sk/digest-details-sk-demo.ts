@@ -1,6 +1,6 @@
 import './index';
 import fetchMock, { MockResponseObject } from 'fetch-mock';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import {
   typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow, typicalDetailsDisallowTriaging, noRefsDisallowTriaging,
 } from './test_data';

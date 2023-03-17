@@ -8,16 +8,16 @@ sk_demo_page_server(
 sk_element(
     name = "uniform-slider-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["uniform-slider-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -30,7 +30,7 @@ sk_page(
     name = "uniform-slider-sk-demo",
     html_file = "uniform-slider-sk-demo.html",
     sk_element_deps = [":uniform-slider-sk"],
-    ts_deps = ["@npm//common-sk"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "uniform-slider-sk-demo.ts",
 )
 

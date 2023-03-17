@@ -7,9 +7,9 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",
         "@npm//@types/howler",
-        "@npm//elements-sk",
         "@npm//howler",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

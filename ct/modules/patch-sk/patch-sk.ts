@@ -12,20 +12,20 @@
  * new CL patchset, or manual editing of the patch field.
  */
 
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/spinner-sk';
-import 'elements-sk/toast-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/toast-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { $$ } from 'common-sk/modules/dom';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
 import * as ctfe_utils from '../ctfe_utils';
 

@@ -1,8 +1,8 @@
 /** Shows the most recent binaries for which we have code size statistics. */
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 import { Binary, BinariesFromCommitOrPatchset, MostRecentBinariesRPCResponse } from '../rpc_types';

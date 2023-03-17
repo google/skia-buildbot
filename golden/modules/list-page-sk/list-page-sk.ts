@@ -7,13 +7,13 @@
  *
  * It is a top level element.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { fromObject } from 'common-sk/modules/query';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   clusterPageHref, sendBeginTask, sendEndTask, sendFetchError,
@@ -23,9 +23,9 @@ import { defaultCorpus } from '../settings';
 import '../corpus-selector-sk';
 import '../query-dialog-sk';
 import '../sort-toggle-sk';
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/group-work-icon-sk';
-import 'elements-sk/icon/tune-icon-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/group-work-icon-sk';
+import '../../../elements-sk/modules/icons/tune-icon-sk';
 import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
 import { SortToggleSk } from '../sort-toggle-sk/sort-toggle-sk';

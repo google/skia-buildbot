@@ -61,13 +61,13 @@ to see how these styles apply to title bars and sidebars.
 
 */
 
-@import 'node_modules/elements-sk/themes/color-palette.scss';
-@import 'node_modules/elements-sk/themes/themes.scss';
+@import '../elements-sk/modules/themes/color-palette';
+@import '../elements-sk/modules/themes/themes';
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
-@import 'node_modules/elements-sk/styles/buttons/buttons.scss';
-@import 'node_modules/elements-sk/styles/select/select.scss';
-@import 'node_modules/elements-sk/styles/table/table.scss';
+@import '../elements-sk/modules/styles/buttons';
+@import '../elements-sk/modules/styles/select';
+@import '../elements-sk/modules/styles/table';
 
 .body-sk {
   &.font-sk,

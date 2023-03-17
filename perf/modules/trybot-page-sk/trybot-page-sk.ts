@@ -5,14 +5,14 @@
  * This page allows the user to select either a CL or an existing commit in the
  * repo to analyze looking for regressions.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { toParamSet } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { TabSelectedSkEventDetail } from 'elements-sk/tabs-sk/tabs-sk';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { toParamSet } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { TabSelectedSkEventDetail } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { byParams, AveForParam } from '../trybot/calcs';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -40,10 +40,10 @@ import '../day-range-sk';
 import '../plot-simple-sk';
 import '../window/window';
 
-import 'elements-sk/spinner-sk';
-import 'elements-sk/tabs-sk';
-import 'elements-sk/tabs-panel-sk';
-import 'elements-sk/icon/timeline-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/tabs-panel-sk';
+import '../../../elements-sk/modules/icons/timeline-icon-sk';
 import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';

@@ -5,11 +5,11 @@
  * multi-input-sk behaves similarly to <input type="text"> but its value is a
  * string[].
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../ElementSk';
-import 'elements-sk/icon/close-icon-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 
 export class MultiInputSk extends ElementSk {
   private static template = (ele: MultiInputSk) => html`

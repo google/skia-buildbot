@@ -14,12 +14,12 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { define } from 'elements-sk/define';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { fromObject } from '../../../infra-sk/modules/query';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import * as ctfe_utils from '../ctfe_utils';
 
@@ -27,29 +27,29 @@ import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/assessment-icon-sk';
-import 'elements-sk/icon/find-in-page-icon-sk';
-import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/label-icon-sk';
-import 'elements-sk/icon/photo-camera-icon-sk';
-import 'elements-sk/icon/list-icon-sk';
-import 'elements-sk/icon/search-icon-sk';
-import 'elements-sk/icon/sync-problem-icon-sk';
-import 'elements-sk/icon/view-day-icon-sk';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/assessment-icon-sk';
+import '../../../elements-sk/modules/icons/find-in-page-icon-sk';
+import '../../../elements-sk/modules/icons/folder-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/icons/label-icon-sk';
+import '../../../elements-sk/modules/icons/photo-camera-icon-sk';
+import '../../../elements-sk/modules/icons/list-icon-sk';
+import '../../../elements-sk/modules/icons/search-icon-sk';
+import '../../../elements-sk/modules/icons/sync-problem-icon-sk';
+import '../../../elements-sk/modules/icons/view-day-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
-import 'elements-sk/icon/trending-up-icon-sk';
+import '../../../elements-sk/modules/icons/trending-up-icon-sk';
 
-import 'elements-sk/icon/assessment-icon-sk';
-import 'elements-sk/icon/cloud-icon-sk';
+import '../../../elements-sk/modules/icons/assessment-icon-sk';
+import '../../../elements-sk/modules/icons/cloud-icon-sk';
 
-import 'elements-sk/icon/build-icon-sk';
-import 'elements-sk/icon/person-icon-sk';
-import 'elements-sk/icon/reorder-icon-sk';
-import 'elements-sk/icon/history-icon-sk';
+import '../../../elements-sk/modules/icons/build-icon-sk';
+import '../../../elements-sk/modules/icons/person-icon-sk';
+import '../../../elements-sk/modules/icons/reorder-icon-sk';
+import '../../../elements-sk/modules/icons/history-icon-sk';
 
 /**
  * Moves the elements from one NodeList to another NodeList.

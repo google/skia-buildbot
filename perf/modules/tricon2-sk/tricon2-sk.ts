@@ -8,13 +8,12 @@
  *     "untriaged", "positive", or "negative".
  *
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/icon/check-circle-icon-sk';
-import 'elements-sk/icon/cancel-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/styles/buttons';
+import '../../../elements-sk/modules/icons/check-circle-icon-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
 
 export class TriconSk extends ElementSk {
   constructor() {

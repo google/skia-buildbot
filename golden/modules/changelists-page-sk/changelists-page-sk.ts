@@ -6,18 +6,18 @@
  * data uploaded via TryJobs.
  *
  */
-import * as human from 'common-sk/modules/human';
+import * as human from '../../../infra-sk/modules/human';
 
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/block-icon-sk';
-import 'elements-sk/icon/cached-icon-sk';
-import 'elements-sk/icon/done-icon-sk';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/icons/block-icon-sk';
+import '../../../elements-sk/modules/icons/cached-icon-sk';
+import '../../../elements-sk/modules/icons/done-icon-sk';
 
 import '../pagination-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';

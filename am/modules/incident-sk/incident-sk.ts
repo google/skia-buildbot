@@ -51,19 +51,19 @@
  *   </pre>
  *
  */
-import { define } from 'elements-sk/define';
-import 'elements-sk/icon/alarm-off-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/thumbs-up-down-icon-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/icons/alarm-off-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
+import '../../../elements-sk/modules/icons/thumbs-up-down-icon-sk';
 import '../../../infra-sk/modules/clipboard-sk';
 import '../silence-sk';
 
-import { $$ } from 'common-sk/modules/dom';
-import { diffDate, strDuration } from 'common-sk/modules/human';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { diffDate, strDuration } from '../../../infra-sk/modules/human';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, render, TemplateResult } from 'lit-html';
 import { until } from 'lit-html/directives/until';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { abbr, linkify, displayNotes } from '../am';
 import * as paramset from '../paramset';
 import {

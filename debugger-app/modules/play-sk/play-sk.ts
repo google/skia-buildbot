@@ -11,16 +11,16 @@
  *           detail: {item: number} // the index the play module wants the app
  *           to move to.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import 'elements-sk/icon/skip-previous-icon-sk';
-import 'elements-sk/icon/keyboard-arrow-left-icon-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
-import 'elements-sk/icon/pause-icon-sk';
-import 'elements-sk/icon/keyboard-arrow-right-icon-sk';
-import 'elements-sk/icon/skip-next-icon-sk';
-import 'elements-sk/icon/video-library-icon-sk';
+import '../../../elements-sk/modules/icons/skip-previous-icon-sk';
+import '../../../elements-sk/modules/icons/keyboard-arrow-left-icon-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
+import '../../../elements-sk/modules/icons/keyboard-arrow-right-icon-sk';
+import '../../../elements-sk/modules/icons/skip-next-icon-sk';
+import '../../../elements-sk/modules/icons/video-library-icon-sk';
 import {
   ModeChangedManuallyEvent,
   MoveToEvent,

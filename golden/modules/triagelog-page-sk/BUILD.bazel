@@ -22,17 +22,21 @@ ts_library(
 sk_element(
     name = "triagelog-page-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["triagelog-page-sk.scss"],
-    sk_element_deps = ["//golden/modules/pagination-sk"],
+    sk_element_deps = [
+        "//golden/modules/pagination-sk",
+        "//elements-sk/modules/checkbox-sk",
+    ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -54,8 +58,8 @@ sk_page(
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
         ":demo_data_ts_lib",
-        "@npm//common-sk",
         "@npm//fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "triagelog-page-sk-demo.ts",
 )

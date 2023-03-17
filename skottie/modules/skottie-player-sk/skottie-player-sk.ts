@@ -7,12 +7,12 @@
  * </p>
  *
  */
-import { $$ } from 'common-sk/modules/dom';
-import 'elements-sk/icon/pause-icon-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
-import 'elements-sk/icon/settings-icon-sk';
-import 'elements-sk/spinner-sk';
-import { define } from 'elements-sk/define';
+import { $$ } from '../../../infra-sk/modules/dom';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/settings-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat';
 import {

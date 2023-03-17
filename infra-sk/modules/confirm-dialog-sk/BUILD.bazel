@@ -2,10 +2,11 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "confirm-dialog-sk",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "confirm-dialog-sk.ts",
@@ -17,11 +18,10 @@ sk_element(
 sk_page(
     name = "confirm-dialog-sk-demo",
     html_file = "confirm-dialog-sk-demo.html",
+    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
+    scss_entry_point = "confirm-dialog-sk-demo.scss",
     sk_element_deps = [":confirm-dialog-sk"],
-    ts_deps = [
-        "@npm//common-sk",
-        "@npm//elements-sk",
-    ],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "confirm-dialog-sk-demo.ts",
 )
 

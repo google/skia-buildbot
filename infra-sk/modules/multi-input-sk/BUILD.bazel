@@ -8,15 +8,16 @@ sk_demo_page_server(
 sk_element(
     name = "multi-input-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["multi-input-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/icons/close-icon-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -48,9 +49,9 @@ karma_test(
     src = "multi-input-sk_test.ts",
     deps = [
         ":multi-input-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

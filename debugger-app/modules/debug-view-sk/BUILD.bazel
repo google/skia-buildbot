@@ -6,8 +6,8 @@ sk_element(
     sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
     ts_deps = [
         "//debugger-app/modules:events_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "debug-view-sk.ts",

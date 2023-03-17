@@ -8,9 +8,9 @@
  *
  * This should typically go into some sort of dialog to show the user.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import { baseRepoURL } from '../settings';

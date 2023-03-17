@@ -2,15 +2,15 @@
 
 import { html, TemplateResult } from 'lit-html';
 
-import { define } from 'elements-sk/define';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/spinner-sk';
 import { END_BUSY_EVENT } from './events';
 
 /** Moves the elements in a NodeList or HTMLCollection as children of another element. */

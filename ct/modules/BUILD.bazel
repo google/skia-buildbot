@@ -16,8 +16,10 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//ct/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:human_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
 )
 

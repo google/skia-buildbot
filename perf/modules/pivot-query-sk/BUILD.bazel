@@ -9,14 +9,19 @@ sk_element(
     name = "pivot-query-sk",
     sass_deps = [
         "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
     ],
     sass_srcs = ["pivot-query-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/multi-select-sk",
+        "//elements-sk/modules/select-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "pivot-query-sk.ts",
@@ -32,7 +37,7 @@ sk_page(
     sk_element_deps = [":pivot-query-sk"],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "pivot-query-sk-demo.ts",
 )
@@ -53,10 +58,10 @@ karma_test(
     src = "pivot-query-sk_test.ts",
     deps = [
         ":pivot-query-sk",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
-        "@npm//common-sk",
     ],
 )

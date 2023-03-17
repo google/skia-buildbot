@@ -7,12 +7,16 @@ sk_demo_page_server(
 
 sk_element(
     name = "email-chooser-sk",
-    sass_deps = ["@npm//:node_modules/elements-sk/colors.scss"],
+    sass_deps = [
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
+    ],
     sass_srcs = ["email-chooser-sk.scss"],
     ts_deps = [
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "email-chooser-sk.ts",

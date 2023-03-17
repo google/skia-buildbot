@@ -12,10 +12,10 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html } from 'lit-html';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { title } from '../settings';
 import { FetchErrorEventDetail } from '../common';
@@ -25,18 +25,18 @@ import '../../../infra-sk/modules/login-sk';
 
 import '../last-commit-sk';
 
-import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/find-in-page-icon-sk';
-import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/help-icon-sk';
-import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/label-icon-sk';
-import 'elements-sk/icon/laptop-chromebook-icon-sk';
-import 'elements-sk/icon/list-icon-sk';
-import 'elements-sk/icon/search-icon-sk';
-import 'elements-sk/icon/sync-problem-icon-sk';
-import 'elements-sk/icon/view-day-icon-sk';
-import 'elements-sk/spinner-sk';
+import '../../../elements-sk/modules/error-toast-sk';
+import '../../../elements-sk/modules/icons/find-in-page-icon-sk';
+import '../../../elements-sk/modules/icons/folder-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/home-icon-sk';
+import '../../../elements-sk/modules/icons/label-icon-sk';
+import '../../../elements-sk/modules/icons/laptop-chromebook-icon-sk';
+import '../../../elements-sk/modules/icons/list-icon-sk';
+import '../../../elements-sk/modules/icons/search-icon-sk';
+import '../../../elements-sk/modules/icons/sync-problem-icon-sk';
+import '../../../elements-sk/modules/icons/view-day-icon-sk';
+import '../../../elements-sk/modules/spinner-sk';
 
 /** Moves the elements in a NodeList or HTMLCollection as children of another element. */
 function move(from: HTMLCollection | NodeList, to: HTMLElement) {

@@ -86,13 +86,13 @@
  *   </pre>
  *
  */
-import { define } from 'elements-sk/define';
-import 'elements-sk/icon/add-box-icon-sk';
-import 'elements-sk/icon/delete-icon-sk';
+import { define } from '../../../elements-sk/modules/define';
+import '../../../elements-sk/modules/icons/add-box-icon-sk';
+import '../../../elements-sk/modules/icons/delete-icon-sk';
 
-import { $$ } from 'common-sk/modules/dom';
-import { diffDate } from 'common-sk/modules/human';
-import { errorMessage } from 'elements-sk/errorMessage';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { diffDate } from '../../../infra-sk/modules/human';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, render, TemplateResult } from 'lit-html';
 import {
   abbr, displaySilence, expiresIn, getDurationTillNextDay, displayNotes,

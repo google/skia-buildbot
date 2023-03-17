@@ -8,15 +8,21 @@ sk_demo_page_server(
 sk_element(
     name = "expandable-textarea-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/themes:color-palette_sass_lib",
+        "//elements-sk/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["expandable-textarea-sk.scss"],
-    sk_element_deps = ["//infra-sk/modules/autogrow-textarea-sk"],
+    sk_element_deps = [
+        "//infra-sk/modules/autogrow-textarea-sk",
+        "//elements-sk/modules/collapse-sk",
+        "//elements-sk/modules/icons/expand-less-icon-sk",
+        "//elements-sk/modules/icons/expand-more-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "expandable-textarea-sk.ts",
@@ -51,11 +57,11 @@ karma_test(
     src = "expandable-textarea-sk_test.ts",
     deps = [
         ":expandable-textarea-sk",
+        "//elements-sk/modules/collapse-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//@types/chai-dom",
         "@npm//chai",
         "@npm//chai-dom",
-        "@npm//elements-sk",
     ],
 )

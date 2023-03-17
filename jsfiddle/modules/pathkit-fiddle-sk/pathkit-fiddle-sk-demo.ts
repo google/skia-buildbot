@@ -1,6 +1,6 @@
 import './index';
 
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 
 const pk = $$ <WasmFiddle>('pathkit-fiddle')!;

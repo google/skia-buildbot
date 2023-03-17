@@ -8,13 +8,14 @@ sk_demo_page_server(
 sk_element(
     name = "query-count-sk",
     sass_srcs = ["query-count-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/spinner-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -26,11 +27,11 @@ sk_element(
 sk_page(
     name = "query-count-sk-demo",
     html_file = "query-count-sk-demo.html",
-    sk_element_deps = [":query-count-sk"],
-    ts_deps = [
-        "@npm//elements-sk",
-        "@npm//fetch-mock",
+    sk_element_deps = [
+        ":query-count-sk",
+        "//elements-sk/modules/error-toast-sk",
     ],
+    ts_deps = ["@npm//fetch-mock"],
     ts_entry_point = "query-count-sk-demo.ts",
 )
 

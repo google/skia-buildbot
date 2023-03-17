@@ -1,7 +1,7 @@
-import 'elements-sk/icon/create-icon-sk';
+import '../../../elements-sk/modules/icons/create-icon-sk';
 
 import '../login-sk';
 import './index';
-import 'elements-sk/error-toast-sk';
+import '../../../elements-sk/modules/error-toast-sk';
 import '../theme-chooser-sk';
 

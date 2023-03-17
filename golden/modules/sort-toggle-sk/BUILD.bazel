@@ -8,10 +8,14 @@ sk_demo_page_server(
 sk_element(
     name = "sort-toggle-sk",
     sass_srcs = ["sort-toggle-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/arrow-drop-down-icon-sk",
+        "//elements-sk/modules/icons/arrow-drop-up-icon-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -25,8 +29,8 @@ sk_page(
     html_file = "sort-toggle-sk-demo.html",
     sk_element_deps = [":sort-toggle-sk"],
     ts_deps = [
-        "@npm//common-sk",
         "@npm//lit-html",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "sort-toggle-sk-demo.ts",
 )

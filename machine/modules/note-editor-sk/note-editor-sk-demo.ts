@@ -1,4 +1,4 @@
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { Annotation } from '../json';
 import './index';
 import { NoteEditorSk } from './note-editor-sk';

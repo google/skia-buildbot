@@ -20,7 +20,7 @@
  *   the zoom view. The position is a coordinate in the source canvas.
  *   See debugger-page-sk for more info on move-cursor and render-cursor
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {

@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { hiddenClassName, targetAriaAttribute, TooltipSk } from './tooltip-sk';
 
 import { setUpElementUnderTest } from '../test_util';

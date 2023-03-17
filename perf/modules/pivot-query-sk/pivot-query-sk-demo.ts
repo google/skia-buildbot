@@ -1,4 +1,4 @@
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ParamSet, pivot } from '../json';
 import './index';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from './pivot-query-sk';

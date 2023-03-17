@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DebuggerAppSk } from './debugger-app-sk';
 import { exampleTraceString } from './demo_data';

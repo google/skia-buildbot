@@ -13,17 +13,17 @@
  * @evt Emits a change event with the sort history encoded as a string when the
  *    user sorts on a column.
  */
-import { define } from 'elements-sk/define';
+import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { toParamSet } from 'common-sk/modules/query';
+import { toParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { pivot, DataFrame, TraceSet } from '../json';
 import { operationDescriptions, validateAsPivotTable } from '../pivotutil';
 
 import '../../../infra-sk/modules/paramset-sk';
-import 'elements-sk/icon/sort-icon-sk';
-import 'elements-sk/icon/arrow-drop-down-icon-sk';
-import 'elements-sk/icon/arrow-drop-up-icon-sk';
+import '../../../elements-sk/modules/icons/sort-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
+import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 import { fromKey } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 

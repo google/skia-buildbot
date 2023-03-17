@@ -1,5 +1,5 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 

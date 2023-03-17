@@ -1,16 +1,14 @@
-import 'elements-sk/styles/buttons';
 
 import 'codemirror/mode/javascript/javascript'; // Syntax highlighting for js.
-import { $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { html, render, TemplateResult } from 'lit-html';
 import CodeMirror from 'codemirror';
 import type {
   CanvasKit,
 } from 'canvaskit-wasm';
 import { FPS } from '../../../infra-sk/modules/fps/fps';
-import 'elements-sk/styles/buttons';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';

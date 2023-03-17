@@ -2,7 +2,7 @@ import './index';
 
 import sinon from 'sinon';
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { ChromiumAnalysisRunsSk } from './chromium-analysis-runs-sk';
 

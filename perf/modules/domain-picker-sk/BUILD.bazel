@@ -8,15 +8,19 @@ sk_demo_page_server(
 sk_element(
     name = "domain-picker-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["domain-picker-sk.scss"],
-    sk_element_deps = ["//perf/modules/calendar-input-sk"],
+    sk_element_deps = [
+        "//perf/modules/calendar-input-sk",
+        "//elements-sk/modules/radio-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "domain-picker-sk.ts",

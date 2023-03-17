@@ -1,7 +1,7 @@
 import './index';
 
 import { expect } from 'chai';
-import { $ } from 'common-sk/modules/dom';
+import { $ } from '../../../infra-sk/modules/dom';
 import { PaginationSk } from './pagination-sk';
 
 import {

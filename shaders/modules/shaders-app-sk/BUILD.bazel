@@ -21,6 +21,8 @@ sk_element(
         "@npm//:node_modules/codemirror/lib/codemirror.css",
         "@npm//:node_modules/codemirror/theme/ambiance.css",
         "@npm//:node_modules/codemirror/theme/base16-light.css",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
     ],
     sass_srcs = ["shaders-app-sk.scss"],
     sk_element_deps = [
@@ -35,6 +37,10 @@ sk_element(
         "//infra-sk/modules/uniform-time-sk",
         "//shaders/modules/edit-child-shader-sk",
         "//infra-sk/modules/app-sk",
+        "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/icons/delete-icon-sk",
+        "//elements-sk/modules/icons/edit-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -44,9 +50,12 @@ sk_element(
         "//shaders/wasm_libs:canvaskit_types",  # keep
         "@npm//@types/codemirror",
         "@npm//codemirror",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

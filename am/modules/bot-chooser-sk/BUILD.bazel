@@ -3,14 +3,16 @@ load("//infra-sk:index.bzl", "sk_element")
 sk_element(
     name = "bot-chooser-sk",
     sass_deps = [
-        "@npm//:node_modules/elements-sk/colors.scss",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+        "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["bot-chooser-sk.scss"],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
-        "@npm//common-sk",
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "bot-chooser-sk.ts",

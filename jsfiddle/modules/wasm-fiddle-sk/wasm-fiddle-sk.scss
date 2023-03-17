@@ -1,6 +1,7 @@
 @use 'node_modules/codemirror/lib/codemirror.css';
 @use 'node_modules/codemirror/theme/ambiance.css';
 @use 'node_modules/codemirror/theme/base16-light.css';
+@import '../../../elements-sk/modules/styles/buttons';
 
 @import '../../../infra-sk/themes.scss';
 
