@@ -1311,20 +1311,12 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 					types.CorpusField:     dks.CornersCorpus,
 					types.PrimaryKeyField: dks.TriangleTest,
 				},
-				Digest:                     dks.DigestB01Pos,
-				LabelBefore:                expectations.Positive,
-				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
-				InCurrentSearchResultsPage: true,
-			}, {
-				Grouping: paramtools.Params{
-					types.CorpusField:     dks.CornersCorpus,
-					types.PrimaryKeyField: dks.TriangleTest,
-				},
 				Digest:                     dks.DigestB02Pos,
 				LabelBefore:                expectations.Positive,
 				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
 				InCurrentSearchResultsPage: false,
 			},
+			// dks.DigestB01Pos is excluded because it has optional key disallow_triaging=true.
 		},
 	}, res)
 }
@@ -3206,6 +3198,384 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 	}, res)
 }
 
+func TestSearch_DisallowTriagingOnPrimaryBranch_DigestExcludedFromBulkTriageInfos(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+		IncludeIgnoredTraces:    true,
+		Sort:                    query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+			dks.OSKey:         []string{dks.AndroidOS},
+			dks.DeviceKey:     []string{dks.TaimenDevice},
+			dks.ColorModeKey:  []string{dks.RGBColorMode},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestA09Neg,
+			Test:   dks.SquareTest,
+			Status: expectations.Negative,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.TaimenDevice},
+				dks.OSKey:             []string{dks.AndroidOS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TriageHistory: []frontend.TriageHistory{
+				{
+					User: dks.UserFour,
+					TS:   time.Date(2020, time.December, 11, 13, 0, 0, 0, time.UTC),
+				},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0e87221433a6de545e32d846fd7c3e6c",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, 0, 0, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.TaimenDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA09Neg, Status: expectations.Negative},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{255, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:             []string{dks.RGBColorMode},
+						types.CorpusField:            []string{dks.CornersCorpus},
+						dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+						dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField:        []string{dks.SquareTest},
+						"ext":                        []string{"png"},
+						"image_matching_algorithm":   []string{"fuzzy"},
+						"fuzzy_max_different_pixels": []string{"2"},
+					},
+				},
+				frontend.NegativeRef: nil,
+			},
+			ClosestRef: frontend.PositiveRef,
+		}, {
+			Digest: dks.DigestB01Pos,
+			Test:   dks.TriangleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:           []string{dks.RGBColorMode},
+				types.CorpusField:          []string{dks.CornersCorpus},
+				dks.DeviceKey:              []string{dks.TaimenDevice},
+				dks.OSKey:                  []string{dks.AndroidOS},
+				types.PrimaryKeyField:      []string{dks.TriangleTest},
+				"ext":                      []string{"png"},
+				"image_matching_algorithm": []string{"positive_if_only_image"},
+				"disallow_triaging":        []string{"true"},
+			},
+			TriageHistory: []frontend.TriageHistory{
+				{
+					User: dks.UserOne,
+					TS:   time.Date(2020, time.June, 7, 8, 9, 43, 0, time.UTC),
+				},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "1a16cbc8805378f0a6ef654a035d86c4",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:           dks.RGBColorMode,
+						types.CorpusField:          dks.CornersCorpus,
+						dks.DeviceKey:              dks.TaimenDevice,
+						dks.OSKey:                  dks.AndroidOS,
+						types.PrimaryKeyField:      dks.TriangleTest,
+						"ext":                      "png",
+						"image_matching_algorithm": "positive_if_only_image",
+						"disallow_triaging":        "true",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestB01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
+					MaxRGBADiffs: [4]int{11, 5, 42, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestB02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
+					MaxRGBADiffs: [4]int{250, 244, 197, 51},
+					DimDiffer:    false,
+					Digest:       dks.DigestB03Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+						dks.OSKey:             []string{dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}, {
+			Digest: dks.DigestA01Pos,
+			Test:   dks.SquareTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.TaimenDevice},
+				dks.OSKey:             []string{dks.AndroidOS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TriageHistory: []frontend.TriageHistory{
+				{
+					User: dks.UserOne,
+					TS:   time.Date(2020, time.June, 7, 8, 23, 8, 0, time.UTC),
+				},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0e87221433a6de545e32d846fd7c3e6c",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, 1, 1, 0, 1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.TaimenDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA09Neg, Status: expectations.Negative},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{4, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA08Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:             []string{dks.RGBColorMode},
+						types.CorpusField:            []string{dks.CornersCorpus},
+						dks.DeviceKey:                []string{dks.WalleyeDevice},
+						dks.OSKey:                    []string{dks.AndroidOS},
+						types.PrimaryKeyField:        []string{dks.SquareTest},
+						"ext":                        []string{"png"},
+						"image_matching_algorithm":   []string{"fuzzy"},
+						"fuzzy_max_different_pixels": []string{"2"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{255, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    3,
+		Commits: kitchenSinkCommits,
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			{
+				Grouping: paramtools.Params{
+					"name":        "square",
+					"source_type": "corners",
+				},
+				Digest:                     dks.DigestA01Pos,
+				LabelBefore:                expectations.Positive,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			}, {
+				Grouping: paramtools.Params{
+					"name":        "square",
+					"source_type": "corners",
+				},
+				Digest:                     dks.DigestA09Neg,
+				LabelBefore:                expectations.Negative,
+				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+				InCurrentSearchResultsPage: true,
+			},
+			// dks.DigestB01Pos is excluded because it has optional key disallow_triaging=true.
+		},
+	}, res)
+}
+
+func TestSearch_DisallowTriagingOnCL_DigestExcludedFromBulkTriageInfos(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+		Sort:                    query.SortDescending,
+		IncludeIgnoredTraces:    false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter:                  0,
+		RGBAMaxFilter:                  255,
+		ChangelistID:                   dks.ChangelistIDWithDisallowTriagingTest,
+		CodeReviewSystemID:             dks.GerritCRS,
+		Patchsets:                      []int64{1},
+		IncludeDigestsProducedOnMaster: false,
+	})
+	require.NoError(t, err)
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
+	clCommits = append(clCommits, frontend.Commit{
+		CommitTime:    time.Date(2020, time.December, 12, 16, 0, 0, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDWithDisallowTriagingTest,
+		Author:        dks.UserOne,
+		Subject:       "add test with disallow triaging",
+		ChangelistURL: "http://example.com/public/CLdisallowtriaging",
+	})
+
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestB05Pos_CL,
+			Test:   dks.TriangleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:           []string{dks.GreyColorMode},
+				types.CorpusField:          []string{dks.CornersCorpus},
+				dks.DeviceKey:              []string{dks.TaimenDevice},
+				dks.OSKey:                  []string{dks.AndroidOS},
+				types.PrimaryKeyField:      []string{dks.TriangleTest},
+				"ext":                      []string{"png"},
+				"disallow_triaging":        []string{"true"},
+				"image_matching_algorithm": []string{"positive_if_only_image"},
+			},
+			TriageHistory: []frontend.TriageHistory{
+				{
+					User: dks.UserOne,
+					TS:   time.Date(2020, time.December, 12, 17, 0, 0, 0, time.UTC),
+				},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "668120894a9cfd4d028dbed05c245838",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:           dks.GreyColorMode,
+						types.CorpusField:          dks.CornersCorpus,
+						dks.DeviceKey:              dks.TaimenDevice,
+						dks.OSKey:                  dks.AndroidOS,
+						types.PrimaryKeyField:      dks.TriangleTest,
+						"ext":                      "png",
+						"disallow_triaging":        "true",
+						"image_matching_algorithm": "positive_if_only_image",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestB05Pos_CL, Status: expectations.Positive},
+				},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 0.73570776, QueryMetric: 0.73570776, PixelDiffPercent: 9.375, NumDiffPixels: 6,
+					MaxRGBADiffs: [4]int{17, 17, 17, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestB02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: {
+					CombinedMetric: 6.2521544, QueryMetric: 6.2521544, PixelDiffPercent: 53.125, NumDiffPixels: 34,
+					MaxRGBADiffs: [4]int{233, 227, 180, 51},
+					DimDiffer:    false,
+					Digest:       dks.DigestB03Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+						dks.OSKey:             []string{dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: frontend.PositiveRef,
+		}},
+		Offset:               0,
+		Size:                 1,
+		Commits:              clCommits,
+		BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+			// dks.DigestB05Pos_CL is excluded because it has optional key disallow_triaging=true.
+		},
+	}, res)
+}
+
 func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoints(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -3791,16 +4161,8 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 				LabelBefore:                expectations.Positive,
 				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
 				InCurrentSearchResultsPage: true,
-			}, {
-				Grouping: paramtools.Params{
-					types.CorpusField:     dks.CornersCorpus,
-					types.PrimaryKeyField: dks.TriangleTest,
-				},
-				Digest:                     dks.DigestB01Pos,
-				LabelBefore:                expectations.Untriaged,
-				ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
-				InCurrentSearchResultsPage: true,
 			},
+			// dks.DigestB01Pos is excluded because it has optional key disallow_triaging=true.
 		},
 	}, res)
 }

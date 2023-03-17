@@ -743,15 +743,20 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		}
 	}
 
-	bulkTriageDeltaInfos := make([]frontend.BulkTriageDeltaInfo, len(extendedBulkTriageDeltaInfos))
-	for i, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
-		bulkTriageDeltaInfos[i] = triageDeltaInfo.BulkTriageDeltaInfo
+	// Populate the optionsIDs fields of each extendedBulkTriageDeltaInfo.
+	if err := s.populateExtendedBulkTriageDeltaInfosOptionsIDs(ctx, extendedBulkTriageDeltaInfos); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	bulkTriageDeltaInfos, err := s.prepareExtendedBulkTriageDeltaInfosForFrontend(ctx, extendedBulkTriageDeltaInfos)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	return &frontend.SearchResponse{
 		Results:              results,
 		Offset:               q.Offset,
-		Size:                 len(bulkTriageDeltaInfos),
+		Size:                 len(extendedBulkTriageDeltaInfos),
 		BulkTriageDeltaInfos: bulkTriageDeltaInfos,
 		Commits:              commits,
 	}, nil
@@ -1153,8 +1158,10 @@ type stageTwoResult struct {
 type extendedBulkTriageDeltaInfo struct {
 	frontend.BulkTriageDeltaInfo
 
+	traceIDs   []schema.TraceID
 	groupingID schema.GroupingID
 	digest     schema.DigestBytes
+	optionsIDs []schema.OptionsID // Will be set for CL data only.
 }
 
 // getClosestDiffs returns information about the closest triaged digests for each result in the
@@ -1266,8 +1273,10 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 				Grouping: grouping,
 				Digest:   types.Digest(hex.EncodeToString(s2.leftDigest)),
 			},
+			traceIDs:   s2.traceIDs,
 			groupingID: s2.groupingID,
 			digest:     s2.leftDigest,
+			optionsIDs: s2.optionsIDs,
 		}
 		if s2.closestDigest != nil {
 			// Apply RGBA Filter here - if the closest digest isn't within range, we remove it.
@@ -2110,6 +2119,78 @@ func (s *Impl) populateLabelBeforeForCL(ctx context.Context, triageDeltaInfos []
 	return nil
 }
 
+type traceDigestKey struct {
+	traceID schema.MD5Hash
+	digest  schema.MD5Hash
+}
+
+// populateExtendedBulkTriageDeltaInfosOptionsIDs populates the optionsIDs field of the given
+// extendedBulkTriageDeltaInfos.
+func (s *Impl) populateExtendedBulkTriageDeltaInfosOptionsIDs(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	// Map triageDeltaInfos by trace ID and digest for faster querying, and gather all trace IDs.
+	var allTraceIDs []schema.TraceID
+	triageDeltaInfosByTraceAndDigest := map[traceDigestKey]*extendedBulkTriageDeltaInfo{}
+	for i := range triageDeltaInfos {
+		allTraceIDs = append(allTraceIDs, triageDeltaInfos[i].traceIDs...)
+		for _, traceID := range triageDeltaInfos[i].traceIDs {
+			key := traceDigestKey{
+				traceID: sql.AsMD5Hash(traceID),
+				digest:  sql.AsMD5Hash(triageDeltaInfos[i].digest),
+			}
+			triageDeltaInfosByTraceAndDigest[key] = &triageDeltaInfos[i]
+		}
+	}
+
+	const statement = `SELECT trace_id, digest, options_id FROM TraceValues
+	WHERE trace_id = ANY($1) AND commit_id >= $2`
+	rows, err := s.db.Query(ctx, statement, allTraceIDs, getFirstCommitID(ctx))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	var traceID schema.TraceID
+	var digest schema.DigestBytes
+	var optionsID schema.OptionsID
+	for rows.Next() {
+		if err := rows.Scan(&traceID, &digest, &optionsID); err != nil {
+			return skerr.Wrap(err)
+		}
+		key := traceDigestKey{
+			traceID: sql.AsMD5Hash(traceID),
+			digest:  sql.AsMD5Hash(digest),
+		}
+		if triageDeltaInfo, ok := triageDeltaInfosByTraceAndDigest[key]; ok {
+			triageDeltaInfo.optionsIDs = append(triageDeltaInfo.optionsIDs, optionsID)
+		}
+	}
+	return nil
+}
+
+// prepareExtendedBulkTriageDeltaInfosForFrontend turns extendedBulkTriageDeltaInfo structs into
+// frontend.BulkTriageDeltaInfo structs, and filters out those with disallow_triaging=true.
+func (s *Impl) prepareExtendedBulkTriageDeltaInfosForFrontend(ctx context.Context, extendedBulkTriageDeltaInfos []extendedBulkTriageDeltaInfo) ([]frontend.BulkTriageDeltaInfo, error) {
+	// The frontend expects a non-null array.
+	bulkTriageDeltaInfos := []frontend.BulkTriageDeltaInfo{}
+	for _, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
+		disallowTriaging := false
+		for _, optionsID := range triageDeltaInfo.optionsIDs {
+			options, err := s.expandOptionsToParams(ctx, optionsID)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if options["disallow_triaging"] == "true" {
+				disallowTriaging = true
+				break
+			}
+		}
+		if !disallowTriaging {
+			bulkTriageDeltaInfos = append(bulkTriageDeltaInfos, triageDeltaInfo.BulkTriageDeltaInfo)
+		}
+	}
+	return bulkTriageDeltaInfos, nil
+}
+
 // expandGrouping returns the params associated with the grouping id. It will use the cache - if
 // there is a cache miss, it will look it up, add it to the cache and return it.
 func (s *Impl) expandGrouping(ctx context.Context, groupingID schema.MD5Hash) (paramtools.Params, error) {
@@ -2233,15 +2314,15 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 		}
 	}
 
-	bulkTriageDeltaInfos := make([]frontend.BulkTriageDeltaInfo, len(extendedBulkTriageDeltaInfos))
-	for i, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
-		bulkTriageDeltaInfos[i] = triageDeltaInfo.BulkTriageDeltaInfo
+	bulkTriageDeltaInfos, err := s.prepareExtendedBulkTriageDeltaInfosForFrontend(ctx, extendedBulkTriageDeltaInfos)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	return &frontend.SearchResponse{
 		Results:              results,
 		Offset:               getQuery(ctx).Offset,
-		Size:                 len(bulkTriageDeltaInfos),
+		Size:                 len(extendedBulkTriageDeltaInfos),
 		BulkTriageDeltaInfos: bulkTriageDeltaInfos,
 		Commits:              commits,
 	}, nil
