@@ -328,8 +328,17 @@ Use `bazel test` to run a Puppeteer test, e.g.:
 $ bazel test //golden/modules/dots-sk:dots-sk_puppeteer_test
 ```
 
-To view the screenshots captured by a Puppeteer test, use the `//:extract_puppeteer_screenshots`
+To view the screenshots captured by a Puppeteer test, use the `//:puppeteer_screenshot_server`
 target:
+
+```
+$ bazel run //:puppeteer_screenshot_server
+...
+Serving Puppeteer screenshots viewer at: http://<hostname>:8000
+```
+
+To extract the screenshots captured by a Puppeteer test into a directory, use the
+`//:extract_puppeteer_screenshots` target:
 
 ```
 $ mkdir /tmp/screenshots
