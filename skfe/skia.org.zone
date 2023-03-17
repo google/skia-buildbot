@@ -70,6 +70,10 @@ s2._domainkey 300 IN CNAME s2.domainkey.u26644806.wl057.sendgrid.net.
 url9405       300 IN CNAME sendgrid.net.
 26644806      300 IN CNAME sendgrid.net.
 
+;;; Buganizer custom domains for Skia.
+issues     300     IN CNAME www3.l.google.com.
+g-issues   300     IN CNAME uberproxy.l.google.com.
+
 ;;; CNAME all the hosts for this domain.
 *          3600    IN CNAME skia.org.
 
