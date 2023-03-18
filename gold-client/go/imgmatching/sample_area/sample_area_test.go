@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/golden/go/image/text"
 )
 
-func TestMatcher_Match_Failure_InputValidation(t *testing.T) {
+func TestMatcher_Match_InvalidParameters_ReturnsFalse(t *testing.T) {
 	type expectedDebugValues struct {
 		sampleAreaWidthTooSmall                   bool
 		sampleAreaWidthTooLarge                   bool
@@ -40,7 +40,7 @@ func TestMatcher_Match_Failure_InputValidation(t *testing.T) {
 	test("sample area width too large for image", 9, 0, 0, expectedDebugValues{sampleAreaWidthTooLarge: true})
 }
 
-func TestMatcher_Match_Failure_ImageComparison(t *testing.T) {
+func TestMatcher_Match_ImageTooDifferent_ReturnsFalse(t *testing.T) {
 	test := func(name, expected, actual string, sampleAreaWidth, maxDifferentPixelsPerArea, sampleAreaChannelDeltaThreshold int) {
 		t.Run(name, func(t *testing.T) {
 			expectedImage := text.MustToNRGBA(expected)
@@ -71,8 +71,7 @@ func TestMatcher_Match_Failure_ImageComparison(t *testing.T) {
 	testBothImageOrders("dense minor differences, sparse major differences", image8x8AllWhite, image8x8WhiteWithDenseOffWhiteSparseBlack, 2, 1, 0)
 }
 
-func TestMatcher_Match_Success(t *testing.T) {
-
+func TestMatcher_Match_ImageSimilarEnough_ReturnsTrue(t *testing.T) {
 	test := func(name, expected, actual string, sampleAreaWidth, maxDifferentPixelsPerArea, sampleAreaChannelDeltaThreshold int) {
 		t.Run(name, func(t *testing.T) {
 			expectedImage := text.MustToNRGBA(expected)
@@ -99,14 +98,13 @@ func TestMatcher_Match_Success(t *testing.T) {
 
 	testBothImageOrders("identical images", image8x8AllWhite, image8x8AllWhite, 2, 1, 0)
 	testBothImageOrders("sparse differences", image8x8AllWhite, image8x8WhiteWithSparseBlack, 2, 1, 0)
-	// The same as the "dense differences" failure test, but with different
-	// matcher properties.
+	// The same as the "dense differences" failure test, but with different matcher properties.
 	testBothImageOrders("dense differences large sample area", image8x8AllWhite, image8x8WhiteWithDenseBlack, 3, 3, 0)
-	// The same as the "dense but minor differences" failure test, but with
-	// different matcher properties.
+	// The same as the "dense but minor differences" failure test, but with different matcher
+	//properties.
 	testBothImageOrders("dense but minor differences with tolerance", image8x8AllWhite, image8x8WhiteWithDenseOffWhite, 2, 1, 5)
-	// The same as the "dense minor differences, sparse major differences"
-	// failure test, but with different matcher properties
+	// The same as the "dense minor differences, sparse major differences" failure test, but with
+	// different matcher properties.
 	testBothImageOrders("dense minor differences, sparse major differences with tolerance", image8x8AllWhite, image8x8WhiteWithDenseOffWhiteSparseBlack, 2, 1, 5)
 }
 

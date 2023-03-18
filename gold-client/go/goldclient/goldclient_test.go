@@ -1601,7 +1601,6 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.T) {
-
 	const testName = types.TestName("my_test")
 	const digest = types.Digest("11111111111111111111111111111111")
 	const unlabeled = expectations.Label("unlabeled") // Sentinel value.
@@ -1638,7 +1637,6 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
-
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
@@ -1670,7 +1668,6 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Success(t *testing.T) {
-
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
@@ -1683,43 +1680,8 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 	0x00000000 0x00000000
 	0x00000000 0x00000000`))
 
-	// FuzzyMatching algorithm parameters.
-	const maxDifferentPixels = "2"
-	const pixelDeltaThreshold = "10"
-
-	tests := []struct {
-		name       string
-		imageBytes []byte
-		expected   bool
-	}{
-		{
-			name: "identical images, returns true",
-			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
-			2 2
-			0x00000000 0x00000000
-			0x00000000 0x00000000`)),
-			expected: true,
-		},
-		{
-			name: "images different below threshold, returns true",
-			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
-			2 2
-			0x00000505 0x00000001
-			0x00000000 0x00000000`)),
-			expected: true,
-		},
-		{
-			name: "images different above threshold, returns false",
-			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
-			2 2
-			0x00000506 0x00000001
-			0x00000001 0x00000000`)),
-			expected: false,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	test := func(name string, imageBytes []byte, expected bool) {
+		t.Run(name, func(t *testing.T) {
 			goldClient, ctx, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer httpClient.AssertExpectations(t)
 			defer dlr.AssertExpectations(t)
@@ -1729,57 +1691,69 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 
 			optionalKeys := map[string]string{
 				imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
-				string(imgmatching.MaxDifferentPixels):  maxDifferentPixels,
-				string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
+				string(imgmatching.MaxDifferentPixels):  "2",
+				string(imgmatching.PixelDeltaThreshold): "10",
 			}
 
-			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, tc.imageBytes, digest, optionalKeys)
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, expected, actual)
 		})
 	}
+
+	test(
+		"identical images, returns true",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0x00000000 0x00000000
+		0x00000000 0x00000000`)),
+		true)
+	test(
+		"images different below threshold, returns true",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0x00000505 0x00000001
+		0x00000000 0x00000000`)),
+		true)
+	test(
+		"images different above threshold, returns false",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0x00000506 0x00000001
+		0x00000001 0x00000000`)),
+		false)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
-
-	tests := []struct {
-		name         string
-		optionalKeys map[string]string
-		error        string
-	}{
-		{
-			name: "insufficient parameters: no parameter specified",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey: string(imgmatching.FuzzyMatching),
-			},
-			error: "required image matching parameter not found",
-		},
-		{
-			name: "invalid parameters",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.FuzzyMatching),
-				string(imgmatching.MaxDifferentPixels):            "not a number",
-				string(imgmatching.PixelDeltaThreshold):           "not a number",
-				string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
-			},
-			error: "parsing integer value",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	test := func(name string, optionalKeys map[string]string, expectedError string) {
+		t.Run(name, func(t *testing.T) {
 			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
-			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", optionalKeys)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), tc.error)
+			assert.Contains(t, err.Error(), expectedError)
 		})
 	}
+
+	test(
+		"insufficient parameters: no parameter specified",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey: string(imgmatching.FuzzyMatching),
+		},
+		"required image matching parameter not found")
+	test(
+		"invalid parameters",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey:                   string(imgmatching.FuzzyMatching),
+			string(imgmatching.MaxDifferentPixels):            "not a number",
+			string(imgmatching.PixelDeltaThreshold):           "not a number",
+			string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
+		},
+		"parsing integer value")
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDigests_ReturnsFalse(t *testing.T) {
-
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
@@ -1808,8 +1782,186 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 }
 
-func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
+func TestCloudClient_MatchImageAgainstBaseline_SampleAreaMatching_ImageAlreadyLabeled_Success(t *testing.T) {
+	test := func(name string, label expectations.Label, want bool) {
+		t.Run(name, func(t *testing.T) {
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
+			const testName = types.TestName("my_test")
+			const digest = types.Digest("11111111111111111111111111111111")
+			optionalKeys := map[string]string{
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SampleAreaMatching),
+				// These optionalKeys do not matter because the algorithm is not exercised by this test.
+				string(imgmatching.SampleAreaWidth):                 "0",
+				string(imgmatching.MaxDifferentPixelsPerArea):       "0",
+				string(imgmatching.SampleAreaChannelDeltaThreshold): "0",
+			}
+
+			goldClient.resultState.Expectations = expectations.Baseline{
+				testName: {
+					digest: label,
+				},
+			}
+
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
+			assert.Equal(t, want, got)
+		})
+	}
+
+	test("labeled positive, returns true", expectations.Positive, true)
+	test("labeled negative, returns false", expectations.Negative, false)
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_SampleAreaMatching_UntriagedImage_Success(t *testing.T) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const digest = types.Digest("11111111111111111111111111111111")
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
+	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
+	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
+	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	8 8
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`))
+
+	test := func(name string, imageBytes []byte, expected bool) {
+		t.Run(name, func(t *testing.T) {
+			goldClient, ctx, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			defer httpClient.AssertExpectations(t)
+			defer dlr.AssertExpectations(t)
+
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
+			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
+
+			optionalKeys := map[string]string{
+				imgmatching.AlgorithmNameOptKey:                     string(imgmatching.SampleAreaMatching),
+				string(imgmatching.SampleAreaWidth):                 "2",
+				string(imgmatching.MaxDifferentPixelsPerArea):       "1",
+				string(imgmatching.SampleAreaChannelDeltaThreshold): "0",
+			}
+
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.SampleAreaMatching, algorithmName)
+			assert.Equal(t, expected, actual)
+		})
+	}
+
+	test(
+		"identical images, returns true",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		8 8
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`)),
+		true)
+	test(
+		"small differences, returns true",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		8 8
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0x00 0xFF 0xFF 0xFF 0x00 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0x00 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`)),
+		true)
+	test(
+		"large differences, returns false",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		8 8
+		0xFF 0x00 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0x00 0xFF 0xFF 0xFF 0xFF
+		0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`)),
+		false)
+	test(
+		"different size images, returns false",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0xFF 0xFF
+		0xFF 0xFF`)),
+		false)
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_SampleAreaMatching_InvalidParameters_ReturnsError(t *testing.T) {
+	test := func(name string, optionalKeys map[string]string, expectedError string) {
+		t.Run(name, func(t *testing.T) {
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+
+			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", optionalKeys)
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), expectedError)
+		})
+	}
+
+	test(
+		"insufficient parameters: no parameter specified",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey: string(imgmatching.SampleAreaMatching),
+		},
+		"required image matching parameter not found")
+	test(
+		"invalid parameters",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey:                     string(imgmatching.SampleAreaMatching),
+			string(imgmatching.SampleAreaWidth):                 "not a number",
+			string(imgmatching.MaxDifferentPixelsPerArea):       "not a number",
+			string(imgmatching.SampleAreaChannelDeltaThreshold): "not a number",
+		},
+		"parsing integer value")
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_SampleAreaMatching_NoRecentPositiveDigests_ReturnsFalse(t *testing.T) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const digest = types.Digest("11111111111111111111111111111111")
+	imageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	1 1
+	0x00000000`))
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
+	const latestPositiveDigestResponse = `{"digest":""}`
+
+	goldClient, ctx, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+	defer httpClient.AssertExpectations(t)
+
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
+
+	optionalKeys := map[string]string{
+		imgmatching.AlgorithmNameOptKey:                     string(imgmatching.SampleAreaMatching),
+		string(imgmatching.SampleAreaWidth):                 "2",
+		string(imgmatching.MaxDifferentPixelsPerArea):       "1",
+		string(imgmatching.SampleAreaChannelDeltaThreshold): "0",
+	}
+
+	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
+	assert.NoError(t, err)
+	assert.False(t, matched)
+	assert.Equal(t, imgmatching.SampleAreaMatching, algorithmName)
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
@@ -1842,7 +1994,6 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_Success(t *testing.T) {
-
 	const testName = types.TestName("my_test")
 	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
@@ -1899,64 +2050,81 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
-
-	tests := []struct {
-		name         string
-		optionalKeys map[string]string
-		error        string
-	}{
-		{
-			name: "insufficient parameters: no parameter specified",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
-			},
-			error: "required image matching parameter not found",
-		},
-
-		{
-			name: "insufficient parameters: only SobelFuzzyMatching-specific parameter specified",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:   string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.EdgeThreshold): "0",
-			},
-			error: `required image matching parameter not found: "fuzzy_max_different_pixels"`,
-		},
-		{
-			name: "insufficient parameters: only FuzzyMatching-specific parameter specified",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.MaxDifferentPixels):            "0",
-				string(imgmatching.PixelDeltaThreshold):           "0",
-				string(imgmatching.PixelPerChannelDeltaThreshold): "0",
-			},
-			error: "required image matching parameter not found",
-		},
-		{
-			name: "invalid parameters",
-			optionalKeys: map[string]string{
-				imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.EdgeThreshold):                 "not a number",
-				string(imgmatching.MaxDifferentPixels):            "not a number",
-				string(imgmatching.PixelDeltaThreshold):           "not a number",
-				string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
-			},
-			error: "parsing integer value",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	test := func(name string, optionalKeys map[string]string, expectedError string) {
+		t.Run(name, func(t *testing.T) {
 			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
-			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", optionalKeys)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), tc.error)
+			assert.Contains(t, err.Error(), expectedError)
 		})
 	}
+
+	test(
+		"insufficient parameters: no parameter specified",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
+		},
+		"required image matching parameter not found")
+	test(
+		"insufficient parameters: only SobelFuzzyMatching-specific parameter specified",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey:   string(imgmatching.SobelFuzzyMatching),
+			string(imgmatching.EdgeThreshold): "0",
+		},
+		`required image matching parameter not found: "fuzzy_max_different_pixels"`)
+	test(
+		"insufficient parameters: only FuzzyMatching-specific parameter specified",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
+			string(imgmatching.MaxDifferentPixels):            "0",
+			string(imgmatching.PixelDeltaThreshold):           "0",
+			string(imgmatching.PixelPerChannelDeltaThreshold): "0",
+		},
+		"required image matching parameter not found")
+	test(
+		"invalid parameters",
+		map[string]string{
+			imgmatching.AlgorithmNameOptKey:                   string(imgmatching.SobelFuzzyMatching),
+			string(imgmatching.EdgeThreshold):                 "not a number",
+			string(imgmatching.MaxDifferentPixels):            "not a number",
+			string(imgmatching.PixelDeltaThreshold):           "not a number",
+			string(imgmatching.PixelPerChannelDeltaThreshold): "not a number",
+		},
+		"parsing integer value")
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_NoRecentPositiveDigests_ReturnsFalse(t *testing.T) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const digest = types.Digest("11111111111111111111111111111111")
+	imageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	1 1
+	0x00000000`))
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
+	const latestPositiveDigestResponse = `{"digest":""}`
+
+	goldClient, ctx, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+	defer httpClient.AssertExpectations(t)
+
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
+
+	optionalKeys := map[string]string{
+		imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
+		// These optionalKeys do not matter because the comparison image will be nil.
+		string(imgmatching.EdgeThreshold):       "0xAA",
+		string(imgmatching.MaxDifferentPixels):  "2",
+		string(imgmatching.PixelDeltaThreshold): "10",
+	}
+
+	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
+	assert.NoError(t, err)
+	assert.False(t, matched)
+	assert.Equal(t, imgmatching.SobelFuzzyMatching, algorithmName)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *testing.T) {
-
 	goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 	optionalKeys := map[string]string{
