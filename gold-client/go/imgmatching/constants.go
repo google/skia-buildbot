@@ -8,10 +8,11 @@ const AlgorithmNameOptKey = "image_matching_algorithm"
 type AlgorithmName string
 
 const (
-	ExactMatching      = AlgorithmName("exact")
-	FuzzyMatching      = AlgorithmName("fuzzy")
-	SampleAreaMatching = AlgorithmName("sample_area")
-	SobelFuzzyMatching = AlgorithmName("sobel")
+	ExactMatching               = AlgorithmName("exact")
+	FuzzyMatching               = AlgorithmName("fuzzy")
+	PositiveIfOnlyImageMatching = AlgorithmName("positive_if_only_image")
+	SampleAreaMatching          = AlgorithmName("sample_area")
+	SobelFuzzyMatching          = AlgorithmName("sobel")
 )
 
 // AlgorithmParamOptKey is an optional key indicating a parameter for the specified non-exact image

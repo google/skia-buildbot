@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/imgmatching/positive_if_only_image"
 	"go.skia.org/infra/gold-client/go/imgmatching/sample_area"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -87,6 +88,8 @@ func (m *matchEnv) Match(ctx context.Context, leftFile, rightFile string) {
 		printOutExactDebugInfo(ctx, matcher.(*exact.Matcher))
 	case imgmatching.FuzzyMatching:
 		printOutFuzzyDebugInfo(ctx, matcher.(*fuzzy.Matcher))
+	case imgmatching.PositiveIfOnlyImageMatching:
+		printOutPositiveIfOnlyImageDebugInfo(ctx, matcher.(*positive_if_only_image.Matcher))
 	case imgmatching.SampleAreaMatching:
 		printOutSampleAreaDebugInfo(ctx, matcher.(*sample_area.Matcher))
 	case imgmatching.SobelFuzzyMatching:
@@ -139,6 +142,12 @@ func printOutFuzzyDebugInfo(ctx context.Context, matcher *fuzzy.Matcher) {
 	printDebugInfoItem(ctx, "Number of different pixels", matcher.NumDifferentPixels())
 	printDebugInfoItem(ctx, "Maximum delta", matcher.MaxPixelDelta())
 	printDebugInfoItem(ctx, "Pixel comparison method", matcher.PixelComparisonMethod())
+}
+
+// printOutPositiveIfOnlyImageDebugInfo prints out stats reported by the given
+// positive_if_only_image.Matcher.
+func printOutPositiveIfOnlyImageDebugInfo(ctx context.Context, matcher *positive_if_only_image.Matcher) {
+	printDebugInfoItem(ctx, "Last different pixel found", matcher.LastDifferentPixelFound())
 }
 
 // printOutSampleAreaDebugInfo prints out stats reported by the given

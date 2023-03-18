@@ -24,6 +24,7 @@ go_library(
         "//gold-client/go/imgmatching",
         "//gold-client/go/imgmatching/exact",
         "//gold-client/go/imgmatching/fuzzy",
+        "//gold-client/go/imgmatching/positive_if_only_image",
         "//gold-client/go/imgmatching/sample_area",
         "//gold-client/go/imgmatching/sobel",
         "//golden/go/jsonio",

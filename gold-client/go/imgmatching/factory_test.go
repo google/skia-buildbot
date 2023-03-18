@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/gold-client/go/imgmatching/exact"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/imgmatching/positive_if_only_image"
 	"go.skia.org/infra/gold-client/go/imgmatching/sample_area"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -463,6 +464,16 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMakeMatcher_PositiveIfOnlyImageMatching(t *testing.T) {
+	algorithmName, matcher, err := MakeMatcher(map[string]string{
+		AlgorithmNameOptKey: string(PositiveIfOnlyImageMatching),
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, PositiveIfOnlyImageMatching, algorithmName)
+	assert.Equal(t, matcher, &positive_if_only_image.Matcher{})
 }
 
 func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {

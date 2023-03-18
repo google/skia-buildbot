@@ -533,15 +533,16 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
-	if mostRecentPositiveDigest == tiling.MissingDigest {
-		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.\n", traceId)
-		return false, algorithmName, nil
-	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
-	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(ctx, mostRecentPositiveDigest)
-	if err != nil {
-		return false, "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
+	var mostRecentPositiveImage image.Image // Will be nil if no existing positive image is found.
+	if mostRecentPositiveDigest == tiling.MissingDigest {
+		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.\n", traceId)
+	} else {
+		mostRecentPositiveImage, _, err = c.getDigestFromCacheOrGCS(ctx, mostRecentPositiveDigest)
+		if err != nil {
+			return false, "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
+		}
 	}
 
 	// Return algorithm's output.

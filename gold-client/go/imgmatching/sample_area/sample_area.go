@@ -37,6 +37,11 @@ type Matcher struct {
 
 // Match implements the imgmatching.Matcher interface.
 func (m *Matcher) Match(expected, actual image.Image) bool {
+	// Expected image will be nil if no recent positive image is found.
+	if expected == nil {
+		return false
+	}
+
 	// Images must be the same size.
 	if !expected.Bounds().Eq(actual.Bounds()) {
 		return false

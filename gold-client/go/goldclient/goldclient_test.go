@@ -1782,6 +1782,81 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 }
 
+func TestCloudClient_MatchImageAgainstBaseline_PositiveIfOnlyImageMatching_UntriagedImage_Success(t *testing.T) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const digest = types.Digest("11111111111111111111111111111111")
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
+	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
+	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
+	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	2 2
+	0x00000000 0x00000000
+	0x00000000 0x00000000`))
+
+	test := func(name string, imageBytes []byte, expected bool) {
+		t.Run(name, func(t *testing.T) {
+			goldClient, ctx, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			defer httpClient.AssertExpectations(t)
+			defer dlr.AssertExpectations(t)
+
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
+			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
+
+			optionalKeys := map[string]string{
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.PositiveIfOnlyImageMatching),
+			}
+
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.PositiveIfOnlyImageMatching, algorithmName)
+			assert.Equal(t, expected, actual)
+		})
+	}
+
+	test(
+		"identical images, returns true",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0x00000000 0x00000000
+		0x00000000 0x00000000`)),
+		true)
+	test(
+		"different images, returns false",
+		imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 2
+		0x00000000 0x00000001
+		0x00000000 0x00000000`)),
+		false)
+}
+
+func TestCloudClient_MatchImageAgainstBaseline_PositiveIfOnlyImageMatching_NoRecentPositiveDigests_ReturnsTrue(t *testing.T) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const digest = types.Digest("11111111111111111111111111111111")
+	imageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	1 1
+	0x00000000`))
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
+	const latestPositiveDigestResponse = `{"digest":""}`
+
+	goldClient, ctx, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+	defer httpClient.AssertExpectations(t)
+
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
+
+	optionalKeys := map[string]string{
+		imgmatching.AlgorithmNameOptKey: string(imgmatching.PositiveIfOnlyImageMatching),
+	}
+
+	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
+	assert.NoError(t, err)
+	assert.True(t, matched)
+	assert.Equal(t, imgmatching.PositiveIfOnlyImageMatching, algorithmName)
+}
+
 func TestCloudClient_MatchImageAgainstBaseline_SampleAreaMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {

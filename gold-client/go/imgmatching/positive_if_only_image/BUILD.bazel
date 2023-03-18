@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "positive_if_only_image",
+    srcs = ["positive_if_only_image.go"],
+    importpath = "go.skia.org/infra/gold-client/go/imgmatching/positive_if_only_image",
+    visibility = ["//visibility:public"],
+    deps = ["//gold-client/go/imgmatching/exact"],
+)
+
+go_test(
+    name = "positive_if_only_image_test",
+    srcs = ["positive_if_only_image_test.go"],
+    embed = [":positive_if_only_image"],
+    deps = [
+        "//golden/go/image/text",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
