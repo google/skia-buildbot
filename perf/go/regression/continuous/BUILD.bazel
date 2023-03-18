@@ -17,6 +17,7 @@ go_library(
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/git",
+        "//perf/go/git/provider",
         "//perf/go/ingestevents",
         "//perf/go/notify",
         "//perf/go/regression",

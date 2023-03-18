@@ -31,6 +31,7 @@ go_library(
         "//perf/go/dfbuilder",
         "//perf/go/dryrun",
         "//perf/go/git",
+        "//perf/go/git/provider",
         "//perf/go/notify",
         "//perf/go/progress",
         "//perf/go/psrefresh",

@@ -209,11 +209,38 @@ const (
 	GitAuthGerrit GitAuthType = "gerrit"
 )
 
+// GitProvider is the method used to interrogate git repos.
+type GitProvider string
+
+const (
+	// GitProviderCLI uses a local copy of git to checkout the repo.
+	GitProviderCLI GitProvider = "git"
+
+	// GitProviderGitiles uses the Gitiles API.
+	GitProviderGitiles GitProvider = "gitiles"
+)
+
+// AllGitProviders is a slice of all valid GitProviders.
+var AllGitProviders []GitProvider = []GitProvider{
+	GitProviderCLI,
+	GitProviderGitiles,
+}
+
 // GitRepoConfig is the config for the git repo.
 type GitRepoConfig struct {
 	// GitAuthType is the type of authentication the repo requires. Defaults to
 	// GitAuthNone.
 	GitAuthType GitAuthType `json:"git_auth_type,omitempty"`
+
+	// Provider is the method used to interrogate git repos.
+	Provider GitProvider `json:"provider"`
+
+	// StartCommit is the commit in the repo where we start tracking commits,
+	// i.e. StartCommit will have a Commit Number of 0. If not supplied then
+	// default to the first commit in the repo. This is used to avoid having to
+	// ingest all the commits in a huge repo where we don't care about the
+	// majority of the history, e.g. Chrome.
+	StartCommit string `json:"start_commit,omitempty"`
 
 	// URL that the Git repo is fetched from.
 	URL string `json:"url"`

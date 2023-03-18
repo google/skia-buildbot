@@ -20,6 +20,7 @@
         "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
+        "provider": "git",
         "url": "https://github.com/skia-dev/perf-demo-repo.git",
         "dir": "/tmp/perf-demo",
         "debounce_commit_url": false

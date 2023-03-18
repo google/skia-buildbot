@@ -65,7 +65,7 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 func TestBuildNew(t *testing.T) {
 	ctx := context.Background()
 
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -195,7 +195,7 @@ func TestBuildNew(t *testing.T) {
 }
 
 func TestFromIndexRange_Success(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -219,7 +219,7 @@ func TestFromIndexRange_Success(t *testing.T) {
 }
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -231,7 +231,7 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 }
 
 func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -258,7 +258,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 }
 
 func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -301,7 +301,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 }
 
 func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -350,7 +350,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 }
 
 func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -367,7 +367,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 }
 
 func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
@@ -396,7 +396,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 }
 
 func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 

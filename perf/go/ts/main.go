@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
-	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
@@ -77,7 +77,7 @@ func main() {
 		frontend.TriageResponse{},
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
-		perfgit.Commit{},
+		provider.Commit{},
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.RegressionDetectionResponse{},

@@ -9,6 +9,8 @@ go_library(
         "//bazel/external/cipd/git",
         "//go/git/testutils",
         "//perf/go/config",
+        "//perf/go/git/provider",
+        "//perf/go/git/providers/git_checkout",
         "//perf/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_stretchr_testify//assert",

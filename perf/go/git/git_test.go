@@ -4,8 +4,6 @@ package git
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -15,13 +13,14 @@ import (
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/gittest"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestCockroachDB(t *testing.T) {
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
-			ctx, db, gb, hashes, instanceConfig := gittest.NewForTest(t)
+			ctx, db, gb, hashes, _, instanceConfig := gittest.NewForTest(t)
 			g, err := New(ctx, true, db, instanceConfig)
 			require.NoError(t, err)
 
@@ -99,7 +98,7 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 	// The prefix of the URL will change, so just confirm it has the right suffix.
 	require.True(t, strings.HasSuffix(commit.URL, commit.GitHash))
 
-	assert.Equal(t, Commit{
+	assert.Equal(t, provider.Commit{
 		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
 		GitHash:      hashes[1],
 		Author:       "test <test@google.com>",
@@ -127,7 +126,7 @@ func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Cont
 	require.True(t, strings.HasSuffix(commits[0].URL, commits[0].GitHash))
 	require.True(t, strings.HasSuffix(commits[1].URL, commits[1].GitHash))
 
-	assert.Equal(t, Commit{
+	assert.Equal(t, provider.Commit{
 		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
 		GitHash:      hashes[1],
 		Author:       "test <test@google.com>",
@@ -135,7 +134,7 @@ func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Cont
 		URL:          commits[0].URL,
 		CommitNumber: commitNumbers[0],
 	}, commits[0])
-	assert.Equal(t, Commit{
+	assert.Equal(t, provider.Commit{
 		Timestamp:    gittest.StartTime.Add(3 * time.Minute).Unix(),
 		GitHash:      hashes[3],
 		Author:       "test <test@google.com>",
@@ -291,125 +290,6 @@ func testLogEntry_BadCommitId_ReturnsError(t *testing.T, ctx context.Context, g 
 	require.Error(t, err)
 }
 
-func TestParseGitRevLogStream_Success(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>
-Change #9
-1584837783`)
-
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Equal(t, Commit{
-			CommitNumber: types.BadCommitNumber,
-			GitHash:      "6079a7810530025d9877916895dd14eb8bb454c0",
-			Timestamp:    1584837783,
-			Author:       "Joe Gregorio <joe@bitworking.org>",
-			Subject:      "Change #9"}, p)
-		return nil
-	})
-	assert.NoError(t, err)
-}
-
-func TestParseGitRevLogStream_ErrPropagatesWhenCallbackReturnsError(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>
-Change #9
-1584837783`)
-
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		return fmt.Errorf("This is an error.")
-	})
-	assert.Contains(t, err.Error(), "This is an error.")
-}
-
-func TestParseGitRevLogStream_SuccessForTwoCommits(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>
-Change #9
-1584837783
-commit 977e0ef44bec17659faf8c5d4025c5a068354817
-Joe Gregorio <joe@bitworking.org>
-Change #8
-1584837780`)
-	count := 0
-	hashes := []string{"6079a7810530025d9877916895dd14eb8bb454c0", "977e0ef44bec17659faf8c5d4025c5a068354817"}
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Equal(t, "Joe Gregorio <joe@bitworking.org>", p.Author)
-		assert.Equal(t, hashes[count], p.GitHash)
-		count++
-		return nil
-	})
-	assert.Equal(t, 2, count)
-	assert.NoError(t, err)
-}
-
-func TestParseGitRevLogStream_EmptyFile_Success(t *testing.T) {
-	r := strings.NewReader("")
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.NoError(t, err)
-}
-
-func TestParseGitRevLogStream_ErrMissingTimestamp(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>
-Change #9`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.Contains(t, err.Error(), "expecting a timestamp")
-}
-
-func TestParseGitRevLogStream_ErrFailedToParseTimestamp(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>
-Change #9
-ooops 1584837780`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.Contains(t, err.Error(), "Failed to parse timestamp")
-}
-
-func TestParseGitRevLogStream_ErrMissingSubject(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0
-Joe Gregorio <joe@bitworking.org>`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.Contains(t, err.Error(), "expecting a subject")
-}
-
-func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
-	r := strings.NewReader(
-		`commit 6079a7810530025d9877916895dd14eb8bb454c0`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.Contains(t, err.Error(), "expecting an author")
-}
-
-func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
-	r := strings.NewReader(
-		`something_not_commit 6079a7810530025d9877916895dd14eb8bb454c0`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Should never get here.")
-		return nil
-	})
-	assert.Contains(t, err.Error(), "expected commit at")
-}
-
 func TestURLFromParts_DebounceCommitURL_Success(t *testing.T) {
 
 	const debounceURL = "https://some.other.url.example.org"
@@ -419,7 +299,7 @@ func TestURLFromParts_DebounceCommitURL_Success(t *testing.T) {
 			DebouceCommitURL: true,
 		},
 	}
-	commit := Commit{
+	commit := provider.Commit{
 		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
 		Subject: debounceURL,
 	}
@@ -434,7 +314,7 @@ func TestURLFromParts_CommitURLSupplied_Success(t *testing.T) {
 			CommitURL: "%s/commit/%s",
 		},
 	}
-	commit := Commit{
+	commit := provider.Commit{
 		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
 	}
 	assert.Equal(t, "https://github.com/google/skia/commit/6079a7810530025d9877916895dd14eb8bb454c0", urlFromParts(instanceConfig, commit))
@@ -447,7 +327,7 @@ func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
 			URL: "https://skia.googlesource.com/skia",
 		},
 	}
-	commit := Commit{
+	commit := provider.Commit{
 		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
 	}
 	assert.Equal(t, "https://skia.googlesource.com/skia/+show/6079a7810530025d9877916895dd14eb8bb454c0", urlFromParts(instanceConfig, commit))
@@ -455,7 +335,7 @@ func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
 
 func TestCommit_Display(t *testing.T) {
 
-	c := Commit{
+	c := provider.Commit{
 		CommitNumber: 10223,
 		GitHash:      "d261e1075a93677442fdf7fe72aba7e583863664",
 		Timestamp:    1498176000,

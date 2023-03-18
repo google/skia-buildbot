@@ -1,0 +1,36 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "git_checkout",
+    srcs = ["git_checkout.go"],
+    importpath = "go.skia.org/infra/perf/go/git/providers/git_checkout",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/git/git_common",
+        "//go/gitauth",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/config",
+        "//perf/go/git/provider",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "git_checkout_test",
+    srcs = ["git_checkout_test.go"],
+    embed = [":git_checkout"],
+    deps = [
+        "//bazel/external/cipd/git",
+        "//go/git/testutils",
+        "//perf/go/config",
+        "//perf/go/git/provider",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

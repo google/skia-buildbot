@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -21,7 +22,7 @@ import (
 
 // RegressionAtCommit is a Regression found for a specific commit.
 type RegressionAtCommit struct {
-	CID        perfgit.Commit         `json:"cid"`
+	CID        provider.Commit        `json:"cid"`
 	Regression *regression.Regression `json:"regression"`
 }
 

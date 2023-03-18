@@ -12,7 +12,7 @@ go_library(
         "//go/sklog",
         "//perf/go/alerts",
         "//perf/go/clustering2",
-        "//perf/go/git",
+        "//perf/go/git/provider",
         "//perf/go/stepfit",
     ],
 )

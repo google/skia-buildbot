@@ -6,56 +6,28 @@
 package git
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/git/git_common"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/git/providers"
 	"go.skia.org/infra/perf/go/types"
-	"golang.org/x/oauth2/google"
 )
 
 // For rough numbers a Commit Author is 50 , Subject 80 , URL 200, and GitHash 32 bytes. So
 // so rounding up about 400 bytes per Commit. If we want to cap the lru cache at 10MB that's
 // 25,000 entries.
 const commitCacheSize = 25_000
-
-// Commit represents a single commit stored in the database.
-//
-// JSON annotations make it serialize like the legacy cid.CommitDetail.
-type Commit struct {
-	CommitNumber types.CommitNumber `json:"offset"`
-	GitHash      string             `json:"hash"`
-	Timestamp    int64              `json:"ts"` // Unix timestamp, seconds from the epoch.
-	Author       string             `json:"author"`
-	Subject      string             `json:"message"`
-	URL          string             `json:"url"`
-}
-
-// Display returns a display string that describes the commit.
-func (c Commit) Display(now time.Time) string {
-	return fmt.Sprintf("%s - %s - %s", c.GitHash[:7], human.Duration(now.Sub(time.Unix(c.Timestamp, 0))), c.Subject)
-}
 
 // statement is an SQL statement identifier.
 type statement int
@@ -75,7 +47,7 @@ const (
 
 var (
 	// BadCommit is returned on errors from functions that return Commits.
-	BadCommit = Commit{
+	BadCommit = provider.Commit{
 		CommitNumber: types.BadCommitNumber,
 	}
 )
@@ -175,8 +147,7 @@ var statements = map[statement]string{
 //
 // Please see perf/sql/migrations for the database schema used.
 type Git struct {
-	// gitFullPath is the path of the git executable.
-	gitFullPath string
+	gp provider.Provider
 
 	instanceConfig *config.InstanceConfig
 
@@ -202,47 +173,17 @@ type Git struct {
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
 func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *config.InstanceConfig) (*Git, error) {
-	// Do git authentication if required.
-	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
-		sklog.Info("Authenticating to Gerrit.")
-		ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to get tokensource perfgit.Git for config %v", *instanceConfig)
-		}
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to gitauth perfgit.Git for config %v", *instanceConfig)
-		}
-	}
-
-	// Find the path to the git executable, which might be relative to working dir.
-	gitFullPath, _, _, err := git_common.FindGit(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to find git.")
-	}
-
-	// Force the path to be absolute.
-	gitFullPath, err = filepath.Abs(gitFullPath)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get absolute path to git.")
-	}
-
-	// Clone the git repo if necessary.
-	sklog.Infof("Cloning repo.")
-	if _, err := os.Stat(instanceConfig.GitRepoConfig.Dir); os.IsNotExist(err) {
-		cmd := exec.CommandContext(ctx, gitFullPath, "clone", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
-		if err := cmd.Run(); err != nil {
-			exerr := err.(*exec.ExitError)
-			return nil, skerr.Wrapf(err, "Failed to clone repo: %s - %s", err, exerr.Stderr)
-		}
-	}
-
 	cache, err := lru.New(commitCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	gp, err := providers.New(ctx, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	ret := &Git{
-		gitFullPath:                            gitFullPath,
+		gp:                                     gp,
 		db:                                     db,
 		cache:                                  cache,
 		instanceConfig:                         instanceConfig,
@@ -269,90 +210,15 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration) {
 	go func() {
 		liveness := metrics2.NewLiveness("perf_git_udpate_polling_livenes")
+		ctx := context.Background()
 		for range time.Tick(duration) {
-			timeoutCtx, cancel := context.WithTimeout(ctx, duration)
-			defer cancel()
-			if err := g.Update(timeoutCtx); err != nil {
+			if err := g.Update(ctx); err != nil {
 				sklog.Errorf("Failed to update git repo: %s", err)
 			} else {
 				liveness.Reset()
 			}
 		}
 	}()
-}
-
-type parseGitRevLogStreamProcessSingleCommit func(commit Commit) error
-
-// parseGitRevLogStream parses the input stream for input of the form:
-//
-//	commit 6079a7810530025d9877916895dd14eb8bb454c0
-//	Joe Gregorio <joe@bitworking.org>
-//	Change #9
-//	1584837783
-//	commit 977e0ef44bec17659faf8c5d4025c5a068354817
-//	Joe Gregorio <joe@bitworking.org>
-//	Change #8
-//	1584837783
-//
-// And calls the parseGitRevLogStreamProcessSingleCommit function with each
-// entry it finds. The passed in Commit has all valid fields except
-// CommitNumber, which is set to types.BadCommitNumber.
-func parseGitRevLogStream(r io.ReadCloser, f parseGitRevLogStreamProcessSingleCommit) error {
-	scanner := bufio.NewScanner(r)
-	lineNumber := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !strings.HasPrefix(line, "commit ") {
-			return skerr.Fmt("Invalid format, expected commit at line %d: %q", lineNumber, line)
-		}
-		lineNumber++
-		gitHash := strings.Split(line, " ")[1]
-
-		if !scanner.Scan() {
-			return skerr.Fmt("Ran out of input, expecting an author line: %d", lineNumber)
-		}
-		lineNumber++
-		author := scanner.Text()
-
-		if !scanner.Scan() {
-			return skerr.Fmt("Ran out of input, expecting a subject line: %d", lineNumber)
-		}
-		lineNumber++
-		subject := scanner.Text()
-
-		if !scanner.Scan() {
-			return skerr.Fmt("Ran out of input, expecting a timestamp line: %d", lineNumber)
-		}
-		lineNumber++
-		timestampString := scanner.Text()
-		ts, err := strconv.ParseInt(timestampString, 10, 64)
-		if err != nil {
-			return skerr.Fmt("Failed to parse timestamp %q at line %d", timestampString, lineNumber)
-		}
-		if err := f(Commit{
-			CommitNumber: types.BadCommitNumber,
-			GitHash:      gitHash,
-			Timestamp:    ts,
-			Author:       author,
-			Subject:      subject}); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
-	return skerr.Wrap(scanner.Err())
-}
-
-// pull does a git pull on the git repo.
-func pull(ctx context.Context, gitFullPath, dir string) error {
-	ctx, span := trace.StartSpan(ctx, "perfgit.pull")
-	defer span.End()
-
-	cmd := exec.CommandContext(ctx, gitFullPath, "pull")
-	cmd.Dir = dir
-	if err := cmd.Run(); err != nil {
-		exerr := err.(*exec.ExitError)
-		return skerr.Wrapf(err, "Failed to pull repo %q with git %q: %s", dir, gitFullPath, exerr.Stderr)
-	}
-	return nil
 }
 
 // Update does a git pull and then finds all the new commits
@@ -383,38 +249,24 @@ func (g *Git) Update(ctx context.Context) error {
 
 	sklog.Infof("perfgit: Update called.")
 	g.updateCalled.Inc(1)
-	if err := pull(ctx, g.gitFullPath, g.instanceConfig.GitRepoConfig.Dir); err != nil {
+	if err := g.gp.Update(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
-	var cmd *exec.Cmd
 	mostRecentGitHash, mostRecentCommitNumber, err := g.getMostRecentCommit(ctx)
 	nextCommitNumber := mostRecentCommitNumber + 1
 	if err != nil {
 		// If the Commits table is empty then start populating it from the very
 		// first commit to the repo.
 		if err == pgx.ErrNoRows {
-			cmd = exec.CommandContext(ctx, g.gitFullPath, "rev-list", "HEAD", `--pretty=%aN <%aE>%n%s%n%ct`, "--reverse")
+			mostRecentGitHash = ""
 			nextCommitNumber = types.CommitNumber(0)
 		} else {
 			return skerr.Wrapf(err, "Failed looking up most recect commit.")
 		}
-	} else {
-		// Add all the commits from the repo since the last time we looked.
-		cmd = exec.CommandContext(ctx, g.gitFullPath, "rev-list", "HEAD", "^"+mostRecentGitHash, `--pretty=%aN <%aE>%n%s%n%ct`, "--reverse")
-	}
-	sklog.Infof("perfgit: Starting update with nextCommitNumber: %d", nextCommitNumber)
-	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := cmd.Start(); err != nil {
-		return skerr.Wrap(err)
 	}
 
 	total := 0
-	err = parseGitRevLogStream(stdout, func(p Commit) error {
+	return g.gp.CommitsFromMostRecentGitHashToHead(ctx, mostRecentGitHash, func(p provider.Commit) error {
 		// Add p to the database starting at nextCommitNumber.
 		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
@@ -426,19 +278,8 @@ func (g *Git) Update(ctx context.Context) error {
 			sklog.Infof("Added %d commits this update cycle.", total)
 		}
 		return nil
-	})
-	if err != nil {
-		// Once we've successfully called cmd.Start() we must always call
-		// cmd.Wait() to close stdout.
-		_ = cmd.Wait()
-		return skerr.Wrap(err)
-	}
 
-	if err := cmd.Wait(); err != nil {
-		exerr := err.(*exec.ExitError)
-		return skerr.Wrapf(err, "Failed to pull repo: %s", exerr.Stderr)
-	}
-	return nil
+	})
 }
 
 // getMostRecentCommit as seen in the database.
@@ -469,7 +310,7 @@ func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (type
 }
 
 // urlFromParts creates the URL to link to a specific commit in a repo.
-func urlFromParts(instanceConfig *config.InstanceConfig, commit Commit) string {
+func urlFromParts(instanceConfig *config.InstanceConfig, commit provider.Commit) string {
 	if instanceConfig.GitRepoConfig.DebouceCommitURL {
 		return commit.Subject
 	}
@@ -482,15 +323,15 @@ func urlFromParts(instanceConfig *config.InstanceConfig, commit Commit) string {
 }
 
 // CommitFromCommitNumber returns all the stored details for a given CommitNumber.
-func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
+func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitFromCommitNumber")
 	defer span.End()
 
 	g.commitFromCommitNumberCalled.Inc(1)
 	if iCommit, ok := g.cache.Get(commitNumber); ok {
-		return iCommit.(Commit), nil
+		return iCommit.(provider.Commit), nil
 	}
-	var ret Commit
+	var ret provider.Commit
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
 	}
@@ -502,12 +343,12 @@ func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.Com
 }
 
 // CommitSliceFromCommitNumberSlice returns all the stored details for a given slice of CommitNumbers.
-func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]Commit, error) {
+func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberSlice")
 	defer span.End()
 
 	g.commitSliceFromCommitNumberSlice.Inc(1)
-	ret := make([]Commit, len(commitNumberSlice))
+	ret := make([]provider.Commit, len(commitNumberSlice))
 	for i, commitNumber := range commitNumberSlice {
 		details, err := g.CommitFromCommitNumber(ctx, commitNumber)
 		if err != nil {
@@ -543,7 +384,7 @@ func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Comm
 
 // CommitSliceFromTimeRange returns a slice of Commits that fall in the range
 // [begin, end), i.e  inclusive of begin and exclusive of end.
-func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]Commit, error) {
+func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromTimeRange")
 	defer span.End()
 
@@ -553,9 +394,9 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %s-%s", begin, end)
 	}
 	defer rows.Close()
-	ret := []Commit{}
+	ret := []provider.Commit{}
 	for rows.Next() {
-		var c Commit
+		var c provider.Commit
 		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read row in range %s-%s", begin, end)
 		}
@@ -566,7 +407,7 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 
 // CommitSliceFromCommitNumberRange returns a slice of Commits that fall in the range
 // [begin, end], i.e  inclusive of both begin and end.
-func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]Commit, error) {
+func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberRange")
 	defer span.End()
 
@@ -576,9 +417,9 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
 	defer rows.Close()
-	ret := []Commit{}
+	ret := []provider.Commit{}
 	for rows.Next() {
-		var c Commit
+		var c provider.Commit
 		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
 		}
@@ -608,60 +449,34 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	defer span.End()
 
 	g.commitNumbersWhenFileChangesInCommitNumberRangeCalled.Inc(1)
-	var revisionRange string
+	// Default to beginHash being the empty string, which means start at the
+	// beginning of the repo's history.
+	var beginHash string
+	// Covert the commit numbers to hashes.
+	if begin != types.BadCommitNumber && begin-1 != types.BadCommitNumber {
+		var err error
+		beginHash, err = g.GitHashFromCommitNumber(ctx, begin-1)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+
 	endHash, err := g.GitHashFromCommitNumber(ctx, end)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if begin == types.CommitNumber(0) {
-		// git log revision range queries of the form hash1..hash2 are exclusive
-		// of hash1, so we need to always back up begin one commit, except in
-		// the case where the commit number is 0, then we change the revision
-		// range.
-		revisionRange = endHash
-	} else {
-		// Covert the commit numbers to hashes.
-		beginHash, err := g.GitHashFromCommitNumber(ctx, begin-1)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		revisionRange = beginHash + ".." + endHash
-	}
 
-	// Build the git log command to run.
-	cmd := exec.CommandContext(ctx, g.gitFullPath, "log", revisionRange, "--reverse", "--format=format:%H", "--", filename)
-	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
-
-	stdout, err := cmd.StdoutPipe()
+	hashes, err := g.gp.GitHashesInRangeForFile(ctx, beginHash, endHash, filename)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := cmd.Start(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// Read the git log output.
-	scanner := bufio.NewScanner(stdout)
-	ret := []types.CommitNumber{}
-	for scanner.Scan() {
-		githash := scanner.Text()
+	var ret []types.CommitNumber
+	for _, githash := range hashes {
 		commitNumber, err := g.CommitNumberFromGitHash(ctx, githash)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "git log returned invalid git hash: %q", githash)
 		}
 		ret = append(ret, commitNumber)
-	}
-
-	if scanner.Err() != nil {
-		// Once we've successfully called cmd.Start() we must always call
-		// cmd.Wait() to close stdout.
-		_ = cmd.Wait()
-		return nil, skerr.Wrap(err)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		exerr := err.(*exec.ExitError)
-		return nil, skerr.Wrapf(err, "Failed to get logs: %s", exerr.Stderr)
 	}
 
 	return ret, nil
@@ -673,18 +488,5 @@ func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, 
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-
-	// Build the git log command to run.
-	cmd := exec.CommandContext(ctx, g.gitFullPath, "show", "-s", hash)
-	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", skerr.Wrapf(err, "Failed running %q: stdout: %q  stderr: %q", cmd.String(), out.String(), stderr.String())
-	}
-
-	return out.String(), nil
+	return g.gp.LogEntry(ctx, hash)
 }

@@ -73,11 +73,18 @@
     },
     "GitRepoConfig": {
       "required": [
+        "provider",
         "url",
         "dir"
       ],
       "properties": {
         "git_auth_type": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "start_commit": {
           "type": "string"
         },
         "url": {

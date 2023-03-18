@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "provider",
+    srcs = ["provider.go"],
+    importpath = "go.skia.org/infra/perf/go/git/provider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/human",
+        "//perf/go/types",
+    ],
+)

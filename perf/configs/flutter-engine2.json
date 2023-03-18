@@ -26,6 +26,7 @@
         "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
+        "provider": "git",
         "url": "https://github.com/flutter/engine",
         "dir": "/tmp/flutter-engine",
         "debounce_commit_url": false,

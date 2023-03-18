@@ -13,7 +13,7 @@ go_library(
         "//perf/go/clustering2",
         "//perf/go/dryrun",
         "//perf/go/frontend",
-        "//perf/go/git",
+        "//perf/go/git/provider",
         "//perf/go/ingest/format",
         "//perf/go/pivot",
         "//perf/go/progress",

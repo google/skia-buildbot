@@ -48,6 +48,7 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
@@ -521,7 +522,7 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Filter if we have a restricted set of branches.
-	ret := []perfgit.Commit{}
+	ret := []provider.Commit{}
 	if len(config.Config.IngestionConfig.Branches) != 0 {
 		for _, details := range resp {
 			for _, branch := range config.Config.IngestionConfig.Branches {
@@ -647,7 +648,7 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 // CIDHandlerResponse is the form of the response from the /_/cid/ endpoint.
 type CIDHandlerResponse struct {
 	// CommitSlice describes all the commits requested.
-	CommitSlice []perfgit.Commit `json:"commitSlice"`
+	CommitSlice []provider.Commit `json:"commitSlice"`
 
 	// LogEntry is the full git log entry for the first commit in the
 	// CommitSlice.
@@ -999,7 +1000,7 @@ type RegressionRangeRequest struct {
 //
 // The Columns have the same order as RegressionRangeResponse.Header.
 type RegressionRow struct {
-	Commit  perfgit.Commit           `json:"cid"`
+	Commit  provider.Commit          `json:"cid"`
 	Columns []*regression.Regression `json:"columns"`
 }
 
@@ -1086,7 +1087,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get a list of commits for the range.
-	var commits []perfgit.Commit
+	var commits []provider.Commit
 	if rr.Subset == SubsetAll {
 		commits, err = f.perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		if err != nil {
@@ -1113,7 +1114,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 
 	// Reverse the order of the cids, so the latest
 	// commit shows up first in the UI display.
-	revCids := make([]perfgit.Commit, len(commits), len(commits))
+	revCids := make([]provider.Commit, len(commits), len(commits))
 	for i, c := range commits {
 		revCids[len(commits)-1-i] = c
 	}

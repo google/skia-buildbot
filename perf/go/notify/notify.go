@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
-	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
@@ -101,12 +101,12 @@ func New(email Email, url string) *Notifier {
 // context is used in expanding the emailTemplate.
 type templateContext struct {
 	URL     string
-	Commit  perfgit.Commit
+	Commit  provider.Commit
 	Alert   *alerts.Alert
 	Cluster *clustering2.ClusterSummary
 }
 
-func (n *Notifier) formatEmail(c perfgit.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
+func (n *Notifier) formatEmail(c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
 	templateContext := &templateContext{
 		URL:     n.url,
 		Commit:  c,
@@ -132,7 +132,7 @@ func splitEmails(s string) []string {
 }
 
 // Send a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *Notifier) Send(ctx context.Context, c perfgit.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) error {
+func (n *Notifier) Send(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) error {
 	if alert.Alert == "" {
 		return fmt.Errorf("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
@@ -150,7 +150,7 @@ func (n *Notifier) Send(ctx context.Context, c perfgit.Commit, alert *alerts.Ale
 
 // ExampleSend sends an example for dummy data for the given alerts.Config.
 func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
-	c := perfgit.Commit{
+	c := provider.Commit{
 		Subject:   "Re-enable opList dependency tracking",
 		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 		GitHash:   "d261e1075a93677442fdf7fe72aba7e583863664",

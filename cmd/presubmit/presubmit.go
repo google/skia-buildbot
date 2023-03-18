@@ -517,6 +517,10 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 				// This is the one place where we are allowed to shell out to git; all
 				// others should go through here.
 				regexp.MustCompile(`go/git/git_common/.*\.go`),
+				// Just using the word "git" as a config value.
+				regexp.MustCompile(`perf/go/config/.*\.go`),
+				// Just using the word "git" as a directory name.
+				regexp.MustCompile(`perf/go/git/providers/git_checkout/.*\.go`),
 			},
 		},
 	}

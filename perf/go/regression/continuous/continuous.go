@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/regression"
@@ -44,9 +45,9 @@ const (
 // Current state of looking for regressions, i.e. the current commit and alert
 // being worked on.
 type Current struct {
-	Commit  perfgit.Commit `json:"commit"`
-	Alert   *alerts.Alert  `json:"alert"`
-	Message string         `json:"message"`
+	Commit  provider.Commit `json:"commit"`
+	Alert   *alerts.Alert   `json:"alert"`
+	Message string          `json:"message"`
 }
 
 // ConfigProvider is a function that's called to return a slice of

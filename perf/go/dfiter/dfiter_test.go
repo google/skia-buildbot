@@ -70,7 +70,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, instanceConfig := gittest.NewForTest(t)
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
