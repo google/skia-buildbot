@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -5,4 +6,25 @@ go_library(
     srcs = ["gitiles.go"],
     importpath = "go.skia.org/infra/perf/go/git/providers/gitiles",
     visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/gitiles",
+        "//go/skerr",
+        "//perf/go/git/provider",
+    ],
+)
+
+go_test(
+    name = "gitiles_test",
+    srcs = ["gitiles_test.go"],
+    embed = [":gitiles"],
+    deps = [
+        "//go/git",
+        "//go/gitiles",
+        "//go/gitiles/mocks",
+        "//go/testutils",
+        "//go/vcsinfo",
+        "//perf/go/git/provider",
+        "@com_github_stretchr_testify//require",
+    ],
 )

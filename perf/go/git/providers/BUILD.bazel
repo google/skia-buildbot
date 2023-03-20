@@ -6,10 +6,13 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/git/providers",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
         "//go/skerr",
         "//go/util",
         "//perf/go/config",
         "//perf/go/git/provider",
         "//perf/go/git/providers/git_checkout",
+        "//perf/go/git/providers/gitiles",
+        "@org_golang_x_oauth2//google",
     ],
 )

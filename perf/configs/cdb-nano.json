@@ -32,7 +32,7 @@
     "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
-    "provider": "git",
+    "provider": "gitiles",
     "url": "https://skia.googlesource.com/skia",
     "dir": "/tmp/skiaperf",
     "debounce_commit_url": false,
