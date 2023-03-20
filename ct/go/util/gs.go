@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/zip"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/googleapi"
+
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -345,12 +345,7 @@ func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) 
 	defer util.Close(f)
 	// TODO(rmistry): gs api now enables resumable uploads by default. Handle 308
 	// response codes.
-	fi, err := f.Stat()
-	if err != nil {
-		return fmt.Errorf("Error stating %s: %s", localFile, err)
-	}
-	mediaOption := googleapi.ChunkSize(int(fi.Size()))
-	if _, err := gs.service.Objects.Insert(bucket, object).Media(f, mediaOption).Do(); err != nil {
+	if _, err := gs.service.Objects.Insert(bucket, object).Media(f).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
 	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", bucket, gsFile))
