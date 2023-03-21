@@ -1,0 +1,24 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cabeserver_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cabe/go/cabeserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "cabeserver",
+    embed = [":cabeserver_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "cabeserver_test",
+    srcs = ["main_test.go"],
+    embed = [":cabeserver_lib"],
+)
