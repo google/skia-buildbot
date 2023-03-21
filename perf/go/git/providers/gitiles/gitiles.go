@@ -10,28 +10,45 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
 )
 
 // Gitiles implements provider.Provider.
 type Gitiles struct {
 	gr gitiles.GitilesRepo
+
+	// startCommit is the commit in the repo where we start tracking commits. If
+	// not supplied then we start with the first commit in the repo as reachable
+	// from HEAD.
+	startCommit string
 }
 
 // New returns a new instance of Gitiles.
-func New(url string, c *http.Client) *Gitiles {
+func New(c *http.Client, instanceConfig *config.InstanceConfig) *Gitiles {
 	return &Gitiles{
-		gr: gitiles.NewRepo(url, c),
+		gr:          gitiles.NewRepo(instanceConfig.GitRepoConfig.URL, c),
+		startCommit: instanceConfig.GitRepoConfig.StartCommit,
 	}
 }
 
 // CommitsFromMostRecentGitHashToHead implements provider.Provider.
 func (g *Gitiles) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRecentGitHash string, cb provider.CommitProcessor) error {
-	lc, err := g.gr.LogFirstParent(ctx, mostRecentGitHash, "HEAD")
+	if mostRecentGitHash == "" {
+		mostRecentGitHash = g.startCommit
+	}
+
+	expr := git.LogFromTo(mostRecentGitHash, "HEAD")
+	if mostRecentGitHash == "" {
+		expr = git.MainBranch
+	}
+	lc, err := g.gr.Log(ctx, expr)
 	if err != nil {
 		return skerr.Wrapf(err, "loading commits")
 	}
-	for _, longCommit := range lc {
+	// Iterate over the slice in reverse order.
+	for i := len(lc) - 1; i >= 0; i-- {
+		longCommit := lc[i]
 		c := provider.Commit{
 			GitHash:   longCommit.Hash,
 			Timestamp: longCommit.Timestamp.Unix(),

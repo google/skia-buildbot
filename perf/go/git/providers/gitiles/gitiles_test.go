@@ -18,6 +18,7 @@ import (
 const (
 	gitHash       = "abc123"
 	secondGitHash = "def456"
+	startGitHash  = "111111"
 	author        = "somebody@example.org"
 	subject       = "Some fix for a bug."
 	beginHash     = "1111111"
@@ -128,22 +129,55 @@ func TestGitHashesInRangeForFile_NoGitHashesInRange_ReturnsEmptySlice(t *testing
 
 func TestCommitsFromMostRecentGitHashToHead_HappyPath(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("LogFirstParent", testutils.AnyContext, beginHash, "HEAD").Return(commitDetailsForTwoCommits, nil)
+	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
 
 	gp := &Gitiles{
 		gr: mockRepo,
 	}
+	index := 0
+	expected := []string{secondGitHash, gitHash}
 	cb := func(c provider.Commit) error {
-		require.Contains(t, []string{gitHash, secondGitHash}, c.GitHash)
+		require.Equal(t, expected[index], c.GitHash)
+		index++
 		return nil
 	}
 	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), beginHash, cb)
 	require.NoError(t, err)
 }
 
+func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStartCommitIsEmpty_GitilesQueryIsForMain(t *testing.T) {
+	mockRepo := gitiles_mocks.NewGitilesRepo(t)
+	mockRepo.On("Log", testutils.AnyContext, git.MainBranch).Return(commitDetailsForTwoCommits, nil)
+
+	gp := &Gitiles{
+		gr:          mockRepo,
+		startCommit: "",
+	}
+	cb := func(c provider.Commit) error {
+		return nil
+	}
+	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), "", cb)
+	require.NoError(t, err)
+}
+
+func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStartCommitIsProvided_GitilesQueryIsForStartCommitToHead(t *testing.T) {
+	mockRepo := gitiles_mocks.NewGitilesRepo(t)
+	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(startGitHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
+
+	gp := &Gitiles{
+		gr:          mockRepo,
+		startCommit: startGitHash,
+	}
+	cb := func(c provider.Commit) error {
+		return nil
+	}
+	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), "", cb)
+	require.NoError(t, err)
+}
+
 func TestCommitsFromMostRecentGitHashToHead_GitilesAPIReturnsError_ReturnsError(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("LogFirstParent", testutils.AnyContext, beginHash, "HEAD").Return(nil, errMock)
+	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(nil, errMock)
 
 	gp := &Gitiles{
 		gr: mockRepo,
@@ -158,7 +192,7 @@ func TestCommitsFromMostRecentGitHashToHead_GitilesAPIReturnsError_ReturnsError(
 
 func TestCommitsFromMostRecentGitHashToHead_CallbackReturnsError_ReturnsError(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("LogFirstParent", testutils.AnyContext, beginHash, "HEAD").Return(commitDetailsForTwoCommits, nil)
+	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
 
 	gp := &Gitiles{
 		gr: mockRepo,

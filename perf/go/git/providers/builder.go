@@ -25,7 +25,7 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig) (provider.P
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return gitiles.New(instanceConfig.GitRepoConfig.URL, client), nil
+		return gitiles.New(client, instanceConfig), nil
 	}
 	return nil, skerr.Fmt("invalid type of Provider selected: %q expected one of %q", instanceConfig.GitRepoConfig.Provider, config.AllGitProviders)
 }

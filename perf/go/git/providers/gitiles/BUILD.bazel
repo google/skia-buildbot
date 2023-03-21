@@ -10,6 +10,7 @@ go_library(
         "//go/git",
         "//go/gitiles",
         "//go/skerr",
+        "//perf/go/config",
         "//perf/go/git/provider",
     ],
 )

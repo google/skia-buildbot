@@ -38,8 +38,8 @@ type Provider interface {
 	// CommitsFromMostRecentGitHashToHead will call the `cb` func with every
 	// Commit, starting from the oldest and going to the newest. If
 	// mostRecentGitHash is the empty string then the commits will start with
-	// the very first commit to the repo (on HEAD, aka using --first-parent
-	// semantics).
+	// the very first commit to the repo, or from the start commit if one is
+	// provided.
 	CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRecentGitHash string, cb CommitProcessor) error
 
 	// GitHashesInRangeForFile returns all the git hashes when the given file
