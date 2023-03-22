@@ -43,7 +43,7 @@ func (fs *FS) Close(_ context.Context) error {
 	return nil
 }
 
-// Ensure that gitilesFS implements vfs.FS.
+// Ensure that gitiles.FS implements vfs.FS.
 var _ vfs.FS = &FS{}
 
 // File implements vfs.File using Gitiles for a particular revision.

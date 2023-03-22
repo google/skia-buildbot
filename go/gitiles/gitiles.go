@@ -817,6 +817,7 @@ func (r *Repo) URL() string {
 	return r.url
 }
 
+// Ensure that Repo implements GitilesRepo.
 var _ GitilesRepo = &Repo{}
 
 // ParseURL breaks a gitiles URL into the repo URL, ref, and sub-path. Note that
