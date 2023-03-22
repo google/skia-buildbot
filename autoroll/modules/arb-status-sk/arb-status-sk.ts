@@ -84,6 +84,12 @@ export class ARBStatusSk extends ElementSk {
         Last loaded at <span>${localeTime(ele.lastLoaded)}</span>
       </div>
       <table>
+        <tr>
+          <td>Last successful roll</td>
+          <td>
+            <human-date-sk .date="${ele.status.miniStatus!.lastSuccessfulRollTimestamp!}" .diff="${true}"></human-date-sk>
+          </td>
+        </tr>
         ${ele.status.config?.parentWaterfall
         ? html`
                 <tr>

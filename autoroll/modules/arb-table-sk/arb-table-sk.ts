@@ -7,6 +7,7 @@
  * </p>
  */
 
+import '../../../infra-sk/modules/human-date-sk';
 import { html } from 'lit-html';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -58,9 +59,9 @@ export class ARBTableSk extends ElementSk {
             >
           </td>
           <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
-          <td>${st.numBehind}${st.numBehind == 0 ? html`
+          <td>${st.numBehind}${st.numBehind == 0 ? html`` : html`
               (last rolled <human-date-sk .date="${st.lastSuccessfulRollTimestamp!}" .diff="${true}"></human-date-sk>)
-          ` : html``}</td>
+          `}</td>
           <td>${st.numFailed}</td>
           <td>${LastCheckInSpan(st)}</td>
         </tr>

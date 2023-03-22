@@ -232,6 +232,7 @@ func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
 				if roll.Succeeded() {
 					foundSuccessfulRoll = true
 					lastSuccessfulRollTime = roll.Modified
+					break
 				} else {
 					numFailedrolls++
 				}
@@ -254,7 +255,6 @@ func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
 	r.recent = history[:historyLen]
 	r.lastSuccessfulRollTime = lastSuccessfulRollTime
 	r.numFailedrolls = numFailedrolls
-	sklog.Errorf("Setting recent: %+v", r.recent)
 	return nil
 }
 

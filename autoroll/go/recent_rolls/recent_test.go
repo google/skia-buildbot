@@ -178,6 +178,9 @@ func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
 			TryResults: []*autoroll.TryResult(nil),
 		}))
 	}
+
+	// One successful roll followed by a number of failures.  We should see the
+	// correct number of failed rolls and the timestamp of the successful roll.
 	createAndInsertRoll(true)
 	for i := 0; i < 2*RecentRollsLength; i++ {
 		createAndInsertRoll(false)
@@ -186,6 +189,13 @@ func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
 
 	require.Equal(t, 2*RecentRollsLength, r.NumFailedRolls())
 	require.Equal(t, time.Unix(startTs+int64(1), 0), r.LastSuccessfulRollTime())
+
+	// Add a new successful roll.  The number of failures should be zero, and
+	// last successful roll timestamp should be updated.
+	createAndInsertRoll(true)
+	require.NoError(t, r.refreshRecentRolls(ctx))
+	require.Equal(t, 0, r.NumFailedRolls())
+	require.Equal(t, time.Unix(startTs+int64(2*RecentRollsLength+2), 0), r.LastSuccessfulRollTime())
 }
 
 func TestDatastoreRollsDB_GetRolls(t *testing.T) {

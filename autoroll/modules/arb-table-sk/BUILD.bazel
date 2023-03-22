@@ -8,6 +8,7 @@ sk_element(
         "//elements-sk/modules/styles:table_sass_lib",
     ],
     sass_srcs = ["arb-table-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/human-date-sk"],
     ts_deps = [
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
