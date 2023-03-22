@@ -485,15 +485,16 @@ func convertMiniStatus(inp *status.AutoRollMiniStatus, roller, mode, childName, 
 		return nil, err
 	}
 	return &AutoRollMiniStatus{
-		RollerId:       roller,
-		Mode:           m,
-		CurrentRollRev: inp.CurrentRollRev,
-		LastRollRev:    inp.LastRollRev,
-		ChildName:      childName,
-		ParentName:     parentName,
-		NumFailed:      int32(inp.NumFailedRolls),
-		NumBehind:      int32(inp.NumNotRolledCommits),
-		Timestamp:      timestamppb.New(inp.Timestamp),
+		RollerId:                    roller,
+		Mode:                        m,
+		CurrentRollRev:              inp.CurrentRollRev,
+		LastRollRev:                 inp.LastRollRev,
+		ChildName:                   childName,
+		ParentName:                  parentName,
+		NumFailed:                   int32(inp.NumFailedRolls),
+		NumBehind:                   int32(inp.NumNotRolledCommits),
+		Timestamp:                   timestamppb.New(inp.Timestamp),
+		LastSuccessfulRollTimestamp: timestamppb.New(inp.LastSuccessfulRollTimestamp),
 	}, nil
 }
 

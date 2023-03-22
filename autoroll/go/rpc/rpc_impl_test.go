@@ -135,12 +135,13 @@ func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 	last := makeFakeRoll()
 	return &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
-			Mode:                modes.ModeRunning,
-			CurrentRollRev:      "def456",
-			LastRollRev:         "abc123",
-			NumFailedRolls:      1,
-			NumNotRolledCommits: 2,
-			Timestamp:           currentTime,
+			Mode:                        modes.ModeRunning,
+			CurrentRollRev:              "def456",
+			LastRollRev:                 "abc123",
+			NumFailedRolls:              1,
+			NumNotRolledCommits:         2,
+			Timestamp:                   currentTime,
+			LastSuccessfulRollTimestamp: currentTime,
 		},
 		Status:         "rolling",
 		ChildHead:      "def456",
@@ -365,15 +366,16 @@ func TestGetMiniStatus(t *testing.T) {
 	require.NoError(t, err)
 	assertdeep.Equal(t, &GetMiniStatusResponse{
 		Status: &AutoRollMiniStatus{
-			ChildName:      roller.Cfg.ChildDisplayName,
-			Mode:           mode,
-			ParentName:     roller.Cfg.ParentDisplayName,
-			RollerId:       roller.Cfg.RollerName,
-			CurrentRollRev: "def456",
-			LastRollRev:    "abc123",
-			NumFailed:      1,
-			NumBehind:      2,
-			Timestamp:      timestamppb.New(currentTime),
+			ChildName:                   roller.Cfg.ChildDisplayName,
+			Mode:                        mode,
+			ParentName:                  roller.Cfg.ParentDisplayName,
+			RollerId:                    roller.Cfg.RollerName,
+			CurrentRollRev:              "def456",
+			LastRollRev:                 "abc123",
+			NumFailed:                   1,
+			NumBehind:                   2,
+			Timestamp:                   timestamppb.New(currentTime),
+			LastSuccessfulRollTimestamp: timestamppb.New(currentTime),
 		},
 	}, res)
 }
@@ -412,6 +414,7 @@ func TestGetStatus(t *testing.T) {
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
 	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
+	require.NoError(t, err)
 	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &GetStatusResponse{
@@ -617,15 +620,16 @@ func TestConvertMiniStatus(t *testing.T) {
 	actual, err := convertMiniStatus(&st.AutoRollMiniStatus, r.Cfg.RollerName, r.Mode.CurrentMode().Mode, r.Cfg.ChildDisplayName, r.Cfg.ParentDisplayName)
 	require.NoError(t, err)
 	assertdeep.Copy(t, &AutoRollMiniStatus{
-		RollerId:       r.Cfg.RollerName,
-		Mode:           mode,
-		CurrentRollRev: st.CurrentRollRev,
-		LastRollRev:    st.LastRollRev,
-		ChildName:      st.ChildName,
-		ParentName:     st.ParentName,
-		NumFailed:      int32(st.NumFailedRolls),
-		NumBehind:      int32(st.NumNotRolledCommits),
-		Timestamp:      timestamppb.New(currentTime),
+		RollerId:                    r.Cfg.RollerName,
+		Mode:                        mode,
+		CurrentRollRev:              st.CurrentRollRev,
+		LastRollRev:                 st.LastRollRev,
+		ChildName:                   st.ChildName,
+		ParentName:                  st.ParentName,
+		NumFailed:                   int32(st.NumFailedRolls),
+		NumBehind:                   int32(st.NumNotRolledCommits),
+		Timestamp:                   timestamppb.New(currentTime),
+		LastSuccessfulRollTimestamp: timestamppb.New(currentTime),
 	}, actual)
 }
 

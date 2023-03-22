@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/autoroll"
@@ -67,10 +68,12 @@ type DsRoll struct {
 
 // RecentRolls is a struct used for storing and retrieving recent DEPS rolls.
 type RecentRolls struct {
-	db     DB
-	recent []*autoroll.AutoRollIssue
-	roller string
-	mtx    sync.RWMutex
+	db                     DB
+	lastSuccessfulRollTime time.Time
+	numFailedrolls         int
+	recent                 []*autoroll.AutoRollIssue
+	roller                 string
+	mtx                    sync.RWMutex
 }
 
 // NewRecentRolls returns a new RecentRolls instance.
@@ -191,13 +194,55 @@ func (r *RecentRolls) LastRoll() *autoroll.AutoRollIssue {
 	return nil
 }
 
+// LastSuccessfulRollTime returns the timestamp of the last successful roll.
+func (r *RecentRolls) LastSuccessfulRollTime() time.Time {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.lastSuccessfulRollTime
+}
+
+// NumFailedRolls returns the number of failed rolls since the last successful
+// roll.
+func (r *RecentRolls) NumFailedRolls() int {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.numFailedrolls
+}
+
 // refreshRecentRolls refreshes the list of recent DEPS rolls. Assumes the
 // caller holds a write lock.
 func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
-	// Load the last N rolls.
-	history, _, err := r.db.GetRolls(ctx, r.roller, "")
-	if err != nil {
-		return err
+	// Load rolls until we have enough to satisfy RecentRollsLength and to
+	// determine the number of failed rolls and timestamp of the last successful
+	// roll.
+	var history, rolls []*autoroll.AutoRollIssue
+	var cursor string
+	foundSuccessfulRoll := false
+	lastSuccessfulRollTime := time.Time{}
+	numFailedrolls := 0
+	for {
+		var err error
+		rolls, cursor, err = r.db.GetRolls(ctx, r.roller, cursor)
+		if err != nil {
+			return err
+		}
+		history = append(history, rolls...)
+		if !foundSuccessfulRoll {
+			for _, roll := range rolls {
+				if roll.Succeeded() {
+					foundSuccessfulRoll = true
+					lastSuccessfulRollTime = roll.Modified
+				} else {
+					numFailedrolls++
+				}
+			}
+		}
+		if len(history) >= RecentRollsLength && foundSuccessfulRoll {
+			break
+		}
+		if cursor == "" || len(rolls) == 0 {
+			break
+		}
 	}
 	historyLen := len(history)
 	if historyLen > RecentRollsLength {
@@ -207,6 +252,9 @@ func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.recent = history[:historyLen]
+	r.lastSuccessfulRollTime = lastSuccessfulRollTime
+	r.numFailedrolls = numFailedrolls
+	sklog.Errorf("Setting recent: %+v", r.recent)
 	return nil
 }
 

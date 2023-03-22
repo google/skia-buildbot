@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/ds/testutil"
 )
 
-// TestRecentRolls verifies that we correctly track mode history.
+// TestRecentRolls verifies that we correctly track roll history.
 func TestRecentRolls(t *testing.T) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
@@ -24,9 +24,9 @@ func TestRecentRolls(t *testing.T) {
 
 	// Use this function for checking expectations.
 	check := func(current, last *autoroll.AutoRollIssue, history []*autoroll.AutoRollIssue) {
+		assertdeep.Equal(t, history, r.GetRecentRolls())
 		assertdeep.Equal(t, current, r.CurrentRoll())
 		assertdeep.Equal(t, last, r.LastRoll())
-		assertdeep.Equal(t, history, r.GetRecentRolls())
 	}
 
 	// Add one issue.
@@ -146,6 +146,46 @@ func TestRecentRolls(t *testing.T) {
 	require.NoError(t, r.Add(ctx, ari4))
 	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
 	check(ari4, ari3, expect)
+}
+
+func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
+	ctx := context.Background()
+	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
+
+	db := NewDatastoreRollsDB(ctx)
+	r, err := NewRecentRolls(ctx, NewDatastoreRollsDB(ctx), "test-roller")
+	require.NoError(t, err)
+
+	issue := int64(0)
+	const startTs int64 = 1678218051
+	now := time.Unix(startTs, 0) // Arbitrary starting point.
+	createAndInsertRoll := func(success bool) {
+		issue += 1
+		now = now.Add(time.Second)
+		result := autoroll.ROLL_RESULT_FAILURE
+		if success {
+			result = autoroll.ROLL_RESULT_SUCCESS
+		}
+		require.NoError(t, db.Put(ctx, r.roller, &autoroll.AutoRollIssue{
+			Closed:     true,
+			Committed:  success,
+			Created:    now,
+			Issue:      issue,
+			Modified:   now,
+			Patchsets:  []int64{1},
+			Result:     result,
+			Subject:    "fake roll",
+			TryResults: []*autoroll.TryResult(nil),
+		}))
+	}
+	createAndInsertRoll(true)
+	for i := 0; i < 2*RecentRollsLength; i++ {
+		createAndInsertRoll(false)
+	}
+	require.NoError(t, r.refreshRecentRolls(ctx))
+
+	require.Equal(t, 2*RecentRollsLength, r.NumFailedRolls())
+	require.Equal(t, time.Unix(startTs+int64(1), 0), r.LastSuccessfulRollTime())
 }
 
 func TestDatastoreRollsDB_GetRolls(t *testing.T) {

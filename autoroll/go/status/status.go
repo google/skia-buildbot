@@ -70,11 +70,12 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 	}
 	rv := &AutoRollStatus{
 		AutoRollMiniStatus: AutoRollMiniStatus{
-			CurrentRollRev:      s.CurrentRollRev,
-			LastRollRev:         s.LastRollRev,
-			NumFailedRolls:      s.NumFailedRolls,
-			NumNotRolledCommits: s.NumNotRolledCommits,
-			Timestamp:           s.Timestamp,
+			CurrentRollRev:              s.CurrentRollRev,
+			LastRollRev:                 s.LastRollRev,
+			NumFailedRolls:              s.NumFailedRolls,
+			NumNotRolledCommits:         s.NumNotRolledCommits,
+			Timestamp:                   s.Timestamp,
+			LastSuccessfulRollTimestamp: s.LastSuccessfulRollTimestamp,
 		},
 		ChildHead:          s.ChildHead,
 		ChildName:          s.ChildName,
@@ -123,6 +124,11 @@ type AutoRollMiniStatus struct {
 
 	// Timestamp is the time at which the roller last reported its status.
 	Timestamp time.Time `json:"timestamp"`
+
+	// LastSuccessfulRollTimestamp is the time at which the last successful roll
+	// was performed. If there have not been any recent successful rolls, the
+	// timestamp will be an empty time.Time{}.
+	LastSuccessfulRollTimestamp time.Time `json:"lastRollTimestamp"`
 }
 
 // DB tracks the status of the autoroller.

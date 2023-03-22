@@ -670,14 +670,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	defer r.statusMtx.Unlock()
 
 	recent := r.recent.GetRecentRolls()
-	numFailures := 0
-	for _, roll := range recent {
-		if roll.Failed() {
-			numFailures++
-		} else if roll.Succeeded() {
-			break
-		}
-	}
+
 	if !replaceLastError {
 		lastError = r.status.Get().Error
 	}
@@ -707,12 +700,13 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	}
 	if err := r.status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
-			CurrentRollRev:      currentRollRev,
-			LastRollRev:         r.lastRollRev.Id,
-			Mode:                r.GetMode(),
-			NumFailedRolls:      numFailures,
-			NumNotRolledCommits: numNotRolled,
-			Timestamp:           time.Now().UTC(),
+			CurrentRollRev:              currentRollRev,
+			LastRollRev:                 r.lastRollRev.Id,
+			Mode:                        r.GetMode(),
+			NumFailedRolls:              r.recent.NumFailedRolls(),
+			NumNotRolledCommits:         numNotRolled,
+			Timestamp:                   time.Now().UTC(),
+			LastSuccessfulRollTimestamp: r.recent.LastSuccessfulRollTime(),
 		},
 		ChildName:          r.cfg.ChildDisplayName,
 		CurrentRoll:        r.recent.CurrentRoll(),
