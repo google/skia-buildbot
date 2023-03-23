@@ -17,7 +17,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	initLogin("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE, DEFAULT_ALLOWED_DOMAINS)
+	initLogin("id", "secret", "http://localhost", "salt", defaultScope, DEFAULT_ALLOWED_DOMAINS)
 }
 
 func TestLoginURL(t *testing.T) {
@@ -60,7 +60,7 @@ func TestLoggedInAs(t *testing.T) {
 	s := Session{
 		Email:     "fred@chromium.org",
 		ID:        "12345",
-		AuthScope: DEFAULT_SCOPE[0],
+		AuthScope: defaultScope[0],
 		Token:     nil,
 	}
 	cookie, err := CookieFor(&s, r)
@@ -102,7 +102,7 @@ func TestAuthorizedEmail(t *testing.T) {
 	s := Session{
 		Email:     "fred@chromium.org",
 		ID:        "12345",
-		AuthScope: DEFAULT_SCOPE[0],
+		AuthScope: defaultScope[0],
 		Token:     nil,
 	}
 	cookie, err := CookieFor(&s, r)
@@ -248,7 +248,7 @@ func TestSessionMiddleware(t *testing.T) {
 		test(t, &Session{
 			Email:     "fred@chromium.org",
 			ID:        "12345",
-			AuthScope: DEFAULT_SCOPE[0],
+			AuthScope: defaultScope[0],
 			Token:     nil,
 		})
 	})

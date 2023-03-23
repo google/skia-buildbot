@@ -3,7 +3,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "login",
-    srcs = ["login.go"],
+    srcs = [
+        "legacy_roles.go",
+        "login.go",
+    ],
     importpath = "go.skia.org/infra/go/login",
     visibility = ["//visibility:public"],
     deps = [
