@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
@@ -89,9 +88,7 @@ var (
 	instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
 	forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
 	internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
-	// TODO(lovisolo): Delete this flag once all instances are set up exclusively via Ansible.
-	ansible = flag.Bool("ansible", false, "Only install dependencies needed for Ansible (SSH, Python, etc.). Skip everything else (Swarming, test_machine_monitor, etc.).")
-	workdir = flag.String("workdir", ".", "Working directory.")
+	workdir           = flag.String("workdir", ".", "Working directory.")
 )
 
 func main() {
@@ -118,29 +115,22 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// All instance types except CT instances are configured via Ansible.
+	configuredViaAnsible := true
+
 	// Read the various scripts.
 	_, filename, _, _ := runtime.Caller(0)
 	checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
 	ctx := context.Background()
-	var setupScript, startupScript, chromebotScript, nodeSetup string
+	var setupScript, nodeSetup string
 	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
-		if *ansible {
-			setupScript, err = instance_types.GetWindowsSetupScriptForAnsible(ctx, checkoutRoot, wdAbs)
-		} else {
-			setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
-		}
+		setupScript, err = instance_types.GetWindowsSetupScript(ctx, checkoutRoot, wdAbs)
 	} else if *instanceType == instance_types.INSTANCE_TYPE_CT {
 		// TODO(lovisolo): Should we configure CT instances via Ansible as well?
-		if *ansible {
-			sklog.Fatal("Flag --ansible is not supported for CT instances at this time.")
-		}
-		setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
+		configuredViaAnsible = false
+		setupScript, nodeSetup, err = instance_types.GetLinuxScriptsForCT(ctx, checkoutRoot, wdAbs)
 	} else {
-		if *ansible {
-			setupScript, err = instance_types.GetLinuxScriptsForAnsible(checkoutRoot)
-		} else {
-			setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
-		}
+		setupScript, err = instance_types.GetLinuxScript(checkoutRoot)
 	}
 	if err != nil {
 		sklog.Fatal(err)
@@ -171,11 +161,11 @@ func main() {
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
 		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinMedium(num, setupScript, startupScript, chromebotScript)
+			return instance_types.WinMedium(num, setupScript)
 		}
 	case instance_types.INSTANCE_TYPE_WIN_LARGE:
 		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinLarge(num, setupScript, startupScript, chromebotScript)
+			return instance_types.WinLarge(num, setupScript)
 		}
 	}
 	if getInstance == nil {
@@ -261,13 +251,6 @@ func main() {
 				if err := g.CreateAndSetup(ctx, vm, *ignoreExists); err != nil {
 					return err
 				}
-
-				// TODO(lovisolo): Delete once all Windows machines are set up via Ansible.
-				if strings.Contains(vm.Os, "Win") && !*ansible {
-					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 7*time.Minute); err != nil {
-						return err
-					}
-				}
 			} else {
 				return g.Delete(vm, *ignoreExists, *deleteDataDisk)
 			}
@@ -281,7 +264,7 @@ func main() {
 	// Print out ansible-playbook command if necessary.
 	//
 	// TODO(lovisolo): Run Ansible playbook unless --skip-ansible-playbook is provided.
-	if *create && *ansible {
+	if *create && configuredViaAnsible {
 		playbook := linuxAnsiblePlaybook
 		if util.In(*instanceType, WIN_INSTANCE_TYPES) {
 			playbook = winAnsiblePlaybook
@@ -297,7 +280,8 @@ func main() {
 			command += " --ask-pass"
 		}
 
-		sklog.Infof("To finish setting up these machines, cd into %s, then run the following command:", filepath.Join(checkoutRoot, ansibleDirectory))
+		sklog.Infof("To finish setting up these machines, cd into %s, then run the following commands:", filepath.Join(checkoutRoot, ansibleDirectory))
+		sklog.Infof("$ make update_ssh_gce_config")
 		sklog.Infof(command)
 	}
 }

@@ -10,7 +10,6 @@ go_library(
         "//go/exec",
         "//go/gce",
         "//go/skerr",
-        "//go/util",
         "@in_gopkg_yaml_v2//:yaml_v2",
     ],
 )

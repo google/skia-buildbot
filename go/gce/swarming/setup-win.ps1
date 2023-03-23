@@ -1,3 +1,5 @@
+# Setup script for Windows machines configured via Ansible.
+
 $DebugPreference = "Continue"
 $ErrorActionPreference = "Stop"
 $WarningPreference = "Continue"
@@ -38,7 +40,9 @@ Function banner($title) {
   log ""
 }
 
-log "setup-win-ansible.ps1: Begin."
+# Windows machine creation logs on the GCP console can be noisy, so we log begin/end markers for
+# convenience.
+log "setup-win.ps1: Begin."
 
 try {
   # Create chrome-bot user.
@@ -58,4 +62,7 @@ try {
   log "$($_.Exception.Message)"
 }
 
-log "setup-win-ansible.ps1: End."
+log  "Please run the //skolo/ansible/switchboard/win.yml Ansible playbook"
+log  "to finish setting up this machine."
+
+log "setup-win.ps1: End."

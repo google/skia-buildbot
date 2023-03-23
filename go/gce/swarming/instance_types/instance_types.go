@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,13 +42,10 @@ const (
 
 var (
 	// "Constants"
-	SETUP_SCRIPT_LINUX_PATH         = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
-	SETUP_SCRIPT_LINUX_ANSIBLE_PATH = filepath.Join("go", "gce", "swarming", "setup-script-linux-ansible.sh")
-	SETUP_SCRIPT_WIN_PATH           = filepath.Join("scripts", "win_setup.ps1")
-	SETUP_SCRIPT_WIN_ANSIBLE_PATH   = filepath.Join("go", "gce", "swarming", "setup-win-ansible.ps1")
-	STARTUP_SCRIPT_WIN_PATH         = filepath.Join("scripts", "win_startup.ps1")
-	CHROME_BOT_SCRIPT_WIN_PATH      = filepath.Join("scripts", "chromebot-schtask.ps1")
-	NODE_SETUP_PATH                 = filepath.Join("third_party", "node", "setup_6.x")
+	SETUP_SCRIPT_LINUX_CT_PATH    = filepath.Join("go", "gce", "swarming", "setup-script-linux-ct.sh")
+	SETUP_SCRIPT_LINUX_PATH       = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
+	SETUP_SCRIPT_WIN_ANSIBLE_PATH = filepath.Join("go", "gce", "swarming", "setup-win.ps1")
+	NODE_SETUP_PATH               = filepath.Join("third_party", "node", "setup_6.x")
 
 	externalNamePrefixRegexp = regexp.MustCompile("^skia-e-")
 )
@@ -169,44 +165,38 @@ func SkiaCT(num int, setupScript, nodeSetupScript string) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, startupScript, chromebotScript, bootDiskType string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, bootDiskType string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
 	vm.BootDisk.Type = bootDiskType
 	vm.DataDisks = nil
-	// Machines set up via Ansible have an empty chromebotScript, so this only applies to machines
-	// not set up via Ansible.
-	//
-	// TODO(lovisolo): Delete once all GCE Windows machines are set up via Ansible.
-	if chromebotScript != "" {
-		// Most of the Windows setup, including the gitconfig/netrc, occurs in
-		// the setup and startup scripts, which also install and schedule the
-		// chrome-bot scheduled task script.
-		vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
-	}
 	vm.Os = gce.OS_WINDOWS
-	vm.StartupScript = startupScript
 	return vm
 }
 
 // Windows GCE instances.
-func WinSwarmingBot(name, machineType, setupScript, startupScript, chromebotScript, bootDiskType string) *gce.Instance {
+func WinSwarmingBot(name, machineType, setupScript, bootDiskType string) *gce.Instance {
 	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, "", WIN_SOURCE_IMAGE)
-	return AddWinConfigs(vm, startupScript, chromebotScript, bootDiskType)
+	return AddWinConfigs(vm, bootDiskType)
 }
 
 // Medium Windows GCE instances.
-func WinMedium(num int, setupScript, startupScript, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScript, startupScript, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinMedium(num int, setupScript string) *gce.Instance {
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Large Windows GCE instances.
-func WinLarge(num int, setupScript, startupScript, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScript, startupScript, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinLarge(num int, setupScript string) *gce.Instance {
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
-// Returns the contents of the VM setup script and NodeJS setup script, given a local checkout.
-func GetLinuxScripts(ctx context.Context, checkoutRoot, workdir string) (string, string, error) {
-	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH))
+// Returns the contents of the VM setup script and NodeJS setup script necessary for CT machines,
+// given a local checkout.
+//
+// Note that CT machines are not configured via Ansible at this time.
+//
+// TODO(lovisolo): Should we configure CT machines via Ansible as well?
+func GetLinuxScriptsForCT(ctx context.Context, checkoutRoot, workdir string) (string, string, error) {
+	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_CT_PATH))
 	if err != nil {
 		return "", "", skerr.Wrap(err)
 	}
@@ -217,47 +207,17 @@ func GetLinuxScripts(ctx context.Context, checkoutRoot, workdir string) (string,
 	return string(setupScriptBytes), string(nodeSetupBytes), nil
 }
 
-// Returns the contents of the setup script that only installs Ansible dependencies, given a local
-// checkout.
-func GetLinuxScriptsForAnsible(checkoutRoot string) (string, error) {
-	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_ANSIBLE_PATH))
+// Returns the contents of the setup script, given a local checkout.
+func GetLinuxScript(checkoutRoot string) (string, error) {
+	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH))
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return string(setupScriptBytes), nil
 }
 
-// Returns the contents of the setup, startup, and chrome-bot scripts, given a local checkout.
-func GetWindowsScripts(ctx context.Context, checkoutRoot, workdir string) (string, string, string, error) {
-	pw, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/win-chrome-bot.txt")
-	if err != nil {
-		return "", "", "", skerr.Wrap(err)
-	}
-	pw = strings.TrimSpace(pw)
-
-	setupScriptTemplateBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_WIN_PATH))
-	if err != nil {
-		return "", "", "", skerr.Wrap(err)
-	}
-	setupScript := util.ToDos(strings.Replace(string(setupScriptTemplateBytes), "CHROME_BOT_PASSWORD", pw, -1))
-
-	startupScriptTemplateBytes, err := os.ReadFile(filepath.Join(checkoutRoot, STARTUP_SCRIPT_WIN_PATH))
-	if err != nil {
-		return "", "", "", skerr.Wrap(err)
-	}
-	startupScript := util.ToDos(strings.Replace(string(startupScriptTemplateBytes), "CHROME_BOT_PASSWORD", pw, -1))
-
-	// Return the chrome-bot script itself, not its path.
-	chromebotBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, CHROME_BOT_SCRIPT_WIN_PATH))
-	if err != nil {
-		return "", "", "", skerr.Wrap(err)
-	}
-	chromebotScript := util.ToDos(string(chromebotBytes))
-	return setupScript, startupScript, chromebotScript, nil
-}
-
 // Returns the setup script, given a local checkout. Writes the script into the given workdir.
-func GetWindowsSetupScriptForAnsible(ctx context.Context, checkoutRoot, workdir string) (string, error) {
+func GetWindowsSetupScript(ctx context.Context, checkoutRoot, workdir string) (string, error) {
 	chromeBotSkoloPassword, err := getChromeBotSkoloPassword(ctx, checkoutRoot)
 	if err != nil {
 		return "", skerr.Wrap(err)
