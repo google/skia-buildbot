@@ -41,3 +41,18 @@
     level: machine
     state: present
     value: '1'
+
+# Only necessary for GCE machines. As of 2023-03-23, Skolo machines have the necessary permissions
+# by default, but we run this step on all machines for consistency. The difference in permission
+# defaults can probably be attributed to the fact that GCE machines run Windows Server, whereas
+# Skolo machines run Windows 10.
+- name: Give Swarming (via the chrome-bot user) permission to reboot the machine.
+  # https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_user_right_module.html
+  win_user_right:
+    # List of possible values:
+    # https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment
+    name: SeShutdownPrivilege
+    users:
+    - Users
+    - '{{ ansible_hostname }}\chrome-bot'
+    action: add
