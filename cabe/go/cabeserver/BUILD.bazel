@@ -3,11 +3,17 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "cabeserver_lib",
-    srcs = ["main.go"],
+    srcs = [
+        "analysisserver_impl.go",
+        "main.go",
+    ],
     importpath = "go.skia.org/infra/cabe/go/cabeserver",
     visibility = ["//visibility:private"],
     deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "//go/common",
         "//go/sklog",
+        "@org_golang_google_grpc//:go_default_library",
     ],
 )
 
@@ -19,6 +25,17 @@ go_binary(
 
 go_test(
     name = "cabeserver_test",
-    srcs = ["main_test.go"],
+    srcs = [
+        "analysisserver_impl_test.go",
+        "main_test.go",
+    ],
     embed = [":cabeserver_lib"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "@com_github_google_go_cmp//cmp",
+        "@com_github_google_go_cmp//cmp/cmpopts",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
 )

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package cabe.proto;
+option go_package = "go.skia.org/infra/cabe/go/proto";
+
+import "spec.proto";
+
+// AnalysisMetadata defines the metadata of an analysis.
+message AnalysisMetadata {
+  // The report_id of an analysis
+  optional string report_id = 1;
+}
+
+// AnalysisResult defines the result of an analysis
+message AnalysisResult {
+  // Analysis result id (PK)
+  string result_id = 1;
+
+  // Analysis experiment spec
+  ExperimentSpec experiment_spec = 2;
+
+  // The metadata of the analysis
+  AnalysisMetadata analysis_metadata = 3;
+
+  // The calculated statistic of the analysis
+  Statistic statistic = 4;
+}
+
+// Statistic defines the statistic of an analysis
+message Statistic {
+  // The lower bound of the analysis result
+  double lower = 1;
+
+  // The upper bound of the analysis result
+  double upper = 2;
+
+  // The P value of the analysis result
+  double p_value = 3;
+
+  // The defined significance level to calculate the lower and upper bound
+  double significance_level = 4;
+
+  // The point estimate of the analysis result
+  double point_estimate = 6;
+
+  // The median of control arm of the analysis result
+  double control_median = 7;
+
+  // The median of treatement arm of the analysis result
+  double treatment_median = 8;
+}

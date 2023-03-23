@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package cabe.proto;
+option go_package = "go.skia.org/infra/cabe/go/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// Spec types provide structure for telling CABE what our experiment arms
+// contain, and how to analyze measurement data their benchmark runs report.
+
+// BuildSpec defines what set of executable bits we ship to test machines.
+// It should include enough information to tell chrome build infrastructure how
+// build the executable from scratch, or how to identify an exact version of a
+// pre-built installation (e.g. 3rd party browser other than chrome)
+message BuildSpec {
+  // Source checkout (git repo, branch, commit position)
+  GitilesCommit gitiles_commit = 1;
+
+  // Applied patches (get repos, branches, commit positions)
+  repeated GerritChange gerrit_changes = 2;
+
+  // For binaries that use a pre-built installer for CBB experiments.
+  InstalledBrowser installed_browser = 3;
+}
+
+// A Gerrit patchset.
+message GerritChange {
+  // Gerrit hostname, e.g. "chromium-review.googlesource.com".
+  string host = 1;
+  // Gerrit project, e.g. "chromium/src".
+  string project = 2;
+  // Change number, e.g. 12345.
+  int64 change = 3;
+  // Patch set number, e.g. 1.
+  int64 patchset = 4;
+  // Git hash for patchset
+  string patchset_hash = 5;
+}
+
+// A landed Git commit hosted on Gitiles.
+message GitilesCommit {
+  // Gitiles hostname, e.g. "chromium.googlesource.com".
+  string host = 1;
+  // Repository name on the host, e.g. "chromium/src".
+  string project = 2;
+  // Commit HEX SHA1.
+  string id = 3;
+  // Commit ref, e.g. "refs/heads/master".
+  // NOT a branch name: if specified, must start with "refs/".
+  // If id is set, ref SHOULD also be set, so that git clients can
+  // know how to obtain the commit by id.
+  string ref = 4;
+
+  // Defines a total order of commits on the ref. Requires ref field.
+  // Typically 1-based, monotonically increasing, contiguous integer
+  // defined by a Gerrit plugin, goto.google.com/git-numberer.
+  uint32 position = 5;
+}
+
+// Third-party browser builds, not necessarily Chrome.
+// These are primarily intended for use by CBB, since it needs to
+// compare Chrome to Safari, Edge etc.  These obviously aren't built from source
+// but we still need to describe what set of executable bits the benchmark
+// exercised.
+message InstalledBrowser {
+  // e.g. "chrome" or "safari"
+  string name = 1;
+
+  // e.g. "104.0.5112.101" or "15.5"
+  string version = 2;
+}
+
+// Finch config for Chrome.
+message FinchConfig {
+  // e.g. seed hash, seed change list, and seed timestamp.
+  string seed_hash = 1;
+  uint64 seed_changelist = 2;
+  google.protobuf.Timestamp seed_timestamp = 3;
+}
+
+// RunSpec defines where and how to execute the executable bits from a
+// BuildSpec. It should include enough information to schedule or locate a set
+// of Swarming tasks for a given BuildSpec and AnalysisSpec.
+message RunSpec {
+  // OS strings will contain both the OS name and any OS-specific version
+  // details.
+  string os = 1;
+
+  // Synthetic product names come from Swarming, and uniquely identify specific
+  // hardware device configurations.
+  string synthetic_product_name = 2;
+
+  // Finch config (seed hash, change list, and timestamp).
+  FinchConfig finch_config = 3;
+}
+
+// AnalysisSpec defines what benchmarks and measurements we expect to analyze
+// from a set of RunSpecs. This type should include all observed potential
+// response variables for the experiment.
+message AnalysisSpec {
+  // List of benchmarks, stories, metrics. CABE ETL will use this as sort of
+  // a manifest for results data - it will check to make sure all of these
+  // are actually present in the benchmark jobs' collected output.
+  repeated Benchmark benchmark = 1;
+}
+
+// Benchmark encapsulates both the coarse grained benchmark suite name
+// and all of the more specific workloads (or "stories", to use older
+// terminology) that generate measurements.
+message Benchmark {
+  string name = 1;               // e.g. "Speedometer2"
+  repeated string workload = 2;  // e.g. "React-TodoMVC"
+}
+
+// ArmSpec defines how to build and execute one arm of a performance benchmark
+// A/B test. This type should include all observed potential explanatory
+// variables for the experiment.
+message ArmSpec {
+  repeated BuildSpec build_spec = 1;
+  repeated RunSpec run_spec = 2;
+}
+
+// ExperimentSpec contains all of the necessary information to build, execute
+// and analyze a set of benchmark metrics for a controlled experiment.
+message ExperimentSpec {
+  // common contains all of the build/run details that are common to all
+  // arms of an experiment. For instance, if you are comparing two different
+  // browser build versions across mac, windows and linux, then the mac, windows
+  // and linux details would go in the common ArmSpec.  The control and
+  // treatment armspecs wouldn't mention mac, windows or linux details since
+  // the are implied by the common armspec.
+  // Any details specified in both the common ArmSpec and any other arms'
+  // ArmSpecs should indicate an unsresolved, invalid ExperimentSpec.
+  ArmSpec common = 1;
+
+  // Control and Treatment are somewhat arbitrary distinctions and their meaning
+  // is use-case dependent. Values in their ArmSpecs should not conflict
+  // with anything in the common ArmSpec.
+  ArmSpec control = 2;
+
+  // Treatment may change in the future to be a repeated field to better
+  // represent multi-arm trials but for now we'll limit it to a single value.
+  ArmSpec treatment = 3;
+
+  // Analysis describes how we expect CABE to compare the arms of the
+  // experiment.
+  AnalysisSpec analysis = 4;
+}

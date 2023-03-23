@@ -8,4 +8,11 @@ See the [Design Doc](http://go/cabe-rpc).
 
     go/cabeserver
         cabe rpc server process main package
+    go/proto
+        protobuf message and service definitions
 
+## Running locally
+
+```
+bazelisk run //cabe/go/cabeserver
+```

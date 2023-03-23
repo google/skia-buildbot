@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package cabe.proto;
+option go_package = "go.skia.org/infra/cabe/go/proto";
+
+import "analysis.proto";
+import "spec.proto";
+
+
+service Analysis {
+  // Get results of a performance experiment analysis.
+  rpc GetAnalysis(GetAnalysisRequest) returns (GetAnalysisResponse) {
+  }
+}
+
+message GetAnalysisRequest {
+  optional string pinpoint_job_id = 1;
+
+  // experiment_spec defines the experiment arms as well as which specific
+  // benchmarks and workloads it should expect to find in task result output
+  // files.  If reality doesn't match the spec, CABE returns an error with
+  // some information about what didn't match the provided ExperimentSpec.
+  //
+  // If experiment_spec isn't set, CABE will infer one based on hueristics*
+  // and data available from Swarming and RBE-CAS at the time of the request.
+  // Note that this is best-effort and not guarnateed to do what the caller
+  // expects. If you have specific benchmarks and workloads that need to be
+  // either analyzed or cause errors if they are missing, you should specify an
+  // explicit experiment_spec value.
+  //
+  // *See infer_specs.go and infer_specs_test.go for implementation details.
+  optional ExperimentSpec experiment_spec = 2;
+}
+
+message GetAnalysisResponse {
+  repeated AnalysisResult results = 1;
+}
+
