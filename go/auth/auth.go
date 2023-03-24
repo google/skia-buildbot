@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 
-	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -111,41 +110,6 @@ func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 			Expiry: time.Now().Add(time.Hour),
 		}, nil
 	}
-}
-
-// NewTokenSourceFromIdAndSecret creates a new OAuth 2.0 token source with all the defaults for the
-// given scopes, and the given token store filename.
-func NewTokenSourceFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, scopes ...string) (oauth2.TokenSource, error) {
-	config := &oauth2.Config{
-		ClientID:     clientId,
-		ClientSecret: clientSecret,
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		Endpoint:     google.Endpoint,
-		Scopes:       scopes,
-	}
-	return newLegacyTokenSourceFromConfig(true, config, oauthCacheFile)
-}
-
-// newLegacyTokenSourceFromConfig creates an new OAuth 2.0 token source for the given config.
-//
-// If local is true then a 3-legged flow is initiated, otherwise the GCE Service Account is used if
-// running in GCE, and the Skolo access token provider is used if running in Skolo.
-func newLegacyTokenSourceFromConfig(local bool, config *oauth2.Config, oauthCacheFile string) (oauth2.TokenSource, error) {
-	if oauthCacheFile == "" {
-		oauthCacheFile = defaultTokenStoreFilename
-	}
-
-	if local {
-		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, httputils.DefaultClientConfig().Client())
-		return newCachingTokenSource(oauthCacheFile, ctx, config)
-	}
-	// Are we running on GCE?
-	if cloud_metadata.OnGCE() {
-		// Use compute engine service account.
-		return google.ComputeTokenSource(""), nil
-	}
-	// Create and use a token provider for skolo service account access tokens.
-	return newSkoloTokenSource(), nil
 }
 
 const (

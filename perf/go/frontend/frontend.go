@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/calc"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -113,8 +112,6 @@ type Frontend struct {
 	notifier *notify.Notifier
 
 	traceStore tracestore.TraceStore
-
-	emailAuth *email.GMail
 
 	dryrunRequests *dryrun.Requests
 

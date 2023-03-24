@@ -12,7 +12,6 @@ go_library(
         "//go/auditlog",
         "//go/baseapp",
         "//go/calc",
-        "//go/email",
         "//go/httputils",
         "//go/metrics2",
         "//go/paramtools",

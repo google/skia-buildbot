@@ -6,22 +6,12 @@ go_library(
     srcs = ["email.go"],
     importpath = "go.skia.org/infra/go/email",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/auth",
-        "//go/httputils",
-        "//go/skerr",
-        "//go/sklog",
-        "@org_golang_google_api//gmail/v1:gmail",
-    ],
+    deps = ["//go/skerr"],
 )
 
 go_test(
     name = "email_test",
     srcs = ["email_test.go"],
     embed = [":email"],
-    deps = [
-        "//go/httputils",
-        "@com_github_stretchr_testify//require",
-        "@org_golang_google_api//gmail/v1:gmail",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )

@@ -2,18 +2,13 @@ package email
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"html/template"
 	"regexp"
 	"strings"
 	ttemplate "text/template"
 
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
-	gmail "google.golang.org/api/gmail/v1"
 )
 
 const (
@@ -53,14 +48,6 @@ func init() {
 	emailTemplateParsed = ttemplate.Must(ttemplate.New("email").Parse(emailTemplate))
 }
 
-// GMail is an object used for authenticating to the GMail API server.
-type GMail struct {
-	service *gmail.Service
-
-	// From is the email address of the authenticated account.
-	from string
-}
-
 // GetViewActionMarkup returns a string that contains the required markup.
 func GetViewActionMarkup(link, name, description string) (string, error) {
 	markupBytes := new(bytes.Buffer)
@@ -76,43 +63,6 @@ func GetViewActionMarkup(link, name, description string) (string, error) {
 		return "", skerr.Wrapf(err, "Could not execute template %s", name)
 	}
 	return markupBytes.String(), nil
-}
-
-// NewGMail returns a new GMail object which is authorized to send email.
-func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
-	ts, err := auth.NewTokenSourceFromIdAndSecret(clientId, clientSecret, tokenCacheFile, gmail.GmailComposeScope)
-	if err != nil {
-		return nil, err
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	service, err := gmail.New(client)
-	if err != nil {
-		return nil, err
-	}
-	ret := &GMail{
-		service: service,
-		from:    "me",
-	}
-	if err := ret.populateFromAddress(); err != nil {
-		sklog.Errorf("Failed to determine sending accounts email address: %s", err)
-	}
-	return ret, nil
-}
-
-// populateFromAddress fills in a.from with the email address for the
-// authenticated account.
-func (a *GMail) populateFromAddress() error {
-	profile, err := a.service.Users.GetProfile("me").Do()
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to get profile.")
-	}
-	a.from = profile.EmailAddress
-	return nil
-}
-
-// Send an email. Returns the messageId of the sent email.
-func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threadingReference string) (string, error) {
-	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", threadingReference)
 }
 
 // FormatAsRFC2822 returns a *bytes.Buffer that contains the email message
@@ -140,33 +90,6 @@ func FormatAsRFC2822(fromDisplayName string, from string, to []string, subject, 
 		return nil, skerr.Wrapf(err, "Failed to format email.")
 	}
 	return &msgBytes, nil
-}
-
-// SendWithMarkup sends an email with gmail markup. Returns the messageId of the sent email.
-// Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
-// A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
-func (a *GMail) SendWithMarkup(fromDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
-	msgBytes, err := FormatAsRFC2822(fromDisplayName, a.from, to, subject, body, markup, threadingReference, "")
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
-	sklog.Infof("Message to send: %q", msgBytes.String())
-	return a.SendRFC2822Message(subject, msgBytes.Bytes())
-}
-
-// SendRFC2822Message sends the RFC2822 formatted email message in body with the
-// given subject.
-func (a *GMail) SendRFC2822Message(subject string, body []byte) (string, error) {
-	msg := gmail.Message{}
-	msg.SizeEstimate = int64(len(body))
-	msg.Snippet = subject
-	msg.Raw = base64.URLEncoding.EncodeToString(body)
-
-	m, err := a.service.Users.Messages.Send(a.from, &msg).Do()
-	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to send email: %s", subject)
-	}
-	return m.Id, nil
 }
 
 var fromRegex = regexp.MustCompile(`(?m)^From: (.*)$`)
@@ -217,24 +140,4 @@ func ParseRFC2822Message(body []byte) (string, []string, string, string, error) 
 	messageBody := parts[1]
 
 	return from, to, subject, messageBody, nil
-}
-
-// GetThreadingReference returns the reference string that can be used to thread emails.
-func (a *GMail) GetThreadingReference(messageID string) (string, error) {
-	// Get the reference from the response headers of messages.get call.
-	m, err := a.service.Users.Messages.Get("me", messageID).Do()
-	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to get message data for id %s", messageID)
-	}
-	reference := ""
-	for _, h := range m.Payload.Headers {
-		if h.Name == "Message-Id" {
-			reference = h.Value
-			break
-		}
-	}
-	if reference == "" {
-		return "", skerr.Wrapf(err, "Could not find \"Message-Id\" header for Message-Id %s", messageID)
-	}
-	return reference, nil
 }
