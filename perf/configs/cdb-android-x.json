@@ -32,7 +32,7 @@
   },
   "git_repo_config": {
     "git_auth_type": "gerrit",
-    "provider": "git",
+    "provider": "gitiles",
     "url": "https://skia.googlesource.com/perf-buildid/android-master",
     "dir": "/tmp/androidx",
     "debounce_commit_url": true
