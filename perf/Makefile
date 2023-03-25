@@ -169,20 +169,29 @@ run-local-instance:
 		--commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end}
 
 
+# Before running this target you need to have a local single-instance of
+# cockroachdb running, started like this:
+#
+#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
+#
+# Once the local instance of Perf is running you can visit:
+#
+# 	http://localhost:8002/.
 run-demo-instance:
 	$(BAZEL) build --config=mayberemote //perf/...
+	$(BAZEL) run --config=mayberemote //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:25000/demo?sslmode=disable
+		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
 		--do_clustering=false \
-		--port=:8001 \
+		--port=:8002 \
+		--prom_port=:20001 \
 		--noemail \
 		--config_filename=./configs/demo.json \
-		--num_continuous_parallel=1 \
 		--display_group_by=false \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:25000/demo?sslmode=disable
+		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
