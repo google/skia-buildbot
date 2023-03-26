@@ -77,12 +77,6 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 				}
 				vm.allowlistCache[cfg.CommitterList] = committerList
 			}
-			// Verify the CQ+2 triggerer is a committer.
-			cqVerifier, err := NewCQAccessListVerifier(vm.httpClient, committerList, cfg.CommitterList)
-			if err != nil {
-				return nil, nil, skerr.Wrapf(err, "Error when creating CQAccessListVerifier")
-			}
-			clVerifiers = append(clVerifiers, cqVerifier)
 
 			// Verify all the submitted together changes (if any exist).
 			togetherChanges, err = vm.cr.GetSubmittedTogether(ctx, ci)

@@ -105,13 +105,13 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 
 func TestGetVerifier_CQ_NoTogetherChanges(t *testing.T) {
 
-	expectedVerifiers := []string{"CQAccessListVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
+	expectedVerifiers := []string{"CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
 	testGetVerifier(t, true, false, nil, expectedVerifiers)
 }
 
 func TestGetVerifier_CQ_WithTogetherChanges(t *testing.T) {
 
-	expectedVerifiers := []string{"CQAccessListVerifier", "SubmittedTogetherVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
+	expectedVerifiers := []string{"SubmittedTogetherVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
 	togetherChange := &gerrit.ChangeInfo{Issue: int64(222)}
 	testGetVerifier(t, true, false, togetherChange, expectedVerifiers)
 }
@@ -133,7 +133,7 @@ func TestGetVerifier_CQAndDryRun(t *testing.T) {
 
 	// If both CQ and DryRun are set then the verifiers should be the same as
 	// CQ verifiers.
-	expectedVerifiers := []string{"CQAccessListVerifier", "CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
+	expectedVerifiers := []string{"CommitFooterVerifier", "WIPVerifier", "SubmittableVerifier", "TreeStatusVerifier", "ThrottlerVerifier", "TryJobsVerifier"}
 	testGetVerifier(t, true, true, nil, expectedVerifiers)
 }
 
