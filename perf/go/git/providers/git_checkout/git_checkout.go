@@ -82,6 +82,13 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig) (*Impl, err
 	}, nil
 }
 
+// Used in defers.
+func cmdWaitAndLog(cmd *exec.Cmd) {
+	if err := cmd.Wait(); err != nil {
+		sklog.Errorf("running git log: %q", err)
+	}
+}
+
 // CommitsFromMostRecentGitHashToHead implements provider.Provider.
 func (i Impl) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRecentGitHash string, cb provider.CommitProcessor) error {
 	var cmd *exec.Cmd
@@ -103,15 +110,13 @@ func (i Impl) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRecent
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
+	defer cmdWaitAndLog(cmd)
 
 	err = parseGitRevLogStream(stdout, func(p provider.Commit) error {
 		return cb(p)
 	})
 	if err != nil {
-		// Once we've successfully called cmd.Start() we must always call
-		// cmd.Wait() to close stdout.
-		_ = cmd.Wait()
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "parsing git stdout")
 	}
 
 	return nil
@@ -144,6 +149,7 @@ func (i Impl) GitHashesInRangeForFile(ctx context.Context, begin, end, filename 
 	if err := cmd.Start(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	defer cmdWaitAndLog(cmd)
 
 	// Read the git log output.
 	scanner := bufio.NewScanner(stdout)
@@ -153,15 +159,7 @@ func (i Impl) GitHashesInRangeForFile(ctx context.Context, begin, end, filename 
 	}
 
 	if scanner.Err() != nil {
-		// Once we've successfully called cmd.Start() we must always call
-		// cmd.Wait() to close stdout.
-		_ = cmd.Wait()
 		return nil, skerr.Wrap(err)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		exerr := err.(*exec.ExitError)
-		return nil, skerr.Wrapf(err, "Failed to get logs: %s", exerr.Stderr)
 	}
 	return ret, nil
 }

@@ -297,7 +297,6 @@ func TestCommitsFromMostRecentGitHashToHead_ProvideNonEmptyGitHash_ReceiveAllNew
 	g, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 
-	fmt.Println(hashes)
 	// Note we use 3 here, because we pass hashes[2] below, so
 	// CommitsFromMostRecentGitHashToHead will return all commits newer than
 	// hashes[2] exclusive.
