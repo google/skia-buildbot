@@ -25,7 +25,7 @@
     "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
-    "provider": "git",
+    "provider": "gitiles",
     "url": "https://skia.googlesource.com/perf-ct",
     "dir": "/tmp/ct",
     "debounce_commit_url": false
