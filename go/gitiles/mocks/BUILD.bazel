@@ -12,6 +12,7 @@ go_library(
         "//go/git",
         "//go/gitiles",
         "//go/vcsinfo",
+        "//go/vfs",
         "@com_github_stretchr_testify//mock",
     ],
 )

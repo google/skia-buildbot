@@ -12,7 +12,7 @@ import (
 )
 
 // VFS returns a vfs.FS using Gitiles at the given revision.
-func (r *Repo) VFS(ctx context.Context, ref string) (*FS, error) {
+func (r *Repo) VFS(ctx context.Context, ref string) (vfs.FS, error) {
 	hash, err := r.ResolveRef(ctx, ref)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -118,5 +118,5 @@ func (f *File) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
 	return rv, nil
 }
 
-// Ensure that gitilesFile implements vfs.File.
+// Ensure that gitiles.File implements vfs.File.
 var _ vfs.File = &File{}
