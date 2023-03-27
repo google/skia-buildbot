@@ -32,6 +32,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -83,7 +84,36 @@ const (
 
 	// LoginSecretName is the name of the GCP secret for login.
 	LoginSecretName = "login-oauth2-secrets"
+
+	idTokenKeyName = "id_token"
 )
+
+var (
+	errMalformedState = errors.New("malformed state value")
+)
+
+// OAuthConfigConstructor allows choosing OAuthConfig implementations.
+type OAuthConfigConstructor func(clientID, clientSecret, redirectURL string) OAuthConfig
+
+// OAuthConfig is an interface with the subset of the functionality we use of oauth2.Config, used for tests/mocking.
+type OAuthConfig interface {
+	// See oauth2.Config.
+	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+
+	// See oauth2.Config.
+	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+}
+
+// oauth2Config implements OAuthConfigConstructor for *oauth2.Config objects.
+func configConstructor(clientID, clientSecret, redirectURL string) OAuthConfig {
+	return &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       []string{emailScope},
+		Endpoint:     google.Endpoint,
+		RedirectURL:  redirectURL,
+	}
+}
 
 var (
 	// cookieSalt is some entropy for our encoders.
@@ -91,20 +121,18 @@ var (
 
 	secureCookie *securecookie.SecureCookie = nil
 
-	// defaultScope is the scope we request when logging in.
-	defaultScope = []string{"email"}
+	// emailScope is the scope we request when logging in.
+	emailScope = "email"
 
 	// oauthConfig is the OAuth 2.0 client configuration.
-	oauthConfig = &oauth2.Config{
-		ClientID:     "not-a-valid-client-id",
-		ClientSecret: "not-a-valid-client-secret",
-		Scopes:       defaultScope,
-		Endpoint:     google.Endpoint,
-		RedirectURL:  "http://localhost:8000/oauth2callback/",
-	}
+	oauthConfig = configConstructor("not-a-valid-client-id", "not-a-valid-client-secret", "http://localhost:8000/oauth2callback/")
 
 	// loginCtxKey is used to store login information in the request context.
 	loginCtxKey = &struct{}{}
+
+	// activeOAuth2ConfigConstructor can be replaced with a func that returns a
+	// mock OAuthConfig for testing.
+	activeOAuth2ConfigConstructor OAuthConfigConstructor = configConstructor
 )
 
 // Session is encrypted and serialized and stored in a user's cookie.
@@ -145,46 +173,51 @@ func Init(redirectURL string, authAllowList string, clientSecretFile string) err
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, defaultScope, authAllowList)
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, authAllowList)
 	return nil
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
-func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, scopes []string, authAllowList string) {
+func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, authAllowList string) {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
-	oauthConfig.ClientID = clientID
-	oauthConfig.ClientSecret = clientSecret
-	oauthConfig.RedirectURL = redirectURL
-	oauthConfig.Scopes = scopes
+	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 
 	setActiveAllowLists(authAllowList)
+}
+
+func writeNewSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
+	sessionID, err := generateID()
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	cookie := &http.Cookie{
+		Name:     SESSION_COOKIE_NAME,
+		Value:    sessionID,
+		Path:     "/",
+		Domain:   domainFromHost(r.Host),
+		HttpOnly: true,
+		Expires:  time.Now().Add(365 * 24 * time.Hour),
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+	}
+	http.SetCookie(w, cookie)
+	return sessionID, nil
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
 func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	// Check for a session id, if not there then assign one, and add it to the redirect URL.
 	session, err := r.Cookie(SESSION_COOKIE_NAME)
-	state := ""
+	sessionID := ""
 	if err != nil || session.Value == "" {
-		state, err = generateID()
+		sessionID, err = writeNewSessionCookie(w, r)
 		if err != nil {
 			sklog.Errorf("Failed to create a session token: %s", err)
 			return ""
 		}
-		cookie := &http.Cookie{
-			Name:     SESSION_COOKIE_NAME,
-			Value:    state,
-			Path:     "/",
-			Domain:   domainFromHost(r.Host),
-			HttpOnly: true,
-			Expires:  time.Now().Add(365 * 24 * time.Hour),
-			SameSite: http.SameSiteNoneMode,
-			Secure:   true,
-		}
-		http.SetCookie(w, cookie)
 	} else {
-		state = session.Value
+		sessionID = session.Value
 	}
 
 	redirect := r.Referer()
@@ -199,7 +232,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	// so that we can use it on the rebound. So the state we pass in has the
 	// form:
 	//
-	//   <sessionid>:<hash(salt + original url)>:<original url>
+	//	<sessionid>:<hash(salt + original url)>:<original url>
 	//
 	// Note that the sessionid and the hash are hex values and so won't contain
 	// any colons.  To break this up when returned from the server just use
@@ -209,7 +242,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	// On the receiving side we need to recompute the hash and compare against
 	// the hash passed in, and only if they match should the redirect URL be
 	// trusted.
-	state = fmt.Sprintf("%s:%x:%s", state, sha256.Sum256([]byte(cookieSalt+redirect)), redirect)
+	state := stateFromParts(sessionID, cookieSalt, redirect)
 
 	// Only retrieve an online access token, i.e. no refresh token. And when we
 	// go through the approval flow again don't stop if they've already approved
@@ -224,6 +257,40 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 		opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "auto"))
 	}
 	return oauthConfig.AuthCodeURL(state, opts...)
+}
+
+// stateFromParts constructs a state value. The state value has the form:
+//
+//	<sessionid>:<hash(salt + original url)>:<original url>
+//
+// Note that the sessionid and the hash are hex values and so won't contain
+// any colons.  To break this up when returned from the server just use
+// strings.SplitN(s, ":", 3) which will ignore any colons found in the
+// Referral URL.
+//
+// On the receiving side we need to recompute the hash and compare against
+// the hash passed in, and only if they match should the redirect URL be
+// trusted.
+func stateFromParts(sessionsID, salt, redirect string) string {
+	return fmt.Sprintf("%s:%s:%s", sessionsID, hashForURL(salt, redirect), redirect)
+}
+
+// partsFromState breaks up the state, which has the form:
+//
+//	<sessionid>:<hash(salt + original url)>:<original url>
+//
+// and returns each part, or an error if the number of parts is wrong.
+func partsFromState(state string) (string, string, string, error) {
+	stateParts := strings.SplitN(state, ":", 3)
+	if len(stateParts) == 3 {
+		return stateParts[0], stateParts[1], stateParts[2], nil
+	}
+	return "", "", "", errMalformedState
+}
+
+// hashForURL computes hash(salt+url) and returns it as a hex string.
+func hashForURL(salt, url string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(salt+url)))
 }
 
 // generate a 16-byte random ID.
@@ -252,8 +319,8 @@ func getSession(r *http.Request) (*Session, error) {
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if s.AuthScope != strings.Join(oauthConfig.Scopes, " ") {
-		return nil, skerr.Fmt("Stored auth scope differs from expected (%v vs %s)", oauthConfig.Scopes, s.AuthScope)
+	if s.AuthScope != emailScope {
+		return nil, skerr.Fmt("Stored auth scope differs from expected (%q vs %q)", emailScope, s.AuthScope)
 	}
 	return &s, nil
 }
@@ -286,8 +353,8 @@ func UserIdentifiers(r *http.Request) (string, string) {
 	return s.Email, s.ID
 }
 
-// A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
-// that, we only want one field which is 'email'.
+// A JSON Web Token can contain much info, such as 'iss'. We don't care about
+// that, we only want two fields, 'email' and 'sub'.
 //
 //	{
 //	  "iss":"accounts.google.com",
@@ -310,7 +377,7 @@ func domainFromHost(fullhost string) string {
 		return host
 	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_CORP) {
 		return COOKIE_DOMAIN_SKIA_CORP
-	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_ORG) {
+	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_ORG) || fullhost == COOKIE_DOMAIN_SKIA_ORG {
 		return COOKIE_DOMAIN_SKIA_ORG
 	} else {
 		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, COOKIE_DOMAIN_SKIA_ORG)
@@ -376,56 +443,74 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // the callback URL registered in the APIs Console. In this case
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("OAuth2CallbackHandler")
 	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
 	if err != nil || cookie.Value == "" {
-		http.Error(w, "Invalid session state.", 500)
+		http.Error(w, "Missing session state.", 500)
 		return
 	}
 
-	state := r.FormValue("state")
-	stateParts := strings.SplitN(state, ":", 3)
-	redirect := "/"
-	// If the state contains a redirect URL.
-	if len(stateParts) == 3 {
-		// state has this form:   <sessionid>:<hash(salt + original url)>:<original url>
-		// See LoginURL for more details.
-		state = stateParts[0]
-		hash := stateParts[1]
-		url := stateParts[2]
-		expectedHash := fmt.Sprintf("%x", sha256.Sum256([]byte(cookieSalt+url)))
-		if hash == expectedHash {
-			redirect = url
-		} else {
-			sklog.Warningf("Got an invalid redirect: %s != %s", hash, expectedHash)
-		}
+	// Validate the session state.
+	sessionID, hash, redirectURL, err := partsFromState(r.FormValue("state"))
+	if err != nil {
+		http.Error(w, "Invalid session state", 500)
+		return
 	}
-	if state != cookie.Value {
+	if sessionID != cookie.Value {
 		http.Error(w, "Session state doesn't match callback state.", 500)
 		return
 	}
+	expectedHash := hashForURL(cookieSalt, redirectURL)
+	if hash != expectedHash {
+		sklog.Errorf("Got an invalid redirect: %s != %s", hash, expectedHash)
+		http.Error(w, "Invalid redirect URL", 500)
+		return
+	}
 
+	// Exchange code for JWT.
 	code := r.FormValue("code")
-	sklog.Infof("Code: %s ", code[:5])
 	token, err := oauthConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		sklog.Errorf("Failed to authenticate: %s", err)
 		http.Error(w, "Failed to authenticate.", 500)
 		return
 	}
+
+	// Extract email address and account ID from token.
+	email, accountID, errorMessage := extractEmailAndAccountIDFromToken(token)
+	if errorMessage != "" {
+		http.Error(w, errorMessage, 500)
+		return
+	}
+
+	if !isAuthorized(email) {
+		http.Error(w, "Accounts from your domain are not allowed or your email address is not on the allow list.", 500)
+		return
+	}
+	s := Session{
+		Email:     email,
+		ID:        accountID,
+		AuthScope: emailScope,
+		Token:     token,
+	}
+	setSkIDCookieValue(w, r, &s)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+// Returns only an error message instead of an error because the results are
+// sent back to the caller via http.Error() and we don't want to accidentally
+// leak internal data that an an error type might accumulate.
+func extractEmailAndAccountIDFromToken(token *oauth2.Token) (string, string, string) {
 	// idToken is a JSON Web Token. We only need to decode the token, we do not
 	// need to validate the token because it came to us over HTTPS directly from
 	// Google's servers.
-	idToken, ok := token.Extra("id_token").(string)
+	idToken, ok := token.Extra(idTokenKeyName).(string)
 	if !ok {
-		http.Error(w, "No id_token returned.", 500)
-		return
+		return "", "", "No id_token returned."
 	}
 	// The id token is actually three base64 encoded parts that are "." separated.
 	segments := strings.Split(idToken, ".")
 	if len(segments) != 3 {
-		http.Error(w, "Invalid id_token.", 500)
-		return
+		return "", "", "Invalid id_token."
 	}
 	// Now base64 decode the middle segment, which decodes to JSON.
 	padding := 4 - (len(segments[1]) % 4)
@@ -436,36 +521,21 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := base64.URLEncoding.DecodeString(middle)
 	if err != nil {
 		sklog.Errorf("Failed to base64 decode middle part of token: %s From: %#v", middle, segments)
-		http.Error(w, "Failed to base64 decode id_token.", 500)
-		return
+		return "", "", "Failed to base64 decode id_token."
 	}
 	// Finally decode the JSON.
 	decoded := &decodedIDToken{}
 	if err := json.Unmarshal(b, decoded); err != nil {
 		sklog.Errorf("Failed to JSON decode token: %s", string(b))
-		http.Error(w, "Failed to JSON decode id_token.", 500)
-		return
+		return "", "", "Failed to JSON decode id_token."
 	}
 
 	email := strings.ToLower(decoded.Email)
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
-		http.Error(w, "Invalid email address received.", 500)
-		return
+		return "", "", "Invalid email address received."
 	}
-
-	if !isAuthorized(email) {
-		http.Error(w, "Accounts from your domain are not allowed or your email address is not on the allow list.", 500)
-		return
-	}
-	s := Session{
-		Email:     email,
-		ID:        decoded.ID,
-		AuthScope: strings.Join(oauthConfig.Scopes, " "),
-		Token:     token,
-	}
-	setSkIDCookieValue(w, r, &s)
-	http.Redirect(w, r, redirect, 302)
+	return email, decoded.ID, ""
 }
 
 // AuthorizedEmail returns the email from the session cookie if it is present and matches either
@@ -501,9 +571,11 @@ func isAuthorized(email string) bool {
 	normalizedEmail := user + "@" + domain
 
 	if viewAllow != nil {
+		sklog.Infof("viewAllow = %v", viewAllow)
 		return viewAllow.Member(normalizedEmail)
 	}
 
+	sklog.Infof("len(activeUserDomainAllowList) = %d", len(activeUserDomainAllowList))
 	if len(activeUserDomainAllowList) == 0 {
 		return true // if the list is empty, everybody is allowed
 	}

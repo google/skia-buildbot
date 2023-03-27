@@ -25,13 +25,20 @@ go_library(
 
 go_test(
     name = "login_test",
-    srcs = ["login_test.go"],
+    srcs = [
+        "legacy_roles_test.go",
+        "login_test.go",
+    ],
     embed = [":login"],
     deps = [
         "//go/deepequal/assertdeep",
+        "//go/login/mocks",
         "//go/secret",
         "//go/secret/mocks",
+        "//go/testutils",
+        "@com_github_gorilla_securecookie//:securecookie",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )

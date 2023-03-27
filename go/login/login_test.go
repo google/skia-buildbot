@@ -2,22 +2,41 @@ package login
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
+	"github.com/gorilla/securecookie"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	loginMocks "go.skia.org/infra/go/login/mocks"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/secret/mocks"
+	"go.skia.org/infra/go/testutils"
+	"golang.org/x/oauth2"
+)
+
+const (
+	saltForTesting = "salt"
+
+	sessionIDForTesting = "abcdef0123456"
+
+	codeForTesting = "oauth2 code for testing"
+)
+
+var (
+	errMockError = fmt.Errorf("error returned from mocks")
 )
 
 var once sync.Once
 
 func loginInit() {
-	initLogin("id", "secret", "http://localhost", "salt", defaultScope, DEFAULT_ALLOWED_DOMAINS)
+	initLogin("id", "secret", "http://localhost", saltForTesting, DEFAULT_ALLOWED_DOMAINS)
 }
 
 func TestLoginURL(t *testing.T) {
@@ -60,7 +79,7 @@ func TestLoggedInAs(t *testing.T) {
 	s := Session{
 		Email:     "fred@chromium.org",
 		ID:        "12345",
-		AuthScope: defaultScope[0],
+		AuthScope: emailScope,
 		Token:     nil,
 	}
 	cookie, err := CookieFor(&s, r)
@@ -102,7 +121,7 @@ func TestAuthorizedEmail(t *testing.T) {
 	s := Session{
 		Email:     "fred@chromium.org",
 		ID:        "12345",
-		AuthScope: defaultScope[0],
+		AuthScope: emailScope,
 		Token:     nil,
 	}
 	cookie, err := CookieFor(&s, r)
@@ -131,52 +150,6 @@ func TestDomainFromHost(t *testing.T) {
 	assert.Equal(t, "skia.org", domainFromHost("perf.skia.org"))
 	assert.Equal(t, "skia.org", domainFromHost("perf.skia.org:443"))
 	assert.Equal(t, "skia.org", domainFromHost("example.com:443"))
-}
-
-func TestSplitAuthAllowList(t *testing.T) {
-
-	type testCase struct {
-		Input           string
-		ExpectedDomains map[string]bool
-		ExpectedEmails  map[string]bool
-	}
-
-	tests := []testCase{
-		{
-			Input: "google.com chromium.org skia.org",
-			ExpectedDomains: map[string]bool{
-				"google.com":   true,
-				"chromium.org": true,
-				"skia.org":     true,
-			},
-			ExpectedEmails: map[string]bool{},
-		},
-		{
-			Input: "google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com",
-			ExpectedDomains: map[string]bool{
-				"google.com":   true,
-				"chromium.org": true,
-				"skia.org":     true,
-			},
-			ExpectedEmails: map[string]bool{
-				"service-account@proj.iam.gserviceaccount.com": true,
-			},
-		},
-		{
-			Input:           "user@example.com service-account@proj.iam.gserviceaccount.com",
-			ExpectedDomains: map[string]bool{},
-			ExpectedEmails: map[string]bool{
-				"user@example.com": true,
-				"service-account@proj.iam.gserviceaccount.com": true,
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		d, e := splitAuthAllowList(tc.Input)
-		assert.Equal(t, tc.ExpectedDomains, d)
-		assert.Equal(t, tc.ExpectedEmails, e)
-	}
 }
 
 func TestIsAuthorized(t *testing.T) {
@@ -248,7 +221,7 @@ func TestSessionMiddleware(t *testing.T) {
 		test(t, &Session{
 			Email:     "fred@chromium.org",
 			ID:        "12345",
-			AuthScope: defaultScope[0],
+			AuthScope: emailScope,
 			Token:     nil,
 		})
 	})
@@ -269,4 +242,172 @@ func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
 	require.Equal(t, "fake-salt", cookieSalt)
 	require.Equal(t, "fake-client-id", clientID)
 	require.Equal(t, "fake-client-secret", clientSecret)
+}
+
+func TestStateFromPartsAndPartsFromStateRoundTrip_Success(t *testing.T) {
+	sessionIDSent := "sessionID"
+	redirectURLSent := "https://example.org"
+	state := stateFromParts(sessionIDSent, saltForTesting, redirectURLSent)
+	sessionID, hash, redirectURL, err := partsFromState(state)
+	require.NoError(t, err)
+	require.Equal(t, sessionID, sessionIDSent)
+	require.Equal(t, redirectURL, redirectURLSent)
+	require.Equal(t, hashForURL(saltForTesting, redirectURL), hash)
+}
+
+func TestPartsFromState_MissingOnePart_ReturnsError(t *testing.T) {
+	sessionIDSent := "sessionID"
+	redirectURLSent := "https://example.org"
+	state := stateFromParts(sessionIDSent, saltForTesting, redirectURLSent)
+	state = strings.Join(strings.Split(state, ".")[1:], ".")
+	_, _, _, err := partsFromState(state)
+	require.ErrorIs(t, err, errMalformedState)
+}
+
+func TestOAuth2CallbackHandler_NoCookieSet_Returns500(t *testing.T) {
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://example.com/", nil)
+	require.NoError(t, err)
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Missing session state")
+}
+
+func setupForOAuth2CallbackHandlerTest(t *testing.T, url string) (*httptest.ResponseRecorder, *http.Request) {
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", url, nil)
+	require.NoError(t, err)
+	cookieSalt = saltForTesting
+	secureCookie = securecookie.New([]byte(cookieSalt), nil)
+
+	cookie := &http.Cookie{
+		Name:  SESSION_COOKIE_NAME,
+		Value: sessionIDForTesting,
+	}
+	r.AddCookie(cookie)
+	setActiveAllowLists("")
+	return w, r
+}
+
+func TestOAuth2CallbackHandler_CookieSetButStateNotSet_Returns500(t *testing.T) {
+	w, r := setupForOAuth2CallbackHandlerTest(t, "https://skia.org/")
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Invalid session state")
+}
+
+func TestOAuth2CallbackHandler_CookieSetButSessionIDDoesNotMatchSessionIDInState_Returns500(t *testing.T) {
+	state := stateFromParts("wrongSessionID", saltForTesting, "/foo")
+	u := fmt.Sprintf("https://skia.org/?state=%s", state)
+	w, r := setupForOAuth2CallbackHandlerTest(t, u)
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Session state doesn't match callback state.")
+}
+
+func TestOAuth2CallbackHandler_HashOfRedirectURLDoesNotMatch_Returns500(t *testing.T) {
+	state := stateFromParts(sessionIDForTesting, "using the wrong salt here will change the hash", "/foo")
+	u := fmt.Sprintf("https://skia.org/?state=%s", state)
+	w, r := setupForOAuth2CallbackHandlerTest(t, u)
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Invalid redirect URL")
+}
+
+func TestOAuth2CallbackHandler_ExchangeReturnsError_Returns500(t *testing.T) {
+	state := stateFromParts(sessionIDForTesting, saltForTesting, "/foo")
+	u := fmt.Sprintf("https://skia.org/?state=%s&code=%s", state, codeForTesting)
+	w, r := setupForOAuth2CallbackHandlerTest(t, u)
+
+	oauthConfigMock := loginMocks.NewOAuthConfig(t)
+	oauthConfigMock.On("Exchange", testutils.AnyContext, codeForTesting).Return(nil, errMockError)
+	oauthConfig = oauthConfigMock
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Failed to authenticate")
+}
+
+func TestOAuth2CallbackHandler_ExtractEmailAndAccountIDFromTokenReturnsError_Returns500(t *testing.T) {
+	state := stateFromParts(sessionIDForTesting, saltForTesting, "/foo")
+	u := fmt.Sprintf("https://skia.org/?state=%s&code=%s", state, codeForTesting)
+	w, r := setupForOAuth2CallbackHandlerTest(t, u)
+
+	oauthConfigMock := loginMocks.NewOAuthConfig(t)
+	token := &oauth2.Token{}
+	token = token.WithExtra(map[string]string{})
+	oauthConfigMock.On("Exchange", testutils.AnyContext, codeForTesting).Return(token, nil)
+	oauthConfig = oauthConfigMock
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "No id_token returned")
+}
+
+func TestOAuth2CallbackHandler_HappyPath(t *testing.T) {
+	state := stateFromParts(sessionIDForTesting, saltForTesting, "/foo")
+	u := fmt.Sprintf("https://skia.org/?state=%s&code=%s", state, codeForTesting)
+	w, r := setupForOAuth2CallbackHandlerTest(t, u)
+
+	oauthConfigMock := loginMocks.NewOAuthConfig(t)
+
+	middle := base64.URLEncoding.EncodeToString([]byte(`{
+		"email": "somebody@example.org",
+		"sub": "123"
+		}`))
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a." + middle + ".c"})
+
+	oauthConfigMock.On("Exchange", testutils.AnyContext, codeForTesting).Return(tokenWith, nil)
+	oauthConfig = oauthConfigMock
+
+	viewAllow = nil
+
+	OAuth2CallbackHandler(w, r)
+	require.Contains(t, w.Body.String(), "Found")
+	require.Equal(t, w.Result().StatusCode, http.StatusFound)
+	require.Equal(t, "/foo", w.Header().Get("Location"))
+}
+
+func TestExtractEmailAndAccountIDFromToken_InvalidForm_ReturnsFailureMessage(t *testing.T) {
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a.b"})
+	_, _, msg := extractEmailAndAccountIDFromToken(tokenWith)
+	require.Contains(t, msg, "Invalid id_token")
+}
+
+func TestExtractEmailAndAccountIDFromToken_InvalidBase64_ReturnsFailureMessage(t *testing.T) {
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a.??;;::not-valid-base64.c"})
+	_, _, msg := extractEmailAndAccountIDFromToken(tokenWith)
+	require.Contains(t, msg, "Failed to base64 decode id_token")
+}
+
+func TestExtractEmailAndAccountIDFromToken_DecodedBase64IsNotValidJSON_ReturnsFailureMessage(t *testing.T) {
+	middle := base64.URLEncoding.EncodeToString([]byte("{not-valid-json"))
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a." + middle + ".c"})
+	_, _, msg := extractEmailAndAccountIDFromToken(tokenWith)
+	require.Contains(t, msg, "Failed to JSON decode id_token")
+}
+
+func TestExtractEmailAndAccountIDFromToken_EmailIsNotValidJSON_ReturnsFailureMessage(t *testing.T) {
+	middle := base64.URLEncoding.EncodeToString([]byte(`{
+"email": "not-a-valid-email-address",
+"sub": "123"
+}`))
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a." + middle + ".c"})
+	_, _, msg := extractEmailAndAccountIDFromToken(tokenWith)
+	require.Contains(t, msg, "Invalid email address received")
+}
+
+func TestExtractEmailAndAccountIDFromToken_HappyPath(t *testing.T) {
+	middle := base64.URLEncoding.EncodeToString([]byte(`{
+"email": "somebody@example.org",
+"sub": "123"
+}`))
+	token := &oauth2.Token{}
+	tokenWith := token.WithExtra(map[string]interface{}{idTokenKeyName: "a." + middle + ".c"})
+	email, id, msg := extractEmailAndAccountIDFromToken(tokenWith)
+	require.Empty(t, msg)
+	require.Equal(t, "somebody@example.org", email)
+	require.Equal(t, "123", id)
 }
