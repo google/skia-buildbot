@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -41,6 +42,10 @@ func main() {
 	}
 	s := grpc.NewServer()
 	cpb.RegisterAnalysisServer(s, cabeServer)
+
+	// Register reflection service on gRPC server.
+	reflection.Register(s)
+
 	sklog.Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		sklog.Fatalf("failed to serve: %v", err)

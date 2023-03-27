@@ -3199,10 +3199,7 @@ def go_repositories():
 
     go_repository(
         name = "org_golang_google_grpc",
-        # Uncomment if we ever need to build go_proto_library targets with the gRPC plugin.
-        # https://github.com/bazelbuild/rules_go/blob/master/go/dependencies.rst#grpc-dependencies
-        #
-        # build_file_proto_mode = "disable",
+        build_file_proto_mode = "disable",
         importpath = "google.golang.org/grpc",
         sum = "h1:NEpgUqV3Z+ZjkqMsxMg11IaDrXY4RY6CQukSGK0uI1M=",
         version = "v1.45.0",

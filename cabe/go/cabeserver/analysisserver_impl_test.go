@@ -35,8 +35,11 @@ func startTestServer(t *testing.T) (cpb.AnalysisClient, func()) {
 	require.NoError(t, err)
 
 	closer := func() {
-		err := serverListener.Close()
-		require.NoError(t, err)
+		// server.Stop will close the listener for us:
+		// https://pkg.go.dev/google.golang.org/grpc#Server.Stop
+		// Explicitly closing the listener causes the server.Serve
+		// call to return an error, which causes this test to fail
+		// even when the code under test behaves as expected.
 		server.Stop()
 	}
 
