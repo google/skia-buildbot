@@ -35,6 +35,9 @@ import (
 var (
 	// ErrNotFound indicates that the requested item was not found.
 	ErrNotFound = errors.New("Requested item was not found")
+
+	// ErrBothChangeAndCommitID indicates that both commit and changeID were set.
+	ErrBothChangeAndCommitID = errors.New("commit and change ID cannot both be set")
 )
 
 const (
@@ -243,6 +246,16 @@ type ChangeInfoMessage struct {
 	Message string `json:"message"`
 }
 
+type createChangePostData struct {
+	Project    string `json:"project"`
+	Subject    string `json:"subject"`
+	Branch     string `json:"branch"`
+	Topic      string `json:"topic"`
+	Status     string `json:"status"`
+	BaseCommit string `json:"base_commit,omitempty"`
+	BaseChange string `json:"base_change,omitempty"`
+}
+
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
 	Id              string              `json:"id"`
@@ -424,7 +437,7 @@ type GerritInterface interface {
 	AddCC(context.Context, *ChangeInfo, []string) error
 	Approve(context.Context, *ChangeInfo, string) error
 	Config() *Config
-	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
+	CreateChange(context.Context, string, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
 	DeleteVote(context.Context, int64, string, int, NotifyOption, bool) error
@@ -1450,52 +1463,49 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 	return false
 }
 
-// CreateChange creates a new Change in the given project, based on the given branch, and with
-// the given subject line.
-func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, baseCommit string) (*ChangeInfo, error) {
+// CreateChange creates a new Change in the given project, based on a given Git commit or Gerrit change ID,
+// on on the given branch, and with the given subject line.
+func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, baseCommit, baseChangeID string) (*ChangeInfo, error) {
+	if baseCommit != "" && baseChangeID != "" {
+		return nil, ErrBothChangeAndCommitID
+	}
 	// Respect the rate limit.
 	if err := g.rl.Wait(ctx); err != nil {
 		return nil, err
 	}
 
-	c := struct {
-		Project    string `json:"project"`
-		Subject    string `json:"subject"`
-		Branch     string `json:"branch"`
-		Topic      string `json:"topic"`
-		Status     string `json:"status"`
-		BaseCommit string `json:"base_commit"`
-	}{
+	c := createChangePostData{
 		Project:    project,
 		Branch:     branch,
 		Subject:    subject,
 		Status:     "NEW",
 		BaseCommit: baseCommit,
+		BaseChange: baseChangeID,
 	}
 	b, err := json.Marshal(c)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.apiUrl+"/changes/", bytes.NewReader(b))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if resp.StatusCode != 201 {
-		return nil, fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+		return nil, fmt.Errorf("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	var ci ChangeInfo
 	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return fixupChangeInfo(&ci), nil
 }

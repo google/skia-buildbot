@@ -207,7 +207,8 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitile
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, changes, reviewers)
+	const baseChangeID = ""
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, baseChangeID, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
@@ -284,7 +285,8 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	changes := map[string]string{
 		supported_branches.SUPPORTED_BRANCHES_FILE: buf.String(),
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, changes, reviewers)
+	const baseChangeID = ""
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, baseChangeID, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
@@ -383,7 +385,8 @@ func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo,
 	changes := map[string]string{
 		cqJSONFile: "",
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, changes, reviewers)
+	const baseChangeID = ""
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, baseChangeID, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}

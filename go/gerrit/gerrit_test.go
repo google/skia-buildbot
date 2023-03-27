@@ -3,7 +3,9 @@ package gerrit
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -645,4 +647,133 @@ func TestFullChangeId(t *testing.T) {
 	// Test branch with "refs/heads/" prefix.
 	ci.Branch = "refs/heads/chrome/m90"
 	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
+}
+
+func TestCreateChange_WithCommitAndChangeID_ReturnsError(t *testing.T) {
+	const (
+		commit   = "b85141fe76d3dc598407865b07778d164204726e"
+		changeID = "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c"
+		project  = "skia"
+		branch   = "main"
+		subject  = "Test subject"
+	)
+	ctx := context.Background()
+	g := Gerrit{}
+
+	_, err := g.CreateChange(ctx, project, branch, subject, commit, changeID)
+	require.Equal(t, ErrBothChangeAndCommitID, err)
+}
+
+func TestCreateChange_WithBaseCommit(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "POST", r.Method)
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-Type", "application/json")
+		body, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		var data createChangePostData
+		require.NoError(t, json.Unmarshal(body, &data))
+
+		require.Equal(t, "myProject", data.Project)
+		require.Equal(t, "master", data.Branch)
+		require.Equal(t, "Let's support 100% Gerrit workflow direct in browser", data.Subject)
+		require.Equal(t, "NEW", data.Status)
+		require.Equal(t, "1234567890123456789012345678901234567890", data.BaseCommit)
+		require.Equal(t, "", data.BaseChange)
+		response := `)]}'
+{
+  "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "project": "myProject",
+  "branch": "master",
+  "topic": "create-change-in-browser",
+  "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "subject": "Let's support 100% Gerrit workflow direct in browser",
+  "status": "NEW",
+  "created": "2014-05-05 07:15:44.639000000",
+  "updated": "2014-05-05 07:15:44.639000000",
+  "mergeable": true,
+  "insertions": 0,
+  "deletions": 0,
+  "_number": 4711,
+  "owner": {
+    "name": "John Doe"
+  }
+}`
+		_, err = fmt.Fprintln(w, response)
+		require.NoError(t, err)
+	}))
+
+	defer ts.Close()
+
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
+	require.NoError(t, err)
+	ci, err := api.CreateChange(
+		context.Background(),
+		"myProject",
+		"master",
+		"Let's support 100% Gerrit workflow direct in browser",
+		"1234567890123456789012345678901234567890",
+		"",
+	)
+	require.NoError(t, err)
+	require.Equal(t, "master", ci.Branch)
+	require.Equal(t, "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941", ci.Id)
+	require.Equal(t, "I8473b95934b5732ac55d26311a706c9c2bde9941", ci.ChangeId)
+}
+
+func TestCreateChange_WithBaseChangeID(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "POST", r.Method)
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-Type", "application/json")
+		body, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		var data createChangePostData
+		require.NoError(t, json.Unmarshal(body, &data))
+
+		require.Equal(t, "myProject", data.Project)
+		require.Equal(t, "master", data.Branch)
+		require.Equal(t, "Let's support 100% Gerrit workflow direct in browser", data.Subject)
+		require.Equal(t, "NEW", data.Status)
+		require.Equal(t, "", data.BaseCommit)
+		require.Equal(t, "I1234567890123456789012345678901234567890", data.BaseChange)
+		response := `)]}'
+{
+  "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "project": "myProject",
+  "branch": "master",
+  "topic": "create-change-in-browser",
+  "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "subject": "Let's support 100% Gerrit workflow direct in browser",
+  "status": "NEW",
+  "created": "2014-05-05 07:15:44.639000000",
+  "updated": "2014-05-05 07:15:44.639000000",
+  "mergeable": true,
+  "insertions": 0,
+  "deletions": 0,
+  "_number": 4711,
+  "owner": {
+    "name": "John Doe"
+  }
+}`
+		_, err = fmt.Fprintln(w, response)
+		require.NoError(t, err)
+	}))
+
+	defer ts.Close()
+
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
+	require.NoError(t, err)
+	ci, err := api.CreateChange(
+		context.Background(),
+		"myProject",
+		"master",
+		"Let's support 100% Gerrit workflow direct in browser",
+		"",
+		"I1234567890123456789012345678901234567890",
+	)
+	require.NoError(t, err)
+	require.Equal(t, "master", ci.Branch)
+	require.Equal(t, "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941", ci.Id)
+	require.Equal(t, "I8473b95934b5732ac55d26311a706c9c2bde9941", ci.ChangeId)
 }

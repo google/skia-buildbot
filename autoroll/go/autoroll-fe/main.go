@@ -332,7 +332,7 @@ func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
 		configFile = path.Join(*configRepoPath, configFile)
 	}
 	// TODO(borenet): Handle custom commit messages.
-	ci, err := gerrit.CreateAndEditChange(ctx, g, *configGerritProject, git.MainBranch, "Update AutoRoller Config", baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, g, *configGerritProject, git.MainBranch, "Update AutoRoller Config", baseCommit, "", func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		return g.EditFile(ctx, ci, configFile, string(content))
 	})
 	if err != nil {

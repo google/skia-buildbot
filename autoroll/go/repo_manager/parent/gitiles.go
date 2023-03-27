@@ -149,7 +149,8 @@ func handleExternalChangeId(ctx context.Context, changes map[string]string, exte
 // the issue number or any error which occurred.
 func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, emails []string, dryRun bool) (int64, error) {
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	const baseChangeID = ""
+	ci, err := gerrit.CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, baseChangeID, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range changes {
 			if contents == "" {
 				if err := g.DeleteFile(ctx, ci, file); err != nil {

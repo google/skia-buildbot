@@ -119,7 +119,8 @@ Please contact the Skia Infra Gardener if this bot causes problems.
 		return skerr.Fmt("Could not get details of %s: %s", bbCfgBranch, err)
 	}
 	baseCommit := baseCommitInfo.Hash
-	ci, err := gerrit.CreateAndEditChange(ctx, g, project, bbCfgBranch, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	const baseChangeID = ""
+	ci, err := gerrit.CreateAndEditChange(ctx, g, project, bbCfgBranch, commitMsg, baseCommit, baseChangeID, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		if err := g.EditFile(ctx, ci, bbCfgFileName, cfgContents); err != nil {
 			return skerr.Fmt("Could not edit %s: %s", bbCfgFileName, err)
 		}

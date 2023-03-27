@@ -38,9 +38,9 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 // published as a new patch set, or in the case of failure, reverted. If an
 // error is encountered after the Change is created, the ChangeInfo is returned
 // so that the caller can decide whether to abandon the change or try again.
-func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(context.Context, GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
+func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit, baseChangeID string, fn func(context.Context, GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
 	splitCommitMsg := strings.Split(commitMsg, "\n")
-	ci, err := g.CreateChange(ctx, project, branch, splitCommitMsg[0], baseCommit)
+	ci, err := g.CreateChange(ctx, project, branch, splitCommitMsg[0], baseCommit, baseChangeID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create change")
 	}
@@ -91,8 +91,8 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 // project based on the given branch with the given commit message and the given
 // map of filepath to new file contents. Empty file contents indicate deletion
 // of the file. If reviewers are provided, the change is sent for review.
-func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, reviewers []string) (*ChangeInfo, error) {
-	ci, err := CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
+func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit, baseChangeID string, changes map[string]string, reviewers []string) (*ChangeInfo, error) {
+	ci, err := CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, baseChangeID, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		for filepath, contents := range changes {
 			if contents == "" {
 				if err := g.DeleteFile(ctx, ci, filepath); err != nil {
@@ -148,5 +148,5 @@ func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, bra
 			changes[diffLine] = string(contents)
 		}
 	}
-	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, changes, reviewers)
+	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, "", changes, reviewers)
 }

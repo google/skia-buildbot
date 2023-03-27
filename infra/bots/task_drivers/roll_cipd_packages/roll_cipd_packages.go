@@ -293,7 +293,8 @@ func main() {
 			reviewers = append(reviewers, ci.Owner.Email)
 		}
 	}
-	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.MainBranch, rs.Revision, "Update CIPD Packages", reviewers, isTryJob); err != nil {
+	const baseChangeID = ""
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.MainBranch, rs.Revision, baseChangeID, "Update CIPD Packages", reviewers, isTryJob); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
