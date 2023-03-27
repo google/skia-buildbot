@@ -240,6 +240,11 @@ const RecipientTo = "TO"
 const RecipientCC = "CC"
 const RecipientBCC = "BCC"
 
+type cherryPickPostData struct {
+	Message     string `json:"message"`
+	Destination string `json:"destination"`
+}
+
 // ChangeInfoMessage contains information about Gerrit messages.
 type ChangeInfoMessage struct {
 	Tag     string `json:"tag"`
@@ -438,6 +443,7 @@ type GerritInterface interface {
 	Approve(context.Context, *ChangeInfo, string) error
 	Config() *Config
 	CreateChange(context.Context, string, string, string, string, string) (*ChangeInfo, error)
+	CreateCherryPickChange(context.Context, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
 	DeleteVote(context.Context, int64, string, int, NotifyOption, bool) error
@@ -1501,6 +1507,53 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 		return nil, skerr.Wrap(err)
 	}
 	if resp.StatusCode != 201 {
+		return nil, fmt.Errorf("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	}
+	var ci ChangeInfo
+	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return fixupChangeInfo(&ci), nil
+}
+
+// CreateCherryPickChange will cherry-pick a revision into a destination branch.
+//
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#cherry-pick
+//
+//   - changeID: Identifier that uniquely identifies one change. It contains the
+//     URL-encoded project name as well as the change number: "'<project>~<changeNumber>'"
+//   - revisionID: Identifier that uniquely identifies one revision of a change.
+//   - msg: Text to be added as a commit message.
+//   - destBranch: The cherry-pick destination branch.
+func (g *Gerrit) CreateCherryPickChange(ctx context.Context, changeID, revisionID, msg, destBranch string) (*ChangeInfo, error) {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return nil, err
+	}
+	c := cherryPickPostData{
+		Message:     msg,
+		Destination: destBranch,
+	}
+	b, err := json.Marshal(c)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	url := fmt.Sprintf("%s/changes/%s/revisions/%s/cherrypick", g.apiUrl, changeID, revisionID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.doRequest(req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer util.Close(resp.Body)
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	var ci ChangeInfo

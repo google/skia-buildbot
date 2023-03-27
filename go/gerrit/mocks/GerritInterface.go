@@ -114,6 +114,29 @@ func (_m *GerritInterface) CreateChange(_a0 context.Context, _a1 string, _a2 str
 	return r0, r1
 }
 
+// CreateCherryPickChange provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4
+func (_m *GerritInterface) CreateCherryPickChange(_a0 context.Context, _a1 string, _a2 string, _a3 string, _a4 string) (*gerrit.ChangeInfo, error) {
+	ret := _m.Called(_a0, _a1, _a2, _a3, _a4)
+
+	var r0 *gerrit.ChangeInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) *gerrit.ChangeInfo); ok {
+		r0 = rf(_a0, _a1, _a2, _a3, _a4)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gerrit.ChangeInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = rf(_a0, _a1, _a2, _a3, _a4)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteChangeEdit provides a mock function with given fields: _a0, _a1
 func (_m *GerritInterface) DeleteChangeEdit(_a0 context.Context, _a1 *gerrit.ChangeInfo) error {
 	ret := _m.Called(_a0, _a1)

@@ -777,3 +777,54 @@ func TestCreateChange_WithBaseChangeID(t *testing.T) {
 	require.Equal(t, "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941", ci.Id)
 	require.Equal(t, "I8473b95934b5732ac55d26311a706c9c2bde9941", ci.ChangeId)
 }
+
+func TestCreateCherryPickChange(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "POST", r.Method)
+		require.Equal(t,
+			"/a/changes/myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/674ac754f91e64a0efb8087e59a176484bd534d1/cherrypick",
+			r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		body, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		var data cherryPickPostData
+		require.NoError(t, json.Unmarshal(body, &data))
+
+		require.Equal(t, "main", data.Destination)
+		require.Equal(t, "Picking into main", data.Message)
+		format := `)]}'
+{
+  "id": "myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "project": "myProject",
+  "branch": "%s",
+  "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9941",
+  "subject": "%s",
+  "status": "NEW",
+  "created": "2013-02-01 09:59:32.126000000",
+  "updated": "2013-02-21 11:16:36.775000000",
+  "mergeable": true,
+  "insertions": 12,
+  "deletions": 11,
+  "_number": 3965,
+  "owner": {
+    "name": "John Doe"
+  }
+}` + "\n"
+		_, err = fmt.Fprintf(w, format, data.Destination, data.Message)
+		require.NoError(t, err)
+	}))
+
+	defer ts.Close()
+
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
+	require.NoError(t, err)
+	ci, err := api.CreateCherryPickChange(context.Background(),
+		"myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9940",
+		"674ac754f91e64a0efb8087e59a176484bd534d1",
+		"Picking into main",
+		"main")
+	require.NoError(t, err)
+	require.Equal(t, "main", ci.Branch)
+	require.Equal(t, "myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9941", ci.Id)
+	require.Equal(t, "I8473b95934b5732ac55d26311a706c9c2bde9941", ci.ChangeId)
+}
