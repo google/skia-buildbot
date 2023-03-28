@@ -35,6 +35,15 @@ Tips:
    necessary for some extensions to work correctly, such as the
    [Bazel plugin for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
+### Get your RBE credentials
+
+If you wish to use RBE to speed up your builds and test runs (see the `--config=remote` flag below)
+run the following command:
+
+```
+$ gcloud auth application-default login
+```
+
 ## Gazelle
 
 We use [Gazelle](https://github.com/bazelbuild/bazel-gazelle) to automatically generate
@@ -114,7 +123,7 @@ More on `bazel test` [here](https://docs.bazel.build/versions/main/user-manual.h
 ### Building and testing on RBE
 
 By default, Bazel will build and test targets on the host system (aka a local build). To build on
-RBE, add flag `--config=remote`, e.g.:
+RBE, invoke Bazel with flag `--config=remote`, e.g.:
 
 ```
 $ bazel build //go/util:util --config=remote
@@ -122,8 +131,20 @@ $ bazel test //go/util:util_test --config=remote
 ```
 
 This repository contains some scripted actions that shell out to Bazel, such as certain `make`
-targets (e.g. `make gazelle`, `make buildifier`) and `go generate` actions. To ensure that these
-actions use RBE, create a `//bazel/user/bazelrc` file with the following contents:
+targets (e.g. `make gazelle`, `make buildifier`) and `go generate` actions. These actions use the
+"mayberemote" configuration via the `--config=mayberemote` flag, e.g.:
+
+```
+# //Makefile
+
+update-go-bazel-files:
+	$(BAZEL) run --config=mayberemote //:gazelle -- update ./
+```
+
+By default, the "mayberemote" configuration does nothing. This is to support users that might not
+have RBE access, or when working offline (e.g. on a plane with no WiFi). To get the benefits of RBE
+when running scripted actions, please create a `//bazel/user/bazelrc` file with the following
+contents:
 
 ```
 build:mayberemote --config=remote
