@@ -129,22 +129,6 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 		}
 		clVerifiers = append(clVerifiers, throttlerVerifier)
 
-	} else if vm.cr.IsDryRun(ctx, ci) {
-		// Get dry-run list from the cache or set it if it does not exist.
-		dryRunList, ok := vm.allowlistCache[cfg.DryRunAccessList]
-		if !ok {
-			dryRunList, err = allowed.NewAllowedFromChromeInfraAuth(vm.criaClient, cfg.DryRunAccessList)
-			if err != nil {
-				return nil, nil, skerr.Wrapf(err, "Could not create an allowed from %s", cfg.DryRunAccessList)
-			}
-			vm.allowlistCache[cfg.DryRunAccessList] = dryRunList
-		}
-		// Verify that the CQ+1 triggerer has access to run try jobs.
-		dryRunVerifier, err := NewDryRunAccessListVerifier(vm.httpClient, dryRunList, cfg.DryRunAccessList)
-		if err != nil {
-			return nil, nil, skerr.Wrapf(err, "Error when creating DryRunVerifier")
-		}
-		clVerifiers = append(clVerifiers, dryRunVerifier)
 	}
 
 	// Verifiers common to both dry runs and CQ.

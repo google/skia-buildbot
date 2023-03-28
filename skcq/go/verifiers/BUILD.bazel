@@ -6,7 +6,6 @@ go_library(
     srcs = [
         "authors_verifiers.go",
         "commit_footer_verifier.go",
-        "dryrun_access_list_verifier.go",
         "submittable_verifier.go",
         "submitted_together_verifier.go",
         "throttler_verifier.go",
@@ -41,7 +40,6 @@ go_test(
     srcs = [
         "authors_verifiers_test.go",
         "commit_footer_verifier_test.go",
-        "dryrun_access_list_verifier_test.go",
         "submittable_verifier_test.go",
         "submitted_together_verifier_test.go",
         "tree_status_verifier_test.go",
@@ -52,7 +50,6 @@ go_test(
     embed = [":verifiers"],
     deps = [
         "//go/allowed",
-        "//go/allowed/mocks",
         "//go/buildbucket/mocks",
         "//go/gerrit",
         "//go/gitiles",

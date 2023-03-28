@@ -118,14 +118,14 @@ func TestGetVerifier_CQ_WithTogetherChanges(t *testing.T) {
 
 func TestGetVerifier_DryRun(t *testing.T) {
 
-	expectedVerifiers := []string{"DryRunAccessListVerifier", "TryJobsVerifier"}
+	expectedVerifiers := []string{"TryJobsVerifier"}
 	testGetVerifier(t, false, true, nil, expectedVerifiers)
 }
 
 func TestGetVerifier_DryRun_WithTogetherChanges(t *testing.T) {
 
 	// Together changes should be ignored for dry runs.
-	expectedVerifiers := []string{"DryRunAccessListVerifier", "TryJobsVerifier"}
+	expectedVerifiers := []string{"TryJobsVerifier"}
 	togetherChange := &gerrit.ChangeInfo{Issue: int64(222)}
 	testGetVerifier(t, false, true, togetherChange, expectedVerifiers)
 }
