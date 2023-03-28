@@ -20,26 +20,13 @@ experience.
 
 [Bazelisk](https://github.com/bazelbuild/bazelisk) is a wrapper for Bazel that downloads and runs
 the version of Bazel specified in `//.bazelversion`. It serves a similar purpose as
-[nvm](https://github.com/nvm-sh/nvm) for NodeJS.
+[nvm](https://github.com/nvm-sh/nvm) does for NodeJS.
 
 Bazelisk is recommended over plain Bazel because the `bazel` command on our gLinux workstations is
 automatically updated every time a new version of Bazel is released.
 
-The easiest way to install Bazelisk is via `npm`, e.g.:
-
-```
-npm install -g @bazel/bazelisk
-```
-
-An alternate method is to install bazelisk to a temporary directory and then copy the correct binary
-to the PATH. For example:
-
-```
-mkdir /tmp/bazelisk && cd /tmp/bazelisk
-npm install @bazel/bazelisk
-cp node_modules/@bazel/bazelisk/bazelisk-linux_amd64 ~/bin/bazelisk
-ln ~/bin/bazelisk ~/bin/bazel
-```
+To install Bazelisk, grab the latest binary for your platform from
+[GitHub](https://github.com/bazelbuild/bazelisk/releases), then add it to your `PATH`.
 
 Tips:
 
@@ -133,6 +120,19 @@ RBE, add flag `--config=remote`, e.g.:
 $ bazel build //go/util:util --config=remote
 $ bazel test //go/util:util_test --config=remote
 ```
+
+This repository contains some scripted actions that shell out to Bazel, such as certain `make`
+targets (e.g. `make gazelle`, `make buildifier`) and `go generate` actions. To ensure that these
+actions use RBE, create a `//bazel/user/bazelrc` file with the following contents:
+
+```
+build:mayberemote --config=remote
+```
+
+To learn more about the `mayberemote` configuration:
+ - See comments in `//.bazelrc`
+[here](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/.bazelrc#142).
+ - See [`//bazel/user/README.md`](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/bazel/user/README.md).
 
 ## Running Bazel-built binaries
 
