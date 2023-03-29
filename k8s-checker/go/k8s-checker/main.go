@@ -15,14 +15,13 @@ import (
 	"golang.org/x/oauth2/google"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/k8s"
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -90,14 +89,9 @@ func main() {
 		sklog.Fatalf("Invalid cluster %q: %s", *cluster, err)
 	}
 
-	config, err := rest.InClusterConfig()
+	k8sClient, err := k8s.NewInClusterClient(ctx)
 	if err != nil {
-		sklog.Fatalf("Failed to get in-cluster config: %s", err)
-	}
-	sklog.Infof("Auth username: %s", config.Username)
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
+		sklog.Fatalf("Failed to create k8s client: %s", err)
 	}
 
 	// OAuth2.0 TokenSource.
@@ -111,7 +105,7 @@ func main() {
 	liveness := metrics2.NewLiveness(livenessMetric)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(ctx, *dirtyConfigChecksPeriod, func(ctx context.Context) {
-		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, clientset, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics, allowedAppsByNamespace)
+		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, k8sClient, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics, allowedAppsByNamespace)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
@@ -148,13 +142,13 @@ func fixupNamespace(namespace string) string {
 }
 
 // getNamespaces finds all namespaces in the cluster.
-func getNamespaces(ctx context.Context, cluster string, clientset *kubernetes.Clientset, ignoreNamespaces []string) ([]string, error) {
-	namespaces, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+func getNamespaces(ctx context.Context, cluster string, k8sClient k8s.Client, ignoreNamespaces []string) ([]string, error) {
+	namespaces, err := k8sClient.ListNamespaces(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "listing namespaces")
 	}
-	rv := make([]string, 0, len(namespaces.Items))
-	for _, namespace := range namespaces.Items {
+	rv := make([]string, 0, len(namespaces))
+	for _, namespace := range namespaces {
 		if !util.In(namespace.Name, ignoreNamespaces) {
 			rv = append(rv, namespace.Name)
 		}
@@ -164,15 +158,15 @@ func getNamespaces(ctx context.Context, cluster string, clientset *kubernetes.Cl
 
 // getEvictedPods finds all pods in "Evicted" state and reports metrics.
 // It puts all reported evictedMetrics into the specified metrics map.
-func getEvictedPods(ctx context.Context, cluster, namespace string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
-	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
+func getEvictedPods(ctx context.Context, cluster, namespace string, k8sClient k8s.Client, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := k8sClient.ListPods(ctx, namespace, metav1.ListOptions{
 		FieldSelector: "status.phase=Failed",
 	})
 	if err != nil {
 		return skerr.Wrapf(err, "listing failed pods")
 	}
 
-	for _, p := range pods.Items {
+	for _, p := range pods {
 		evictedMetricTags := map[string]string{
 			"pod":       p.ObjectMeta.Name,
 			"cluster":   cluster,
@@ -194,13 +188,13 @@ func getEvictedPods(ctx context.Context, cluster, namespace string, clientset *k
 
 // getPodMetrics reports metrics for all pods and places them into the specified
 // metrics map.
-func getPodMetrics(ctx context.Context, cluster, namespace string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
-	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+func getPodMetrics(ctx context.Context, cluster, namespace string, k8sClient k8s.Client, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := k8sClient.ListPods(ctx, namespace, metav1.ListOptions{})
 	if err != nil {
 		return skerr.Wrapf(err, "listing all pods")
 	}
 
-	for _, p := range pods.Items {
+	for _, p := range pods {
 		for _, c := range p.Status.ContainerStatuses {
 			tags := map[string]string{
 				"app":       p.Labels["app"],
@@ -246,16 +240,16 @@ func getPodMetrics(ctx context.Context, cluster, namespace string, clientset *ku
 }
 
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
-func getLiveAppContainersToImages(ctx context.Context, namespace string, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
+func getLiveAppContainersToImages(ctx context.Context, namespace string, k8sClient k8s.Client) (map[string]map[string]string, error) {
 	// Get JSON output of pods running in K8s.
-	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
+	pods, err := k8sClient.ListPods(ctx, namespace, metav1.ListOptions{
 		FieldSelector: "status.phase=Running",
 	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "listing running pods")
 	}
 	liveAppContainersToImages := map[string]map[string]string{}
-	for _, p := range pods.Items {
+	for _, p := range pods {
 		if app, ok := p.Labels["app"]; ok {
 			liveAppContainersToImages[app] = map[string]string{}
 			for _, container := range p.Spec.Containers {
@@ -282,11 +276,11 @@ func getLiveAppContainersToImages(ctx context.Context, namespace string, clients
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func performChecks(ctx context.Context, cluster, repo string, clientset *kubernetes.Clientset, ignoreNamespaces []string, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, allowedAppsByNamespace allowedAppsInNamespace) (map[metrics2.Int64Metric]struct{}, error) {
+func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Client, ignoreNamespaces []string, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, allowedAppsByNamespace allowedAppsInNamespace) (map[metrics2.Int64Metric]struct{}, error) {
 	sklog.Info("---------- New round of checking k8s ----------")
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 
-	namespaces, err := getNamespaces(ctx, cluster, clientset, ignoreNamespaces)
+	namespaces, err := getNamespaces(ctx, cluster, k8sClient, ignoreNamespaces)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "retrieving namespaces")
 	}
@@ -294,17 +288,17 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 	liveAppContainerToImagesByNamespace := make(map[string]map[string]map[string]string, len(namespaces))
 	for _, namespace := range namespaces {
 		// Check for evicted pods.
-		if err := getEvictedPods(ctx, cluster, namespace, clientset, newMetrics); err != nil {
+		if err := getEvictedPods(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "checking for evicted pods from kubectl")
 		}
 
 		// Check for crashing pods.
-		if err := getPodMetrics(ctx, cluster, namespace, clientset, newMetrics); err != nil {
+		if err := getPodMetrics(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
 		}
 
 		// Get mapping from live apps to their containers and images.
-		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace, clientset)
+		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace, k8sClient)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
 		}

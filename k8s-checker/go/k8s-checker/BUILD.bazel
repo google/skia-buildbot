@@ -12,6 +12,7 @@ go_library(
         "//go/git",
         "//go/gitiles",
         "//go/httputils",
+        "//go/k8s",
         "//go/kube/clusterconfig",
         "//go/metrics2",
         "//go/now",
@@ -21,8 +22,6 @@ go_library(
         "//k8s-checker/go/k8s_config",
         "@io_k8s_api//core/v1:core",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
-        "@io_k8s_client_go//kubernetes",
-        "@io_k8s_client_go//rest",
         "@org_golang_x_oauth2//google",
     ],
 )
