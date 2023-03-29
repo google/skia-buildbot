@@ -12,7 +12,9 @@ go_library(
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "//go/common",
+        "//go/httputils",
         "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//health",
         "@org_golang_google_grpc//health/grpc_health_v1",

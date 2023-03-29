@@ -5,7 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 
+	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/httputils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -23,7 +26,8 @@ const (
 
 var (
 	host     = flag.String("host", "localhost", "HTTP service host")
-	port     = flag.Int("port", 50051, "gRPC service port (e.g., '50051')")
+	port     = flag.Int("port", 8002, "http service port (e.g., '8002')")
+	grpcPort = flag.Int("grpc_port", 50051, "gRPC service port (e.g., '50051')")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
@@ -37,6 +41,19 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 
+	go func() {
+		// Just testing the http healthz check to make sure envoy can
+		// connect to these processes at all. If we end up needing
+		// both the http server and the grpc server in order to satisfy envoy
+		// health checks AND serve grpc requests, we can separate the http and
+		// grpc port flags in k8s configs.
+		sklog.Infof("regisering http healthz handler")
+		topLevelRouter := mux.NewRouter()
+		h := httputils.HealthzAndHTTPS(topLevelRouter)
+		http.Handle("/", h)
+		sklog.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+	}()
+
 	s := grpc.NewServer()
 
 	sklog.Infof("registering grpc health server")
@@ -48,7 +65,7 @@ func main() {
 
 	sklog.Infof("registering cabe grpc server")
 	cabeServer := NewServer()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpcPort))
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
 	}
@@ -56,6 +73,6 @@ func main() {
 
 	sklog.Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		sklog.Fatalf("failed to serve: %v", err)
+		sklog.Fatalf("failed to serve grpc: %v", err)
 	}
 }
