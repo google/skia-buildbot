@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -11,13 +12,33 @@ go_library(
         "//go/exec",
         "//go/gerrit",
         "//go/git",
+        "//go/git/git_common",
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
         "//go/supported_branches",
         "//go/util",
+        "//sk/go/relnotes",
         "//task_scheduler/go/specs",
         "@com_github_urfave_cli_v2//:cli",
         "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "release-branch_test",
+    srcs = ["release-branch_test.go"],
+    embed = [":release-branch"],
+    deps = [
+        "//go/exec",
+        "//go/gerrit",
+        "//go/gerrit/mocks",
+        "//go/git/git_common",
+        "//go/gitiles/mocks",
+        "//go/testutils",
+        "//go/vfs",
+        "//go/vfs/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )

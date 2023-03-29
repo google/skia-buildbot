@@ -2,6 +2,7 @@ package gerrit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -12,6 +13,12 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+)
+
+var (
+	// ErrEmptyChange indicates that a change, if it were to be made, would be
+	// empty (i.e. have no modified files).
+	ErrEmptyChange = errors.New("resultant change would be empty")
 )
 
 // EditChange is a helper for creating a new patch set on an existing
@@ -147,6 +154,9 @@ func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, bra
 			}
 			changes[diffLine] = string(contents)
 		}
+	}
+	if len(changes) == 0 {
+		return nil, ErrEmptyChange
 	}
 	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, "", changes, reviewers)
 }

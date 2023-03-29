@@ -267,7 +267,7 @@ func (r *Repo) ListDir(ctx context.Context, dir string) ([]os.FileInfo, error) {
 func (r *Repo) ResolveRef(ctx context.Context, ref string) (string, error) {
 	commit, err := r.Details(ctx, ref)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrapf(err, "cannot resolve ref %q", ref)
 	}
 	return commit.Hash, nil
 }
@@ -279,7 +279,7 @@ func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) 
 	// return consistent results even if the ref changes between requests.
 	hash, err := r.ResolveRef(ctx, ref)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	// List files recursively.
 	rv := []string{}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -21,11 +22,13 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/supported_branches"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/sk/go/relnotes"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -34,6 +37,7 @@ const (
 	flutterBranchTmpl = "flutter/%s.%s"
 
 	flagReviewers                = "reviewer"
+	flagAllowEmptyCLs            = "allow-empty"
 	gerritProject                = "skia"
 	milestoneFile                = "include/core/SkMilestone.h"
 	milestoneTmpl                = "#define SK_MILESTONE %s"
@@ -43,6 +47,8 @@ const (
 	jobsJSONFile                 = "infra/bots/jobs.json"
 	tasksJSONFile                = "infra/bots/tasks.json"
 	cqJSONFile                   = "infra/skcq.json"
+	releaseNotesFile             = "RELEASE_NOTES.txt"
+	releaseNotesDir              = "relnotes"
 )
 
 var (
@@ -72,20 +78,25 @@ func Command() *cli.Command {
 				Value: &cli.StringSlice{},
 				Usage: "Reviewers for the uploaded CLs. If not provided, the CLs are not sent for review.",
 			},
+			&cli.BoolFlag{
+				Name:  flagAllowEmptyCLs,
+				Value: false,
+				Usage: "Allow created CLs to be empty (for testing only).",
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			args := ctx.Args().Slice()
 			if len(args) != 1 {
 				return skerr.Fmt("Exactly one positional argument is expected.")
 			}
-			return releaseBranch(ctx.Context, args[0], ctx.StringSlice(flagReviewers))
+			return releaseBranch(ctx.Context, args[0], ctx.StringSlice(flagReviewers), ctx.Bool(flagAllowEmptyCLs))
 		},
 	}
 }
 
 // releaseBranch performs the actions necessary to create a new Skia release
 // branch.
-func releaseBranch(ctx context.Context, newBranch string, reviewers []string) error {
+func releaseBranch(ctx context.Context, newBranch string, reviewers []string, allowEmptyCLs bool) error {
 	// Setup.
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
@@ -101,15 +112,16 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string) er
 	// Derive the newly-expired branch name and, in the case of Chrome branches,
 	// the milestone number, from the new branch name.
 	var removeBranch string
+	currentChromeMilestone := -1
 	if m := chromeBranchMilestoneRegex.FindStringSubmatch(newBranch); len(m) == 2 {
 		// This is a Chrome branch. Parse the current milestone from the branch
 		// name.
-		currentMilestone, err := strconv.Atoi(m[1])
+		currentChromeMilestone, err = strconv.Atoi(m[1])
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		removeBranch = fmt.Sprintf(chromeBranchTmpl, strconv.Itoa(currentMilestone-supportedChromeBranches))
-		if err := updateMilestone(ctx, g, repo, currentMilestone, reviewers); err != nil {
+		removeBranch = fmt.Sprintf(chromeBranchTmpl, strconv.Itoa(currentChromeMilestone-supportedChromeBranches))
+		if err := updateMilestone(ctx, g, repo, currentChromeMilestone, reviewers); err != nil {
 			return skerr.Wrap(err)
 		}
 	} else if flutterVersion, err := parseFlutterVersion(newBranch); err == nil {
@@ -150,13 +162,26 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string) er
 		return skerr.Wrap(err)
 	}
 	fmt.Println(fmt.Sprintf("Creating CL to filter out unsupported CQ try jobs on %s...", newBranch))
-	if err := updateTryjobs(ctx, g, repo, newBranch, reviewers); err != nil {
+	updateTryjobCI, err := updateTryjobs(ctx, g, repo, newBranch, reviewers, allowEmptyCLs)
+	if err != nil {
 		return skerr.Wrap(err)
 	}
 	if removeBranch != "" {
 		fmt.Println(fmt.Sprintf("Creating CL to remove CQ on %s", removeBranch))
 		if err := removeCQ(ctx, g, repo, removeBranch, reviewers); err != nil {
 			return skerr.Wrap(err)
+		}
+	}
+	if currentChromeMilestone != -1 {
+		fmt.Println("Merging release notes into RELEASE_NOTES.txt")
+		ci, err := mergeReleaseNotes(ctx, g, repo, updateTryjobCI.ChangeId, currentChromeMilestone, newBranch, reviewers)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		fmt.Printf("Creating CL to cherry-pick RELEASE_NOTES.txt change in %s back to %s\n",
+			newBranch, git_common.MainBranch)
+		if err := cherryPickChangeToBranch(ctx, g, ci, git_common.MainBranch, reviewers); err != nil {
+			return skerr.Wrapf(err, "Error cherry-picking back to main")
 		}
 	}
 	return nil
@@ -207,12 +232,90 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitile
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	const baseChangeID = ""
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, baseChangeID, changes, reviewers)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, "", changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
 	return skerr.Wrap(err)
+}
+
+// Format the message to use when cherry picking a change into another branch.
+func createCherryPickMessage(ci *gerrit.ChangeInfo, branch string) string {
+	format := `
+
+Cherry pick change %s from branch %s
+to %s.
+`
+	return ci.Subject + fmt.Sprintf(format, ci.ChangeId, ci.Branch, branch)
+}
+
+// cherryPickChangeToBranch will cherry-pick the change (|ci|) to |branch|.
+func cherryPickChangeToBranch(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo, branch string, reviewers []string) error {
+	msg := createCherryPickMessage(ci, branch)
+
+	// ci.Id is the Gerrit '{change-id}' - not to be confused with ci.ChangeID which is
+	// the very similarly named "change id" which is only the 41 character identifier
+	// and not guaranteed to be unique.
+	cpci, err := g.CreateCherryPickChange(ctx, ci.Id, "current", msg, branch)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	fmt.Printf("Uploaded cherry-pick change %s\n", g.Url(cpci.Issue))
+
+	// The cherry-pick call(1) returns no patchsets. SetReview depends on a non-empty
+	// collection of patchsets. Call GetChange() to retrieve the full ChangeInfo.
+	// (1) https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#cherry-pick
+	cpci, err = g.GetChange(ctx, cpci.Id)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := g.SetReview(ctx, cpci, "", nil, reviewers, "", nil, "", 0, nil); err != nil {
+		return skerr.Wrapf(err, "failed to set review")
+	}
+	return nil
+}
+
+// mergeReleaseNotes merges all individual release notes, which are in
+// individual files, into RELEASE_NOTES.txt. The merged notes are then removed.
+// This will create a dependent CL that is based upon another which is identified
+// by |baseChangeID|.
+func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitiles.GitilesRepo,
+	baseChangeID string, currentMilestone int, newBranch string, reviewers []string) (*gerrit.ChangeInfo, error) {
+	baseCommit, err := repo.ResolveRef(ctx, newBranch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "cannot resolve %q", newBranch)
+	}
+	fs, err := repo.VFS(ctx, baseCommit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	newRef := git.FullyQualifiedBranchName(newBranch)
+	aggregator := relnotes.NewAggregator()
+	newReleaseNotes, err := aggregator.Aggregate(ctx, fs, currentMilestone, releaseNotesFile, releaseNotesDir)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	changes := map[string]string{
+		releaseNotesFile: string(newReleaseNotes),
+	}
+	noteFiles, err := aggregator.ListNoteFiles(ctx, fs, releaseNotesDir)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for _, noteFile := range noteFiles {
+		p := path.Join(releaseNotesDir, noteFile)
+		changes[p] = ""
+	}
+	// Create the Gerrit CL.
+	commitMsg := fmt.Sprintf("Merge %d release notes into %s", len(noteFiles), releaseNotesFile)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, newRef, commitMsg, "", baseChangeID, changes, reviewers)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if ci != nil {
+		fmt.Printf("Uploaded change %s\n", g.Url(ci.Issue))
+	}
+	return ci, nil
 }
 
 // updateSupportedBranches updates the infra/config branch to edit the supported
@@ -285,46 +388,46 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	changes := map[string]string{
 		supported_branches.SUPPORTED_BRANCHES_FILE: buf.String(),
 	}
-	const baseChangeID = ""
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, baseChangeID, changes, reviewers)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, "", changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
 	return skerr.Wrap(err)
 }
 
-func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, newBranch string, reviewers []string) error {
+// updateTryjobs creates a CL update the tryjob in newBranch. The new Gerrit ChangeInfo is returned.
+func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, newBranch string, reviewers []string, allowEmptyCLs bool) (*gerrit.ChangeInfo, error) {
 	// Setup.
 	newRef := git.FullyQualifiedBranchName(newBranch)
 	baseCommitInfo, err := repo.Details(ctx, newRef)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	baseCommit := baseCommitInfo.Hash
 	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	defer util.RemoveAll(tmp)
 	co, err := git.NewCheckout(ctx, repo.URL(), tmp)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	if err := co.CleanupBranch(ctx, newBranch); err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	// Download and modify the jobs.json file.
 	oldJobsContents, err := repo.ReadFileAtRef(ctx, jobsJSONFile, baseCommit)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	var jobs []struct {
 		Name     string                      `json:"name"`
 		CqConfig *specs.CommitQueueJobConfig `json:"cq_config"`
 	}
 	if err := json.Unmarshal(oldJobsContents, &jobs); err != nil {
-		return skerr.Wrapf(err, "failed to decode jobs.json")
+		return nil, skerr.Wrapf(err, "failed to decode jobs.json")
 	}
 	for _, job := range jobs {
 		for _, re := range excludeTrybotsOnReleaseBranches {
@@ -336,8 +439,9 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	}
 	newJobsContents, err := json.MarshalIndent(jobs, "", "  ")
 	if err != nil {
-		return skerr.Wrapf(err, "failed to encode jobs.json")
+		return nil, skerr.Wrapf(err, "failed to encode jobs.json")
 	}
+
 	// Replace instances of `"cq_config": null`; these are cluttery and
 	// unnecessary, but we can't use omitempty because that causes the Marshaler
 	// to also omit `"cq_config": {}` which indicates that a job *should* be on
@@ -345,12 +449,12 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	// help prevent conflicts during cherry-picks.
 	newJobsContents = jobsJSONReplaceRegex.ReplaceAll(newJobsContents, jobsJSONReplaceContents)
 	if err := ioutil.WriteFile(filepath.Join(co.Dir(), jobsJSONFile), newJobsContents, os.ModePerm); err != nil {
-		return skerr.Wrapf(err, "failed to write %s", jobsJSONFile)
+		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFile)
 	}
 
 	// Regenerate tasks.json.
 	if _, err := exec.RunCwd(ctx, co.Dir(), "go", "run", "./infra/bots/gen_tasks.go"); err != nil {
-		return skerr.Wrapf(err, "failed to regenerate tasks.json")
+		return nil, skerr.Wrapf(err, "failed to regenerate tasks.json")
 	}
 
 	// Create the Gerrit CL.
@@ -358,11 +462,14 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	repoSplit := strings.Split(repo.URL(), "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, reviewers, co)
+	if err == gerrit.ErrEmptyChange && allowEmptyCLs {
+		ci, err = g.CreateChange(ctx, project, newBranch, commitMsg, "", "")
+	}
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
-	return nil
+	return ci, nil
 }
 
 func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, oldBranch string, reviewers []string) error {
@@ -385,8 +492,7 @@ func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo,
 	changes := map[string]string{
 		cqJSONFile: "",
 	}
-	const baseChangeID = ""
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, baseChangeID, changes, reviewers)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, "", changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
