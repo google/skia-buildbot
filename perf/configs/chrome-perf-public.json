@@ -1,0 +1,37 @@
+{
+    "URL": "https://chrome-perf-public.skia.org",
+    "allowed_hosts": [],
+    "contact": "browser-perf-engprod@google.com",
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER",
+        "login_url": "https://skia.org/login/",
+        "logout_url": "https://skia.org/logout/"
+    },
+    "data_store_config": {
+        "datastore_type": "cockroachdb",
+        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/chrome-pub?sslmode=disable",
+        "tile_size": 8192,
+        "enable_follower_reads": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-chrome-public",
+            "subscription": "perf-ingestion-chrome-public-prod",
+            "sources": [
+                "gs://chrome-perf-public/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://chromium.googlesource.com/chromium/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "file_change_marker": "",
+        "start_commit": "46c5157ba2e73ab6a56554c1179fee4cf17f6030"
+    }
+}
