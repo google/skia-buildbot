@@ -5,7 +5,7 @@ This cheatsheet provides quick tips on how to build and test code in our reposit
 Start [here](https://docs.bazel.build/versions/4.1.0/bazel-overview.html) if you're completely new
 to Bazel.
 
-The reference documentation for our Bazel build can be found at the following Golinks:
+The original design documents for our Bazel build can be found at the following Golinks:
 
  - [go/skia-infra-bazel](http://go/skia-infra-bazel)
  - [go/skia-infra-bazel-frontend](http://go/skia-infra-bazel-frontend)
@@ -67,7 +67,7 @@ generate for a given TypeScript file.
 ## Buildifier
 
 [Buildifier](https://github.com/bazelbuild/buildtools/tree/master/buildifier) is a linter and
-formatter for `BUILD.bazel` and other Bazel files (`WORKSPACE`, `*.bzl`, etc.).
+formatter for `BUILD.bazel` files and other Bazel files (`WORKSPACE`, `*.bzl`, etc.).
 
 ### Usage
 
@@ -191,6 +191,42 @@ As mentioned in the [Gazelle](#gazelle) section, all Bazel targets for Go code a
 Gazelle.
 
 Read [go/skia-infra-bazel-backend](http://go/skia-infra-bazel-backend) for the full details.
+
+### Invoking "go", "gofmt" and other tools
+
+On non-Bazel Go projects, developers typically use locally installed binaries such as `go` and
+`gofmt` for code generation and code formatting tasks. However, our Bazel build aims to be as
+[hermetic](https://bazel.build/basics/hermeticity) as possible. To this end, rather than requiring
+the developer to install a Go SDK on their system, we provide convenience Bazel targets defined in
+`//BUILD.bazel` to invoke binaries in the Bazel-downloaded Go SDK and other Bazel-downloaded tools.
+
+Example invocations:
+
+```
+# Equivalent to "go generate ./..."
+$ bazel run //:go -- generate ./...
+
+# Equivalent to "gofmt -s -w ."
+$ bazel run //:gofmt -- -s -w .
+
+# Equivalent to "errcheck go.skia.org/infra/..."
+$ bazel run //:errcheck -- go.skia.org/infra/...
+
+# Equivalent to "protoc --go_out . myproto.proto"
+$ bazel run //:protoc -- --go_out=. myproto.proto
+```
+
+Our CI tasks and Makefiles use these Bazel targets. This prevents diffs that might arise from
+using locally installed binaries, which might differ from system to system. Developers should
+always use Bazel-downloaded binaries for any tasks that produce changes in checked-in files.
+
+Note that it might still be desirable to have a locally installed Go SDK. For example,
+[Visual Studio Code](https://code.visualstudio.com/)'s
+[Go extension](https://code.visualstudio.com/docs/languages/go) requires a locally installed Go SDK
+to enable autocompletion and debugging. It is the developer's responsibility to ensure that their
+locally installed Go SDK matches the version used by the Bazel build, which is defined in the
+[`//WORKSPACE`](https://skia.googlesource.com/buildbot/+/d18bcaf0173de9c054dd5809fe5ccd459a1adec5/WORKSPACE#99)
+file.
 
 ### Building Go code
 
