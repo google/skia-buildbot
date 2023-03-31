@@ -269,14 +269,18 @@ func NewDatastoreRollsDB(ctx context.Context) *DatastoreRollsDB {
 // Get implements RollsDB.
 func (d *DatastoreRollsDB) Get(ctx context.Context, roller string, issue int64) (*autoroll.AutoRollIssue, error) {
 	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("rollerIssue =", fmt.Sprintf("%s_%d", roller, issue))
-	var results []*autoroll.AutoRollIssue
+	var results []*DsRoll
 	if _, err := ds.DS.GetAll(ctx, query, &results); err != nil {
 		return nil, err
 	}
 	if len(results) == 0 {
 		return nil, fmt.Errorf("Could not find issue %d", issue)
 	} else if len(results) == 1 {
-		return results[0], nil
+		var rv autoroll.AutoRollIssue
+		if err := gob.NewDecoder(bytes.NewReader(results[0].Data)).Decode(&rv); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return &rv, nil
 	} else {
 		return nil, fmt.Errorf("Found more than one issue matching %d", issue)
 	}

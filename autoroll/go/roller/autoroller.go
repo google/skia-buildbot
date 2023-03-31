@@ -275,6 +275,9 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to retrieve current roll")
 		}
+		if err := roll.InsertIntoDB(ctx); err != nil {
+			return nil, err
+		}
 		arb.currentRoll = roll
 	}
 	sklog.Info("Done creating autoroller")

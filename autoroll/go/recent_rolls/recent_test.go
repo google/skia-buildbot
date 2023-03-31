@@ -233,7 +233,7 @@ func TestDatastoreRollsDB_GetRolls(t *testing.T) {
 	require.NoError(t, db.Put(ctx, roller, r1))
 	rolls, cursor, err = db.GetRolls(ctx, roller, "")
 	require.NoError(t, err)
-	//require.Equal(t, "", cursor)
+	require.Equal(t, "", cursor)
 	require.Equal(t, 1, len(rolls))
 	require.Equal(t, rolls[0], r1)
 
@@ -268,4 +268,11 @@ func TestDatastoreRollsDB_GetRolls(t *testing.T) {
 	allRolls = append(allRolls, rolls...)
 	// Ensure that we found all of the rolls we expected.
 	require.Equal(t, 76, len(allRolls))
+
+	// Test Get().
+	for _, expect := range allRolls {
+		actual, err := db.Get(ctx, roller, expect.Issue)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
+	}
 }
