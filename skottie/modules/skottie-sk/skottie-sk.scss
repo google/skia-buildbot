@@ -1,207 +1,380 @@
 @use 'node_modules/jsoneditor/dist/jsoneditor.min.css';
 
-skottie-sk {
-  app-sk {
-    --sidebar-width: 200px;
+body.body-sk.font-sk {
+  background: var(--surface);
 
-    display: block;
-    min-height: 100vh;
+  &.darkmode {
+    --surface-1dp: #2a2a2a;
   }
 
-  spinner-sk[active] {
-    display: inline-block;
+  button:focus {
+    outline: dashed 1px var(--on-surface);
+    outline-offset: 4px;
   }
 
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: solid 1px var(--primary);
-    min-height: 48px;
-    background-color: var(--surface);
-    padding: 0 8px;
-  }
+  skottie-sk {
+    * {
+      font-size: 16px;
+    }
 
-  figure {
-    display: flex;
-    flex-flow: column;
-    position: relative;
-  }
+    app-sk {
+      --sidebar-width: 200px;
 
-  figure canvas,
-  figure div {
-    border: solid var(--on-background) 1px;
-    margin: 0 auto;
-  }
+      display: block;
+      min-height: 100vh;
+      background: var(--surface);
+    }
 
-  .wasm_loading {
-    position: absolute;
-    text-align: center;
-    left: 0;
-    right: 0;
-    top: 20px;
-    bottom: 0;
-    border: none;
-  }
+    spinner-sk[active] {
+      display: inline-block;
+    }
 
-  .wasm_loading > div {
-    border: none;
-  }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: none;
+      min-height: 48px;
+      background-color: var(--surface-1dp);
+      padding: 0 8px;
 
-  figcaption {
-    align-self: center;
-    font-weight: bold;
-    font-size: 18px;
-    margin: 0.6em;
-    text-align: center;
+      h2 {
+        font-size: 20px;
+      }
 
-    div {
+      span a {
+        margin-left: 8px;
+      }
+    }
+
+    main .threecol {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      flex-flow: row;
+      background-color: var(--surface);
+
+      .left,
+      .right,
+      .main {
+        display: flex;
+        flex-flow: column;
+        padding: 8px;
+        border-radius: 10px;
+      }
+
+      .left,
+      .right {
+        background: var(--surface-1dp);
+        padding: 0;
+
+        details {
+          display: block;
+          border: none;
+          padding: 0;
+          background: var(--surface-1dp);
+          border-bottom: solid var(--surface) 1px;
+          margin: 0;
+          padding: 0;
+
+          summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-1dp);
+            display: flex;
+            color: var(--on-surface);
+            border-radius: 6px;
+            font-weight: bold;
+            box-shadow: none;
+            margin: 8px;
+
+            expand-more-icon-sk {
+              display: inline-block;
+              fill: var(--on-surface);
+            }
+
+            expand-less-icon-sk {
+              display: inline-block;
+              fill: var(--on-surface);
+              display: none;
+            }
+          }
+
+          summary:focus {
+            outline: dashed 1px var(--on-surface);
+            outline-offset: 4px;
+          }
+        }
+
+        details[open] {
+          summary {
+            expand-more-icon-sk {
+              display: none;
+            }
+
+            expand-less-icon-sk {
+              display: inline-block;
+            }
+          }
+        }
+
+        .json-chooser {
+          padding: 8px;
+          border-bottom: solid var(--surface) 1px;
+
+          .title {
+            font-weight: bold;
+          }
+
+          .edit-config {
+            display: inline-block;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            border: solid 2px var(--primary);
+            padding: 6px;
+            border-radius: 10px;
+            margin-left: 16px;
+            box-shadow: none;
+          }
+        }
+
+        .apply-button {
+          margin: 16px;
+          display: inline-block;
+        }
+
+        .options-container {
+          margin: 8px 8px 8px 16px;
+        }
+
+        .embed {
+          label {
+            display: block;
+            margin: 16px;
+
+            input {
+              display: block;
+              margin: 16px;
+            }
+          }
+        }
+      }
+
+      .left {
+        margin: 16px 0 0 16px;
+      }
+
+      .right {
+        margin: 16px 16px 0 0;
+      }
+
+      .main {
+        background: var(--background);
+        margin: 16px;
+
+        .players {
+          display: flex;
+        }
+      }
+
+      dialog.export,
+      dialog.perf-chart,
+      dialog.editor {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        background-color: var(--surface);
+        color: var(--on-surface);
+        border: none;
+        padding: 0;
+
+        .top-ribbon {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 0 8px;
+        }
+      }
+    }
+
+    figure {
+      display: flex;
+      flex-flow: column;
+      position: relative;
+    }
+
+    figure canvas,
+    figure div {
+      border: solid var(--on-background) 1px;
+      margin: 0 auto;
+    }
+
+    .wasm_loading {
+      position: absolute;
+      text-align: center;
+      left: 0;
+      right: 0;
+      top: 20px;
+      bottom: 0;
       border: none;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    }
+
+    .wasm_loading > div {
+      border: none;
+    }
+
+    figcaption {
+      align-self: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin: 0.6em;
+      text-align: center;
+
+      div {
+        border: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    button {
+      text-transform: initial;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      font-size: 120%;
+      font-weight: bold;
+    }
+
+    .loading span {
+      margin-left: 0.5em;
+    }
+
+    .figures {
+      display: flex;
+      flex-flow: row wrap;
+    }
+
+    .download,
+    .download a {
+      display: inline-block;
+      color: var(--blue);
+    }
+
+    .download a {
+      margin-left: 0.6em;
+    }
+
+    #embed {
+      padding: 1em;
+      border: solid var(--on-surface) 1px;
+      margin: 1em;
+      background: var(--surface);
+    }
+
+    footer {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    footer div {
+      padding: 1em;
+    }
+
+    .controls > * {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .scrub {
+      display: block;
+      margin: 8px;
+
+      input {
+        width: 20em;
+      }
+    }
+
+    .library {
+      flex: 1 1 auto;
+    }
+
+    #volume-slider {
+      display: block;
+      margin: 8px;
+
+      input {
+        width: 10em;
+      }
+    }
+
+    #frameInput {
+      width: 5em;
     }
   }
 
-  button.edit-config {
-    display: block;
-  }
-
-  button {
-    text-transform: initial;
-  }
-
-  .loading {
-    display: flex;
-    align-items: center;
-    font-size: 120%;
-    font-weight: bold;
-  }
-
-  .loading span {
-    margin-left: 0.5em;
-  }
-
-  .figures {
-    display: flex;
-    flex-flow: row wrap;
-  }
-
-  .download,
-  .download a {
-    display: inline-block;
-    color: var(--blue);
-  }
-
-  .download a {
-    margin-left: 0.6em;
-  }
-
-  #embed {
-    padding: 1em;
-    border: solid var(--on-surface) 1px;
-    margin: 1em;
-    background: var(--surface);
-  }
-
-  footer {
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  footer div {
-    padding: 1em;
-  }
-
-  .controls > * {
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  [hidden] {
-    display: none !important;
-  }
-
-  .scrub {
-    display: block;
-    margin: 8px;
-
-    input {
-      width: 20em;
-    }
-  }
-
-  .library {
-    flex: 1 1 auto;
-  }
-
-  #volume-slider {
-    display: block;
-    margin: 8px;
-
-    input {
-      width: 10em;
-    }
-  }
-
-  #frameInput {
-    width: 5em;
-  }
-}
-
-// The third-party jsoneditor doesn't support darkmode
-// https://github.com/josdejong/jsoneditor/issues/893 so we force the editor
-// back to light mode.
-#json_editor {
-  background: white;
-
-  // Need this rule to have higher specificity otherwise the common themes
-  // button background color will override it.
-  .jsoneditor-menu button {
-    background-image: url(./img/jsoneditor-icons.svg);
-  }
-
-  input {
-    color: black;
+  // The third-party jsoneditor doesn't support darkmode
+  // https://github.com/josdejong/jsoneditor/issues/893 so we force the editor
+  // back to light mode.
+  #json_editor {
     background: white;
-  }
 
-  tr {
-    background: var(--white);
-  }
+    // Need this rule to have higher specificity otherwise the common themes
+    // button background color will override it.
+    .jsoneditor-menu button {
+      background-image: url(./img/jsoneditor-icons.svg);
+    }
 
-  tr:hover {
-    background-color: var(--light-gray);
-  }
+    input {
+      color: black;
+      background: white;
+    }
 
-  .jsoneditor-contextmenu .jsoneditor-menu li ul .jsoneditor-icon {
-    margin-left: 0;
-  }
+    tr {
+      background: var(--white);
+    }
 
-  button {
-    /* Prevent clashes with element-sk/buttons.css */
-    padding: 4px;
-    height: 28px;
-    margin: 2px;
-    width: 26px;
-    min-width: initial;
-    transition: initial;
-    box-shadow: initial;
-  }
+    tr:hover {
+      background-color: var(--light-gray);
+    }
 
-  .jsoneditor-menu button {
-    min-width: initial;
-    transition: initial;
-    box-shadow: initial;
-  }
+    .jsoneditor-contextmenu .jsoneditor-menu li ul .jsoneditor-icon {
+      margin-left: 0;
+    }
 
-  .jsoneditor-contextmenu-root button {
-    width: initial;
-  }
+    button {
+      /* Prevent clashes with element-sk/buttons.css */
+      padding: 4px;
+      height: 28px;
+      margin: 2px;
+      width: 26px;
+      min-width: initial;
+      transition: initial;
+      box-shadow: initial;
+    }
 
-  .jsoneditor-search button {
-    height: 22px;
-    margin: 2px;
-    width: 22px;
+    .jsoneditor-menu button {
+      min-width: initial;
+      transition: initial;
+      box-shadow: initial;
+    }
+
+    .jsoneditor-contextmenu-root button {
+      width: initial;
+    }
+
+    .jsoneditor-search button {
+      height: 22px;
+      margin: 2px;
+      width: 22px;
+    }
   }
 }

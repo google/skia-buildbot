@@ -12,14 +12,14 @@ import '../skottie-player-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/error-toast-sk';
+import { html, TemplateResult } from 'lit-html';
+import JSONEditor from 'jsoneditor';
+import LottiePlayer from 'lottie-web';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import JSONEditor from 'jsoneditor';
-import LottiePlayer from 'lottie-web';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { SkottieGifExporterSk } from '../skottie-gif-exporter-sk/skottie-gif-exporter-sk';
 import '../skottie-gif-exporter-sk';
@@ -46,6 +46,8 @@ import { ShaderEditApplyEventDetail, ShaderEditorSk } from '../skottie-shader-ed
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import { replaceShaders } from '../skottie-shader-editor-sk/shader-replace';
+import '../../../elements-sk/modules/icons/expand-less-icon-sk';
+import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -99,14 +101,6 @@ const caption = (text: string, mode: ViewMode) => {
   `;
 };
 
-const performanceChart = (show: boolean) => {
-  if (!show) {
-    return '';
-  }
-  return html`
-<skottie-performance-sk id=chart></skottie-performance-sk>`;
-};
-
 const redir = () => renderByDomain(
   html`
   <div>
@@ -125,11 +119,27 @@ export class SkottieSk extends ElementSk {
   private static template = (ele: SkottieSk) => html`
   <app-sk>
     <header>
-      <h2>Skottie</h2>
+      <h2>Skottie Web Player</h2>
       <span>
         <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>
           ${SKIA_VERSION.slice(0, 7)}
         </a>
+
+        <button id=view-gif-exporter
+          @click=${ele.toggleGifExporter}>
+          Export
+        </button>
+
+        <button id=view-perf-chart
+          @click=${ele.togglePerformanceChart}>
+          Performance chart
+        </button>
+
+        <button id=view-json-layers
+          @click=${ele.toggleEditor}>
+          View JSON Layers
+        </button>
+
         <theme-chooser-sk></theme-chooser-sk>
       </span>
     </header>
@@ -163,109 +173,148 @@ export class SkottieSk extends ElementSk {
 `;
 
   private displayLoaded = () => html`
-${this.controls()}
-<collapse-sk id=embed closed>
-  <p>
-    <label>
-      Embed using an iframe: <input size=120 value=${this.iframeDirections()}>
-    </label>
-  </p>
-  <p>
-    <label>
-      Embed on skia.org: <input size=140 value=${this.inlineDirections()}>
-    </label>
-  </p>
-</collapse-sk>
-<section class=figures>
+<div class=threecol>
+  <div class=left>
+    ${this.leftControls()}
+  </div>
+  <div class=main>
+    ${this.mainContent()}
+  </div>
+  <div class=right>
+    ${this.rightControls()}
+  </div>
+</div>
+`;
+
+private mainContent = () => html`
+<div class=players>
   <figure>
     ${this.skottiePlayerTemplate()}
   </figure>
   ${this.lottiePlayerTemplate()}
-  ${this.audio()}
-  ${this.library()}
   ${this.livePreview()}
-</section>
-
-<div @click=${this.onChartClick}>
-  ${performanceChart(this.showPerformanceChart)}
-<div>
-${this.jsonEditor()}
-${this.gifExporter()}
-${this.jsonTextEditor()}
-${this.shaderEditor()}
-`;
-
-  private controls = () => {
-    if (this.viewMode === 'presentation') {
-      return null;
-    } return html`
-  <button class=edit-config @click=${this.startEdit}>
-  ${this.state.filename} ${this.width}x${this.height} ...
-  </button>
-  <div class=controls>
+</div>
+<div class=playback>
+  <div class=scrub>
     <button id=rewind @click=${this.rewind}>Rewind</button>
     <button id=playpause @click=${this.playpause}>Pause</button>
-    <button ?hidden=${!this.hasEdits} @click=${this.applyEdits}>Apply Edits</button>
-    <div class=download>
-      <a target=_blank download=${this.state.filename} href=${this.downloadURL}>
-        JSON
-      </a>
-      ${this.hasEdits ? '(without edits)' : ''}
-    </div>
-    <checkbox-sk label="Show lottie-web"
-                ?checked=${this.showLottie}
-                @click=${this.toggleLottie}>
-    </checkbox-sk>
-    <checkbox-sk label="Show editor"
-                ?checked=${this.showJSONEditor}
-                @click=${this.toggleEditor}>
-    </checkbox-sk>
-    <checkbox-sk label="Show gif exporter"
-                ?checked=${this.showGifExporter}
-                @click=${this.toggleGifExporter}>
-    </checkbox-sk>
-    <checkbox-sk label="Show text editor"
-                ?checked=${this.showTextEditor}
-                @click=${this.toggleTextEditor}>
-    </checkbox-sk>
-    <checkbox-sk label="Show shader editor"
-                ?checked=${this.showShaderEditor}
-                @click=${this.toggleShaderEditor}>
-    </checkbox-sk>
-    <checkbox-sk label="Show performance chart"
-                ?checked=${this.showPerformanceChart}
-                @click=${this.togglePerformanceChart}>
-    </checkbox-sk>
-    <checkbox-sk label="Show library"
-                ?checked=${this.showLibrary}
-                @click=${this.toggleLibrary}>
-    </checkbox-sk>
-    ${this.audioButton()}
-    <button id=embed-btn @click=${this.toggleEmbed}>Embed</button>
-    <div class=scrub>
-      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} step=0.1
-          @input=${this.onScrub} @change=${this.onScrubEnd}>
-      <label class=number>
-       Go to frame: <input type=number id=frameInput
-       @focus=${this.onFrameFocus} @change=${this.onFrameChange}/>
-      </label>
-    </div>
+    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} step=0.1
+        @input=${this.onScrub} @change=${this.onScrubEnd}>
+    <label class=number>
+      Go to frame: <input type=number id=frameInput
+      @focus=${this.onFrameFocus} @change=${this.onFrameChange}/>
+    </label>
   </div>
-  <collapse-sk id=volume closed>
-    <p>
-      Volume:
-    </p>
-    <input id=volume-slider type=range min=0 max=1 step=.05 value=1
-      @input=${this.onVolumeChange}>
-  </collapse-sk>
+</div>
+
+
+<div @click=${this.onChartClick}>
+  ${this.performanceChartTemplate()}
+</div>
+${this.jsonEditor()}
+${this.gifExporter()}
+
+<collapse-sk id=volume closed>
+  <p>
+    Volume:
+  </p>
+  <input id=volume-slider type=range min=0 max=1 step=.05 value=1 @input=${this.onVolumeChange}>
+</collapse-sk>
+
+`;
+
+private embedDialog() {
+  return html`
+<details class=embed>
+    <summary id=embed-open><span>Embed</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+      <label>
+        Embed using an iframe
+        <input value=${this.iframeDirections()}>
+      </label>
+      <label>
+        Embed on skia.org
+        <input value=${this.inlineDirections()}>
+      </label>
+  </details>
+`;
+}
+
+private performanceChartTemplate() {
+  return html`
+  <dialog class=perf-chart ?open=${this.showPerformanceChart}>
+    <div class=top-ribbon>
+        <span>Performance Chart</span>
+        <button @click=${this.togglePerformanceChart}>Close</button>
+    </div>
+    <skottie-performance-sk id=chart></skottie-performance-sk>
+  </dialog>
+`;
+}
+
+  private leftControls = () => {
+    if (this.viewMode === 'presentation') {
+      return null;
+    }
+
+    return html`
+    <div class=json-chooser>
+      <div class=title>
+        JSON File
+      </div>
+      <div class=upload-download>
+        <button class=edit-config @click=${this.startEdit}>
+          ${this.state.filename} ${this.width}x${this.height} ...
+        </button>
+        <div class=download>
+          <a target=_blank download=${this.state.filename} href=${this.downloadURL}>
+            Download
+          </a>
+          ${this.hasEdits ? '(without edits)' : ''}
+        </div>
+      </div>
+    </div>
+
+    ${this.audioDialog()}
+
+    ${this.optionsDialog()}
+
+    <button class=apply-button ?hidden=${!this.hasEdits} @click=${this.applyEdits}>Apply Edits</button>
+
   `;
   };
 
-  private audioButton = () => renderByDomain(
-    html`<checkbox-sk label="Show audio"
-     ?checked=${this.showAudio}
-     @click=${this.toggleAudio}>
-  </checkbox-sk>`,
+  private rightControls = () => html`
+    ${this.jsonTextEditor()}
+    ${this.library()}
+    ${this.embedDialog()}
+  `;
+
+  private optionsDialog = () => html`
+    <details>
+      <summary id=options-open><span>Options</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+      <div class=options-container>
+        <checkbox-sk
+          label="Show lottie-web"
+          ?checked=${this.showLottie}
+          @click=${this.toggleLottie}>
+        </checkbox-sk>
+      </div>
+    </details>
+  `;
+
+  private audioDialog = () => renderByDomain(
+    html`
+
+  <details ?open=${this.showAudio} @toggle=${(e: Event) => this.toggleAudio((e.target! as HTMLDetailsElement).open)}>
+      <summary id=audio-open><span>Audio</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+
+      <skottie-audio-sk
+        .animation=${this.state.lottie}
+        @apply=${this.applyAudioSync}
+      >
+      </skottie-audio-sk>
+  </details>
+  `,
     AUDIO_SUPPORTED_DOMAINS,
   );
 
@@ -290,35 +339,15 @@ ${this.wasmCaption()}`;
 </figure>`;
   };
 
-  private audio = () => {
-    if (!this.showAudio) {
-      return '';
-    }
-    return renderByDomain(
-      html`
-    <section class=audio>
-      <skottie-audio-sk
-        .animation=${this.state.lottie}
-        @apply=${this.applyAudioSync}
-      >
-      </skottie-audio-sk>
-    </section>`,
-      AUDIO_SUPPORTED_DOMAINS,
-    );
-  };
+  private library = () => html`
+    <details ?open=${this.showLibrary} @toggle=${(e: Event) => this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
+      <summary id=library-open><span>Library</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
 
-  private library = () => {
-    if (!this.showLibrary) {
-      return '';
-    }
-    return html`
-<section class=library>
-  <skottie-library-sk
-    @select=${this.updateAnimation}
-  >
-  </skottie-library-sk>
-</section>`;
-  };
+      <skottie-library-sk
+        @select=${this.updateAnimation}
+      >
+      </skottie-library-sk>
+    </details>`;
 
   // TODO(kjlubick): Make the live preview use skottie
   private livePreview = () => {
@@ -336,58 +365,53 @@ ${this.wasmCaption()}`;
     return '';
   };
 
-  private jsonEditor = () => {
-    if (!this.showJSONEditor) {
-      return '';
-    }
-    return html`
-<section class=editor>
+  private jsonEditor = (): TemplateResult => html`
+<dialog class=editor ?open=${this.showJSONEditor}>
+  <div class=top-ribbon>
+      <span>Layer Information</span>
+      <button @click=${this.toggleEditor}>Close</button>
+  </div>
   <div id=json_editor></div>
-</section>`;
-  };
+</dialog>`;
 
-  private gifExporter = () => {
-    if (!this.showGifExporter) {
-      return '';
-    }
-    return html`
-<section class=editor>
-  <skottie-gif-exporter-sk
-    @start=${this.onGifExportStart}
-  >
-  </skottie-gif-exporter-sk>
-</section>`;
-  };
+  private gifExporter = () => html`
+  <dialog class=export ?open=${this.showGifExporter}>
+    <div class=top-ribbon>
+        <span>Export</span>
+        <button @click=${this.toggleGifExporter}>Close</button>
+    </div>
+    <skottie-gif-exporter-sk
+      @start=${this.onGifExportStart}
+    >
+    </skottie-gif-exporter-sk>
+  </dialog>
+`;
 
-  private jsonTextEditor = () => {
-    if (!this.showTextEditor) {
-      return '';
-    }
-    return html`
-<section class=editor>
-  <skottie-text-editor-sk
-    .animation=${this.state.lottie}
-    .mode=${this.viewMode}
-    @apply=${this.applyTextEdits}
-  >
-  </skottie-text-editor-sk>
-</section>`;
-  };
+  private jsonTextEditor = () => html`
+    <details ?open=${this.showTextEditor} @toggle=${(e: Event) => this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}>
+      <summary id=edit-text-open><span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
 
-  private shaderEditor = () => {
-    if (!this.showShaderEditor) {
-      return '';
-    }
-    return html`
-<section class=editor>
-  <skottie-shader-editor-sk
-    .animation=${this.state.lottie}
-    .mode=${this.viewMode}
-    @apply=${this.applyShaderEdits}
-  >
-  </skottie-shader-editor-sk>
-</section>`;
-  };
+      <skottie-text-editor-sk
+        .animation=${this.state.lottie}
+        .mode=${this.viewMode}
+        @apply=${this.applyTextEdits}
+      >
+      </skottie-text-editor-sk>
+    </details>
+`;
+
+  private shaderEditor = () => html`
+    <details ?open=${this.showShaderEditor} @toggle=${(e: Event) => this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}>
+      <summary><span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+
+      <skottie-shader-editor-sk
+        .animation=${this.state.lottie}
+        .mode=${this.viewMode}
+        @apply=${this.applyShaderEdits}
+      >
+      </skottie-shader-editor-sk>
+    </details>
+`;
 
   private buildFileName = () => {
     const fileName = this.state.filename || this.state.lottie?.metadata?.filename;
@@ -511,7 +535,7 @@ ${this.wasmCaption()}`;
         this.showJSONEditor = !!newState.e;
         this.showGifExporter = !!newState.g;
         this.showTextEditor = !!newState.t;
-        this.showShaderEditor = !!newState.s
+        this.showShaderEditor = !!newState.s;
         this.showPerformanceChart = !!newState.p;
         this.showLibrary = !!newState.i;
         this.showAudio = !!newState.a;
@@ -596,8 +620,8 @@ ${this.wasmCaption()}`;
   private applyShaderEdits(e: CustomEvent<ShaderEditApplyEventDetail>): void {
     const shaders = e.detail.shaders;
     this.state.lottie = replaceShaders(shaders, this.state.lottie!);
-    //TODO(jmbetancourt): support skottieLibrary
-    //this.skottieLibrary?.replaceShaders(shaders);
+    // TODO(jmbetancourt): support skottieLibrary
+    // this.skottieLibrary?.replaceShaders(shaders);
 
     this.upload();
   }
@@ -1184,41 +1208,30 @@ ${this.wasmCaption()}`;
     this.render();
   }
 
-  private toggleTextEditor(e: Event): void {
-    e.preventDefault();
+  private toggleTextEditor(open: boolean): void {
     this.showJSONEditor = false;
-    this.showTextEditor = !this.showTextEditor;
+    this.showTextEditor = open;
     this.stateChanged();
     this.render();
   }
 
-  private toggleShaderEditor(e: Event): void {
-    e.preventDefault();
+  private toggleShaderEditor(open: boolean): void {
     this.showJSONEditor = false;
-    this.showShaderEditor = !this.showShaderEditor;
+    this.showShaderEditor = open;
     this.stateChanged();
     this.render();
   }
 
-  private toggleLibrary(e: Event): void {
-    e.preventDefault();
-    this.showLibrary = !this.showLibrary;
+  private toggleLibrary(open: boolean): void {
+    this.showLibrary = open;
     this.stateChanged();
     this.render();
   }
 
-  private toggleAudio(e: Event): void {
-    e.preventDefault();
-    this.showAudio = !this.showAudio;
+  private toggleAudio(open: boolean): void {
+    this.showAudio = open;
     this.stateChanged();
     this.render();
-  }
-
-  private toggleEmbed(): void {
-    const collapse = $$<CollapseSk>('#embed', this);
-    if (collapse) {
-      collapse.closed = !collapse.closed;
-    }
   }
 
   private toggleLottie(e: Event): void {

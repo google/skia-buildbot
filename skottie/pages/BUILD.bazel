@@ -57,6 +57,10 @@ sk_page(
             "src": ":inline-bundle.js",
             "dst": "inline-bundle.js",
         },
+        {
+            "src": "//skottie/assets:checkerboard",
+            "dst": "checker.png",
+        },
     ],
     html_file = "index.html",
     scss_entry_point = "index.scss",

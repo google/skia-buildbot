@@ -25,52 +25,53 @@ describe('skottie-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
+      await testBed.page.click('#options-open');
       await testBed.page.click('checkbox-sk[label="Show lottie-web"]');
       await takeScreenshot(testBed.page, 'skottie', 'lottie_web');
       expect(testBed.page.url()).contains('l=true');
     });
 
-    it('shows JSON editor when a box is checked', async () => {
+    it('shows JSON editor when the button is checked', async () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('checkbox-sk[label="Show editor"]');
+      await testBed.page.click('#view-json-layers');
       await takeScreenshot(testBed.page, 'skottie', 'json_editor');
       expect(testBed.page.url()).contains('e=true');
     });
 
-    it('shows GIF exporter when a box is checked', async () => {
+    it('shows GIF exporter when the button is checked', async () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('checkbox-sk[label="Show gif exporter"]');
+      await testBed.page.click('#view-gif-exporter');
       await takeScreenshot(testBed.page, 'skottie', 'gif_exporter');
       expect(testBed.page.url()).contains('g=true');
     });
 
-    it('shows text editor when a box is checked', async () => {
+    it('shows text editor when the details is expanded', async () => {
       await navigateTo(testBed.page, `${testBed.baseUrl}?test=withText`);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 1200 });
-      await testBed.page.click('checkbox-sk[label="Show text editor"]');
+      await testBed.page.click('#edit-text-open');
       await takeScreenshot(testBed.page, 'skottie', 'text_editor');
       expect(testBed.page.url()).contains('t=true');
     });
 
-    it('shows performance chart when a box is checked', async () => {
+    it('shows performance chart when the button is clicked', async () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('checkbox-sk[label="Show performance chart"]');
+      await testBed.page.click('#view-perf-chart');
       await takeScreenshot(testBed.page, 'skottie', 'performance_chart');
       expect(testBed.page.url()).contains('p=true');
     });
 
-    it('shows a dialog to upload multiple lotties when a box is checked', async () => {
+    it('shows a dialog to upload multiple lotties when the details is expanded', async () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('checkbox-sk[label="Show library"]');
+      await testBed.page.click('#library-open');
       await takeScreenshot(testBed.page, 'skottie', 'library_upload');
       expect(testBed.page.url()).contains('i=true');
     });
@@ -79,7 +80,7 @@ describe('skottie-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('checkbox-sk[label="Show audio"]');
+      await testBed.page.click('#audio-open');
       await takeScreenshot(testBed.page, 'skottie', 'audio_upload');
       expect(testBed.page.url()).contains('a=true');
     });
@@ -88,7 +89,7 @@ describe('skottie-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('#embed-btn');
+      await testBed.page.click('#embed-open');
       await takeScreenshot(testBed.page, 'skottie', 'embed_instructions');
     });
 

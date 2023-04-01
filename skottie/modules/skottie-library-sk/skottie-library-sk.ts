@@ -16,10 +16,10 @@
  *
  */
 import '../skottie-player-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import JSZip, { JSZipObject } from 'jszip';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
 import { replaceTextsByLayerName, TextData } from '../skottie-text-editor-sk/text-replace';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
@@ -35,11 +35,6 @@ const THUMBNAIL_SIZE_ID = 'thumbnailSize';
 export class SkottieLibrarySk extends ElementSk {
   private static template = (ele: SkottieLibrarySk) => html`
   <div>
-    <header class="header">
-      <div class="header-title">Skottie Library</div>
-      <div class="header-separator"></div>
-    </header>
-    <section>
       ${ele.buildPagesDropdown()}
       <ul class=thumbnails>
         ${Array(ele.itemsPerPage).fill(0).map(
@@ -73,7 +68,6 @@ If not selected, the animations will be paused and not respond to scrubbing of t
           /> Thumbnail Size (px)
         </label>
       </div>
-    <section>
   </div>
 `;
 

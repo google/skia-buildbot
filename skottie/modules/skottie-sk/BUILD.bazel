@@ -43,6 +43,8 @@ sk_element(
         "//elements-sk/modules/checkbox-sk",
         "//elements-sk/modules/collapse-sk",
         "//elements-sk/modules/error-toast-sk",
+        "//elements-sk/modules/icons/expand-less-icon-sk",
+        "//elements-sk/modules/icons/expand-more-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
