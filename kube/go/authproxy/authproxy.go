@@ -148,16 +148,14 @@ func ToAuthType(s string) AuthType {
 
 // App is the auth-proxy application.
 type App struct {
-	port        string
-	promPort    string
-	criaGroup   string
-	local       bool
-	targetPort  string
-	allowPost   bool
-	allowedFrom string
-	passive     bool
-	roleFlags   []string
-	authType    string
+	port       string
+	promPort   string
+	local      bool
+	targetPort string
+	allowPost  bool
+	passive    bool
+	roleFlags  []string
+	authType   string
 
 	target       *url.URL
 	authProvider auth.Auth
@@ -170,11 +168,9 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs := flag.NewFlagSet(appName, flag.ExitOnError)
 	fs.StringVar(&a.port, "port", ":8000", "HTTP service address (e.g., ':8000')")
 	fs.StringVar(&a.promPort, "prom-port", ":20000", "Metrics service address (e.g., ':10110')")
-	fs.StringVar(&a.criaGroup, "cria_group", "", "The chrome infra auth group to use for restricting access. Example: 'google/skia-staff@google.com'")
 	fs.BoolVar(&a.local, "local", false, "Running locally if true. As opposed to in production.")
 	fs.StringVar(&a.targetPort, "target_port", ":9000", "The port we are proxying to, or a full URL.")
 	fs.BoolVar(&a.allowPost, "allow_post", false, "Allow POST requests to bypass auth.")
-	fs.StringVar(&a.allowedFrom, "allowed_from", "", "A comma separated list of of domains and email addresses that are allowed to access the site. Example: 'google.com'")
 	fs.BoolVar(&a.passive, "passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
 	common.FSMultiStringFlagVar(fs, &a.roleFlags, "role", []string{}, "Define a role and the group (CRIA, domain, email list) that defines who gets that role via flags. For example: --role=viewer=@google.com OR --role=triager=cria_group:project-angle-committers")
 	fs.StringVar(&a.authType, "authtype", string(OAuth2), fmt.Sprintf("The type of authentication to do. Choose from: %q", AllValidAuthTypes))
@@ -212,11 +208,6 @@ func New(ctx context.Context) (*App, error) {
 		return nil, skerr.Wrap(err)
 	}
 	criaClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
-	err = ret.populateLegacyAllowedRoles(criaClient)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 
 	err = ret.populateAllowedRoles(criaClient)
 	if err != nil {
@@ -261,21 +252,6 @@ func parseTargetPort(u string) (*url.URL, error) {
 		return url.Parse(fmt.Sprintf("http://localhost%s", u))
 	}
 	return url.Parse(u)
-}
-
-func (a *App) populateLegacyAllowedRoles(criaClient *http.Client) error {
-	var allow allowed.Allow
-	if a.criaGroup != "" {
-		var err error
-		allow, err = allowed.NewAllowedFromChromeInfraAuth(criaClient, a.criaGroup)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-	} else { // --allowed_from
-		allow = allowed.NewAllowedFromList(strings.Split(a.allowedFrom, ","))
-	}
-	a.allowedRoles[roles.Viewer] = allow
-	return nil
 }
 
 func (a *App) populateAllowedRoles(criaClient *http.Client) error {
@@ -349,14 +325,8 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func (a *App) validateFlags() error {
-	if len(a.roleFlags) > 0 && (a.criaGroup != "" || a.allowedFrom != "") {
-		return fmt.Errorf("Can not mix --role and [--auth_group, --allowed_from] flags.")
-	}
-	if len(a.roleFlags) == 0 && (a.criaGroup != "" && a.allowedFrom != "") {
-		return fmt.Errorf("Only one of the flags in [--auth_group, --allowed_from] can be specified.")
-	}
-	if len(a.roleFlags) == 0 && (a.criaGroup == "" && a.allowedFrom == "") {
-		return fmt.Errorf("At least one of the flags in [--auth_group, --allowed_from] must be specified.")
+	if len(a.roleFlags) == 0 {
+		return fmt.Errorf("At least one --role flag must be supplied.")
 	}
 
 	return nil

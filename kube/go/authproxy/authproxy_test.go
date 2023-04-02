@@ -172,63 +172,12 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 	require.True(t, *called)
 }
 
-func TestValidateFlags_OnlyRolesFlagsSpecified_ReturnsNoError(t *testing.T) {
+func TestValidateFlags_NoRoleFlagsSpecified_ReturnsError(t *testing.T) {
 	app := &App{
-		roleFlags:   []string{string(roles.Admin)},
-		criaGroup:   "",
-		allowedFrom: "",
-	}
-
-	require.NoError(t, app.validateFlags())
-}
-
-func TestValidateFlags_BothLegacyAndRolesFlagsSpecified_ReturnsError(t *testing.T) {
-	app := &App{
-		roleFlags:   []string{string(roles.Editor)},
-		criaGroup:   "project-angle-committers",
-		allowedFrom: "",
+		roleFlags: nil,
 	}
 
 	require.Error(t, app.validateFlags())
-}
-
-func TestValidateFlags_BothLegacyFlagsSpecified_ReturnsError(t *testing.T) {
-	app := &App{
-		roleFlags:   nil,
-		criaGroup:   "project-angle-committers",
-		allowedFrom: "google.com",
-	}
-
-	require.Error(t, app.validateFlags())
-}
-
-func TestValidateFlags_NeitherLegacyFlagIsSpecified_ReturnsError(t *testing.T) {
-	app := &App{
-		roleFlags:   nil,
-		criaGroup:   "",
-		allowedFrom: "",
-	}
-
-	require.Error(t, app.validateFlags())
-}
-
-func TestValidateFlags_OnlyOneLegacyFlagIsSpecified_ReturnsNoError(t *testing.T) {
-
-	app := &App{
-		roleFlags:   nil,
-		criaGroup:   "project-angle-committers",
-		allowedFrom: "",
-	}
-
-	require.NoError(t, app.validateFlags())
-
-	app = &App{
-		roleFlags:   nil,
-		criaGroup:   "",
-		allowedFrom: "google.com",
-	}
-
-	require.NoError(t, app.validateFlags())
 }
 
 func TestAppRun_ContextIsCancelled_ReturnsNil(t *testing.T) {
@@ -280,25 +229,6 @@ func mockCriaClient(t *testing.T) *http.Client {
 	m := mockhttpclient.NewURLMock()
 	m.Mock(fmt.Sprintf(allowed.GROUP_URL_TEMPLATE, testCriaGroupName), mockhttpclient.MockGetDialogue([]byte(mockCriaResponse)))
 	return m.Client()
-}
-
-func TestAppPopulateLegacyAllowedRoles_LegacyCriaGroupFlag_Success(t *testing.T) {
-	m := mockCriaClient(t)
-	a := newEmptyApp()
-	a.criaGroup = testCriaGroupName
-
-	err := a.populateLegacyAllowedRoles(m)
-	require.NoError(t, err)
-	require.True(t, a.allowedRoles[roles.Viewer].Member("fred@chromium.org"))
-}
-
-func TestAppPopulateLegacyAllowedRoles_LegacyCriaGroupFlagHasInvalidGroup_ReturnsErro(t *testing.T) {
-	m := mockCriaClient(t)
-	a := newEmptyApp()
-	a.criaGroup = "unknown-group"
-
-	err := a.populateLegacyAllowedRoles(m)
-	require.Error(t, err)
 }
 
 func TestAppPopulateAllowedRoles_MultipleGroups_Success(t *testing.T) {
