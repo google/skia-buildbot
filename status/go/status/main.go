@@ -289,7 +289,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
 	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	var h http.Handler = topLevelRouter
@@ -364,7 +364,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllowed, editAllowed, nil)
+	login.InitWithAllow(serverURL+login.DefaultOAuth2Callback, adminAllowed, editAllowed, nil)
 
 	// Check out source code.
 	if *repoUrls == nil {

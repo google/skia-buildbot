@@ -428,7 +428,7 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
+	login.InitWithAllow(serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
 
 	go runServer(serverURL, srv)
 

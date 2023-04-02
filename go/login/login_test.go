@@ -36,7 +36,7 @@ var (
 var once sync.Once
 
 func loginInit() {
-	initLogin("id", "secret", "http://localhost", saltForTesting, DEFAULT_ALLOWED_DOMAINS)
+	initLogin("id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains)
 }
 
 func TestLoginURL(t *testing.T) {
@@ -48,26 +48,26 @@ func TestLoginURL(t *testing.T) {
 		t.Fatal(err)
 	}
 	url := LoginURL(w, r)
-	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
+	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "SameSite=None", "SameSite should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "Secure", "Secure should be set.")
 
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 	cookie := &http.Cookie{
-		Name:  SESSION_COOKIE_NAME,
+		Name:  sessionCookieName,
 		Value: "some-random-state",
 	}
 	assert.Contains(t, url, "%3Ahttps%3A%2F%2Ffoo.org")
 	r.AddCookie(cookie)
 	w = httptest.NewRecorder()
 	url = LoginURL(w, r)
-	assert.NotContains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
+	assert.NotContains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, url, "some-random-state", "Pass state in Login URL.")
 }
 
 func TestLoggedInAs(t *testing.T) {
 	once.Do(loginInit)
-	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
+	setActiveAllowLists(defaultAllowedDomains)
 
 	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
 	if err != nil {
@@ -82,7 +82,7 @@ func TestLoggedInAs(t *testing.T) {
 		AuthScope: emailScope,
 		Token:     nil,
 	}
-	cookie, err := CookieFor(&s, r)
+	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
 	assert.Equal(t, "skia.org", cookie.Domain)
 	r.AddCookie(cookie)
@@ -102,7 +102,7 @@ func TestLoggedInAs(t *testing.T) {
 
 func TestAuthorizedEmail(t *testing.T) {
 	once.Do(loginInit)
-	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
+	setActiveAllowLists(defaultAllowedDomains)
 	// In place of SessionMiddleware function.
 	middleware := func(r *http.Request) *http.Request {
 		session, _ := getSession(r)
@@ -124,7 +124,7 @@ func TestAuthorizedEmail(t *testing.T) {
 		AuthScope: emailScope,
 		Token:     nil,
 	}
-	cookie, err := CookieFor(&s, r)
+	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
 	assert.Equal(t, "skia.org", cookie.Domain)
 	r.AddCookie(cookie)
@@ -188,7 +188,7 @@ func TestSessionMiddleware(t *testing.T) {
 
 	// Setup.
 	once.Do(loginInit)
-	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
+	setActiveAllowLists(defaultAllowedDomains)
 
 	// Helper function to set up a request with the given Session and test the
 	// middleware, verifying that we get the session back via GetSession.
@@ -197,7 +197,7 @@ func TestSessionMiddleware(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)
 		require.NoError(t, err)
 		if expect != nil {
-			cookie, err := CookieFor(expect, req)
+			cookie, err := cookieFor(expect, req)
 			require.NoError(t, err)
 			req.AddCookie(cookie)
 		}
@@ -236,7 +236,7 @@ func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
   "client_id": "fake-client-id",
   "client_secret": "fake-client-secret"
 }`
-	client.On("Get", ctx, LoginSecretProject, LoginSecretName, secret.VersionLatest).Return(secretValue, nil)
+	client.On("Get", ctx, loginSecretProject, loginSecretName, secret.VersionLatest).Return(secretValue, nil)
 	cookieSalt, clientID, clientSecret, err := TryLoadingFromGCPSecret(ctx, client)
 	require.NoError(t, err)
 	require.Equal(t, "fake-salt", cookieSalt)
@@ -280,7 +280,7 @@ func setupForOAuth2CallbackHandlerTest(t *testing.T, url string) (*httptest.Resp
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 
 	cookie := &http.Cookie{
-		Name:  SESSION_COOKIE_NAME,
+		Name:  sessionCookieName,
 		Value: sessionIDForTesting,
 	}
 	r.AddCookie(cookie)

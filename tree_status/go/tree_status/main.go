@@ -149,7 +149,7 @@ func (srv *Server) user(r *http.Request) string {
 // See baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
 	// For login/logout.
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
@@ -186,7 +186,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.DEFAULT_OAUTH2_CALLBACK)
+		appHandler = login.ForceAuth(appRouter, login.DefaultOAuth2Callback)
 	}
 
 	r.PathPrefix("/").Handler(appHandler)

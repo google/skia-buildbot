@@ -43,7 +43,7 @@ var (
 func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
-		redirectURL = DEFAULT_REDIRECT_URL
+		redirectURL = DefaultRedirectURL
 	}
 	InitWithAllow(redirectURL, admin, edit, view)
 }
@@ -57,7 +57,7 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 	adminAllow = admin
 	editAllow = edit
 	viewAllow = view
-	if err := Init(redirectURL, DEFAULT_ALLOWED_DOMAINS, ""); err != nil {
+	if err := Init(redirectURL, defaultAllowedDomains, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	RestrictAdmin = RestrictWithMessage(adminAllow, "User is not an admin")

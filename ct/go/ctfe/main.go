@@ -112,14 +112,14 @@ func runServer(serverURL string) {
 	externalRouter.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
 
 	// Common handlers used by different pages.
-	externalRouter.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	externalRouter.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
 	externalRouter.HandleFunc("/logout/", login.LogoutHandler)
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
 	h = login.RestrictViewer(h)
 	if !*local {
-		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+		h = login.ForceAuth(h, login.DefaultRedirectURL)
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)

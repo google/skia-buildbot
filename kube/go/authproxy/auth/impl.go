@@ -28,7 +28,7 @@ func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
 func (l authImpl) Init(port string, local bool) error {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
-		redirectURL = login.DEFAULT_REDIRECT_URL
+		redirectURL = login.DefaultRedirectURL
 	}
 
 	return login.Init(redirectURL,

@@ -53,37 +53,46 @@ import (
 )
 
 const (
-	COOKIE_NAME         = "sktoken"
-	SESSION_COOKIE_NAME = "sksession"
-	DEFAULT_COOKIE_SALT = "notverysecret"
 
-	// DEFAULT_REDIRECT_URL is the redirect URL to use if Init is called with
+	// DefaultRedirectURL is the redirect URL to use if Init is called with
 	// DEFAULT_ALLOWED_DOMAINS.
-	DEFAULT_REDIRECT_URL = "https://skia.org/oauth2callback/"
+	DefaultRedirectURL = "https://skia.org/oauth2callback/"
 
-	// DEFAULT_OAUTH2_CALLBACK is the default relative OAuth2 redirect URL.
-	DEFAULT_OAUTH2_CALLBACK = "/oauth2callback/"
+	// DefaultOAuth2Callback is the default relative OAuth2 redirect URL.
+	DefaultOAuth2Callback = "/oauth2callback/"
 
-	// DEFAULT_ALLOWED_DOMAINS is a list of domains we use frequently.
-	DEFAULT_ALLOWED_DOMAINS = "google.com chromium.org skia.org"
+	// emailScope is the scope we request when logging in.
+	emailScope = "email"
 
-	// COOKIE_DOMAIN_SKIA_ORG is the cookie domain for skia.org.
-	COOKIE_DOMAIN_SKIA_ORG = "skia.org"
+	// The name of the cookie that stores the login info.
+	cookieName = "sktoken"
 
-	// COOKIE_DOMAIN_SKIA_CORP is the cookie domain for skia*.corp.goog.
-	COOKIE_DOMAIN_SKIA_CORP = "corp.goog"
+	// The name of the session cookie.
+	sessionCookieName = "sksession"
 
-	// LOGIN_CONFIG_FILE is the location of the login config when running in kubernetes.
-	LOGIN_CONFIG_FILE = "/etc/skia.org/login.json"
+	// Default cookie salt used only for testing.
+	defaultCookieSalt = "notverysecret"
 
-	// DEFAULT_CLIENT_SECRET_FILE is the default path to the file used for OAuth2 login.
-	DEFAULT_CLIENT_SECRET_FILE = "client_secret.json"
+	// defaultAllowedDomains is a list of domains we use frequently.
+	defaultAllowedDomains = "google.com chromium.org skia.org"
 
-	// LoginSecretProject is the GCP project containing the login secrets.
-	LoginSecretProject = "skia-infra-public"
+	// cookieDomainSkiaOrg is the cookie domain for skia.org.
+	cookieDomainSkiaOrg = "skia.org"
 
-	// LoginSecretName is the name of the GCP secret for login.
-	LoginSecretName = "login-oauth2-secrets"
+	// cookieDomainSkiaCorp is the cookie domain for skia*.corp.goog.
+	cookieDomainSkiaCorp = "corp.goog"
+
+	// loginConfigFile is the location of the login config when running in kubernetes.
+	loginConfigFile = "/etc/skia.org/login.json"
+
+	// defaultClientSecretFile is the default path to the file used for OAuth2 login.
+	defaultClientSecretFile = "client_secret.json"
+
+	// loginSecretProject is the GCP project containing the login secrets.
+	loginSecretProject = "skia-infra-public"
+
+	// loginSecretName is the name of the GCP secret for login.
+	loginSecretName = "login-oauth2-secrets"
 
 	idTokenKeyName = "id_token"
 )
@@ -121,9 +130,6 @@ var (
 
 	secureCookie *securecookie.SecureCookie = nil
 
-	// emailScope is the scope we request when logging in.
-	emailScope = "email"
-
 	// oauthConfig is the OAuth 2.0 client configuration.
 	oauthConfig = configConstructor("not-a-valid-client-id", "not-a-valid-client-secret", "http://localhost:8000/oauth2callback/")
 
@@ -151,9 +157,9 @@ type Session struct {
 func SimpleInitMust(port string, local bool) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
-		redirectURL = DEFAULT_REDIRECT_URL
+		redirectURL = DefaultRedirectURL
 	}
-	if err := Init(redirectURL, DEFAULT_ALLOWED_DOMAINS, ""); err != nil {
+	if err := Init(redirectURL, defaultAllowedDomains, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 }
@@ -192,7 +198,7 @@ func writeNewSessionCookie(w http.ResponseWriter, r *http.Request) (string, erro
 		return "", skerr.Wrap(err)
 	}
 	cookie := &http.Cookie{
-		Name:     SESSION_COOKIE_NAME,
+		Name:     sessionCookieName,
 		Value:    sessionID,
 		Path:     "/",
 		Domain:   domainFromHost(r.Host),
@@ -208,7 +214,7 @@ func writeNewSessionCookie(w http.ResponseWriter, r *http.Request) (string, erro
 // LoginURL returns a URL that the user is to be directed to for login.
 func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	// Check for a session id, if not there then assign one, and add it to the redirect URL.
-	session, err := r.Cookie(SESSION_COOKIE_NAME)
+	session, err := r.Cookie(sessionCookieName)
 	sessionID := ""
 	if err != nil || session.Value == "" {
 		sessionID, err = writeNewSessionCookie(w, r)
@@ -304,7 +310,7 @@ func generateID() (string, error) {
 }
 
 func getSession(r *http.Request) (*Session, error) {
-	cookie, err := r.Cookie(COOKIE_NAME)
+	cookie, err := r.Cookie(cookieName)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -316,7 +322,7 @@ func getSession(r *http.Request) (*Session, error) {
 		sklog.Infof("Cookie is: %v", cookie)
 	}
 
-	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
+	if err := secureCookie.Decode(cookieName, cookie.Value, &s); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	if s.AuthScope != emailScope {
@@ -375,24 +381,24 @@ func domainFromHost(fullhost string) string {
 	host := parts[0]
 	if strings.HasPrefix(fullhost, "localhost") {
 		return host
-	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_CORP) {
-		return COOKIE_DOMAIN_SKIA_CORP
-	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_ORG) || fullhost == COOKIE_DOMAIN_SKIA_ORG {
-		return COOKIE_DOMAIN_SKIA_ORG
+	} else if strings.HasSuffix(fullhost, "."+cookieDomainSkiaCorp) {
+		return cookieDomainSkiaCorp
+	} else if strings.HasSuffix(fullhost, "."+cookieDomainSkiaOrg) || fullhost == cookieDomainSkiaOrg {
+		return cookieDomainSkiaOrg
 	} else {
-		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, COOKIE_DOMAIN_SKIA_ORG)
-		return COOKIE_DOMAIN_SKIA_ORG
+		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, cookieDomainSkiaOrg)
+		return cookieDomainSkiaOrg
 	}
 }
 
-// CookieFor creates an encoded Cookie for the given user id.
-func CookieFor(value *Session, r *http.Request) (*http.Cookie, error) {
-	encoded, err := secureCookie.Encode(COOKIE_NAME, value)
+// cookieFor creates an encoded Cookie for the given user id.
+func cookieFor(value *Session, r *http.Request) (*http.Cookie, error) {
+	encoded, err := secureCookie.Encode(cookieName, value)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to encode cookie")
 	}
 	return &http.Cookie{
-		Name:     COOKIE_NAME,
+		Name:     cookieName,
 		Value:    encoded,
 		Path:     "/",
 		Domain:   domainFromHost(r.Host),
@@ -404,7 +410,7 @@ func CookieFor(value *Session, r *http.Request) (*http.Cookie, error) {
 }
 
 func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) {
-	cookie, err := CookieFor(value, r)
+	cookie, err := cookieFor(value, r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s", err), 500)
 		return
@@ -443,7 +449,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // the callback URL registered in the APIs Console. In this case
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
+	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil || cookie.Value == "" {
 		http.Error(w, "Missing session state.", 500)
 		return
@@ -638,8 +644,8 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, err, "Invalid Origin", http.StatusInternalServerError)
 			return
 		}
-		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) ||
-			strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_CORP) ||
+		if strings.HasSuffix(u.Host, "."+cookieDomainSkiaOrg) ||
+			strings.HasSuffix(u.Host, "."+cookieDomainSkiaCorp) ||
 			strings.HasPrefix(u.Host, "localhost:") {
 			prefix := "https://"
 			if strings.HasPrefix(u.Host, "localhost:") {
@@ -726,7 +732,7 @@ func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (str
 		err2 = skerr.Wrapf(err2, "failed loading login secrets from GCP secret manager; failed to create client")
 	}
 
-	// Local file.
+	// Local file, this is only used for testing.
 	cookieSalt, clientID, clientSecret, err3 := TryLoadingFromFile(clientSecretFile)
 	if err3 == nil {
 		return cookieSalt, clientID, clientSecret, nil
@@ -744,7 +750,7 @@ func TryLoadingFromK8sSecret() (string, string, string, error) {
 	clientID := ""
 	clientSecret := ""
 	var info loginInfo
-	err := util.WithReadFile(LOGIN_CONFIG_FILE, func(f io.Reader) error {
+	err := util.WithReadFile(loginConfigFile, func(f io.Reader) error {
 		if err := json.NewDecoder(f).Decode(&info); err != nil {
 			return err
 		}
@@ -754,9 +760,9 @@ func TryLoadingFromK8sSecret() (string, string, string, error) {
 		return nil
 	})
 	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", LOGIN_CONFIG_FILE)
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", loginConfigFile)
 	}
-	sklog.Infof("Successfully loaded login secrets from file %s.", LOGIN_CONFIG_FILE)
+	sklog.Infof("Successfully loaded login secrets from file %s.", loginConfigFile)
 	return cookieSalt, clientID, clientSecret, nil
 }
 
@@ -767,7 +773,7 @@ func TryLoadingFromK8sSecret() (string, string, string, error) {
 // Returns DEFAULT_COOKIE_SALT, clientID, clientSecret.
 func TryLoadingFromFile(clientSecretFile string) (string, string, string, error) {
 	if clientSecretFile == "" {
-		clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
+		clientSecretFile = defaultClientSecretFile
 	}
 	b, err := ioutil.ReadFile(clientSecretFile)
 	if err != nil {
@@ -778,7 +784,7 @@ func TryLoadingFromFile(clientSecretFile string) (string, string, string, error)
 		return "", "", "", skerr.Wrapf(err, "failed decoding login secrets from %s", clientSecretFile)
 	}
 	sklog.Infof("Successfully read client secret from %s", clientSecretFile)
-	return DEFAULT_COOKIE_SALT, config.ClientID, config.ClientSecret, nil
+	return defaultCookieSalt, config.ClientID, config.ClientSecret, nil
 }
 
 // TryLoadingFromGCPSecret tries to load the cookie salt, client id, and client
@@ -787,9 +793,9 @@ func TryLoadingFromFile(clientSecretFile string) (string, string, string, error)
 //
 // Returns salt, clientID, clientSecret.
 func TryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, string, string, error) {
-	contents, err := secretClient.Get(ctx, LoginSecretProject, LoginSecretName, secret.VersionLatest)
+	contents, err := secretClient.Get(ctx, loginSecretProject, loginSecretName, secret.VersionLatest)
 	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", LoginSecretName)
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", loginSecretName)
 	}
 	var info loginInfo
 	if err := json.Unmarshal([]byte(contents), &info); err != nil {

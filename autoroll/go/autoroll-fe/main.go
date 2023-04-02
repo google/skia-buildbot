@@ -373,7 +373,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/config", configHandler)
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, oAuth2CallbackHandler)
+	r.HandleFunc(login.DefaultOAuth2Callback, oAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
@@ -388,7 +388,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	if !*local {
 		if *internal {
 			h = login.RestrictViewer(h)
-			h = login.ForceAuth(h, login.DEFAULT_OAUTH2_CALLBACK)
+			h = login.ForceAuth(h, login.DefaultOAuth2Callback)
 		}
 		h = httputils.HealthzAndHTTPS(h)
 	}
@@ -468,7 +468,7 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
+	login.InitWithAllow(serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
 	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")
@@ -477,7 +477,7 @@ func main() {
 	}
 	gerritOauthConfig.ClientID = clientID
 	gerritOauthConfig.ClientSecret = clientSecret
-	gerritOauthConfig.RedirectURL = serverURL + login.DEFAULT_OAUTH2_CALLBACK
+	gerritOauthConfig.RedirectURL = serverURL + login.DefaultOAuth2Callback
 
 	// Create the server.
 	runServer(ctx, serverURL, srv.GetHandler())
