@@ -131,6 +131,10 @@ func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient 
 			gerritChangeIDTokens := strings.Split(gerritURL, "/")
 			gerritChangeID := gerritChangeIDTokens[len(gerritChangeIDTokens)-1]
 			gerritChangeInfo, err := gerritClient.GetChange(ctx, gerritChangeID)
+			if err != nil {
+				sklog.Errorf("Failed retrieving change %s: %s", gerritChangeID, err)
+				continue
+			}
 
 			// Check to see if we have already commented on this PR
 			prData, err := dbClient.GetFromDB(ctx, repo, prNumber)
