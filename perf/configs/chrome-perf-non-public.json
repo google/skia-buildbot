@@ -9,7 +9,7 @@
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",
-        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/chrome-int?sslmode=disable",
+        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/chrome_int?sslmode=disable",
         "tile_size": 8192,
         "enable_follower_reads": true
     },

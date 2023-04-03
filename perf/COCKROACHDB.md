@@ -2,7 +2,8 @@
 
 Perf supports using CockroachDB as a backend.
 
-There is a single installation of CockroachDB for all the instances of Perf.
+There is a single installation of CockroachDB for all the instances of Perf in a
+cluster.
 
 There should be a `cockroachdb/connect.sh` script in this directory. Run that
 script and you will be dropped into an SQL shell as root to send commands to the
@@ -40,21 +41,6 @@ The service name and user account are then used in the connection string in the 
     }
 
 See also [configs](./configs/README.md)
-
-## Migrations
-
-Migrations can be applied from the desktop by using `perf-tool`.
-
-    perf-tool database migrate --config_filename=my-config.json
-
-You might need to forward the CockroachDB connection:
-
-    kubectl port-forward perf-cockroachdb-0 26257
-
-And then override the connection string, for example:
-
-    perf-tool database migrate --config_filename=my-config.json \
-      --connection_string=postgresql://root@localhost:26257/mytest?sslmode=disable
 
 ## Backups
 

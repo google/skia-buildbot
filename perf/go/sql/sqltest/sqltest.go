@@ -23,8 +23,6 @@ import (
 // databases, even though they may be in the same CockroachDB instance, so that
 // if a test fails it doesn't leave the database in a bad state for a subsequent
 // test. A random number will be appended to the database name prefix.
-//
-// If migrations to are be applied then set applyMigrations to true.
 func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) *pgxpool.Pool {
 	cockroachdb_instance.Require(t)
 
