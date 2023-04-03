@@ -170,6 +170,9 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 
 	// New file.Source.
 	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, local)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	ch, err := source.Start(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
