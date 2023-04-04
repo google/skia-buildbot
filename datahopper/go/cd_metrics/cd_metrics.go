@@ -494,12 +494,12 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 		newK8sConfigCache, err := updateK8sConfigCache(ctx, repos, k8sConfigGitiles, timeWindowStart, k8sConfigCache)
 		k8sConfigCacheMtx.RUnlock()
 		if err != nil {
-			sklog.Errorf("Failed to update k8s-config cache.")
-		} else {
-			k8sConfigCacheMtx.Lock()
-			k8sConfigCache = newK8sConfigCache
-			k8sConfigCacheMtx.Unlock()
+			sklog.Errorf("Failed to update k8s-config cache: %s", err)
+			return
 		}
+		k8sConfigCacheMtx.Lock()
+		defer k8sConfigCacheMtx.Unlock()
+		k8sConfigCache = newK8sConfigCache
 		sklog.Infof("Done updating k8s-config cache.")
 	})
 
