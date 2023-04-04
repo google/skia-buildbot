@@ -8,18 +8,27 @@ import (
 
 // Matcher is an image matching algorithm.
 //
-// It considers two images to be equal if the following two conditions are met:
+// It considers two images to be equal if the following conditions are met:
+//
 //   - Both images are of equal size.
 //   - The total number of different pixels is below MaxDifferentPixels.
-//   - There are no pixels such that dR + dG + dB + dA > PixelDeltaThreshold, where d{R,G,B,A} are
-//     the per-channel deltas.
+//   - If PixelDeltaThreshold > 0: There are no pixels such that
+//     dR + dG + dB + dA > PixelDeltaThreshold, where d{R,G,B,A} are the per-channel deltas.
+//   - Else: There are no pixels such that max(dR, dG, dB, dA) > PixelPerChannelDeltaThreshold,
+//     where d{R,G,B,A} are the per-channel deltas.
 //   - If IgnoredBorderThickness > 0, then the first/last IgnoredBorderThickness rows/columns will
 //     be ignored when performing the above pixel-wise comparisons.
 //
-// It assumes 8-bit channels.
+// Note that if MaxDifferentPixels = 0 this algorithm will perform an exact image comparison. If
+// that is intentional, consider using exact matching instead (e.g. by not specifying the
+// image_matching_algorithm optional key).
+//
+// This algorithm assumes 8-bit channels.
 //
 // Valid PixelDeltaThreshold values are 0 to 1020 inclusive (0 <= d{R,G,B,A} <= 255, thus
 // 0 <= dR + dG + dB + dA <= 255*4 = 1020).
+//
+// Valid PixelPerChannelDelta values are 0 to 255 inclusive.
 type Matcher struct {
 	MaxDifferentPixels            int
 	PixelDeltaThreshold           int
@@ -43,7 +52,8 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 		return false
 	}
 
-	// Determine which delta threshold we will be using.
+	// Determine which delta threshold we will be using. We assume that at most one of
+	// PixelDeltaThreshold and PixelPerChannelDeltaThreshold will be set.
 	usePerChannelThreshold := false
 	if m.PixelPerChannelDeltaThreshold > 0 {
 		usePerChannelThreshold = true
