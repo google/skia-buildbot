@@ -281,7 +281,13 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 	if err := r.updateAndroidCheckout(ctx); err != nil {
-		return nil, nil, nil, err
+		// We may have gotten into a bad state. Delete the checkout and retry.
+		if removeErr := os.RemoveAll(r.workdir); removeErr != nil {
+			return nil, nil, nil, skerr.Wrapf(err, "failed to update checkout and failed to remove with: %s", removeErr)
+		}
+		if err := r.updateAndroidCheckout(ctx); err != nil {
+			return nil, nil, nil, skerr.Wrapf(err, "failed second attempt updating Android checkout")
+		}
 	}
 
 	// Get the last roll revision.
