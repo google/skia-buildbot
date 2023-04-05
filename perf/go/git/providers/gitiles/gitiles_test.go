@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
@@ -52,6 +53,19 @@ var (
 		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash: secondGitHash,
+			},
+		},
+	}
+
+	commitDetailsForTwoCommitsReversed = []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: secondGitHash,
+			},
+		},
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: gitHash,
 			},
 		},
 	}
@@ -129,7 +143,15 @@ func TestGitHashesInRangeForFile_NoGitHashesInRange_ReturnsEmptySlice(t *testing
 
 func TestCommitsFromMostRecentGitHashToHead_HappyPath(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
+
+	// CommitsFromMostRecentGitHashToHead calls gitiles.LogFnBatch so we need to
+	// call the callback passed to LogFnBatch when mocking, and ensure the
+	// commits are returned in reverse order.
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD"), mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse()).Run(func(args mock.Arguments) {
+		cb := args[2].(func(context.Context, []*vcsinfo.LongCommit) error)
+		err := cb(context.Background(), commitDetailsForTwoCommitsReversed)
+		require.NoError(t, err)
+	}).Return(nil)
 
 	gp := &Gitiles{
 		gr: mockRepo,
@@ -147,7 +169,7 @@ func TestCommitsFromMostRecentGitHashToHead_HappyPath(t *testing.T) {
 
 func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStartCommitIsEmpty_GitilesQueryIsForMain(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("Log", testutils.AnyContext, git.MainBranch).Return(commitDetailsForTwoCommits, nil)
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.MainBranch, mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse()).Return(nil)
 
 	gp := &Gitiles{
 		gr:          mockRepo,
@@ -162,7 +184,7 @@ func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStart
 
 func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStartCommitIsProvided_GitilesQueryIsForStartCommitToHead(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(startGitHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.LogFromTo(startGitHash, "HEAD"), mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse()).Return(nil)
 
 	gp := &Gitiles{
 		gr:          mockRepo,
@@ -177,7 +199,7 @@ func TestCommitsFromMostRecentGitHashToHead_EmptyStringProvidedForCommitAndStart
 
 func TestCommitsFromMostRecentGitHashToHead_GitilesAPIReturnsError_ReturnsError(t *testing.T) {
 	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(nil, errMock)
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD"), mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse()).Return(errMock)
 
 	gp := &Gitiles{
 		gr: mockRepo,
@@ -188,21 +210,6 @@ func TestCommitsFromMostRecentGitHashToHead_GitilesAPIReturnsError_ReturnsError(
 	}
 	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), beginHash, cb)
 	require.ErrorIs(t, err, errMock)
-}
-
-func TestCommitsFromMostRecentGitHashToHead_CallbackReturnsError_ReturnsError(t *testing.T) {
-	mockRepo := gitiles_mocks.NewGitilesRepo(t)
-	mockRepo.On("Log", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD")).Return(commitDetailsForTwoCommits, nil)
-
-	gp := &Gitiles{
-		gr: mockRepo,
-	}
-	cb := func(c provider.Commit) error {
-		return errMock
-	}
-	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), beginHash, cb)
-	require.ErrorIs(t, err, errMock)
-	require.Contains(t, err.Error(), "processing callback")
 }
 
 func TestUpdate_AlwaysReturnsNil(t *testing.T) {

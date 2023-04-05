@@ -1,8 +1,4 @@
-// Package git is the minimal interface that Perf needs to interact with a Git
-// repo.
-//
-// A cache of git information is kept in an SQL database. Please see
-// perf/sql/migrations for the database schema used.
+// Package git manages a cache of git commit info that's stored in the database.
 package git
 
 import (
@@ -205,8 +201,8 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	return ret, nil
 }
 
-// StartBackgroundPolling starts a background process that periodically pulls to
-// head and adds the new commits to the database.
+// StartBackgroundPolling starts a background process that periodically adds
+// new commits to the database.
 func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration) {
 	go func() {
 		liveness := metrics2.NewLiveness("perf_git_udpate_polling_livenes")
@@ -221,28 +217,7 @@ func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration
 	}()
 }
 
-// Update does a git pull and then finds all the new commits
-// added to the repo since our last Update.
-//
-// This command will list all new commits since 6286e... in chronological
-// order.
-//
-//	git rev-list HEAD ^6286e.. --pretty=" %aN <%aE>%n%s%n%ct" --reverse
-//
-// It produces the following output of the form:
-//
-//	commit 6079a7810530025d9877916895dd14eb8bb454c0
-//	Joe Gregorio <joe@bitworking.org>
-//	Change #9
-//	1584837783
-//	commit 977e0ef44bec17659faf8c5d4025c5a068354817
-//	Joe Gregorio <joe@bitworking.org>
-//	Change #8
-//	1584837783
-//
-// which parseGitRevLogStream parses.
-//
-// Note also that CommitNumber starts at 0 for the first commit in a repo.
+// Update finds all the new commits added to the repo since our last Update.
 func (g *Git) Update(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "perfgit.Update")
 	defer span.End()
@@ -261,11 +236,12 @@ func (g *Git) Update(ctx context.Context) error {
 			mostRecentGitHash = ""
 			nextCommitNumber = types.CommitNumber(0)
 		} else {
-			return skerr.Wrapf(err, "Failed looking up most recect commit.")
+			return skerr.Wrapf(err, "Failed looking up most recent commit.")
 		}
 	}
 
 	total := 0
+	sklog.Infof("Populating commits from %q to HEAD", mostRecentGitHash)
 	return g.gp.CommitsFromMostRecentGitHashToHead(ctx, mostRecentGitHash, func(p provider.Commit) error {
 		// Add p to the database starting at nextCommitNumber.
 		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)

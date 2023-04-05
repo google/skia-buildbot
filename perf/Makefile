@@ -195,3 +195,21 @@ run-demo-instance:
 		--display_group_by=false \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
+
+# Used to test chrome-perf-public ingestion into a local CDB instance.
+#
+# Before running this target you need to have a local single-instance of
+# cockroachdb running, started like this:
+#
+#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
+#
+# The create the database and apply the schema.
+#
+run-chrome-ingest-demo-instance:
+	$(BAZEL) build --config=mayberemote //perf/...
+
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
+		--local \
+		--num_parallel_ingesters=1 \
+		--config_filename=./configs/chrome-perf-public.json \
+		--connection_string=postgresql://root@127.0.0.1:26257/chrome_pub?sslmode=disable

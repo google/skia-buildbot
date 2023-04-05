@@ -10,8 +10,14 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
+)
+
+const (
+	batchSize = 100
 )
 
 // Gitiles implements provider.Provider.
@@ -42,23 +48,26 @@ func (g *Gitiles) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRe
 	if mostRecentGitHash == "" {
 		expr = git.MainBranch
 	}
-	lc, err := g.gr.Log(ctx, expr)
+
+	sklog.Infof("Populating from gitiles from %q", expr)
+	err := g.gr.LogFnBatch(ctx, expr, func(ctx context.Context, lcs []*vcsinfo.LongCommit) error {
+		sklog.Infof("Processing %s commits: ", len(lcs))
+		for _, longCommit := range lcs {
+			c := provider.Commit{
+				GitHash:   longCommit.Hash,
+				Timestamp: longCommit.Timestamp.Unix(),
+				Author:    longCommit.Author,
+				Subject:   longCommit.Subject,
+			}
+			err := cb(c)
+			if err != nil {
+				return skerr.Wrapf(err, "processing callback")
+			}
+		}
+		return nil
+	}, gitiles.LogBatchSize(batchSize), gitiles.LogReverse())
 	if err != nil {
 		return skerr.Wrapf(err, "loading commits")
-	}
-	// Iterate over the slice in reverse order.
-	for i := len(lc) - 1; i >= 0; i-- {
-		longCommit := lc[i]
-		c := provider.Commit{
-			GitHash:   longCommit.Hash,
-			Timestamp: longCommit.Timestamp.Unix(),
-			Author:    longCommit.Author,
-			Subject:   longCommit.Subject,
-		}
-		err = cb(c)
-		if err != nil {
-			return skerr.Wrapf(err, "processing callback")
-		}
 	}
 	return nil
 }

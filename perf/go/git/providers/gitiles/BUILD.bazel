@@ -10,6 +10,8 @@ go_library(
         "//go/git",
         "//go/gitiles",
         "//go/skerr",
+        "//go/sklog",
+        "//go/vcsinfo",
         "//perf/go/config",
         "//perf/go/git/provider",
     ],
@@ -26,6 +28,7 @@ go_test(
         "//go/testutils",
         "//go/vcsinfo",
         "//perf/go/git/provider",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )
