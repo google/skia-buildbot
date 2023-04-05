@@ -212,7 +212,17 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
-			return err
+			return skerr.Wrapf(err, "failed to create workdir %s", r.workdir)
+		}
+	}
+
+	// Create the temp directory if needed.
+	tmp := os.Getenv("TMPDIR")
+	if tmp != "" {
+		if _, err := os.Stat(tmp); err != nil {
+			if err := os.MkdirAll(tmp, 0755); err != nil {
+				return skerr.Wrapf(err, "failed to create TMPDIR %s", tmp)
+			}
 		}
 	}
 
@@ -229,6 +239,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 			return err
 		}
 	}
+
 	// Sync only the child path and the repohooks directory (needed to upload changes).
 	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"}
 	if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
@@ -242,6 +253,16 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 			return err
 		}
 		sklog.Info("Retrying sync after deleting %s", repoDirPath)
+		if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
+			return err
+		}
+
+		sklog.Warningf("repo sync error: %s", err)
+		// Try deleting .repo in the workdir and re-initing and re-syncing (skbug.com/12146).
+		if err := os.RemoveAll(r.childDir); err != nil {
+			return skerr.Wrapf(err, "Could not delete %s before attempting a resync", r.childDir)
+		}
+		sklog.Info("Retrying sync after deleting %s", r.childDir)
 		if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
 			return err
 		}
@@ -281,13 +302,7 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 	if err := r.updateAndroidCheckout(ctx); err != nil {
-		// We may have gotten into a bad state. Delete the checkout and retry.
-		if removeErr := os.RemoveAll(r.workdir); removeErr != nil {
-			return nil, nil, nil, skerr.Wrapf(err, "failed to update checkout and failed to remove with: %s", removeErr)
-		}
-		if err := r.updateAndroidCheckout(ctx); err != nil {
-			return nil, nil, nil, skerr.Wrapf(err, "failed second attempt updating Android checkout")
-		}
+		return nil, nil, nil, skerr.Wrapf(err, "failed to update Android checkout")
 	}
 
 	// Get the last roll revision.
