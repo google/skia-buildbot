@@ -159,16 +159,12 @@ func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
 	issue := int64(0)
 	const startTs int64 = 1678218051
 	now := time.Unix(startTs, 0) // Arbitrary starting point.
-	createAndInsertRoll := func(success bool) {
+	createAndInsertRoll := func(result string) {
 		issue += 1
 		now = now.Add(time.Second)
-		result := autoroll.ROLL_RESULT_FAILURE
-		if success {
-			result = autoroll.ROLL_RESULT_SUCCESS
-		}
 		require.NoError(t, db.Put(ctx, r.roller, &autoroll.AutoRollIssue{
 			Closed:     true,
-			Committed:  success,
+			Committed:  result != autoroll.ROLL_RESULT_IN_PROGRESS,
 			Created:    now,
 			Issue:      issue,
 			Modified:   now,
@@ -181,9 +177,9 @@ func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
 
 	// One successful roll followed by a number of failures.  We should see the
 	// correct number of failed rolls and the timestamp of the successful roll.
-	createAndInsertRoll(true)
+	createAndInsertRoll(autoroll.ROLL_RESULT_SUCCESS)
 	for i := 0; i < 2*RecentRollsLength; i++ {
-		createAndInsertRoll(false)
+		createAndInsertRoll(autoroll.ROLL_RESULT_FAILURE)
 	}
 	require.NoError(t, r.refreshRecentRolls(ctx))
 
@@ -192,7 +188,13 @@ func TestRecentRolls_NumFailuresAndLastSucessfulRollTime(t *testing.T) {
 
 	// Add a new successful roll.  The number of failures should be zero, and
 	// last successful roll timestamp should be updated.
-	createAndInsertRoll(true)
+	createAndInsertRoll(autoroll.ROLL_RESULT_SUCCESS)
+	require.NoError(t, r.refreshRecentRolls(ctx))
+	require.Equal(t, 0, r.NumFailedRolls())
+	require.Equal(t, time.Unix(startTs+int64(2*RecentRollsLength+2), 0), r.LastSuccessfulRollTime())
+
+	// Add an in-progress roll. It shouldn't throw off the number of failures.
+	createAndInsertRoll(autoroll.ROLL_RESULT_IN_PROGRESS)
 	require.NoError(t, r.refreshRecentRolls(ctx))
 	require.Equal(t, 0, r.NumFailedRolls())
 	require.Equal(t, time.Unix(startTs+int64(2*RecentRollsLength+2), 0), r.LastSuccessfulRollTime())

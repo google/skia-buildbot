@@ -233,7 +233,7 @@ func (r *RecentRolls) refreshRecentRolls(ctx context.Context) error {
 					foundSuccessfulRoll = true
 					lastSuccessfulRollTime = roll.Modified
 					break
-				} else {
+				} else if roll.Failed() {
 					numFailedrolls++
 				}
 			}
