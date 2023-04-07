@@ -124,7 +124,7 @@ const (
 	GIT_LS_REMOTE_TIMEOUT       = 5 * time.Minute
 	GIT_APPLY_TIMEOUT           = 5 * time.Minute
 	GN_CHROMIUM_TIMEOUT         = 30 * time.Minute
-	NINJA_TIMEOUT               = 2 * time.Hour
+	NINJA_TIMEOUT               = 3 * time.Hour
 
 	// util.UnInstallChromeAPK
 	ADB_UNINSTALL_TIMEOUT = time.Minute
