@@ -26,6 +26,9 @@ const tls = `{
 						"filename": "/etc/envoy/front-proxy-key.pem"
 					}
 				}
+			],
+			"alpn_protocols": [
+				"h2,http/1.1"
 			]
 		}
 	}
