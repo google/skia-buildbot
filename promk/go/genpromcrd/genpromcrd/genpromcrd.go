@@ -60,11 +60,11 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 		if err != nil {
 			return err
 		}
-		deployments, statefulSets, _, _, err := k8s_config.ParseK8sConfigFile(b)
+		k8sConfigs, err := k8s_config.ParseK8sConfigFile(b)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to parse")
 		}
-		for _, d := range deployments {
+		for _, d := range k8sConfigs.Deployment {
 			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
 				ret[AlertTarget{
 					AppGroup:  appgroup,
@@ -72,7 +72,7 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 				}] = true
 			}
 		}
-		for _, d := range statefulSets {
+		for _, d := range k8sConfigs.StatefulSet {
 			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
 				ret[AlertTarget{
 					AppGroup:  appgroup,

@@ -68,6 +68,37 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 3
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skia-autoroll
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: skia-autoroll
+  annotations:
+    # Explicitly mapping the Kubernetes Service account to a Google Service Account.
+    iam.gke.io/gcp-service-account: "skia-autoroll@skia-public.iam.gserviceaccount.com"
+---
+# This binding permits to schedule Pods in this namespace using the "restricted" PodSecurityPolicy.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restricted-psp-role-binding
+  namespace: skia-autoroll
+roleRef:
+  kind: ClusterRole
+  name: can-use-restricted-psp
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  # Authorize all service accounts in the skia-autoroll namespace to run. This defines a single
+  # PodSecurityPolicy for the namespace, and it's much easier to maintain over time.
+  - kind: Group
+    apiGroup: rbac.authorization.k8s.io
+    name: system:serviceaccounts
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -159,17 +190,73 @@ spec:
               env:
                 - name: HOME
                   value: /home/skia
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: view-permissions
+rules:
+  - apiGroups:
+      - extensions
+    resources:
+      - podsecuritypolicies
+    verbs: ["get", "list"]
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - clusterroles
+      - rolebindings
+      - clusterrolebindings
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: team-view-all
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: Group
+    name: our-team@google.com
+    apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: my-psp
+spec:
+  privileged: false
 `
 
 func TestParseK8sConfigFile_Success(t *testing.T) {
-
-	deployments, statefulSets, cronJobs, daemonSets, err := ParseK8sConfigFile([]byte(k8sConfig))
+	k8sConfigs, err := ParseK8sConfigFile([]byte(k8sConfig))
 	require.NoError(t, err)
-	require.Len(t, deployments, 1)
-	require.Len(t, statefulSets, 1)
-	require.Len(t, cronJobs, 1)
-	require.Len(t, daemonSets, 0)
-	require.Equal(t, "gcr.io/skia-public/datahopper:2022-06-24T14_25_21Z-borenet-17bb7f4-clean", deployments[0].Spec.Template.Spec.Containers[0].Image)
-	require.Equal(t, "gcr.io/skia-public/autoroll-be:2022-06-21T13_56_34Z-borenet-33d442f-clean", statefulSets[0].Spec.Template.Spec.Containers[0].Image)
-	require.Equal(t, "gcr.io/skia-public/comp-ui-gitcron:2022-04-08T11_33_16Z-jcgregorio-72d31c9-clean", cronJobs[0].Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image)
+
+	require.Len(t, k8sConfigs.ClusterRole, 1)
+
+	require.Len(t, k8sConfigs.ClusterRoleBinding, 1)
+
+	require.Len(t, k8sConfigs.CronJob, 1)
+	require.Equal(t, "gcr.io/skia-public/comp-ui-gitcron:2022-04-08T11_33_16Z-jcgregorio-72d31c9-clean", k8sConfigs.CronJob[0].Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image)
+
+	require.Len(t, k8sConfigs.DaemonSet, 0)
+
+	require.Len(t, k8sConfigs.Deployment, 1)
+	require.Equal(t, "gcr.io/skia-public/datahopper:2022-06-24T14_25_21Z-borenet-17bb7f4-clean", k8sConfigs.Deployment[0].Spec.Template.Spec.Containers[0].Image)
+
+	require.Len(t, k8sConfigs.Namespace, 1)
+
+	require.Len(t, k8sConfigs.PodSecurityPolicy, 1)
+
+	require.Len(t, k8sConfigs.RoleBinding, 1)
+
+	require.Len(t, k8sConfigs.Service, 1)
+
+	require.Len(t, k8sConfigs.ServiceAccount, 1)
+
+	require.Len(t, k8sConfigs.StatefulSet, 1)
+	require.Equal(t, "gcr.io/skia-public/autoroll-be:2022-06-21T13_56_34Z-borenet-33d442f-clean", k8sConfigs.StatefulSet[0].Spec.Template.Spec.Containers[0].Image)
 }

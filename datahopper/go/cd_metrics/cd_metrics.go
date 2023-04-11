@@ -351,7 +351,7 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				if err != nil {
 					return skerr.Wrapf(err, "failed to read %s at %s", file, commit.Hash)
 				}
-				deployments, statefulSets, cronJobs, daemonSets, err := k8s_config.ParseK8sConfigFile(contents)
+				k8sConfigs, err := k8s_config.ParseK8sConfigFile(contents)
 				if err != nil {
 					return skerr.Wrapf(err, "failed to parse %s", file)
 				}
@@ -360,16 +360,16 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				// and cron jobs.
 				containers := []v1.Container{}
 				containers = append(containers)
-				for _, config := range deployments {
+				for _, config := range k8sConfigs.Deployment {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
-				for _, config := range statefulSets {
+				for _, config := range k8sConfigs.StatefulSet {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
-				for _, config := range cronJobs {
+				for _, config := range k8sConfigs.CronJob {
 					containers = append(containers, config.Spec.JobTemplate.Spec.Template.Spec.Containers...)
 				}
-				for _, config := range daemonSets {
+				for _, config := range k8sConfigs.DaemonSet {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
 

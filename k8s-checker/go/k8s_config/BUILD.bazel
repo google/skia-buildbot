@@ -8,8 +8,12 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "@io_k8s_api//apps/v1:apps",
         "@io_k8s_api//batch/v1beta1",
+        "@io_k8s_api//core/v1:core",
+        "@io_k8s_api//policy/v1beta1",
+        "@io_k8s_api//rbac/v1:rbac",
         "@io_k8s_sigs_yaml//:yaml",
     ],
 )

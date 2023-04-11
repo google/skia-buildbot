@@ -333,12 +333,12 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		deployments, statefulSets, cronJobs, daemonSets, err := k8s_config.ParseK8sConfigFile(yamlContents)
+		k8sConfigs, err := k8s_config.ParseK8sConfigFile(yamlContents)
 		if err != nil {
 			sklog.Errorf("Error when parsing %s: %s", filepath.Join(cluster, f), err)
 			continue
 		}
-		for _, config := range cronJobs {
+		for _, config := range k8sConfigs.CronJob {
 			namespace := fixupNamespace(config.Namespace)
 			for _, c := range config.Spec.JobTemplate.Spec.Template.Spec.Containers {
 				// Check if the image in the config is dirty.
@@ -355,19 +355,19 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 		namespaces := []string{}
 		containers := [][]v1.Container{}
 		volumeClaims := [][]v1.PersistentVolumeClaim{}
-		for _, config := range deployments {
+		for _, config := range k8sConfigs.Deployment {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
 			volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
 		}
-		for _, config := range statefulSets {
+		for _, config := range k8sConfigs.StatefulSet {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
 			volumeClaims = append(volumeClaims, config.Spec.VolumeClaimTemplates)
 		}
-		for _, config := range daemonSets {
+		for _, config := range k8sConfigs.DaemonSet {
 			apps = append(apps, config.Spec.Template.Labels[appLabel])
 			namespaces = append(namespaces, fixupNamespace(config.Namespace))
 			containers = append(containers, config.Spec.Template.Spec.Containers)
