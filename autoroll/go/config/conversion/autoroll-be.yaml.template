@@ -37,6 +37,14 @@ spec:
           volumeMounts:
             - name: autoroll-be-{{.rollerName}}-storage
               mountPath: /data
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
 {{- end}}
       containers:
         - name: autoroll-be-{{.rollerName}}
@@ -78,6 +86,14 @@ spec:
             initialDelaySeconds: {{.kubernetes.readinessInitialDelaySeconds}}
             periodSeconds: {{.kubernetes.readinessPeriodSeconds}}
             failureThreshold: {{.kubernetes.readinessFailureThreshold}}
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       volumes:
 {{- if .kubernetes.disk}}
   volumeClaimTemplates:
