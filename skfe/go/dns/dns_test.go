@@ -20,13 +20,6 @@ var allNameServers = []string{
 	"ns-cloud-c2.googledomains.com:53",
 	"ns-cloud-c3.googledomains.com:53",
 	"ns-cloud-c4.googledomains.com:53",
-
-	// These are the current nameservers for skia.org, and can be removed after
-	// the migration to Cloud DNS is complete.
-	"ns1.googledomains.com:53",
-	"ns3.googledomains.com:53",
-	"ns2.googledomains.com:53",
-	"ns4.googledomains.com:53",
 }
 
 // testZoneEntry tests a single DNS Zone entry.
@@ -69,6 +62,12 @@ func TestDNSConfiguration(t *testing.T) {
 	testZoneEntry(t, dns.TypeCAA, "skia.org.", "pki.goog")
 
 	testZoneEntry(t, dns.TypeCNAME, "_validate_domain.skia.org.", "_validate_domain.pki.goog.")
+
+	testZoneEntry(t, dns.TypeA, "autoroll.skia.org.", "34.110.212.89")
+	testZoneEntry(t, dns.TypeA, "status.skia.org.", "34.110.212.89")
+	testZoneEntry(t, dns.TypeA, "cabe.skia.org.", "34.110.212.89")
+	testZoneEntry(t, dns.TypeA, "perf-infra-public-cdb.skia.org.", "34.110.212.89")
+	// testZoneEntry(t, dns.TypeA, "envoy-admin-panel-public.skia.org.", "34.110.212.89")
 
 	testZoneEntry(t, dns.TypeA, "skia.org.", "35.201.76.220")
 
