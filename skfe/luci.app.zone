@@ -1,0 +1,51 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; This is the zone file for the luci.app domain. This file is used
+;;; to populate the zone records in the skia-public GCP project,
+;;; which is where our zone file is hosted.
+;;;
+;;; If you add or change any records in this file then apply them with:
+;;;
+;;;    $ ./update-zone-records.sh
+;;;
+;;; After you apply the changes run:
+;;;
+;;;    $./watch-for-zone-file-update.sh
+;;;
+;;; Once the changes have propogated update the tests in:
+;;;
+;;;    //skfe/go/dns/dns_test.go
+;;;
+;;; And then run the tests to confirm the configuration is working
+;;; as intended.
+;;;
+;;;    bazelisk test //skfe/go/dns:dns_test
+;;;
+;;; See go/skia-dns for details on the registration of skia.org.
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+$TTL 3600     ; default TTL 1 hour
+
+;;; SSL/TLS certificates policy
+;;; Certification Authority Authorization (CAA) records are
+;;; used to specify which certificate authorities (CAs) are
+;;; allowed to issue certificates for a domain.
+;;; The record below restricts certificate issuance to
+;;; Google CA only.
+
+@           86400 IN CAA 0 issue "pki.goog"
+
+;;;; This record is required to validate domains for
+;;;; certificate issuance.
+
+_validate_domain 3600 IN CNAME _validate_domain.pki.goog.
+
+;;; Master A record. Hosted in the GCP project skia-infra-public.
+@         300      IN A 34.110.212.89
+
+;;; CNAME all the hosts for this domain.
+*          3600    IN CNAME luci.app.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; End of luci.app.zone
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
