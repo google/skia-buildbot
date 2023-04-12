@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -52,6 +53,7 @@ const (
 	runningContainerHasConfigMetric = "running_container_has_config_metric"
 	staleImageMetric                = "stale_image_metric"
 	totalDiskRequestMetric          = "total_disk_requested"
+	podSecurityMetric               = "pod_security"
 )
 
 // The format of the image is expected to be:
@@ -142,15 +144,15 @@ func fixupNamespace(namespace string) string {
 }
 
 // getNamespaces finds all namespaces in the cluster.
-func getNamespaces(ctx context.Context, cluster string, k8sClient k8s.Client, ignoreNamespaces []string) ([]string, error) {
+func getNamespaces(ctx context.Context, cluster string, k8sClient k8s.Client, ignoreNamespaces []string) ([]v1.Namespace, error) {
 	namespaces, err := k8sClient.ListNamespaces(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "listing namespaces")
 	}
-	rv := make([]string, 0, len(namespaces))
+	rv := make([]v1.Namespace, 0, len(namespaces))
 	for _, namespace := range namespaces {
 		if !util.In(namespace.Name, ignoreNamespaces) {
-			rv = append(rv, namespace.Name)
+			rv = append(rv, namespace)
 		}
 	}
 	return rv, nil
@@ -239,6 +241,28 @@ func getPodMetrics(ctx context.Context, cluster, namespace string, k8sClient k8s
 	return nil
 }
 
+// getNamespaceMetrics retrieves metrics for namespaces.
+func getNamespaceMetrics(ctx context.Context, cluster string, namespace v1.Namespace, k8sClient k8s.Client, metrics map[metrics2.Int64Metric]struct{}) error {
+	// Pod security levels.
+	for _, action := range []string{"enforce", "audit", "warn"} {
+		podSecurityLevelLabel := fmt.Sprintf("pod-security.kubernetes.io/%s", action)
+		podSecurityVersionLabel := fmt.Sprintf("pod-security.kubernetes.io/%s-version", action)
+		podSecurityLevelValue := map[string]int64{
+			"privileged": 3,
+			"baseline":   2,
+			"restricted": 1,
+		}[namespace.Labels[podSecurityLevelLabel]]
+		levelMetric := metrics2.GetInt64Metric(podSecurityMetric, map[string]string{
+			"namespace": namespace.Name,
+			"action":    action,
+			"version":   namespace.Labels[podSecurityVersionLabel],
+		})
+		levelMetric.Update(podSecurityLevelValue)
+		metrics[levelMetric] = struct{}{}
+	}
+	return nil
+}
+
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
 func getLiveAppContainersToImages(ctx context.Context, namespace string, k8sClient k8s.Client) (map[string]map[string]string, error) {
 	// Get JSON output of pods running in K8s.
@@ -287,22 +311,27 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 
 	liveAppContainerToImagesByNamespace := make(map[string]map[string]map[string]string, len(namespaces))
 	for _, namespace := range namespaces {
+		// Check the namespace itself.
+		if err := getNamespaceMetrics(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
+			return nil, skerr.Wrapf(err, "obtaining namespace metrics")
+		}
+
 		// Check for evicted pods.
-		if err := getEvictedPods(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
+		if err := getEvictedPods(ctx, cluster, namespace.Name, k8sClient, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "checking for evicted pods from kubectl")
 		}
 
 		// Check for crashing pods.
-		if err := getPodMetrics(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
+		if err := getPodMetrics(ctx, cluster, namespace.Name, k8sClient, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
 		}
 
 		// Get mapping from live apps to their containers and images.
-		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace, k8sClient)
+		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace.Name, k8sClient)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
 		}
-		liveAppContainerToImagesByNamespace[namespace] = liveAppContainerToImages
+		liveAppContainerToImagesByNamespace[namespace.Name] = liveAppContainerToImages
 	}
 	// TODO(borenet): Remove this logging after debugging.
 	b, err := json.MarshalIndent(liveAppContainerToImagesByNamespace, "", "  ")
