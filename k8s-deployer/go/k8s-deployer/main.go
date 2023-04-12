@@ -32,6 +32,10 @@ const (
 	gitstoreSubscriberID = "k8s-deployer"
 )
 
+var (
+	errorLogRegex = regexp.MustCompile(`Warning:.*`)
+)
+
 func main() {
 	autoDeleteCrashingStatefulSetPods := flag.Bool("auto_delete_crashing_statefulset_pods", false, "If set, delete out-of-date and crashing StatefulSet pods after applying changes.")
 	configRepo := flag.String("config_repo", "https://skia.googlesource.com/k8s-config.git", "Repo containing Kubernetes configurations.")
@@ -218,7 +222,11 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	}
 	sklog.Info("Output from kubectl")
 	for _, line := range strings.Split(output, "\n") {
-		sklog.Info(line)
+		if errorLogRegex.MatchString(line) {
+			sklog.Error(line)
+		} else {
+			sklog.Info(line)
+		}
 	}
 	return nil
 }
