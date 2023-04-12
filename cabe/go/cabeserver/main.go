@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"go.skia.org/infra/go/common"
@@ -30,6 +32,24 @@ var (
 	grpcPort = flag.Int("grpc_port", 50051, "gRPC service port (e.g., '50051')")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
+
+func authInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	if err := authorize(ctx); err != nil {
+		return nil, err
+	}
+
+	return handler(ctx, req)
+}
+
+func authorize(ctx context.Context) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		sklog.Infof("incoming grpc metadata: %#v", md)
+	} else {
+		sklog.Infof("no incoming grpc metadata")
+	}
+	return nil
+}
 
 func main() {
 	flag.Parse()
@@ -54,7 +74,7 @@ func main() {
 		sklog.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 	}()
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor))
 
 	sklog.Infof("registering grpc health server")
 	healthServer := health.NewServer()
