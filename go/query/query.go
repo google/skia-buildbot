@@ -436,7 +436,7 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 //		ParamSet: paramtools.ParamSet{
 //		  "config": []string{"565", "8888", "gpu"},
 //		  "arch":   []string{"x86", "arm", "riscv"},
-//	    "foo":    []string{"bar"},
+//		  "foo":    []string{"bar"},
 //		},
 //	}
 //

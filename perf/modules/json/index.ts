@@ -71,6 +71,7 @@ export interface Commit {
 	author: string;
 	message: string;
 	url: string;
+	body: string;
 }
 
 export interface Current {

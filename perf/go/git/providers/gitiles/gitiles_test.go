@@ -25,6 +25,7 @@ const (
 	beginHash     = "1111111"
 	endHash       = "2222222"
 	filename      = "foo.txt"
+	body          = "This is the body"
 )
 
 var (
@@ -39,7 +40,7 @@ var (
 				Author:  author,
 				Subject: subject,
 			},
-			Body:      "This is the body",
+			Body:      body,
 			Timestamp: time.Time{},
 		},
 	}
@@ -161,6 +162,27 @@ func TestCommitsFromMostRecentGitHashToHead_HappyPath(t *testing.T) {
 	cb := func(c provider.Commit) error {
 		require.Equal(t, expected[index], c.GitHash)
 		index++
+		return nil
+	}
+	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), beginHash, cb)
+	require.NoError(t, err)
+}
+
+func TestCommitsFromMostRecentGitHashToHead_WithBody(t *testing.T) {
+	mockRepo := gitiles_mocks.NewGitilesRepo(t)
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.LogFromTo(beginHash, "HEAD"), mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse()).Run(func(args mock.Arguments) {
+		cb := args[2].(func(context.Context, []*vcsinfo.LongCommit) error)
+		err := cb(context.Background(), commitDetailsForOneCommit)
+		require.NoError(t, err)
+	}).Return(nil)
+
+	gp := &Gitiles{
+		gr: mockRepo,
+	}
+	cb := func(c provider.Commit) error {
+		require.Equal(t, gitHash, c.GitHash)
+		require.Equal(t, body, c.Body)
+
 		return nil
 	}
 	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), beginHash, cb)

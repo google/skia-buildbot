@@ -4,6 +4,7 @@ package git
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -38,7 +39,7 @@ var subTests = map[string]subTestFunction{
 	"testDetails_Success":                                                                testDetails_Success,
 	"testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success":                       testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success,
 	"testCommitSliceFromCommitNumberSlice_Success":                                       testCommitSliceFromCommitNumberSlice_Success,
-	"testUpdate_NewCommitsAreFoundAfterUpdate":                                           testUpdate_NewCommitsAreFoundAfterUpdate,
+	"testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate":                                testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate,
 	"testCommitNumberFromGitHash_Success":                                                testCommitNumberFromGitHash_Success,
 	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                                  testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
 	"testCommitNumberFromTime_Success":                                                   testCommitNumberFromTime_Success,
@@ -62,7 +63,7 @@ var subTests = map[string]subTestFunction{
 	"testLogEntry_BadCommitId_ReturnsError":                                              testLogEntry_BadCommitId_ReturnsError,
 }
 
-func testUpdate_NewCommitsAreFoundAfterUpdate(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
 	// Add new commit to repo, it shouldn't appear in the database.
 	newHash := gb.CommitGenAt(ctx, "foo.txt", gittest.StartTime.Add(4*time.Minute))
 	_, err := g.CommitNumberFromGitHash(ctx, newHash)
@@ -344,4 +345,63 @@ func TestCommit_Display(t *testing.T) {
 		URL:          "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	assert.Equal(t, "d261e10 -  2y 40w - Re-enable opList dependency tracking", c.Display(time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC)))
+}
+
+func TestGetCommitNumberFromGitLog(t *testing.T) {
+	for name, subTest := range getCommitNumberSubTests {
+		t.Run(name, func(t *testing.T) {
+			ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+			g, err := New(ctx, true, db, instanceConfig)
+			require.NoError(t, err)
+
+			g.commitNumberRegex = regexp.MustCompile("Cr-Commit-Position: refs/heads/master@\\{#(.*)\\}")
+
+			subTest.SubTestFunction(t, subTest.body, g)
+		})
+	}
+}
+
+// getCommitNumberSubTestFunction is a func we will call to test one aspect of *SQLTraceStore.
+type getCommitNumberSubTestFunction func(t *testing.T, body string, g *Git)
+
+// subTests are all the tests we have for *SQLTraceStore.
+var getCommitNumberSubTests = map[string]struct {
+	SubTestFunction getCommitNumberSubTestFunction
+	body            string
+}{
+	"testGetCommitNumberFromCommit_Success": {testGetCommitNumberFromCommit_Success, `Bug: 1030266
+		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
+		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
+		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
+		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
+		Cr-Commit-Position: refs/heads/master@{#727989}
+		`},
+	"testGetCommitNumberFromCommit_NoCommitNumber": {testGetCommitNumberFromCommit_NoCommitNumber, `Bug: 1030266
+		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
+		`},
+	"testGetCommitNumberFromCommit_InvalidCommitNumber": {testGetCommitNumberFromCommit_InvalidCommitNumber, `Bug: 1030266
+		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
+		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
+		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
+		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
+		Cr-Commit-Position: refs/heads/master@{#727a989}
+		`},
+}
+
+func testGetCommitNumberFromCommit_Success(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(727989), commitNumber)
+}
+
+func testGetCommitNumberFromCommit_NoCommitNumber(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
+func testGetCommitNumberFromCommit_InvalidCommitNumber(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }

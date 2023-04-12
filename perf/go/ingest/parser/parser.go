@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/metrics2"
@@ -303,4 +304,22 @@ func (p *Parser) ParseTryBot(file file.File) (types.CL, string, error) {
 	}
 	return parsed.Issue, parsed.Patchset, nil
 
+}
+
+// ParseCommitNumberFromGitHash parse commit number from git hash.
+// this method will be used to get integer commit number from string git hash.
+// For example: "git_hash": "CP:727901", the commit number will be 727901
+func (p *Parser) ParseCommitNumberFromGitHash(gitHash string) (types.CommitNumber, error) {
+	gitHashContent := strings.SplitN(gitHash, "CP:", -1)
+
+	if len(gitHashContent) != 2 {
+		return types.BadCommitNumber, skerr.Fmt("Failed to parse commit number string from git hash: %q", gitHash)
+	}
+
+	commitNumber, err := strconv.Atoi(gitHashContent[1])
+	if err != nil {
+		return types.BadCommitNumber, skerr.Wrapf(err, "Failed to parse commit number integer from git hash: %q", gitHash)
+	}
+
+	return types.CommitNumber(commitNumber), nil
 }

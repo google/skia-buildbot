@@ -29,6 +29,7 @@ ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
         url:
           'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
         ts: 1476984695,
+        body: 'Commit body.',
       },
     ],
     logEntry: '',

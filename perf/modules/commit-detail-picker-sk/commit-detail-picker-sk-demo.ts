@@ -14,6 +14,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
       'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
     hash: '3a543aafd4e68af182ef88572086c094cd63f0b2',
     ts: 1565099441,
+    body: 'Commit body.',
   },
   {
     offset: 43390,
@@ -23,6 +24,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
       'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     hash: 'bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     ts: 1565107798,
+    body: 'Commit body.',
   },
   {
     offset: 43391,
@@ -32,6 +34,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
       'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     hash: 'e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     ts: 1565220328,
+    body: 'Commit body.',
   },
 ]);
 

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracing"
+	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -94,17 +95,33 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		}
 
 		sklog.Info("Lookup CommitNumber")
-		// Convert gitHash to commitNumber.
-		commitNumber, err := g.CommitNumberFromGitHash(ctx, gitHash)
+
+		// if git_hash is missing from GCS file
+		if len(gitHash) == 0 {
+			sklog.Errorf("Unable to handle empty git hash.")
+			continue
+		}
+
+		commitNumber := types.CommitNumber(0)
+		if g.RepoSuppliedCommitNumber() {
+			commitNumber, err = p.ParseCommitNumberFromGitHash(gitHash)
+			if err != nil {
+				sklog.Errorf("Unable to convert githash to integer commit number %q.", gitHash, err)
+				continue
+			}
+		}
+
+		// Convert gitHash or check the existance of a commitNumber.
+		commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumber)
 		if err != nil {
 			if err := g.Update(ctx); err != nil {
 				sklog.Errorf("Failed to Update: ", err)
 
 			}
-			commitNumber, err = g.CommitNumberFromGitHash(ctx, gitHash)
+			commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumber)
 			if err != nil {
 				badGitHash.Inc(1)
-				sklog.Error("Failed to find gitHash %v: %s", f, err)
+				sklog.Error("Failed to find commit number %v: %s", f, err)
 				continue
 			}
 		}

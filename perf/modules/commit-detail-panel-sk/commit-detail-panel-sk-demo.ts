@@ -11,6 +11,7 @@ const commitinfo = [
     message: 'Commit from foo.',
     hash: 'abcdef123',
     offset: 1,
+    body: 'Commit body.',
   },
   {
     ts: 1439648914,
@@ -19,6 +20,7 @@ const commitinfo = [
     message: 'Commit from bar',
     hash: 'abcdef456',
     offset: 2,
+    body: 'Commit body.',
   },
   {
     ts: 1439649951,
@@ -27,6 +29,7 @@ const commitinfo = [
     message: 'Whitespace change',
     hash: 'abcdef789',
     offset: 3,
+    body: 'Commit body.',
   },
   {
     ts: 1439699951,
@@ -35,6 +38,7 @@ const commitinfo = [
     message: 'Another whitespace change',
     hash: 'abcdef101112',
     offset: 4,
+    body: 'Commit body.',
   },
 ];
 

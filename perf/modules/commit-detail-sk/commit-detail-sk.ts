@@ -25,6 +25,7 @@ export class CommitDetailSk extends ElementSk {
       ts: 0,
       hash: '',
       offset: 0,
+      body: '',
     };
   }
 

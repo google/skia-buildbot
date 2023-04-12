@@ -101,6 +101,9 @@
         },
         "commit_url": {
           "type": "string"
+        },
+        "commit_number_regex": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

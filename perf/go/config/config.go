@@ -266,6 +266,13 @@ type GitRepoConfig struct {
 	// repos, while "%s/+show/%s" is a good value for Gerrit repos. Defaults
 	// to "%s/+show/%s" if no value is supplied.
 	CommitURL string `json:"commit_url,omitempty"`
+
+	// CommitNumberRegex is the regex we use to get commit number from the
+	// message section of git log.
+	// This field also indicates whether the commit number should be used
+	// Git log example: "... Cr-Commit-Position: refs/heads/master@{#727901}"
+	// Leave empty to have Perf generate commit numbers.
+	CommitNumberRegex string `json:"commit_number_regex,omitempty"`
 }
 
 // FrontendFlags are the command-line flags for the web UI.

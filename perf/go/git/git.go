@@ -4,6 +4,8 @@ package git
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -152,6 +154,9 @@ type Git struct {
 	// cache for CommitFromCommitNumber.
 	cache *lru.Cache
 
+	repoSuppliedCommitNumber bool
+	commitNumberRegex        *regexp.Regexp
+
 	// Metrics
 	updateCalled                                          metrics2.Counter
 	commitNumberFromGitHashCalled                         metrics2.Counter
@@ -178,11 +183,22 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 		return nil, skerr.Wrap(err)
 	}
 
+	// If the commit_number_regex config is not empty, will parse commit number from git hash field.
+	commitNumberRegex := instanceConfig.GitRepoConfig.CommitNumberRegex
+	repoSuppliedCommitNumber := false
+	var regex *regexp.Regexp
+	if len(commitNumberRegex) > 0 {
+		repoSuppliedCommitNumber = true
+		regex = regexp.MustCompile(commitNumberRegex)
+	}
+
 	ret := &Git{
 		gp:                                     gp,
 		db:                                     db,
 		cache:                                  cache,
 		instanceConfig:                         instanceConfig,
+		repoSuppliedCommitNumber:               repoSuppliedCommitNumber,
+		commitNumberRegex:                      regex,
 		updateCalled:                           metrics2.GetCounter("perf_git_update_called"),
 		commitNumberFromGitHashCalled:          metrics2.GetCounter("perf_git_commit_number_from_githash_called"),
 		commitNumberFromTimeCalled:             metrics2.GetCounter("perf_git_commit_number_from_time_called"),
@@ -227,14 +243,18 @@ func (g *Git) Update(ctx context.Context) error {
 	if err := g.gp.Update(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
+
+	nextCommitNumber := types.CommitNumber(0)
 	mostRecentGitHash, mostRecentCommitNumber, err := g.getMostRecentCommit(ctx)
-	nextCommitNumber := mostRecentCommitNumber + 1
+	if !g.repoSuppliedCommitNumber {
+		nextCommitNumber = mostRecentCommitNumber + 1
+	}
+
 	if err != nil {
 		// If the Commits table is empty then start populating it from the very
 		// first commit to the repo.
 		if err == pgx.ErrNoRows {
 			mostRecentGitHash = ""
-			nextCommitNumber = types.CommitNumber(0)
 		} else {
 			return skerr.Wrapf(err, "Failed looking up most recent commit.")
 		}
@@ -243,12 +263,21 @@ func (g *Git) Update(ctx context.Context) error {
 	total := 0
 	sklog.Infof("Populating commits from %q to HEAD", mostRecentGitHash)
 	return g.gp.CommitsFromMostRecentGitHashToHead(ctx, mostRecentGitHash, func(p provider.Commit) error {
+		if g.repoSuppliedCommitNumber {
+			nextCommitNumber, err = g.getCommitNumberFromCommit(p.Body)
+			if err != nil {
+				return skerr.Wrapf(err, "Failed to insert commit %q into database, because cannot find commit number.", p.GitHash)
+			}
+		}
+
 		// Add p to the database starting at nextCommitNumber.
 		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
-		nextCommitNumber++
+		if !g.repoSuppliedCommitNumber {
+			nextCommitNumber++
+		}
 		total++
 		if total < 10 || (total%100) == 0 {
 			sklog.Infof("Added %d commits this update cycle.", total)
@@ -256,6 +285,25 @@ func (g *Git) Update(ctx context.Context) error {
 		return nil
 
 	})
+}
+
+// getCommitNumberFromCommit get commit number from commit body.
+// For example, commit body is "... Cr-Commit-Position: refs/heads/master@{#727901}"
+// commitNumberRegex is "Cr-Commit-Position: refs/heads/master@\\{#(.*)\\}"
+// match[0] will be "Cr-Commit-Position: refs/heads/master@{#727901}"
+// match[1] will be "727901"
+func (g *Git) getCommitNumberFromCommit(body string) (types.CommitNumber, error) {
+	match := g.commitNumberRegex.FindStringSubmatch(body)
+	if len(match) != 2 {
+		return types.BadCommitNumber, skerr.Fmt("Failed to match commit number key by regex %q from commit body: %q", g.commitNumberRegex.String(), body)
+	}
+
+	result, err := strconv.Atoi(match[1])
+	if err != nil {
+		return types.BadCommitNumber, skerr.Wrapf(err, "Failed to parse commit number from commit body: %q", body)
+	}
+
+	return types.CommitNumber(result), nil
 }
 
 // getMostRecentCommit as seen in the database.
@@ -270,6 +318,19 @@ func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumb
 		return "", types.BadCommitNumber, err
 	}
 	return gitHash, commitNumber, nil
+}
+
+// GetCommitNumber looks up the commit number from Commits table given a git hash or commit number
+func (g *Git) GetCommitNumber(ctx context.Context, githash string, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	if g.repoSuppliedCommitNumber {
+		_, err := g.GitHashFromCommitNumber(ctx, commitNumber)
+		if err != nil {
+			return types.BadCommitNumber, err
+		}
+		return commitNumber, nil
+	}
+
+	return g.CommitNumberFromGitHash(ctx, githash)
 }
 
 // CommitNumberFromGitHash looks up the commit number given the git hash.
@@ -465,4 +526,8 @@ func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, 
 		return "", skerr.Wrap(err)
 	}
 	return g.gp.LogEntry(ctx, hash)
+}
+
+func (g *Git) RepoSuppliedCommitNumber() bool {
+	return g.repoSuppliedCommitNumber
 }

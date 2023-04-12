@@ -21,6 +21,7 @@ type Commit struct {
 	Author       string             `json:"author"`
 	Subject      string             `json:"message"`
 	URL          string             `json:"url"`
+	Body         string             `json:"body"` // it's used to parse commit number, won't be insert into database.
 }
 
 // Display returns a display string that describes the commit.

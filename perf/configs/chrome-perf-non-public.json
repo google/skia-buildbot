@@ -32,6 +32,7 @@
         "dir": "/tmp/checkout",
         "debounce_commit_url": false,
         "file_change_marker": "",
-        "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b"
+        "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
+        "commit_number_regex": "Cr-Commit-Position: refs/heads/master@\\{#(.*)\\}"
     }
 }

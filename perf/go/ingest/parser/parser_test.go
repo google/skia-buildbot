@@ -17,6 +17,8 @@ import (
 )
 
 const goodBranchName = "some-branch-name"
+const legacyVersionName = "legacy"
+const versionOneName = "version_1"
 
 var (
 	expectedGoodParams = paramtools.Params{
@@ -35,7 +37,7 @@ var (
 func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 	// Load the sample data file as BenchData.
 
-	r := testutils.GetReader(t, filepath.Join("legacy", "success.json"))
+	r := testutils.GetReader(t, filepath.Join(legacyVersionName, "success.json"))
 
 	benchData, err := format.ParseLegacyFormat(r)
 	require.NoError(t, err)
@@ -49,7 +51,7 @@ func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 
 func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 	// Load the sample data file as BenchData.
-	r := testutils.GetReader(t, filepath.Join("version_1", "success.json"))
+	r := testutils.GetReader(t, filepath.Join(versionOneName, "success.json"))
 
 	f, err := format.Parse(r)
 	require.NoError(t, err)
@@ -64,7 +66,7 @@ func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 func TestParser(t *testing.T) {
 	// Loop over all the ingestion formats we support. Parallel test files with
 	// the same names are held in subdirectories of 'testdata'.
-	for _, ingestionFormat := range []string{"legacy", "version_1"} {
+	for _, ingestionFormat := range []string{legacyVersionName, versionOneName} {
 		for name, subTest := range SubTests {
 			subTestName := fmt.Sprintf("%s_%s", name, ingestionFormat)
 			t.Run(subTestName, func(t *testing.T) {
@@ -72,6 +74,13 @@ func TestParser(t *testing.T) {
 				subTest.SubTestFunction(t, p, f)
 			})
 		}
+	}
+
+	for name, subTest := range V1OnlySubTests {
+		t.Run(name, func(t *testing.T) {
+			p, f := parserForTest(t, versionOneName, subTest.filename)
+			subTest.SubTestFunction(t, p, f)
+		})
 	}
 }
 
@@ -212,10 +221,41 @@ func parse_ReadErr(t *testing.T, p *Parser, f file.File) {
 	assert.Equal(t, int64(1), p.parseFailCounter.Get())
 }
 
+// V1OnlySubTests are all the subtests we have for version_1 input of Parser.Parse
+var V1OnlySubTests = map[string]struct {
+	SubTestFunction SubTestFunction
+	filename        string
+}{
+	"parse_WithCommitNumberSpecified_Success": {parse_WithCommitNumberSpecified_Success, "with_commit_number.json"},
+	"parse_InvalidCommitNumber_Error":         {parse_InvalidCommitNumber_Error, "invalid_commit_number.json"},
+}
+
+func parse_WithCommitNumberSpecified_Success(t *testing.T, p *Parser, f file.File) {
+	params, values, gitHash, err := p.Parse(f)
+	require.NoError(t, err)
+	commitNumber, err := p.ParseCommitNumberFromGitHash(gitHash)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(727901), commitNumber)
+	assert.Len(t, values, 4)
+	assert.Len(t, params, 4)
+	assert.Contains(t, values, float32(858))
+	assert.Contains(t, params, expectedGoodParams)
+	assert.Equal(t, int64(1), p.parseCounter.Get())
+	assert.Equal(t, int64(0), p.parseFailCounter.Get())
+}
+
+func parse_InvalidCommitNumber_Error(t *testing.T, p *Parser, f file.File) {
+	_, _, gitHash, err := p.Parse(f)
+	require.NoError(t, err)
+	commitNumber, err := p.ParseCommitNumberFromGitHash(gitHash)
+	require.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
 func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
 	// Load the sample data file as BenchData.
 
-	r := testutils.GetReader(t, filepath.Join("legacy", "samples_success.json"))
+	r := testutils.GetReader(t, filepath.Join(legacyVersionName, "samples_success.json"))
 
 	b, err := format.ParseLegacyFormat(r)
 	require.NoError(t, err)
@@ -255,7 +295,7 @@ func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
 func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
 
 	// Load the sample data file as BenchData.
-	r := testutils.GetReader(t, filepath.Join("legacy", "samples_no_results.json"))
+	r := testutils.GetReader(t, filepath.Join(legacyVersionName, "samples_no_results.json"))
 
 	b, err := format.ParseLegacyFormat(r)
 	require.NoError(t, err)

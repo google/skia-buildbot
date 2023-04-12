@@ -58,6 +58,7 @@ func (g *Gitiles) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRe
 				Timestamp: longCommit.Timestamp.Unix(),
 				Author:    longCommit.Author,
 				Subject:   longCommit.Subject,
+				Body:      longCommit.Body,
 			}
 			err := cb(c)
 			if err != nil {
