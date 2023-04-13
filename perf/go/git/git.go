@@ -289,16 +289,17 @@ func (g *Git) Update(ctx context.Context) error {
 
 // getCommitNumberFromCommit get commit number from commit body.
 // For example, commit body is "... Cr-Commit-Position: refs/heads/master@{#727901}"
-// commitNumberRegex is "Cr-Commit-Position: refs/heads/master@\\{#(.*)\\}"
+// commitNumberRegex is "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
 // match[0] will be "Cr-Commit-Position: refs/heads/master@{#727901}"
-// match[1] will be "727901"
+// match[1] will be "master"
+// match[2] will be "727901"
 func (g *Git) getCommitNumberFromCommit(body string) (types.CommitNumber, error) {
 	match := g.commitNumberRegex.FindStringSubmatch(body)
-	if len(match) != 2 {
+	if len(match) != 3 {
 		return types.BadCommitNumber, skerr.Fmt("Failed to match commit number key by regex %q from commit body: %q", g.commitNumberRegex.String(), body)
 	}
 
-	result, err := strconv.Atoi(match[1])
+	result, err := strconv.Atoi(match[2])
 	if err != nil {
 		return types.BadCommitNumber, skerr.Wrapf(err, "Failed to parse commit number from commit body: %q", body)
 	}

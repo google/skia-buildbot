@@ -354,7 +354,7 @@ func TestGetCommitNumberFromGitLog(t *testing.T) {
 			g, err := New(ctx, true, db, instanceConfig)
 			require.NoError(t, err)
 
-			g.commitNumberRegex = regexp.MustCompile("Cr-Commit-Position: refs/heads/master@\\{#(.*)\\}")
+			g.commitNumberRegex = regexp.MustCompile("Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}")
 
 			subTest.SubTestFunction(t, subTest.body, g)
 		})
@@ -369,17 +369,31 @@ var getCommitNumberSubTests = map[string]struct {
 	SubTestFunction getCommitNumberSubTestFunction
 	body            string
 }{
-	"testGetCommitNumberFromCommit_Success": {testGetCommitNumberFromCommit_Success, `Bug: 1030266
+	"testGetCommitNumberFromCommit_Master_Success": {testGetCommitNumberFromCommit_Master_Success, `Bug: 1030266
 		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
 		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
 		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
 		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
 		Cr-Commit-Position: refs/heads/master@{#727989}
 		`},
-	"testGetCommitNumberFromCommit_NoCommitNumber": {testGetCommitNumberFromCommit_NoCommitNumber, `Bug: 1030266
+	"testGetCommitNumberFromCommit_Main_Success": {testGetCommitNumberFromCommit_Main_Success, `Bug: 1030266
+		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
+		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
+		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
+		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
+		Cr-Commit-Position: refs/heads/main@{#727990}
+		`},
+	"testGetCommitNumberFromCommit_OtherBranch_ReturnsError": {testGetCommitNumberFromCommit_OtherBranch_ReturnsError, `Bug: 1030266
+		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
+		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
+		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
+		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
+		Cr-Commit-Position: refs/heads/otherbranch@{#727990}
+		`},
+	"testGetCommitNumberFromCommit_NoCommitNumber_ReturnsError": {testGetCommitNumberFromCommit_NoCommitNumber_ReturnsError, `Bug: 1030266
 		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
 		`},
-	"testGetCommitNumberFromCommit_InvalidCommitNumber": {testGetCommitNumberFromCommit_InvalidCommitNumber, `Bug: 1030266
+	"testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError": {testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError, `Bug: 1030266
 		Change-Id: I08e3f59e0a3d03ce77b6f669e1cfa1a72fae2ad1
 		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1985760
 		Reviewed-by: Brian White \u003cbcwhite@chromium.org\u003e
@@ -388,19 +402,31 @@ var getCommitNumberSubTests = map[string]struct {
 		`},
 }
 
-func testGetCommitNumberFromCommit_Success(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_Master_Success(t *testing.T, body string, g *Git) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(727989), commitNumber)
 }
 
-func testGetCommitNumberFromCommit_NoCommitNumber(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_Main_Success(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(727990), commitNumber)
+}
+
+func testGetCommitNumberFromCommit_OtherBranch_ReturnsError(t *testing.T, body string, g *Git) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testGetCommitNumberFromCommit_InvalidCommitNumber(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_NoCommitNumber_ReturnsError(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
+func testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError(t *testing.T, body string, g *Git) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
