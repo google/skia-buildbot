@@ -32,5 +32,10 @@ go_test(
     name = "conversion_test",
     srcs = ["conversion_test.go"],
     embed = [":conversion"],
-    deps = ["@com_github_stretchr_testify//require"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//encoding/prototext",
+    ],
 )

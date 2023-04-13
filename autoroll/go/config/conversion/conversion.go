@@ -54,8 +54,9 @@ var (
 	}
 	// funcMap is used for executing templates.
 	funcMap = template.FuncMap{
-		"map":  makeMap,
-		"list": makeList,
+		"map":      makeMap,
+		"list":     makeList,
+		"sanitize": sanitize,
 	}
 )
 
@@ -372,4 +373,12 @@ func makeMap(elems ...interface{}) (map[string]interface{}, error) {
 
 func makeList(args ...interface{}) []interface{} {
 	return args
+}
+
+func sanitize(v string) string {
+	re1 := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
+	v = re1.ReplaceAllString(v, "-")
+	re2 := regexp.MustCompile(`--+`)
+	v = re2.ReplaceAllString(v, "-")
+	return v
 }
