@@ -203,11 +203,9 @@ run-demo-instance:
 #
 #  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
 #
-# The create the database and apply the schema.
-#
 run-chrome-ingest-demo-instance:
 	$(BAZEL) build --config=mayberemote //perf/...
-
+	$(BAZEL) run --config=mayberemote //perf/go/initdemo:initdemo -- --databasename=chrome_pub
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--num_parallel_ingesters=1 \
