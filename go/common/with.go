@@ -156,11 +156,6 @@ func (o *cloudLoggingInitOpt) order() int {
 type metricsLoggingInitOpt struct {
 }
 
-// MetricsLoggingOpt creates an Opt to initialize logging and record metrics when passed to InitWith().
-func MetricsLoggingOpt() Opt {
-	return &metricsLoggingInitOpt{}
-}
-
 func (o *metricsLoggingInitOpt) preinit(appName string) error {
 	return nil
 }
@@ -251,8 +246,8 @@ func (o *flagSetInitOpt) order() int {
 // InitWith takes Opt's and initializes each service, where services are Prometheus, etc.
 func InitWith(appName string, opts ...Opt) error {
 
-	// Add baseInitOpt.
-	opts = append(opts, &baseInitOpt{})
+	// Add baseInitOpt and metricsLoggingInitOpt.
+	opts = append(opts, &baseInitOpt{}, &metricsLoggingInitOpt{})
 
 	// Sort by order().
 	sort.Sort(optSlice(opts))

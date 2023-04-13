@@ -34,7 +34,10 @@ func main() {
 	_ = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	pollPeriod := flag.Duration("poll_period", 5*time.Minute, "How often to check for expired service account keys.")
 
-	common.InitWithMust("sa_keys_checker", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
+	common.InitWithMust(
+		"sa_keys_checker",
+		common.PrometheusOpt(promPort),
+	)
 	defer sklog.Flush()
 	ctx := context.Background()
 

@@ -68,7 +68,6 @@ func main() {
 	common.InitWithMust(
 		"gitsync",
 		common.PrometheusOpt(&config.PromPort),
-		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 

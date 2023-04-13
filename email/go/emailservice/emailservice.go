@@ -61,7 +61,6 @@ func New(ctx context.Context) (*App, error) {
 
 	err := common.InitWith(
 		"email-service",
-		common.MetricsLoggingOpt(),
 		common.PrometheusOpt(&ret.promPort),
 		common.FlagSetOpt(ret.Flagset()),
 	)

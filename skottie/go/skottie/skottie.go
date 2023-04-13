@@ -84,7 +84,6 @@ func main() {
 	common.InitWithMust(
 		"skottie",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	var sc skottieConfig

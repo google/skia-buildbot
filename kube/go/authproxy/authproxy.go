@@ -191,7 +191,6 @@ func New(ctx context.Context) (*App, error) {
 	err := common.InitWith(
 		appName,
 		common.PrometheusOpt(&ret.promPort),
-		common.MetricsLoggingOpt(),
 		common.FlagSetOpt(ret.Flagset()),
 	)
 	if err != nil {

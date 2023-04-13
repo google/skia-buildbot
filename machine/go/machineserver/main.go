@@ -101,7 +101,6 @@ func new(args []string) (*server, error) {
 	common.InitWithMust(
 		"machineserver",
 		common.PrometheusOpt(&flags.promPort),
-		common.MetricsLoggingOpt(),
 		common.FlagSetOpt(flagSet),
 	)
 

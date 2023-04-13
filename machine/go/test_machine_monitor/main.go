@@ -45,7 +45,6 @@ func main() {
 	common.InitWithMust(
 		"test_machine_monitor",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 		common.CloudLogging(local, "skia-public"),
 	)
 	sklog.Infof("Version: %s", Version)

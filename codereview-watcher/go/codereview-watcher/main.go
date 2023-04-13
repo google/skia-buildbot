@@ -219,7 +219,10 @@ func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient 
 }
 
 func main() {
-	common.InitWithMust("codereview-watcher", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
+	common.InitWithMust(
+		"codereview-watcher",
+		common.PrometheusOpt(promPort),
+	)
 
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)

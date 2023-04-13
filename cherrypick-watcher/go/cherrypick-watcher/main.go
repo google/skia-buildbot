@@ -182,7 +182,10 @@ func startPoller(ctx context.Context, gerritClient *gerrit.Gerrit, dbClient *db.
 }
 
 func main() {
-	common.InitWithMust("cherrypick-watcher", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
+	common.InitWithMust(
+		"cherrypick-watcher",
+		common.PrometheusOpt(promPort),
+	)
 
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)

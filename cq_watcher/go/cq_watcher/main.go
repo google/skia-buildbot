@@ -147,7 +147,10 @@ func refreshCQTryBots(cqClient *cq.Client) {
 }
 
 func main() {
-	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
+	common.InitWithMust(
+		METRIC_NAME,
+		common.PrometheusOpt(promPort),
+	)
 
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)

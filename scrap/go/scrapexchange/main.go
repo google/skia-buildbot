@@ -65,7 +65,6 @@ func new() (*server, error) {
 	common.InitWithMust(
 		"scrapexchange",
 		common.PrometheusOpt(&flags.promPort),
-		common.MetricsLoggingOpt(),
 		common.FlagSetOpt(flagSet),
 	)
 

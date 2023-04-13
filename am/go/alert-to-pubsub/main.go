@@ -195,7 +195,6 @@ func main() {
 	common.InitWithMust(
 		"alert-to-pubsub",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	sklog.Infof("Version: %s", Version)

@@ -215,7 +215,6 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	common.InitWithMust(
 		"generic-k8s-app",
 		common.PrometheusOpt(PromPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	// Fix up flag values.

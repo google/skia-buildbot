@@ -29,7 +29,6 @@ func main() {
 	common.InitWithMust(
 		"datastore_backup_k",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	ts, err := google.DefaultTokenSource(context.Background(), datastore.ScopeDatastore)
 	if err != nil {

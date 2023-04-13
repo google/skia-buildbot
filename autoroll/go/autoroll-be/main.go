@@ -103,7 +103,6 @@ func main() {
 	common.InitWithMust(
 		"autoroll-be",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	if *hang == hangImmediately {

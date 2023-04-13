@@ -225,7 +225,6 @@ func main() {
 	common.InitWithMust(
 		"jsfiddle",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	loadPages()
 	ctx := context.Background()

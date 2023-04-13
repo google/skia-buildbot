@@ -64,7 +64,6 @@ func main() {
 	common.InitWithMust(
 		"sserexample",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	var peerFinder sser.PeerFinder

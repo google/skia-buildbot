@@ -72,7 +72,10 @@ func maybeStartDebugServer() {
 }
 
 func main() {
-	common.InitWithMust("skcq-be", common.PrometheusOpt(baseapp.PromPort), common.MetricsLoggingOpt())
+	common.InitWithMust(
+		"skcq-be",
+		common.PrometheusOpt(baseapp.PromPort),
+	)
 	defer sklog.Flush()
 	ctx := context.Background()
 

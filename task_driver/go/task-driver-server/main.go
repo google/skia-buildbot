@@ -300,7 +300,6 @@ func main() {
 	common.InitWithMust(
 		"task-driver-server",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 	if *project == "" {

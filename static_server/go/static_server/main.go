@@ -50,7 +50,6 @@ func main() {
 	common.InitWithMust(
 		"generic-k8s-app",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	s, err := newServer(*gcsBucket, *latestFile, *refreshRate)

@@ -67,7 +67,6 @@ func main() {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	ctx := context.Background()
 

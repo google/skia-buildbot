@@ -123,12 +123,10 @@ func main() {
 	}
 	sklog.Infof("Loaded config %#v", rfc)
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
+	common.InitWithMust(
+		"gitilesfollower",
 		common.PrometheusOpt(&rfc.PromPort),
-	}
-
-	common.InitWithMust("gitilesfollower", logOpts...)
+	)
 	if err := tracing.Initialize(1, rfc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}

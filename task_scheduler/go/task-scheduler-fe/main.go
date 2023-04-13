@@ -342,7 +342,6 @@ func main() {
 	common.InitWithMust(
 		APP_NAME,
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 

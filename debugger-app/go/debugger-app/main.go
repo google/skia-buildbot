@@ -32,7 +32,6 @@ func main() {
 	common.InitWithMust(
 		"debugger-app",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	loadPages(*resourcesDir)
 

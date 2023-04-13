@@ -22,7 +22,6 @@ func main() {
 	common.InitWithMust(
 		"api",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	r := mux.NewRouter()

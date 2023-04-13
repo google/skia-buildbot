@@ -72,7 +72,10 @@ func main() {
 	ignoreNamespaces := common.NewMultiStringFlag("ignore_namespace", nil, "Namespaces to ignore.")
 	namespaceAllowFilter := common.NewMultiStringFlag("namespace_allow_filter", nil, "app names to ignore in a namespace. A namespace name, colon, list of comma separated app names. Ex: gmp-system:rule-evaluator,gmp-system:collector")
 
-	common.InitWithMust("k8s_checker", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
+	common.InitWithMust(
+		"k8s_checker",
+		common.PrometheusOpt(promPort),
+	)
 	defer sklog.Flush()
 	ctx := context.Background()
 

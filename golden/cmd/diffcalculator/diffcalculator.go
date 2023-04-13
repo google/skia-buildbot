@@ -82,12 +82,10 @@ func main() {
 	}
 	sklog.Infof("Loaded config %#v", dcc)
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
+	common.InitWithMust(
+		"diffcalculator",
 		common.PrometheusOpt(&dcc.PromPort),
-	}
-
-	common.InitWithMust("diffcalculator", logOpts...)
+	)
 	// We expect there to be a lot of diff work, so we sample 1% of them by default
 	// to avoid incurring too much overhead.
 	tp := 0.01

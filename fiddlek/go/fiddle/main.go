@@ -572,7 +572,6 @@ func main() {
 	common.InitWithMust(
 		"fiddle",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	var err error

@@ -93,7 +93,6 @@ func main() {
 	common.InitWithMust(
 		"docsyserver",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 
 	server, err := new()

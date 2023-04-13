@@ -65,15 +65,14 @@ func main() {
 		sklog.Fatalf("Could not initialize tracing: %s", err)
 	}
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
-		common.PrometheusOpt(&bsc.PromPort),
-	}
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, bsc)
 
 	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMust(appName, logOpts...)
+	common.InitWithMust(
+		appName,
+		common.PrometheusOpt(&bsc.PromPort),
+	)
 
 	gsClientOpt := storage.GCSClientOptions{
 		Bucket:             bsc.GCSBucket,

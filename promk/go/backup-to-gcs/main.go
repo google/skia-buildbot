@@ -48,7 +48,10 @@ func step(storageClient *storage.Client) error {
 
 // Backs up the file at the given location, e.g. to a location in GCS. /mnt/grafana/grafana.db
 func main() {
-	common.InitWithMust("backup-to-gcs", common.PrometheusOpt(promPort))
+	common.InitWithMust(
+		"backup-to-gcs",
+		common.PrometheusOpt(promPort),
+	)
 
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeFullControl)

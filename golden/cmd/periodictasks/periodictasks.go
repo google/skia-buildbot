@@ -115,16 +115,14 @@ func main() {
 	}
 	sklog.Infof("Loaded config %#v", ptc)
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
-		common.PrometheusOpt(&ptc.PromPort),
-	}
-
 	tp := 0.01
 	if ptc.TracingProportion > 0 {
 		tp = ptc.TracingProportion
 	}
-	common.InitWithMust("periodictasks", logOpts...)
+	common.InitWithMust(
+		"periodictasks",
+		common.PrometheusOpt(&ptc.PromPort),
+	)
 	if err := tracing.Initialize(tp, ptc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}

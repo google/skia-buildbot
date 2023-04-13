@@ -26,7 +26,6 @@ func main() {
 	common.InitWithMust(
 		"test-service",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 

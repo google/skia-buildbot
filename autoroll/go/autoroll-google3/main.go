@@ -42,7 +42,6 @@ func main() {
 	common.InitWithMust(
 		"google3-autoroll",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 

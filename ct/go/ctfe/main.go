@@ -329,7 +329,6 @@ func main() {
 	common.InitWithMust(
 		"ctfe",
 		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
 	)
 	ctx := context.Background()
 

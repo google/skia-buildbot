@@ -144,7 +144,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	// Initialize service.
 	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMust(appName, common.PrometheusOpt(&fsc.PromPort))
+	common.InitWithMust(
+		appName,
+		common.PrometheusOpt(&fsc.PromPort),
+	)
 
 	ctx := context.Background()
 
