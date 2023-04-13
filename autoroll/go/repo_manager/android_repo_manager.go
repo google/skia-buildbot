@@ -422,6 +422,16 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 	}
 	_, mergeErr := r.childRepo.Git(ctx, mergeCmds...)
 
+	// If the merge failed because another merge was already active, try again.
+	if mergeErr != nil {
+		sklog.Errorf("git merge failed; attempting abort+retry")
+		if _, err := r.childRepo.Git(ctx, "merge", "--abort"); err != nil {
+			sklog.Errorf("failed `git merge --abort`: %s", err)
+		} else {
+			_, mergeErr = r.childRepo.Git(ctx, mergeCmds...)
+		}
+	}
+
 	// Android does not allow remote dependencies to have submodule directories (b/189557997)
 	// .gitmodules will be removed as part of androidDeleteMergeConflictFiles, so delete the directories here.
 	modOutput, modErr := exec.RunCwd(ctx, r.childDir, "bash", "-c", "git ls-files -s | grep ^160000 | awk '{ print $4; }' | awk '{ system(\"git rm -r \"$1) }'")
