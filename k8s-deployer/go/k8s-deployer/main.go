@@ -48,7 +48,7 @@ func main() {
 	kubectl := flag.String("kubectl", "kubectl", "Path to the kubectl executable.")
 	k8sServer := flag.String("k8s_server", "", "Address of the Kubernetes server.")
 
-	common.InitWithMust("k8s_deployer", common.PrometheusOpt(promPort))
+	common.InitWithMust("k8s_deployer", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
 	defer sklog.Flush()
 
 	if *configRepo == "" {
