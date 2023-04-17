@@ -26,7 +26,11 @@ import (
 	"strconv"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
+
 	git_pkg "go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/k8s-checker/go/k8s_config"
 )
 
 func main() {
@@ -94,6 +98,7 @@ func main() {
 	}
 	ok := true
 	ok = ok && checkKubeval(ctx, changedFiles)
+	ok = ok && checkK8sConfigs(ctx, changedFiles)
 	ok = ok && checkAlertRules(ctx, changedFiles)
 	if !*commit {
 		// Nothing to do here currently.
@@ -105,6 +110,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	if !checkGenerateClustersFromTemplates(ctx) {
+		os.Exit(1)
+	}
 	if !checkGenerateMonitoring(ctx, changedFiles) {
 		os.Exit(1)
 	}
@@ -148,76 +156,50 @@ func checkKubeval(ctx context.Context, changedFiles []fileWithChanges) bool {
 	return true
 }
 
-func checkGenerateMonitoring(ctx context.Context, changedFiles []fileWithChanges) bool {
-	output, err := run(ctx, "bash", "./monitoring/generate.sh")
+func checkDiffs(ctx context.Context, script string, args []string, suffixes []string) bool {
+	output, err := run(ctx, "bash", append([]string{script}, args...)...)
 	if err != nil {
-		logf(ctx, "Failed running monitoring/generate.sh:\n%s\nOutput:\n%s\n", err, string(output))
+		logf(ctx, "Failed running %s:\n%s\nOutput:\n%s\n", script, err, string(output))
 		return false
 	}
 
 	newDiffs, untrackedFiles := findUncommittedChanges(ctx)
 	if len(newDiffs) > 0 {
-		logf(ctx, "monitoring/generate.sh caused changes. Please inspect them (git diff) and commit if ok.\n")
+		logf(ctx, "%s caused changes. Please inspect them (git diff) and commit if ok.\n", script)
 		for _, diff := range newDiffs {
 			logf(ctx, diff+"\n")
 		}
 		return false
 	}
 	for _, uf := range untrackedFiles {
-		if strings.HasSuffix(uf, ".yaml") || strings.HasSuffix(uf, ".yml") {
-			logf(ctx, "monitoring/generate.sh created new YAML files. Please inspect these and check them in.\n")
-			return false
+		for _, suffix := range suffixes {
+			if strings.HasSuffix(uf, suffix) {
+				logf(ctx, "%s created new files. Please inspect these and check them in.\n", script)
+				return false
+			}
 		}
 	}
 	return true
+}
+
+func checkGenerateMonitoring(ctx context.Context, changedFiles []fileWithChanges) bool {
+	return checkDiffs(ctx, "./monitoring/generate.sh", nil, []string{".yaml", ".yml"})
 }
 
 func checkGenerateEnvoy(ctx context.Context) bool {
-	output, err := run(ctx, "bash", "./skfe/generate.sh")
-	if err != nil {
-		logf(ctx, "Failed running skfe/generate.sh:\n%s\nOutput:\n%s\n", err, string(output))
-		return false
-	}
-
-	newDiffs, untrackedFiles := findUncommittedChanges(ctx)
-	if len(newDiffs) > 0 {
-		logf(ctx, "skfe/generate.sh caused changes. Please inspect them (git diff) and commit if ok.\n")
-		for _, diff := range newDiffs {
-			logf(ctx, diff+"\n")
-		}
-		return false
-	}
-	for _, uf := range untrackedFiles {
-		if strings.HasSuffix(uf, ".json") {
-			logf(ctx, "skfe/generate.sh created new files. Please inspect these and check them in.\n")
-			return false
-		}
-	}
-	return true
+	return checkDiffs(ctx, "./skfe/generate.sh", nil, []string{".json"})
 }
 
 func checkGenerateProber(ctx context.Context) bool {
-	output, err := run(ctx, "bash", "./prober/generate.sh")
-	if err != nil {
-		logf(ctx, "Failed running prober/generate.sh:\n%s\nOutput:\n%s\n", err, string(output))
-		return false
-	}
+	return checkDiffs(ctx, "./prober/generate.sh", nil, []string{".json"})
+}
 
-	newDiffs, untrackedFiles := findUncommittedChanges(ctx)
-	if len(newDiffs) > 0 {
-		logf(ctx, "prober/generate.sh caused changes. Please inspect them (git diff) and commit if ok.\n")
-		for _, diff := range newDiffs {
-			logf(ctx, diff+"\n")
-		}
-		return false
+func checkGenerateClustersFromTemplates(ctx context.Context) bool {
+	ok := true
+	for _, clusterJson := range []string{"skia-infra-public.json", "skia-infra-public-dev.json", "skia-infra-corp.json"} {
+		ok = ok && checkDiffs(ctx, "./templates/generate.sh", []string{clusterJson}, []string{".yaml", ".yml"})
 	}
-	for _, uf := range untrackedFiles {
-		if strings.HasSuffix(uf, ".json") {
-			logf(ctx, "prober/generate.sh created new files. Please inspect these and check them in.\n")
-			return false
-		}
-	}
-	return true
+	return ok
 }
 
 func checkAlertRules(ctx context.Context, changedFiles []fileWithChanges) bool {
@@ -255,6 +237,62 @@ func ValidateAlertFile(ctx context.Context, path string) error {
 		return fmt.Errorf("Failed to execute %q: %s", path, err)
 	}
 	return nil
+}
+
+func checkK8sConfigs(ctx context.Context, changedFiles []fileWithChanges) bool {
+	// TODO(borenet): Should we check all files?
+	ok := true
+	for _, f := range changedFiles {
+		if strings.Contains(f.fileName, "skia-infra-") && isYAMLFile(f.fileName) {
+			ok = ok && checkK8sConfigFile(ctx, f)
+		}
+	}
+	return ok
+}
+
+var podSecurityActions = []string{"enforce", "audit", "warn"}
+var podSecurityLevels = []string{"restricted", "baseline", "privileged"}
+var podSecurityVersions = []string{"v1.26"}
+
+const podSecurityLevelLabelTmpl = "pod-security.kubernetes.io/%s"
+const podSecurityVersionLabelTmpl = "pod-security.kubernetes.io/%s-version"
+
+func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
+	// Read the configs from the file.
+	contents, err := ioutil.ReadFile(f.fileName)
+	if err != nil {
+		logf(ctx, "%s\n", err)
+		return false
+	}
+	k8sConfigs, err := k8s_config.ParseK8sConfigFile(contents)
+	if err != nil {
+		logf(ctx, "%s\n", err)
+		return false
+	}
+
+	ok := true
+
+	// Every namespace should define pod security levels.
+	checkLabel := func(ns *corev1.Namespace, label string, valid []string) {
+		value, foundLabel := ns.Labels[label]
+		if !foundLabel {
+			logf(ctx, "Namespace %q does not define pod security label %q\n", ns.Name, label)
+			ok = false
+			return
+		}
+		if len(valid) > 0 && !util.In(value, valid) {
+			logf(ctx, "Invalid value %q for pod security label %q in namespace %q; valid: %v\n", value, label, ns.Name, valid)
+			ok = false
+			return
+		}
+	}
+	for _, ns := range k8sConfigs.Namespace {
+		for _, action := range podSecurityActions {
+			checkLabel(ns, fmt.Sprintf(podSecurityLevelLabelTmpl, action), podSecurityLevels)
+			checkLabel(ns, fmt.Sprintf(podSecurityVersionLabelTmpl, action), podSecurityVersions)
+		}
+	}
+	return ok
 }
 
 const (
