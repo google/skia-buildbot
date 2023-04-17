@@ -289,16 +289,16 @@ export type Digest = string;
 
 export type TestName = string;
 
-export type Label = "untriaged" | "positive" | "negative";
+export type Label = 'untriaged' | 'positive' | 'negative';
 
 export type TraceID = string;
 
-export type RefClosest = "pos" | "neg" | "";
+export type RefClosest = 'pos' | 'neg' | '';
 
 export type TriageRequestData = { [key: string]: { [key: string]: Label } | null } | null;
 
 export type Params = { [key: string]: string };
 
-export type ClosestDiffLabel = "none" | "untriaged" | "positive" | "negative";
+export type ClosestDiffLabel = 'none' | 'untriaged' | 'positive' | 'negative';
 
-export type TriageResponseStatus = "ok" | "conflict";
+export type TriageResponseStatus = 'ok' | 'conflict';

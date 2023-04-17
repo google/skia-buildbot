@@ -60,7 +60,7 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
-	github.com/skia-dev/go2ts v1.5.0
+	github.com/skia-dev/go2ts v1.5.1-0.20230417182405-5516e12180e9
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220429132620-ad26708b7787
 	github.com/spf13/cobra v1.3.0

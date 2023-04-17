@@ -325,32 +325,32 @@ export type Trace = number[];
 
 export type TraceSet = { [key: string]: Trace };
 
-export namespace pivot { export type Operation = "sum" | "avg" | "geo" | "std" | "count" | "min" | "max"; }
+export namespace pivot { export type Operation = 'sum' | 'avg' | 'geo' | 'std' | 'count' | 'min' | 'max'; }
 
-export type ClusterAlgo = "kmeans" | "stepfit";
+export type ClusterAlgo = 'kmeans' | 'stepfit';
 
-export type StepDetection = "" | "absolute" | "const" | "percent" | "cohen" | "mannwhitneyu";
+export type StepDetection = '' | 'absolute' | 'const' | 'percent' | 'cohen' | 'mannwhitneyu';
 
-export type ConfigState = "ACTIVE" | "DELETED";
+export type ConfigState = 'ACTIVE' | 'DELETED';
 
-export type Direction = "UP" | "DOWN" | "BOTH";
+export type Direction = 'UP' | 'DOWN' | 'BOTH';
 
-export type StepFitStatus = "Low" | "High" | "Uninteresting";
+export type StepFitStatus = 'Low' | 'High' | 'Uninteresting';
 
 export type CommitNumber = number;
 
-export type FrameResponseDisplayMode = "display_query_only" | "display_plot" | "display_pivot_table" | "display_pivot_plot" | "display_spinner";
+export type FrameResponseDisplayMode = 'display_query_only' | 'display_plot' | 'display_pivot_table' | 'display_pivot_plot' | 'display_spinner';
 
-export type Status = "" | "positive" | "negative" | "untriaged";
+export type Status = '' | 'positive' | 'negative' | 'untriaged';
 
 export type RequestType = 0 | 1;
 
-export type Subset = "all" | "regressions" | "untriaged";
+export type Subset = 'all' | 'regressions' | 'untriaged';
 
-export type TryBotRequestKind = "trybot" | "commit";
+export type TryBotRequestKind = 'trybot' | 'commit';
 
 export type CL = string;
 
-export type ProcessState = "Running" | "Success" | "Error";
+export type ProcessState = 'Running' | 'Success' | 'Error';
 
-export namespace progress { export type Status = "Running" | "Finished" | "Error"; }
+export namespace progress { export type Status = 'Running' | 'Finished' | 'Error'; }

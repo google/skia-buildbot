@@ -29,6 +29,6 @@ export interface ScrapID {
 	Hash: SHA256;
 }
 
-export type Type = "svg" | "sksl" | "particle";
+export type Type = 'svg' | 'sksl' | 'particle';
 
 export type SHA256 = string;

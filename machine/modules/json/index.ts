@@ -76,12 +76,12 @@ export interface Description {
 
 export type SwarmingDimensions = { [key: string]: string[] | null } | null;
 
-export type AttachedDevice = "nodevice" | "adb" | "ios" | "ssh";
+export type AttachedDevice = 'nodevice' | 'adb' | 'ios' | 'ssh';
 
-export type PowerCycleState = "not_available" | "available" | "in_error";
+export type PowerCycleState = 'not_available' | 'available' | 'in_error';
 
 export type Duration = number;
 
 export type ListMachinesResponse = Description[];
 
-export type TaskRequestor = "swarming" | "sktask";
+export type TaskRequestor = 'swarming' | 'sktask';
