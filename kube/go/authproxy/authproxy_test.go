@@ -63,7 +63,7 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock, commonAllowed, true, false)
+	proxy := newProxy(u, authMock, commonAllowed, true, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -75,7 +75,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false)
+	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -100,7 +100,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIs
 		roles.Viewer: allowed.NewAllowedFromList([]string{viewerEmail}),
 		roles.Editor: allowed.NewAllowedFromList([]string{viewerEmail}),
 	}
-	proxy := newProxy(u, authMock, allowedRoles, false, false)
+	proxy := newProxy(u, authMock, allowedRoles, false, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -113,7 +113,7 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 	authMock.On("LoggedInAs", r).Return("")
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false)
+	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -124,7 +124,7 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(notAViewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false)
+	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -137,7 +137,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false)
+	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -153,7 +153,7 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock, commonAllowed, false, true)
+	proxy := newProxy(u, authMock, commonAllowed, false, true, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -166,7 +166,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, true)
+	proxy := newProxy(u, authMock, commonAllowed, false, true, false)
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -178,6 +178,45 @@ func TestValidateFlags_NoRoleFlagsSpecified_ReturnsError(t *testing.T) {
 	}
 
 	require.Error(t, app.validateFlags())
+}
+
+func TestValidateFlags_TLSWithoutLocalFlagsSpecified_ReturnsError(t *testing.T) {
+	var app *App
+
+	app = &App{
+		selfSignLocalhostTLS: true,
+		roleFlags:            []string{"@tehgoog.com"},
+	}
+	require.Error(t, app.validateFlags())
+
+	app = &App{
+		selfSignLocalhostTLS: true,
+		local:                true,
+		roleFlags:            []string{"@tehgoog.com"},
+	}
+	require.NoError(t, app.validateFlags())
+}
+
+func TestValidateFlags_MockedUserWithoutAuthTypeMockedFlagsSpecified_ReturnsError(t *testing.T) {
+	app := &App{
+		mockLoggedInAs: "me@tehgoog.com",
+		roleFlags:      []string{"@tehgoog.com"},
+	}
+	require.Error(t, app.validateFlags())
+
+	app = &App{
+		mockLoggedInAs: "me@tehgoog.com",
+		authType:       string(OAuth2),
+		roleFlags:      []string{"@tehgoog.com"},
+	}
+	require.Error(t, app.validateFlags())
+
+	app = &App{
+		mockLoggedInAs: "me@tehgoog.com",
+		authType:       string(Mocked),
+		roleFlags:      []string{"@tehgoog.com"},
+	}
+	require.NoError(t, app.validateFlags())
 }
 
 func TestAppRun_ContextIsCancelled_ReturnsNil(t *testing.T) {

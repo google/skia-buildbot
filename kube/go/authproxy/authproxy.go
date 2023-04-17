@@ -25,8 +25,15 @@ package authproxy
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"flag"
 	"fmt"
+	"math/big"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -42,7 +49,9 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy/auth"
+	"go.skia.org/infra/kube/go/authproxy/mockedauth"
 	"go.skia.org/infra/kube/go/authproxy/protoheader"
+	"golang.org/x/net/http2"
 	"golang.org/x/oauth2/google"
 )
 
@@ -76,9 +85,33 @@ type proxy struct {
 	allowedRoles map[roles.Role]allowed.Allow
 }
 
-func newProxy(target *url.URL, authProvider auth.Auth, allowedRules map[roles.Role]allowed.Allow, allowPost bool, passive bool) *proxy {
+func newProxy(target *url.URL, authProvider auth.Auth, allowedRules map[roles.Role]allowed.Allow, allowPost bool, passive bool, local bool) *proxy {
+	reverseProxy := httputil.NewSingleHostReverseProxy(target)
+	if local {
+		// [httputil.ReverseProxy] doesn't appear work out of the box for local gRPC requests. Either the
+		// proxy or the grpc server will prematurely close the upstream connection before processing the
+		// round trip between proxy to grpc upstream, causing an unexpected EOF at the proxy. The proxy
+		// then returns Bad Gateway to the client.
+		// https://github.com/golang/go/issues/29928 described similar symptoms to what
+		// I was seeing. The github issue comments included the fix below, which overrides the default
+		// DialTLS function in [http2.Transport] ([tls.Dial]) to use [net.DialTCP] instead.
+		// I had also tried [http2.ConfigureTransport] prior to this workaround, but it did not fix the
+		// problem.
+		reverseProxy.Transport =
+			&http2.Transport{
+				AllowHTTP: true,
+				DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+					ta, err := net.ResolveTCPAddr(network, addr)
+					if err != nil {
+						return nil, err
+					}
+					return net.DialTCP(network, nil, ta)
+				},
+			}
+	}
+
 	return &proxy{
-		reverseProxy: httputil.NewSingleHostReverseProxy(target),
+		reverseProxy: reverseProxy,
 		authProvider: authProvider,
 		allowedRoles: allowedRules,
 		allowPost:    allowPost,
@@ -128,12 +161,15 @@ const (
 	// ProtoHeader uses an incoming HTTP header with a serialized proto.
 	ProtoHeader AuthType = "protoheader"
 
+	// Mocked uses a string provided on the command line for the user identity
+	Mocked AuthType = "mocked"
+
 	// Invalid represents an invalid authentication scheme.
 	Invalid AuthType = ""
 )
 
 // AllValidAuthTypes is a list of all valid AuthTypes.
-var AllValidAuthTypes = []AuthType{OAuth2, ProtoHeader}
+var AllValidAuthTypes = []AuthType{OAuth2, ProtoHeader, Mocked}
 
 // ToAuthType converts a string to AuthType, returning Invalid if it is not a
 // valid type.
@@ -148,14 +184,16 @@ func ToAuthType(s string) AuthType {
 
 // App is the auth-proxy application.
 type App struct {
-	port       string
-	promPort   string
-	local      bool
-	targetPort string
-	allowPost  bool
-	passive    bool
-	roleFlags  []string
-	authType   string
+	port                 string
+	promPort             string
+	local                bool
+	targetPort           string
+	allowPost            bool
+	passive              bool
+	roleFlags            []string
+	authType             string
+	mockLoggedInAs       string
+	selfSignLocalhostTLS bool
 
 	target       *url.URL
 	authProvider auth.Auth
@@ -174,6 +212,8 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.BoolVar(&a.passive, "passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
 	common.FSMultiStringFlagVar(fs, &a.roleFlags, "role", []string{}, "Define a role and the group (CRIA, domain, email list) that defines who gets that role via flags. For example: --role=viewer=@google.com OR --role=triager=cria_group:project-angle-committers")
 	fs.StringVar(&a.authType, "authtype", string(OAuth2), fmt.Sprintf("The type of authentication to do. Choose from: %q", AllValidAuthTypes))
+	fs.StringVar(&a.mockLoggedInAs, "mock_user", "", "If authtype is set to 'mocked', then always return this value for the logged in user identity")
+	fs.BoolVar(&a.selfSignLocalhostTLS, "self_sign_localhost_tls", false, "if true, serve TLS using a self-signed certificate for localhost")
 
 	return fs
 }
@@ -226,6 +266,8 @@ func New(ctx context.Context) (*App, error) {
 		}
 	case OAuth2:
 		authInstance = auth.New()
+	case Mocked:
+		authInstance = mockedauth.New(ret.mockLoggedInAs)
 	case Invalid:
 		return nil, skerr.Fmt("Invalid value for --authtype flag: %q", ret.authType)
 	}
@@ -300,10 +342,45 @@ func (a *App) registerCleanup() {
 
 }
 
+func genLocalhostCert() (tls.Certificate, error) {
+	now := time.Now()
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(now.Unix()),
+		Subject: pkix.Name{
+			CommonName: "localhost",
+		},
+		NotBefore:             now,
+		NotAfter:              now.AddDate(0, 0, 1),
+		SubjectKeyId:          []byte("/CN=localhost"),
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		KeyUsage: x509.KeyUsageKeyEncipherment |
+			x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	cert, err := x509.CreateCertificate(rand.Reader, template, template,
+		priv.Public(), priv)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	var outCert tls.Certificate
+	outCert.Certificate = append(outCert.Certificate, cert)
+	outCert.PrivateKey = priv
+
+	return outCert, nil
+}
+
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
-	var h http.Handler = newProxy(a.target, a.authProvider, a.allowedRoles, a.allowPost, a.passive)
+	var h http.Handler = newProxy(a.target, a.authProvider, a.allowedRoles, a.allowPost, a.passive, a.local)
 	h = httputils.HealthzAndHTTPS(h)
 	server := &http.Server{
 		Addr:           a.port,
@@ -315,7 +392,19 @@ func (a *App) Run(ctx context.Context) error {
 	a.server = server
 
 	sklog.Infof("Ready to serve on port %s", a.port)
-	err := server.ListenAndServe()
+	var err error
+	if a.local && a.selfSignLocalhostTLS {
+		cert, err := genLocalhostCert()
+		if err != nil {
+			return err
+		}
+		server.TLSConfig = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		err = server.ListenAndServeTLS("", "")
+	} else {
+		err = server.ListenAndServe()
+	}
 	if err == http.ErrServerClosed {
 		// This is an orderly shutdown.
 		return nil
@@ -327,7 +416,15 @@ func (a *App) validateFlags() error {
 	if len(a.roleFlags) == 0 {
 		return fmt.Errorf("At least one --role flag must be supplied.")
 	}
-
+	if a.authType == string(Mocked) && a.mockLoggedInAs == "" {
+		return fmt.Errorf("--mock_user is required when --authtype is %q", Mocked)
+	}
+	if a.authType != string(Mocked) && a.mockLoggedInAs != "" {
+		return fmt.Errorf("--mock_user is not allowed if --authtype is not %q", Mocked)
+	}
+	if !a.local && a.selfSignLocalhostTLS {
+		return fmt.Errorf("--self_sign_localhost_tls is not allowed if --local is not true")
+	}
 	return nil
 }
 
