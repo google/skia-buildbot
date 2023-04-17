@@ -484,7 +484,7 @@ type bannedGoAPI struct {
 // have APIs that we wish not to use. It logs suggested replacements in that case.
 func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 	bannedAPIs := []bannedGoAPI{
-		{regex: regexp.MustCompile(`reflect\.DeepEqual`), suggestion: "DeepEqual in go.skia.org/infra/go/testutils"},
+		{regex: regexp.MustCompile(`reflect\.DeepEqual`), suggestion: "Equal in go.skia.org/infra/go/deepequal/assertdeep"},
 		{regex: regexp.MustCompile(`github\.com/golang/glog`), suggestion: "go.skia.org/infra/go/sklog"},
 		{regex: regexp.MustCompile(`github\.com/skia-dev/glog`), suggestion: "go.skia.org/infra/go/sklog"},
 		{regex: regexp.MustCompile(`http\.Get`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
