@@ -18,6 +18,7 @@ import '../../../elements-sk/modules/tabs-sk';
 import '../../../elements-sk/modules/toast-sk';
 
 import '../incident-sk';
+import '../auto-assign-sk';
 import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
@@ -27,11 +28,12 @@ import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html, render, TemplateResult } from 'lit-html';
-import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { html, render, Template, TemplateResult } from 'lit-html';
+import { jsonOrThrow, JsonOrThrowError } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { Login } from '../../../infra-sk/modules/login';
+import { AutoAssignSk } from '../auto-assign-sk/auto-assign-sk';
 import { BotChooserSk } from '../bot-chooser-sk/bot-chooser-sk';
 import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
@@ -154,6 +156,7 @@ export class AlertManagerSk extends HTMLElement {
     <tr><td class=mono>'Shift+ArrowUp'</td><td>Check the above incident to create a silence (only if the current incident is checked).</td></tr>
     <tr><td class=mono>'ArrowRight'</td><td>Move to the first textarea in RHS.</td></tr>
     <tr><td class=mono>'a'</td><td>Assign selected alert(s).</td></tr>
+    <tr><td class=mono>'A'</td><td>Bring up the auto-assign dialog.</td></tr>
     <tr><td class=mono>'b'</td><td>Switches view from normal to bot-centric view.</td></tr>
     <tr><td class=mono>'1'</td><td>Switches to the "Mine" tab.</td></tr>
     <tr><td class=mono>'2'</td><td>Switches to the "Alerts" tab.</td></tr>
@@ -185,6 +188,7 @@ export class AlertManagerSk extends HTMLElement {
       <span class=selection-buttons>
         ${ele.displayAssignMultiple()}
         ${ele.displayClearSelections()}
+        ${ele.displayAutoAssign()}
       </span>
       ${ele.incidentList(ele.incidents, ele.isBotCentricView)}
     </section>
@@ -216,6 +220,7 @@ export class AlertManagerSk extends HTMLElement {
 </section>
 <footer>
   <spinner-sk id=busy></spinner-sk>
+  <auto-assign-sk id=auto-assign></auto-assign-sk>
   <bot-chooser-sk id=bot-chooser></bot-chooser-sk>
   <email-chooser-sk id=email-chooser></email-chooser-sk>
   <error-toast-sk></error-toast-sk>
@@ -342,6 +347,9 @@ export class AlertManagerSk extends HTMLElement {
         }
         this.assignMultiple();
         break;
+      case 'A':
+          this.autoAssign();
+          break;
       case '1':
         this.keyboardNavigateTabs(0);
         break;
@@ -637,6 +645,26 @@ export class AlertManagerSk extends HTMLElement {
     return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.clearSelections}>Clear selections</button>`;
   }
 
+  private getAutoAssignIncidents(): Incident[] {
+    const autoAssignIncidents: Incident[] = [];
+    this.incidents.forEach((incident) => {
+      // We only auto-assign active alerts which are not silenced, which have
+      // owners defined but are not already assigned to them.
+      if (incident.active
+          && incident.params.__silence_state === 'active'
+          && incident.params.owner
+          && !incident.params.assigned_to) {
+        autoAssignIncidents.push(incident);
+      }
+    });
+    return autoAssignIncidents;
+  }
+
+  private displayAutoAssign(): TemplateResult {
+    const autoAssignIncidents = this.getAutoAssignIncidents();
+    return html`<button class=selection ?disabled=${autoAssignIncidents.length === 0} @click=${this.autoAssign}>Auto-Assign</button>`;
+  }
+
   private filterSilencesEvent(e: Event): void {
     this.filterSilencesVal = (e.target as HTMLInputElement).value;
     this._render();
@@ -650,6 +678,56 @@ export class AlertManagerSk extends HTMLElement {
   private clearSelections(): void {
     this.checked = new Set();
     this._render();
+  }
+
+  private async autoAssign(): Promise<void> {
+    const autoAssignIncidents = this.getAutoAssignIncidents();
+    const selectedIncidentKeys = await $$<AutoAssignSk>('#auto-assign', this)!.open(autoAssignIncidents);
+
+    if (!selectedIncidentKeys) {
+      // Nothing to do if there are no incidents to auto-assign.
+      return;
+    }
+
+    this.spinner!.active = true;
+
+    // Minimize backend calls by grouping incidents by their owners.
+    const ownersToIncidentKeys: Record<string, string[]> = {};
+    for (let i = 0; i < this.incidents.length; i++) {
+      if (selectedIncidentKeys.includes(this.incidents[i].key)) {
+        if (!ownersToIncidentKeys[this.incidents[i].params.owner]) {
+          ownersToIncidentKeys[this.incidents[i].params.owner] = [];
+        }
+        ownersToIncidentKeys[this.incidents[i].params.owner].push(this.incidents[i].key);
+      }
+    }
+
+    // Gather and execute promises that assign batches of incidents to
+    // their owners.
+    const promises: Promise<void>[] = Object.keys(ownersToIncidentKeys).map(async (owner: string): Promise<void> => {
+      const detail = {
+        keys: ownersToIncidentKeys[owner],
+        email: owner,
+      };
+      const response = await fetch('/_/assign_multiple', {
+        body: JSON.stringify(detail),
+        headers: {
+          'content-type': 'application/json',
+        },
+        credentials: 'include',
+        method: 'POST',
+      });
+      const json = await jsonOrThrow(response) as Incident[];
+      this.incidents = json;
+    });
+
+    try {
+      await Promise.all(promises);
+      this._render();
+    } catch (msg: any) {
+      errorMessage(msg);
+    }
+    this.spinner!.active = false;
   }
 
   private displayAssignMultiple(): TemplateResult {

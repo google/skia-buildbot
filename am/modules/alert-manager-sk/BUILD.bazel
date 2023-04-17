@@ -23,6 +23,7 @@ sk_element(
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
         "//elements-sk/modules/toast-sk",
+        "//am/modules/auto-assign-sk",
     ],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
