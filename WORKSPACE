@@ -403,7 +403,6 @@ cipd_install(
     ],
     # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
     sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
-    tag = "version:2.29.2.chromium.6",
 )
 
 cipd_install(
@@ -417,7 +416,6 @@ cipd_install(
     ],
     # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6
     sha256 = "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
-    tag = "version:2.29.2.chromium.6",
 )
 
 cipd_install(
@@ -426,7 +424,6 @@ cipd_install(
     cipd_package = "infra/tools/luci/vpython/linux-amd64",
     # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097
     sha256 = "1de06f1727bde7ef9eaae901944adead46dd2b7ddda1e962fff29ee431b0e746",
-    tag = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
 )
 
 cipd_install(
@@ -435,7 +432,6 @@ cipd_install(
     cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
     # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.8.10.chromium.19
     sha256 = "4ba68650a271a80a565a619ed2419f4cf1344525b63798608ce3b8cef63a9244",
-    tag = "version:2@3.8.10.chromium.19",
 )
 
 #############################################################
