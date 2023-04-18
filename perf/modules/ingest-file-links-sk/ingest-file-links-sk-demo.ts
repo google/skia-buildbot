@@ -7,6 +7,9 @@ fetchMock.post('/_/details/?results=false', () => ({
   links: {
     'Swarming Run': 'https://skia.org',
     'Perfetto Results': 'https://skia.org',
+    'Bot Id': 'build109-h7,build109-h8',
+    'Foo': '/bar',
+    'Go Link': 'go/skia',
   },
 }));
 

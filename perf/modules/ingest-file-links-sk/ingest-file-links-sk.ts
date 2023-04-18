@@ -16,6 +16,16 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 
+function isUrl(link: string): boolean {
+  try {
+    new URL(link);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+
 export class IngestFileLinksSk extends ElementSk {
   private links: { [key: string]: string } | null = null;
 
@@ -27,7 +37,16 @@ export class IngestFileLinksSk extends ElementSk {
 
   private static displayLinks = (ele: IngestFileLinksSk): TemplateResult[] => {
     const keys = Object.keys(ele.links || {}).sort();
-    return keys.map((key) => html`<li><a href="${ele.links![key]}">${key}</a></li>`);
+    const getHtml = (key: string): TemplateResult => {
+      const link = ele.links![key]
+      if (isUrl(link)) {
+        return html`<li><a href="${link}">${key}</a></li>`;
+      } else {
+        return html`<li>${key}: ${link}</li>`;
+      }
+    }
+
+    return keys.map(getHtml);
   }
 
   private static template = (ele: IngestFileLinksSk) => html`

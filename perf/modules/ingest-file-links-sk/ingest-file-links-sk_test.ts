@@ -30,6 +30,9 @@ describe('ingest-file-links-sk', () => {
         links: {
           'Swarming Run': 'https://skia.org',
           'Perfetto Results': 'https://skia.org',
+          'Bot Id': 'build109-h7,build109-h8',
+          'Foo': '/bar',
+          'Go Link': 'go/skia',
         },
       }));
       await element.load(validCommitID, validTraceID);
@@ -37,6 +40,16 @@ describe('ingest-file-links-sk', () => {
       assert.equal(2, linkElements.length);
       assert.include(linkElements[0].textContent, 'Perfetto Results');
       assert.include(linkElements[1].textContent, 'Swarming Run');
+      assert.include(linkElements[0].href, 'https://skia.org');
+      assert.include(linkElements[1].href, 'https://skia.org');
+
+      const listElements = $<HTMLLIElement>('li', element);
+      assert.equal(5, listElements.length);
+      assert.include(listElements[0].textContent, 'Bot Id: build109-h7,build109-h8');
+      assert.include(listElements[1].textContent, 'Foo: /bar');
+      assert.include(listElements[2].textContent, 'Go Link: go/skia');
+      assert.include(listElements[3].textContent, 'Perfetto Results');
+      assert.include(listElements[4].textContent, 'Swarming Run');
     });
 
     it('stops spinning on fetch error', async () => {
