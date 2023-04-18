@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	api "go.chromium.org/luci/cipd/api/cipd/v1"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/client/cipd/builder"
 	"go.chromium.org/luci/cipd/client/cipd/ensure"
@@ -201,7 +202,7 @@ func GetStrCIPDPkgs(pkgs []*Package) []string {
 func Ensure(ctx context.Context, c *http.Client, rootDir string, packages ...*Package) error {
 	cipdClient, err := NewClient(c, rootDir, DefaultServiceURL)
 	if err != nil {
-		return fmt.Errorf("Failed to create CIPD client: %s", err)
+		return skerr.Wrapf(err, "failed to create CIPD client")
 	}
 	return cipdClient.Ensure(ctx, packages...)
 }
@@ -267,7 +268,7 @@ func NewClient(c *http.Client, rootDir, serviceURL string) (*Client, error) {
 		AuthenticatedClient: c,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create CIPD client: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create CIPD client")
 	}
 	return &Client{
 		Client:   cipdClient,
@@ -325,6 +326,9 @@ func (c *Client) Create(ctx context.Context, name, dir string, installMode pkg.I
 		PreserveModTime:  false,
 		PreserveWritable: false,
 	})
+	if err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
 
 	// Create the package file.
 	tmp, err := ioutil.TempDir("", "")
@@ -405,3 +409,27 @@ func (c *Client) Attach(ctx context.Context, pin common.Pin, refs []string, tags
 
 // Ensure that Client implements CIPDClient.
 var _ CIPDClient = &Client{}
+
+// Sha256ToInstanceID returns a package instance ID based on a sha256 sum.
+func Sha256ToInstanceID(sha256 string) (string, error) {
+	ref := &api.ObjectRef{
+		HashAlgo:  api.HashAlgo_SHA256,
+		HexDigest: sha256,
+	}
+	if err := common.ValidateObjectRef(ref, common.KnownHash); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return common.ObjectRefToInstanceID(ref), nil
+}
+
+// InstanceIDToSha256 returns a sha256 based on a package instance ID.
+func InstanceIDToSha256(instanceID string) (string, error) {
+	if err := common.ValidateInstanceID(instanceID, common.KnownHash); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	ref := common.InstanceIDToObjectRef(instanceID)
+	if ref.HashAlgo != api.HashAlgo_SHA256 {
+		return "", skerr.Fmt("instance ID %q does not use sha256 (uses %s)", instanceID, ref.HashAlgo.String())
+	}
+	return ref.HexDigest, nil
+}
