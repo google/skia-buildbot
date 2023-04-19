@@ -744,7 +744,17 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 			Name:     inputFile,
 			Contents: ioutil.NopCloser(reader),
 		}
-		p, v, hash, err := parser.New(nil).Parse(f)
+		instanceConfig := &config.InstanceConfig{
+			IngestionConfig: config.IngestionConfig{
+				Branches: []string{},
+			},
+			InvalidParamCharRegex: "",
+		}
+		parser, err := parser.New(instanceConfig)
+		if err != nil {
+			return fmt.Errorf("Failed to create parser: %s", skerr.Unwrap(err))
+		}
+		p, v, hash, err := parser.Parse(f)
 		if err != nil {
 			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
 		}
@@ -788,7 +798,11 @@ func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConf
 		return skerr.Wrap(err)
 	}
 
-	ingestParser := parser.New(instanceConfig.IngestionConfig.Branches)
+	ingestParser, err := parser.New(instanceConfig)
+	if err != nil {
+		return skerr.Wrapf(err, "Cannot create ingest parser.")
+	}
+
 	u, err := url.Parse(trybotFilename)
 	if err != nil {
 		return skerr.Wrapf(err, "Trybot filename must be a full GCS url, e.g. gs://...")

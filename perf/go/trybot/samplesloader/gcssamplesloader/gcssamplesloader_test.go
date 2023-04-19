@@ -48,13 +48,15 @@ const sourceFileBody = `{
 `
 
 // Returns ingestion parser.
-func ingestParser() *parser.Parser {
+func ingestParser(t *testing.T) *parser.Parser {
 	instanceConfig := &config.InstanceConfig{
 		IngestionConfig: config.IngestionConfig{
 			Branches: nil,
 		},
 	}
-	return parser.New(instanceConfig.IngestionConfig.Branches)
+	p, err := parser.New(instanceConfig)
+	require.NoError(t, err)
+	return p
 }
 
 func TestLoad_Success(t *testing.T) {
@@ -67,7 +69,7 @@ func TestLoad_Success(t *testing.T) {
 	r := bytes.NewBufferString(sourceFileBody)
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(ioutil.NopCloser(r), nil)
 
-	g := New(gcsclient, ingestParser())
+	g := New(gcsclient, ingestParser(t))
 	sampleSet, err := g.Load(ctx, sourceFileName)
 	require.NoError(t, err)
 	expected := parser.SamplesSet{
@@ -90,7 +92,7 @@ func TestLoad_FileReaderFails_Failure(t *testing.T) {
 	gcsclient := &test_gcsclient.GCSClient{}
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(nil, fmt.Errorf("something broke"))
 
-	g := New(gcsclient, ingestParser())
+	g := New(gcsclient, ingestParser(t))
 	_, err := g.Load(ctx, sourceFileName)
 	require.Contains(t, err.Error(), "Failed to load from storage")
 }
@@ -98,7 +100,7 @@ func TestLoad_FileReaderFails_Failure(t *testing.T) {
 func TestLoad_InvalidFilenameURL_Failure(t *testing.T) {
 	ctx := context.Background()
 	gcsclient := &test_gcsclient.GCSClient{}
-	g := New(gcsclient, ingestParser())
+	g := New(gcsclient, ingestParser(t))
 	_, err := g.Load(ctx, "::: not a valid url :::")
 	require.Contains(t, err.Error(), "Failed to parse filename")
 }
@@ -113,7 +115,7 @@ func TestLoad_InvalidJSON_Failure(t *testing.T) {
 	r := bytes.NewBufferString("}this isn't valid JSON{")
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(ioutil.NopCloser(r), nil)
 
-	g := New(gcsclient, ingestParser())
+	g := New(gcsclient, ingestParser(t))
 	_, err := g.Load(ctx, sourceFileName)
 	require.Contains(t, err.Error(), "Failed to parse samples from file")
 }

@@ -13,6 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//perf/go/config",
         "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/types",
@@ -22,11 +23,13 @@ go_library(
 go_test(
     name = "parser_test",
     srcs = ["parser_test.go"],
-    data = glob(["testdata/**"]),
+    data = glob(["testdata/**"]) + ["//perf:configs"],
     embed = [":parser"],
     deps = [
         "//go/paramtools",
+        "//go/query",
         "//go/testutils",
+        "//perf/go/config",
         "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/types",

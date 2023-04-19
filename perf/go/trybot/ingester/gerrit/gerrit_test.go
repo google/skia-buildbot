@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
@@ -20,7 +21,8 @@ func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 			Branches: []string{}, // Branches are ignored by ParseTryBot.
 		},
 	}
-	p := parser.New(instanceConfig.IngestionConfig.Branches)
+	p, err := parser.New(instanceConfig)
+	require.NoError(t, err)
 
 	return p, file.File{
 		Name:     filename,

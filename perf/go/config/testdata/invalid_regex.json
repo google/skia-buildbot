@@ -2,7 +2,7 @@
     "URL": "https://chrome-perf-public.skia.org",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "invalid_param_char_regex": "(?=.*[^a-zA-Z0-9])",
     "auth_config": {
         "header_name": "X-WEBAUTH-USER",
         "login_url": "https://skia.org/login/",

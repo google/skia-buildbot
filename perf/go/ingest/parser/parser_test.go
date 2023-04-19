@@ -10,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -56,7 +58,7 @@ func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 	f, err := format.Parse(r)
 	require.NoError(t, err)
 
-	params, values := getParamsAndValuesFromVersion1Format(f)
+	params, values := getParamsAndValuesFromVersion1Format(f, query.InvalidChar)
 	assert.Len(t, values, 4)
 	assert.Len(t, params, 4)
 	assert.Contains(t, values, float32(858))
@@ -85,7 +87,13 @@ func TestParser(t *testing.T) {
 }
 
 func parserForTest(t *testing.T, subdir, filename string) (*Parser, file.File) {
-	ret := New([]string{goodBranchName})
+	instanceConfig := &config.InstanceConfig{
+		IngestionConfig: config.IngestionConfig{
+			Branches: []string{goodBranchName},
+		},
+	}
+	ret, err := New(instanceConfig)
+	require.NoError(t, err)
 	ret.parseCounter.Reset()
 	ret.parseFailCounter.Reset()
 
@@ -348,4 +356,89 @@ func TestSamplesSetAdd_NonEmptySamples_Success(t *testing.T) {
 		},
 	}
 	require.Equal(t, expected, a)
+}
+
+func TestParseWithInvalidCharRegex_Success(t *testing.T) {
+	instanceConfig := &config.InstanceConfig{
+		IngestionConfig: config.IngestionConfig{
+			Branches: []string{goodBranchName},
+		},
+		InvalidParamCharRegex: "([^a-zA-Z0-9!~@#$%^&*()+ \\._\\-])",
+	}
+	p, err := New(instanceConfig)
+	require.NoError(t, err)
+	p.parseCounter.Reset()
+	p.parseFailCounter.Reset()
+
+	fileName := "with_special_chars.json"
+	f := file.File{
+		Name:     fileName,
+		Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
+	}
+
+	params, values, gitHash, err := p.Parse(f)
+	require.NoError(t, err)
+	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
+	assert.Len(t, values, 4)
+	assert.Len(t, params, 4)
+	assert.Contains(t, values, float32(858))
+	expectedParams := paramtools.Params{
+		"arch":       "x!~@#$%^&*()86",
+		"branch":     "some-branch-name",
+		"config":     "meta",
+		"gpu":        "GTX660",
+		"model":      "ShuttleA",
+		"os":         "Ubuntu 12",
+		"sub_result": "max+rss+mb",
+		"system":     "UNIX",
+		"test":       "memory+usage_0_0",
+	}
+	assert.Contains(t, params, expectedParams)
+	assert.Equal(t, int64(1), p.parseCounter.Get())
+	assert.Equal(t, int64(0), p.parseFailCounter.Get())
+}
+
+func TestParseWithConfigFile_InvalidCharRegex_NoEqual_NoComma(t *testing.T) {
+	allExistingConfigs, err := filepath.Glob("../../../configs/*.json")
+	require.Greater(t, len(allExistingConfigs), 0)
+	require.NoError(t, err)
+	for _, filename := range allExistingConfigs {
+		instanceConfig, schemaErrors, err := config.InstanceConfigFromFile(filename)
+		require.Len(t, schemaErrors, 0)
+		require.NoError(t, err, filename)
+
+		if len(instanceConfig.InvalidParamCharRegex) > 0 {
+			p, err := New(instanceConfig)
+			require.NoError(t, err)
+			p.parseCounter.Reset()
+			p.parseFailCounter.Reset()
+
+			expectedParams := paramtools.Params{
+				"config": "meta_x",
+				"test":   "memory+usage_0_0",
+			}
+
+			fileName := "with_equal_in_param.json"
+			f := file.File{
+				Name:     fileName,
+				Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
+			}
+			params, _, _, err := p.Parse(f)
+			require.NoError(t, err)
+			assert.Contains(t, params, expectedParams)
+			assert.Equal(t, int64(1), p.parseCounter.Get())
+			assert.Equal(t, int64(0), p.parseFailCounter.Get())
+
+			fileName = "with_comma_in_param.json"
+			f = file.File{
+				Name:     fileName,
+				Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
+			}
+			params, _, _, err = p.Parse(f)
+			require.NoError(t, err)
+			assert.Contains(t, params, expectedParams)
+			assert.Equal(t, int64(2), p.parseCounter.Get())
+			assert.Equal(t, int64(0), p.parseFailCounter.Get())
+		}
+	}
 }

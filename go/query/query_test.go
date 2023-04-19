@@ -3,10 +3,12 @@ package query
 import (
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
 )
 
@@ -479,6 +481,47 @@ func TestForceValue(t *testing.T) {
 		if got, want := ForceValid(tc.input), tc.want; !reflect.DeepEqual(got, want) {
 			t.Errorf("Failed to force a map to be valid: Got %#v Want %#v", got, want)
 		}
+	}
+}
+
+func TestForceValueWithRegex(t *testing.T) {
+	testCases := []struct {
+		input map[string]string
+		want  map[string]string
+	}{
+		{
+			input: map[string]string{"arch": "x86", "config": "565"},
+			want:  map[string]string{"arch": "x86", "config": "565"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "con-fig": "5-65"},
+			want:  map[string]string{"arch": "x86", "con-fig": "5-65"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "config": "5 65"},
+			want:  map[string]string{"arch": "x86", "config": "5 65"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "config+v": "5+65"},
+			want:  map[string]string{"arch": "x86", "config+v": "5+65"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "config": ""},
+			want:  map[string]string{"arch": "x86", "config": "_"},
+		},
+		{
+			input: map[string]string{"arch::this": "x!~@#$%^&*()86"},
+			want:  map[string]string{"arch__this": "x!~@#$%^&*()86"},
+		},
+		{
+			input: map[string]string{},
+			want:  map[string]string{},
+		},
+	}
+	invalidCharRegex := regexp.MustCompile("([^a-zA-Z0-9!~@#$%^&*()+ \\._\\-])")
+	for _, tc := range testCases {
+		got := ForceValidWithRegex(tc.input, invalidCharRegex)
+		assertdeep.Equal(t, got, tc.want)
 	}
 }
 

@@ -497,6 +497,11 @@ type InstanceConfig struct {
 	// Contact is the best way to contact the team for this instance.
 	Contact string `json:"contact"`
 
+	// Customized invalid char regrex, regex must never accept ',' or '='.
+	// because '=' and ',' are used to parse the Param key and value,
+	// they can never be allowed.
+	InvalidParamCharRegex string `json:"invalid_param_char_regex,omitempty"`
+
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`

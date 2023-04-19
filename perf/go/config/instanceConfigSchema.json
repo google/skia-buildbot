@@ -154,6 +154,9 @@
         "contact": {
           "type": "string"
         },
+        "invalid_param_char_regex": {
+          "type": "string"
+        },
         "auth_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/AuthConfig"

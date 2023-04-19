@@ -18,6 +18,7 @@ go_test(
     srcs = ["query_test.go"],
     embed = [":query"],
     deps = [
+        "//go/deepequal/assertdeep",
         "//go/paramtools",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

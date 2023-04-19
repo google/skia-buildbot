@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -27,22 +29,35 @@ var (
 
 // Parser parses file.Files contents into a form suitable for writing to trace.Store.
 type Parser struct {
-	parseCounter     metrics2.Counter
-	parseFailCounter metrics2.Counter
-	branchNames      map[string]bool
+	parseCounter          metrics2.Counter
+	parseFailCounter      metrics2.Counter
+	branchNames           map[string]bool
+	invalidParamCharRegex *regexp.Regexp
 }
 
-// New creates a new instance of Parser.
-func New(branches []string) *Parser {
+// New creates a new instance of Parser for the given branch names
+// and invalid chars of parameter key/value
+func New(instanceConfig *config.InstanceConfig) (parser *Parser, err error) {
+	branches := instanceConfig.IngestionConfig.Branches
+
+	invalidParamCharRegex := query.InvalidChar
+	if instanceConfig.InvalidParamCharRegex != "" {
+		invalidParamCharRegex, err = regexp.Compile(instanceConfig.InvalidParamCharRegex)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+
 	ret := &Parser{
-		parseCounter:     metrics2.GetCounter("perf_ingest_parser_parse", nil),
-		parseFailCounter: metrics2.GetCounter("perf_ingest_parser_parse_failed", nil),
-		branchNames:      map[string]bool{},
+		parseCounter:          metrics2.GetCounter("perf_ingest_parser_parse", nil),
+		parseFailCounter:      metrics2.GetCounter("perf_ingest_parser_parse_failed", nil),
+		branchNames:           map[string]bool{},
+		invalidParamCharRegex: invalidParamCharRegex,
 	}
 	for _, branchName := range branches {
 		ret.branchNames[branchName] = true
 	}
-	return ret
+	return ret, nil
 }
 
 // buildInitialParams returns a Params for the given BenchResult.
@@ -160,7 +175,7 @@ func GetSamplesFromLegacyFormat(b *format.BenchData) SamplesSet {
 
 // getParamsAndValuesFromVersion1Format returns two parallel slices, each slice contains
 // the params and then the float for a single value of a trace.
-func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float32) {
+func getParamsAndValuesFromVersion1Format(f format.Format, invalidParamCharRegex *regexp.Regexp) ([]paramtools.Params, []float32) {
 	paramSlice := []paramtools.Params{}
 	keyParams := paramtools.Params(f.Key)
 	measurementSlice := []float32{}
@@ -168,7 +183,7 @@ func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params,
 		p := keyParams.Copy()
 		p.Add(result.Key)
 		if len(result.Measurements) == 0 {
-			paramSlice = append(paramSlice, query.ForceValid(p))
+			paramSlice = append(paramSlice, query.ForceValidWithRegex(p, invalidParamCharRegex))
 			measurementSlice = append(measurementSlice, result.Measurement)
 		} else {
 			for key, measurements := range result.Measurements {
@@ -214,7 +229,7 @@ func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramt
 	if err != nil {
 		return nil, nil, "", nil, err
 	}
-	params, values := getParamsAndValuesFromVersion1Format(f)
+	params, values := getParamsAndValuesFromVersion1Format(f, p.invalidParamCharRegex)
 	return params, values, f.GitHash, f.Key, nil
 }
 
