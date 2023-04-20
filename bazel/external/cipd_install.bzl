@@ -57,8 +57,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 def cipd_install(
         name,
         build_file_content,
-        cipd_package,  # buildifier: disable=unused-variable
+        cipd_package,
         sha256,
+        tag,
         postinstall_cmds_posix = None,
         postinstall_cmds_win = None):
     """Download and extract the zipped archive from CIPD, making it available for Bazel rules.
@@ -77,11 +78,15 @@ def cipd_install(
                       supported.
         sha256: The sha256 hash of the zip archive downloaded from CIPD. This should match the
                 official CIPD website.
+        tag: Represents the version of the CIPD package to download.
+             For example, git_revision:abc123...
         postinstall_cmds_posix: Optional Bash commands to run on Mac/Linux after download.
         postinstall_cmds_win: Optional Powershell commands to run on Windows after download.
     """
-    cipd_url = "https://storage.googleapis.com/chrome-infra-packages/store/SHA256/"
-    cipd_url += sha256
+    cipd_url = "https://chrome-infra-packages.appspot.com/dl/"
+    cipd_url += cipd_package
+    cipd_url += "/+/"
+    cipd_url += tag
 
     mirror_url = "https://storage.googleapis.com/skia-world-readable/bazel/"
     mirror_url += sha256
