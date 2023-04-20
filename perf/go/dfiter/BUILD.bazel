@@ -43,7 +43,6 @@ go_test(
         "//perf/go/git",
         "//perf/go/git/gittest",
         "//perf/go/progress",
-        "//perf/go/sql/sqltest",
         "//perf/go/tracestore",
         "//perf/go/tracestore/sqltracestore",
         "//perf/go/types",

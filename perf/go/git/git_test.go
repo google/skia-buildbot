@@ -61,6 +61,12 @@ var subTests = map[string]subTestFunction{
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber": testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber,
 	"testLogEntry_Success":                                                               testLogEntry_Success,
 	"testLogEntry_BadCommitId_ReturnsError":                                              testLogEntry_BadCommitId_ReturnsError,
+	"testPreviousCommitNumberFromCommitNumber_Success":                                   testPreviousCommitNumberFromCommitNumber_Success,
+	"testPreviousCommitNumberFromCommitNumber_UnknownCommit_Error":                       testPreviousCommitNumberFromCommitNumber_UnknownCommit_Error,
+	"testPreviousCommitNumberFromCommitNumber_NoPreviousCommit_Error":                    testPreviousCommitNumberFromCommitNumber_NoPreviousCommit_Error,
+	"testPreviousGitHashFromCommitNumber_Success":                                        testPreviousGitHashFromCommitNumber_Success,
+	"testPreviousGitHashFromCommitNumber_UnknownCommit_Error":                            testPreviousGitHashFromCommitNumber_UnknownCommit_Error,
+	"testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error":                         testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error,
 }
 
 func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
@@ -83,6 +89,48 @@ func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *G
 	commitNumber, err = g.CommitNumberFromGitHash(ctx, hashes[2])
 	assert.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(2), commitNumber)
+}
+
+func testPreviousCommitNumberFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.CommitNumber(1))
+	assert.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(0), commitNumber)
+	commitNumber, err = g.PreviousCommitNumberFromCommitNumber(ctx, types.CommitNumber(7))
+	assert.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(6), commitNumber)
+}
+
+func testPreviousCommitNumberFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.BadCommitNumber)
+	assert.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
+func testPreviousCommitNumberFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.CommitNumber(0))
+	assert.Error(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
+func testPreviousGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.CommitNumber(1))
+	assert.NoError(t, err)
+	assert.Equal(t, hashes[0], githash)
+	githash, err = g.PreviousGitHashFromCommitNumber(ctx, types.CommitNumber(6))
+	assert.NoError(t, err)
+	assert.Equal(t, hashes[5], githash)
+}
+
+func testPreviousGitHashFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.BadCommitNumber)
+	assert.Error(t, err)
+	assert.Equal(t, "", githash)
+}
+
+func testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.CommitNumber(0))
+	assert.Error(t, err)
+	assert.Equal(t, "", githash)
 }
 
 func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {

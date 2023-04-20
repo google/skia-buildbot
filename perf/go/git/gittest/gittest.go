@@ -52,6 +52,24 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 	hashes = append(hashes, gb.CommitGenAt(ctx, "bar.txt", StartTime.Add(6*time.Minute)))
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(7*time.Minute)))
 
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(8*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(9*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(10*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(11*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(12*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(13*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(14*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(15*time.Minute)))
+
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(16*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(17*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(18*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(19*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(20*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(21*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(22*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(23*time.Minute)))
+
 	// Init our sql database.
 	db := sqltest.NewCockroachDBForTests(t, "dbgit")
 

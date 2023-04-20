@@ -41,6 +41,8 @@ const (
 	getCommitFromCommitNumber
 	getHashFromCommitNumber
 	getDetails
+	getPreviousGitHashFromCommitNumber
+	getPreviousCommitNumberFromCommitNumber
 )
 
 var (
@@ -135,6 +137,30 @@ var statements = map[statement]string{
 		WHERE
 			commit_number=$1
 		`,
+	getPreviousGitHashFromCommitNumber: `
+		SELECT
+			git_hash
+		FROM
+			Commits
+		WHERE
+			commit_number < $1
+		ORDER BY
+			commit_number DESC
+		LIMIT
+			1
+		`,
+	getPreviousCommitNumberFromCommitNumber: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number < $1
+		ORDER BY
+			commit_number DESC
+		LIMIT
+			1
+		`,
 }
 
 // Git implements the minimal functionality Perf needs to interface to Git.
@@ -167,6 +193,8 @@ type Git struct {
 	commitFromCommitNumberCalled                          metrics2.Counter
 	gitHashFromCommitNumberCalled                         metrics2.Counter
 	commitNumbersWhenFileChangesInCommitNumberRangeCalled metrics2.Counter
+	previousGitHashFromCommitNumberCalled                 metrics2.Counter
+	previousCommitNumberFromCommitNumberCalled            metrics2.Counter
 }
 
 // New creates a new *Git from the given instance configuration.
@@ -208,6 +236,8 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 		commitFromCommitNumberCalled:           metrics2.GetCounter("perf_git_commit_from_commit_number_called"),
 		gitHashFromCommitNumberCalled:          metrics2.GetCounter("perf_git_githash_from_commit_number_called"),
 		commitNumbersWhenFileChangesInCommitNumberRangeCalled: metrics2.GetCounter("perf_git_commit_numbers_when_file_changes_in_commit_number_range_called"),
+		previousGitHashFromCommitNumberCalled:                 metrics2.GetCounter("perf_git_previous_githash_from_commit_number_called"),
+		previousCommitNumberFromCommitNumberCalled:            metrics2.GetCounter("perf_git_previous_commit_number_from_commit_number_called"),
 	}
 
 	if err := ret.Update(ctx); err != nil {
@@ -479,6 +509,32 @@ func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.Co
 	return ret, nil
 }
 
+// PreviousGitHashFromCommitNumber returns the previous git hash of the given commit number.
+func (g *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousGitHashFromCommitNumber")
+	defer span.End()
+
+	g.previousGitHashFromCommitNumberCalled.Inc(1)
+	var ret string
+	if err := g.db.QueryRow(ctx, statements[getPreviousGitHashFromCommitNumber], commitNumber).Scan(&ret); err != nil {
+		return "", skerr.Wrapf(err, "Failed to find previous git hash for commit number: %v", commitNumber)
+	}
+	return ret, nil
+}
+
+// PreviousCommitNumberFromCommitNumber returns the previous commit number of the given commit number.
+func (g *Git) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousCommitNumberFromCommitNumber")
+	defer span.End()
+
+	g.previousCommitNumberFromCommitNumberCalled.Inc(1)
+	ret := types.BadCommitNumber
+	if err := g.db.QueryRow(ctx, statements[getPreviousCommitNumberFromCommitNumber], commitNumber).Scan(&ret); err != nil {
+		return ret, skerr.Wrapf(err, "Failed to find previous commit number for commit number: %v", commitNumber)
+	}
+	return ret, nil
+}
+
 // CommitNumbersWhenFileChangesInCommitNumberRange returns a slice of commit
 // numbers when the given file has changed between [begin, end], i.e. the given
 // range is exclusive of the begin commit and inclusive of the end commit.
@@ -493,7 +549,7 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	// Covert the commit numbers to hashes.
 	if begin != types.BadCommitNumber && begin-1 != types.BadCommitNumber {
 		var err error
-		beginHash, err = g.GitHashFromCommitNumber(ctx, begin-1)
+		beginHash, err = g.PreviousGitHashFromCommitNumber(ctx, begin)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

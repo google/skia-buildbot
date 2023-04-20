@@ -274,6 +274,7 @@ const (
 	getTraceIDsBySource
 	countMatchingTraces
 	restrictClause
+	countCommitInCommitNumberRange
 )
 
 var templates = map[statement]string{
@@ -585,6 +586,14 @@ var statements = map[statement]string{
             Postings.tile_number= $2
         ORDER BY
             Postings.trace_id`,
+	countCommitInCommitNumberRange: `
+		SELECT
+			count(*)
+		FROM
+			Commits
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2`,
 }
 
 type timeProvider func() time.Time
@@ -919,6 +928,18 @@ func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename 
 	}
 
 	return ret, nil
+}
+
+// countCommitInCommitNumberRange counts the number of commits in a given commit number range.
+func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.countCommitInCommitNumberRange")
+	defer span.End()
+
+	var count int
+	if err := s.db.QueryRow(ctx, statements[countCommitInCommitNumberRange], begin, end).Scan(&count); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return count, nil
 }
 
 // OffsetFromCommitNumber implements the tracestore.TraceStore interface.
@@ -1441,7 +1462,10 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	}
 
 	// How long should the traces be in the response?
-	traceLength := endCommit - beginCommit + 1
+	traceLength, err := s.countCommitInCommitNumberRange(ctx, beginCommit, endCommit)
+	if err != nil {
+		return nil, skerr.Fmt("Cannot count commit within the commit range, [%d, %d]", beginCommit, endCommit)
+	}
 
 	// Map from the [md5.Size]byte representation of a trace id to the trace name.
 	//
@@ -1480,7 +1504,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 		mutex.Lock()
 		// Make space in ret for the values.
-		ret[key] = vec32.New(int(traceLength))
+		ret[key] = vec32.New(traceLength)
 
 		// Update the map from the full name of the trace and id in traceIDForSQLInBytes form.
 		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key

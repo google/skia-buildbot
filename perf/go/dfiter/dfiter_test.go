@@ -13,10 +13,10 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
+	"go.skia.org/infra/perf/go/git"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/progress"
-	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -41,7 +41,9 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 }
 
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git) {
-	db := sqltest.NewCockroachDBForTests(t, "dfiter")
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	_, err := git.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
 
 	cfg := config.DataStoreConfig{
 		TileSize: testTileSize,
@@ -70,7 +72,6 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -158,7 +159,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 	}
 	domain := types.Domain{
 		N:      2,
-		Offset: 10,
+		Offset: 30,
 	}
 	q := "arch=x86"
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert)

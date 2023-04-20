@@ -56,6 +56,8 @@ go_test(
         "//go/query",
         "//go/vec32",
         "//perf/go/config",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
         "//perf/go/sql/sqltest",
         "//perf/go/tracestore",
         "//perf/go/types",

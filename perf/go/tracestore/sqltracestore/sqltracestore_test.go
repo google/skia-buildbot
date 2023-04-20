@@ -16,6 +16,8 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -47,6 +49,19 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	return ctx, store
 }
 
+func commonTestSetupWithCommits(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	_, err := git.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	store, err := New(db, cfg)
+	require.NoError(t, err)
+
+	populatedTestDB(t, ctx, store)
+
+	return ctx, store
+}
+
 func TestUpdateSourceFile(t *testing.T) {
 	ctx, s := commonTestSetup(t, false)
 
@@ -67,7 +82,7 @@ func TestUpdateSourceFile(t *testing.T) {
 }
 
 func TestReadTraces(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -90,7 +105,7 @@ func TestReadTraces(t *testing.T) {
 }
 
 func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=x86,config='); DROP TABLE TraceValues,",
@@ -105,7 +120,7 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 }
 
 func TestReadTraces_NoResults(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=unknown,",
@@ -119,7 +134,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 }
 
 func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -136,7 +151,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -152,7 +167,7 @@ func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -309,7 +324,7 @@ func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTrace(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -322,7 +337,7 @@ func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 }
 
 func TestQueryTraces_NegativeQuery(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	// Query with a negative match that matches one trace.
 	q, err := query.NewFromString("config=!565")
@@ -335,7 +350,7 @@ func TestQueryTraces_NegativeQuery(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
@@ -348,7 +363,7 @@ func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
@@ -362,7 +377,7 @@ func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -373,7 +388,7 @@ func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
 }
 
 func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
-	ctx, s := commonTestSetup(t, false)
+	ctx, s := commonTestSetupWithCommits(t, false)
 
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -465,7 +480,7 @@ func TestGetParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
 }
 
 func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
+	ctx, s := commonTestSetupWithCommits(t, true)
 
 	tileNumber := types.TileNumber(0)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
