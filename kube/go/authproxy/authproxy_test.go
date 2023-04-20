@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/kube/go/authproxy/auth/mocks"
@@ -63,7 +64,8 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock, commonAllowed, true, false, false)
+	proxy := newProxy(u, authMock, true, false, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -75,7 +77,8 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -100,7 +103,8 @@ func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIs
 		roles.Viewer: allowed.NewAllowedFromList([]string{viewerEmail}),
 		roles.Editor: allowed.NewAllowedFromList([]string{viewerEmail}),
 	}
-	proxy := newProxy(u, authMock, allowedRoles, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false)
+	proxy.allowedRoles = allowedRoles
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -113,7 +117,8 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 	authMock.On("LoggedInAs", r).Return("")
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -124,7 +129,8 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(notAViewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.False(t, *called)
@@ -137,7 +143,8 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -153,7 +160,8 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("")
 
-	proxy := newProxy(u, authMock, commonAllowed, false, true, false)
+	proxy := newProxy(u, authMock, false, true, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -166,7 +174,8 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail)
 
-	proxy := newProxy(u, authMock, commonAllowed, false, true, false)
+	proxy := newProxy(u, authMock, false, true, false)
+	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
 	require.True(t, *called)
@@ -271,79 +280,79 @@ func mockCriaClient(t *testing.T) *http.Client {
 }
 
 func TestAppPopulateAllowedRoles_MultipleGroups_Success(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"editor=cria_group:" + testCriaGroupName,
 		"admin=google.com",
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.NoError(t, err)
-	require.True(t, a.allowedRoles[roles.Editor].Member("fred@chromium.org"))
-	require.False(t, a.allowedRoles[roles.Admin].Member("fred@chromium.org"))
-	require.True(t, a.allowedRoles[roles.Admin].Member("barney@google.com"))
+	require.True(t, a.proxy.allowedRoles[roles.Editor].Member("fred@chromium.org"))
+	require.False(t, a.proxy.allowedRoles[roles.Admin].Member("fred@chromium.org"))
+	require.True(t, a.proxy.allowedRoles[roles.Admin].Member("barney@google.com"))
 }
 
 func TestAppPopulateAllowedRoles_MultipleGroupsSameRoles_RoleContainsUnionOfAllows(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"editor=cria_group:" + testCriaGroupName,
 		"editor=google.com",
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.NoError(t, err)
-	require.True(t, a.allowedRoles[roles.Editor].Member("fred@chromium.org"))
-	require.True(t, a.allowedRoles[roles.Editor].Member("barney@google.com"))
+	require.True(t, a.proxy.allowedRoles[roles.Editor].Member("fred@chromium.org"))
+	require.True(t, a.proxy.allowedRoles[roles.Editor].Member("barney@google.com"))
 }
 
 func TestAppPopulateAllowedRoles_InvalidCriaGroup_ReturnsError(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"editor=cria_group:this-is-not-a-valid-group",
 		"admin=google.com",
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.Contains(t, err.Error(), "Failed parsing")
 }
 
 func TestAppPopulateAllowedRoles_UnknownRole_ReturnsError(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"not-a-known-role=cria_group:" + testCriaGroupName,
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.Contains(t, err.Error(), "Invalid Role")
 }
 
 func TestAppPopulateAllowedRoles_BadFlagFormat_ReturnsError(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"too=many=equals",
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.Contains(t, err.Error(), "Invalid format")
 }
 
 func TestAppPopulateAllowedRoles_CommaSeparatedRoles_RoleContainsUnionOfAllows(t *testing.T) {
-	m := mockCriaClient(t)
 	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
 	a.roleFlags = []string{
 		"viewer=google.com chromium.org",
 	}
 
-	err := a.populateAllowedRoles(m)
+	err := a.populateAllowedRoles()
 	require.NoError(t, err)
-	require.True(t, a.allowedRoles[roles.Viewer].Member("fred@chromium.org"))
-	require.True(t, a.allowedRoles[roles.Viewer].Member("barney@google.com"))
+	require.True(t, a.proxy.allowedRoles[roles.Viewer].Member("fred@chromium.org"))
+	require.True(t, a.proxy.allowedRoles[roles.Viewer].Member("barney@google.com"))
 }
 
 func TestAppPopulateAllowedRoles_TestMultiFlagParsing(t *testing.T) {
@@ -377,4 +386,22 @@ func TestParseTargetPort_FullURLIsSupplied_LocalhostInNotAddedToDomain(t *testin
 	got, err := parseTargetPort("http://foo:8000")
 	require.NoError(t, err)
 	require.Equal(t, "http://foo:8000", got.String())
+}
+
+func TestAppStartAllowedRefresh_InvalidCriaGroup_FailedMetricIncrements(t *testing.T) {
+	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
+	a.roleFlags = []string{
+		"editor=cria_group:this-is-not-a-valid-group",
+		"admin=google.com",
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	a.startAllowedRefresh(ctx, time.Microsecond)
+
+	failedMetric := metrics2.GetCounter("auth_proxy_cria_refresh_failed")
+	for failedMetric.Get() == 0 {
+		time.Sleep(time.Millisecond)
+	}
+	cancel()
 }

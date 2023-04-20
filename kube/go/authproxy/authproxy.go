@@ -38,12 +38,14 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
@@ -56,10 +58,11 @@ import (
 )
 
 const (
-	appName            = "auth-proxy"
-	serverReadTimeout  = time.Hour
-	serverWriteTimeout = time.Hour
-	drainTime          = time.Minute
+	appName             = "auth-proxy"
+	serverReadTimeout   = time.Hour
+	serverWriteTimeout  = time.Hour
+	drainTime           = time.Minute
+	criaRefreshDuration = time.Hour
 )
 
 const (
@@ -82,10 +85,13 @@ type proxy struct {
 	passive      bool
 	reverseProxy http.Handler
 	authProvider auth.Auth
+
+	// mutex protects allowedRoles
+	mutex        sync.RWMutex
 	allowedRoles map[roles.Role]allowed.Allow
 }
 
-func newProxy(target *url.URL, authProvider auth.Auth, allowedRules map[roles.Role]allowed.Allow, allowPost bool, passive bool, local bool) *proxy {
+func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive bool, local bool) *proxy {
 	reverseProxy := httputil.NewSingleHostReverseProxy(target)
 	if local {
 		// [httputil.ReverseProxy] doesn't appear work out of the box for local gRPC requests. Either the
@@ -113,23 +119,30 @@ func newProxy(target *url.URL, authProvider auth.Auth, allowedRules map[roles.Ro
 	return &proxy{
 		reverseProxy: reverseProxy,
 		authProvider: authProvider,
-		allowedRoles: allowedRules,
 		allowPost:    allowPost,
 		passive:      passive,
 	}
 }
 
-func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *proxy) setAllowedRoles(allowedRoles map[roles.Role]allowed.Allow) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.allowedRoles = allowedRoles
+}
+
+func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	email := p.authProvider.LoggedInAs(r)
 	r.Header.Del(WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
 
+	p.mutex.RLock()
 	authorizedRoles := roles.Roles{}
 	for role, allowed := range p.allowedRoles {
 		if allowed.Member(email) {
 			authorizedRoles = append(authorizedRoles, role)
 		}
 	}
+	p.mutex.RUnlock()
 
 	r.Header.Del(WebAuthRoleHeaderName)
 	r.Header.Add(WebAuthRoleHeaderName, authorizedRoles.ToHeader())
@@ -198,7 +211,8 @@ type App struct {
 	target       *url.URL
 	authProvider auth.Auth
 	server       *http.Server
-	allowedRoles map[roles.Role]allowed.Allow
+	criaClient   *http.Client
+	proxy        *proxy
 }
 
 // Flagset constructs a flag.FlagSet for the App.
@@ -220,7 +234,7 @@ func (a *App) Flagset() *flag.FlagSet {
 
 func newEmptyApp() *App {
 	return &App{
-		allowedRoles: map[roles.Role]allowed.Allow{},
+		proxy: &proxy{},
 	}
 }
 
@@ -246,12 +260,7 @@ func New(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	criaClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
-	err = ret.populateAllowedRoles(criaClient)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+	ret.criaClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	var authInstance auth.Auth
 	switch ToAuthType(ret.authType) {
@@ -295,7 +304,8 @@ func parseTargetPort(u string) (*url.URL, error) {
 	return url.Parse(u)
 }
 
-func (a *App) populateAllowedRoles(criaClient *http.Client) error {
+func (a *App) populateAllowedRoles() error {
+	allowedRoles := map[roles.Role]allowed.Allow{}
 	for _, roleFlag := range a.roleFlags {
 		parts := strings.Split(roleFlag, "=")
 		if len(parts) != 2 {
@@ -310,20 +320,20 @@ func (a *App) populateAllowedRoles(criaClient *http.Client) error {
 		var allow allowed.Allow
 		if strings.HasPrefix(allowedRuleAsString, "cria_group:") {
 			var err error
-			allow, err = allowed.NewAllowedFromChromeInfraAuth(criaClient, allowedRuleAsString[len("cria_group:"):])
+			allow, err = allowed.NewAllowedFromChromeInfraAuth(a.criaClient, allowedRuleAsString[len("cria_group:"):])
 			if err != nil {
 				return skerr.Fmt("Failed parsing --role flag: %q : %s", roleFlag, err)
 			}
 		} else {
 			allow = allowed.NewAllowedFromList(strings.Split(allowedRuleAsString, " "))
 		}
-		if existing, ok := a.allowedRoles[rolename]; ok {
-			a.allowedRoles[rolename] = allowed.UnionOf(existing, allow)
+		if existing, ok := allowedRoles[rolename]; ok {
+			allowedRoles[rolename] = allowed.UnionOf(existing, allow)
 		} else {
-			a.allowedRoles[rolename] = allow
+			allowedRoles[rolename] = allow
 		}
-
 	}
+	a.proxy.setAllowedRoles(allowedRoles)
 	return nil
 }
 
@@ -377,10 +387,44 @@ func genLocalhostCert() (tls.Certificate, error) {
 	return outCert, nil
 }
 
+// startAllowedRefresh periodically refreshes the definitions of CRIA groups.
+//
+// If the passed in context is cancelled then the Go routine will exit.
+func (a *App) startAllowedRefresh(ctx context.Context, criaRefreshDuration time.Duration) {
+	// Start refreshing the allowed roles from CRIA.
+	go func() {
+		failedMetric := metrics2.GetCounter("auth_proxy_cria_refresh_failed")
+		ticker := time.NewTicker(criaRefreshDuration)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				err := a.populateAllowedRoles()
+				if err != nil {
+					sklog.Errorf("Refreshing allowed roles: %s", err)
+					failedMetric.Inc(1)
+				} else {
+					failedMetric.Reset()
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+}
+
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
-	var h http.Handler = newProxy(a.target, a.authProvider, a.allowedRoles, a.allowPost, a.passive, a.local)
+	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local)
+	err := a.populateAllowedRoles()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	a.startAllowedRefresh(ctx, criaRefreshDuration)
+
+	var h http.Handler = a.proxy
 	h = httputils.HealthzAndHTTPS(h)
 	server := &http.Server{
 		Addr:           a.port,
@@ -392,7 +436,6 @@ func (a *App) Run(ctx context.Context) error {
 	a.server = server
 
 	sklog.Infof("Ready to serve on port %s", a.port)
-	var err error
 	if a.local && a.selfSignLocalhostTLS {
 		cert, err := genLocalhostCert()
 		if err != nil {
