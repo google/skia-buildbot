@@ -7,9 +7,10 @@ import { DotsSk } from './dots-sk';
 const logEventDetail = (e: Event) => {
   const detail = (e as CustomEvent).detail;
   const log = $$<HTMLTextAreaElement>('#event-log')!;
-  const entry = `Timestamp:    ${new Date().toISOString()}\n`
-      + `Event type:   ${e.type}\n`
-      + `Event detail: ${JSON.stringify(detail)}\n\n`;
+  const entry =
+    `Timestamp:    ${new Date().toISOString()}\n` +
+    `Event type:   ${e.type}\n` +
+    `Event detail: ${JSON.stringify(detail)}\n\n`;
   log.value = entry + log.value;
 };
 

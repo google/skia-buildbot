@@ -80,7 +80,7 @@ export function getDelta(o: HintableObject, d: HintableObject): HintableObject {
  */
 export function applyDelta(
   delta: HintableObject,
-  o: HintableObject,
+  o: HintableObject
 ): HintableObject {
   const ret: HintableObject = {};
   Object.keys(o).forEach((key) => {

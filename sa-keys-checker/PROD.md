@@ -1,17 +1,14 @@
-Service Account Keys Checker Production Manual
-==============================================
+# Service Account Keys Checker Production Manual
 
 The goal of this service is to add metrics for when the keys of the service
 accounts in Skia's cloud projects are going to expire, so we can get alerts
 based on them.
 
-Alerts
-======
+# Alerts
 
 Items below here should include target links from alerts.
 
-sa_key_expiring_soon
---------------------
+## sa_key_expiring_soon
 
 This alert signifies that the specified service account's key is expiring
 within 30 days.
@@ -39,12 +36,10 @@ For k8s services in skia-corp, you can use the [rotate-keys-for-skia-corp-sa.sh]
 
 Key metrics: sa_key_expiration_s
 
-sa_key_expired
---------------
+## sa_key_expired
 
 This alert signifies that the specified service account's key has expired.
 
 Delete the expired key from pantheon if it is no longer required.
 
 Key metrics: sa_key_expiration_s
-

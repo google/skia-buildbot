@@ -7,8 +7,8 @@
  * </p>
  */
 
-import { deepCopy } from '../../infra-sk/modules/object';
 import { expect } from 'chai';
+import { deepCopy } from './object';
 
 /**
  * Takes a DOM element name (e.g. 'my-component-sk') and returns a factory
@@ -43,7 +43,9 @@ import { expect } from 'chai';
  * @return A factory function that optionally takes a callback which is invoked
  *     with the newly instantiated element before it is attached to the DOM.
  */
-export function setUpElementUnderTest<T extends HTMLElement>(elementName: string): (finishSetupCallback?: (instance: T)=> void)=> T {
+export function setUpElementUnderTest<T extends HTMLElement>(
+  elementName: string
+): (finishSetupCallback?: (instance: T) => void) => T {
   let element: T | null;
 
   afterEach(() => {
@@ -53,7 +55,7 @@ export function setUpElementUnderTest<T extends HTMLElement>(elementName: string
     }
   });
 
-  return (finishSetupCallbackFn?: (instance: T)=> void) => {
+  return (finishSetupCallbackFn?: (instance: T) => void) => {
     element = document.createElement(elementName) as T;
     if (finishSetupCallbackFn) {
       finishSetupCallbackFn(element);
@@ -94,12 +96,24 @@ export function setUpElementUnderTest<T extends HTMLElement>(elementName: string
  *     returned promise.
  * @return A promise that will resolve to the caught event.
  */
-export function eventPromise<T extends Event>(event: string, timeoutMillis = 5000) {
-  const eventCaughtCallback = (resolve: (event: T)=> void, _: any, e: T) => resolve(e);
-  const timeoutCallback = (_: any, reject: (reason: any)=> void) => reject(new Error(
-    `timed out after ${timeoutMillis} ms while waiting to catch event "${event}"`,
-  ));
-  return buildEventPromise<T>(event, timeoutMillis, eventCaughtCallback, timeoutCallback);
+export function eventPromise<T extends Event>(
+  event: string,
+  timeoutMillis = 5000
+) {
+  const eventCaughtCallback = (resolve: (event: T) => void, _: any, e: T) =>
+    resolve(e);
+  const timeoutCallback = (_: any, reject: (reason: any) => void) =>
+    reject(
+      new Error(
+        `timed out after ${timeoutMillis} ms while waiting to catch event "${event}"`
+      )
+    );
+  return buildEventPromise<T>(
+    event,
+    timeoutMillis,
+    eventCaughtCallback,
+    timeoutCallback
+  );
 }
 
 /**
@@ -138,13 +152,14 @@ export function eventPromise<T extends Event>(event: string, timeoutMillis = 500
  * @return A promise that will resolve to the caught event.
  */
 export function noEventPromise(event: string, timeoutMillis = 200) {
-  const eventCaughtCallback = (_: any, reject: (reason: any)=> void) => reject(new Error(`event "${event}" was caught when none was expected`));
-  const timeoutCallback = (resolve: ()=> void) => resolve();
+  const eventCaughtCallback = (_: any, reject: (reason: any) => void) =>
+    reject(new Error(`event "${event}" was caught when none was expected`));
+  const timeoutCallback = (resolve: () => void) => resolve();
   return buildEventPromise<void>(
     event,
     timeoutMillis,
     eventCaughtCallback,
-    timeoutCallback,
+    timeoutCallback
   );
 }
 
@@ -165,10 +180,15 @@ export function noEventPromise(event: string, timeoutMillis = 200) {
 function buildEventPromise<T extends Event | void>(
   event: string,
   timeoutMillis: number,
-  eventCaughtCallback: (resolve: (value: T | PromiseLike<T>)=> void,
-                        reject: (reason?: any)=> void, event: T)=> void,
-  timeoutCallback: (resolve: (value: T | PromiseLike<T>)=> void,
-                    reject: (reason?: any)=> void)=> void,
+  eventCaughtCallback: (
+    resolve: (value: T | PromiseLike<T>) => void,
+    reject: (reason?: any) => void,
+    event: T
+  ) => void,
+  timeoutCallback: (
+    resolve: (value: T | PromiseLike<T>) => void,
+    reject: (reason?: any) => void
+  ) => void
 ) {
   // The executor function passed as a constructor argument to the Promise
   // object is executed immediately. This guarantees that the event handler
@@ -232,7 +252,10 @@ function buildEventPromise<T extends Event | void>(
  *     expect(events[4].detail).to.equal('j');
  *   });
  */
-export async function eventSequencePromise<T extends Event>(events: string[], timeoutMillis = 200) {
+export async function eventSequencePromise<T extends Event>(
+  events: string[],
+  timeoutMillis = 200
+) {
   if (events.length === 0) {
     return [];
   }
@@ -242,7 +265,7 @@ export async function eventSequencePromise<T extends Event>(events: string[], ti
     const caughtEvents: T[] = []; // Will store any caught in-sequence events.
 
     // We'll keep a reference to each event listener we add so we can remove them later.
-    const eventHandlers = new Map<string, (event: T)=> void>();
+    const eventHandlers = new Map<string, (event: T) => void>();
 
     let timeout: number | null = null;
 
@@ -253,7 +276,10 @@ export async function eventSequencePromise<T extends Event>(events: string[], ti
       }
 
       eventHandlers.forEach((handler, eventName) => {
-        document.removeEventListener(eventName, handler as (event: Event)=> void);
+        document.removeEventListener(
+          eventName,
+          handler as (event: Event) => void
+        );
       });
     };
 
@@ -279,7 +305,7 @@ export async function eventSequencePromise<T extends Event>(events: string[], ti
         };
 
         eventHandlers.set(eventName, handler);
-        document.addEventListener(eventName, handler as (event: Event)=> void);
+        document.addEventListener(eventName, handler as (event: Event) => void);
       }
     }
 
@@ -288,8 +314,8 @@ export async function eventSequencePromise<T extends Event>(events: string[], ti
       timeout = window.setTimeout(() => {
         cleanUp();
         reject(
-          `timed out after ${timeoutMillis} ms while waiting to catch events `
-          + `"${eventsToGo.join('", "')}"`,
+          `timed out after ${timeoutMillis} ms while waiting to catch events ` +
+            `"${eventsToGo.join('", "')}"`
         );
       }, timeoutMillis);
     }
@@ -309,6 +335,8 @@ export function expectQueryStringToEqual(expected: string) {
  */
 export function setQueryString(q: string) {
   history.pushState(
-    null, '', window.location.origin + window.location.pathname + q,
+    null,
+    '',
+    window.location.origin + window.location.pathname + q
   );
 }

@@ -3,11 +3,16 @@ import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import { ScreenshotsViewerSk } from './screenshots-viewer-sk';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { rpcResponse } from './demo_data';
 
 describe('screenshots-viewer-sk', () => {
-  const newInstance = setUpElementUnderTest<ScreenshotsViewerSk>('screenshots-viewer-sk');
+  const newInstance = setUpElementUnderTest<ScreenshotsViewerSk>(
+    'screenshots-viewer-sk'
+  );
 
   let screenshotsViewerSk: ScreenshotsViewerSk;
 
@@ -26,13 +31,16 @@ describe('screenshots-viewer-sk', () => {
   const getScreenshotsFromUI = (): Map<string, string[]> => {
     const ui = new Map<string, string[]>();
 
-    Array.from(screenshotsViewerSk.querySelectorAll<HTMLElement>('.application'))
-      .forEach((app) => {
-        const appName = app.querySelector<HTMLElement>('.application-name')!.innerText;
-        const testNames = Array.from(app.querySelectorAll<HTMLElement>('.test-name'))
-          .map((testName) => testName.innerText);
-        ui.set(appName, testNames);
-      });
+    Array.from(
+      screenshotsViewerSk.querySelectorAll<HTMLElement>('.application')
+    ).forEach((app) => {
+      const appName =
+        app.querySelector<HTMLElement>('.application-name')!.innerText;
+      const testNames = Array.from(
+        app.querySelectorAll<HTMLElement>('.test-name')
+      ).map((testName) => testName.innerText);
+      ui.set(appName, testNames);
+    });
 
     return ui;
   };
@@ -45,7 +53,8 @@ describe('screenshots-viewer-sk', () => {
   });
 
   it('filters results and clears the filter', () => {
-    const clearBtn = screenshotsViewerSk.querySelector<HTMLButtonElement>('.filter button')!;
+    const clearBtn =
+      screenshotsViewerSk.querySelector<HTMLButtonElement>('.filter button')!;
 
     enterFilter('l');
     let ui = getScreenshotsFromUI();
@@ -69,12 +78,14 @@ describe('screenshots-viewer-sk', () => {
     enterFilter('this filter matches no results');
     const ui = getScreenshotsFromUI();
     expect(ui.size).to.equal(0);
-    expect(screenshotsViewerSk.querySelector<HTMLElement>('.no-results')!.innerText)
-      .to.equal('No screenshots match "this filter matches no results".');
+    expect(
+      screenshotsViewerSk.querySelector<HTMLElement>('.no-results')!.innerText
+    ).to.equal('No screenshots match "this filter matches no results".');
   });
 
   const enterFilter = (filter: string) => {
-    const filterInput = screenshotsViewerSk.querySelector<HTMLInputElement>('.filter input')!;
+    const filterInput =
+      screenshotsViewerSk.querySelector<HTMLInputElement>('.filter input')!;
     filterInput.value = filter;
     filterInput.dispatchEvent(new Event('input', { bubbles: true }));
   };

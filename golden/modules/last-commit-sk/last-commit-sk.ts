@@ -6,8 +6,8 @@
  * ingested for it. If there are any network errors, it will log them and retry.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
@@ -17,11 +17,12 @@ const reloadInterval = 3000;
 
 export class LastCommitSk extends ElementSk {
   private static template = (ele: LastCommitSk) => html`
-    <div class=last_commit>
+    <div class="last_commit">
       <a href="${LastCommitSk.commitURL(ele.status)}">
-      Last Commit: ${LastCommitSk.lastCommitText(ele.status)}
+        Last Commit: ${LastCommitSk.lastCommitText(ele.status)}
       </a>
-    <div>
+      <div></div>
+    </div>
   `;
 
   private static commitURL = (status: StatusResponse | null): string => {

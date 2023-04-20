@@ -1,4 +1,4 @@
-import { $, $$ } from '../../../infra-sk/modules/dom';
+import { $, $$ } from '../dom';
 import './index';
 import { UniformMouseSk } from './uniform-mouse-sk';
 
@@ -13,7 +13,16 @@ const applyUniformValues = () => {
   $$<HTMLPreElement>('#results')!.innerText = uniforms.toString();
 };
 
-$$<HTMLCanvasElement>('canvas')!.addEventListener('mousemove', applyUniformValues);
-$$<HTMLCanvasElement>('canvas')!.addEventListener('mousedown', applyUniformValues);
-$$<HTMLCanvasElement>('canvas')!.addEventListener('mouseup', applyUniformValues);
+$$<HTMLCanvasElement>('canvas')!.addEventListener(
+  'mousemove',
+  applyUniformValues
+);
+$$<HTMLCanvasElement>('canvas')!.addEventListener(
+  'mousedown',
+  applyUniformValues
+);
+$$<HTMLCanvasElement>('canvas')!.addEventListener(
+  'mouseup',
+  applyUniformValues
+);
 $$<HTMLCanvasElement>('canvas')!.addEventListener('click', applyUniformValues);

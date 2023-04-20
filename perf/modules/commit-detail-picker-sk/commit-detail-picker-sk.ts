@@ -10,8 +10,8 @@ import '../commit-detail-panel-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../day-range-sk';
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -59,7 +59,7 @@ export class CommitDetailPickerSk extends ElementSk {
   private static template = (ele: CommitDetailPickerSk) => html`
     <button @click=${ele.open}>${CommitDetailPickerSk._titleFrom(ele)}</button>
     <dialog>
-    <h2>Choose a commit</h2>
+      <h2>Choose a commit</h2>
       <commit-detail-panel-sk
         @commit-selected="${ele.panelSelect}"
         .details="${ele.details}"
@@ -68,12 +68,10 @@ export class CommitDetailPickerSk extends ElementSk {
       ></commit-detail-panel-sk>
       <button @click=${ele.close}>Close</button>
 
-      <hr>
-      <p class=tiny>Change the range of commits displayed:</p>
+      <hr />
+      <p class="tiny">Change the range of commits displayed:</p>
       <details>
-        <summary>
-          Date Range
-        </summary>
+        <summary>Date Range</summary>
         <day-range-sk
           id="range"
           @day-range-change=${ele.rangeChange}
@@ -121,13 +119,13 @@ export class CommitDetailPickerSk extends ElementSk {
           'Content-Type': 'application/json',
         },
       });
-      const cids = await jsonOrThrow(resp) as Commit[];
+      const cids = (await jsonOrThrow(resp)) as Commit[];
       cids.reverse();
 
       this.details = cids;
 
       for (let i = 0; i < cids.length; i++) {
-        if (((cids[i] as unknown) as Commit).offset === this.selection) {
+        if ((cids[i] as unknown as Commit).offset === this.selection) {
           this.selected = i;
           break;
         }
@@ -144,9 +142,9 @@ export class CommitDetailPickerSk extends ElementSk {
   }
 
   private panelSelect(e: Event) {
-    this.selected = (e as CustomEvent<
-      CommitDetailPanelSkCommitSelectedDetails
-    >).detail.selected;
+    this.selected = (
+      e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
+    ).detail.selected;
     this._render();
     this.close();
   }
@@ -162,7 +160,9 @@ export class CommitDetailPickerSk extends ElementSk {
   }
 
   /** The CommitNumber that is selected. */
-  get selection(): CommitNumber { return this._selection; }
+  get selection(): CommitNumber {
+    return this._selection;
+  }
 
   set selection(val: CommitNumber) {
     this._selection = val;

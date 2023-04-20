@@ -5,8 +5,8 @@
  * An element to display information around a single commit.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { diffDate } from '../../../infra-sk/modules/human';
@@ -31,7 +31,10 @@ export class CommitDetailSk extends ElementSk {
 
   private static template = (ele: CommitDetailSk) => html`
     <div @click=${() => ele._click()} class="linkish">
-      <pre>${ele.cid.hash.slice(0, 8)} - ${diffDate(ele.cid.ts * 1000)} - ${ele.cid.message}</pre>
+      <pre>
+${ele.cid.hash.slice(0, 8)} - ${diffDate(ele.cid.ts * 1000)} - ${ele.cid
+          .message}</pre
+      >
     </div>
     <div class="tip hidden">
       <a href="/g/e/${ele.cid.hash}">Explore</a>

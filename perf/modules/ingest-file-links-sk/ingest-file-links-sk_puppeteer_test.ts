@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  inBazel,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('ingest-file-links-sk', () => {

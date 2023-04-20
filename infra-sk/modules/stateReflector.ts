@@ -48,9 +48,9 @@ import { HintableObject } from './hintable';
  *   to the URL.
  */
 export function stateReflector(
-  getState: ()=> HintableObject,
-  setState: (o: HintableObject)=> void,
-): ()=> void {
+  getState: () => HintableObject,
+  setState: (o: HintableObject) => void
+): () => void {
   // The default state of the stateHolder. Used to calculate diffs to state.
   const defaultState = object.deepCopy(getState());
 
@@ -81,7 +81,7 @@ export function stateReflector(
     history.pushState(
       null,
       '',
-      `${window.location.origin + window.location.pathname}?${q}`,
+      `${window.location.origin + window.location.pathname}?${q}`
     );
   };
 }

@@ -6,5 +6,9 @@ const el = document.createElement('navigation-sk') as NavigationSk;
 document.querySelector('#container')!.appendChild(el);
 
 el.addEventListener('repo-changed', (e) => {
-  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+  document.querySelector('#events')!.textContent = JSON.stringify(
+    e,
+    null,
+    '  '
+  );
 });

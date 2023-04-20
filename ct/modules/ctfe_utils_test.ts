@@ -1,14 +1,21 @@
 import { expect } from 'chai';
 
 import {
-  getTimestamp, getFormattedTimestamp, getCtDbTimestamp, combineClDescriptions,
+  getTimestamp,
+  getFormattedTimestamp,
+  getCtDbTimestamp,
+  combineClDescriptions,
 } from './ctfe_utils';
 
 describe('ctfe_utils', () => {
   // This makes the tests deterministic w.r.t. the computer's timezone.
   const originalDateToLocaleString = Date.prototype.toLocaleString;
-  before(() => { Date.prototype.toLocaleString = Date.prototype.toUTCString; });
-  after(() => { Date.prototype.toLocaleString = originalDateToLocaleString; });
+  before(() => {
+    Date.prototype.toLocaleString = Date.prototype.toUTCString;
+  });
+  after(() => {
+    Date.prototype.toLocaleString = originalDateToLocaleString;
+  });
 
   // All dates are arbitrary.
   it('converts CT DB int date to JS Date', async () => {

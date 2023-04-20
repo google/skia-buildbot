@@ -3,8 +3,8 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { ColumnHeader, DataFrame, Params } from '../json';
 import { fromKey } from '../paramtools';
 
-export function parseIdsIntoParams(ids: string[]): {[key: string]: Params} {
-  const ret: {[key: string]: Params} = {};
+export function parseIdsIntoParams(ids: string[]): { [key: string]: Params } {
+  const ret: { [key: string]: Params } = {};
 
   ids.forEach((id: string) => {
     ret[id] = fromKey(id);
@@ -13,7 +13,9 @@ export function parseIdsIntoParams(ids: string[]): {[key: string]: Params} {
   return ret;
 }
 
-export function allParamKeysSorted(allParams: {[key: string]: Params}): string[] {
+export function allParamKeysSorted(allParams: {
+  [key: string]: Params;
+}): string[] {
   const paramKeys: Set<string> = new Set();
 
   Object.keys(allParams).forEach((key) => {
@@ -32,7 +34,7 @@ export function dataFrameToCSV(df: DataFrame): string {
   const sortedColumnNames = allParamKeysSorted(traceIDToParams);
 
   let line: (string | number)[] = sortedColumnNames.slice(0);
-  df.header!.forEach((ch: ColumnHeader|null) => {
+  df.header!.forEach((ch: ColumnHeader | null) => {
     line.push(new Date(ch!.timestamp * 1000).toISOString());
   });
   csv.push(line.join(','));

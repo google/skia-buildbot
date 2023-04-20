@@ -34,14 +34,14 @@ suggest-input-sk {
     transition: 0.2s ease all;
   }
 
-  input:focus~.suggest-label,
-  input:not(:focus):valid~.suggest-label {
+  input:focus ~ .suggest-label,
+  input:not(:focus):valid ~ .suggest-label {
     transform: translate(-10%, -75%) scale(0.75);
     left: 0px;
     opacity: 1;
   }
 
-  input:focus~.suggest-label {
+  input:focus ~ .suggest-label {
     color: var(--primary);
   }
 
@@ -73,7 +73,7 @@ suggest-input-sk {
   }
 
   // When input is clicked we 'undo' the center based horizontal collapse.
-  .suggest-input:focus~.suggest-underline-container>.suggest-underline {
+  .suggest-input:focus ~ .suggest-underline-container > .suggest-underline {
     transform: none;
     transition: transform 0.4s;
   }
@@ -89,12 +89,12 @@ suggest-input-sk {
     li.selected {
       background-color: var(--secondary);
       color: var(--on-secondary);
-      padding-left: .5em;
+      padding-left: 0.5em;
       padding-right: 1em;
     }
 
     li:hover {
-      padding-left: .5em;
+      padding-left: 0.5em;
       padding-right: 1em;
       background-color: var(--primary-variant);
     }
@@ -106,8 +106,7 @@ suggest-input-sk {
 
     li {
       padding-left: 1em;
-      padding-right: .5em;
+      padding-right: 0.5em;
     }
   }
-
 }

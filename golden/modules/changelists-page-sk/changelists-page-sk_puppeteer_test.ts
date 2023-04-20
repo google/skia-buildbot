@@ -14,7 +14,9 @@ describe('changelists-page-sk', () => {
   });
 
   beforeEach(async () => {
-    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
+    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [
+      'end-task',
+    ]);
     const loaded = eventPromise('end-task'); // Emitted when page is loaded.
     await testBed.page.goto(testBed.baseUrl);
     await loaded;

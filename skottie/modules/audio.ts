@@ -63,7 +63,7 @@ export class AudioPlayer {
 }
 
 export class SoundMap {
-  map: Map<string, AudioPlayer> = new Map()
+  map: Map<string, AudioPlayer> = new Map();
 
   setPlayer(name: string, player: AudioPlayer): void {
     this.map.set(name, player);

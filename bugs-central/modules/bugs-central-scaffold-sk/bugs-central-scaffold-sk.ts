@@ -12,8 +12,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -45,54 +45,67 @@ export class BugsCentralScaffoldSk extends ElementSk {
   }
 
   private static template = (el: BugsCentralScaffoldSk) => html`
-  <app-sk>
-  <header>
-    <h1 class=name>${el.appTitle}</h1>
-    <div class=spacer></div>
-    <login-sk ?testing_offline=${el.testingOffline}></login-sk>
-    <theme-chooser-sk></theme-chooser-sk>
-  </header>
+    <app-sk>
+      <header>
+        <h1 class="name">${el.appTitle}</h1>
+        <div class="spacer"></div>
+        <login-sk ?testing_offline=${el.testingOffline}></login-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
 
-  <aside>
-    <nav class=surface-themes-sk>
-      <a href="/" tab-index=0 >
-        <home-icon-sk></home-icon-sk><span>All Clients</span>
-      </a>
-      <a href="/?client=Android" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>Android Client</span>
-      </a>
-      <a href="/?client=Chromium" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>Chromium Client</span>
-      </a>
-      <a href="/?client=Flutter-native" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>Flutter-native Client</span>
-      </a>
-      <a href="/?client=Flutter-on-web" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>Flutter-on-web Client</span>
-      </a>
-      <a href="/?client=OSS-Fuzz" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>OSS-Fuzz Client</span>
-      </a>
-      <a href="/?client=Skia" tab-index=0 >
-        <person-pin-icon-sk></person-pin-icon-sk><span>Skia Client</span>
-      </a>
-      <a href="https://estado.googleplex.com/dashboard/140965800253573027/buganizer" target="_blank" tab-index=0>
-        <insert-chart-icon-sk></insert-chart-icon-sk><span>Estado Dashboard</span>
-      </a>
-      <a href="http://go/skia-bugs-central" target="_blank" tab-index=0>
-        <help-icon-sk></help-icon-sk><span>Help</span>
-      </a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/bugs-central" target="_blank" tab-index=0>
-        <folder-icon-sk></folder-icon-sk><span>Code</span>
-      </a>
-    </nav>
-  </aside>
+      <aside>
+        <nav class="surface-themes-sk">
+          <a href="/" tab-index="0">
+            <home-icon-sk></home-icon-sk><span>All Clients</span>
+          </a>
+          <a href="/?client=Android" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk><span>Android Client</span>
+          </a>
+          <a href="/?client=Chromium" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk
+            ><span>Chromium Client</span>
+          </a>
+          <a href="/?client=Flutter-native" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk
+            ><span>Flutter-native Client</span>
+          </a>
+          <a href="/?client=Flutter-on-web" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk
+            ><span>Flutter-on-web Client</span>
+          </a>
+          <a href="/?client=OSS-Fuzz" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk
+            ><span>OSS-Fuzz Client</span>
+          </a>
+          <a href="/?client=Skia" tab-index="0">
+            <person-pin-icon-sk></person-pin-icon-sk><span>Skia Client</span>
+          </a>
+          <a
+            href="https://estado.googleplex.com/dashboard/140965800253573027/buganizer"
+            target="_blank"
+            tab-index="0"
+          >
+            <insert-chart-icon-sk></insert-chart-icon-sk
+            ><span>Estado Dashboard</span>
+          </a>
+          <a href="http://go/skia-bugs-central" target="_blank" tab-index="0">
+            <help-icon-sk></help-icon-sk><span>Help</span>
+          </a>
+          <a
+            href="https://github.com/google/skia-buildbot/tree/master/bugs-central"
+            target="_blank"
+            tab-index="0"
+          >
+            <folder-icon-sk></folder-icon-sk><span>Code</span>
+          </a>
+        </nav>
+      </aside>
 
-  <main></main>
+      <main></main>
 
-  <footer><error-toast-sk></error-toast-sk></footer>
-  </app-sk>
-`;
+      <footer><error-toast-sk></error-toast-sk></footer>
+    </app-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -139,13 +152,19 @@ export class BugsCentralScaffoldSk extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title')!; }
+  get appTitle(): string {
+    return this.getAttribute('app_title')!;
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
-  get testingOffline(): boolean { return this.hasAttribute('testing_offline'); }
+  get testingOffline(): boolean {
+    return this.hasAttribute('testing_offline');
+  }
 
   set testingOffline(val: boolean) {
     if (val) {

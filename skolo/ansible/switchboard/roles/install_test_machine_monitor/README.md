@@ -5,8 +5,8 @@
 ## Description
 
 Installs `test_machine_monitor` to the machine and arranges for it to run at
-startup. Installs command_wrapper as well, which TMM optionally uses to field
-Kingsford tasks. Does _not_ restart `test_machine_monitor` if an old copy is
+startup. Installs command*wrapper as well, which TMM optionally uses to field
+Kingsford tasks. Does \_not* restart `test_machine_monitor` if an old copy is
 already running; reboot to bring up the new version.
 
 ## Variables Required

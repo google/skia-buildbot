@@ -69,8 +69,8 @@ class FakeAutoRollService implements AutoRollService {
   getRolls(_: GetRollsRequest): Promise<GetRollsResponse> {
     return Promise.resolve({
       rolls: GetFakeRolls(),
-      cursor: "",
-    })
+      cursor: '',
+    });
   }
 
   getMiniStatus(_: GetMiniStatusRequest): Promise<GetMiniStatusResponse> {
@@ -115,14 +115,14 @@ class FakeAutoRollService implements AutoRollService {
   getModeHistory(req: GetModeHistoryRequest): Promise<GetModeHistoryResponse> {
     const entriesPerRequest = 2;
     return new Promise((resolve, reject) => {
-      const history = GetModeHistory()
+      const history = GetModeHistory();
       if (req.offset >= history.length) {
         resolve({
           history: [],
           nextOffset: 0,
         });
       }
-      let start = req.offset;
+      const start = req.offset;
       let end = req.offset + entriesPerRequest;
       if (end > history.length) {
         end = history.length;
@@ -143,7 +143,9 @@ class FakeAutoRollService implements AutoRollService {
       const validStrategies = Object.keys(Strategy);
       const validStrategy = validStrategies.indexOf(req.strategy);
       if (validStrategy < 0) {
-        reject(`Invalid strategy: ${req.strategy}; valid strategies: ${validStrategies}`);
+        reject(
+          `Invalid strategy: ${req.strategy}; valid strategies: ${validStrategies}`
+        );
         return;
       }
       const sc: StrategyChange = {
@@ -160,7 +162,9 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
-  getStrategyHistory(req: GetStrategyHistoryRequest): Promise<GetStrategyHistoryResponse> {
+  getStrategyHistory(
+    req: GetStrategyHistoryRequest
+  ): Promise<GetStrategyHistoryResponse> {
     return new Promise((resolve, reject) => {
       resolve({
         history: GetStrategyHistory(),
@@ -169,8 +173,11 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
-  createManualRoll(req: CreateManualRollRequest): Promise<CreateManualRollResponse> {
-    const result = manualRollResults[this.manualRollResult++ % manualRollResults.length];
+  createManualRoll(
+    req: CreateManualRollRequest
+  ): Promise<CreateManualRollResponse> {
+    const result =
+      manualRollResults[this.manualRollResult++ % manualRollResults.length];
     const id: string = `manualRequest${this.manualRequestId}`;
     this.manualRequestId++;
     const rv: ManualRoll = {

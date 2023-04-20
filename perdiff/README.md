@@ -1,5 +1,4 @@
-perdiff
-=======
+# perdiff
 
 Application that does perceptual differencing of images.
 

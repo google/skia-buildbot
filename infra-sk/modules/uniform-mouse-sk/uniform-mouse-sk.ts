@@ -35,8 +35,10 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
   applyUniformValues(uniforms: number[]): void {
     uniforms[this._uniform.slot] = this.location[0];
     uniforms[this._uniform.slot + 1] = this.location[1];
-    uniforms[this._uniform.slot + 2] = Math.abs(this.lastClick[0]) * (this.mouseDown ? 1 : -1);
-    uniforms[this._uniform.slot + 3] = Math.abs(this.lastClick[1]) * (this.mouseClick ? 1 : -1);
+    uniforms[this._uniform.slot + 2] =
+      Math.abs(this.lastClick[0]) * (this.mouseDown ? 1 : -1);
+    uniforms[this._uniform.slot + 3] =
+      Math.abs(this.lastClick[1]) * (this.mouseClick ? 1 : -1);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -61,16 +63,40 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
       return;
     }
     if (this.elementToMonitor) {
-      this._elementToMonitor!.removeEventListener('mouseup', this.mouseUpHandler.bind(this));
-      this._elementToMonitor!.removeEventListener('mousedown', this.mouseDownHandler.bind(this));
-      this._elementToMonitor!.removeEventListener('mousemove', this.mouseMoveHandler.bind(this));
-      this._elementToMonitor!.removeEventListener('click', this.clickHandler.bind(this));
+      this._elementToMonitor!.removeEventListener(
+        'mouseup',
+        this.mouseUpHandler.bind(this)
+      );
+      this._elementToMonitor!.removeEventListener(
+        'mousedown',
+        this.mouseDownHandler.bind(this)
+      );
+      this._elementToMonitor!.removeEventListener(
+        'mousemove',
+        this.mouseMoveHandler.bind(this)
+      );
+      this._elementToMonitor!.removeEventListener(
+        'click',
+        this.clickHandler.bind(this)
+      );
     }
     this._elementToMonitor = val;
-    this._elementToMonitor!.addEventListener('mouseup', this.mouseUpHandler.bind(this));
-    this._elementToMonitor!.addEventListener('mousedown', this.mouseDownHandler.bind(this));
-    this._elementToMonitor!.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
-    this._elementToMonitor!.addEventListener('click', this.clickHandler.bind(this));
+    this._elementToMonitor!.addEventListener(
+      'mouseup',
+      this.mouseUpHandler.bind(this)
+    );
+    this._elementToMonitor!.addEventListener(
+      'mousedown',
+      this.mouseDownHandler.bind(this)
+    );
+    this._elementToMonitor!.addEventListener(
+      'mousemove',
+      this.mouseMoveHandler.bind(this)
+    );
+    this._elementToMonitor!.addEventListener(
+      'click',
+      this.clickHandler.bind(this)
+    );
   }
 
   private mouseUpHandler(e: MouseEvent) {

@@ -10,9 +10,9 @@
  * committed. Event is of the form { value: <newValue> }
  */
 
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -55,8 +55,11 @@ export class SuggestInputSk extends ElementSk {
   ?hidden=${!(ele._suggestions && ele._suggestions.length > 0)}
   @click=${ele._suggestionClick}>
   <ul>
-  ${ele._suggestions.map((s, i) => (ele._suggestionSelected === i
-    ? SuggestInputSk.selectedOptionTemplate(s) : SuggestInputSk.optionTemplate(s)))}
+  ${ele._suggestions.map((s, i) =>
+    ele._suggestionSelected === i
+      ? SuggestInputSk.selectedOptionTemplate(s)
+      : SuggestInputSk.optionTemplate(s)
+  )}
   </ul>
 </div>
 </div>
@@ -64,12 +67,12 @@ export class SuggestInputSk extends ElementSk {
 
   // tabindex so the fields populate FocusEvent.relatedTarget on blur.
   private static optionTemplate = (option: string) => html`
-<li tabindex=-1 class=suggestion>${option}</li>
-`;
+    <li tabindex="-1" class="suggestion">${option}</li>
+  `;
 
   private static selectedOptionTemplate = (option: string) => html`
-<li tabindex=-1 class="suggestion selected">${option}</li>
-`;
+    <li tabindex="-1" class="suggestion selected">${option}</li>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -81,9 +84,9 @@ export class SuggestInputSk extends ElementSk {
    * selection, etc.
    */
   get value(): string {
-  // We back our value with input.value directly, to avoid issues with the
-  // input value changing without changing our value property, causing
-  // element re-rendering to be skipped.
+    // We back our value with input.value directly, to avoid issues with the
+    // input value changing without changing our value property, causing
+    // element re-rendering to be skipped.
     return ($$('input', this) as HTMLInputElement).value;
   }
 
@@ -130,7 +133,7 @@ export class SuggestInputSk extends ElementSk {
   }
 
   _blur(e: MouseEvent): void {
-  // Ignore if this blur is preceding _suggestionClick.
+    // Ignore if this blur is preceding _suggestionClick.
     const blurredElem = e.relatedTarget as HTMLElement;
     if (blurredElem && blurredElem.classList.contains('suggestion')) {
       return;
@@ -147,12 +150,16 @@ export class SuggestInputSk extends ElementSk {
     this._suggestions = [];
     this._suggestionSelected = -1;
     this._render();
-    this.dispatchEvent(new CustomEvent('value-changed',
-      { bubbles: true, detail: { value: this.value } }));
+    this.dispatchEvent(
+      new CustomEvent('value-changed', {
+        bubbles: true,
+        detail: { value: this.value },
+      })
+    );
   }
 
   _keyup(e: KeyboardEvent): void {
-  // Allow the user to scroll through suggestions using arrow keys.
+    // Allow the user to scroll through suggestions using arrow keys.
     const len = this._suggestions.length;
     const key = e.key || e.code;
     if ((key === 'ArrowDown' || key === DOWN_ARROW) && len > 0) {
@@ -162,24 +169,24 @@ export class SuggestInputSk extends ElementSk {
       this._suggestionSelected = (this._suggestionSelected + len - 1) % len;
       this._render();
     } else if (key === 'Enter' || key === ENTER) {
-    // This also commits the current selection (if present) or custom
-    // value (if allowed).
+      // This also commits the current selection (if present) or custom
+      // value (if allowed).
       ($$('input', this) as HTMLInputElement).dispatchEvent(
-        new Event('blur', { bubbles: true, cancelable: true }),
+        new Event('blur', { bubbles: true, cancelable: true })
       );
     }
   }
 
   _refresh(): void {
     const v = this.value;
-    let re: {test: (str: string)=> boolean; };
+    let re: { test: (str: string) => boolean };
     try {
       re = new RegExp(v, 'i'); // case-insensitive.
     } catch (err) {
-    // If the user enters an invalid expression, just use substring
-    // match.
+      // If the user enters an invalid expression, just use substring
+      // match.
       re = {
-        test: function(str: string) {
+        test: function (str: string) {
           return str.indexOf(v) !== -1;
         },
       };

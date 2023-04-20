@@ -235,7 +235,6 @@ that can be done by defining a
 CockroachDB defines a PodDisruptionBudget and is a good example of such a
 budget.
 
-
 - Metrics will be available on
   [prom2.skia.org](https://prom2.skia.org/).
 - The metrics will be labeled `app=<foo>` where `foo` is the first argument to
@@ -362,17 +361,17 @@ need to be done:
 
 1. Modify the YML file to add ephemeral-storage to the resource requests:
 
-~~~
+```
 resources:
   requests:
   cpu: '2'
   memory: '32Gi'
   ephemeral-storage: 100M
-~~~
+```
 
 2. Update `managed-prometheus-pod-monitoring.yml` because CockroachDB hosts metrics at a different path than the expected default of `/metrics`.
 
-~~~
+```
 # CockroachDB hosts metrics at a different path.
 apiVersion: monitoring.googleapis.com/v1
 kind: ClusterPodMonitoring
@@ -390,14 +389,14 @@ spec:
     fromPod:
       - from: app
       - from: appgroup
-~~~
+```
 
 3. Rename the HTTP port from `http` to `prom` so it gets scraped:
 
-~~~
+```
 ports:
   - containerPort: 26257
     name: grpc
   - containerPort: 8080
     name: prom
-~~~
+```

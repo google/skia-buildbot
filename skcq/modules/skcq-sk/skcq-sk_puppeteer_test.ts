@@ -13,7 +13,8 @@ describe('skcq-sk', () => {
   });
   beforeEach(async () => {
     await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/skcq-sk.html`);
+      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/skcq-sk.html`
+    );
     await testBed.page.setViewport({ width: 1300, height: 1300 });
   });
 

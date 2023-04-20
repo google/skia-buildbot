@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  inBazel,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('note-editor-sk', () => {
@@ -10,7 +13,11 @@ describe('note-editor-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/note-editor-sk.html`);
+    await testBed.page.goto(
+      inBazel()
+        ? testBed.baseUrl
+        : `${testBed.baseUrl}/dist/note-editor-sk.html`
+    );
     await testBed.page.setViewport({ width: 640, height: 480 });
   });
 

@@ -58,18 +58,20 @@ interface RecentRoll {
 }
 
 export class ARBStatusSk extends ElementSk {
-  private static template = (ele: ARBStatusSk) => (!ele.status
-    ? html``
-    : html`
+  private static template = (ele: ARBStatusSk) =>
+    !ele.status
+      ? html``
+      : html`
   <tabs-sk>
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
     <button value="config">View Roller Config</button>
   </tabs-sk>
-  ${!ele.editRights
-        ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
-        : html``
-      }
+  ${
+    !ele.editRights
+      ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
+      : html``
+  }
   <tabs-panel-sk selected="0">
     <div class="status">
       <div id="loadstatus">
@@ -87,11 +89,13 @@ export class ARBStatusSk extends ElementSk {
         <tr>
           <td>Last successful roll</td>
           <td>
-            <human-date-sk .date="${ele.status.miniStatus!.lastSuccessfulRollTimestamp!}" .diff="${true}"></human-date-sk>
+            <human-date-sk .date="${ele.status.miniStatus!
+              .lastSuccessfulRollTimestamp!}" .diff="${true}"></human-date-sk>
           </td>
         </tr>
-        ${ele.status.config?.parentWaterfall
-        ? html`
+        ${
+          ele.status.config?.parentWaterfall
+            ? html`
                 <tr>
                   <td class="nowrap">Parent Repo Build Status</td>
                   <td class="nowrap unknown">
@@ -106,26 +110,38 @@ export class ARBStatusSk extends ElementSk {
                   </td>
                 </tr>
               `
-        : html``
-      }
+            : html``
+        }
         <tr>
           <td class="nowrap">Mode:</td>
           <td class="nowrap unknown">
-            <span class="big ${ele.modeClass(ele.status.mode!.mode)}">${ele.status.mode?.mode.toLowerCase().replace('_', ' ')}</span>
+            <span class="big ${ele.modeClass(
+              ele.status.mode!.mode
+            )}">${ele.status.mode?.mode.toLowerCase().replace('_', ' ')}</span>
             <br/>
             Set by ${ele.status.mode?.user}
-            ${ele.status.mode
-        ? html`(<human-date-sk .date="${ele.status.mode?.time}" .diff="${true}"></human-date-sk>)`
-        : html``
-      }
-                  ${ele.status.mode?.message
-        ? html`: ${ele.status.mode.message}`
-        : html``
-      }
+            ${
+              ele.status.mode
+                ? html`(<human-date-sk
+                      .date="${ele.status.mode?.time}"
+                      .diff="${true}"
+                    ></human-date-sk
+                    >)`
+                : html``
+            }
+                  ${
+                    ele.status.mode?.message
+                      ? html`: ${ele.status.mode.message}`
+                      : html``
+                  }
             <br/>
-            <a href="/r/${ele.roller}/mode-history" class="small"><button>History</button></a>
+            <a href="/r/${
+              ele.roller
+            }/mode-history" class="small"><button>History</button></a>
             <button
-                @click="${() => { ele.modeChangeDialog() }}"
+                @click="${() => {
+                  ele.modeChangeDialog();
+                }}"
                 ?disabled="${!ele.editRights || ele.modeChangePending}"
                 >Update</button>
           </td>
@@ -136,8 +152,9 @@ export class ARBStatusSk extends ElementSk {
             <span class="${ele.statusClass(ele.status.status)}">
               <span class="big">${ele.status.status}</span>
             </span>
-            ${ele.status.status.indexOf('throttle') >= 0
-        ? html`
+            ${
+              ele.status.status.indexOf('throttle') >= 0
+                ? html`
                     <span
                       >until
                       ${localeTime(new Date(ele.status.throttledUntil!))}</span
@@ -146,86 +163,101 @@ export class ARBStatusSk extends ElementSk {
                       @click="${ele.unthrottle}"
                       ?disabled="${!ele.editRights}"
                       title="${ele.editRights
-            ? 'Unthrottle the roller.'
-            : ele.pleaseLoginMsg}"
+                        ? 'Unthrottle the roller.'
+                        : ele.pleaseLoginMsg}"
                     >
                       Force Unthrottle
                     </button>
                   `
-        : html``
-      }
-            ${ele.status.status.indexOf('waiting for roll window') >= 0
-        ? html` <span>until ${localeTime(ele.rollWindowStart)}</span> `
-        : html``
-      }
+                : html``
+            }
+            ${
+              ele.status.status.indexOf('waiting for roll window') >= 0
+                ? html` <span>until ${localeTime(ele.rollWindowStart)}</span> `
+                : html``
+            }
             ${LastCheckInSpan(ele.status?.miniStatus)}
           </td>
         </tr>
-        ${ele.editRights && ele.status.error
-        ? html`
+        ${
+          ele.editRights && ele.status.error
+            ? html`
                 <tr>
                   <td class="nowrap">Error:</td>
                   <td><pre>${ele.status.error}</pre></td>
                 </tr>
               `
-        : html``
-      }
-        ${ele.status.config?.childBugLink ? html`
-          <tr>
-            <td class="nowrap">File a bug in ${ele.status.miniStatus?.childName}</td>
-            <td>
-              <a
-                href="${ele.status.config.childBugLink}"
-                target="_blank"
-                class="small"
-              >
-                file bug
-              </a>
-            </td>
-          </tr>
-        `
-        : html``
-      }
-        ${ele.status.config?.parentBugLink ? html`
-          <tr>
-            <td class="nowrap">File a bug in ${ele.status.miniStatus?.parentName}</td>
-            <td>
-              <a
-                href="${ele.status.config.parentBugLink}"
-                target="_blank"
-                class="small"
-              >
-                file bug
-              </a>
-            </td>
-          </tr>
-        `
-        : html``
-      }
+            : html``
+        }
+        ${
+          ele.status.config?.childBugLink
+            ? html`
+                <tr>
+                  <td class="nowrap">
+                    File a bug in ${ele.status.miniStatus?.childName}
+                  </td>
+                  <td>
+                    <a
+                      href="${ele.status.config.childBugLink}"
+                      target="_blank"
+                      class="small"
+                    >
+                      file bug
+                    </a>
+                  </td>
+                </tr>
+              `
+            : html``
+        }
+        ${
+          ele.status.config?.parentBugLink
+            ? html`
+                <tr>
+                  <td class="nowrap">
+                    File a bug in ${ele.status.miniStatus?.parentName}
+                  </td>
+                  <td>
+                    <a
+                      href="${ele.status.config.parentBugLink}"
+                      target="_blank"
+                      class="small"
+                    >
+                      file bug
+                    </a>
+                  </td>
+                </tr>
+              `
+            : html``
+        }
         <tr>
           <td class="nowrap">Current Roll:</td>
           <td>
             <div>
-              ${ele.status.currentRoll
-        ? html`
+              ${
+                ele.status.currentRoll
+                  ? html`
                       <a
-                        href="${ele.issueURL(ele.status, ele.status.currentRoll)}"
+                        href="${ele.issueURL(
+                          ele.status,
+                          ele.status.currentRoll
+                        )}"
                         class="big"
                         target="_blank"
                       >
                         ${ele.status.currentRoll.subject}
                       </a>
                     `
-        : html`<span>(none)</span>`
-      }
+                  : html`<span>(none)</span>`
+              }
             </div>
             <div>
-              ${ele.status.currentRoll && ele.status.currentRoll.tryJobs
-        ? ele.status.currentRoll.tryJobs.map(
-          (tryResult) => html`
+              ${
+                ele.status.currentRoll && ele.status.currentRoll.tryJobs
+                  ? ele.status.currentRoll.tryJobs.map(
+                      (tryResult) => html`
                         <div class="trybot">
                           ${tryResult.url
-              ? html`
+                            ? html`
                                 <a
                                   href="${tryResult.url}"
                                   class="${ele.trybotClass(tryResult)}"
@@ -234,7 +266,7 @@ export class ARBStatusSk extends ElementSk {
                                   ${tryResult.name}
                                 </a>
                               `
-              : html`
+                            : html`
                                 <span
                                   class="nowrap"
                                   class="${ele.trybotClass(tryResult)}"
@@ -243,22 +275,23 @@ export class ARBStatusSk extends ElementSk {
                                 </span>
                               `}
                           ${tryResult.category === 'cq'
-              ? html``
-              : html`
+                            ? html``
+                            : html`
                                 <span class="nowrap small"
                                   >(${tryResult.category})</span
                                 >
                               `}
                         </div>
-                      `,
-        )
-        : html``
-      }
+                      `
+                    )
+                  : html``
+              }
             </div>
           </td>
         </tr>
-        ${ele.status.lastRoll
-        ? html`
+        ${
+          ele.status.lastRoll
+            ? html`
                 <tr>
                   <td class="nowrap">Previous roll result:</td>
                   <td>
@@ -275,8 +308,8 @@ export class ARBStatusSk extends ElementSk {
                   </td>
                 </tr>
               `
-        : html``
-      }
+            : html``
+        }
         <tr>
           <td class="nowrap">History:</td>
           <td>
@@ -286,26 +319,34 @@ export class ARBStatusSk extends ElementSk {
                 <th>Creation Time</th>
                 <th>Result</th>
               </tr>
-              ${ele.recentRolls.map((roll: RecentRoll) => html`
+              ${ele.recentRolls.map(
+                (roll: RecentRoll) => html`
                   <tr>
                     <td>
-                      ${!!roll.url ? html`
-                      <a href="${roll.url}" target="_blank"
-                        >${roll.subject}</a
-                      >
-                      ` : html`
-                        ${roll.subject} (no CL created)
-                      `}
+                      ${roll.url
+                        ? html`
+                            <a href="${roll.url}" target="_blank"
+                              >${roll.subject}</a
+                            >
+                          `
+                        : html` ${roll.subject} (no CL created) `}
                     </td>
-                    <td><human-date-sk .date="${roll.timestamp}" .diff="${true}"></human-date-sk></td>
+                    <td>
+                      <human-date-sk
+                        .date="${roll.timestamp}"
+                        .diff="${true}"
+                      ></human-date-sk>
+                    </td>
                     <td>
                       <span class="${roll.class}">${roll.result}</span>
                     </td>
                   </tr>
-                `,
-      )}
+                `
+              )}
             </table>
-            <a href="/r/${ele.roller}/roll-history" class="small"><button>More</button></a>
+            <a href="/r/${
+              ele.roller
+            }/roll-history" class="small"><button>More</button></a>
           </td>
         </tr>
         <tr>
@@ -319,21 +360,33 @@ export class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Strategy for choosing next roll revision:</</td>
           <td class="nowrap unknown">
-            <span class="big">${ele.status.strategy?.strategy.toLowerCase().replace('_', ' ')}</span>
+            <span class="big">${ele.status.strategy?.strategy
+              .toLowerCase()
+              .replace('_', ' ')}</span>
             <br/>
             Set by ${ele.status.strategy?.user}
-            ${ele.status.mode
-        ? html`(<human-date-sk .date="${ele.status.strategy?.time}" .diff="${true}"></human-date-sk>)`
-        : html``
-      }
-                  ${ele.status.strategy?.message
-        ? html`: ${ele.status.strategy.message}`
-        : html``
-      }
+            ${
+              ele.status.mode
+                ? html`(<human-date-sk
+                      .date="${ele.status.strategy?.time}"
+                      .diff="${true}"
+                    ></human-date-sk
+                    >)`
+                : html``
+            }
+                  ${
+                    ele.status.strategy?.message
+                      ? html`: ${ele.status.strategy.message}`
+                      : html``
+                  }
             <br/>
-            <a href="/r/${ele.roller}/strategy-history" class="small"><button>History</button></a>
+            <a href="/r/${
+              ele.roller
+            }/strategy-history" class="small"><button>History</button></a>
             <button
-                @click="${() => { ele.strategyChangeDialog() }}"
+                @click="${() => {
+                  ele.strategyChangeDialog();
+                }}"
                 ?disabled="${!ele.editRights || ele.strategyChangePending}"
                 >Update</button>
           </td>
@@ -342,14 +395,16 @@ export class ARBStatusSk extends ElementSk {
     </div>
     <div class="manual">
       <table>
-        ${ele.status.config?.supportsManualRolls
-        ? html`
-          ${!ele.rollCandidates
+        ${
+          ele.status.config?.supportsManualRolls
             ? html`
+          ${
+            !ele.rollCandidates
+              ? html`
                   The roller is up to date; there are no revisions which could
                   be manually rolled.
                 `
-            : html``
+              : html``
           }
           <tr>
             <th>Revision</th>
@@ -365,89 +420,87 @@ export class ARBStatusSk extends ElementSk {
               <tr class="rollCandidate">
                 <td>
                   ${rollCandidate.revision.url
-                ? html`
+                    ? html`
                         <a href="${rollCandidate.revision.url}" target="_blank">
                           ${rollCandidate.revision.display}
                         </a>
                       `
-                : html` ${rollCandidate.revision.display} `}
+                    : html` ${rollCandidate.revision.display} `}
                 </td>
                 <td>
                   ${rollCandidate.revision.description
-                ? truncate(rollCandidate.revision.description, 100)
-                : html``}
+                    ? truncate(rollCandidate.revision.description, 100)
+                    : html``}
                 </td>
                 <td>
                   ${rollCandidate.revision.time
-                ? localeTime(new Date(rollCandidate.revision.time!))
-                : html``}
+                    ? localeTime(new Date(rollCandidate.revision.time!))
+                    : html``}
                 </td>
-                <td>
-                  ${rollCandidate.revision.invalidReason}
-                </td>
+                <td>${rollCandidate.revision.invalidReason}</td>
                 <td>
                   ${rollCandidate.roll ? rollCandidate.roll.requester : html``}
                 </td>
                 <td>
                   ${rollCandidate.roll
-                ? localeTime(new Date(rollCandidate.roll.timestamp!))
-                : html``}
+                    ? localeTime(new Date(rollCandidate.roll.timestamp!))
+                    : html``}
                 </td>
                 <td>
                   ${rollCandidate.roll && rollCandidate.roll.url
-                ? html`
+                    ? html`
                         <a href="${rollCandidate.roll.url}" , target="_blank">
                           ${rollCandidate.roll.url}
                         </a>
                         ${rollCandidate.roll.dryRun ? html` [dry-run]` : html``}
                       `
-                : html``}
-                  ${!!rollCandidate.roll
-                && !rollCandidate.roll.url
-                && rollCandidate.roll.status
-                ? rollCandidate.roll.status
-                : html``}
+                    : html``}
+                  ${!!rollCandidate.roll &&
+                  !rollCandidate.roll.url &&
+                  rollCandidate.roll.status
+                    ? rollCandidate.roll.status
+                    : html``}
                   <button
                     @click="${() => {
-                ele.requestManualRoll(rollCandidate.revision.id, true);
-              }}"
+                      ele.requestManualRoll(rollCandidate.revision.id, true);
+                    }}"
                     class="requestRoll"
                     ?disabled=${!ele.editRights}
                     title="${ele.editRights
-                ? 'Request a dry-run to this revision.'
-                : ele.pleaseLoginMsg}"
+                      ? 'Request a dry-run to this revision.'
+                      : ele.pleaseLoginMsg}"
                   >
                     Request Dry-Run
                   </button>
                   <button
                     @click="${() => {
-                ele.requestManualRoll(rollCandidate.revision.id, false);
-              }}"
+                      ele.requestManualRoll(rollCandidate.revision.id, false);
+                    }}"
                     class="requestRoll"
                     ?disabled=${!ele.editRights}
                     title="${ele.editRights
-                ? 'Request a roll to this revision.'
-                : ele.pleaseLoginMsg}"
+                      ? 'Request a roll to this revision.'
+                      : ele.pleaseLoginMsg}"
                   >
                     Request Roll
                   </button>
                   ${!!rollCandidate.roll && !!rollCandidate.roll.result
-                ? html`
+                    ? html`
                         <span
                           class="${ele.manualRollResultClass(
-                  rollCandidate.roll,
-                )}"
+                            rollCandidate.roll
+                          )}"
                         >
-                          ${rollCandidate.roll.result
-                    == ManualRoll_Result.UNKNOWN
-                    ? html``
-                    : rollCandidate.roll.result}
+                          ${rollCandidate.roll.result ==
+                          ManualRoll_Result.UNKNOWN
+                            ? html``
+                            : rollCandidate.roll.result}
                         </span>
                       `
-                : html``}
+                    : html``}
                 </td>
               </tr>
-            `,
+            `
           )}
           <tr class="rollCandidate">
             <td>
@@ -460,47 +513,55 @@ export class ARBStatusSk extends ElementSk {
             <td>
               <button
                   @click="${() => {
-            ele.requestManualRoll(
-              $$<HTMLInputElement>('#manualRollRevInput')!.value, true,
-            );
-          }}"
+                    ele.requestManualRoll(
+                      $$<HTMLInputElement>('#manualRollRevInput')!.value,
+                      true
+                    );
+                  }}"
                   class="requestRoll"
                   ?disabled=${!ele.editRights}
-                  title="${ele.editRights
-            ? 'Request a dry-run to this revision.'
-            : ele.pleaseLoginMsg
-          }">
+                  title="${
+                    ele.editRights
+                      ? 'Request a dry-run to this revision.'
+                      : ele.pleaseLoginMsg
+                  }">
                 Request Dry-Run
               </button>
 
               <button
                   @click="${() => {
-            ele.requestManualRoll(
-              $$<HTMLInputElement>('#manualRollRevInput')!.value, false,
-            );
-          }}"
+                    ele.requestManualRoll(
+                      $$<HTMLInputElement>('#manualRollRevInput')!.value,
+                      false
+                    );
+                  }}"
                   class="requestRoll"
                   ?disabled=${!ele.editRights}
-                  title="${ele.editRights
-            ? 'Request a roll to this revision.'
-            : ele.pleaseLoginMsg
-          }">
+                  title="${
+                    ele.editRights
+                      ? 'Request a roll to this revision.'
+                      : ele.pleaseLoginMsg
+                  }">
                 Request Roll
               </button>
             </td>
           </tr>
         `
-        : html`
+            : html`
                 This roller does not support manual rolls. If you want this
                 feature, update the config file for the roller to enable it.
                 Note that some rollers cannot support manual rolls for technical
                 reasons.
               `
-      }
+        }
       </table>
     </div>
     <div class="config">
-      <code style="white-space: pre;">${JSON.stringify(ele.status.config, null, 2)}</code>
+      <code style="white-space: pre;">${JSON.stringify(
+        ele.status.config,
+        null,
+        2
+      )}</code>
     </div>
   </tabs-panel-sk>
   <dialog id="modeChangeDialog" class=surface-themes-sk>
@@ -510,16 +571,17 @@ export class ARBStatusSk extends ElementSk {
         <td>Mode:</td>
         <td>
           <select id="modeSelect">
-            ${ele.validModes.map((mode: string) => html`
-              <option
-                value="${mode}"
-                ?selected="${mode === ele.status?.mode?.mode}"
-                title="${ele.modeTooltip(Mode[<keyof typeof Mode>mode])}"
-              >
-                ${mode.toLowerCase().replace('_', ' ')}
-              </option>
+            ${ele.validModes.map(
+              (mode: string) => html`
+                <option
+                  value="${mode}"
+                  ?selected="${mode === ele.status?.mode?.mode}"
+                  title="${ele.modeTooltip(Mode[<keyof typeof Mode>mode])}"
+                >
+                  ${mode.toLowerCase().replace('_', ' ')}
+                </option>
               `
-      )}
+            )}
           </select>
         </td>
       </tr>
@@ -531,11 +593,11 @@ export class ARBStatusSk extends ElementSk {
       </tr>
     </table>
     <button @click="${() => {
-        ele.changeMode(false);
-      }}">Cancel</button>
+      ele.changeMode(false);
+    }}">Cancel</button>
     <button @click="${() => {
-        ele.changeMode(true);
-      }}">Submit</button>
+      ele.changeMode(true);
+    }}">Submit</button>
   </dialog>
   <dialog id="strategyChangeDialog" class=surface-themes-sk>
     <h2>Update Strategy</h2>
@@ -544,16 +606,19 @@ export class ARBStatusSk extends ElementSk {
         <td>Strategy:</td>
         <td>
           <select id="strategySelect">
-            ${Object.keys(Strategy).map((strategy: string) => html`
-              <option
-                value="${strategy}"
-                ?selected="${strategy === ele.status?.strategy?.strategy}"
-                title="${ele.strategyTooltip(Strategy[<keyof typeof Strategy>strategy])}"
-              >
-                ${strategy.toLowerCase().replace('_', ' ')}
-              </option>
-              `,
-      )}
+            ${Object.keys(Strategy).map(
+              (strategy: string) => html`
+                <option
+                  value="${strategy}"
+                  ?selected="${strategy === ele.status?.strategy?.strategy}"
+                  title="${ele.strategyTooltip(
+                    Strategy[<keyof typeof Strategy>strategy]
+                  )}"
+                >
+                  ${strategy.toLowerCase().replace('_', ' ')}
+                </option>
+              `
+            )}
           </select>
         </td>
       </tr>
@@ -565,13 +630,13 @@ export class ARBStatusSk extends ElementSk {
       </tr>
     </table>
     <button @click="${() => {
-        ele.changeStrategy(false);
-      }}">Cancel</button>
+      ele.changeStrategy(false);
+    }}">Cancel</button>
     <button @click="${() => {
-        ele.changeStrategy(true);
-      }}">Submit</button>
+      ele.changeStrategy(true);
+    }}">Submit</button>
   </dialog>
-`);
+`;
 
   private editRights: boolean = false;
 
@@ -597,7 +662,9 @@ export class ARBStatusSk extends ElementSk {
 
   private timeout: number = 0;
 
-  private validModes: Mode[] = Object.keys(Mode).map((key) => Mode[key as keyof typeof Mode]);
+  private validModes: Mode[] = Object.keys(Mode).map(
+    (key) => Mode[key as keyof typeof Mode]
+  );
 
   constructor() {
     super(ARBStatusSk.template);
@@ -629,8 +696,10 @@ export class ARBStatusSk extends ElementSk {
 
   private changeMode(submit: boolean) {
     $$<HTMLDialogElement>('#modeChangeDialog', this)!.close();
-    const modeChangeSelect = <HTMLSelectElement>($$('#modeSelect'));
-    const modeChangeMsgInput = <HTMLInputElement>($$('#modeChangeMsgInput', this));
+    const modeChangeSelect = <HTMLSelectElement>$$('#modeSelect');
+    const modeChangeMsgInput = <HTMLInputElement>(
+      $$('#modeChangeMsgInput', this)
+    );
     if (!submit) {
       if (!!modeChangeSelect && !!this.status?.mode) {
         modeChangeSelect.value = this.status?.mode.mode;
@@ -644,7 +713,11 @@ export class ARBStatusSk extends ElementSk {
     this.rpc
       .setMode({
         message: modeChangeMsgInput.value,
-        mode: Mode[<keyof typeof Mode>modeChangeSelect.options[modeChangeSelect.selectedIndex].value],
+        mode: Mode[
+          <keyof typeof Mode>(
+            modeChangeSelect.options[modeChangeSelect.selectedIndex].value
+          )
+        ],
         rollerId: this.roller,
       })
       .then(
@@ -656,7 +729,7 @@ export class ARBStatusSk extends ElementSk {
         () => {
           this.modeChangePending = false;
           this._render();
-        },
+        }
       );
   }
 
@@ -698,7 +771,7 @@ export class ARBStatusSk extends ElementSk {
             strategySelect!.value = this.status.strategy.strategy;
           }
           this._render();
-        },
+        }
       );
   }
 
@@ -926,9 +999,9 @@ export class ARBStatusSk extends ElementSk {
     // Make sure the user wants to proceed.
     let confirmMsg = 'Proceed with requesting manual ';
     if (dryRun) {
-      confirmMsg += 'dry-run?'
+      confirmMsg += 'dry-run?';
     } else {
-      confirmMsg += 'roll?'
+      confirmMsg += 'roll?';
     }
     const confirmed = window.confirm(confirmMsg);
     if (!confirmed) {
@@ -943,7 +1016,7 @@ export class ARBStatusSk extends ElementSk {
       })
       .then((resp: CreateManualRollResponse) => {
         const exist = this.rollCandidates.find(
-          (r) => r.revision.id === resp.roll!.revision,
+          (r) => r.revision.id === resp.roll!.revision
         );
         if (exist) {
           exist.roll = resp.roll!;
@@ -1000,11 +1073,14 @@ export class ARBStatusSk extends ElementSk {
   private manualRollResult(roll: ManualRoll) {
     if (!roll) {
       return 'unknown';
-    } else if (roll.status == ManualRoll_Status.COMPLETED) {
+    }
+    if (roll.status == ManualRoll_Status.COMPLETED) {
       return roll.result.toLowerCase();
-    } else if (roll.status == ManualRoll_Status.STARTED) {
+    }
+    if (roll.status == ManualRoll_Status.STARTED) {
       return AutoRollCL_Result.IN_PROGRESS;
-    } else if (roll.status = ManualRoll_Status.PENDING) {
+    }
+    if ((roll.status = ManualRoll_Status.PENDING)) {
       return roll.status.toLowerCase();
     }
     return 'unknown';
@@ -1013,13 +1089,13 @@ export class ARBStatusSk extends ElementSk {
   private modeClass(mode: Mode) {
     switch (mode) {
       case Mode.RUNNING:
-        return "fg-running";
+        return 'fg-running';
       case Mode.DRY_RUN:
-        return "fg-dry-run";
+        return 'fg-dry-run';
       case Mode.STOPPED:
-        return "fg-stopped";
+        return 'fg-stopped';
       case Mode.OFFLINE:
-        return "fg-offline";
+        return 'fg-offline';
     }
   }
 
@@ -1081,9 +1157,9 @@ export class ARBStatusSk extends ElementSk {
         let req = manualByRev[rev.id];
         delete manualByRev[rev.id];
         if (
-          !req
-          && status.currentRoll
-          && status.currentRoll.rollingTo === rev.id
+          !req &&
+          status.currentRoll &&
+          status.currentRoll.rollingTo === rev.id
         ) {
           req = {
             dryRun: false,
@@ -1120,23 +1196,29 @@ export class ARBStatusSk extends ElementSk {
       });
     }
     // Interleave regular rolls with manual rolls for display in the table.
-    this.recentRolls = (status.recentRolls || []).map((cl: AutoRollCL) => ({
-      class: this.rollClass(cl),
-      timestamp: cl.created!,
-      result: this.rollResult(cl),
-      rollingTo: cl.rollingTo,
-      subject: cl.subject,
-      url: this.issueURL(status, cl),
-    })).concat((status.manualRolls || []).map((cl: ManualRoll) => ({
-      class: this.manualRollResultClass(cl),
-      timestamp: cl.timestamp!,
-      result: this.manualRollResult(cl),
-      rollingTo: cl.revision,
-      subject: (cl.canary ? "Canary" : "Manual") + " roll to " + cl.revision,
-      url: cl.url,
-    })));
-    this.recentRolls.sort((a: RecentRoll, b: RecentRoll) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    this.recentRolls = (status.recentRolls || [])
+      .map((cl: AutoRollCL) => ({
+        class: this.rollClass(cl),
+        timestamp: cl.created!,
+        result: this.rollResult(cl),
+        rollingTo: cl.rollingTo,
+        subject: cl.subject,
+        url: this.issueURL(status, cl),
+      }))
+      .concat(
+        (status.manualRolls || []).map((cl: ManualRoll) => ({
+          class: this.manualRollResultClass(cl),
+          timestamp: cl.timestamp!,
+          result: this.manualRollResult(cl),
+          rollingTo: cl.revision,
+          subject: `${cl.canary ? 'Canary' : 'Manual'} roll to ${cl.revision}`,
+          url: cl.url,
+        }))
+      );
+    this.recentRolls.sort(
+      (a: RecentRoll, b: RecentRoll) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
     const numRecentRolls = Math.max((status.recentRolls || []).length, 10);
     if (this.recentRolls.length > numRecentRolls) {
       this.recentRolls.length = numRecentRolls;
@@ -1149,7 +1231,8 @@ export class ARBStatusSk extends ElementSk {
     link.href = ((lastRoll: AutoRollCL | undefined, mode: Mode) => {
       if (mode == Mode.STOPPED) {
         return '/dist/img/favicon-stopped.svg';
-      } else if (!lastRoll) {
+      }
+      if (!lastRoll) {
         return '/dist/img/favicon-unknown.svg';
       }
       switch (lastRoll.result) {
@@ -1178,7 +1261,9 @@ export class ARBStatusSk extends ElementSk {
 
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
-    this.validModes = Object.keys(Mode).map((key) => Mode[key as keyof typeof Mode]);
+    this.validModes = Object.keys(Mode).map(
+      (key) => Mode[key as keyof typeof Mode]
+    );
     if (status.config) {
       this.rollWindowStart = this.computeRollWindowStart(status.config);
       if ((status.config.validModes || []).length > 0) {

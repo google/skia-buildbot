@@ -12,13 +12,19 @@ import '../../../elements-sk/modules/icons/pause-icon-sk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
 import '../../../elements-sk/modules/icons/settings-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat';
 import {
-  Canvas, CanvasKit, CanvasKitInit as CKInit, ColorProperty, ManagedSkottieAnimation,
-  OpacityProperty, SoundMap, Surface,
+  Canvas,
+  CanvasKit,
+  CanvasKitInit as CKInit,
+  ColorProperty,
+  ManagedSkottieAnimation,
+  OpacityProperty,
+  SoundMap,
+  Surface,
 } from 'canvaskit-wasm';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
 
@@ -31,7 +37,7 @@ function hexColor(c: number) {
   return `#${rgb.toString(16).padStart(6, '0')}`;
 }
 
-function skRectIsEmpty(rect: Float32Array|null) {
+function skRectIsEmpty(rect: Float32Array | null) {
   if (!rect) {
     return true;
   }
@@ -45,25 +51,24 @@ class PropList<T extends Property> {
 
   index: number = 0;
 
-  list: T[]
+  list: T[];
 
   constructor(list: T[], defaultVal: T) {
     this.list = list;
     this.defaultVal = defaultVal;
   }
 
-  current = (): T => (this.index >= this.list.length
-    ? this.defaultVal
-    : this.list[this.index]);
+  current = (): T =>
+    this.index >= this.list.length ? this.defaultVal : this.list[this.index];
 
   empty = () => !this.list.length;
 }
 
 // TODO(kjlubick) replace after https://skia-review.googlesource.com/c/skia/+/437316 is deployed
 interface AnimationSegment {
-  name: string
-  t0: number
-  t1: number
+  name: string;
+  t0: number;
+  t1: number;
 }
 
 export interface SkottiePlayerConfig {
@@ -95,37 +100,58 @@ export class SkottiePlayerSk extends ElementSk {
       return ele.loadingTemplate();
     }
     return ele.runningTemplate();
-  }
+  };
 
-  private runningTemplate = () => html`
-<div class=container>
-  <div class=wrapper>
-    <canvas class=skottie-canvas id=skottie
-            width=${this.width * window.devicePixelRatio}
-            height=${this.height * window.devicePixelRatio}
-            style='width: ${this.width}px; height: ${this.height}px; background-color: ${this.bgColor}'>
-      Your browser does not support the canvas tag.
-    </canvas>
-    <div class=controls ?hidden=${!this.showControls}>
-      <play-arrow-icon-sk @click=${this.onPlay} ?hidden=${!this.paused}></play-arrow-icon-sk>
-      <pause-icon-sk @click=${this.onPause} ?hidden=${this.paused}></pause-icon-sk>
-      <input type=range min=0 max=100 @input=${this.onScrub} @change=${this.onScrubEnd}
-             class=skottie-player-scrubber>
-      <settings-icon-sk @click=${this.onSettings}></settings-icon-sk>
+  private runningTemplate = () => html` <div class="container">
+    <div class="wrapper">
+      <canvas
+        class="skottie-canvas"
+        id="skottie"
+        width=${this.width * window.devicePixelRatio}
+        height=${this.height * window.devicePixelRatio}
+        style="width: ${this.width}px; height: ${this
+          .height}px; background-color: ${this.bgColor}"
+      >
+        Your browser does not support the canvas tag.
+      </canvas>
+      <div class="controls" ?hidden=${!this.showControls}>
+        <play-arrow-icon-sk
+          @click=${this.onPlay}
+          ?hidden=${!this.paused}
+        ></play-arrow-icon-sk>
+        <pause-icon-sk
+          @click=${this.onPause}
+          ?hidden=${this.paused}
+        ></pause-icon-sk>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          @input=${this.onScrub}
+          @change=${this.onScrubEnd}
+          class="skottie-player-scrubber"
+        />
+        <settings-icon-sk @click=${this.onSettings}></settings-icon-sk>
+      </div>
     </div>
-  </div>
-  ${this.settingsTemplate()}
-</div>`;
+    ${this.settingsTemplate()}
+  </div>`;
 
   private settingsTemplate = () => html`
 <div class=skottie-player-settings-container ?hidden=${!this.showSettings}>
   <div class=skottie-player-settings-row>
     <div class=skottie-player-settings-label>Colors</div>
     <select id=color-prop-select class=skottie-player-property-select
-            @input=${this.onPropertySelect} ?disabled=${this.colorProps.empty()}>
-      ${repeat(this.colorProps.list, (c: ColorProperty) => c.key, (c: ColorProperty, index: number) => html`
-        <option value=${index}>${c.key}</option>
-      `)}
+            @input=${
+              this.onPropertySelect
+            } ?disabled=${this.colorProps.empty()}>
+      ${repeat(
+        this.colorProps.list,
+        (c: ColorProperty) => c.key,
+        (c: ColorProperty, index: number) => html`
+          <option value=${index}>${c.key}</option>
+        `
+      )}
     <select>
     <input type=color class=skottie-player-picker id=color-picker
            value=${hexColor(this.colorProps.current().value)}
@@ -135,10 +161,16 @@ export class SkottiePlayerSk extends ElementSk {
   <div class=skottie-player-settings-row>
     <div class=skottie-player-settings-label>Opacity</div>
     <select id=opacity-prop-select class=skottie-player-property-select
-            @input=${this.onPropertySelect} ?disabled=${this.opacityProps.empty()}>
-      ${repeat(this.opacityProps.list, (o: OpacityProperty) => o.key, (o: OpacityProperty, index: number) => html`
-        <option value=${index}>${o.key}</option>
-      `)}
+            @input=${
+              this.onPropertySelect
+            } ?disabled=${this.opacityProps.empty()}>
+      ${repeat(
+        this.opacityProps.list,
+        (o: OpacityProperty) => o.key,
+        (o: OpacityProperty, index: number) => html`
+          <option value=${index}>${o.key}</option>
+        `
+      )}
     <select>
     <input type=range min=0 max=100 class=skottie-player-picker id=opacity-picker
            value=${this.opacityProps.current().value}
@@ -149,9 +181,13 @@ export class SkottiePlayerSk extends ElementSk {
     <div class=skottie-player-settings-label>Segments</div>
     <select id=segment-prop-select class=skottie-player-property-select
             style='width: 100%' @input=${this.onPropertySelect}>
-      ${repeat(this.animationSegments, (s: AnimationSegment) => s.name, (s: AnimationSegment, index: number) => html`
-        <option value=${index}>${segmentLabel(s)}</option>
-      `)}
+      ${repeat(
+        this.animationSegments,
+        (s: AnimationSegment) => s.name,
+        (s: AnimationSegment, index: number) => html`
+          <option value=${index}>${segmentLabel(s)}</option>
+        `
+      )}
     <select>
     <hr class=skottie-player-settings-divider>
   </div>
@@ -161,12 +197,14 @@ export class SkottiePlayerSk extends ElementSk {
 </div>
 `;
 
-  private loadingTemplate = () => html`
-<div class=player-loading title="Loading animation and engine."
-     style='width: ${this.width}px; height: ${this.height}px;'>
-  <div>Loading</div>
-  <spinner-sk active></spinner-sk>
-</div>`;
+  private loadingTemplate = () => html` <div
+    class="player-loading"
+    title="Loading animation and engine."
+    style="width: ${this.width}px; height: ${this.height}px;"
+  >
+    <div>Loading</div>
+    <spinner-sk active></spinner-sk>
+  </div>`;
 
   private animation: ManagedSkottieAnimation | null = null; // Skottie Animation instance
 
@@ -176,19 +214,25 @@ export class SkottiePlayerSk extends ElementSk {
 
   private bgColor: string = '#fff';
 
-  private colorProps: PropList<ColorProperty> = new PropList([], { key: '', value: 0 });
+  private colorProps: PropList<ColorProperty> = new PropList([], {
+    key: '',
+    value: 0,
+  });
 
   private currentSegment: AnimationSegment = { name: '', t0: 0, t1: 1 };
 
   private height: number = 0;
 
-  private kit: CanvasKit| null = null;// CanvasKit instance
+  private kit: CanvasKit | null = null; // CanvasKit instance
 
   private loading: boolean = true;
 
   private nativeFPS: number = 0; // Animation fps.
 
-  private opacityProps: PropList<OpacityProperty> = new PropList([], { key: '', value: 1 });
+  private opacityProps: PropList<OpacityProperty> = new PropList([], {
+    key: '',
+    value: 1,
+  });
 
   private paused: boolean;
 
@@ -202,7 +246,7 @@ export class SkottiePlayerSk extends ElementSk {
 
   private showControls: boolean = false;
 
-  private skcanvas: Canvas | null = null;// Cached SkCanvas (surface.getCanvas()).
+  private skcanvas: Canvas | null = null; // Cached SkCanvas (surface.getCanvas()).
 
   private surface: Surface | null = null;
 
@@ -216,14 +260,20 @@ export class SkottiePlayerSk extends ElementSk {
     super(SkottiePlayerSk.template);
 
     this.paused = this.hasAttribute('paused');
-    this.showSettings = (new URL(document.location.href)).searchParams.has('settings');
+    this.showSettings = new URL(document.location.href).searchParams.has(
+      'settings'
+    );
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-    const params = (new URL(document.location.href)).searchParams;
-    this.width = this.hasAttribute('width') ? +this.getAttribute('width')! : 256;
-    this.height = this.hasAttribute('height') ? +this.getAttribute('height')! : 256;
+    const params = new URL(document.location.href).searchParams;
+    this.width = this.hasAttribute('width')
+      ? +this.getAttribute('width')!
+      : 256;
+    this.height = this.hasAttribute('height')
+      ? +this.getAttribute('height')!
+      : 256;
     this.showControls = params.has('controls');
     this.bgColor = params.has('bg') ? params.get('bg')! : '#fff';
     this._render();
@@ -248,7 +298,9 @@ export class SkottiePlayerSk extends ElementSk {
   }
 
   duration(): number {
-    return this.totalDuration * (this.currentSegment.t1 - this.currentSegment.t0);
+    return (
+      this.totalDuration * (this.currentSegment.t1 - this.currentSegment.t0)
+    );
   }
 
   fps(): number {
@@ -264,7 +316,7 @@ export class SkottiePlayerSk extends ElementSk {
   }
 
   seek(t: number, forceRender: boolean = false): void {
-    this.timeOrigin = (Date.now() - this.duration() * t);
+    this.timeOrigin = Date.now() - this.duration() * t;
 
     if (!this.isPlaying()) {
       // Force-draw a static frame when paused.
@@ -294,7 +346,11 @@ export class SkottiePlayerSk extends ElementSk {
     }
   }
 
-  initializeSkottie(lottieJSON: LottieAnimation, assets?: Record<string, ArrayBuffer>, soundMap?: SoundMap): void {
+  initializeSkottie(
+    lottieJSON: LottieAnimation,
+    assets?: Record<string, ArrayBuffer>,
+    soundMap?: SoundMap
+  ): void {
     if (!this.kit) {
       console.error('Could not load CanvasKit');
       return;
@@ -302,9 +358,11 @@ export class SkottiePlayerSk extends ElementSk {
     this.loading = false;
 
     // Rebuild the surface only if needed.
-    if (!this.surface
-         || this.surface.width() !== this.width
-         || this.surface.height() !== this.height) {
+    if (
+      !this.surface ||
+      this.surface.width() !== this.width ||
+      this.surface.height() !== this.height
+    ) {
       this._render();
 
       if (this.surface) {
@@ -325,7 +383,10 @@ export class SkottiePlayerSk extends ElementSk {
     }
 
     this.animation = this.kit.MakeManagedAnimation(
-      JSON.stringify(lottieJSON), assets, '', soundMap,
+      JSON.stringify(lottieJSON),
+      assets,
+      '',
+      soundMap
     );
     if (!this.animation) {
       throw new Error('Could not parse Lottie JSON.');
@@ -337,8 +398,9 @@ export class SkottiePlayerSk extends ElementSk {
 
     this.colorProps.list = this.animation.getColorProps();
     this.opacityProps.list = this.animation.getOpacityProps();
-    this.animationSegments = [{ name: 'Full timeline', t0: 0, t1: 1 }]
-      .concat(this.animation.getMarkers() as AnimationSegment[]);
+    this.animationSegments = [{ name: 'Full timeline', t0: 0, t1: 1 }].concat(
+      this.animation.getMarkers() as AnimationSegment[]
+    );
     this.currentSegment = this.animationSegments[0];
 
     this._render(); // re-render for animation-dependent elements (properties, etc).
@@ -351,10 +413,13 @@ export class SkottiePlayerSk extends ElementSk {
     const t = ((Date.now() - this.timeOrigin) / this.duration()) % 1;
 
     // map to the global animation timeline
-    this.seekPoint = this.currentSegment.t0
-         + t * (this.currentSegment.t1 - this.currentSegment.t0);
+    this.seekPoint =
+      this.currentSegment.t0 +
+      t * (this.currentSegment.t1 - this.currentSegment.t0);
     if (this.showControls) {
-      const scrubber = this.querySelector<HTMLInputElement>('.skottie-player-scrubber');
+      const scrubber = this.querySelector<HTMLInputElement>(
+        '.skottie-player-scrubber'
+      );
       if (scrubber) {
         scrubber.value = String(this.seekPoint * 100);
       }
@@ -384,8 +449,12 @@ export class SkottiePlayerSk extends ElementSk {
     const damage = this.animation.seekFrame(frame);
     // Only draw frames when the content changes.
     if (forceRender || !skRectIsEmpty(damage)) {
-      const bounds = this.kit.LTRBRect(0, 0, this.width * window.devicePixelRatio,
-        this.height * window.devicePixelRatio);
+      const bounds = this.kit.LTRBRect(
+        0,
+        0,
+        this.width * window.devicePixelRatio,
+        this.height * window.devicePixelRatio
+      );
       this.animation.render(this.skcanvas, bounds);
       this.surface.flush();
     }
@@ -403,7 +472,7 @@ export class SkottiePlayerSk extends ElementSk {
 
   // This fires every time the user moves the scrub slider.
   private onScrub(e: Event): void {
-    const target = (e.target as HTMLInputElement);
+    const target = e.target as HTMLInputElement;
     this.seek(target.valueAsNumber / 100);
 
     // Pause the animation while dragging the slider.
@@ -427,15 +496,19 @@ export class SkottiePlayerSk extends ElementSk {
   }
 
   private onPropertySelect(e: Event): void {
-    const target = (e.target as HTMLSelectElement);
+    const target = e.target as HTMLSelectElement;
     switch (target.id) {
       case 'color-prop-select':
         this.colorProps.index = target.selectedIndex;
-        this.querySelector<HTMLInputElement>('#color-picker')!.value = hexColor(this.colorProps.current().value);
+        this.querySelector<HTMLInputElement>('#color-picker')!.value = hexColor(
+          this.colorProps.current().value
+        );
         break;
       case 'opacity-prop-select':
         this.opacityProps.index = target.selectedIndex;
-        this.querySelector<HTMLInputElement>('#opacity-picker')!.value = String(this.opacityProps.current().value);
+        this.querySelector<HTMLInputElement>('#opacity-picker')!.value = String(
+          this.opacityProps.current().value
+        );
         break;
       case 'segment-prop-select':
         this.currentSegment = this.animationSegments[target.selectedIndex];
@@ -455,8 +528,7 @@ export class SkottiePlayerSk extends ElementSk {
     const r = parseInt(val.substring(1, 3), 16);
     const g = parseInt(val.substring(3, 5), 16);
     const b = parseInt(val.substring(5, 7), 16);
-    prop.value = this.kit!.ColorAsInt(r, g, b,
-      1.0); // Treat colors as fully opaque.
+    prop.value = this.kit!.ColorAsInt(r, g, b, 1.0); // Treat colors as fully opaque.
 
     this.animation!.setColor(prop.key, this.kit!.Color(r, g, b, 1.0));
     this._render();

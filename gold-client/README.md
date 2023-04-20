@@ -1,30 +1,24 @@
-goldctl
-=======
+# goldctl
 
 This command-line tool lets clients upload images to Gold.
 
-
-Tests
------
+## Tests
 
 If any interfaces in ./go/ change, it may be necessary to re-generate the
 mocks used for testing.
 
-	make mocks
+    make mocks
 
-
-Getting goldctl
----------------
+## Getting goldctl
 
 A typical user will download goldctl like any other Go executable
 
-	go install go.skia.org/infra/gold-client/cmd/goldctl
+    go install go.skia.org/infra/gold-client/cmd/goldctl
 
 Googlers, if you are using goldctl from Swarming, you'll probably want to
 pull it in via [CIPD](https://chrome-infra-packages.appspot.com/p/skia/tools/goldctl)
 
-Deploying to CIPD
------------------
+## Deploying to CIPD
 
 goldctl is set up to automatically be built and rolled out via
 [CIPD](https://chrome-infra-packages.appspot.com/p/skia/tools/goldctl)

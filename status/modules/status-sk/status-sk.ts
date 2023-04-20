@@ -4,8 +4,8 @@
  *
  * The majority of the Status page.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -50,136 +50,138 @@ export class StatusSk extends ElementSk {
   }
 
   private static template = (el: StatusSk) => html`
-      <app-sk>
-        <header>
-          <h1><a href="/">Status</a>: ${el.repo}</h1>
-          <div class="spacer">
-            <tree-status-sk
-              .baseURL=${treeStatusBaseUrl()}
-              .repo=${el.repo}
-              @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
-            ></tree-status-sk>
-          </div>
-          <login-sk></login-sk>
-          <theme-chooser-sk></theme-chooser-sk>
-        </header>
-        <aside>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-    el.navOpen = !el.navOpen;
-    el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-  }}
-            >
-              ${el.navOpen
-    ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-    : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Navigation
-            </button>
-            <collapse-sk>
-              <navigation-sk></navigation-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-      el.autorollersOpen = !el.autorollersOpen;
-      el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-    }}
-            >
-              ${el.autorollersOpen
-      ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-      : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              AutoRollers
-            </button>
-            <collapse-sk>
-              <autoroller-status-sk
-                @rollers-update=${(e: CustomEvent) => el.updateRollerLabels(e.detail)}
-              ></autoroller-status-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-        el.perfOpen = !el.perfOpen;
-        el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-      }}
-            >
-              ${el.perfOpen
-        ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-        : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Perf
-            </button>
-            <collapse-sk>
-              <perf-status-sk></perf-status-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-          el.goldOpen = !el.goldOpen;
-          el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-        }}
-            >
-              ${el.goldOpen
-          ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-          : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Gold
-            </button>
-            <collapse-sk>
-              <gold-status-sk .repo=${el.repo}></gold-status-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-            el.bugsOpen = !el.bugsOpen;
-            el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-          }}
-            >
-              ${el.bugsOpen
-            ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-            : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Untriaged Bugs
-            </button>
-            <collapse-sk>
-              <bugs-status-sk></bugs-status-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
+    <app-sk>
+      <header>
+        <h1><a href="/">Status</a>: ${el.repo}</h1>
+        <div class="spacer">
+          <tree-status-sk
+            .baseURL=${treeStatusBaseUrl()}
+            .repo=${el.repo}
+            @tree-status-update=${(e: CustomEvent<TreeStatus>) =>
+              el.updateTreeStatus(e.detail)}
+          ></tree-status-sk>
+        </div>
+        <login-sk></login-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
+      <aside>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
+              el.navOpen = !el.navOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
+          >
+            ${el.navOpen
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            Navigation
+          </button>
+          <collapse-sk>
+            <navigation-sk></navigation-sk>
+          </collapse-sk>
+        </div>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
+              el.autorollersOpen = !el.autorollersOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
+          >
+            ${el.autorollersOpen
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            AutoRollers
+          </button>
+          <collapse-sk>
+            <autoroller-status-sk
+              @rollers-update=${(e: CustomEvent) =>
+                el.updateRollerLabels(e.detail)}
+            ></autoroller-status-sk>
+          </collapse-sk>
+        </div>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
+              el.perfOpen = !el.perfOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
+          >
+            ${el.perfOpen
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            Perf
+          </button>
+          <collapse-sk>
+            <perf-status-sk></perf-status-sk>
+          </collapse-sk>
+        </div>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
+              el.goldOpen = !el.goldOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
+          >
+            ${el.goldOpen
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            Gold
+          </button>
+          <collapse-sk>
+            <gold-status-sk .repo=${el.repo}></gold-status-sk>
+          </collapse-sk>
+        </div>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
+              el.bugsOpen = !el.bugsOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
+          >
+            ${el.bugsOpen
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            Untriaged Bugs
+          </button>
+          <collapse-sk>
+            <bugs-status-sk></bugs-status-sk>
+          </collapse-sk>
+        </div>
+        <div>
+          <button
+            class="collapser"
+            @click=${(e: Event) => {
               el.rotationsOpen = !el.rotationsOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
             }}
-            >
-              ${el.rotationsOpen
+          >
+            ${el.rotationsOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Gardeners
-            </button>
-            <collapse-sk>
-              <rotations-sk></rotations-sk>
-            </collapse-sk>
-          </div>
-        </aside>
+            Gardeners
+          </button>
+          <collapse-sk>
+            <rotations-sk></rotations-sk>
+          </collapse-sk>
+        </div>
+      </aside>
 
-        <main>
-          <commits-table-sk
-            @repo-changed=${(e: CustomEvent) => el.updateRepo(e.detail)}
-          ></commits-table-sk>
-          <error-toast-sk></error-toast-sk>
-        </main>
+      <main>
+        <commits-table-sk
+          @repo-changed=${(e: CustomEvent) => el.updateRepo(e.detail)}
+        ></commits-table-sk>
+        <error-toast-sk></error-toast-sk>
+      </main>
 
-        <footer><error-toast-sk></error-toast-sk></footer>
-      </app-sk>
-    `;
+      <footer><error-toast-sk></error-toast-sk></footer>
+    </app-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();

@@ -1,4 +1,4 @@
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import { ClipboardSk } from './clipboard-sk';
 import './index';
 
@@ -6,4 +6,5 @@ import './index';
 // a CSV file, then you can set the `calculatedValue` property on the
 // clipboard-sk element and that will only be called if the user actually clicks
 // on the element.
-$$<ClipboardSk>('#onthefly')!.calculatedValue = async (): Promise<string> => 'This is the altered value.';
+$$<ClipboardSk>('#onthefly')!.calculatedValue = async (): Promise<string> =>
+  'This is the altered value.';

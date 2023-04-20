@@ -6,8 +6,8 @@
  * (i.e. the blamelist or blame, for short).
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -16,7 +16,10 @@ import '../corpus-selector-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
 import {
-  ByBlameEntry, ByBlameResponse, GUICorpusStatus, StatusResponse,
+  ByBlameEntry,
+  ByBlameResponse,
+  GUICorpusStatus,
+  StatusResponse,
 } from '../rpc_types';
 
 const corpusRendererFn = (corpus: GUICorpusStatus): string => {
@@ -28,26 +31,28 @@ const corpusRendererFn = (corpus: GUICorpusStatus): string => {
 
 export class ByBlamePageSk extends ElementSk {
   private static template = (ele: ByBlamePageSk) => html`
-    <div class=top-container>
+    <div class="top-container">
       <corpus-selector-sk
-          .corpora=${ele.corpora}
-          .selectedCorpus=${ele.corpora.find((c) => c.name === ele.corpus)}
-          .corpusRendererFn=${corpusRendererFn}
-          @corpus-selected=${ele.handleCorpusChange}>
+        .corpora=${ele.corpora}
+        .selectedCorpus=${ele.corpora.find((c) => c.name === ele.corpus)}
+        .corpusRendererFn=${corpusRendererFn}
+        @corpus-selected=${ele.handleCorpusChange}
+      >
       </corpus-selector-sk>
     </div>
 
-    <div class=entries>
-      ${(!ele.entries || ele.entries.length === 0)
-    ? ByBlamePageSk.noEntries(ele)
-    : ele.entries.map((entry) => ByBlamePageSk.entryTemplate(ele, entry))}
+    <div class="entries">
+      ${!ele.entries || ele.entries.length === 0
+        ? ByBlamePageSk.noEntries(ele)
+        : ele.entries.map((entry) => ByBlamePageSk.entryTemplate(ele, entry))}
     </div>
   `;
 
-  private static entryTemplate = (ele: ByBlamePageSk, entry: ByBlameEntry) => html`
-    <byblameentry-sk
-        .byBlameEntry=${entry}
-        .corpus=${ele.corpus}>
+  private static entryTemplate = (
+    ele: ByBlamePageSk,
+    entry: ByBlameEntry
+  ) => html`
+    <byblameentry-sk .byBlameEntry=${entry} .corpus=${ele.corpus}>
     </byblameentry-sk>
   `;
 
@@ -66,7 +71,7 @@ export class ByBlamePageSk extends ElementSk {
 
   private loaded = false;
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
   private fetchController: AbortController | null = null;
 
@@ -87,10 +92,10 @@ export class ByBlamePageSk extends ElementSk {
           return;
         }
 
-        this.corpus = newState.corpus as string || defaultCorpus();
+        this.corpus = (newState.corpus as string) || defaultCorpus();
         this._render(); // Update corpus selector immediately.
         this.fetch();
-      },
+      }
     );
   }
 

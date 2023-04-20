@@ -8,12 +8,15 @@ describe('app-sk', () => {
 
   describe('creation', () => {
     it('adds a hamburger button to the header', () => {
-      const appSk = newInstance((el) => el.innerHTML = `
+      const appSk = newInstance(
+        (el) =>
+          (el.innerHTML = `
         <header></header>
         <aside></aside>
         <main></main>
         <footer></footer>
-      `);
+      `)
+      );
       const header = appSk.querySelector('header')!;
       expect(header.children).to.have.length(1);
       expect(header.firstElementChild?.tagName).to.equal('BUTTON');
@@ -25,7 +28,7 @@ describe('app-sk', () => {
     });
 
     it('handles there being no sidebar', () => {
-      const appSk = newInstance((el) => el.innerHTML = '<header></header>');
+      const appSk = newInstance((el) => (el.innerHTML = '<header></header>'));
       expect(appSk.children).to.have.length(1);
       const header = appSk.querySelector('header')!;
       expect(header.children).to.be.empty;
@@ -34,10 +37,13 @@ describe('app-sk', () => {
 
   describe('sidebar', () => {
     it('should toggle', () => {
-      const appSk = newInstance((el) => el.innerHTML = `
+      const appSk = newInstance(
+        (el) =>
+          (el.innerHTML = `
         <header></header>
         <aside></aside>
-      `);
+      `)
+      );
       const header = appSk.querySelector('header')!;
       const sidebar = appSk.querySelector('aside')!;
       const btn = header?.firstElementChild as HTMLButtonElement;

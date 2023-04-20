@@ -150,8 +150,8 @@ export class MultiSelectSk extends HTMLElement {
             selection: this._selection,
           },
           bubbles: true,
-        },
-      ),
+        }
+      )
     );
   }
 

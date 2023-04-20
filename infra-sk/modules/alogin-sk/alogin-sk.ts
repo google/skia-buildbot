@@ -9,9 +9,9 @@
  *
  * @attr {string} url - The url that returns the JSON serialized alogin.Status response.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import { Status } from '../json';
 
@@ -59,15 +59,13 @@ export class AloginSk extends ElementSk {
   }
 
   private static template = (ele: AloginSk) => html`
-  <span class=email>
-    ${ele.status.email}
-  </span>
-  <a
-    class=logInOut
-    href="${ele.status.email ? ele.status.logout : ele.status.login}"
-  >
-    ${ele.status.email ? 'Logout' : 'Login'}
-  </a>
+    <span class="email"> ${ele.status.email} </span>
+    <a
+      class="logInOut"
+      href="${ele.status.email ? ele.status.logout : ele.status.login}"
+    >
+      ${ele.status.email ? 'Logout' : 'Login'}
+    </a>
   `;
 
   async connectedCallback(): Promise<void> {

@@ -33,11 +33,16 @@ export class CodesizeScaffoldSk extends ElementSk {
           <li><a href="/">Home</a></li>
         </ul>
         <ul>
-          <li><a href="https://chrome-supersize.firebaseapp.com/"
-                 target="_blank" rel="noopener noreferrer"
-                 title="View Chrome's codesize tool (called Super Size Tiger View) which has
+          <li>
+            <a
+              href="https://chrome-supersize.firebaseapp.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View Chrome's codesize tool (called Super Size Tiger View) which has
                         input data from Chrome's apk for Android systems."
-                 >Chrome's Tool</a></li>
+              >Chrome's Tool</a
+            >
+          </li>
         </ul>
       </aside>
 
@@ -109,7 +114,9 @@ export class CodesizeScaffoldSk extends ElementSk {
    * This function can be called multiple times concurrently.
    */
   static waitFor<T>(promise: Promise<T>): Promise<T> {
-    const scaffold = document.querySelector<CodesizeScaffoldSk>('codesize-scaffold-sk')!;
+    const scaffold = document.querySelector<CodesizeScaffoldSk>(
+      'codesize-scaffold-sk'
+    )!;
     return scaffold.waitFor(promise);
   }
 

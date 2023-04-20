@@ -16,7 +16,11 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import {
   Annotation,
-  AttachedDevice, Description, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
+  AttachedDevice,
+  Description,
+  SetAttachedDevice,
+  SetNoteRequest,
+  SupplyChromeOSRequest,
 } from '../json';
 
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -49,10 +53,14 @@ import {
 import { compareFunc, SortHistory, up } from '../sort';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
 import { FilterArray } from '../filter-array';
-import { ColumnOrder, ColumnTitles, MachineTableColumnsDialogSk } from '../machine-table-columns-dialog-sk/machine-table-columns-dialog-sk';
+import {
+  ColumnOrder,
+  ColumnTitles,
+  MachineTableColumnsDialogSk,
+} from '../machine-table-columns-dialog-sk/machine-table-columns-dialog-sk';
 import '../machine-table-columns-dialog-sk/machine-table-columns-dialog-sk';
 
-export type WaitCursor = 'DoNotShowWaitCursor' | 'ShowWaitCursor'
+export type WaitCursor = 'DoNotShowWaitCursor' | 'ShowWaitCursor';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -66,7 +74,8 @@ export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
  */
 export const MAX_UPTIME_ACCEPTABLE_S = 60 * 60 * 25;
 
-export const MachineTableSkSortChangeEventName: string = 'machine-table-sort-change';
+export const MachineTableSkSortChangeEventName: string =
+  'machine-table-sort-change';
 
 /** The event detail is the sort history of the table encoded as a string. */
 export type MachineTableSkChangeEventDetail = string;
@@ -79,7 +88,9 @@ const attachedDeviceDisplayName: Record<string, AttachedDevice> = {
 };
 
 /** attachedDeviceDisplayName keys sorted by display name. */
-const attachedDeviceDisplayNamesOrder: string[] = Object.keys(attachedDeviceDisplayName).sort();
+const attachedDeviceDisplayNamesOrder: string[] = Object.keys(
+  attachedDeviceDisplayName
+).sort();
 
 /** sortBooleans is a utility function for sorting booleans, where true comes
  * before false. */
@@ -105,15 +116,20 @@ const checkResponse = async (resp: Response): Promise<void> => {
 
 // Mode no longer exists, so this is a no-op.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const sortByMode = (a: Description, b: Description): number => a.MaintenanceMode.localeCompare(b.MaintenanceMode);
+export const sortByMode = (a: Description, b: Description): number =>
+  a.MaintenanceMode.localeCompare(b.MaintenanceMode);
 
-export const sortByAttachedDevice = (a: Description, b: Description): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
+export const sortByAttachedDevice = (a: Description, b: Description): number =>
+  a.AttachedDevice.localeCompare(b.AttachedDevice);
 
-export const sortByAnnotation = (a: Description, b: Description): number => a.Annotation.Message.localeCompare(b.Annotation.Message);
+export const sortByAnnotation = (a: Description, b: Description): number =>
+  a.Annotation.Message.localeCompare(b.Annotation.Message);
 
-export const sortByNote = (a: Description, b: Description): number => a.Note.Message.localeCompare(b.Note.Message);
+export const sortByNote = (a: Description, b: Description): number =>
+  a.Note.Message.localeCompare(b.Note.Message);
 
-export const sortByVersion = (a: Description, b: Description): number => a.Version.localeCompare(b.Version);
+export const sortByVersion = (a: Description, b: Description): number =>
+  a.Version.localeCompare(b.Version);
 
 export const sortByPowerCycle = (a: Description, b: Description): number => {
   const powerCycleSort = sortBooleans(a.PowerCycle, b.PowerCycle);
@@ -123,17 +139,29 @@ export const sortByPowerCycle = (a: Description, b: Description): number => {
   return powerCycleSort;
 };
 
-export const sortByLastUpated = (a: Description, b: Description): number => a.LastUpdated.localeCompare(b.LastUpdated);
+export const sortByLastUpated = (a: Description, b: Description): number =>
+  a.LastUpdated.localeCompare(b.LastUpdated);
 
-export const sortByBattery = (a: Description, b: Description): number => a.Battery - b.Battery;
+export const sortByBattery = (a: Description, b: Description): number =>
+  a.Battery - b.Battery;
 
-export const sortByRunningSwarmingTask = (a: Description, b: Description): number => sortBooleans(a.RunningSwarmingTask, b.RunningSwarmingTask);
+export const sortByRunningSwarmingTask = (
+  a: Description,
+  b: Description
+): number => sortBooleans(a.RunningSwarmingTask, b.RunningSwarmingTask);
 
-export const sortByLaunchedSwarming = (a: Description, b: Description): number => sortBooleans(a.LaunchedSwarming, b.LaunchedSwarming);
+export const sortByLaunchedSwarming = (
+  a: Description,
+  b: Description
+): number => sortBooleans(a.LaunchedSwarming, b.LaunchedSwarming);
 
-export const sortByDeviceUptime = (a: Description, b: Description): number => a.DeviceUptime - b.DeviceUptime;
+export const sortByDeviceUptime = (a: Description, b: Description): number =>
+  a.DeviceUptime - b.DeviceUptime;
 
-export const sortByDevice = (a: Description, b: Description): number => pretty_device_name_as_string(a).localeCompare(pretty_device_name_as_string(b));
+export const sortByDevice = (a: Description, b: Description): number =>
+  pretty_device_name_as_string(a).localeCompare(
+    pretty_device_name_as_string(b)
+  );
 
 export const sortByQuarantined = (a: Description, b: Description): number => {
   const qa = a.Dimensions!.quarantined?.join('') || '';
@@ -147,9 +175,11 @@ export const sortByMachineID = (a: Description, b: Description): number => {
   return qa.localeCompare(qb);
 };
 
-export const sortByRecovering = (a: Description, b: Description): number => a.Recovering.localeCompare(b.Recovering);
+export const sortByRecovering = (a: Description, b: Description): number =>
+  a.Recovering.localeCompare(b.Recovering);
 
-export const sortByIsQuarantined = (a: Description, b: Description): number => sortBooleans(a.IsQuarantined, b.IsQuarantined);
+export const sortByIsQuarantined = (a: Description, b: Description): number =>
+  sortBooleans(a.IsQuarantined, b.IsQuarantined);
 
 // Do not change the location of these functions, i.e. their index, as that would
 // change the meaning of URLs already in the wild. Always add new sort functions
@@ -193,25 +223,25 @@ const temps = (machine: Description): TemplateResult => {
       <summary>Avg: ${ave.toFixed(1)}</summary>
       <table>
         ${Object.entries(temperatures).map(
-    (pair) => html`
-              <tr>
-                <td>${pair[0]}</td>
-                <td>${pair[1]}</td>
-              </tr>
-            `,
-  )}
+          (pair) => html`
+            <tr>
+              <td>${pair[0]}</td>
+              <td>${pair[1]}</td>
+            </tr>
+          `
+        )}
       </table>
     </details>
   `;
 };
 
-const lastSeen = (machine: Description): TemplateResult => html`${diffDate(machine.LastUpdated)}`;
+const lastSeen = (machine: Description): TemplateResult =>
+  html`${diffDate(machine.LastUpdated)}`;
 
-const isRunning = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
-  ? html`
-        <cached-icon-sk title="Running"></cached-icon-sk>
-      `
-  : html``);
+const isRunning = (machine: Description): TemplateResult =>
+  machine.RunningSwarmingTask
+    ? html` <cached-icon-sk title="Running"></cached-icon-sk> `
+    : html``;
 
 const asList = (arr: string[] | null) => (arr === null ? '' : arr.join(' | '));
 
@@ -220,7 +250,9 @@ const launchedSwarming = (machine: Description): TemplateResult => {
     return html``;
   }
   return html`
-    <launch-icon-sk title="Swarming was launched by test_machine_monitor."></launch-icon-sk>
+    <launch-icon-sk
+      title="Swarming was launched by test_machine_monitor."
+    ></launch-icon-sk>
   `;
 };
 
@@ -228,10 +260,7 @@ const annotation = (ann: Annotation): TemplateResult => {
   if (!ann?.Message) {
     return html``;
   }
-  return html`
-    ${ann.User} (${diffDate(ann.Timestamp)}) -
-    ${ann.Message}
-  `;
+  return html` ${ann.User} (${diffDate(ann.Timestamp)}) - ${ann.Message} `;
 };
 
 const imageVersion = (machine: Description): TemplateResult => {
@@ -249,16 +278,18 @@ const deviceUptime = (machine: Description): TemplateResult => html`
 /** Returns the CSS class that should decorate the LastUpdated value. */
 export const outOfSpecIfTooOld = (machine: Description): string => {
   const lastUpdated = machine.LastUpdated;
-  const diff = (Date.now() - Date.parse(lastUpdated));
+  const diff = Date.now() - Date.parse(lastUpdated);
   return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
 };
 
 /** Returns the CSS class that should decorate the Uptime value. */
-export const uptimeOutOfSpecIfTooOld = (machine: Description): string => (machine.DeviceUptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
+export const uptimeOutOfSpecIfTooOld = (machine: Description): string =>
+  machine.DeviceUptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '';
 
 // Returns the device_type separated with vertical bars and a trailing device
 // alias if that name is known.
-const pretty_device_name = (machine: Description): TemplateResult => html`${pretty_device_name_as_string(machine)}`;
+const pretty_device_name = (machine: Description): TemplateResult =>
+  html`${pretty_device_name_as_string(machine)}`;
 
 // Returns the device_type separated with vertical bars and a trailing device
 // alias if that name is known.
@@ -278,21 +309,23 @@ export const pretty_device_name_as_string = (machine: Description): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
-const quarantined = (machine: Description): TemplateResult => html`${machine.Dimensions!.quarantined}`;
+const quarantined = (machine: Description): TemplateResult =>
+  html`${machine.Dimensions!.quarantined}`;
 
-const battery = (machine: Description): TemplateResult => html`${machine.Battery}`;
+const battery = (machine: Description): TemplateResult =>
+  html`${machine.Battery}`;
 
 // Column stores information about a single column in the table.
 class Column {
   name: string;
 
-  row: (machine: Description)=> TemplateResult;
+  row: (machine: Description) => TemplateResult;
 
   compare: compareFunc<Description> | null;
 
-  className: ((machine: Description)=> string) | null;
+  className: ((machine: Description) => string) | null;
 
-  computedClipValue: (()=> Promise<string>) | null;
+  computedClipValue: (() => Promise<string>) | null;
 
   /** constructor
    *
@@ -305,10 +338,10 @@ class Column {
    */
   constructor(
     name: string,
-    row: (machine: Description)=> TemplateResult,
+    row: (machine: Description) => TemplateResult,
     compare: compareFunc<Description> | null,
-    className: ((machine: Description)=> string) | null = null,
-    computedClipValue: (()=> Promise<string>) | null = null,
+    className: ((machine: Description) => string) | null = null,
+    computedClipValue: (() => Promise<string>) | null = null
   ) {
     this.name = name;
     this.row = row;
@@ -319,7 +352,9 @@ class Column {
 
   // eslint-disable-next-line no-use-before-define
   header(ele: MachinesTableSk): TemplateResult {
-    return html`<th>${this.name}${this.optionalClipboard()}${this.optionalSortArrow(ele)}</div></th>`;
+    return html`<th>${
+      this.name
+    }${this.optionalClipboard()}${this.optionalSortArrow(ele)}</div></th>`;
   }
 
   // eslint-disable-next-line no-use-before-define
@@ -334,7 +369,9 @@ class Column {
     if (this.computedClipValue === null) {
       return html``;
     }
-    return html`&nbsp;<clipboard-sk .calculatedValue=${this.computedClipValue}></clipboard-sk>`;
+    return html`&nbsp;<clipboard-sk
+        .calculatedValue=${this.computedClipValue}
+      ></clipboard-sk>`;
   }
 
   rowValue(machine: Description): TemplateResult {
@@ -346,9 +383,9 @@ class Column {
 }
 
 /**
-   * The URL path from which to fetch the JSON representation of the latest
-   * list items
-   */
+ * The URL path from which to fetch the JSON representation of the latest
+ * list items
+ */
 const fetchPath = '/_/machines';
 
 export class MachinesTableSk extends ElementSk {
@@ -356,15 +393,21 @@ export class MachinesTableSk extends ElementSk {
 
   deviceEditor: DeviceEditorSk | null = null;
 
-  private sortHistory: SortHistory<Description> = new SortHistory(sortFunctionsByColumn);
+  private sortHistory: SortHistory<Description> = new SortHistory(
+    sortFunctionsByColumn
+  );
 
   private filterer: FilterArray<Description> = new FilterArray();
 
-  private hiddenColumns: ColumnTitles[] = ['Launched Swarming', 'Version', 'Annotation'];
+  private hiddenColumns: ColumnTitles[] = [
+    'Launched Swarming',
+    'Version',
+    'Annotation',
+  ];
 
   private hiddenColumnsDialog: MachineTableColumnsDialogSk | null = null;
 
-  private columns: Record<ColumnTitles, Column> | null = null
+  private columns: Record<ColumnTitles, Column> | null = null;
 
   private static template = (ele: MachinesTableSk): TemplateResult => html`
     <table>
@@ -390,111 +433,69 @@ export class MachinesTableSk extends ElementSk {
         this.machineLink.bind(this),
         sortByMachineID,
         null,
-        this.allDisplayedMachineIDs.bind(this),
+        this.allDisplayedMachineIDs.bind(this)
       ),
       Attached: new Column(
         'Attached',
         this.attachedDevice.bind(this),
-        sortByAttachedDevice,
+        sortByAttachedDevice
       ),
-      Device: new Column(
-        'Device',
-        pretty_device_name,
-        sortByDevice,
-      ),
-      Mode: new Column(
-        'Mode',
-        this.toggleModeElement.bind(this),
-        sortByMode,
-      ),
+      Device: new Column('Device', pretty_device_name, sortByDevice),
+      Mode: new Column('Mode', this.toggleModeElement.bind(this), sortByMode),
       Recovering: new Column(
         'Recovering',
         this.recovering.bind(this),
-        sortByRecovering,
+        sortByRecovering
       ),
       Power: new Column(
         'Power',
         this.powerCycle.bind(this),
         sortByPowerCycle,
-        () => 'powercycle',
+        () => 'powercycle'
       ),
-      Details: new Column(
-        'Details',
-        this.editDeviceIcon.bind(this),
-        null,
-      ),
-      Quarantined: new Column(
-        'Quarantined',
-        quarantined,
-        sortByQuarantined,
-      ),
+      Details: new Column('Details', this.editDeviceIcon.bind(this), null),
+      Quarantined: new Column('Quarantined', quarantined, sortByQuarantined),
       'Clear Quarantine': new Column(
         'Clear Quarantine',
         this.clearQuarantine.bind(this),
-        sortByIsQuarantined,
+        sortByIsQuarantined
       ),
-      Task: new Column(
-        'Task',
-        isRunning,
-        sortByRunningSwarmingTask,
-      ),
-      Battery: new Column(
-        'Battery',
-        battery,
-        sortByBattery,
-      ),
-      Temperature: new Column(
-        'Temperature',
-        temps,
-        null,
-      ),
+      Task: new Column('Task', isRunning, sortByRunningSwarmingTask),
+      Battery: new Column('Battery', battery, sortByBattery),
+      Temperature: new Column('Temperature', temps, null),
       'Last Seen': new Column(
         'Last Seen',
         lastSeen,
         sortByLastUpated,
-        outOfSpecIfTooOld,
+        outOfSpecIfTooOld
       ),
       Uptime: new Column(
         'Uptime',
         deviceUptime,
         sortByDeviceUptime,
-        uptimeOutOfSpecIfTooOld,
+        uptimeOutOfSpecIfTooOld
       ),
-      Dimensions: new Column(
-        'Dimensions',
-        this.dimensions.bind(this),
-        null,
-      ),
+      Dimensions: new Column('Dimensions', this.dimensions.bind(this), null),
       'Launched Swarming': new Column(
         'Launched Swarming',
         launchedSwarming,
-        sortByLaunchedSwarming,
+        sortByLaunchedSwarming
       ),
-      Note: new Column(
-        'Note',
-        this.note.bind(this),
-        sortByNote,
-      ),
+      Note: new Column('Note', this.note.bind(this), sortByNote),
       Annotation: new Column(
         'Annotation',
         (machine: Description) => annotation(machine.Annotation),
-        sortByAnnotation,
+        sortByAnnotation
       ),
-      Version: new Column(
-        'Version',
-        imageVersion,
-        sortByVersion,
-      ),
-      Delete: new Column(
-        'Delete',
-        this.deleteMachine.bind(this),
-        null,
-      ),
+      Version: new Column('Version', imageVersion, sortByVersion),
+      Delete: new Column('Delete', this.deleteMachine.bind(this), null),
     };
   }
 
   async allDisplayedMachineIDs(): Promise<string> {
-    return this.orderedFilteredRows().map((d: Description) => d.Dimensions!.id![0]).join('\n');
+    return this.orderedFilteredRows()
+      .map((d: Description) => d.Dimensions!.id![0])
+      .join('\n');
   }
 
   private orderedFilteredRows(): Description[] {
@@ -505,7 +506,13 @@ export class MachinesTableSk extends ElementSk {
 
   private tableRows(): TemplateResult[] {
     const ret: TemplateResult[] = [];
-    this.orderedFilteredRows().forEach((item) => ret.push(html`<tr>${this.tableRow(item)}</tr>`));
+    this.orderedFilteredRows().forEach((item) =>
+      ret.push(
+        html`<tr>
+          ${this.tableRow(item)}
+        </tr>`
+      )
+    );
     return ret;
   }
 
@@ -529,14 +536,14 @@ export class MachinesTableSk extends ElementSk {
   // eslint-disable-next-line no-use-before-define
   toggleModeElement(machine: Description): TemplateResult {
     return html`
-    <button
-      class="mode"
-      @click=${() => this.toggleMode(machine.Dimensions!.id![0])}
-      title="${machine.MaintenanceMode || 'Put machine in maintenance mode'}"
-    >
-      ${machine.MaintenanceMode === '' ? 'available' : 'maintenance'}
-    </button>
-  `;
+      <button
+        class="mode"
+        @click=${() => this.toggleMode(machine.Dimensions!.id![0])}
+        title="${machine.MaintenanceMode || 'Put machine in maintenance mode'}"
+      >
+        ${machine.MaintenanceMode === '' ? 'available' : 'maintenance'}
+      </button>
+    `;
   }
 
   recovering(machine: Description): TemplateResult {
@@ -545,49 +552,52 @@ export class MachinesTableSk extends ElementSk {
 
   powerCycle(machine: Description): TemplateResult {
     return html`
-    <power-settings-new-icon-sk
-      title="Powercycle the host"
-      class="clickable"
-      @click=${() => this.togglePowerCycle(machine.Dimensions!.id![0])}
-      ?hidden=${machine.PowerCycleState !== 'available'}
-    ></power-settings-new-icon-sk>
-    <warning-icon-sk
-      ?hidden=${machine.PowerCycleState !== 'in_error'}
-      title="Controller failed to connect."
+      <power-settings-new-icon-sk
+        title="Powercycle the host"
+        class="clickable"
+        @click=${() => this.togglePowerCycle(machine.Dimensions!.id![0])}
+        ?hidden=${machine.PowerCycleState !== 'available'}
+      ></power-settings-new-icon-sk>
+      <warning-icon-sk
+        ?hidden=${machine.PowerCycleState !== 'in_error'}
+        title="Controller failed to connect."
       ></warning-icon-sk>
-    <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
-  `;
+      <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
+    `;
   }
 
   clearQuarantine(machine: Description): TemplateResult {
     return html`
-    <block-icon-sk
-      title="Clear the quarantine"
-      class="clickable"
-      @click=${() => this.clearQuarantineAction(machine.Dimensions!.id![0])}
-      ?hidden=${!machine.IsQuarantined}
-    ></block-icon-sk>
-  `;
+      <block-icon-sk
+        title="Clear the quarantine"
+        class="clickable"
+        @click=${() => this.clearQuarantineAction(machine.Dimensions!.id![0])}
+        ?hidden=${!machine.IsQuarantined}
+      ></block-icon-sk>
+    `;
   }
 
   editDeviceIcon(machine: Description): TemplateResult {
-    return ((machine.RunningSwarmingTask || machine.AttachedDevice !== 'ssh')
+    return machine.RunningSwarmingTask || machine.AttachedDevice !== 'ssh'
       ? html``
       : html`
-        <edit-icon-sk
-          title="Edit/clear the dimensions for the bot"
-          class="edit_device"
-          @click=${() => this.deviceEditor!.show(machine.Dimensions, machine.SSHUserIP)}
-        ></edit-icon-sk>
-        `);
+          <edit-icon-sk
+            title="Edit/clear the dimensions for the bot"
+            class="edit_device"
+            @click=${() =>
+              this.deviceEditor!.show(machine.Dimensions, machine.SSHUserIP)}
+          ></edit-icon-sk>
+        `;
   }
 
   note(machine: Description): TemplateResult {
     return html`
       <edit-icon-sk
-          class="edit_note clickable"
-          @click=${() => this.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
-          `;
+        class="edit_note clickable"
+        @click=${() => this.editNote(machine.Dimensions!.id![0], machine)}
+      ></edit-icon-sk
+      >${annotation(machine.Note)}
+    `;
   }
 
   deleteMachine(machine: Description): TemplateResult {
@@ -597,7 +607,7 @@ export class MachinesTableSk extends ElementSk {
         class="clickable"
         @click=${() => this.deleteDevice(machine.Dimensions!.id![0])}
       ></delete-icon-sk>
-      `;
+    `;
   }
 
   dimensions(machine: Description): TemplateResult {
@@ -605,22 +615,23 @@ export class MachinesTableSk extends ElementSk {
       return html`<div>Unknown</div>`;
     }
     return html`
-      <div class=dimensions>
+      <div class="dimensions">
         <clear-all-icon-sk
           title="Clear all dimensions from the datastore"
-          @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}>
+          @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}
+        >
         </clear-all-icon-sk>
         <details class="dimensions">
-          <summary>Dimensions </summary>
+          <summary>Dimensions</summary>
           <table>
             ${Object.entries(machine.Dimensions).map(
-    (pair) => html`
-                  <tr>
-                    <td>${pair[0]}</td>
-                    <td>${asList(pair[1])}</td>
-                  </tr>
-                `,
-  )}
+              (pair) => html`
+                <tr>
+                  <td>${pair[0]}</td>
+                  <td>${asList(pair[1])}</td>
+                </tr>
+              `
+            )}
           </table>
         </details>
       </div>
@@ -633,7 +644,9 @@ export class MachinesTableSk extends ElementSk {
    * @param showWaitCursor Whether the mouse pointer should be changed to a
    *   spinner while we wait for the fetch
    */
-  async update(waitCursorPolicy: WaitCursor = 'DoNotShowWaitCursor'): Promise<void> {
+  async update(
+    waitCursorPolicy: WaitCursor = 'DoNotShowWaitCursor'
+  ): Promise<void> {
     if (waitCursorPolicy === 'ShowWaitCursor') {
       this.setAttribute('waiting', '');
     }
@@ -652,20 +665,24 @@ export class MachinesTableSk extends ElementSk {
     }
   }
 
-  onError(msg: { message: string; } | string): void {
+  onError(msg: { message: string } | string): void {
     this.removeAttribute('waiting');
     errorMessage(msg);
   }
 
   tableHeaders(): TemplateResult[] {
-    return ColumnOrder.filter((name) => !this.hiddenColumns.includes(name)).map((columnName) => this.columns![columnName].header(this));
+    return ColumnOrder.filter((name) => !this.hiddenColumns.includes(name)).map(
+      (columnName) => this.columns![columnName].header(this)
+    );
   }
 
   tableRow(machine: Description): TemplateResult[] {
     if (!machine.Dimensions || !machine.Dimensions.id) {
       return [];
     }
-    return ColumnOrder.filter((name) => !this.hiddenColumns.includes(name)).map((columnName) => this.columns![columnName].rowValue(machine));
+    return ColumnOrder.filter((name) => !this.hiddenColumns.includes(name)).map(
+      (columnName) => this.columns![columnName].rowValue(machine)
+    );
   }
 
   private moreTemplate(): TemplateResult {
@@ -677,19 +694,21 @@ export class MachinesTableSk extends ElementSk {
   }
 
   private attachedDeviceOptions(machine: Description): TemplateResult[] {
-    return attachedDeviceDisplayNamesOrder.map((key: string) => html`
-      <option
+    return attachedDeviceDisplayNamesOrder.map(
+      (key: string) => html` <option
         value=${attachedDeviceDisplayName[key]}
-        ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>
+        ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}
+      >
         ${key}
-      </option>`);
+      </option>`
+    );
   }
 
   private machineLink(machine: Description): TemplateResult {
     return html`
       <a
-        href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
-
+        href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!
+          .id}"
       >
         ${machine.Dimensions!.id}
       </a>
@@ -698,9 +717,10 @@ export class MachinesTableSk extends ElementSk {
   }
 
   private attachedDevice(machine: Description): TemplateResult {
-    return html`
-    <select
-      @input=${(e: InputEvent) => this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
+    return html` <select
+      @input=${(e: InputEvent) =>
+        this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}
+    >
       ${this.attachedDeviceOptions(machine)}
     </select>`;
   }
@@ -714,11 +734,20 @@ export class MachinesTableSk extends ElementSk {
 
     if (column === firstSortSelection.column) {
       if (firstSortSelection.dir === up) {
-        return html`<arrow-drop-up-icon-sk title="Change sort order to descending." @click=${() => this.changeSort(column)}></arrow-drop-up-icon-sk>`;
+        return html`<arrow-drop-up-icon-sk
+          title="Change sort order to descending."
+          @click=${() => this.changeSort(column)}
+        ></arrow-drop-up-icon-sk>`;
       }
-      return html`<arrow-drop-down-icon-sk title="Change sort order to ascending." @click=${() => this.changeSort(column)}></arrow-drop-down-icon-sk>`;
+      return html`<arrow-drop-down-icon-sk
+        title="Change sort order to ascending."
+        @click=${() => this.changeSort(column)}
+      ></arrow-drop-down-icon-sk>`;
     }
-    return html`<sort-icon-sk title="Sort this column." @click=${() => this.changeSort(column)}></sort-icon-sk>`;
+    return html`<sort-icon-sk
+      title="Sort this column."
+      @click=${() => this.changeSort(column)}
+    ></sort-icon-sk>`;
   }
 
   private changeSort(column: number) {
@@ -726,8 +755,9 @@ export class MachinesTableSk extends ElementSk {
 
     this.dispatchEvent(
       new CustomEvent<MachineTableSkChangeEventDetail>(
-        MachineTableSkSortChangeEventName, { detail: this.sortHistory!.encode(), bubbles: true },
-      ),
+        MachineTableSkSortChangeEventName,
+        { detail: this.sortHistory!.encode(), bubbles: true }
+      )
     );
     this._render();
   }
@@ -737,7 +767,10 @@ export class MachinesTableSk extends ElementSk {
     this._render();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this);
     this.deviceEditor = $$<DeviceEditorSk>('device-editor-sk', this);
-    this.hiddenColumnsDialog = $$<MachineTableColumnsDialogSk>('machine-table-columns-dialog-sk', this);
+    this.hiddenColumnsDialog = $$<MachineTableColumnsDialogSk>(
+      'machine-table-columns-dialog-sk',
+      this
+    );
 
     this.addEventListener(ClearDeviceEvent, this.clearDevice);
     this.addEventListener(UpdateDimensionsEvent, this.updateDimensions);
@@ -783,7 +816,9 @@ export class MachinesTableSk extends ElementSk {
   }
 
   async toggleMode(id: string): Promise<void> {
-    await this.fetchCheckAndUpdate(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
+    await this.fetchCheckAndUpdate(`/_/machine/toggle_mode/${id}`, {
+      method: 'POST',
+    });
   }
 
   async editNote(id: string, machine: Description): Promise<void> {
@@ -803,7 +838,9 @@ export class MachinesTableSk extends ElementSk {
   }
 
   async editHiddenColumns(): Promise<ColumnTitles[]> {
-    const newHiddenColumns = await this.hiddenColumnsDialog!.edit(this.hiddenColumns);
+    const newHiddenColumns = await this.hiddenColumnsDialog!.edit(
+      this.hiddenColumns
+    );
     if (!newHiddenColumns) {
       return this.hiddenColumns;
     }
@@ -812,11 +849,15 @@ export class MachinesTableSk extends ElementSk {
   }
 
   async togglePowerCycle(id: string): Promise<void> {
-    await this.fetchCheckAndUpdate(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
+    await this.fetchCheckAndUpdate(`/_/machine/toggle_powercycle/${id}`, {
+      method: 'POST',
+    });
   }
 
   async clearQuarantineAction(id: string): Promise<void> {
-    await this.fetchCheckAndUpdate(`/_/machine/clear_quarantined/${id}`, { method: 'POST' });
+    await this.fetchCheckAndUpdate(`/_/machine/clear_quarantined/${id}`, {
+      method: 'POST',
+    });
   }
 
   private async clearDevice(e: Event): Promise<void> {
@@ -825,11 +866,15 @@ export class MachinesTableSk extends ElementSk {
   }
 
   private async clearDeviceByID(id: string): Promise<void> {
-    await this.fetchCheckAndUpdate(`/_/machine/remove_device/${id}`, { method: 'POST' });
+    await this.fetchCheckAndUpdate(`/_/machine/remove_device/${id}`, {
+      method: 'POST',
+    });
   }
 
   async deleteDevice(id: string): Promise<void> {
-    await this.fetchCheckAndUpdate(`/_/machine/delete_machine/${id}`, { method: 'POST' });
+    await this.fetchCheckAndUpdate(`/_/machine/delete_machine/${id}`, {
+      method: 'POST',
+    });
   }
 
   private async updateDimensions(e: Event): Promise<void> {
@@ -838,10 +883,13 @@ export class MachinesTableSk extends ElementSk {
       SSHUserIP: info.sshUserIP,
       SuppliedDimensions: info.specifiedDimensions,
     };
-    await this.fetchCheckAndUpdate(`/_/machine/supply_chromeos/${info.machineID}`, {
-      method: 'POST',
-      body: JSON.stringify(postBody),
-    });
+    await this.fetchCheckAndUpdate(
+      `/_/machine/supply_chromeos/${info.machineID}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(postBody),
+      }
+    );
   }
 }
 

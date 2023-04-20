@@ -2,11 +2,16 @@
  * Nondeterministic, rich data for use on the demo page to visualize different scenarios.
  */
 import {
-  Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task,
+  Branch,
+  GetIncrementalCommitsResponse,
+  LongCommit,
+  Comment,
+  Task,
 } from '../rpc/status';
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
-const timestampBeforeNow = (minutes: number = 0) => new Date(Date.now() - 1000 * 60 * minutes).toISOString();
+const timestampBeforeNow = (minutes: number = 0) =>
+  new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 
 const branches: Array<Branch> = [
   { name: 'main', head: 'abc0' },
@@ -54,7 +59,8 @@ const commentTaskSpec: Comment = {
   taskSpecName: 'Housekeeper-PerCommit-Small',
   commit: '',
 };
-const randomAuthor = () => ['alice', 'bob', 'charles', 'diane'][Math.floor(Math.random() * 4)];
+const randomAuthor = () =>
+  ['alice', 'bob', 'charles', 'diane'][Math.floor(Math.random() * 4)];
 const taskSpecs = [
   'Build-Android-Stuff-Metal',
   'Build-iOS-Mac15.5',
@@ -71,8 +77,7 @@ const commitTemplate: LongCommit = {
   author: 'bob@example.com',
   parents: ['abc4'],
   subject: 'current HEAD',
-  body:
-    'the most recent commit\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557',
+  body: 'the most recent commit\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557',
   timestamp: timestampBeforeNow(5),
 };
 const taskTemplate: Task = {
@@ -119,7 +124,7 @@ for (let i = 0; i < 30; i++) {
       subject: `something, timestamp is ${commitTime}`,
       timestamp: commitTime,
       author: randomAuthor(),
-    }),
+    })
   );
 
   for (const spec of taskSpecs) {

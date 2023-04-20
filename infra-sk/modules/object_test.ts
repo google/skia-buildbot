@@ -21,7 +21,7 @@ describe('object functions', () => {
     const test = (
       o: HintableObject,
       d: HintableObject,
-      expected: HintableObject,
+      expected: HintableObject
     ) => {
       assert.deepEqual(object.getDelta(o, d), expected);
     };
@@ -41,7 +41,7 @@ describe('object functions', () => {
     const test = (
       delta: HintableObject,
       o: HintableObject,
-      expected: HintableObject,
+      expected: HintableObject
     ) => {
       assert.deepEqual(object.applyDelta(delta, o), expected);
     };

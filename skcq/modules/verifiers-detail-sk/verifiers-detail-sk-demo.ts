@@ -79,7 +79,9 @@ const MockResponseWithData: GetChangeAttemptsResponse = {
 };
 
 fetchMock.config.overwriteRoutes = false;
-fetchMock.post('/_/get_change_attempts', MockResponseWithData, { body: MockRequestWithData });
+fetchMock.post('/_/get_change_attempts', MockResponseWithData, {
+  body: MockRequestWithData,
+});
 fetchMock.post('/_/get_change_attempts', {}, { body: MockRequestWithNoData });
 
 customElements.whenDefined('verifiers-detail-sk').then(() => {
@@ -91,7 +93,8 @@ customElements.whenDefined('verifiers-detail-sk').then(() => {
   pageNoData.setAttribute('change_id', '345');
   pageNoData.setAttribute('patchset_id', '1');
 
-  document.querySelector('h1')!
+  document
+    .querySelector('h1')!
     .insertAdjacentElement('afterend', pageWithData)!
     .insertAdjacentElement('afterend', pageNoData);
 });

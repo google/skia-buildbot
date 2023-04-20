@@ -37,7 +37,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
+      expect(
+        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
+      ).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
@@ -57,9 +59,10 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders digest links correctly', async () => {
-      const digestHrefFor = (d: string) => '/detail?'
-      + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-      + `digest=${d}`;
+      const digestHrefFor = (d: string) =>
+        '/detail?' +
+        'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+        `digest=${d}`;
       expect(await dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
         digestHrefFor('00000000000000000000000000000000'),
         digestHrefFor('11111111111111111111111111111111'),
@@ -80,9 +83,10 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => '/diff?'
-        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-        + `left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) =>
+        '/diff?' +
+        'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+        `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -99,9 +103,10 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders digest links correctly', async () => {
-        const digestHrefFor = (d: string) => '/detail?'
-          + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-          + `digest=${d}&changelist_id=123456&crs=gerrit`;
+        const digestHrefFor = (d: string) =>
+          '/detail?' +
+          'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+          `digest=${d}&changelist_id=123456&crs=gerrit`;
         expect(await dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
           digestHrefFor('00000000000000000000000000000000'),
           digestHrefFor('11111111111111111111111111111111'),
@@ -112,9 +117,10 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders diff links correctly', async () => {
-        const diffHrefFor = (d: string) => '/diff?'
-          + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-          + `left=00000000000000000000000000000000&right=${d}&changelist_id=123456&crs=gerrit`;
+        const diffHrefFor = (d: string) =>
+          '/diff?' +
+          'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+          `left=00000000000000000000000000000000&right=${d}&changelist_id=123456&crs=gerrit`;
         expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
           diffHrefFor('11111111111111111111111111111111'),
           diffHrefFor('22222222222222222222222222222222'),
@@ -145,7 +151,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
+      expect(
+        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
+      ).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
@@ -187,9 +195,10 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => '/diff?'
-        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-        + `left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) =>
+        '/diff?' +
+        'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+        `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -227,7 +236,9 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
+      expect(
+        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
+      ).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
@@ -268,9 +279,10 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) => '/diff?'
-        + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&'
-        + `left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) =>
+        '/diff?' +
+        'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
+        `left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),

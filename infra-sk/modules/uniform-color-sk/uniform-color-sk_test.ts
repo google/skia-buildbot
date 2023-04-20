@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import { hexToSlot, slotToHex, UniformColorSk } from './uniform-color-sk';
 import { setUpElementUnderTest } from '../test_util';
 
@@ -57,10 +57,7 @@ describe('uniform-color-sk', () => {
 
       $$<HTMLInputElement>('input', element)!.value = '#8090a0';
       element.applyUniformValues(uniforms);
-      assert.deepEqual(
-        uniforms,
-        [0, 0.5019, 0.5647, 0.6274, 0],
-      );
+      assert.deepEqual(uniforms, [0, 0.5019, 0.5647, 0.6274, 0]);
     });
 
     it('puts values in correct spot in uniforms array with an alpha', () => {
@@ -76,10 +73,7 @@ describe('uniform-color-sk', () => {
 
       $$<HTMLInputElement>('input', element)!.value = '#8090a0';
       element.applyUniformValues(uniforms);
-      assert.deepEqual(
-        uniforms,
-        [0, 0.5019, 0.5647, 0.6274, 0.5, 0],
-      );
+      assert.deepEqual(uniforms, [0, 0.5019, 0.5647, 0.6274, 0.5, 0]);
     });
 
     it('restores values in correct spot in uniforms array with an alpha', () => {
@@ -99,10 +93,7 @@ describe('uniform-color-sk', () => {
       // Clear uniforms.
       uniforms = [0, 0, 0, 0, 0, 0];
       element.applyUniformValues(uniforms);
-      assert.deepEqual(
-        uniforms,
-        [0, 0.5019, 0.5647, 0.6274, 0.5, 0],
-      );
+      assert.deepEqual(uniforms, [0, 0.5019, 0.5647, 0.6274, 0.5, 0]);
     });
 
     it('throws on invalid uniforms', () => {

@@ -21,22 +21,20 @@ import { LoginTo } from '../../../infra-sk/modules/login';
 
 import { Config } from '../config';
 
-import {
-  AutoRollService,
-  GetAutoRollService,
-} from '../rpc';
+import { AutoRollService, GetAutoRollService } from '../rpc';
 
 const inputID = 'configInput';
 
 export class ARBConfigSk extends ElementSk {
-  private static template = (ele: ARBConfigSk) => (!ele.config
-    ? html``
-    : html`
+  private static template = (ele: ARBConfigSk) =>
+    !ele.config
+      ? html``
+      : html`
   <div>
     <button
       @click="${() => {
-          $$<HTMLTextAreaElement>(`#${inputID}`, ele)!.value = ele.configJSON;
-    }}"
+        $$<HTMLTextAreaElement>(`#${inputID}`, ele)!.value = ele.configJSON;
+      }}"
       title="Revert to the checked-in config."
       >Revert</button>
     <button
@@ -57,7 +55,7 @@ export class ARBConfigSk extends ElementSk {
       <textarea id="configJson" name="configJson"></textarea>
     </form>
   </form>
-`);
+`;
 
   private config: Config = {} as Config;
 
@@ -82,11 +80,13 @@ export class ARBConfigSk extends ElementSk {
   private loadConfig(roller: string) {
     console.log(`Loading config for ${roller}...`);
 
-    fetch(`/r/${roller}/config`).then(jsonOrThrow).then((cfg: Config) => {
-      this.config = cfg;
-      this.configJSON = JSON.stringify(this.config, null, 2);
-      this._render();
-    });
+    fetch(`/r/${roller}/config`)
+      .then(jsonOrThrow)
+      .then((cfg: Config) => {
+        this.config = cfg;
+        this.configJSON = JSON.stringify(this.config, null, 2);
+        this._render();
+      });
   }
 
   private submit() {

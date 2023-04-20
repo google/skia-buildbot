@@ -1,7 +1,11 @@
 import { BranchesSk } from './branches-sk';
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { complexBranchData, doubleBranchData, singleBranchData } from './test_data';
+import {
+  complexBranchData,
+  doubleBranchData,
+  singleBranchData,
+} from './test_data';
 
 const single = document.querySelector('#single') as BranchesSk;
 [single.branchHeads, single.commits] = singleBranchData;

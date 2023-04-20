@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 
 describe('corpus-selector-sk', () => {
   let testBed: TestBed;

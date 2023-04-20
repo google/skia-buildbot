@@ -1,5 +1,7 @@
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -24,7 +26,7 @@ describe('task-scheduler-scaffold-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'task-scheduler-scaffold-sk',
+        'task-scheduler-scaffold-sk'
       );
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
@@ -35,7 +37,7 @@ describe('task-scheduler-scaffold-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'task-scheduler-scaffold-sk_dark',
+        'task-scheduler-scaffold-sk_dark'
       );
     });
   });

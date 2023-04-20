@@ -7,21 +7,23 @@ export const numMeasurements = 30;
  * The 'raf()' method should be called in every requestAnimationFrame callback.
  */
 export class FPS {
-    private timestamps: number[] = []; // timestamps of raf() calls (ms).
+  private timestamps: number[] = []; // timestamps of raf() calls (ms).
 
-    private _fps: number = 0;
+  private _fps: number = 0;
 
-    raf(): void {
-      if (this.timestamps.length >= numMeasurements) {
-        let total = 0;
-        for (let i = 1; i < this.timestamps.length; i++) {
-          total += this.timestamps[i] - this.timestamps[i - 1];
-        }
-        this._fps = 1000 / (total / (this.timestamps.length - 1));
-        this.timestamps = [];
+  raf(): void {
+    if (this.timestamps.length >= numMeasurements) {
+      let total = 0;
+      for (let i = 1; i < this.timestamps.length; i++) {
+        total += this.timestamps[i] - this.timestamps[i - 1];
       }
-      this.timestamps.push(performance.now());
+      this._fps = 1000 / (total / (this.timestamps.length - 1));
+      this.timestamps = [];
     }
+    this.timestamps.push(performance.now());
+  }
 
-    get fps(): number { return this._fps; }
+  get fps(): number {
+    return this._fps;
+  }
 }

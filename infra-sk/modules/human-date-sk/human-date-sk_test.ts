@@ -3,7 +3,7 @@ import './index';
 
 import { setUpElementUnderTest } from '../test_util';
 import { expect } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 
 describe('human-date-sk', () => {
   const newInstance = setUpElementUnderTest<HumanDateSk>('human-date-sk');
@@ -43,7 +43,10 @@ describe('human-date-sk', () => {
       element = newInstance((el: HumanDateSk) => {
         el.date = 'October 31, 2020 23:59:59';
       });
-      expect($$('span', element)).to.have.property('innerText', '10/31/2020, 11:59:59 PM');
+      expect($$('span', element)).to.have.property(
+        'innerText',
+        '10/31/2020, 11:59:59 PM'
+      );
     });
 
     it('displays diff', () => {

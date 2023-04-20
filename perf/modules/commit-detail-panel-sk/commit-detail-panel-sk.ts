@@ -25,8 +25,8 @@
  *
  * @attr {Number} selected - The index of the selected commit.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { findParent } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../commit-detail-sk';
@@ -59,12 +59,14 @@ export class CommitDetailPanelSk extends ElementSk {
             <commit-detail-sk .cid=${item}></commit-detail-sk>
           </td>
         </tr>
-      `,
+      `
     );
   };
 
   private static template = (ele: CommitDetailPanelSk) => html`
-    <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
+    <table @click=${ele._click}>
+      ${CommitDetailPanelSk.rows(ele)}
+    </table>
   `;
 
   connectedCallback(): void {
@@ -76,7 +78,11 @@ export class CommitDetailPanelSk extends ElementSk {
     this._render();
   }
 
-  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
+  attributeChangedCallback(
+    _: string,
+    oldValue: string,
+    newValue: string
+  ): void {
     if (oldValue !== newValue) {
       this._render();
     }
@@ -114,8 +120,8 @@ export class CommitDetailPanelSk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>(
         'commit-selected',
-        { detail, bubbles: true },
-      ),
+        { detail, bubbles: true }
+      )
     );
   }
 
@@ -154,7 +160,9 @@ export class CommitDetailPanelSk extends ElementSk {
   }
 
   /** @prop hide - Do not display the commit list if true.  */
-  get hide(): boolean { return this._hide; }
+  get hide(): boolean {
+    return this._hide;
+  }
 
   set hide(val: boolean) {
     this._hide = val;

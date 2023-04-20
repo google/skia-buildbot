@@ -9,18 +9,16 @@ import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { Login } from '../../../infra-sk/modules/login';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import {
-  FrameResponse, ParamSet, Alert, ConfigState,
-} from '../json';
+import { FrameResponse, ParamSet, Alert, ConfigState } from '../json';
 import { validate } from '../alert';
 
 const okOrThrow = async (resp: Response) => {
@@ -101,39 +99,41 @@ class AlertsPageSk extends ElementSk {
     return html`${msg}`;
   }
 
-  private static rows = (ele: AlertsPageSk) => ele.alerts.map(
-    (item) => html`
+  private static rows = (ele: AlertsPageSk) =>
+    ele.alerts.map(
+      (item) => html`
         <tr>
-          <td
-            ><create-icon-sk
+          <td>
+            <create-icon-sk
               title="Edit"
               @click=${ele.edit}
               .__config=${item}
               ?disabled=${!ele.email}
-            ></create-icon-sk
-          ></td>
+            ></create-icon-sk>
+          </td>
           <td>${item.display_name}</td>
-          <td
-            ><paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk
-          ></td>
+          <td>
+            <paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk>
+          </td>
           <td>${item.alert}</td>
           <td>${item.owner}</td>
           <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
-          <td
-            ><delete-icon-sk
+          <td>
+            <delete-icon-sk
               title="Delete"
               @click=${ele.delete}
               .__config=${item}
               ?disabled=${!ele.email}
-            ></delete-icon-sk
-          ></td>
+            ></delete-icon-sk>
+          </td>
           <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
           <td>${AlertsPageSk.ifNotActive(item.state)}</td>
         </tr>
-      `,
-  );
+      `
+    );
 
-  private static dryrunUrl = (config: Alert) => `/d/?${fromObject((config as unknown) as HintableObject)}`;
+  private static dryrunUrl = (config: Alert) =>
+    `/d/?${fromObject(config as unknown as HintableObject)}`;
 
   private static ifNotActive(s: ConfigState) {
     return s === 'ACTIVE' ? '' : 'Archived';
@@ -195,7 +195,7 @@ class AlertsPageSk extends ElementSk {
     }
     const id = window.location.search.slice(1);
     const matchingAlert = this.alerts.find(
-      (alert) => id === alert.id_as_string,
+      (alert) => id === alert.id_as_string
     );
     if (matchingAlert) {
       this.startEditing(matchingAlert);
@@ -257,7 +257,7 @@ class AlertsPageSk extends ElementSk {
       `/_/alert/delete/${((e.target! as any).__config as Alert).id_as_string}`,
       {
         method: 'POST',
-      },
+      }
     )
       .then(okOrThrow)
       .then(() => {

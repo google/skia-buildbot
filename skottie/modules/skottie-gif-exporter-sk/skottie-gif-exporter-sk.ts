@@ -33,8 +33,11 @@ interface GIFLibraryOptions {
 
 interface GIFLibrary {
   abort(): unknown;
-  addFrame(canvasElement: HTMLCanvasElement|ImageData|CanvasRenderingContext2D, options: { delay: number; copy: boolean; }): void;
-  on(event: string, callback: (_: unknown)=> void): void;
+  addFrame(
+    canvasElement: HTMLCanvasElement | ImageData | CanvasRenderingContext2D,
+    options: { delay: number; copy: boolean }
+  ): void;
+  on(event: string, callback: (_: unknown) => void): void;
   render(): unknown;
 }
 
@@ -44,7 +47,7 @@ interface BackgroundOption {
   color: string;
 }
 
-declare const GIF: new (_: GIFLibraryOptions)=> GIFLibrary;
+declare const GIF: new (_: GIFLibraryOptions) => GIFLibrary;
 
 const QUALITY_SCRUBBER_RANGE = 50;
 
@@ -87,163 +90,169 @@ const renderRepeatsLabel = (val: number) => {
 
 export class SkottieGifExporterSk extends ElementSk {
   private static template = (ele: SkottieGifExporterSk) => html`
-  <div>
-    <header class="editor-header">
-      <div class="editor-header-title">Gif Exporter</div>
-      <div class="editor-header-separator"></div>
-      ${ele.renderHeader()}
-    </header>
-    <section class=main>
-      ${ele.renderMain()}
-    </section>
-  </div>
-`;
+    <div>
+      <header class="editor-header">
+        <div class="editor-header-title">Gif Exporter</div>
+        <div class="editor-header-separator"></div>
+        ${ele.renderHeader()}
+      </header>
+      <section class="main">${ele.renderMain()}</section>
+    </div>
+  `;
 
   private renderMain = () => {
     switch (this.state) {
       default:
-      case 'idle': return this.renderIdle();
-      case 'image processing': return this.renderImage();
-      case 'gif processing': return this.renderGif();
-      case 'complete': return this.renderComplete();
+      case 'idle':
+        return this.renderIdle();
+      case 'image processing':
+        return this.renderImage();
+      case 'gif processing':
+        return this.renderGif();
+      case 'complete':
+        return this.renderComplete();
     }
-  }
+  };
 
-private renderIdle = () => html`
-  <div class=form>
-    <div class=form-elem>
-      <div>Sample (${this.quality})</div>
-      <input id=sampleScrub type=range min=1 max=${QUALITY_SCRUBBER_RANGE} step=1
-          @input=${this.updateQuality} @change=${this.updateQuality}
-          .value=${this.quality}>
-    </div>
-    <div class=form-elem>
-      <label class=number>
+  private renderIdle = () => html`
+    <div class="form">
+      <div class="form-elem">
+        <div>Sample (${this.quality})</div>
         <input
-          type=number
-          id=repeats
-          .value=${this.repeat}
-          min=-1
-          @input=${this.onRepeatChange}
-          @change=${this.onRepeatChange}
-        /> Repeats (${renderRepeatsLabel(this.repeat)})
-      </label>
+          id="sampleScrub"
+          type="range"
+          min="1"
+          max=${QUALITY_SCRUBBER_RANGE}
+          step="1"
+          @input=${this.updateQuality}
+          @change=${this.updateQuality}
+          .value=${this.quality}
+        />
+      </div>
+      <div class="form-elem">
+        <label class="number">
+          <input
+            type="number"
+            id="repeats"
+            .value=${this.repeat}
+            min="-1"
+            @input=${this.onRepeatChange}
+            @change=${this.onRepeatChange}
+          />
+          Repeats (${renderRepeatsLabel(this.repeat)})
+        </label>
+      </div>
+      <div class="form-elem">
+        <checkbox-sk
+          label="Dither"
+          ?checked=${this.dither}
+          @click=${this.toggleDither}
+        >
+        </checkbox-sk>
+        ${this.renderDither()}
+      </div>
+      <div class="form-elem">
+        <checkbox-sk
+          label="Include Transparent Background"
+          ?checked=${this.transparent}
+          @click=${this.toggleTransparent}
+        >
+        </checkbox-sk>
+      </div>
+      <div class="form-elem">
+        <div class="form-elem-label">
+          Select Background Color to compose on Transparent
+        </div>
+        ${this.renderBackgroundSelect()}
+      </div>
     </div>
-    <div class=form-elem>
-      <checkbox-sk label="Dither"
-         ?checked=${this.dither}
-         @click=${this.toggleDither}>
-      </checkbox-sk>
-      ${this.renderDither()}
-    </div>
-    <div class=form-elem>
-      <checkbox-sk label="Include Transparent Background"
-         ?checked=${this.transparent}
-         @click=${this.toggleTransparent}>
-      </checkbox-sk>
-    </div>
-    <div class=form-elem>
-      <div class=form-elem-label>Select Background Color to compose on Transparent</div>
-      ${this.renderBackgroundSelect()}
-    </div>
-  </div>
-`;
+  `;
 
   private renderImage = () => html`
-  <section class=exporting>
-    <div>
-      Creating snapshots: ${this.progress}%
-    </div>
-  </section>
-`;
+    <section class="exporting">
+      <div>Creating snapshots: ${this.progress}%</div>
+    </section>
+  `;
 
   private renderGif = () => html`
-  <section class=exporting>
-    <div>
-      Creating GIF: ${this.progress}%
-    </div>
-  </section>
-`;
+    <section class="exporting">
+      <div>Creating GIF: ${this.progress}%</div>
+    </section>
+  `;
 
   renderComplete = () => html`
-  <section class=complete>
-    <div class=export-info>
-      <div class=export-info-row>
-        Render Complete
+    <section class="complete">
+      <div class="export-info">
+        <div class="export-info-row">Render Complete</div>
+        <div class="export-info-row">
+          Export Duration: ${this.exportDuration}
+        </div>
+        <div class="export-info-row">
+          File size: ${bytes(this.blob ? this.blob.size : 0)}
+        </div>
       </div>
-      <div class=export-info-row>
-        Export Duration: ${this.exportDuration}
-      </div>
-      <div class=export-info-row>
-        File size: ${bytes(this.blob ? this.blob.size : 0)}
-      </div>
-    </div>
-    <a
-      class=download
-      href=${this.blobURL}
-      download=${this.getDownloadFileName()}
-    >
-      Download
-    </a>
-  </section>
-`;
+      <a
+        class="download"
+        href=${this.blobURL}
+        download=${this.getDownloadFileName()}
+      >
+        Download
+      </a>
+    </section>
+  `;
 
   private renderHeader = () => {
     if (this.state === 'idle') {
       return html`
-      <button class="editor-header-save-button" @click=${this.save}>Save</button>
-    `;
+        <button class="editor-header-save-button" @click=${this.save}>
+          Save
+        </button>
+      `;
     }
     if (this.state === 'complete') {
       return html`
-      <button class="editor-header-save-button" @click=${this.cancel}>Back</button>
-    `;
+        <button class="editor-header-save-button" @click=${this.cancel}>
+          Back
+        </button>
+      `;
     }
     return html`
-    <button class="editor-header-save-button" @click=${this.cancel}>Cancel</button>
-  `;
+      <button class="editor-header-save-button" @click=${this.cancel}>
+        Cancel
+      </button>
+    `;
   };
 
   private renderDither = () => {
     if (this.dither) {
       return html`
-      <select-sk
-        role="listbox"
-        @selection-changed=${this.ditherOptionChange}
-      >
-        ${ditherOptions.map((item: string, index: number) => this.renderOption(item, index))}
-      </select-sk>
-    `;
+        <select-sk role="listbox" @selection-changed=${this.ditherOptionChange}>
+          ${ditherOptions.map((item: string, index: number) =>
+            this.renderOption(item, index)
+          )}
+        </select-sk>
+      `;
     }
     return null;
   };
 
   private renderOption = (item: string, index: number) => html`
-  <div
-    role="option"
-    ?selected=${this.ditherValue === index}
-  >
-    ${item}
-  </div>
-`;
+    <div role="option" ?selected=${this.ditherValue === index}>${item}</div>
+  `;
 
   private renderBackgroundOption = (item: BackgroundOption) => html`
-  <div
-    role="option"
-    ?selected=${this.backgroundValue.id === item.id}
-  >
-    ${item.label}
-  </div>
-`;
+    <div role="option" ?selected=${this.backgroundValue.id === item.id}>
+      ${item.label}
+    </div>
+  `;
 
   private renderBackgroundSelect = () => html`
-  <select-sk
-    role="listbox"
-    @selection-changed=${this.backgroundOptionChange}
-  >
-    ${backgroundOptions.map((item: BackgroundOption) => this.renderBackgroundOption(item))}
-  </select-sk>
-`;
+    <select-sk role="listbox" @selection-changed=${this.backgroundOptionChange}>
+      ${backgroundOptions.map((item: BackgroundOption) =>
+        this.renderBackgroundOption(item)
+      )}
+    </select-sk>
+  `;
 
   private backgroundValue: BackgroundOption = backgroundOptions[0];
 
@@ -321,14 +330,18 @@ private renderIdle = () => html`
     this._render();
   }
 
-  private ditherOptionChange(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+  private ditherOptionChange(
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>
+  ) {
     e.preventDefault();
     this.ditherValue = e.detail.selection;
     gifStorage.set('ditherValue', this.ditherValue);
     this._render();
   }
 
-  private backgroundOptionChange(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+  private backgroundOptionChange(
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>
+  ) {
     e.preventDefault();
     this.backgroundValue = backgroundOptions[e.detail.selection];
     gifStorage.set('backgroundIndex', e.detail.selection);
@@ -340,11 +353,11 @@ private renderIdle = () => html`
   }
 
   /*
-  *
-  * This method takes care of traversing all frames from the passed animation
-  * it adds all frames to the gif instance with a 1 ms delay between frames
-  * to prevent blocking the main thread.
-  */
+   *
+   * This method takes care of traversing all frames from the passed animation
+   * it adds all frames to the gif instance with a 1 ms delay between frames
+   * to prevent blocking the main thread.
+   */
   private async processFrames() {
     const fps = this.player.fps();
     const duration = this.player.duration();
@@ -412,7 +425,9 @@ private renderIdle = () => html`
     await this.processFrames();
   }
 
-  get player(): SkottiePlayerSk { return this._player!; }
+  get player(): SkottiePlayerSk {
+    return this._player!;
+  }
 
   set player(val: SkottiePlayerSk) {
     this._player = val;

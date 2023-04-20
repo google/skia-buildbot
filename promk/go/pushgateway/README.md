@@ -12,7 +12,6 @@ their metrics to Prometheus. Since these kinds of jobs may not exist long enough
 to be scraped, they can instead push their metrics to a Pushgateway. The
 Pushgateway then exposes these metrics to Prometheus.
 
-
 ## k8s service
 
 Skia runs a [pushgateway service](https://skia.googlesource.com/k8s-config/+/main/skia-public/pushgateway.yaml)
@@ -22,7 +21,6 @@ to the pushgateway container ports. The pushgateway container also specifies a
 metrics across container restarts.
 
 The service is hosted at pushgateway.skia.org
-
 
 ## pushgateway.go
 

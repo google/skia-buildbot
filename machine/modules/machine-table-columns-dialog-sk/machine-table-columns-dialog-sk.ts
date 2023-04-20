@@ -7,39 +7,84 @@
  *
  */
 
+import { html } from 'lit-html';
 import { $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/checkbox-sk';
 
-export type ColumnTitles = 'Machine' | 'Attached' | 'Device' | 'Mode' | 'Recovering' |'Power' | 'Details' | 'Quarantined' | 'Task' | 'Battery' | 'Temperature' | 'Last Seen' | 'Uptime' | 'Dimensions' | 'Launched Swarming' | 'Note' | 'Annotation' | 'Version' | 'Delete' | 'Clear Quarantine';
+export type ColumnTitles =
+  | 'Machine'
+  | 'Attached'
+  | 'Device'
+  | 'Mode'
+  | 'Recovering'
+  | 'Power'
+  | 'Details'
+  | 'Quarantined'
+  | 'Task'
+  | 'Battery'
+  | 'Temperature'
+  | 'Last Seen'
+  | 'Uptime'
+  | 'Dimensions'
+  | 'Launched Swarming'
+  | 'Note'
+  | 'Annotation'
+  | 'Version'
+  | 'Delete'
+  | 'Clear Quarantine';
 
-export const ColumnOrder: ColumnTitles[] = ['Machine', 'Attached', 'Device', 'Mode', 'Recovering', 'Power', 'Details', 'Quarantined', 'Clear Quarantine', 'Task', 'Battery', 'Temperature', 'Last Seen', 'Uptime', 'Dimensions', 'Launched Swarming', 'Note', 'Annotation', 'Version', 'Delete'];
+export const ColumnOrder: ColumnTitles[] = [
+  'Machine',
+  'Attached',
+  'Device',
+  'Mode',
+  'Recovering',
+  'Power',
+  'Details',
+  'Quarantined',
+  'Clear Quarantine',
+  'Task',
+  'Battery',
+  'Temperature',
+  'Last Seen',
+  'Uptime',
+  'Dimensions',
+  'Launched Swarming',
+  'Note',
+  'Annotation',
+  'Version',
+  'Delete',
+];
 
 export class MachineTableColumnsDialogSk extends ElementSk {
-   private dialog: HTMLDialogElement|null = null;
+  private dialog: HTMLDialogElement | null = null;
 
-   private hiddenColumns: ColumnTitles[] = [];
+  private hiddenColumns: ColumnTitles[] = [];
 
-   private resolve: ((value: ColumnTitles[] | undefined)=> void) | null = null;
+  private resolve: ((value: ColumnTitles[] | undefined) => void) | null = null;
 
-   constructor() {
-     super(MachineTableColumnsDialogSk.template);
-   }
+  constructor() {
+    super(MachineTableColumnsDialogSk.template);
+  }
 
-  private static template = (ele: MachineTableColumnsDialogSk) => html`
-  <dialog>
-
+  private static template = (ele: MachineTableColumnsDialogSk) => html` <dialog>
     <h2>Select columns to display.</h2>
     <div>
-      ${ColumnOrder.map((name: ColumnTitles) => html`<checkbox-sk label=${name} ?checked=${!ele.hiddenColumns.includes(name)}></checkbox-sk>`)}
+      ${ColumnOrder.map(
+        (name: ColumnTitles) =>
+          html`<checkbox-sk
+            label=${name}
+            ?checked=${!ele.hiddenColumns.includes(name)}
+          ></checkbox-sk>`
+      )}
     </div>
 
-    <div class=controls>
-      <button @click=${ele.okClick} id=ok>OK</button>
-      <button @click=${ele.cancelClick} id=cancel>Cancel</button>
+    <div class="controls">
+      <button @click=${ele.okClick} id="ok">OK</button>
+      <button @click=${ele.cancelClick} id="cancel">Cancel</button>
     </div>
   </dialog>`;
 
@@ -71,7 +116,9 @@ export class MachineTableColumnsDialogSk extends ElementSk {
     if (!this.resolve) {
       return;
     }
-    this.hiddenColumns = $<CheckOrRadio>('checkbox-sk', this).filter((ch: CheckOrRadio) => !ch.checked).map((ch: CheckOrRadio) => ch.label as ColumnTitles);
+    this.hiddenColumns = $<CheckOrRadio>('checkbox-sk', this)
+      .filter((ch: CheckOrRadio) => !ch.checked)
+      .map((ch: CheckOrRadio) => ch.label as ColumnTitles);
     this.resolve(this.hiddenColumns);
     this.dialog!.close();
     this.resolve = null;

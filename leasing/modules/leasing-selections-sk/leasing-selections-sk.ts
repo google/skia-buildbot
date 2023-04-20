@@ -9,8 +9,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -35,7 +35,7 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private pool: string = 'Skia';
 
-  private osTypes: { [key: string]: number; } = {};
+  private osTypes: { [key: string]: number } = {};
 
   private deviceTypes: Record<string, string> = {};
 
@@ -43,7 +43,8 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private selectedOsType: string = '';
 
-  private osToDeviceTypes: { [key: string]: { [key: string]: number } | null } = {};
+  private osToDeviceTypes: { [key: string]: { [key: string]: number } | null } =
+    {};
 
   private loadingDetails: boolean = false;
 
@@ -60,7 +61,9 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Select Pool</td>
         <td>
-          <select id="pool" ?disabled=${ele.loadingDetails} .selection=${ele.pool} @input=${ele.poolChanged}>
+          <select id="pool" ?disabled=${ele.loadingDetails} .selection=${
+    ele.pool
+  } @input=${ele.poolChanged}>
             ${LeasingSelectionsSk.displayPools(ele)}
           </select>
         </td>
@@ -69,7 +72,9 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Select OS Type</td>
         <td>
-          <select id="os_type" ?disabled=${ele.loadingDetails} @input=${ele.osTypeChanged}>
+          <select id="os_type" ?disabled=${ele.loadingDetails} @input=${
+    ele.osTypeChanged
+  }>
             ${LeasingSelectionsSk.displayOsTypes(ele)}
           </select>
         </td>
@@ -78,7 +83,11 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Select Device Type</td>
         <td>
-          <select id="device_type" ?disabled=${ele.loadingDetails || (ele.selectedOsType !== 'Android' && !ele.selectedOsType.startsWith('iOS'))}>
+          <select id="device_type" ?disabled=${
+            ele.loadingDetails ||
+            (ele.selectedOsType !== 'Android' &&
+              !ele.selectedOsType.startsWith('iOS'))
+          }>
             ${LeasingSelectionsSk.displayDeviceTypes(ele)}
           </select>
         </td>
@@ -114,13 +123,17 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Description</td>
         <td>
-          <input id="desc" ?disabled=${ele.loadingDetails} placeholder="Description is required"></input>
+          <input id="desc" ?disabled=${
+            ele.loadingDetails
+          } placeholder="Description is required"></input>
         </td>
       </tr>
 
       <tr>
         <td colspan="2" class="center">
-          <button raised @click=${ele.addTask} ?disabled=${ele.loadingDetails}>Lease Bot</button>
+          <button raised @click=${ele.addTask} ?disabled=${
+    ele.loadingDetails
+  }>Lease Bot</button>
         </td>
       </tr>
 
@@ -128,28 +141,27 @@ export class LeasingSelectionsSk extends ElementSk {
 `;
 
   private static displayPools(ele: LeasingSelectionsSk): TemplateResult[] {
-    return ele.all_pools.map((p) => html`
-    <option
-      ?selected=${ele.pool === p}
-      value=${p}
-      title=${p}
-      >${p}
-    </option>`);
+    return ele.all_pools.map(
+      (p) => html` <option ?selected=${ele.pool === p} value=${p} title=${p}>
+        ${p}
+      </option>`
+    );
   }
 
   private static displayOsTypes(ele: LeasingSelectionsSk): TemplateResult[] {
     if (Object.keys(ele.osTypes).length === 0) {
       return [html``];
     }
-    return Object.keys(ele.osTypes).map((o) => html`
-    <option
-      value=${o}
-      title=${o}
-      >${o} - ${ele.osTypes[o]} bots online
-    </option>`);
+    return Object.keys(ele.osTypes).map(
+      (o) => html` <option value=${o} title=${o}>
+        ${o} - ${ele.osTypes[o]} bots online
+      </option>`
+    );
   }
 
-  private static displayDeviceTypes(ele: LeasingSelectionsSk): TemplateResult[] {
+  private static displayDeviceTypes(
+    ele: LeasingSelectionsSk
+  ): TemplateResult[] {
     if (Object.keys(ele.osToDeviceTypes).length === 0) {
       return [html``];
     }
@@ -157,12 +169,11 @@ export class LeasingSelectionsSk extends ElementSk {
       return [html``];
     }
     const deviceTypes = ele.osToDeviceTypes[ele.selectedOsType] || {};
-    return Object.keys(deviceTypes).map((d) => html`
-    <option
-      value=${d}
-      title=${d}
-      >${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
-    </option>`);
+    return Object.keys(deviceTypes).map(
+      (d) => html` <option value=${d} title=${d}>
+        ${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
+      </option>`
+    );
   }
 
   connectedCallback(): void {
@@ -244,9 +255,13 @@ export class LeasingSelectionsSk extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title')!; }
+  get appTitle(): string {
+    return this.getAttribute('app_title')!;
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 }
 
 define('leasing-selections-sk', LeasingSelectionsSk);

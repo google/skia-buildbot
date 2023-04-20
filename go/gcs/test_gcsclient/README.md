@@ -71,8 +71,6 @@ It is very tempting to do something like
 But this does not work. As of this writing, unless `.Times()` is called, only the first
 `m.On()` is used.
 
-
 ##More Information
 
 The Mock API is at https://godoc.org/github.com/stretchr/testify/mock
-

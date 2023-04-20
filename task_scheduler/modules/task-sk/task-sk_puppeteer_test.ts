@@ -1,5 +1,7 @@
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 

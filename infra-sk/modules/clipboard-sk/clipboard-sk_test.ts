@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import { ClipboardSk, defaultToolTipMessage } from './clipboard-sk';
 
 import { setUpElementUnderTest } from '../test_util';
@@ -20,7 +20,10 @@ describe('clipboard-sk', () => {
 
   describe('on construction', () => {
     it('has the right tooltip value', () => {
-      assert.equal($$<TooltipSk>('tooltip-sk', element)!.value, defaultToolTipMessage);
+      assert.equal(
+        $$<TooltipSk>('tooltip-sk', element)!.value,
+        defaultToolTipMessage
+      );
     });
   });
 });

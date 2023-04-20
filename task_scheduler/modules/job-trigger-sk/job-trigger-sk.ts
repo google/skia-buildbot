@@ -4,8 +4,8 @@
  *
  * Provides an interface for triggering jobs.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   TriggerJob,
@@ -33,7 +33,7 @@ export class JobTriggerSk extends ElementSk {
         <th>Commit</th>
       </tr>
       ${ele.jobs.map(
-    (job: TriggerJob, index: number) => html`
+        (job: TriggerJob, index: number) => html`
       <tr>
         <td>
           <input
@@ -41,9 +41,9 @@ export class JobTriggerSk extends ElementSk {
               type="text"
               .value="${job.jobName}"
               @change="${(ev: any) => {
-      job.jobName = ev.currentTarget.value;
-      ele.updateURL();
-    }}"
+                job.jobName = ev.currentTarget.value;
+                ele.updateURL();
+              }}"
               >
           </input>
         </td>
@@ -53,22 +53,22 @@ export class JobTriggerSk extends ElementSk {
               type="text"
               .value="${job.commitHash}"
               @change="${(ev: any) => {
-      job.commitHash = ev.currentTarget.value;
-      ele.updateURL();
-    }}"
+                job.commitHash = ev.currentTarget.value;
+                ele.updateURL();
+              }}"
               >
           </input>
         </td>
         <td>
           <button @click="${() => {
-      ele.removeJob(index);
-    }}">
+            ele.removeJob(index);
+          }}">
             <delete-icon-sk></delete-icon-sk>
           </button>
         </td>
       </tr>
-    `,
-  )}
+    `
+      )}
     </table>
     <button @click="${ele.addJob}">
       <add-icon-sk></add-icon-sk>
@@ -78,19 +78,19 @@ export class JobTriggerSk extends ElementSk {
       Trigger Jobs
     </button>
     ${ele.triggeredJobs && ele.triggeredJobs.length > 0
-    ? html`
+      ? html`
           <div class="container">
             <h2>Triggered Jobs</h2>
             ${ele.triggeredJobs.map(
-      (job: TriggeredJob) => html`
+              (job: TriggeredJob) => html`
                 <div class="triggered_job">
                   <a href="/job/${job.id}">${job.name} @ ${job.commit}</a>
                 </div>
-              `,
-    )}
+              `
+            )}
           </div>
         `
-    : html``}
+      : html``}
   `;
 
   private initialLoad: boolean = true;
@@ -165,10 +165,9 @@ export class JobTriggerSk extends ElementSk {
         .map((job: TriggerJob) => `${job.jobName}@${job.commitHash}`),
     };
     if (ps.job.length > 0) {
-      const url = `${window.location.origin
-        + window.location.pathname
-      }?${
-        fromParamSet(ps)}`;
+      const url = `${
+        window.location.origin + window.location.pathname
+      }?${fromParamSet(ps)}`;
       window.history.pushState({ path: url }, '', url);
     }
   }
@@ -178,7 +177,7 @@ export class JobTriggerSk extends ElementSk {
       return;
     }
     const jobs = this.jobs.filter(
-      (job: TriggerJob) => job.jobName && job.commitHash,
+      (job: TriggerJob) => job.jobName && job.commitHash
     );
     if (jobs.length == 0) {
       return;

@@ -6,7 +6,8 @@ import { $, $$ } from '../../../infra-sk/modules/dom';
 // TODO(lovisolo,kjlubick): Add the below to infra-sk.
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import {
-  eventPromise, setUpElementUnderTest,
+  eventPromise,
+  setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { CtScaffoldSk } from './ct-scaffold-sk';
 
@@ -44,25 +45,21 @@ describe('ct-scaffold-sk', () => {
       expect(content).to.not.be.null;
       expect(content!.textContent).to.equal('content');
     });
-  });// end describe('html layout')
+  }); // end describe('html layout')
 
   describe('spinner and busy property', () => {
     it('becomes busy while there are tasks to be done', () => {
       expect(scaffoldSk.busy).to.equal(false);
       scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true }),
+        new CustomEvent('begin-task', { bubbles: true })
       );
       scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true }),
+        new CustomEvent('begin-task', { bubbles: true })
       );
       expect(scaffoldSk.busy).to.equal(true);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('end-task', { bubbles: true }),
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(scaffoldSk.busy).to.equal(true);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('end-task', { bubbles: true }),
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(scaffoldSk.busy).to.equal(false);
     });
 
@@ -70,31 +67,25 @@ describe('ct-scaffold-sk', () => {
       const spinner = $$('header spinner-sk', scaffoldSk) as SpinnerSk;
       expect(spinner.active).to.equal(false);
       scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true }),
+        new CustomEvent('begin-task', { bubbles: true })
       );
       scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true }),
+        new CustomEvent('begin-task', { bubbles: true })
       );
       expect(spinner.active).to.equal(true);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('end-task', { bubbles: true }),
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(spinner.active).to.equal(true);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('end-task', { bubbles: true }),
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(spinner.active).to.equal(false);
     });
 
     it('emits a busy-end task when tasks finished', async () => {
       const busyEnd = eventPromise('busy-end');
       scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true }),
+        new CustomEvent('begin-task', { bubbles: true })
       );
       await new Promise((resolve) => setTimeout(resolve, 10));
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('end-task', { bubbles: true }),
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       await busyEnd;
     });
   }); // end describe('spinner and busy property')

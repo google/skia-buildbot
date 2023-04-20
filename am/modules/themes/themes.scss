@@ -5,7 +5,7 @@
   --primary: var(--light-blue);
   --primary-variant: var(--light-blue-200);
   --on-primary-variant: var(--black);
-  --dark-grayish-blue: #8899A6;
+  --dark-grayish-blue: #8899a6;
   --dark-desaturated-blue: #192734;
 
   --active: var(--red-300);
@@ -25,7 +25,7 @@
   --primary: var(--blue-800);
   --primary-variant: var(--light-blue-600);
   --secondary: var(--green-500);
-  --very-dark-gray: #4F4F4F;
+  --very-dark-gray: #4f4f4f;
 
   --active: var(--red);
   --inactive: var(--very-dark-gray);
@@ -39,7 +39,8 @@
   --icons: var(--green);
   --dialog-background: var(--surface);
 
-  input, textarea {
+  input,
+  textarea {
     border: solid 1px var(--on-surface);
     color: var(--on-surface);
     background: var(--surface);

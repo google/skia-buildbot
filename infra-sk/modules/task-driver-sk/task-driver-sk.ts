@@ -7,13 +7,17 @@
  * </p>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, render } from 'lit-html';
-import { localeTime, strDuration } from '../../../infra-sk/modules/human';
+import { define } from '../../../elements-sk/modules/define';
+import { localeTime, strDuration } from '../human';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { escapeAndLinkify } from '../linkify';
-import { StepData, StepDisplay, TaskDriverRunDisplay } from '../../../task_driver/modules/json';
+import {
+  StepData,
+  StepDisplay,
+  TaskDriverRunDisplay,
+} from '../../../task_driver/modules/json';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/icons/launch-icon-sk';
 
@@ -31,14 +35,21 @@ interface UIInfo {
  * Convenience type for use in templates that take both a TaskDriverRunDisplay
  * or a StepDisplay struct as their input.
  */
-type RunOrStepDisplay = (TaskDriverRunDisplay & UIInfo) | (StepDisplay & UIInfo);
+type RunOrStepDisplay =
+  | (TaskDriverRunDisplay & UIInfo)
+  | (StepDisplay & UIInfo);
 
 /** Type guard to differentiate between the TaskDriverRunDisplay and StepDisplay types. */
-function isTaskDriverRunDisplay(d: RunOrStepDisplay): d is TaskDriverRunDisplay & UIInfo {
+function isTaskDriverRunDisplay(
+  d: RunOrStepDisplay
+): d is TaskDriverRunDisplay & UIInfo {
   return (d as TaskDriverRunDisplay).properties !== undefined;
 }
 
-const tr = (contents: unknown) => html`<tr>${contents}</tr>`;
+const tr = (contents: unknown) =>
+  html`<tr>
+    ${contents}
+  </tr>`;
 
 const td = (contents: unknown) => html`<td>${contents}</td>`;
 
@@ -46,7 +57,8 @@ const propLine = (k: unknown, v: unknown) => html`
   ${tr(html`${td(k)}${td(v)}`)}
 `;
 
-const expando = (expanded = false) => html`<span class="expando">[${expanded ? '-' : '+'}]</span>`;
+const expando = (expanded = false) =>
+  html`<span class="expando">[${expanded ? '-' : '+'}]</span>`;
 
 // Return true if the step is interesting, ie. it has a result other than
 // SUCCESS (including not yet finished). The root step (which has no parent)
@@ -56,10 +68,14 @@ const stepIsInteresting = (step: StepDisplay): boolean => {
     return true;
   }
   return step.result !== 'SUCCESS';
-}
+};
 
 export class TaskDriverSk extends HTMLElement {
-  private static stepData = (ele: TaskDriverSk, s: RunOrStepDisplay, d: StepData) => {
+  private static stepData = (
+    ele: TaskDriverSk,
+    s: RunOrStepDisplay,
+    d: StepData
+  ) => {
     switch (d.type) {
       case 'command':
         return propLine('Command', d.data.command.join(' '));
@@ -70,68 +86,111 @@ export class TaskDriverSk extends HTMLElement {
       case 'text':
         return propLine(d.data.label, escapeAndLinkify(d.data.value));
       case 'log':
-        return propLine(`Log (${d.data.name})`, html`
-          <a href="${ele.logLink(s.id!, d.data.id)}" target="_blank">${d.data.name}</a>
-      `);
+        return propLine(
+          `Log (${d.data.name})`,
+          html`
+            <a href="${ele.logLink(s.id!, d.data.id)}" target="_blank"
+              >${d.data.name}</a
+            >
+          `
+        );
     }
     return '';
-  }
+  };
 
-  private static stepError = (ele: TaskDriverSk, s: RunOrStepDisplay, e: string, idx: number) => propLine(html`
-    <a href="${ele.errLink(s.id!, idx)}" target="_blank">
-      Error
-    </a>`, html`
-    <pre>${e}</pre>
-  `);
+  private static stepError = (
+    ele: TaskDriverSk,
+    s: RunOrStepDisplay,
+    e: string,
+    idx: number
+  ) =>
+    propLine(
+      html` <a href="${ele.errLink(s.id!, idx)}" target="_blank"> Error </a>`,
+      html` <pre>${e}</pre> `
+    );
 
-  private static stepProperties = (ele: TaskDriverSk, s: RunOrStepDisplay) => html`
+  private static stepProperties = (
+    ele: TaskDriverSk,
+    s: RunOrStepDisplay
+  ) => html`
     <table class="properties">
-      ${isTaskDriverRunDisplay(s) && s.properties
-    ? html`
-          ${s.properties.swarmingServer && s.properties.swarmingTask
-      ? propLine('Swarming Task', html`
-              <a href="${`${s.properties.swarmingServer}/task?id=${s.properties.swarmingTask}&show_raw=1`}" target="_blank">${s.properties.swarmingTask}</a>
-            `)
-      : ''
-        }
-          ${s.properties.swarmingServer && s.properties.swarmingBot
-          ? propLine('Swarming Bot', html`
-              <a href="${`${s.properties.swarmingServer}/bot?id=${s.properties.swarmingBot}`}" target="_blank">${s.properties.swarmingBot}</a>
-            `)
+      ${
+        isTaskDriverRunDisplay(s) && s.properties
+          ? html`
+              ${s.properties.swarmingServer && s.properties.swarmingTask
+                ? propLine(
+                    'Swarming Task',
+                    html`
+                      <a
+                        href="${`${s.properties.swarmingServer}/task?id=${s.properties.swarmingTask}&show_raw=1`}"
+                        target="_blank"
+                        >${s.properties.swarmingTask}</a
+                      >
+                    `
+                  )
+                : ''}
+              ${s.properties.swarmingServer && s.properties.swarmingBot
+                ? propLine(
+                    'Swarming Bot',
+                    html`
+                      <a
+                        href="${`${s.properties.swarmingServer}/bot?id=${s.properties.swarmingBot}`}"
+                        target="_blank"
+                        >${s.properties.swarmingBot}</a
+                      >
+                    `
+                  )
+                : ''}
+              ${!s.properties.local
+                ? propLine(
+                    'Task Scheduler',
+                    html`
+                      <a
+                        href="https://task-scheduler.skia.org/task/${s.id}"
+                        target="_blank"
+                        >${s.id}</a
+                      >
+                    `
+                  )
+                : ''}
+            `
           : ''
-        }
-          ${!s.properties.local
-          ? propLine('Task Scheduler', html`
-              <a href="https://task-scheduler.skia.org/task/${s.id}" target="_blank">${s.id}</a>
-            `)
-          : ''
-        }
-        `
-    : ''
       }
       ${s.isInfra ? propLine('Infra', s.isInfra) : ''}
       ${propLine('Started', ele.displayTime(s.started))}
       ${propLine('Finished', ele.displayTime(s.finished))}
-      ${s.environment
-        ? propLine('Environment', html`
+      ${
+        s.environment
+          ? propLine(
+              'Environment',
+              html`
                 <a id="button_env_${s.id}" @click=${() => ele.toggleEnv(s)}>
                   ${expando(s.expandEnv)}
                 </a>
                 <collapse-sk id="env_${s.id}" ?closed="${!s.expandEnv}">
                   ${s.environment.map((env) => tr(td(env)))}
                 </collapse-sk>
-              `)
-        : ''
+              `
+            )
+          : ''
       }
       ${s.data ? s.data.map((d) => TaskDriverSk.stepData(ele, s, d)) : ''}
-      ${propLine('Log (combined)', html`
-          <a href="${ele.logLink(s.id!)}" target="_blank">all logs</a>
-      `)}
-      ${s.errors ? s.errors.map((e, idx) => TaskDriverSk.stepError(ele, s, e, idx)) : ''}
+      ${propLine(
+        'Log (combined)',
+        html` <a href="${ele.logLink(s.id!)}" target="_blank">all logs</a> `
+      )}
+      ${
+        s.errors
+          ? s.errors.map((e, idx) => TaskDriverSk.stepError(ele, s, e, idx))
+          : ''
+      }
     </div>
   `;
 
-  private static stepChildren = (ele: TaskDriverSk, s: RunOrStepDisplay) => html`
+  private static stepChildren = (
+    ele: TaskDriverSk,
+    s: RunOrStepDisplay
+  ) => html`
     <div class="vert children_link">
       <a id="button_children_${s.id}" @click=${() => ele.toggleChildren(s)}>
         ${expando(s.expandChildren)}
@@ -150,27 +209,40 @@ export class TaskDriverSk extends HTMLElement {
     ${s.steps && s.steps.length > 0 ? TaskDriverSk.stepChildren(ele, s) : ''}
   `;
 
-  private static step = (ele: TaskDriverSk, s: RunOrStepDisplay): unknown => html`
+  private static step = (
+    ele: TaskDriverSk,
+    s: RunOrStepDisplay
+  ): unknown => html`
     <div class="${ele.stepClass(s)}">
       <div class="vert">
-        <a class="horiz" id="button_props_${s.id}" @click=${() => ele.toggleProps(s)}>
+        <a
+          class="horiz"
+          id="button_props_${s.id}"
+          @click=${() => ele.toggleProps(s)}
+        >
           ${expando(s.expandProps)}
         </a>
         <div class="${ele.stepNameClass(s)}">${s.name}</div>
         <div class="horiz duration">${ele.duration(s.started, s.finished)}</div>
-        ${!s.parent && ele.hasAttribute('embedded') ? html`
-          <div class="horiz">
-            <a href="https://task-driver.skia.org/td/${s.id}" target="_blank">
-              <launch-icon-sk></launch-icon-sk>
-            </a>
-          </div>
-        ` : ''}
+        ${!s.parent && ele.hasAttribute('embedded')
+          ? html`
+              <div class="horiz">
+                <a
+                  href="https://task-driver.skia.org/td/${s.id}"
+                  target="_blank"
+                >
+                  <launch-icon-sk></launch-icon-sk>
+                </a>
+              </div>
+            `
+          : ''}
       </div>
       ${TaskDriverSk.stepInner(ele, s)}
     </div>
   `;
 
-  private static template = (ele: TaskDriverSk) => TaskDriverSk.step(ele, ele.data);
+  private static template = (ele: TaskDriverSk) =>
+    TaskDriverSk.step(ele, ele.data);
 
   private _data: Partial<TaskDriverRunDisplay> = {};
 
@@ -269,7 +341,8 @@ export class TaskDriverSk extends HTMLElement {
       step.data.sort((a, b) => {
         if (a.type < b.type) {
           return -1;
-        } if (a.type > b.type) {
+        }
+        if (a.type > b.type) {
           return 1;
         }
         if (a.data.name < b.data.name) {
@@ -307,7 +380,9 @@ export class TaskDriverSk extends HTMLElement {
     return isInteresting;
   }
 
-  get data(): TaskDriverRunDisplay { return this._data as TaskDriverRunDisplay; }
+  get data(): TaskDriverRunDisplay {
+    return this._data as TaskDriverRunDisplay;
+  }
 
   set data(val: TaskDriverRunDisplay) {
     this.process(val);
@@ -315,7 +390,9 @@ export class TaskDriverSk extends HTMLElement {
     this.render();
   }
 
-  get embedded(): boolean { return this.hasAttribute('embedded'); }
+  get embedded(): boolean {
+    return this.hasAttribute('embedded');
+  }
 
   set embedded(isEmbedded: boolean) {
     if (isEmbedded) {

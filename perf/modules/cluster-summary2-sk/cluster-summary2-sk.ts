@@ -33,8 +33,8 @@
  *
  * @example
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
 import '../plot-simple-sk';
@@ -65,7 +65,7 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { lookupCids } from '../cid/cid';
 
 /** Defines a func that takes a number and formats it as a string. */
-type Formatter = (n: number)=> string;
+type Formatter = (n: number) => string;
 
 /**
  * Each type of step detection gives different meaning to the regression,
@@ -87,8 +87,14 @@ interface LabelsAndFormatters {
 const locale = Intl.NumberFormat().resolvedOptions().locale;
 
 // These are different number formatters used in labelsForStepDetection.
-const percentFormatter = Intl.NumberFormat(locale, { style: 'percent', maximumSignificantDigits: 4 }).format;
-const decimalFormatter = Intl.NumberFormat(locale, { style: 'decimal', maximumSignificantDigits: 4 }).format;
+const percentFormatter = Intl.NumberFormat(locale, {
+  style: 'percent',
+  maximumSignificantDigits: 4,
+}).format;
+const decimalFormatter = Intl.NumberFormat(locale, {
+  style: 'decimal',
+  maximumSignificantDigits: 4,
+}).format;
 const emptyFormatter = () => '';
 
 /** Map each StepDetection to the labels and formatters used for that type. */
@@ -174,7 +180,7 @@ export class ClusterSummary2Sk extends ElementSk {
 
   private _alert: Alert | null = null;
 
-  private labels: LabelsAndFormatters = labelsForStepDetection['']
+  private labels: LabelsAndFormatters = labelsForStepDetection[''];
 
   constructor() {
     super(ClusterSummary2Sk.template);
@@ -210,7 +216,11 @@ export class ClusterSummary2Sk extends ElementSk {
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
       ${ele.labels.regression}
-      <span>${ele.labels.regressionFormatter(ele.summary!.step_fit!.regression)}</span>
+      <span
+        >${ele.labels.regressionFormatter(
+          ele.summary!.step_fit!.regression
+        )}</span
+      >
     </div>
     <div class="stats">
       <div class="labelled">
@@ -220,7 +230,11 @@ export class ClusterSummary2Sk extends ElementSk {
       ${ClusterSummary2Sk.leastSquares(ele)}
       <div class="labelled">
         ${ele.labels.stepSize}
-        <span>${ele.labels.stepSizeFormatter(ele.summary!.step_fit!.step_size)}</span>
+        <span
+          >${ele.labels.stepSizeFormatter(
+            ele.summary!.step_fit!.step_size
+          )}</span
+        >
       </div>
     </div>
     <plot-simple-sk
@@ -235,15 +249,17 @@ export class ClusterSummary2Sk extends ElementSk {
       <triage2-sk
         value=${ele.triageStatus.status}
         @change=${(e: CustomEvent<Status>) => {
-    ele.triageStatus.status = e.detail;
-  }}
+          ele.triageStatus.status = e.detail;
+        }}
       ></triage2-sk>
       <input
         type="text"
         .value=${ele.triageStatus.message}
         @change=${(e: InputEvent) => {
-    ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
-  }}
+          ele.triageStatus.message = (
+            e.currentTarget! as HTMLInputElement
+          ).value;
+        }}
         label="Message"
       />
       <button class="action" @click=${ele.update}>Update</button>
@@ -269,11 +285,13 @@ export class ClusterSummary2Sk extends ElementSk {
   `;
 
   private static leastSquares = (ele: ClusterSummary2Sk) => html`
-        <div class="labelled">
-          ${ele.labels.lse}
-          <span>${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span>
-        </div>
-      `;
+    <div class="labelled">
+      ${ele.labels.lse}
+      <span
+        >${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span
+      >
+    </div>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -305,7 +323,7 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkTriagedEventDetail>('triaged', {
         detail,
         bubbles: true,
-      }),
+      })
     );
   }
 
@@ -323,7 +341,7 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkOpenKeysEventDetail>('open-keys', {
         detail,
         bubbles: true,
-      }),
+      })
     );
   }
 
@@ -393,9 +411,8 @@ export class ClusterSummary2Sk extends ElementSk {
     this.dataset.clustersize = this.summary.num.toString();
     this.dataset.steplse = this.summary!.step_fit!.least_squares.toPrecision(2);
     this.dataset.stepsize = this.summary!.step_fit!.step_size.toPrecision(2);
-    this.dataset.stepregression = this.summary!.step_fit!.regression.toPrecision(
-      2,
-    );
+    this.dataset.stepregression =
+      this.summary!.step_fit!.regression.toPrecision(2);
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
     this.graph.removeAll();

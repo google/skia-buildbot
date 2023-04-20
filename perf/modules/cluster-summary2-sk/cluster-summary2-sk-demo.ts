@@ -1,7 +1,11 @@
 import './index';
 import { ClusterSummary2Sk } from './cluster-summary2-sk';
 import {
-  FullSummary, ClusterSummary, TriageStatus, Alert, FrameResponse,
+  FullSummary,
+  ClusterSummary,
+  TriageStatus,
+  Alert,
+  FrameResponse,
 } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
@@ -18,23 +22,23 @@ window.Login = Promise.resolve({
   LoginURL: 'https://accounts.google.com/',
 });
 
-ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
-  resolve({
-    commitSlice: [
-      {
-        hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
-        offset: 24748,
-        author: 'msarett@google.com',
-        message: 'Safely handle unsupported color xforms in SkCodec',
-        url:
-          'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
-        ts: 1476984695,
-        body: 'Commit body.',
-      },
-    ],
-    logEntry: '',
+ClusterSummary2Sk.lookupCids = () =>
+  new Promise((resolve) => {
+    resolve({
+      commitSlice: [
+        {
+          hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
+          offset: 24748,
+          author: 'msarett@google.com',
+          message: 'Safely handle unsupported color xforms in SkCodec',
+          url: 'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
+          ts: 1476984695,
+          body: 'Commit body.',
+        },
+      ],
+      logEntry: '',
+    });
   });
-});
 
 const alert: Alert = {
   id_as_string: '-1',
@@ -59,17 +63,8 @@ const alert: Alert = {
 
 const summary: ClusterSummary = {
   centroid: [
-    -1.0826576,
-    0.33417022,
-    0.8747909,
-    0.11694965,
-    0.76775414,
-    -0.21376616,
-    0.026059598,
-    -0.08791064,
-    0.13508978,
-    -0.38292113,
-    -0.4874483,
+    -1.0826576, 0.33417022, 0.8747909, 0.11694965, 0.76775414, -0.21376616,
+    0.026059598, -0.08791064, 0.13508978, -0.38292113, -0.4874483,
   ],
   shortcut: 'X123',
   param_summaries2: [
@@ -136,7 +131,7 @@ const fullSummary: FullSummary = {
 };
 
 const cluster = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.cluster',
+  'cluster-summary2-sk.cluster'
 )!;
 cluster.full_summary = fullSummary;
 cluster.alert = alert;
@@ -148,7 +143,7 @@ summary2.summary.step_fit!.status = 'High';
 summary2.summary.step_fit!.regression = 0.06732;
 summary2.summary.step_fit!.least_squares = 12;
 const nostatus = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.nostatus',
+  'cluster-summary2-sk.nostatus'
 )!;
 nostatus.full_summary = summary2;
 nostatus.triage = triage;
@@ -158,13 +153,13 @@ document.body.addEventListener('triaged', (e) => {
   document.querySelector('code.events')!.textContent = JSON.stringify(
     (e as CustomEvent).detail,
     null,
-    ' ',
+    ' '
   );
 });
 document.body.addEventListener('open-keys', (e) => {
   document.querySelector('code.events')!.textContent = JSON.stringify(
     (e as CustomEvent).detail,
     null,
-    ' ',
+    ' '
   );
 });

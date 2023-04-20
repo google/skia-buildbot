@@ -1,8 +1,8 @@
 import './index';
 
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import {
   eventPromise,
   expectQueryStringToEqual,
@@ -47,9 +47,11 @@ describe('list-page-sk', () => {
     listPageSk = newInstance();
     await event;
 
-    queryDialogSkPO = new QueryDialogSkPO(listPageSk.querySelector<QueryDialogSk>('query-dialog-sk')!);
+    queryDialogSkPO = new QueryDialogSkPO(
+      listPageSk.querySelector<QueryDialogSk>('query-dialog-sk')!
+    );
     corpusSelectorSkPO = new CorpusSelectorSkPO(
-            listPageSk.querySelector<CorpusSelectorSk<string>>('corpus-selector-sk')!,
+      listPageSk.querySelector<CorpusSelectorSk<string>>('corpus-selector-sk')!
     );
   });
 
@@ -78,163 +80,210 @@ describe('list-page-sk', () => {
     });
 
     const expectedSearchPageHref = (opts: {
-          positive: boolean,
-          negative: boolean,
-          untriaged: boolean,
-          disregardIgnoreRules: boolean
-        }): string => `/search?${[
-      'corpus=gm',
-      `include_ignored=${opts.disregardIgnoreRules}`,
-      'left_filter=name%3Dthis_is_another_test',
-      'max_rgba=0',
-      'min_rgba=0',
-      `negative=${opts.negative}`,
-      'not_at_head=false',
-      `positive=${opts.positive}`,
-      'reference_image_required=false',
-      'right_filter=',
-      'sort=descending',
-      `untriaged=${opts.untriaged}`,
-    ].join('&')}`;
+      positive: boolean;
+      negative: boolean;
+      untriaged: boolean;
+      disregardIgnoreRules: boolean;
+    }): string =>
+      `/search?${[
+        'corpus=gm',
+        `include_ignored=${opts.disregardIgnoreRules}`,
+        'left_filter=name%3Dthis_is_another_test',
+        'max_rgba=0',
+        'min_rgba=0',
+        `negative=${opts.negative}`,
+        'not_at_head=false',
+        `positive=${opts.positive}`,
+        'reference_image_required=false',
+        'right_filter=',
+        'sort=descending',
+        `untriaged=${opts.untriaged}`,
+      ].join('&')}`;
 
-    const expectedClusterPageHref = (opts: {disregardIgnoreRules: boolean}): string => `/cluster?${[
-      'grouping=name%3Dthis_is_another_test%26source_type%3Dgm',
-      'corpus=gm',
-      `include_ignored=${opts.disregardIgnoreRules}`,
-      'left_filter=',
-      'max_rgba=0',
-      'min_rgba=0',
-      'negative=true',
-      'not_at_head=false',
-      'positive=true',
-      'reference_image_required=false',
-      'right_filter=',
-      'sort=descending',
-      'untriaged=true',
-    ].join('&')}`;
+    const expectedClusterPageHref = (opts: {
+      disregardIgnoreRules: boolean;
+    }): string =>
+      `/cluster?${[
+        'grouping=name%3Dthis_is_another_test%26source_type%3Dgm',
+        'corpus=gm',
+        `include_ignored=${opts.disregardIgnoreRules}`,
+        'left_filter=',
+        'max_rgba=0',
+        'min_rgba=0',
+        'negative=true',
+        'not_at_head=false',
+        'positive=true',
+        'reference_image_required=false',
+        'right_filter=',
+        'sort=descending',
+        'untriaged=true',
+      ].join('&')}`;
 
     it('should have links for searching and the cluster view', () => {
-      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
+      const secondRow = $$<HTMLTableRowElement>(
+        'table tbody tr:nth-child(2)',
+        listPageSk
+      )!;
       const links = $<HTMLAnchorElement>('a', secondRow)!;
       expect(links).to.have.length(6);
 
       // First link should be to the search results for all digests.
-      expect(links[0].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: true,
-        untriaged: true,
-        disregardIgnoreRules: false,
-      }));
+      expect(links[0].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: true,
+          untriaged: true,
+          disregardIgnoreRules: false,
+        })
+      );
 
       // Second link should be just positive digests.
-      expect(links[1].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: false,
-        untriaged: false,
-        disregardIgnoreRules: false,
-      }));
+      expect(links[1].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: false,
+          untriaged: false,
+          disregardIgnoreRules: false,
+        })
+      );
 
       // Third link should be just negative digests.
-      expect(links[2].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: false,
-        negative: true,
-        untriaged: false,
-        disregardIgnoreRules: false,
-      }));
+      expect(links[2].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: false,
+          negative: true,
+          untriaged: false,
+          disregardIgnoreRules: false,
+        })
+      );
 
       // Fourth link should be just untriaged digests.
-      expect(links[3].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: false,
-        negative: false,
-        untriaged: true,
-        disregardIgnoreRules: false,
-      }));
+      expect(links[3].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: false,
+          negative: false,
+          untriaged: true,
+          disregardIgnoreRules: false,
+        })
+      );
 
       // Fifth link is the total count, and should be the same as the first link.
-      expect(links[4].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: true,
-        untriaged: true,
-        disregardIgnoreRules: false,
-      }));
+      expect(links[4].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: true,
+          untriaged: true,
+          disregardIgnoreRules: false,
+        })
+      );
 
       // Sixth link should be to cluster view
       expect(links[5].getAttribute('href')).to.equal(
-        expectedClusterPageHref({ disregardIgnoreRules: false }),
+        expectedClusterPageHref({ disregardIgnoreRules: false })
       );
     });
 
     it('updates the links based on toggle positions', async () => {
-      fetchMock.get('/json/v2/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
+      fetchMock.get(
+        '/json/v2/list?corpus=gm&include_ignored_traces=true',
+        sampleByTestList
+      );
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
 
-      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
+      const secondRow = $$<HTMLTableRowElement>(
+        'table tbody tr:nth-child(2)',
+        listPageSk
+      )!;
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
 
       // First link should be to the search results for all digests.
-      expect(links[0].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: true,
-        untriaged: true,
-        disregardIgnoreRules: true,
-      }));
+      expect(links[0].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: true,
+          untriaged: true,
+          disregardIgnoreRules: true,
+        })
+      );
 
       // Second link should be just positive digests.
-      expect(links[1].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: false,
-        untriaged: false,
-        disregardIgnoreRules: true,
-      }));
+      expect(links[1].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: false,
+          untriaged: false,
+          disregardIgnoreRules: true,
+        })
+      );
 
       // Third link should be just negative digests.
-      expect(links[2].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: false,
-        negative: true,
-        untriaged: false,
-        disregardIgnoreRules: true,
-      }));
+      expect(links[2].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: false,
+          negative: true,
+          untriaged: false,
+          disregardIgnoreRules: true,
+        })
+      );
 
       // Fourth link should be just untriaged digests.
-      expect(links[3].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: false,
-        negative: false,
-        untriaged: true,
-        disregardIgnoreRules: true,
-      }));
+      expect(links[3].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: false,
+          negative: false,
+          untriaged: true,
+          disregardIgnoreRules: true,
+        })
+      );
 
       // Fifth link is the total count, and should be the same as the first link.
-      expect(links[4].getAttribute('href')).to.equal(expectedSearchPageHref({
-        positive: true,
-        negative: true,
-        untriaged: true,
-        disregardIgnoreRules: true,
-      }));
+      expect(links[4].getAttribute('href')).to.equal(
+        expectedSearchPageHref({
+          positive: true,
+          negative: true,
+          untriaged: true,
+          disregardIgnoreRules: true,
+        })
+      );
 
       // Sixth link should be to cluster view
       expect(links[5].getAttribute('href')).to.equal(
-        expectedClusterPageHref({ disregardIgnoreRules: true }),
+        expectedClusterPageHref({ disregardIgnoreRules: true })
       );
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
-      let firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
-      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
+      let firstRow = $$<HTMLTableRowElement>(
+        'table tbody tr:nth-child(1)',
+        listPageSk
+      )!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
+        'this_is_a_test'
+      );
 
       // After first click, it will be sorting in descending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
-      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText)
-        .to.equal('this_is_another_test');
+      firstRow = $$<HTMLTableRowElement>(
+        'table tbody tr:nth-child(1)',
+        listPageSk
+      )!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
+        'this_is_another_test'
+      );
 
       // After second click, it will be sorting in ascending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
-      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
+      firstRow = $$<HTMLTableRowElement>(
+        'table tbody tr:nth-child(1)',
+        listPageSk
+      )!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
+        'this_is_a_test'
+      );
     });
   }); // end describe('html layout')
 
@@ -242,7 +291,7 @@ describe('list-page-sk', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
       fetchMock.get(
         '/json/v2/list?corpus=gm&include_ignored_traces=true',
-        sampleByTestList,
+        sampleByTestList
       );
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
@@ -251,7 +300,8 @@ describe('list-page-sk', () => {
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
       fetchMock.get(
-        '/json/v2/list?corpus=corpus%20with%20spaces', sampleByTestList,
+        '/json/v2/list?corpus=corpus%20with%20spaces',
+        sampleByTestList
       );
 
       const event = eventPromise('end-task');
@@ -263,28 +313,39 @@ describe('list-page-sk', () => {
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
-        '/json/v2/list?'
-          + 'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
-        sampleByTestList,
+        '/json/v2/list?' +
+          'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+        sampleByTestList
       );
 
       const event = eventPromise('end-task');
       $$<HTMLButtonElement>('.show_query_dialog', listPageSk)!.click();
-      await queryDialogSkPO.setSelection({ alpha_type: ['Opaque'], arch: ['arm64'] });
+      await queryDialogSkPO.setSelection({
+        alpha_type: ['Opaque'],
+        arch: ['arm64'],
+      });
       await queryDialogSkPO.clickShowMatchesBtn();
       await event;
 
-      expectQueryStringToEqual('?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64');
+      expectQueryStringToEqual(
+        '?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64'
+      );
     });
   });
 });
 
 function clickOnNegativeHeader(ele: ListPageSk) {
-  $$<HTMLTableHeaderCellElement>('table > thead > tr > th:nth-child(3)', ele)!.click();
+  $$<HTMLTableHeaderCellElement>(
+    'table > thead > tr > th:nth-child(3)',
+    ele
+  )!.click();
 }
 
 async function clickDisregardIgnoreRulesCheckbox(listPageSk: ListPageSk) {
-  const checkbox = $$<HTMLInputElement>('checkbox-sk.ignore_rules input', listPageSk)!;
+  const checkbox = $$<HTMLInputElement>(
+    'checkbox-sk.ignore_rules input',
+    listPageSk
+  )!;
   const event = eventPromise('end-task');
   checkbox.click();
   await event;

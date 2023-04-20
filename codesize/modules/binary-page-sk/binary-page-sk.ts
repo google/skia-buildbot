@@ -1,16 +1,19 @@
 /** Shows code size statistics about a single binary. */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { load } from '@google-web-components/google-chart/loader';
-import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import Fuse from 'fuse.js';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 import {
-  BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse, TreeMapDataTableRow,
+  BloatyOutputMetadata,
+  BinaryRPCRequest,
+  BinaryRPCResponse,
+  TreeMapDataTableRow,
 } from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
 import '@google-web-components/google-chart/';
@@ -22,8 +25,10 @@ import '@google-web-components/google-chart/';
  * (in the parent column), but cannot shorten the same name more than once (e.g. we have two
  * files with the same name in different subfolders).
  */
-export function convertResponseToDataTable(inputRows: TreeMapDataTableRow[]): [string, string, string|number][] {
-  const out: [string, string, string|number][] = [];
+export function convertResponseToDataTable(
+  inputRows: TreeMapDataTableRow[]
+): [string, string, string | number][] {
+  const out: [string, string, string | number][] = [];
   out.push(['Name', 'Parent', 'Size']);
 
   const shortNames = new Set<string>();
@@ -41,7 +46,9 @@ export function convertResponseToDataTable(inputRows: TreeMapDataTableRow[]): [s
     // Otherwise, it was a duplicate, so keep the full name.
     out.push([
       shortenedNameIsUnique ? shortenedName : row.name,
-      parentsWhichWereShortened.has(row.parent) ? shortenName(row.parent) : row.parent,
+      parentsWhichWereShortened.has(row.parent)
+        ? shortenName(row.parent)
+        : row.parent,
       row.size,
     ]);
   }
@@ -84,17 +91,22 @@ export class BinaryPageSk extends ElementSk {
       <h2>
         Code size statistics for <code>${el.metadata?.binary_name}</code>
         <span class="compile-task">
-          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>)
+          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a
+          >)
         </span>
       </h2>
 
       <p>
         <a href="${commitOrCLAnchorHref}">${commitOrCLAnchorText}</a>
         ${el.metadata?.subject}
-        <br/>
+        <br />
         <span class="author-and-timestamp">
           ${el.metadata?.author},
-          <human-date-sk .date=${el.metadata?.timestamp} .diff=${true}></human-date-sk> ago.
+          <human-date-sk
+            .date=${el.metadata?.timestamp}
+            .diff=${true}
+          ></human-date-sk>
+          ago.
         </span>
       </p>
 
@@ -102,32 +114,54 @@ export class BinaryPageSk extends ElementSk {
 
       <ul>
         <li><strong>Click</strong> on a node to navigate down the tree.</li>
-        <li><strong>Right click</strong> anywhere on the treemap go back up one level.</li>
-        <li><strong> Use the seach bar</strong> to navigate to a node within the tree</li>
-
+        <li>
+          <strong>Right click</strong> anywhere on the treemap go back up one
+          level.
+        </li>
+        <li>
+          <strong> Use the seach bar</strong> to navigate to a node within the
+          tree
+        </li>
       </ul>
 
       <div class="search-bar">
-        <input type="search" placeholder="Search for node..." aria-label="Search for node..."
-        autocomplete="on" @input=${el.onSearchInput} @keyup=${el.onSearchKeyUp}>
-        <ol id="searchSuggestions" class="search-match-list" ?hidden=${!el.listOfSearchResults.length}
-            @mouseover=${el.clearDefaultSelected}>
-          ${el.listOfSearchResults.map((result, i) => el.searchResult(result, i))}
+        <input
+          type="search"
+          placeholder="Search for node..."
+          aria-label="Search for node..."
+          autocomplete="on"
+          @input=${el.onSearchInput}
+          @keyup=${el.onSearchKeyUp}
+        />
+        <ol
+          id="searchSuggestions"
+          class="search-match-list"
+          ?hidden=${!el.listOfSearchResults.length}
+          @mouseover=${el.clearDefaultSelected}
+        >
+          ${el.listOfSearchResults.map((result, i) =>
+            el.searchResult(result, i)
+          )}
         </ol>
       </div>
 
       <div id="treemap"></div>
     `;
-  }
+  };
 
   // Returns a <li> with the matching string. If it is the first element, mark it selected to
   // give an affordance that something is auto selected and the user can hit enter to pick it.
-  private searchResult = (match: Fuse.FuseResult<string>, idx: number): TemplateResult => html`
-<li class=${`search-match-list-item ${idx === 0 ? 'selected' : ''}`}
-    @click=${() => this.showElement(match)}>
-  ${match.item}
-</li>
-`;
+  private searchResult = (
+    match: Fuse.FuseResult<string>,
+    idx: number
+  ): TemplateResult => html`
+    <li
+      class=${`search-match-list-item ${idx === 0 ? 'selected' : ''}`}
+      @click=${() => this.showElement(match)}
+    >
+      ${match.item}
+    </li>
+  `;
 
   private tree: google.visualization.TreeMap | null = null;
 
@@ -142,7 +176,9 @@ export class BinaryPageSk extends ElementSk {
       return;
     }
     const target = e.target as HTMLInputElement;
-    this.listOfSearchResults = this.fuse.search(target.value).slice(0, MAX_SEARCH_RESULTS);
+    this.listOfSearchResults = this.fuse
+      .search(target.value)
+      .slice(0, MAX_SEARCH_RESULTS);
     this._render();
   }
 
@@ -166,7 +202,7 @@ export class BinaryPageSk extends ElementSk {
     if (!this.tree) {
       return;
     }
-    const evt = (e as KeyboardEvent);
+    const evt = e as KeyboardEvent;
     if (evt.key === 'Enter') {
       // User hit enter, use the top result.
       this.showElement(this.listOfSearchResults[0]);
@@ -175,7 +211,10 @@ export class BinaryPageSk extends ElementSk {
     // Auto-highlight the first list element again (in case it was cleared via mouse over),
     // thus resetting the affordance that it is the auto-picked version.
     if (this.listOfSearchResults.length >= 1) {
-      const firstItem = $$<HTMLLIElement>('#searchSuggestions li:first-child', this);
+      const firstItem = $$<HTMLLIElement>(
+        '#searchSuggestions li:first-child',
+        this
+      );
       if (firstItem) {
         firstItem.classList.add('selected');
       }
@@ -184,7 +223,10 @@ export class BinaryPageSk extends ElementSk {
 
   // If the user starts typing, then mouses over the list, we clear the default selected option.
   private clearDefaultSelected(e: Event): void {
-    const defaultSelected = $$<HTMLLIElement>('#searchSuggestions li.selected', this);
+    const defaultSelected = $$<HTMLLIElement>(
+      '#searchSuggestions li.selected',
+      this
+    );
     if (defaultSelected) {
       defaultSelected.classList.remove('selected');
     }
@@ -224,7 +266,9 @@ export class BinaryPageSk extends ElementSk {
 
     const rows = convertResponseToDataTable(response.rows);
     const data = google.visualization.arrayToDataTable(rows);
-    this.tree = new google.visualization.TreeMap(this.querySelector('#treemap')!);
+    this.tree = new google.visualization.TreeMap(
+      this.querySelector('#treemap')!
+    );
 
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
@@ -245,11 +289,18 @@ export class BinaryPageSk extends ElementSk {
     };
 
     // Strip off the first row, which is the column headings.
-    this.fuse = new Fuse(rows.slice(1, rows.length).map((row): string => row[0]), searchOptions);
+    this.fuse = new Fuse(
+      rows.slice(1, rows.length).map((row): string => row[0]),
+      searchOptions
+    );
 
     // Draw the tree and wait until the tree finishes drawing.
     await new Promise((resolve) => {
-      google.visualization.events.addOneTimeListener(this.tree, 'ready', resolve);
+      google.visualization.events.addOneTimeListener(
+        this.tree,
+        'ready',
+        resolve
+      );
       this.tree!.draw(data, treeOptions);
       document.addEventListener('theme-chooser-toggle', () => {
         // if a user toggles the theme to/from darkmode then redraw
@@ -260,7 +311,8 @@ export class BinaryPageSk extends ElementSk {
     // Shows the label of the treemap cell. Returns a string with the HTML to be shown whenever.
     // the user hovers over a treemap cell.
     function showTooltip(row: number, size: string) {
-      const escapedLabel = data.getValue(row, 0)
+      const escapedLabel = data
+        .getValue(row, 0)
         .replace('&', '&amp;')
         .replace('<', '&lt;')
         .replace('>', '&gt;');

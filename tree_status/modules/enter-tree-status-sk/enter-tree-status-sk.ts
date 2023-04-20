@@ -21,8 +21,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 
 import '../list-autorollers-sk';
 
@@ -42,24 +42,36 @@ export class EnterTreeStatus extends ElementSk {
   }
 
   private static template = (ele: EnterTreeStatus) => html`
-<input id='tree_status' size=60 placeholder='Add tree status with text containing either of (open/close/caution)' value=${ele.status_value}></input>
+<input id='tree_status' size=60 placeholder='Add tree status with text containing either of (open/close/caution)' value=${
+    ele.status_value
+  }></input>
 <button @click=${ele.addTreeStatus}>Submit</button>
 <br/>
 <br/>
-${ele.autorollersSpecified() ? html`
-  <button id='display_autorollers' @click=${ele.toggleAutorollers}>Caution/Close till Roll Lands</button>
-  <br/>
-  <br/>`
-    : html``}
-<list-autorollers-sk .autorollers=${ele.autorollers} collapsable collapsed></list-autorollers-sk>
+${
+  ele.autorollersSpecified()
+    ? html` <button id="display_autorollers" @click=${ele.toggleAutorollers}>
+          Caution/Close till Roll Lands
+        </button>
+        <br />
+        <br />`
+    : html``
+}
+<list-autorollers-sk .autorollers=${
+    ele.autorollers
+  } collapsable collapsed></list-autorollers-sk>
 `;
 
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
-    $$('#tree_status')!.addEventListener('keyup', (e) => this.submitIfEnter(e as KeyboardEvent));
-    $$('list-autorollers-sk')!.addEventListener('keyup', (e) => this.submitIfEnter(e as KeyboardEvent));
+    $$('#tree_status')!.addEventListener('keyup', (e) =>
+      this.submitIfEnter(e as KeyboardEvent)
+    );
+    $$('list-autorollers-sk')!.addEventListener('keyup', (e) =>
+      this.submitIfEnter(e as KeyboardEvent)
+    );
   }
 
   private submitIfEnter(e: KeyboardEvent): void {
@@ -114,8 +126,13 @@ ${ele.autorollersSpecified() ? html`
   private addTreeStatus() {
     const treeStatus = $$('#tree_status', this) as HTMLInputElement;
     const autorollersTable = $$('list-autorollers-sk') as ListAutorollersSk;
-    const detail = { message: treeStatus.value, rollers: autorollersTable.getSelectedRollerNames() };
-    this.dispatchEvent(new CustomEvent('new-tree-status', { detail: detail, bubbles: true }));
+    const detail = {
+      message: treeStatus.value,
+      rollers: autorollersTable.getSelectedRollerNames(),
+    };
+    this.dispatchEvent(
+      new CustomEvent('new-tree-status', { detail: detail, bubbles: true })
+    );
     autorollersTable.reset();
     treeStatus.removeAttribute('disabled');
   }

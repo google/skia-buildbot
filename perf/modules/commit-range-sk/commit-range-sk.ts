@@ -6,8 +6,8 @@
  * uses the global `window.perf.commit_range_url`, which can be set on Perf via
  * the command line.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { lookupCids } from '../cid/cid';
 import { MISSING_DATA_SENTINEL } from '../const/const';
@@ -15,12 +15,16 @@ import { ColumnHeader, CommitNumber } from '../json';
 import '../window/window';
 
 // Converts CommitNumbers to Git hashes.
-type commitNumberToHashes = (commitNumbers: CommitNumber[])=> Promise<string[]>;
+type commitNumberToHashes = (
+  commitNumbers: CommitNumber[]
+) => Promise<string[]>;
 
 /** The default implementation for commitNumberToHashes run the commit numbers
  *  through cid lookup to get the hashes by making a request to the server.
  */
-const defaultcommitNumberToHashes = async (cids: CommitNumber[]): Promise<string[]> => {
+const defaultcommitNumberToHashes = async (
+  cids: CommitNumber[]
+): Promise<string[]> => {
   const json = await lookupCids(cids);
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
@@ -39,13 +43,15 @@ export class CommitRangeSk extends ElementSk {
   private _text: string = '';
 
   // commitNumberToHashes can be replaced to make testing easier.
-  private commitNumberToHashes: commitNumberToHashes = defaultcommitNumberToHashes;
+  private commitNumberToHashes: commitNumberToHashes =
+    defaultcommitNumberToHashes;
 
   constructor() {
     super(CommitRangeSk.template);
   }
 
-  private static template = (ele: CommitRangeSk) => html`<a href="${ele._url}">${ele._text}</a>`;
+  private static template = (ele: CommitRangeSk) =>
+    html`<a href="${ele._url}">${ele._text}</a>`;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -62,14 +68,22 @@ export class CommitRangeSk extends ElementSk {
   }
 
   async recalcLink(): Promise<void> {
-    if (window.perf.commit_range_url === '' || this._commitIndex === -1 || this._trace.length === 0 || this._header === null) {
+    if (
+      window.perf.commit_range_url === '' ||
+      this._commitIndex === -1 ||
+      this._trace.length === 0 ||
+      this._header === null
+    ) {
       this.clear();
       return;
     }
     // First the previous commit that has data.
     let prevCommit = this._commitIndex - 1;
 
-    while (prevCommit > 0 && (this._trace[prevCommit] === MISSING_DATA_SENTINEL)) {
+    while (
+      prevCommit > 0 &&
+      this._trace[prevCommit] === MISSING_DATA_SENTINEL
+    ) {
       prevCommit -= 1;
     }
 
@@ -79,8 +93,8 @@ export class CommitRangeSk extends ElementSk {
       return;
     }
     const cids: CommitNumber[] = [
-        this._header![prevCommit]!.offset,
-        this._header![this._commitIndex]!.offset,
+      this._header![prevCommit]!.offset,
+      this._header![this._commitIndex]!.offset,
     ];
 
     try {

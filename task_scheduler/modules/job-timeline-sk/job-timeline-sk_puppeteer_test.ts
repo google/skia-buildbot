@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -36,7 +38,7 @@ describe('job-timeline-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'job-timeline-sk_dark',
+        'job-timeline-sk_dark'
       );
     });
   });

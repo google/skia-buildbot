@@ -9,8 +9,8 @@ import 'codemirror5/addon/fold/foldcode';
 import 'codemirror5/addon/fold/foldgutter';
 import 'codemirror5/lib/codemirror';
 import 'codemirror5/mode/clike/clike'; // Syntax highlighting for c-like languages.
-import { define } from '../../../elements-sk/modules/define';
 import CodeMirror from 'codemirror5';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -29,7 +29,8 @@ export class TextareaNumbersSk extends ElementSk {
    * For this to work the associated CSS themes must be loaded. See
    * textarea-numbers-sk.scss.
    */
-  private static themeFromCurrentMode = () => (isDarkMode() ? 'base16-dark' : 'base16-light');
+  private static themeFromCurrentMode = () =>
+    isDarkMode() ? 'base16-dark' : 'base16-light';
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -43,15 +44,22 @@ export class TextareaNumbersSk extends ElementSk {
       viewportMargin: Infinity,
       extraKeys: {
         // Keyboard shortcuts for adding fold block tokens.
-        'Ctrl-S': function(cm) { cm.replaceRange(FOLDABLE_BLOCK_START, cm.getCursor()); },
-        'Ctrl-E': function(cm) { cm.replaceRange(FOLDABLE_BLOCK_END, cm.getCursor()); },
+        'Ctrl-S': function (cm) {
+          cm.replaceRange(FOLDABLE_BLOCK_START, cm.getCursor());
+        },
+        'Ctrl-E': function (cm) {
+          cm.replaceRange(FOLDABLE_BLOCK_END, cm.getCursor());
+        },
       },
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       foldOptions: {
         // Looks for FOLDABLE_BLOCK_START in the current line and then scans
         // the remaining code to find a corresponding FOLDABLE_BLOCK_END.
-        rangeFinder: (cm: CodeMirror.Editor, pos: CodeMirror.Position): CodeMirror.FoldRange | undefined => {
+        rangeFinder: (
+          cm: CodeMirror.Editor,
+          pos: CodeMirror.Position
+        ): CodeMirror.FoldRange | undefined => {
           const startLineText = cm.getLine(pos.line);
           const blockStartIndex = startLineText.indexOf(FOLDABLE_BLOCK_START);
           if (blockStartIndex === -1) {
@@ -90,7 +98,10 @@ export class TextareaNumbersSk extends ElementSk {
           };
         },
         // Creates a fold widget that contains the count of total folded lines.
-        widget: (from: CodeMirror.Position, to: CodeMirror.Position): string => {
+        widget: (
+          from: CodeMirror.Position,
+          to: CodeMirror.Position
+        ): string => {
           const content = this.codeMirror!.getRange(from, to);
           const count = content.trim().split('\n').length;
           return `${count}...`;
@@ -104,7 +115,7 @@ export class TextareaNumbersSk extends ElementSk {
     document.addEventListener('theme-chooser-toggle', () => {
       this.codeMirror!.setOption(
         'theme',
-        TextareaNumbersSk.themeFromCurrentMode(),
+        TextareaNumbersSk.themeFromCurrentMode()
       );
     });
   }
@@ -125,8 +136,8 @@ export class TextareaNumbersSk extends ElementSk {
         { line: n - 1, ch: 200 }, // Some large number for the character offset.
         {
           className: 'cm-error', // See the base16-dark.css file in CodeMirror for the class name.
-        },
-      )!,
+        }
+      )!
     );
   }
 

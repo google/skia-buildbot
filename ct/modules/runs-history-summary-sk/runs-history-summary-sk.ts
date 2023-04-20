@@ -4,20 +4,17 @@
 
 import '../../../elements-sk/modules/tabs-sk';
 
+import { html } from 'lit-html';
 import { DomReady } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { getCtDbTimestamp } from '../ctfe_utils';
 
-import {
-  CompletedTask,
-  CompletedTaskResponse,
-} from '../json';
+import { CompletedTask, CompletedTaskResponse } from '../json';
 
 export class RunsHistorySummarySk extends ElementSk {
   private _tasks: CompletedTask[] = [];
@@ -31,41 +28,48 @@ export class RunsHistorySummarySk extends ElementSk {
   }
 
   private static template = (el: RunsHistorySummarySk) => html`
-<div>
-  <h4>CT Runs Summary</h4>
-    <tabs-sk
-      @tab-selected-sk=${(e: CustomEvent) => el.period = [7, 30, 365, 0][e.detail.index]}>
-      <button>Last Week</button>
-      <button>Last Month</button>
-      <button>Last Year</button>
-      <button>All Time</button>
-    </tabs-sk>
-    <br/><br/>
-    <span>
-      ${el._tasks.length} runs by ${el._uniqueUsers} users
-      ${(el.period > 0) ? `last ${el.period} days` : 'all time'}
-    </span>
-    <br/>
-<table class="queue surface-themes-sk secondary-links runssummary" id=runssummary>
-  <tr>
-    <th>Type</th>
-    <th>User</th>
-    <th>Description</th>
-    <th>Completed</th>
-  </tr>
-  ${el._tasks.map((task: CompletedTask) => RunsHistorySummarySk.taskRowTemplate(task))}
- </table>
-</div>
-`;
+    <div>
+      <h4>CT Runs Summary</h4>
+      <tabs-sk
+        @tab-selected-sk=${(e: CustomEvent) =>
+          (el.period = [7, 30, 365, 0][e.detail.index])}
+      >
+        <button>Last Week</button>
+        <button>Last Month</button>
+        <button>Last Year</button>
+        <button>All Time</button>
+      </tabs-sk>
+      <br /><br />
+      <span>
+        ${el._tasks.length} runs by ${el._uniqueUsers} users
+        ${el.period > 0 ? `last ${el.period} days` : 'all time'}
+      </span>
+      <br />
+      <table
+        class="queue surface-themes-sk secondary-links runssummary"
+        id="runssummary"
+      >
+        <tr>
+          <th>Type</th>
+          <th>User</th>
+          <th>Description</th>
+          <th>Completed</th>
+        </tr>
+        ${el._tasks.map((task: CompletedTask) =>
+          RunsHistorySummarySk.taskRowTemplate(task)
+        )}
+      </table>
+    </div>
+  `;
 
   private static taskRowTemplate = (task: CompletedTask) => html`
-<tr>
-  <td>${task.type}</td>
-  <td>${task.username}</td>
-  <td>${task.description}</td>
-  <td class="nowrap">${task.ts_completed}</td>
-</tr>
-`;
+    <tr>
+      <td>${task.type}</td>
+      <td>${task.username}</td>
+      <td>${task.description}</td>
+      <td class="nowrap">${task.ts_completed}</td>
+    </tr>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();

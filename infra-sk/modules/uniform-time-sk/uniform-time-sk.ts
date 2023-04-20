@@ -6,8 +6,8 @@
  *
  * Displays the play/pause and rewind buttons.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
 import '../../../elements-sk/modules/icons/pause-icon-sk';
@@ -22,7 +22,7 @@ const defaultUniform: Uniform = {
 };
 
 // The type of Date.now.
-type DateNow = ()=> number;
+type DateNow = () => number;
 
 export class UniformTimeSk extends ElementSk implements UniformControl {
   private startTime: number = 0; // The time as recorded from this._dateNow in ms.
@@ -40,16 +40,16 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
   }
 
   private static template = (ele: UniformTimeSk) => html`
-  <button id="restart" @click=${ele.restart}>
-    <fast-rewind-icon-sk></fast-rewind-icon-sk>
-  </button>
-  <button id="playpause" @click=${ele.togglePlaying}>
-    <play-arrow-icon-sk ?hidden=${ele.playing}></play-arrow-icon-sk>
-    <pause-icon-sk ?hidden=${!ele.playing}></pause-icon-sk>
-  </button>
-  <span id=ms>${ele.time.toFixed(3)}</span>
-  <span>${ele._uniform.name}</span>
-`;
+    <button id="restart" @click=${ele.restart}>
+      <fast-rewind-icon-sk></fast-rewind-icon-sk>
+    </button>
+    <button id="playpause" @click=${ele.togglePlaying}>
+      <play-arrow-icon-sk ?hidden=${ele.playing}></play-arrow-icon-sk>
+      <pause-icon-sk ?hidden=${!ele.playing}></pause-icon-sk>
+    </button>
+    <span id="ms">${ele.time.toFixed(3)}</span>
+    <span>${ele._uniform.name}</span>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();

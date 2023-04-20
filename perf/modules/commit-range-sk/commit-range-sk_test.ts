@@ -49,12 +49,16 @@ describe('commit-range-sk', () => {
         assert.deepEqual(cids, [64809, 64811]);
         return [
           '1111111111111111111111111111111111111111',
-          '3333333333333333333333333333333333333333'];
+          '3333333333333333333333333333333333333333',
+        ];
       };
       // The MISSING_DATA_SENTINEL should be skipped.
       element.trace = [12, MISSING_DATA_SENTINEL, 13];
       await element.recalcLink();
-      assert.equal(element.querySelector<HTMLAnchorElement >('a')!.href, 'http://example.com/range/1111111111111111111111111111111111111111/3333333333333333333333333333333333333333');
+      assert.equal(
+        element.querySelector<HTMLAnchorElement>('a')!.href,
+        'http://example.com/range/1111111111111111111111111111111111111111/3333333333333333333333333333333333333333'
+      );
     });
   });
   it('returns the previous hash if there are no missing commits', async () => {
@@ -65,10 +69,14 @@ describe('commit-range-sk', () => {
 
       return [
         '1111111111111111111111111111111111111111',
-        '2222222222222222222222222222222222222222'];
+        '2222222222222222222222222222222222222222',
+      ];
     };
     element.trace = [11, 12, 13];
     await element.recalcLink();
-    assert.equal(element.querySelector<HTMLAnchorElement >('a')!.href, 'http://example.com/range/1111111111111111111111111111111111111111/2222222222222222222222222222222222222222');
+    assert.equal(
+      element.querySelector<HTMLAnchorElement>('a')!.href,
+      'http://example.com/range/1111111111111111111111111111111111111111/2222222222222222222222222222222222222222'
+    );
   });
 });

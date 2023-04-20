@@ -4,9 +4,7 @@ import { expect } from 'chai';
 import { $ } from '../../../infra-sk/modules/dom';
 import { PaginationSk } from './pagination-sk';
 
-import {
-  ResponsePagination,
-} from '../json';
+import { ResponsePagination } from '../json';
 import {
   eventPromise,
   setUpElementUnderTest,
@@ -15,9 +13,12 @@ import {
 describe('pagination-sk', () => {
   const newInstance = (() => {
     const factory = setUpElementUnderTest<PaginationSk>('pagination-sk');
-    return (paginationData: ResponsePagination) => factory((el: PaginationSk) => {
-      if (paginationData) { el.pagination = paginationData; }
-    });
+    return (paginationData: ResponsePagination) =>
+      factory((el: PaginationSk) => {
+        if (paginationData) {
+          el.pagination = paginationData;
+        }
+      });
   })();
 
   let paginator: HTMLElement;
@@ -26,9 +27,11 @@ describe('pagination-sk', () => {
   // All present numbered page buttons.
   const pageButtons = () => paginator.querySelectorAll('button:not(.action)');
   // Button of current page, disabled.
-  const currentPageButton = () => paginator.querySelector('button:not(.action)[disabled]');
+  const currentPageButton = () =>
+    paginator.querySelector('button:not(.action)[disabled]');
   // All page buttons other than currentPageButton.
-  const clickablePageButtons = () => paginator.querySelectorAll('button:not(.action):not([disabled])');
+  const clickablePageButtons = () =>
+    paginator.querySelectorAll('button:not(.action):not([disabled])');
   // Should the First and Previous buttons be disabled (are we on page zero).
   const expectFirstPreviousDisabled = (disabled: boolean) => {
     if (disabled) {
@@ -52,7 +55,7 @@ describe('pagination-sk', () => {
 
   const assertButtons = (buttons: NodeList, expectations: string[]) => {
     for (let i = 0; i < buttons.length; i++) {
-      expect(buttons[i].textContent).to.have.string(expectations[i]);
+      expect(buttons[i].textContent!.trim()).to.have.string(expectations[i]);
     }
   };
 
@@ -92,7 +95,7 @@ describe('pagination-sk', () => {
     // Default with enough data shows up to 5 page buttons, plus 4 controls.
     expect(pageButtons()).to.have.length(5);
     assertButtons(pageButtons(), ['1', '2', '3', '4', '5']);
-    expect(currentPageButton()?.textContent).to.equal('1');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('1');
     assertButtons(clickablePageButtons(), ['2', '3', '4', '5']);
     // We begin at the first page, 'first', 'previous' buttons are disabled.
     expectFirstPreviousDisabled(true);
@@ -106,7 +109,7 @@ describe('pagination-sk', () => {
     clickLast();
     expect(await pageChangedEvent).to.have.nested.property('detail.offset', 90);
     assertButtons(pageButtons(), ['6', '7', '8', '9', '10']);
-    expect(currentPageButton()?.textContent).to.equal('10');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('10');
     assertButtons(clickablePageButtons(), ['6', '7', '8', '9']);
     expectFirstPreviousDisabled(false);
     expectNextLastDisabled(true);
@@ -115,7 +118,7 @@ describe('pagination-sk', () => {
     clickFirst();
     expect(await pageChangedEvent).to.have.nested.property('detail.offset', 0);
     assertButtons(pageButtons(), ['1', '2', '3', '4', '5']);
-    expect(currentPageButton()?.textContent).to.equal('1');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('1');
     assertButtons(clickablePageButtons(), ['2', '3', '4', '5']);
     expectFirstPreviousDisabled(true);
     expectNextLastDisabled(false);
@@ -124,13 +127,13 @@ describe('pagination-sk', () => {
   it('allows navigation with previous/next buttons', async () => {
     paginator = newInstance({ size: 10, offset: 0, total: 100 });
     assertButtons(pageButtons(), ['1', '2', '3', '4', '5']);
-    expect(currentPageButton()?.textContent).to.equal('1');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('1');
     let pageChangedEvent = eventPromise('page-changed');
     clickNext();
     expect(await pageChangedEvent).to.have.nested.property('detail.offset', 10);
     // Page buttons don't scroll until active page button is in the middle.
     assertButtons(pageButtons(), ['1', '2', '3', '4', '5']);
-    expect(currentPageButton()?.textContent).to.equal('2');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('2');
     assertButtons(clickablePageButtons(), ['1', '3', '4', '5']);
     expectFirstPreviousDisabled(false);
     expectNextLastDisabled(false);
@@ -140,14 +143,14 @@ describe('pagination-sk', () => {
     expect(await pageChangedEvent).to.have.nested.property('detail.offset', 20);
     clickNext();
     assertButtons(pageButtons(), ['2', '3', '4', '5', '6']);
-    expect(currentPageButton()?.textContent).to.equal('4');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('4');
     assertButtons(clickablePageButtons(), ['2', '3', '5', '6']);
     expectFirstPreviousDisabled(false);
     expectNextLastDisabled(false);
     // Now go back one.
     clickPrevious();
     assertButtons(pageButtons(), ['1', '2', '3', '4', '5']);
-    expect(currentPageButton()?.textContent).to.equal('3');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('3');
     assertButtons(clickablePageButtons(), ['1', '2', '4', '5']);
     expectFirstPreviousDisabled(false);
     expectNextLastDisabled(false);
@@ -161,18 +164,18 @@ describe('pagination-sk', () => {
     clickNthPageButton(4);
     expect(await pageChangedEvent).to.have.nested.property('detail.offset', 40);
     assertButtons(pageButtons(), ['3', '4', '5', '6', '7']);
-    expect(currentPageButton()?.textContent).to.equal('5');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('5');
     assertButtons(clickablePageButtons(), ['3', '4', '6', '7']);
     // Go to page 7, then 9, then 10.
     clickNthPageButton(4);
     assertButtons(pageButtons(), ['5', '6', '7', '8', '9']);
-    expect(currentPageButton()?.textContent).to.equal('7');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('7');
     clickNthPageButton(4);
     assertButtons(pageButtons(), ['6', '7', '8', '9', '10']);
-    expect(currentPageButton()?.textContent).to.equal('9');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('9');
     clickNthPageButton(4);
     assertButtons(pageButtons(), ['6', '7', '8', '9', '10']);
-    expect(currentPageButton()?.textContent).to.equal('10');
+    expect(currentPageButton()!.textContent!.trim()).to.equal('10');
     expectNextLastDisabled(true);
   });
 });

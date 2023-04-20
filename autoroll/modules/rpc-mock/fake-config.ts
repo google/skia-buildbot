@@ -28,7 +28,8 @@ export function GetFakeConfig(): Config {
     maxRollClsToSameRevision: 0,
     commitMsg: {
       bugProject: '',
-      childLogUrlTmpl: 'https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}',
+      childLogUrlTmpl:
+        'https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}',
       cqDoNotCancelTrybots: false,
       cqExtraTrybots: undefined,
       includeLog: true,
@@ -64,7 +65,7 @@ export function GetFakeConfig(): Config {
           primary: {
             id: 'https://skia.googlesource.com/skia.git',
             path: 'DEPS',
-            regex: 'un(used)'
+            regex: 'un(used)',
           },
         },
         gerrit: {
@@ -82,17 +83,19 @@ export function GetFakeConfig(): Config {
         path: '',
       },
     },
-    notifiers: [{
-      msgType: [NotifierConfig_MsgType.LAST_N_FAILED],
-      monorail: {
-        project: 'skia',
-        owner: 'borenet',
-        cc: ['rmistry@google.com'],
-        components: ['AutoRoll'],
+    notifiers: [
+      {
+        msgType: [NotifierConfig_MsgType.LAST_N_FAILED],
+        monorail: {
+          project: 'skia',
+          owner: 'borenet',
+          cc: ['rmistry@google.com'],
+          components: ['AutoRoll'],
+        },
+        subject: '',
+        logLevel: NotifierConfig_LogLevel.SILENT,
       },
-      subject: '',
-      logLevel: NotifierConfig_LogLevel.SILENT,
-    }],
+    ],
     validModes: [],
   };
 }

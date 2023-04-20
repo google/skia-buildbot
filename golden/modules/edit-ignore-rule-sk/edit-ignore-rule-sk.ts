@@ -8,8 +8,8 @@
  * TODO(kjlubick) Add client-side validation of expires values.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { humanReadableQuery } from '../common';
@@ -20,31 +20,41 @@ import '../../../infra-sk/modules/query-sk';
 
 export class EditIgnoreRuleSk extends ElementSk {
   private static template = (ele: EditIgnoreRuleSk) => html`
-    <div class=columns>
-      <label for=expires>Expires in</label>
-      <input placeholder="(e.g. 2w, 4h)" id=expires value=${ele._expires}>
+    <div class="columns">
+      <label for="expires">Expires in</label>
+      <input placeholder="(e.g. 2w, 4h)" id="expires" value=${ele._expires} />
     </div>
 
-    <div class=columns>
-      <textarea placeholder="Enter a note, e.g 'skia:1234'" id=note>${ele._note}</textarea>
-      <div class=query>${humanReadableQuery(ele.query)}</div>
+    <div class="columns">
+      <textarea placeholder="Enter a note, e.g 'skia:1234'" id="note">
+${ele._note}</textarea
+      >
+      <div class="query">${humanReadableQuery(ele.query)}</div>
     </div>
 
-    <query-sk .paramset=${ele.paramset} .current_query=${ele.query} hide_invert hide_regex
-      @query-change=${ele.queryChanged}></query-sk>
+    <query-sk
+      .paramset=${ele.paramset}
+      .current_query=${ele.query}
+      hide_invert
+      hide_regex
+      @query-change=${ele.queryChanged}
+    ></query-sk>
 
     <div>
-      <input class=custom_key placeholder="specify a key">
-      <input class=custom_value placeholder="specify a value">
-      <button class=add_custom @click=${ele.addCustomParam}
+      <input class="custom_key" placeholder="specify a key" />
+      <input class="custom_value" placeholder="specify a value" />
+      <button
+        class="add_custom"
+        @click=${ele.addCustomParam}
         title="Add a custom key/value pair to ignore. For example, if adding a new test/corpus and
           you want to avoid spurious comments about untriaged digests, use this to add a rule
-          before the CL lands.">
+          before the CL lands."
+      >
         Add Custom Param
-       </button>
+      </button>
     </div>
 
-    <div class=error ?hidden=${!ele.errMsg}>${ele.errMsg}</div>
+    <div class="error" ?hidden=${!ele.errMsg}>${ele.errMsg}</div>
   `;
 
   private _paramset: ParamSet = {};
@@ -70,7 +80,9 @@ export class EditIgnoreRuleSk extends ElementSk {
    * Key/value pairs from which ignore rules may be built. For example,
    * `{'os': ['linux', 'windows']}`.
    */
-  get paramset(): ParamSet { return this._paramset; }
+  get paramset(): ParamSet {
+    return this._paramset;
+  }
 
   set paramset(p: ParamSet) {
     this._paramset = p;
@@ -81,7 +93,9 @@ export class EditIgnoreRuleSk extends ElementSk {
    * A URL-encoded string containing the selected query. For example,
    * 'alpha=beta&mind%20the_gap=space'`.
    */
-  get query(): string { return this._query; }
+  get query(): string {
+    return this._query;
+  }
 
   set query(q: string) {
     this._query = q;
@@ -114,7 +128,9 @@ export class EditIgnoreRuleSk extends ElementSk {
   }
 
   /** A note, usually a comment, to accompany the ignore rule. */
-  get note(): string { return this.querySelector<HTMLInputElement>('#note')!.value; }
+  get note(): string {
+    return this.querySelector<HTMLInputElement>('#note')!.value;
+  }
 
   set note(n: string) {
     this._note = n;
@@ -123,7 +139,8 @@ export class EditIgnoreRuleSk extends ElementSk {
 
   private addCustomParam() {
     const keyInput = this.querySelector<HTMLInputElement>('input.custom_key')!;
-    const valueInput = this.querySelector<HTMLInputElement>('input.custom_value')!;
+    const valueInput =
+      this.querySelector<HTMLInputElement>('input.custom_value')!;
 
     const key = keyInput.value;
     const value = valueInput.value;

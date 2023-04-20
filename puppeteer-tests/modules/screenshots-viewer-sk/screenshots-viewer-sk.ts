@@ -1,7 +1,7 @@
+import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { GetScreenshotsRPCResponse, Screenshot } from '../rpc_types';
 
@@ -11,10 +11,12 @@ export class ScreenshotsViewerSk extends ElementSk {
       <h1>Puppeteer screenshots viewer</h1>
 
       <div class="filter">
-        <input type="text"
-               placeholder="Filter screenshots by name (fuzzy)"
-               .value=${el.filter}
-               @input=${(e: Event) => el.onFilterInput(e)}/>
+        <input
+          type="text"
+          placeholder="Filter screenshots by name (fuzzy)"
+          .value=${el.filter}
+          @input=${(e: Event) => el.onFilterInput(e)}
+        />
         <button @click=${() => el.onClearClick()}>Clear</button>
       </div>
 
@@ -28,34 +30,45 @@ export class ScreenshotsViewerSk extends ElementSk {
     }
     if (el.getApplications().length === 0) {
       if (el.filter !== '') {
-        return html`<p class="no-results">No screenshots match "${el.filter}".</p>`;
+        return html`<p class="no-results">
+          No screenshots match "${el.filter}".
+        </p>`;
       }
-      return html`<p class="no-results">No screenshots found. Try re-running your tests.</p>`;
+      return html`<p class="no-results">
+        No screenshots found. Try re-running your tests.
+      </p>`;
     }
 
     return html`
       <div class="applications">
-        ${el.getApplications().map(
-      (app: string) => ScreenshotsViewerSk.applicationTemplate(el, app),
-    )}
+        ${el
+          .getApplications()
+          .map((app: string) =>
+            ScreenshotsViewerSk.applicationTemplate(el, app)
+          )}
       </div>
     `;
-  }
+  };
 
-  private static applicationTemplate = (el: ScreenshotsViewerSk, app: string) => html`
+  private static applicationTemplate = (
+    el: ScreenshotsViewerSk,
+    app: string
+  ) => html`
     <div class="application">
       <h2 class="application-name">${app}</h2>
 
-      ${el.getScreenshotsForApplication(app).map(
-    (screenshot: Screenshot) => ScreenshotsViewerSk.screenshotTemplate(screenshot),
-  )}
+      ${el
+        .getScreenshotsForApplication(app)
+        .map((screenshot: Screenshot) =>
+          ScreenshotsViewerSk.screenshotTemplate(screenshot)
+        )}
     </div>
   `;
 
   private static screenshotTemplate = (screenshot: Screenshot) => html`
     <figure class="screenshot">
       <figcaption class="test-name">${screenshot.test_name}</figcaption>
-      <img title="${screenshot.test_name}" src="${screenshot.url}"/>
+      <img title="${screenshot.test_name}" src="${screenshot.url}" />
     </figure>
   `;
 
@@ -65,7 +78,7 @@ export class ScreenshotsViewerSk extends ElementSk {
 
   private filter = '';
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
   constructor() {
     super(ScreenshotsViewerSk.template);
@@ -79,9 +92,9 @@ export class ScreenshotsViewerSk extends ElementSk {
         if (!this._connected) {
           return;
         }
-        this.filter = newState.filter as string || '';
+        this.filter = (newState.filter as string) || '';
         this._render();
-      },
+      }
     );
   }
 
@@ -92,21 +105,21 @@ export class ScreenshotsViewerSk extends ElementSk {
   }
 
   private getApplications(): string[] {
-    return Object.keys(this.screenshotsByApplication)
-      .filter((app: string) => this.getScreenshotsForApplication(app).length > 0);
+    return Object.keys(this.screenshotsByApplication).filter(
+      (app: string) => this.getScreenshotsForApplication(app).length > 0
+    );
   }
 
   private getScreenshotsForApplication(app: string): Screenshot[] {
     // Performs a VSCode-style fuzzy search. See https://stackoverflow.com/a/69860312.
     const regex = new RegExp(
-      this.filter === ''
-        ? '.*'
-        : `${this.filter.split('').join('+?.*')}`,
-      'i',
+      this.filter === '' ? '.*' : `${this.filter.split('').join('+?.*')}`,
+      'i'
     );
 
-    return this.screenshotsByApplication[app]
-      .filter((screenshot: Screenshot) => regex.test(`${app}_${screenshot.test_name}`));
+    return this.screenshotsByApplication[app].filter((screenshot: Screenshot) =>
+      regex.test(`${app}_${screenshot.test_name}`)
+    );
   }
 
   private onFilterInput(e: Event) {

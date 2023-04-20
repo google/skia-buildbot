@@ -4,9 +4,9 @@
  *
  * Displays a dialog to edit an Annotation Message.
  */
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Annotation } from '../json';
 
@@ -21,25 +21,25 @@ export class NoteEditorSk extends ElementSk {
 
   private annotation: Annotation = defaultAnnotation;
 
-  private resolve: ((value: Annotation | undefined)=> void) | null = null;
+  private resolve: ((value: Annotation | undefined) => void) | null = null;
 
   constructor() {
     super(NoteEditorSk.template);
   }
 
   private static template = (ele: NoteEditorSk) => html`
-  <dialog>
-    <label>
-      Note:
-      <input id=note type=text .value=${ele.annotation.Message}>
-    </label>
+    <dialog>
+      <label>
+        Note:
+        <input id="note" type="text" .value=${ele.annotation.Message} />
+      </label>
 
-    <div class=controls>
-      <button @click=${ele.clearClick} id=clear>Clear</button>
-      <button @click=${ele.cancelClick} id=cancel>Cancel</button>
-      <button @click=${ele.okClick} id=ok>OK</button>
-    </div>
-  </dialog>
+      <div class="controls">
+        <button @click=${ele.clearClick} id="clear">Clear</button>
+        <button @click=${ele.cancelClick} id="cancel">Cancel</button>
+        <button @click=${ele.okClick} id="ok">OK</button>
+      </div>
+    </dialog>
   `;
 
   connectedCallback(): void {

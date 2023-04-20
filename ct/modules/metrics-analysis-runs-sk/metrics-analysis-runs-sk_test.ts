@@ -2,25 +2,25 @@ import './index';
 
 import sinon from 'sinon';
 import { expect } from 'chai';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { MetricsAnalysisRunsSk } from './metrics-analysis-runs-sk';
 
-import {
-  tasksResult0, tasksResult1,
-} from './test_data';
+import { tasksResult0, tasksResult1 } from './test_data';
 import {
   eventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 
 describe('metrics-analysis-runs-sk', () => {
-  const newInstance = setUpElementUnderTest<MetricsAnalysisRunsSk>('metrics-analysis-runs-sk');
+  const newInstance = setUpElementUnderTest<MetricsAnalysisRunsSk>(
+    'metrics-analysis-runs-sk'
+  );
   fetchMock.config.overwriteRoutes = false;
 
   let analysisRuns: HTMLElement;
   beforeEach(async () => {
-    await expectReload(() => analysisRuns = newInstance(), null);
+    await expectReload(() => (analysisRuns = newInstance()), null);
   });
 
   afterEach(() => {
@@ -49,7 +49,10 @@ describe('metrics-analysis-runs-sk', () => {
 
   it('filters by user', async () => {
     expect(fetchMock.lastUrl()).to.not.contain('filter_by_logged_in_user=true');
-    await expectReload(() => ($$('#userFilter', analysisRuns)! as HTMLElement).click(), null);
+    await expectReload(
+      () => ($$('#userFilter', analysisRuns)! as HTMLElement).click(),
+      null
+    );
     expect(fetchMock.lastUrl()).to.contain('filter_by_logged_in_user=true');
   });
 
@@ -59,7 +62,11 @@ describe('metrics-analysis-runs-sk', () => {
     result.pagination!.offset = 10;
     // 'Next page' button.
     await expectReload(
-      () => ($('pagination-sk button.action', analysisRuns)[2] as HTMLElement).click(), result,
+      () =>
+        (
+          $('pagination-sk button.action', analysisRuns)[2] as HTMLElement
+        ).click(),
+      result
     );
     expect(fetchMock.lastUrl()).to.contain('offset=10');
     expect($('table.runssummary>tbody>tr', analysisRuns)).to.have.length(5);
@@ -71,7 +78,9 @@ describe('metrics-analysis-runs-sk', () => {
     fetchMock.post('begin:/_/delete_metrics_analysis_task', 200);
     fetchMock.postOnce('begin:/_/get_metrics_analysis_tasks', tasksResult0);
     ($$('delete-icon-sk', analysisRuns) as HTMLElement).click();
-    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain('"id":429');
+    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain(
+      '"id":429'
+    );
   });
 
   it('reschedules tasks', async () => {
@@ -84,8 +93,12 @@ describe('metrics-analysis-runs-sk', () => {
   });
 
   it('shows detail dialogs', async () => {
-    expect($$('.dialog-background', analysisRuns)!.classList.value).to.include('hidden');
+    expect($$('.dialog-background', analysisRuns)!.classList.value).to.include(
+      'hidden'
+    );
     ($$('.details', analysisRuns) as HTMLElement).click();
-    expect($$('.dialog-background', analysisRuns)!.classList.value).to.not.include('hidden');
+    expect(
+      $$('.dialog-background', analysisRuns)!.classList.value
+    ).to.not.include('hidden');
   });
 });

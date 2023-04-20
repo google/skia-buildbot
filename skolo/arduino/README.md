@@ -1,5 +1,4 @@
-Switching servos with Arduino
-=============================
+# Switching servos with Arduino
 
 cmd_runner contains a simple Arduino program that
 listens to commands sent over the serial/USB
@@ -7,8 +6,7 @@ connection. The main command is 'reset' which will
 initate a reset procedure by switcing a servo.
 See the source of cmd_runner for details.
 
-Building
-========
+# Building
 
 Install the Arduino IDE on Linux via
 
@@ -21,12 +19,10 @@ cmd_runner program.
 Attach the Arduino board and upload the program.
 See https://www.arduino.cc/ for more documentation.
 
-
-Downloading and Installing Libraries
-=====================
+# Downloading and Installing Libraries
 
 The Servo shield requires the [Adafruit PWM Servo Driver Library](https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library)
 
 Download the release from GitHub, extract it and rename the folder to
-Adafruit_PWMServoDriver.  Then, place it in the libraries folder of your Arduino IDE
+Adafruit_PWMServoDriver. Then, place it in the libraries folder of your Arduino IDE
 installation. Restart the IDE.

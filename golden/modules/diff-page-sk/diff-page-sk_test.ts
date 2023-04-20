@@ -2,8 +2,16 @@ import './index';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from '../../../infra-sk/modules/object';
-import { eventPromise, eventSequencePromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { DigestComparison, TriageRequestV3, TriageResponse } from '../rpc_types';
+import {
+  eventPromise,
+  eventSequencePromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
+import {
+  DigestComparison,
+  TriageRequestV3,
+  TriageResponse,
+} from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 import { typicalDetails } from '../digest-details-sk/test_data';
 import { DiffPageSk } from './diff-page-sk';
@@ -54,7 +62,7 @@ describe('diff-page-sk', () => {
     const triageResponse: TriageResponse = { status: 'ok' };
     fetchMock.post(
       { url: '/json/v3/triage', body: triageRequest },
-      { status: 200, body: triageResponse },
+      { status: 200, body: triageResponse }
     );
 
     const endTask = eventPromise('end-task');

@@ -44,9 +44,13 @@ export class ToastSk extends HTMLElement {
   }
 
   /** Mirrors the duration attribute. */
-  get duration(): number { return +(this.getAttribute('duration') || ''); }
+  get duration(): number {
+    return +(this.getAttribute('duration') || '');
+  }
 
-  set duration(val: number) { this.setAttribute('duration', val.toString()); }
+  set duration(val: number) {
+    this.setAttribute('duration', val.toString());
+  }
 
   /** Displays the contents of the toast. */
   show(): void {

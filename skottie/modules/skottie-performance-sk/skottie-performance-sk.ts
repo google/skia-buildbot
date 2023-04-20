@@ -10,9 +10,7 @@
  *
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from '../../../infra-sk/modules/dom';
 import {
   Chart,
   BarController,
@@ -20,14 +18,11 @@ import {
   LinearScale,
   BarElement,
 } from 'chart.js';
+import { define } from '../../../elements-sk/modules/define';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-Chart.register(
-  BarElement,
-  BarController,
-  CategoryScale,
-  LinearScale,
-);
+Chart.register(BarElement, BarController, CategoryScale, LinearScale);
 
 const marks = {
   START: 'Start Skottie Frame',
@@ -42,12 +37,12 @@ interface FrameMetric {
 
 export class SkottiePerformanceSk extends ElementSk {
   private static template = () => html`
-  <div>
-    <div class="chart">
-      <canvas id=performance-chart height=400 width=400></canvas>
+    <div>
+      <div class="chart">
+        <canvas id="performance-chart" height="400" width="400"></canvas>
+      </div>
     </div>
-  </div>
-`;
+  `;
 
   private currentMeasuringFrame: number = -1;
 
@@ -100,7 +95,12 @@ export class SkottiePerformanceSk extends ElementSk {
   }
 
   getClickedFrame(e: Event): number {
-    const points = this.chart?.getElementsAtEventForMode(e, 'index', { intersect: false, axis: 'x' }, true);
+    const points = this.chart?.getElementsAtEventForMode(
+      e,
+      'index',
+      { intersect: false, axis: 'x' },
+      true
+    );
     let frame: number = -1;
     if (points && points[0]) {
       const point = points[0];
@@ -124,8 +124,12 @@ export class SkottiePerformanceSk extends ElementSk {
       };
     }
     const metricData = this.currentMetrics[frame];
-    metrics.forEach((metric: PerformanceEntry) => metricData.values.push(metric.duration));
-    const average = metricData.values.reduce((acc: number, value) => acc + value, 0) / metricData.values.length;
+    metrics.forEach((metric: PerformanceEntry) =>
+      metricData.values.push(metric.duration)
+    );
+    const average =
+      metricData.values.reduce((acc: number, value) => acc + value, 0) /
+      metricData.values.length;
     if (!this.chart.data.labels![frame]) {
       while (!this.chart.data.labels![frame]) {
         this.chart.data.labels!.push(`frame ${this.chart.data.labels!.length}`);

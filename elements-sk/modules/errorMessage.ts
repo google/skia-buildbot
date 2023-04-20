@@ -21,29 +21,32 @@
  *
  */
 export async function errorMessage(
-  message: string | {message: string} | {resp: Response} | object, duration: number = 10000,
+  message: string | { message: string } | { resp: Response } | object,
+  duration: number = 10000
 ) {
-  if ((message as {resp: Response}).resp instanceof window.Response) {
-    message = await (message as {resp: Response}).resp.text();
+  if ((message as { resp: Response }).resp instanceof window.Response) {
+    message = await (message as { resp: Response }).resp.text();
   } else if (typeof message === 'object') {
     message =
       // for handling Errors {name:String, message:String}
-      (message as {message: string}).message
+      (message as { message: string }).message ||
       // for everything else
-      || JSON.stringify(message);
+      JSON.stringify(message);
   }
   const detail: ErrorSkEventDetail = {
     message: message,
     duration: duration,
   };
-  document.dispatchEvent(new CustomEvent<ErrorSkEventDetail>('error-sk', {
-    detail: detail,
-    bubbles: true,
-  }));
+  document.dispatchEvent(
+    new CustomEvent<ErrorSkEventDetail>('error-sk', {
+      detail: detail,
+      bubbles: true,
+    })
+  );
 }
 
 /** Defines the structure of the "error-sk" custom event's detail field. */
 export interface ErrorSkEventDetail {
-  readonly message: string,
-  readonly duration: number
+  readonly message: string;
+  readonly duration: number;
 }

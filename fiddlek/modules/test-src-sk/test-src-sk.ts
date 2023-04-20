@@ -6,8 +6,8 @@
  *  from a URL.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export class TestSrcSk extends ElementSk {
@@ -21,7 +21,8 @@ export class TestSrcSk extends ElementSk {
     super(TestSrcSk.template);
   }
 
-  private static template = (ele: TestSrcSk) => html`<pre class="output">${ele._text}</pre>`;
+  private static template = (ele: TestSrcSk) =>
+    html`<pre class="output">${ele._text}</pre>`;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -38,16 +39,18 @@ export class TestSrcSk extends ElementSk {
       return;
     }
     this._src = val;
-    fetch(val).then((resp) => {
-      if (!resp.ok) {
-        throw new Error(`Failed to retrieve text from ${val}`);
-      }
-      return resp.text();
-    }).then((text) => {
-      this._text = text;
-      this._render();
-      this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
-    });
+    fetch(val)
+      .then((resp) => {
+        if (!resp.ok) {
+          throw new Error(`Failed to retrieve text from ${val}`);
+        }
+        return resp.text();
+      })
+      .then((text) => {
+        this._text = text;
+        this._render();
+        this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
+      });
   }
 }
 

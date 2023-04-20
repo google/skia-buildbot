@@ -10,8 +10,8 @@
  *
  * @event fiddle-success is emitted when a run of a fiddle has completed successfully.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import '../textarea-numbers-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/select-sk';
@@ -118,9 +118,10 @@ export class FiddleSk extends ElementSk {
     super(FiddleSk.template);
   }
 
-  private static displayOptions = (ele: FiddleSk) => (!ele._config.display_options
-    ? html``
-    : html`
+  private static displayOptions = (ele: FiddleSk) =>
+    !ele._config.display_options
+      ? html``
+      : html`
           <details ?open=${ele._config.options_open}>
             <summary>Options</summary>
             <div id="options">
@@ -280,7 +281,8 @@ GrBackendTexture backEndTextureRenderTarget;</pre
 
               <h3>Optional source image</h3>
               <select-sk @selection-changed=${ele.sourceChange}>
-                ${ele._config.sources.map((source) => html`
+                ${ele._config.sources.map(
+                  (source) => html`
                     <img
                       width="64"
                       height="64"
@@ -289,7 +291,8 @@ GrBackendTexture backEndTextureRenderTarget;</pre
                       src="${ele._config.domain}/s/${source}"
                       class="imgsrc"
                     />
-                  `)}
+                  `
+                )}
               </select-sk>
               <div ?hidden=${!ele._options.source} class="offset">
                 <checkbox-sk
@@ -306,58 +309,61 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
                 >
               </div>
               <div class="offset">
-                Note:<br/>
+                Note:<br />
                 <div class="notes">
-                  Adding comments with SK_FOLD_START and SK_FOLD_END creates foldable code blocks.<br/>
-                  These blocks will be folded by default and are useful for highlighting specific lines of code.<br/>
-                  You can also use the keyboard shortcuts Ctrl+S and Ctrl+E in the code editor to set them.
+                  Adding comments with SK_FOLD_START and SK_FOLD_END creates
+                  foldable code blocks.<br />
+                  These blocks will be folded by default and are useful for
+                  highlighting specific lines of code.<br />
+                  You can also use the keyboard shortcuts Ctrl+S and Ctrl+E in
+                  the code editor to set them.
                 </div>
               </div>
             </div>
           </details>
-        `);
+        `;
 
   private static actions = (ele: FiddleSk) => html`
-      <div id="submit">
-        <button class="action" @click=${ele.run}>Run</button>
-        <spinner-sk></spinner-sk>
+    <div id="submit">
+      <button class="action" @click=${ele.run}>Run</button>
+      <spinner-sk></spinner-sk>
 
-        <a
-          ?hidden=${!ele._config.embedded}
-          href="https://fiddle.skia.org/c/${ele._runResults.fiddleHash}"
-          target="_blank"
-          >Pop-out</a
-        >
+      <a
+        ?hidden=${!ele._config.embedded}
+        href="https://fiddle.skia.org/c/${ele._runResults.fiddleHash}"
+        target="_blank"
+        >Pop-out</a
+      >
 
-        <a
-          id="bug"
-          ?hidden=${!ele._config.bug_link}
-          target="_blank"
-          href=${ele.bugReportingURL(ele._runResults.fiddleHash)}
-          >File Bug</a
-        >
-        <details id="embed" ?hidden=${ele._config.basic_mode}>
-          <summary>Embed</summary>
-          <h3>Embed as an image with a backlink:</h3>
-          <input
-            type="text"
-            readonly
-            size="150"
-            value="&lt;a href='https://fiddle.skia.org/c/${ele._runResults
-    .fiddleHash}'>&lt;img src='https://fiddle.skia.org/i/${ele
-      ._runResults.fiddleHash}_raster.png'>&lt;/a>"
-          />
-          <h3>Embed as custom element (skia.org only):</h3>
-          <input
-            type="text"
-            readonly
-            size="150"
-            value="&lt;fiddle-embed name='${ele._runResults
-      .fiddleHash}'>&lt;/fiddle-embed> "
-          />
-        </details>
-      </div>
-    `;
+      <a
+        id="bug"
+        ?hidden=${!ele._config.bug_link}
+        target="_blank"
+        href=${ele.bugReportingURL(ele._runResults.fiddleHash)}
+        >File Bug</a
+      >
+      <details id="embed" ?hidden=${ele._config.basic_mode}>
+        <summary>Embed</summary>
+        <h3>Embed as an image with a backlink:</h3>
+        <input
+          type="text"
+          readonly
+          size="150"
+          value="&lt;a href='https://fiddle.skia.org/c/${ele._runResults
+            .fiddleHash}'>&lt;img src='https://fiddle.skia.org/i/${ele
+            ._runResults.fiddleHash}_raster.png'>&lt;/a>"
+        />
+        <h3>Embed as custom element (skia.org only):</h3>
+        <input
+          type="text"
+          readonly
+          size="150"
+          value="&lt;fiddle-embed name='${ele._runResults
+            .fiddleHash}'>&lt;/fiddle-embed> "
+        />
+      </details>
+    </div>
+  `;
 
   private static textOnlyResults = (ele: FiddleSk) => {
     if (!ele._options.textOnly) {
@@ -396,7 +402,9 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             class="result_image cpu"
             ?hidden=${ele._options.animated}
             title="CPU"
-            src="${ele._config.domain}/i/${ele._runResults.fiddleHash}_raster.png"
+            src="${ele._config.domain}/i/${
+      ele._runResults.fiddleHash
+    }_raster.png"
             width=${ele._options.width}
             height=${ele._options.height}
           />
@@ -485,17 +493,19 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
   };
 
   private static errors = (ele: FiddleSk) => html`
-    <div @click=${ele.compilerErrorLineClick} ?hidden=${!ele.hasCompileWarningsOrErrors()}>
+    <div @click=${
+      ele.compilerErrorLineClick
+    } ?hidden=${!ele.hasCompileWarningsOrErrors()}>
       <h2>Compilation Warnings/Errors</h2>
       ${ele._runResults.compile_errors?.map(
-    (err) => html`<pre
-            class="compile-error ${err.line > 0 ? 'clickable' : ''}"
-            data-line=${err.line}
-            data-col=${err.col}
-          >
+        (err) => html`<pre
+          class="compile-error ${err.line > 0 ? 'clickable' : ''}"
+          data-line=${err.line}
+          data-col=${err.col}
+        >
 ${err.text}</pre
-          >`,
-  )}
+        >`
+      )}
   </div>
   <div ?hidden=${!ele._runResults.runtime_error}>
     <h2>Runtime Errors</h2>
@@ -504,20 +514,13 @@ ${err.text}</pre
   `;
 
   private static template = (ele: FiddleSk) => html`
-      ${FiddleSk.displayOptions(ele)}
+    ${FiddleSk.displayOptions(ele)}
 
-      <textarea-numbers-sk .value=${ele._runResults.text}></textarea-numbers-sk>
+    <textarea-numbers-sk .value=${ele._runResults.text}></textarea-numbers-sk>
 
-      ${FiddleSk.actions(ele)}
-
-      ${FiddleSk.errors(ele)}
-
-      ${FiddleSk.results(ele)}
-
-      ${FiddleSk.textOnlyResults(ele)}
-
-      ${FiddleSk.runDetails(ele)}
-    `;
+    ${FiddleSk.actions(ele)} ${FiddleSk.errors(ele)} ${FiddleSk.results(ele)}
+    ${FiddleSk.textOnlyResults(ele)} ${FiddleSk.runDetails(ele)}
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -683,15 +686,17 @@ ${err.text}</pre
 
   private hasImages(): boolean {
     return (
-      !this._options.textOnly
-      && this._runResults.fiddleHash !== ''
-      && this._runResults.runtime_error === ''
-      && !this.hasCompileErrors()
+      !this._options.textOnly &&
+      this._runResults.fiddleHash !== '' &&
+      this._runResults.runtime_error === '' &&
+      !this.hasCompileErrors()
     );
   }
 
   private hasCompileErrors() {
-    return !!this._runResults.compile_errors?.some((e) => e.text.includes('error:'));
+    return !!this._runResults.compile_errors?.some((e) =>
+      e.text.includes('error:')
+    );
   }
 
   private hasCompileWarningsOrErrors(): boolean {
@@ -706,14 +711,10 @@ ${err.text}</pre
   }
 
   private bugReportingURL(fiddleHash: string): string {
-    const comment = `Visit this link to see the issue on fiddle:\n\n https://fiddle.skia.org/c/${
-      fiddleHash}`;
-    return (
-      `https://bugs.chromium.org/p/skia/issues/entry?${
-        fromObject({
-          comment: comment,
-        })}`
-    );
+    const comment = `Visit this link to see the issue on fiddle:\n\n https://fiddle.skia.org/c/${fiddleHash}`;
+    return `https://bugs.chromium.org/p/skia/issues/entry?${fromObject({
+      comment: comment,
+    })}`;
   }
 
   private async run() {
@@ -745,7 +746,7 @@ ${err.text}</pre
         new CustomEvent<FiddleSkFiddleSuccessEventDetail>('fiddle-success', {
           detail: this._runResults.fiddleHash,
           bubbles: true,
-        }),
+        })
       );
     } catch (error) {
       const ignoredPromise = errorMessage(error as Error);
@@ -758,9 +759,7 @@ ${err.text}</pre
     if (this._runResults.fiddleHash === '') {
       return '';
     }
-    return (
-      `${this._config.domain}/i/${this._runResults.fiddleHash}_glinfo.txt`
-    );
+    return `${this._config.domain}/i/${this._runResults.fiddleHash}_glinfo.txt`;
   }
 
   private textURL(): string {
@@ -786,9 +785,9 @@ ${err.text}</pre
 
   private showLinks(): boolean {
     return (
-      !this._options.animated
-      && !this._config.embedded
-      && !this._config.basic_mode
+      !this._options.animated &&
+      !this._config.embedded &&
+      !this._config.basic_mode
     );
   }
 }

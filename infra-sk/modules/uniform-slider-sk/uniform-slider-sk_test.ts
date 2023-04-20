@@ -5,9 +5,8 @@ import { UniformSliderSk } from './uniform-slider-sk';
 import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-slider-sk', () => {
-  const newInstance = setUpElementUnderTest<UniformSliderSk>(
-    'uniform-slider-sk',
-  );
+  const newInstance =
+    setUpElementUnderTest<UniformSliderSk>('uniform-slider-sk');
 
   let element: UniformSliderSk;
   beforeEach(() => {

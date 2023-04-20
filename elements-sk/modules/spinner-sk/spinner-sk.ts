@@ -33,7 +33,9 @@ export class SpinnerSk extends HTMLElement {
   }
 
   /** Mirrors the attribute 'active'. */
-  get active(): boolean { return this.hasAttribute('active'); }
+  get active(): boolean {
+    return this.hasAttribute('active');
+  }
 
   set active(val: boolean) {
     if (val) {

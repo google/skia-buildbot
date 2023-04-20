@@ -15,8 +15,13 @@ export interface TextData {
   items: ExtraLayerData[];
 }
 
-export const replaceTexts = (texts: TextData[], currentAnimation: LottieAnimation): LottieAnimation => {
-  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
+export const replaceTexts = (
+  texts: TextData[],
+  currentAnimation: LottieAnimation
+): LottieAnimation => {
+  const animation = JSON.parse(
+    JSON.stringify(currentAnimation)
+  ) as LottieAnimation;
   texts.forEach((textData) => {
     textData.items.forEach((item: ExtraLayerData) => {
       let layers;
@@ -24,7 +29,9 @@ export const replaceTexts = (texts: TextData[], currentAnimation: LottieAnimatio
       if (!item.parentId) {
         layers = animation.layers;
       } else {
-        const asset = animation.assets.find((assetItem: LottieAsset) => assetItem.id === item.parentId);
+        const asset = animation.assets.find(
+          (assetItem: LottieAsset) => assetItem.id === item.parentId
+        );
         layers = asset ? asset.layers : [];
       }
 
@@ -39,7 +46,10 @@ export const replaceTexts = (texts: TextData[], currentAnimation: LottieAnimatio
   return animation;
 };
 
-const replaceTextsInLayers = (textsDictionary: Record<string, string>, layers: LottieLayer[]) => {
+const replaceTextsInLayers = (
+  textsDictionary: Record<string, string>,
+  layers: LottieLayer[]
+) => {
   const LAYER_TEXT_TYPE = 5;
   layers.forEach((layer: LottieLayer) => {
     if (layer.ty === LAYER_TEXT_TYPE && textsDictionary[layer.nm]) {
@@ -50,22 +60,32 @@ const replaceTextsInLayers = (textsDictionary: Record<string, string>, layers: L
   });
 };
 
-export const replaceTextsByLayerName = (texts: TextData[], currentAnimation: LottieAnimation): LottieAnimation => {
+export const replaceTextsByLayerName = (
+  texts: TextData[],
+  currentAnimation: LottieAnimation
+): LottieAnimation => {
   if (!texts) {
     return currentAnimation;
   }
   // Make a copy of the original animation.
-  const animation: LottieAnimation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
+  const animation: LottieAnimation = JSON.parse(
+    JSON.stringify(currentAnimation)
+  ) as LottieAnimation;
   // Create dictionary to access data by name instead of iterating on every layer
-  const textsDictionary = texts.reduce((dict: Record<string, string>, text: TextData) => {
-    dict[text.name] = text.text;
-    return dict;
-  }, {});
+  const textsDictionary = texts.reduce(
+    (dict: Record<string, string>, text: TextData) => {
+      dict[text.name] = text.text;
+      return dict;
+    },
+    {}
+  );
   replaceTextsInLayers(textsDictionary, animation.layers);
 
   animation.assets
     .filter((asset: LottieAsset) => asset.layers)
-    .forEach((asset: LottieAsset) => replaceTextsInLayers(textsDictionary, asset.layers));
+    .forEach((asset: LottieAsset) =>
+      replaceTextsInLayers(textsDictionary, asset.layers)
+    );
 
   return animation;
 };

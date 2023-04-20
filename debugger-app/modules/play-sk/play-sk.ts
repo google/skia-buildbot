@@ -11,8 +11,8 @@
  *           detail: {item: number} // the index the play module wants the app
  *           to move to.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/skip-previous-icon-sk';
 import '../../../elements-sk/modules/icons/keyboard-arrow-left-icon-sk';
@@ -35,26 +35,40 @@ export class PlaySk extends ElementSk {
       return PlaySk.simpleTemplate(ele);
     }
     return PlaySk.fullTemplate(ele);
-  }
+  };
 
-  private static fullTemplate = (ele: PlaySk) => html`
-    <div class="horizontal-flex">
-      <div class='filler'></div>
-      <skip-previous-icon-sk title="Go to first" @click=${ele.begin}
-        ></skip-previous-icon-sk>
-      <keyboard-arrow-left-icon-sk title="Step back one (,)" @click=${ele.prev}
-        ></keyboard-arrow-left-icon-sk>
-      ${ele._playPauseIcon(ele)}
-      <keyboard-arrow-right-icon-sk title="Step forward one (.)" @click=${ele.next}
-        ></keyboard-arrow-right-icon-sk>
-      <skip-next-icon-sk title="Go to last" @click=${ele.end}></skip-next-icon-sk>
-      <div class='filler'></div>
-      <label>Delay in ms</label>
-      <input value="${ele._playbackDelay}" class=delay-input @change=${ele._delayChanged}>
-    </div>`;
+  private static fullTemplate = (ele: PlaySk) => html` <div
+    class="horizontal-flex"
+  >
+    <div class="filler"></div>
+    <skip-previous-icon-sk
+      title="Go to first"
+      @click=${ele.begin}
+    ></skip-previous-icon-sk>
+    <keyboard-arrow-left-icon-sk
+      title="Step back one (,)"
+      @click=${ele.prev}
+    ></keyboard-arrow-left-icon-sk>
+    ${ele._playPauseIcon(ele)}
+    <keyboard-arrow-right-icon-sk
+      title="Step forward one (.)"
+      @click=${ele.next}
+    ></keyboard-arrow-right-icon-sk>
+    <skip-next-icon-sk title="Go to last" @click=${ele.end}></skip-next-icon-sk>
+    <div class="filler"></div>
+    <label>Delay in ms</label>
+    <input
+      value="${ele._playbackDelay}"
+      class="delay-input"
+      @change=${ele._delayChanged}
+    />
+  </div>`;
 
-  private static simpleTemplate = (ele: PlaySk) => html`<video-library-icon-sk title="Play/Pause" @click=${ele.togglePlay}
-        id='play-button-v'></video-library-icon-sk>`;
+  private static simpleTemplate = (ele: PlaySk) => html`<video-library-icon-sk
+    title="Play/Pause"
+    @click=${ele.togglePlay}
+    id="play-button-v"
+  ></video-library-icon-sk>`;
 
   private _mode: PlayMode = 'pause';
 
@@ -138,29 +152,37 @@ export class PlaySk extends ElementSk {
       const elapsed = Date.now() - this._lastMoveTime;
       const remainingMs = Math.max(0, this._playbackDelay - elapsed);
       // Must be done with timeout, even if it's zero, or we exceed call stack size
-      this._timeout = window.setTimeout(() => { this.next(); }, remainingMs);
+      this._timeout = window.setTimeout(() => {
+        this.next();
+      }, remainingMs);
     }
   }
 
   // template helper deciding which icon to show in the play button spot
   private _playPauseIcon(ele: PlaySk): TemplateResult {
     if (this._mode === 'pause') {
-      return html`<play-arrow-icon-sk title="Play/Pause" @click=${ele.togglePlay}
-        id='play-button'></play-arrow-icon-sk>`;
+      return html`<play-arrow-icon-sk
+        title="Play/Pause"
+        @click=${ele.togglePlay}
+        id="play-button"
+      ></play-arrow-icon-sk>`;
     }
-    return html`<pause-icon-sk title="Play/Pause" @click=${ele.togglePlay}
-        ></pause-icon-sk>`;
+    return html`<pause-icon-sk
+      title="Play/Pause"
+      @click=${ele.togglePlay}
+    ></pause-icon-sk>`;
   }
 
   togglePlay(): void {
-    this.mode = (this._mode === 'play') ? 'pause' : 'play';
+    this.mode = this._mode === 'play' ? 'pause' : 'play';
     this.dispatchEvent(
       new CustomEvent<ModeChangedManuallyEventDetail>(
-        ModeChangedManuallyEvent, {
+        ModeChangedManuallyEvent,
+        {
           detail: { mode: this._mode },
           bubbles: true,
-        },
-      ),
+        }
+      )
     );
   }
 
@@ -171,12 +193,10 @@ export class PlaySk extends ElementSk {
     }
     this._lastMoveTime = Date.now();
     this.dispatchEvent(
-      new CustomEvent<MoveToEventDetail>(
-        MoveToEvent, {
-          detail: { item: this._item },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<MoveToEventDetail>(MoveToEvent, {
+        detail: { item: this._item },
+        bubbles: true,
+      })
     );
   }
 

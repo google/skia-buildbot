@@ -3,7 +3,10 @@ import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { BugsStatusSk } from './bugs-status-sk';
-import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
+import {
+  GetClientCountsResponse,
+  StatusData,
+} from '../../../bugs-central/modules/json';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
@@ -12,7 +15,9 @@ describe('bugs-status-sk', () => {
 
   let element: BugsStatusSk;
   beforeEach(async () => {
-    fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
+    fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
+      GetClientCountsResponse
+    >{
       clients_to_status_data: {
         Android: <StatusData>{
           untriaged_count: 10,

@@ -6,7 +6,7 @@ import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-dimensions-sk', () => {
   const newInstance = setUpElementUnderTest<UniformDimensionsSk>(
-    'uniform-dimensions-sk',
+    'uniform-dimensions-sk'
   );
 
   let element: UniformDimensionsSk;

@@ -1,5 +1,8 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../../../infra-sk/modules/page_object/page_object_element';
 import { Digest } from '../rpc_types';
 
 export class ClusterDigestsSkPO extends PageObject {
@@ -27,9 +30,13 @@ export class ClusterDigestsSkPO extends PageObject {
     // SVGElements (https://developer.mozilla.org/en-US/docs/Web/API/SVGElement) do not have a
     // .click() method, like HTMLElements do. Thus, we have no alternative but to simulate a click
     // via a fake MouseEvent. This ensures compatibility with both Karma and Puppeteer tests.
-    const node = await this.nodes.find(async (node) => (await node.getAttribute('data-digest')) === digest);
+    const node = await this.nodes.find(
+      async (node) => (await node.getAttribute('data-digest')) === digest
+    );
     await node!.applyFnToDOMNode((el, shiftKey) => {
-      el.dispatchEvent(new MouseEvent('click', { shiftKey: shiftKey as boolean }));
+      el.dispatchEvent(
+        new MouseEvent('click', { shiftKey: shiftKey as boolean })
+      );
     }, shiftKey);
   }
 
@@ -38,6 +45,8 @@ export class ClusterDigestsSkPO extends PageObject {
   }
 
   async getSelection(): Promise<Digest[]> {
-    return this.selectedNodes.map(async (circle) => (await circle.getAttribute('data-digest'))!);
+    return this.selectedNodes.map(
+      async (circle) => (await circle.getAttribute('data-digest'))!
+    );
   }
 }

@@ -4,8 +4,8 @@
  *
  * Displays the frames per second.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import { FPS } from '../fps/fps';
 import { Uniform, UniformControl } from '../uniform/uniform';
@@ -18,40 +18,40 @@ const defaultUniform: Uniform = {
 };
 
 export class UniformFpsSk extends ElementSk implements UniformControl {
-    uniform: Uniform = defaultUniform;
+  uniform: Uniform = defaultUniform;
 
-    private fps: FPS = new FPS();
+  private fps: FPS = new FPS();
 
-    constructor() {
-      super(UniformFpsSk.template);
-    }
+  constructor() {
+    super(UniformFpsSk.template);
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private static template = (ele: UniformFpsSk) => html`fps`;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private static template = (ele: UniformFpsSk) => html`fps`;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    applyUniformValues(uniforms: number[]): void {
-      // noop as UniformRafSk doesn't supply uniforms.
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  applyUniformValues(uniforms: number[]): void {
+    // noop as UniformRafSk doesn't supply uniforms.
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    restoreUniformValues(uniforms: number[]): void {
-      // noop as UniformRafSk doesn't supply uniforms.
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: number[]): void {
+    // noop as UniformRafSk doesn't supply uniforms.
+  }
 
-    onRAF(): void {
-      this.fps.raf();
-      this.textContent = `${this.fps.fps.toFixed(0)} fps`;
-    }
+  onRAF(): void {
+    this.fps.raf();
+    this.textContent = `${this.fps.fps.toFixed(0)} fps`;
+  }
 
-    needsRAF(): boolean {
-      return true;
-    }
+  needsRAF(): boolean {
+    return true;
+  }
 
-    connectedCallback(): void {
-      super.connectedCallback();
-      this._render();
-    }
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._render();
+  }
 }
 
 define('uniform-fps-sk', UniformFpsSk);

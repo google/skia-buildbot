@@ -6,9 +6,9 @@
  *
  * Simply displays number input controls in a table.
  */
-import { $$ } from '../../../infra-sk/modules/dom';
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { $$ } from '../dom';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
@@ -26,7 +26,11 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
     super(UniformGenericSk.template);
   }
 
-  private static defaultValue = (ele: UniformGenericSk, row: number, col: number): string => {
+  private static defaultValue = (
+    ele: UniformGenericSk,
+    row: number,
+    col: number
+  ): string => {
     // Non-square uniforms (rows != columns) get a default value of 0.5.
     if (ele._uniform.columns !== ele._uniform.rows) {
       return '0.5';
@@ -36,29 +40,35 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
       return '1';
     }
     return '0';
-  }
+  };
 
-  private static row = (ele: UniformGenericSk, row: number): TemplateResult[] => {
+  private static row = (
+    ele: UniformGenericSk,
+    row: number
+  ): TemplateResult[] => {
     const ret: TemplateResult[] = [];
     for (let col = 0; col < ele._uniform.columns; col++) {
-      ret.push(html`
-        <td>
-          <input
-            value="${UniformGenericSk.defaultValue(ele, row, col)}"
-            id="${ele._uniform.name}_${row}_${col}"
-          >
-        </td>`);
+      ret.push(html` <td>
+        <input
+          value="${UniformGenericSk.defaultValue(ele, row, col)}"
+          id="${ele._uniform.name}_${row}_${col}"
+        />
+      </td>`);
     }
     return ret;
-  }
+  };
 
   private static rows = (ele: UniformGenericSk): TemplateResult[] => {
     const ret: TemplateResult[] = [];
     for (let row = 0; row < ele._uniform.rows; row++) {
-      ret.push(html`<tr> ${UniformGenericSk.row(ele, row)} </tr>`);
+      ret.push(
+        html`<tr>
+          ${UniformGenericSk.row(ele, row)}
+        </tr>`
+      );
     }
     return ret;
-  }
+  };
 
   private static template = (ele: UniformGenericSk) => html`
     <div>
@@ -88,7 +98,9 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   applyUniformValues(uniforms: number[]): void {
     for (let col = 0; col < this._uniform.columns; col++) {
       for (let row = 0; row < this._uniform.rows; row++) {
-        uniforms[this.uniform.slot + col * this._uniform.rows + row] = +$$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.value;
+        uniforms[this.uniform.slot + col * this._uniform.rows + row] =
+          +$$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!
+            .value;
       }
     }
   }
@@ -96,7 +108,13 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   restoreUniformValues(uniforms: number[]): void {
     for (let col = 0; col < this._uniform.columns; col++) {
       for (let row = 0; row < this._uniform.rows; row++) {
-        $$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.value = uniforms[this.uniform.slot + col * this._uniform.rows + row].toString();
+        $$<HTMLInputElement>(
+          `#${this._uniform.name}_${row}_${col}`,
+          this
+        )!.value =
+          uniforms[
+            this.uniform.slot + col * this._uniform.rows + row
+          ].toString();
       }
     }
   }

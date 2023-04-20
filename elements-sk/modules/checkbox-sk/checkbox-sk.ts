@@ -51,7 +51,9 @@ import { define } from '../define';
 import { upgradeProperty } from '../upgradeProperty';
 
 export class CheckOrRadio extends HTMLElement {
-  protected get _role() { return 'checkbox'; }
+  protected get _role() {
+    return 'checkbox';
+  }
 
   static get observedAttributes() {
     return ['checked', 'disabled', 'name', 'label'];
@@ -98,7 +100,9 @@ export class CheckOrRadio extends HTMLElement {
     });
   }
 
-  get checked(): boolean { return this.hasAttribute('checked'); }
+  get checked(): boolean {
+    return this.hasAttribute('checked');
+  }
 
   set checked(val: boolean) {
     const isTrue = !!val;
@@ -110,7 +114,9 @@ export class CheckOrRadio extends HTMLElement {
     }
   }
 
-  get disabled(): boolean { return this.hasAttribute('disabled'); }
+  get disabled(): boolean {
+    return this.hasAttribute('disabled');
+  }
 
   set disabled(val: boolean) {
     const isTrue = !!val;
@@ -122,7 +128,9 @@ export class CheckOrRadio extends HTMLElement {
     }
   }
 
-  get name(): string { return this.getAttribute('name') || ''; }
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
 
   set name(val: string) {
     if (val === null || val === undefined) {
@@ -132,7 +140,9 @@ export class CheckOrRadio extends HTMLElement {
     this._input!.setAttribute('name', val);
   }
 
-  get label(): string { return this.getAttribute('label') || ''; }
+  get label(): string {
+    return this.getAttribute('label') || '';
+  }
 
   set label(val: string) {
     if (val === null || val === undefined) {
@@ -141,7 +151,11 @@ export class CheckOrRadio extends HTMLElement {
     this.setAttribute('label', val);
   }
 
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null
+  ): void {
     if (!this._input) {
       return;
     }

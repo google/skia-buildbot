@@ -1,16 +1,13 @@
-alert-manager Production Manual
-===============================
+# alert-manager Production Manual
 
 First make sure you are familiar with the design of alert-manager by reading the
 [DESIGN](./DESIGN.md) doc.
 
-Alerts
-======
+# Alerts
 
 Items below here should include target links from alerts.
 
-alert_to_pubsub
----------------
+## alert_to_pubsub
 
 Every 15s the alert-to-pubsub instance should receive a POST request from the
 local Prometheus instance and then convert all of those alerts into PubSub

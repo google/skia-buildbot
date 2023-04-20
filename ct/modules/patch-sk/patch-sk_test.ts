@@ -1,8 +1,8 @@
 import './index';
 
 import { expect } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 import { chromiumPatchResult } from './test_data';
 import {
@@ -36,19 +36,26 @@ describe('patch-sk', () => {
     const input = $$('input-sk', patchSk) as InputSk;
     input.focus();
     input.value = cl;
-    input.dispatchEvent(new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    input.dispatchEvent(
+      new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
   };
   const simulatePatchEdit = (addition: string) => {
-    const exTextarea = $$('expandable-textarea-sk', patchSk) as HTMLInputElement;
+    const exTextarea = $$(
+      'expandable-textarea-sk',
+      patchSk
+    ) as HTMLInputElement;
     ($$('button', exTextarea) as HTMLElement).click();
     exTextarea.value += addition;
-    exTextarea.dispatchEvent(new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    exTextarea.dispatchEvent(
+      new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
   };
 
   it('loads a valid cl', async () => {
@@ -57,7 +64,8 @@ describe('patch-sk', () => {
     await event;
 
     expect(patchSk).to.have.property('cl', '123');
-    expect(patchSk.clDescription).to.contain('googlesource.com')
+    expect(patchSk.clDescription)
+      .to.contain('googlesource.com')
       .and.to.contain('Roll Skia');
     expect(patchSk.patch).to.contain('diff --git');
   });
@@ -78,8 +86,10 @@ describe('patch-sk', () => {
     simulateClInput('123', 503);
     await event;
 
-    expect(patchSk).to.have.nested.property('_clError.message',
-      'Bad network response: Service Unavailable');
+    expect(patchSk).to.have.nested.property(
+      '_clError.message',
+      'Bad network response: Service Unavailable'
+    );
     expect(patchSk.clDescription).to.equal('');
   });
 });

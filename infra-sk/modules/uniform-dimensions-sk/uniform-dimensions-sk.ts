@@ -10,8 +10,8 @@
  *
  * Emits a `dimensions-changed` event when the user has changed the dimensions.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
@@ -63,13 +63,14 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
 
   private static template = (ele: UniformDimensionsSk) => html`
     <select @change=${ele.selectionChanged} size="1">
-      ${choices.map((choice, index) => html`
-      <option
-        value=${index}
-        ?selected=${index === ele._choice}
-      >
-        ${choice.width} x ${choice.height}
-      </option>`)}
+      ${choices.map(
+        (choice, index) => html` <option
+          value=${index}
+          ?selected=${index === ele._choice}
+        >
+          ${choice.width} x ${choice.height}
+        </option>`
+      )}
     </select>
   `;
 
@@ -106,7 +107,12 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
       width: choices[this._choice].width,
       height: choices[this._choice].height,
     };
-    this.dispatchEvent(new CustomEvent<DimensionsChangedEventDetail>(dimensionsChangedEventName, { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent<DimensionsChangedEventDetail>(
+        dimensionsChangedEventName,
+        { detail: detail, bubbles: true }
+      )
+    );
   }
 
   get uniform(): Uniform {
@@ -120,7 +126,9 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     this._uniform = val;
   }
 
-  get choice(): number { return this._choice; }
+  get choice(): number {
+    return this._choice;
+  }
 
   set choice(val: number) {
     this._choice = val;

@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('details-dialog-sk', () => {
@@ -31,12 +33,20 @@ describe('details-dialog-sk', () => {
     it('shows task dialog with taskdriver', async () => {
       await testBed.page.click('#taskDriverButton');
       await testBed.page.waitForSelector('task-driver-sk');
-      await takeScreenshot(testBed.page, 'status', 'details-dialog-sk_task_driver');
+      await takeScreenshot(
+        testBed.page,
+        'status',
+        'details-dialog-sk_task_driver'
+      );
     });
 
     it('shows taskSpec dialog', async () => {
       await testBed.page.click('#taskSpecButton');
-      await takeScreenshot(testBed.page, 'status', 'details-dialog-sk_taskspec');
+      await takeScreenshot(
+        testBed.page,
+        'status',
+        'details-dialog-sk_taskspec'
+      );
     });
 
     it('shows commit dialog', async () => {

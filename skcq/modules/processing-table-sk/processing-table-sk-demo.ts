@@ -55,8 +55,12 @@ const CQRunMockResponse: GetCurrentChangesResponse = {
 };
 
 fetchMock.config.overwriteRoutes = false;
-fetchMock.post('/_/get_current_changes', DryRunMockResponse, { body: DryRunRequest });
-fetchMock.post('/_/get_current_changes', CQRunMockResponse, { body: CQRunRequest });
+fetchMock.post('/_/get_current_changes', DryRunMockResponse, {
+  body: DryRunRequest,
+});
+fetchMock.post('/_/get_current_changes', CQRunMockResponse, {
+  body: CQRunRequest,
+});
 
 customElements.whenDefined('processing-table-sk').then(() => {
   const dryRunPage = document.createElement('processing-table-sk');
@@ -64,7 +68,8 @@ customElements.whenDefined('processing-table-sk').then(() => {
 
   const cqRunPage = document.createElement('processing-table-sk');
 
-  document.querySelector('h1')!
+  document
+    .querySelector('h1')!
     .insertAdjacentElement('afterend', dryRunPage)!
     .insertAdjacentElement('afterend', cqRunPage);
 });

@@ -22,13 +22,21 @@ export class TraceFilterSkPO extends PageObject {
     return this.bySelector('.edit-query');
   }
 
-  async isQueryDialogSkOpen() { return this.queryDialogSkPO.isDialogOpen(); }
+  async isQueryDialogSkOpen() {
+    return this.queryDialogSkPO.isDialogOpen();
+  }
 
-  async isEmptyFilterMessageVisible() { return !(await this.emptyFilterMessage.isEmpty()); }
+  async isEmptyFilterMessageVisible() {
+    return !(await this.emptyFilterMessage.isEmpty());
+  }
 
-  async isParamSetSkVisible() { return !(await this.paramSetSkPO.isEmpty()); }
+  async isParamSetSkVisible() {
+    return !(await this.paramSetSkPO.isEmpty());
+  }
 
-  async clickEditBtn() { await this.editBtn.click(); }
+  async clickEditBtn() {
+    await this.editBtn.click();
+  }
 
   async getParamSetSkContents() {
     const paramSetSkPO = await this.paramSetSkPO;

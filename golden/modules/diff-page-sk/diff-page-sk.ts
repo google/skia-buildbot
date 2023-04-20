@@ -4,8 +4,8 @@
  *
  * Page to view a specific diff between two digests. This does not include trace data.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -14,7 +14,11 @@ import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
   DiffRequest,
-  DigestComparison, GroupingsResponse, LeftDiffInfo, Params, SRDiffDigest,
+  DigestComparison,
+  GroupingsResponse,
+  LeftDiffInfo,
+  Params,
+  SRDiffDigest,
 } from '../rpc_types';
 
 export class DiffPageSk extends ElementSk {
@@ -26,11 +30,13 @@ export class DiffPageSk extends ElementSk {
       return html`<p>Could not load diff.</p>`;
     }
     return html`
-      <digest-details-sk .details=${ele.leftDetails}
-                         .right=${ele.rightDetails}
-                         .groupings=${ele.groupings}
-                         .changeListID=${ele.changeListID}
-                         .crs=${ele.crs}>
+      <digest-details-sk
+        .details=${ele.leftDetails}
+        .right=${ele.rightDetails}
+        .groupings=${ele.groupings}
+        .changeListID=${ele.changeListID}
+        .crs=${ele.crs}
+      >
       </digest-details-sk>
     `;
   };
@@ -53,7 +59,7 @@ export class DiffPageSk extends ElementSk {
 
   private didInitialLoad = false;
 
-  private readonly _stateChanged: ()=> void;
+  private readonly _stateChanged: () => void;
 
   // Allows us to abort fetches if we fetch again.
   private _fetchController?: AbortController;
@@ -62,27 +68,28 @@ export class DiffPageSk extends ElementSk {
     super(DiffPageSk.template);
 
     this._stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         grouping: this.grouping,
         left: this.leftDigest,
         right: this.rightDigest,
         changelist_id: this.changeListID,
         crs: this.crs,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
         // default values if not specified.
-        this.grouping = newState.grouping as Params || {};
-        this.leftDigest = newState.left as string || '';
-        this.rightDigest = newState.right as string || '';
-        this.changeListID = newState.changelist_id as string || '';
-        this.crs = newState.crs as string || '';
+        this.grouping = (newState.grouping as Params) || {};
+        this.leftDigest = (newState.left as string) || '';
+        this.rightDigest = (newState.right as string) || '';
+        this.changeListID = (newState.changelist_id as string) || '';
+        this.crs = (newState.crs as string) || '';
         this.fetchGroupingsOnce();
         this.fetchDigestComparison();
         this._render();
-      },
+      }
     );
   }
 
@@ -97,7 +104,9 @@ export class DiffPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this.groupings = await fetch('/json/v1/groupings', {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -133,7 +142,8 @@ export class DiffPageSk extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(jsonOrThrow)
+    })
+      .then(jsonOrThrow)
       .then((obj: DigestComparison) => {
         this.leftDetails = obj.left;
         this.rightDetails = obj.right;

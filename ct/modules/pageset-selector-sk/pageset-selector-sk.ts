@@ -7,9 +7,9 @@
  * the option to input custom webpages.
  */
 
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
@@ -18,9 +18,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/select-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
-import {
-  PageSet,
-} from '../json';
+import { PageSet } from '../json';
 
 export interface ExpandableTextArea extends HTMLInputElement {
   open: boolean;
@@ -47,23 +45,25 @@ export class PagesetSelectorSk extends ElementSk {
   }
 
   private static template = (ele: PagesetSelectorSk) => html`
-<div class=pageset-list>
-<select-sk>
-  ${ele._pageSets.map((p) => (html`<div>${p.description}</div>`))}
-</select-sk>
-</div>
-${ele.hasAttribute('disable-custom-webpages')
-    ? ''
-    : PagesetSelectorSk.customWebpageFormTemplate(ele)}
-`;
+    <div class="pageset-list">
+      <select-sk>
+        ${ele._pageSets.map((p) => html`<div>${p.description}</div>`)}
+      </select-sk>
+    </div>
+    ${ele.hasAttribute('disable-custom-webpages')
+      ? ''
+      : PagesetSelectorSk.customWebpageFormTemplate(ele)}
+  `;
 
   private static customWebpageFormTemplate = (ele: PagesetSelectorSk) => html`
-<expandable-textarea-sk minRows=5
-  displaytext="Specify custom list of web pages"
-  placeholder=${PagesetSelectorSk.customFormPlaceholder}
-  @click=${ele._updatePageSetHidden}>
-</expandable-textarea-sk>
-`;
+    <expandable-textarea-sk
+      minRows="5"
+      displaytext="Specify custom list of web pages"
+      placeholder=${PagesetSelectorSk.customFormPlaceholder}
+      @click=${ele._updatePageSetHidden}
+    >
+    </expandable-textarea-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -86,7 +86,7 @@ ${ele.hasAttribute('disable-custom-webpages')
    */
   get customPages(): string {
     const exTextarea = $$('expandable-textarea-sk', this) as HTMLInputElement;
-    return exTextarea ? (exTextarea.value || '') : '';
+    return exTextarea ? exTextarea.value || '' : '';
   }
 
   set customPages(val: string) {
@@ -131,20 +131,21 @@ ${ele.hasAttribute('disable-custom-webpages')
   }
 
   _filterPageSets(): void {
-    this._pageSets = this._unfilteredPageSets
-      .filter((ps) => !this._hideKeys.includes(ps.key));
+    this._pageSets = this._unfilteredPageSets.filter(
+      (ps) => !this._hideKeys.includes(ps.key)
+    );
   }
 
   _updatePageSetHidden(): void {
     const exTextArea = $$('expandable-textarea-sk', this) as ExpandableTextArea;
     const pageSetContainer = $$('.pageset-list', this) as HTMLElement;
     if (exTextArea.open === pageSetContainer.hidden) {
-    // This click wasn't toggling the expandable textarea.
+      // This click wasn't toggling the expandable textarea.
       return;
     }
     pageSetContainer.hidden = exTextArea.open;
     if (!exTextArea.open) {
-    // We assume if someone closes the panel they don't want any custom pages.
+      // We assume if someone closes the panel they don't want any custom pages.
       exTextArea.value = '';
     }
     this._render();

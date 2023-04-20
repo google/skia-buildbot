@@ -1,5 +1,8 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../../../infra-sk/modules/page_object/page_object_element';
 import { Label } from '../rpc_types';
 
 /** A page element for the DotsLegendSk compoment. */
@@ -21,7 +24,9 @@ export class DotsLegendSkPO extends PageObject {
   }
 
   private get triageStatusIcons(): PageObjectElementList {
-    return this.bySelectorAll('.positive-icon, .negative-icon, .untriaged-icon');
+    return this.bySelectorAll(
+      '.positive-icon, .negative-icon, .untriaged-icon'
+    );
   }
 
   /**
@@ -30,8 +35,16 @@ export class DotsLegendSkPO extends PageObject {
    */
   getDotBorderAndBackgroundColors(): Promise<[string, string][]> {
     return this.dots.map(async (dot: PageObjectElement) => [
-      rgbToHex(await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.borderColor)),
-      rgbToHex(await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.backgroundColor)),
+      rgbToHex(
+        await dot.applyFnToDOMNode(
+          (el: Element) => (el as HTMLElement).style.borderColor
+        )
+      ),
+      rgbToHex(
+        await dot.applyFnToDOMNode(
+          (el: Element) => (el as HTMLElement).style.backgroundColor
+        )
+      ),
     ]);
   }
 
@@ -51,9 +64,12 @@ export class DotsLegendSkPO extends PageObject {
     return this.triageStatusIcons.map(async (icon) => {
       const className = await icon.className;
       switch (className) {
-        case 'positive-icon': return 'positive';
-        case 'negative-icon': return 'negative';
-        case 'untriaged-icon': return 'untriaged';
+        case 'positive-icon':
+          return 'positive';
+        case 'negative-icon':
+          return 'negative';
+        case 'untriaged-icon':
+          return 'untriaged';
       }
       throw new Error(`Unknown triage icon class: ${className}`);
     });
@@ -62,10 +78,12 @@ export class DotsLegendSkPO extends PageObject {
 
 // Takes a color represented as an RGB string (e.g. "rgb(10, 187, 204)") and
 // returns the equivalent hex string (e.g. "#0ABBCC").
-const rgbToHex = (rgb: string): string => `#${rgb.match(/rgb\((\d+), (\d+), (\d+)\)/)!
-  .slice(1) // ['10', '187', '204'].
-  .map((x: string) => parseInt(x)) // [10, 187, 204]
-  .map((x: number) => x.toString(16)) // ['a', 'bb', 'cc']
-  .map((x: string) => x.padStart(2, '0')) // ['0a', 'bb', 'cc']
-  .map((x: string) => x.toUpperCase()) // ['0A', 'BB', 'CC']
-  .join('')}`; // '0ABBCC'
+const rgbToHex = (rgb: string): string =>
+  `#${rgb
+    .match(/rgb\((\d+), (\d+), (\d+)\)/)!
+    .slice(1) // ['10', '187', '204'].
+    .map((x: string) => parseInt(x)) // [10, 187, 204]
+    .map((x: number) => x.toString(16)) // ['a', 'bb', 'cc']
+    .map((x: string) => x.padStart(2, '0')) // ['0a', 'bb', 'cc']
+    .map((x: string) => x.toUpperCase()) // ['0A', 'BB', 'CC']
+    .join('')}`; // '0ABBCC'

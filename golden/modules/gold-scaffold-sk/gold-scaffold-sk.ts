@@ -12,9 +12,9 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { title } from '../settings';
@@ -156,10 +156,14 @@ export class GoldScaffoldSk extends ElementSk {
    * Indicates if there any on-going tasks (e.g. RPCs). This also mirrors the status of the
    * embedded spinner-sk.
    */
-  get busy() { return !!this.busyTaskCount; }
+  get busy() {
+    return !!this.busyTaskCount;
+  }
 
   /** Reflects the testing_offline attribute for ease of use. */
-  get testingOffline() { return this.hasAttribute('testing_offline'); }
+  get testingOffline() {
+    return this.hasAttribute('testing_offline');
+  }
 
   set testingOffline(val) {
     if (val) {
@@ -207,7 +211,10 @@ export class GoldScaffoldSk extends ElementSk {
       // Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
       console.error(error);
-      errorMessage(`Unexpected error loading ${loadingWhat}: ${error.message}`, 5000);
+      errorMessage(
+        `Unexpected error loading ${loadingWhat}: ${error.message}`,
+        5000
+      );
     }
     this.finishedTask();
   }

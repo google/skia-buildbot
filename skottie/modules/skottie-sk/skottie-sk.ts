@@ -32,17 +32,27 @@ import { renderByDomain } from '../helpers/templates';
 import { supportedDomains } from '../helpers/domains';
 import '../skottie-audio-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { SkottieConfigEventDetail, SkottieConfigState } from '../skottie-config-sk/skottie-config-sk';
+import {
+  SkottieConfigEventDetail,
+  SkottieConfigState,
+} from '../skottie-config-sk/skottie-config-sk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { SkottiePerformanceSk } from '../skottie-performance-sk/skottie-performance-sk';
-import {
-  FontAsset, LottieAnimation, LottieAsset, ViewMode,
-} from '../types';
+import { FontAsset, LottieAnimation, LottieAsset, ViewMode } from '../types';
 import { SkottieLibrarySk } from '../skottie-library-sk/skottie-library-sk';
-import { AudioStartEventDetail, SkottieAudioSk } from '../skottie-audio-sk/skottie-audio-sk';
-import { SkottieTextEditorSk, TextEditApplyEventDetail } from '../skottie-text-editor-sk/skottie-text-editor-sk';
+import {
+  AudioStartEventDetail,
+  SkottieAudioSk,
+} from '../skottie-audio-sk/skottie-audio-sk';
+import {
+  SkottieTextEditorSk,
+  TextEditApplyEventDetail,
+} from '../skottie-text-editor-sk/skottie-text-editor-sk';
 import '../skottie-shader-editor-sk';
-import { ShaderEditApplyEventDetail, ShaderEditorSk } from '../skottie-shader-editor-sk/skottie-shader-editor-sk';
+import {
+  ShaderEditApplyEventDetail,
+  ShaderEditorSk,
+} from '../skottie-shader-editor-sk/skottie-shader-editor-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import { replaceShaders } from '../skottie-shader-editor-sk/shader-replace';
@@ -71,7 +81,8 @@ interface LoadedAsset {
   player?: AudioPlayer;
 }
 
-const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-web-fonts';
+const GOOGLE_WEB_FONTS_HOST =
+  'https://storage.googleapis.com/skia-cdn/google-web-fonts';
 
 const PRODUCTION_ASSETS_PATH = '/_/a';
 
@@ -94,64 +105,58 @@ const caption = (text: string, mode: ViewMode) => {
   if (mode === 'presentation') {
     return null;
   }
-  return html`
-  <figcaption>
-  ${text}
-  </figcaption>
-  `;
+  return html` <figcaption>${text}</figcaption> `;
 };
 
-const redir = () => renderByDomain(
-  html`
-  <div>
-    Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
-  </div>`,
-  Object.values(supportedDomains).filter((domain: string) => domain !== supportedDomains.SKOTTIE_INTERNAL),
-);
+const redir = () =>
+  renderByDomain(
+    html` <div>
+      Googlers should use
+      <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
+    </div>`,
+    Object.values(supportedDomains).filter(
+      (domain: string) => domain !== supportedDomains.SKOTTIE_INTERNAL
+    )
+  );
 
 const displayLoading = () => html`
-  <div class=loading>
+  <div class="loading">
     <spinner-sk active></spinner-sk><span>Loading...</span>
   </div>
 `;
 
 export class SkottieSk extends ElementSk {
   private static template = (ele: SkottieSk) => html`
-  <app-sk>
-    <header>
-      <h2>Skottie Web Player</h2>
-      <span>
-        <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>
-          ${SKIA_VERSION.slice(0, 7)}
-        </a>
+    <app-sk>
+      <header>
+        <h2>Skottie Web Player</h2>
+        <span>
+          <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
+            ${SKIA_VERSION.slice(0, 7)}
+          </a>
 
-        <button id=view-gif-exporter
-          @click=${ele.toggleGifExporter}>
-          Export
-        </button>
+          <button id="view-gif-exporter" @click=${ele.toggleGifExporter}>
+            Export
+          </button>
 
-        <button id=view-perf-chart
-          @click=${ele.togglePerformanceChart}>
-          Performance chart
-        </button>
+          <button id="view-perf-chart" @click=${ele.togglePerformanceChart}>
+            Performance chart
+          </button>
 
-        <button id=view-json-layers
-          @click=${ele.toggleEditor}>
-          View JSON Layers
-        </button>
+          <button id="view-json-layers" @click=${ele.toggleEditor}>
+            View JSON Layers
+          </button>
 
-        <theme-chooser-sk></theme-chooser-sk>
-      </span>
-    </header>
-    <main>
-      ${ele.pick()}
-    </main>
-    <footer>
-      <error-toast-sk></error-toast-sk>
-      ${redir()}
-    </footer>
-  </app-sk>
-`;
+          <theme-chooser-sk></theme-chooser-sk>
+        </span>
+      </header>
+      <main>${ele.pick()}</main>
+      <footer>
+        <error-toast-sk></error-toast-sk>
+        ${redir()}
+      </footer>
+    </app-sk>
+  `;
 
   // pick the right part of the UI to display based on ele._ui.
   private pick = () => {
@@ -167,89 +172,102 @@ export class SkottieSk extends ElementSk {
   };
 
   private displayDialog = () => html`
-<skottie-config-sk .state=${this.state} .width=${this.width}
-    .height=${this.height} .fps=${this.fps} .backgroundColor=${this.backgroundColor}
-    @skottie-selected=${this.skottieFileSelected} @cancelled=${this.selectionCancelled}></skottie-config-sk>
-`;
+    <skottie-config-sk
+      .state=${this.state}
+      .width=${this.width}
+      .height=${this.height}
+      .fps=${this.fps}
+      .backgroundColor=${this.backgroundColor}
+      @skottie-selected=${this.skottieFileSelected}
+      @cancelled=${this.selectionCancelled}
+    ></skottie-config-sk>
+  `;
 
   private displayLoaded = () => html`
-<div class=threecol>
-  <div class=left>
-    ${this.leftControls()}
-  </div>
-  <div class=main>
-    ${this.mainContent()}
-  </div>
-  <div class=right>
-    ${this.rightControls()}
-  </div>
-</div>
-`;
-
-private mainContent = () => html`
-<div class=players>
-  <figure>
-    ${this.skottiePlayerTemplate()}
-  </figure>
-  ${this.lottiePlayerTemplate()}
-  ${this.livePreview()}
-</div>
-<div class=playback>
-  <div class=scrub>
-    <button id=rewind @click=${this.rewind}>Rewind</button>
-    <button id=playpause @click=${this.playpause}>Pause</button>
-    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} step=0.1
-        @input=${this.onScrub} @change=${this.onScrubEnd}>
-    <label class=number>
-      Go to frame: <input type=number id=frameInput
-      @focus=${this.onFrameFocus} @change=${this.onFrameChange}/>
-    </label>
-  </div>
-</div>
-
-
-<div @click=${this.onChartClick}>
-  ${this.performanceChartTemplate()}
-</div>
-${this.jsonEditor()}
-${this.gifExporter()}
-
-<collapse-sk id=volume closed>
-  <p>
-    Volume:
-  </p>
-  <input id=volume-slider type=range min=0 max=1 step=.05 value=1 @input=${this.onVolumeChange}>
-</collapse-sk>
-
-`;
-
-private embedDialog() {
-  return html`
-<details class=embed>
-    <summary id=embed-open><span>Embed</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
-      <label>
-        Embed using an iframe
-        <input value=${this.iframeDirections()}>
-      </label>
-      <label>
-        Embed on skia.org
-        <input value=${this.inlineDirections()}>
-      </label>
-  </details>
-`;
-}
-
-private performanceChartTemplate() {
-  return html`
-  <dialog class=perf-chart ?open=${this.showPerformanceChart}>
-    <div class=top-ribbon>
-        <span>Performance Chart</span>
-        <button @click=${this.togglePerformanceChart}>Close</button>
+    <div class="threecol">
+      <div class="left">${this.leftControls()}</div>
+      <div class="main">${this.mainContent()}</div>
+      <div class="right">${this.rightControls()}</div>
     </div>
-    <skottie-performance-sk id=chart></skottie-performance-sk>
-  </dialog>
-`;
-}
+  `;
+
+  private mainContent = () => html`
+    <div class="players">
+      <figure>${this.skottiePlayerTemplate()}</figure>
+      ${this.lottiePlayerTemplate()} ${this.livePreview()}
+    </div>
+    <div class="playback">
+      <div class="scrub">
+        <button id="rewind" @click=${this.rewind}>Rewind</button>
+        <button id="playpause" @click=${this.playpause}>Pause</button>
+        <input
+          id="scrub"
+          type="range"
+          min="0"
+          max=${SCRUBBER_RANGE}
+          step="0.1"
+          @input=${this.onScrub}
+          @change=${this.onScrubEnd}
+        />
+        <label class="number">
+          Go to frame:
+          <input
+            type="number"
+            id="frameInput"
+            @focus=${this.onFrameFocus}
+            @change=${this.onFrameChange}
+          />
+        </label>
+      </div>
+    </div>
+
+    <div @click=${this.onChartClick}>${this.performanceChartTemplate()}</div>
+    ${this.jsonEditor()} ${this.gifExporter()}
+
+    <collapse-sk id="volume" closed>
+      <p>Volume:</p>
+      <input
+        id="volume-slider"
+        type="range"
+        min="0"
+        max="1"
+        step=".05"
+        value="1"
+        @input=${this.onVolumeChange}
+      />
+    </collapse-sk>
+  `;
+
+  private embedDialog() {
+    return html`
+      <details class="embed">
+        <summary id="embed-open">
+          <span>Embed</span><expand-less-icon-sk></expand-less-icon-sk
+          ><expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <label>
+          Embed using an iframe
+          <input value=${this.iframeDirections()} />
+        </label>
+        <label>
+          Embed on skia.org
+          <input value=${this.inlineDirections()} />
+        </label>
+      </details>
+    `;
+  }
+
+  private performanceChartTemplate() {
+    return html`
+      <dialog class="perf-chart" ?open=${this.showPerformanceChart}>
+        <div class="top-ribbon">
+          <span>Performance Chart</span>
+          <button @click=${this.togglePerformanceChart}>Close</button>
+        </div>
+        <skottie-performance-sk id="chart"></skottie-performance-sk>
+      </dialog>
+    `;
+  }
 
   private leftControls = () => {
     if (this.viewMode === 'presentation') {
@@ -257,97 +275,122 @@ private performanceChartTemplate() {
     }
 
     return html`
-    <div class=json-chooser>
-      <div class=title>
-        JSON File
-      </div>
-      <div class=upload-download>
-        <button class=edit-config @click=${this.startEdit}>
-          ${this.state.filename} ${this.width}x${this.height} ...
-        </button>
-        <div class=download>
-          <a target=_blank download=${this.state.filename} href=${this.downloadURL}>
-            Download
-          </a>
-          ${this.hasEdits ? '(without edits)' : ''}
+      <div class="json-chooser">
+        <div class="title">JSON File</div>
+        <div class="upload-download">
+          <button class="edit-config" @click=${this.startEdit}>
+            ${this.state.filename} ${this.width}x${this.height} ...
+          </button>
+          <div class="download">
+            <a
+              target="_blank"
+              download=${this.state.filename}
+              href=${this.downloadURL}
+            >
+              Download
+            </a>
+            ${this.hasEdits ? '(without edits)' : ''}
+          </div>
         </div>
       </div>
-    </div>
 
-    ${this.audioDialog()}
+      ${this.audioDialog()} ${this.optionsDialog()}
 
-    ${this.optionsDialog()}
-
-    <button class=apply-button ?hidden=${!this.hasEdits} @click=${this.applyEdits}>Apply Edits</button>
-
-  `;
+      <button
+        class="apply-button"
+        ?hidden=${!this.hasEdits}
+        @click=${this.applyEdits}
+      >
+        Apply Edits
+      </button>
+    `;
   };
 
   private rightControls = () => html`
-    ${this.jsonTextEditor()}
-    ${this.library()}
-    ${this.embedDialog()}
+    ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
   `;
 
   private optionsDialog = () => html`
     <details>
-      <summary id=options-open><span>Options</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
-      <div class=options-container>
+      <summary id="options-open">
+        <span>Options</span><expand-less-icon-sk></expand-less-icon-sk
+        ><expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
+      <div class="options-container">
         <checkbox-sk
           label="Show lottie-web"
           ?checked=${this.showLottie}
-          @click=${this.toggleLottie}>
+          @click=${this.toggleLottie}
+        >
         </checkbox-sk>
       </div>
     </details>
   `;
 
-  private audioDialog = () => renderByDomain(
-    html`
+  private audioDialog = () =>
+    renderByDomain(
+      html`
+        <details
+          ?open=${this.showAudio}
+          @toggle=${(e: Event) =>
+            this.toggleAudio((e.target! as HTMLDetailsElement).open)}
+        >
+          <summary id="audio-open">
+            <span>Audio</span><expand-less-icon-sk></expand-less-icon-sk
+            ><expand-more-icon-sk></expand-more-icon-sk>
+          </summary>
 
-  <details ?open=${this.showAudio} @toggle=${(e: Event) => this.toggleAudio((e.target! as HTMLDetailsElement).open)}>
-      <summary id=audio-open><span>Audio</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+          <skottie-audio-sk
+            .animation=${this.state.lottie}
+            @apply=${this.applyAudioSync}
+          >
+          </skottie-audio-sk>
+        </details>
+      `,
+      AUDIO_SUPPORTED_DOMAINS
+    );
 
-      <skottie-audio-sk
-        .animation=${this.state.lottie}
-        @apply=${this.applyAudioSync}
-      >
-      </skottie-audio-sk>
-  </details>
-  `,
-    AUDIO_SUPPORTED_DOMAINS,
-  );
+  private iframeDirections = () =>
+    `<iframe width="${this.width}" height="${this.height}" src="${window.location.origin}/e/${this.hash}?w=${this.width}&h=${this.height}" scrolling=no>`;
 
-  private iframeDirections = () => `<iframe width="${this.width}" height="${this.height}" src="${window.location.origin}/e/${this.hash}?w=${this.width}&h=${this.height}" scrolling=no>`;
+  private inlineDirections = () =>
+    `<skottie-inline-sk width="${this.width}" height="${this.height}" src="${window.location.origin}/_/j/${this.hash}"></skottie-inline-sk>`;
 
-  private inlineDirections = () => `<skottie-inline-sk width="${this.width}" height="${this.height}" src="${window.location.origin}/_/j/${this.hash}"></skottie-inline-sk>`;
-
-  private skottiePlayerTemplate = () => html`
-<skottie-player-sk paused width=${this.width} height=${this.height}>
-</skottie-player-sk>
-${this.wasmCaption()}`;
+  private skottiePlayerTemplate = () => html` <skottie-player-sk
+      paused
+      width=${this.width}
+      height=${this.height}
+    >
+    </skottie-player-sk>
+    ${this.wasmCaption()}`;
 
   private lottiePlayerTemplate = () => {
     if (!this.showLottie) {
       return '';
     }
-    return html`
-<figure>
-  <div id=container title=lottie-web
-       style='width: ${this.width}px; height: ${this.height}px; background-color: ${this.backgroundColor}'></div>
-       ${caption('lottie-web', this.viewMode)}
-</figure>`;
+    return html` <figure>
+      <div
+        id="container"
+        title="lottie-web"
+        style="width: ${this.width}px; height: ${this
+          .height}px; background-color: ${this.backgroundColor}"
+      ></div>
+      ${caption('lottie-web', this.viewMode)}
+    </figure>`;
   };
 
-  private library = () => html`
-    <details ?open=${this.showLibrary} @toggle=${(e: Event) => this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
-      <summary id=library-open><span>Library</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+  private library = () => html` <details
+    ?open=${this.showLibrary}
+    @toggle=${(e: Event) =>
+      this.toggleLibrary((e.target! as HTMLDetailsElement).open)}
+  >
+    <summary id="library-open">
+      <span>Library</span><expand-less-icon-sk></expand-less-icon-sk
+      ><expand-more-icon-sk></expand-more-icon-sk>
+    </summary>
 
-      <skottie-library-sk
-        @select=${this.updateAnimation}
-      >
-      </skottie-library-sk>
-    </details>`;
+    <skottie-library-sk @select=${this.updateAnimation}> </skottie-library-sk>
+  </details>`;
 
   // TODO(kjlubick): Make the live preview use skottie
   private livePreview = () => {
@@ -355,41 +398,50 @@ ${this.wasmCaption()}`;
       return '';
     }
     if (this.hasEdits) {
-      return html`
-<figure>
-  <div id=live title=live-preview
-       style='width: ${this.width}px; height: ${this.height}px'></div>
-  <figcaption>Preview [lottie-web]</figcaption>
-</figure>`;
+      return html` <figure>
+        <div
+          id="live"
+          title="live-preview"
+          style="width: ${this.width}px; height: ${this.height}px"
+        ></div>
+        <figcaption>Preview [lottie-web]</figcaption>
+      </figure>`;
     }
     return '';
   };
 
-  private jsonEditor = (): TemplateResult => html`
-<dialog class=editor ?open=${this.showJSONEditor}>
-  <div class=top-ribbon>
+  private jsonEditor = (): TemplateResult => html` <dialog
+    class="editor"
+    ?open=${this.showJSONEditor}
+  >
+    <div class="top-ribbon">
       <span>Layer Information</span>
       <button @click=${this.toggleEditor}>Close</button>
-  </div>
-  <div id=json_editor></div>
-</dialog>`;
+    </div>
+    <div id="json_editor"></div>
+  </dialog>`;
 
   private gifExporter = () => html`
-  <dialog class=export ?open=${this.showGifExporter}>
-    <div class=top-ribbon>
+    <dialog class="export" ?open=${this.showGifExporter}>
+      <div class="top-ribbon">
         <span>Export</span>
         <button @click=${this.toggleGifExporter}>Close</button>
-    </div>
-    <skottie-gif-exporter-sk
-      @start=${this.onGifExportStart}
-    >
-    </skottie-gif-exporter-sk>
-  </dialog>
-`;
+      </div>
+      <skottie-gif-exporter-sk @start=${this.onGifExportStart}>
+      </skottie-gif-exporter-sk>
+    </dialog>
+  `;
 
   private jsonTextEditor = () => html`
-    <details ?open=${this.showTextEditor} @toggle=${(e: Event) => this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}>
-      <summary id=edit-text-open><span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+    <details
+      ?open=${this.showTextEditor}
+      @toggle=${(e: Event) =>
+        this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}
+    >
+      <summary id="edit-text-open">
+        <span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk
+        ><expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
 
       <skottie-text-editor-sk
         .animation=${this.state.lottie}
@@ -398,11 +450,18 @@ ${this.wasmCaption()}`;
       >
       </skottie-text-editor-sk>
     </details>
-`;
+  `;
 
   private shaderEditor = () => html`
-    <details ?open=${this.showShaderEditor} @toggle=${(e: Event) => this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}>
-      <summary><span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk><expand-more-icon-sk></expand-more-icon-sk></summary>
+    <details
+      ?open=${this.showShaderEditor}
+      @toggle=${(e: Event) =>
+        this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}
+    >
+      <summary>
+        <span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk
+        ><expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
 
       <skottie-shader-editor-sk
         .animation=${this.state.lottie}
@@ -411,12 +470,13 @@ ${this.wasmCaption()}`;
       >
       </skottie-shader-editor-sk>
     </details>
-`;
+  `;
 
   private buildFileName = () => {
-    const fileName = this.state.filename || this.state.lottie?.metadata?.filename;
+    const fileName =
+      this.state.filename || this.state.lottie?.metadata?.filename;
     if (fileName) {
-      return html`<div title='${fileName}'>${fileName}</div>`;
+      return html`<div title="${fileName}">${fileName}</div>`;
     }
     return null;
   };
@@ -425,11 +485,10 @@ ${this.wasmCaption()}`;
     if (this.viewMode === 'presentation') {
       return null;
     }
-    return html`
-  <figcaption style='max-width: ${this.width}px;'>
-    <div>skottie-wasm</div>
-    ${this.buildFileName()}
-  </figcaption>`;
+    return html` <figcaption style="max-width: ${this.width}px;">
+      <div>skottie-wasm</div>
+      ${this.buildFileName()}
+    </figcaption>`;
   };
 
   private assetsPath = PRODUCTION_ASSETS_PATH; // overridable for testing
@@ -496,7 +555,7 @@ ${this.wasmCaption()}`;
 
   private state: SkottieConfigState;
 
-  private stateChanged: ()=> void;
+  private stateChanged: () => void;
 
   private ui: UIMode = 'dialog';
 
@@ -515,7 +574,7 @@ ${this.wasmCaption()}`;
     };
 
     this.stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         l: this.showLottie,
         e: this.showJSONEditor,
@@ -530,7 +589,8 @@ ${this.wasmCaption()}`;
         f: this.fps,
         bg: this.backgroundColor,
         mode: this.viewMode,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         this.showLottie = !!newState.l;
         this.showJSONEditor = !!newState.e;
         this.showGifExporter = !!newState.g;
@@ -542,10 +602,11 @@ ${this.wasmCaption()}`;
         this.width = +newState.w;
         this.height = +newState.h;
         this.fps = +newState.f;
-        this.viewMode = newState.mode === 'presentation' ? 'presentation' : 'default';
+        this.viewMode =
+          newState.mode === 'presentation' ? 'presentation' : 'default';
         this.backgroundColor = String(newState.bg);
         this.render();
-      },
+      }
     );
   }
 
@@ -578,7 +639,11 @@ ${this.wasmCaption()}`;
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
         const normalizedProgress = progress / this.duration;
-        this.performanceChart?.start(progress, this.duration, this.state.lottie?.fr || 0);
+        this.performanceChart?.start(
+          progress,
+          this.duration,
+          this.state.lottie?.fr || 0
+        );
         this.skottiePlayer?.seek(normalizedProgress);
         this.performanceChart?.end();
         this.skottieLibrary?.seek(normalizedProgress);
@@ -713,14 +778,16 @@ ${this.wasmCaption()}`;
         const scrubber = $$<HTMLInputElement>('#scrub', this);
         if (scrubber) {
           // calculate a scaled version of ms per frame as the step size.
-          scrubber.step = String((1000 / this.fps) * (SCRUBBER_RANGE / this.duration));
+          scrubber.step = String(
+            (1000 / this.fps) * (SCRUBBER_RANGE / this.duration)
+          );
         }
       }
     });
   }
 
   private loadAssetsAndRender(): Promise<void> {
-    const toLoad: Promise<(LoadedAsset | null)>[] = [];
+    const toLoad: Promise<LoadedAsset | null>[] = [];
 
     const lottie = this.state.lottie!;
     let fonts: FontAsset[] = [];
@@ -735,32 +802,33 @@ ${this.wasmCaption()}`;
     toLoad.push(...this.loadFonts(fonts));
     toLoad.push(...this.loadAssets(assets));
 
-    return Promise.all(toLoad).then((externalAssets: (LoadedAsset | null)[]) => {
-      const loadedAssets: Record<string, ArrayBuffer> = {};
-      const sounds = new SoundMap();
-      for (const asset of externalAssets) {
-        if (asset && asset.bytes) {
-          loadedAssets[asset.name] = asset.bytes;
-        } else if (asset && asset.player) {
-          sounds.setPlayer(asset.name, asset.player);
+    return Promise.all(toLoad)
+      .then((externalAssets: (LoadedAsset | null)[]) => {
+        const loadedAssets: Record<string, ArrayBuffer> = {};
+        const sounds = new SoundMap();
+        for (const asset of externalAssets) {
+          if (asset && asset.bytes) {
+            loadedAssets[asset.name] = asset.bytes;
+          } else if (asset && asset.player) {
+            sounds.setPlayer(asset.name, asset.player);
+          }
         }
-      }
 
-      // check fonts
-      fonts.forEach((font: FontAsset) => {
-        if (!loadedAssets[font.fName]) {
-          console.error(`Could not load font '${font.fName}'.`);
-        }
-      });
+        // check fonts
+        fonts.forEach((font: FontAsset) => {
+          if (!loadedAssets[font.fName]) {
+            console.error(`Could not load font '${font.fName}'.`);
+          }
+        });
 
-      this.state.assets = loadedAssets;
-      this.state.soundMap = sounds;
-      this.render();
-      return this.initializePlayer().then(() => {
-        // Re-sync all players
-        this.rewind();
-      });
-    })
+        this.state.assets = loadedAssets;
+        this.state.soundMap = sounds;
+        this.render();
+        return this.initializePlayer().then(() => {
+          // Re-sync all players
+          this.rewind();
+        });
+      })
       .catch(() => {
         this.render();
         return this.initializePlayer().then(() => {
@@ -771,15 +839,15 @@ ${this.wasmCaption()}`;
   }
 
   private loadFonts(fonts: FontAsset[]): Promise<LoadedAsset | null>[] {
-    const promises: (Promise<LoadedAsset | null>)[] = [];
+    const promises: Promise<LoadedAsset | null>[] = [];
     for (const font of fonts) {
       if (!font.fName) {
         continue;
       }
 
       const fetchFont = (fontURL: string) => {
-        promises.push(fetch(fontURL)
-          .then((resp: Response) => {
+        promises.push(
+          fetch(fontURL).then((resp: Response) => {
             // fetch does not reject on 404
             if (!resp.ok) {
               return null;
@@ -788,7 +856,8 @@ ${this.wasmCaption()}`;
               name: font.fName,
               bytes: buffer,
             }));
-          }));
+          })
+        );
       };
 
       // We have a mirror of google web fonts with a flattened directory structure which
@@ -807,41 +876,54 @@ ${this.wasmCaption()}`;
     return promises;
   }
 
-  private loadAssets(assets: LottieAsset[]): (Promise<LoadedAsset | null>)[] {
-    const promises: (Promise<LoadedAsset | null>)[] = [];
+  private loadAssets(assets: LottieAsset[]): Promise<LoadedAsset | null>[] {
+    const promises: Promise<LoadedAsset | null>[] = [];
     for (const asset of assets) {
       if (asset.id.startsWith('audio_')) {
         // Howler handles our audio assets, they don't provide a promise when making a new Howl.
         // We push the audio asset as is and hope that it loads before playback starts.
-        const inline = asset.p && asset.p.startsWith && asset.p.startsWith('data:');
+        const inline =
+          asset.p && asset.p.startsWith && asset.p.startsWith('data:');
         if (inline) {
-          promises.push(Promise.resolve({
-            name: asset.id,
-            player: new AudioPlayer(asset.p),
-          }));
+          promises.push(
+            Promise.resolve({
+              name: asset.id,
+              player: new AudioPlayer(asset.p),
+            })
+          );
         } else {
-          promises.push(Promise.resolve({
-            name: asset.id,
-            player: new AudioPlayer(`${this.assetsPath}/${this.hash}/${asset.p}`),
-          }));
+          promises.push(
+            Promise.resolve({
+              name: asset.id,
+              player: new AudioPlayer(
+                `${this.assetsPath}/${this.hash}/${asset.p}`
+              ),
+            })
+          );
         }
       } else {
         // asset.p is the filename, if it's an image.
         // Don't try to load inline/dataURI images.
-        const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
+        const should_load =
+          asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
         if (should_load) {
-          promises.push(fetch(`${this.assetsPath}/${this.hash}/${asset.p}`)
-            .then((resp: Response) => {
-              // fetch does not reject on 404
-              if (!resp.ok) {
-                console.error(`Could not load ${asset.p}: status ${resp.status}`);
-                return null;
+          promises.push(
+            fetch(`${this.assetsPath}/${this.hash}/${asset.p}`).then(
+              (resp: Response) => {
+                // fetch does not reject on 404
+                if (!resp.ok) {
+                  console.error(
+                    `Could not load ${asset.p}: status ${resp.status}`
+                  );
+                  return null;
+                }
+                return resp.arrayBuffer().then((buffer) => ({
+                  name: asset.p,
+                  bytes: buffer,
+                }));
               }
-              return resp.arrayBuffer().then((buffer) => ({
-                name: asset.p,
-                bytes: buffer,
-              }));
-            }));
+            )
+          );
         }
       }
     }
@@ -890,22 +972,27 @@ ${this.wasmCaption()}`;
     setTimeout(() => {
       fetch(`/_/j/${this.hash}`, {
         credentials: 'include',
-      }).then(jsonOrThrow).then((json) => {
-        // remove legacy fields from state, if they are there.
-        delete json.width;
-        delete json.height;
-        delete json.fps;
-        this.state = json;
+      })
+        .then(jsonOrThrow)
+        .then((json) => {
+          // remove legacy fields from state, if they are there.
+          delete json.width;
+          delete json.height;
+          delete json.fps;
+          this.state = json;
 
-        if (this.autoSize()) {
-          this.stateChanged();
-        }
-        this.ui = 'loaded';
-        this.loadAssetsAndRender().then(() => {
-          console.log('loaded');
-          this.dispatchEvent(new CustomEvent('initial-animation-loaded', { bubbles: true }));
-        });
-      }).catch((msg) => this.recoverFromError(msg));
+          if (this.autoSize()) {
+            this.stateChanged();
+          }
+          this.ui = 'loaded';
+          this.loadAssetsAndRender().then(() => {
+            console.log('loaded');
+            this.dispatchEvent(
+              new CustomEvent('initial-animation-loaded', { bubbles: true })
+            );
+          });
+        })
+        .catch((msg) => this.recoverFromError(msg));
     });
   }
 
@@ -913,14 +1000,22 @@ ${this.wasmCaption()}`;
     if (this.downloadURL) {
       URL.revokeObjectURL(this.downloadURL);
     }
-    this.downloadURL = URL.createObjectURL(new Blob([JSON.stringify(this.state.lottie)]));
+    this.downloadURL = URL.createObjectURL(
+      new Blob([JSON.stringify(this.state.lottie)])
+    );
     super._render();
 
     this.skottiePlayer = $$<SkottiePlayerSk>('skottie-player-sk', this);
-    this.performanceChart = $$<SkottiePerformanceSk>('skottie-performance-sk', this);
+    this.performanceChart = $$<SkottiePerformanceSk>(
+      'skottie-performance-sk',
+      this
+    );
     this.skottieLibrary = $$<SkottieLibrarySk>('skottie-library-sk', this);
 
-    const skottieGifExporter = $$<SkottieGifExporterSk>('skottie-gif-exporter-sk', this);
+    const skottieGifExporter = $$<SkottieGifExporterSk>(
+      'skottie-gif-exporter-sk',
+      this
+    );
     if (skottieGifExporter && this.skottiePlayer) {
       skottieGifExporter.player = this.skottiePlayer;
     }
@@ -961,7 +1056,10 @@ ${this.wasmCaption()}`;
 
   private renderTextEditor(): void {
     if (this.showTextEditor) {
-      const textEditor = $$<SkottieTextEditorSk>('skottie-text-editor-sk', this);
+      const textEditor = $$<SkottieTextEditorSk>(
+        'skottie-text-editor-sk',
+        this
+      );
       if (textEditor) {
         textEditor.animation = this.state.lottie!;
       }
@@ -1032,7 +1130,9 @@ ${this.wasmCaption()}`;
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
         // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(JSON.stringify(this.state.lottie)) as LottieAnimation,
+        animationData: JSON.parse(
+          JSON.stringify(this.state.lottie)
+        ) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
         },
@@ -1050,7 +1150,9 @@ ${this.wasmCaption()}`;
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
         // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(JSON.stringify(this.editor!.get())) as LottieAnimation,
+        animationData: JSON.parse(
+          JSON.stringify(this.editor!.get())
+        ) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
         },
@@ -1069,7 +1171,7 @@ ${this.wasmCaption()}`;
       this.scrubbing = true;
     }
     const scrubber = (e.target as HTMLInputElement)!;
-    const seek = (+scrubber.value / SCRUBBER_RANGE);
+    const seek = +scrubber.value / SCRUBBER_RANGE;
     this.seek(seek);
     this.updateFrameLabel();
   }
@@ -1101,7 +1203,7 @@ ${this.wasmCaption()}`;
 
   private onChartClick(e: Event): void {
     const chart = $$<SkottiePerformanceSk>('#chart', this);
-    const frame: (number|undefined) = chart?.getClickedFrame(e);
+    const frame: number | undefined = chart?.getClickedFrame(e);
     if (frame !== undefined && frame !== -1) {
       if (this.playing) {
         this.playpause();
@@ -1137,7 +1239,9 @@ ${this.wasmCaption()}`;
     if (frameLabel) {
       const progress = this.elapsedTime % this.duration;
       if (this.state.lottie!.fr) {
-        frameLabel.value = String(Math.round(progress * (this.state.lottie!.fr / 1000)));
+        frameLabel.value = String(
+          Math.round(progress * (this.state.lottie!.fr / 1000))
+        );
       }
     }
   }
@@ -1264,18 +1368,21 @@ ${this.wasmCaption()}`;
         'Content-Type': 'application/json',
       },
       method: 'POST',
-    }).then(jsonOrThrow).then((json) => {
-      // Should return with the hash and the lottie file
-      this.ui = 'loaded';
-      this.hash = json.hash;
-      this.state.lottie = json.lottie;
-      window.history.pushState(null, '', `/${this.hash}`);
-      this.stateChanged();
-      if (this.state.assetsZip) {
-        this.loadAssetsAndRender();
-      }
-      this.render();
-    }).catch((msg) => this.recoverFromError(msg));
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        // Should return with the hash and the lottie file
+        this.ui = 'loaded';
+        this.hash = json.hash;
+        this.state.lottie = json.lottie;
+        window.history.pushState(null, '', `/${this.hash}`);
+        this.stateChanged();
+        if (this.state.assetsZip) {
+          this.loadAssetsAndRender();
+        }
+        this.render();
+      })
+      .catch((msg) => this.recoverFromError(msg));
 
     if (!this.state.assetsZip) {
       this.ui = 'loaded';

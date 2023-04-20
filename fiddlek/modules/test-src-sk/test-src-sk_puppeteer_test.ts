@@ -2,7 +2,8 @@ import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import {
   loadCachedTestBed,
-  takeScreenshot, TestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 fetchMock.config.overwriteRoutes = true;

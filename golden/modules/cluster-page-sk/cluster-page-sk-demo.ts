@@ -5,7 +5,11 @@ import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { clusterDiffJSON } from './test_data';
-import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
+import {
+  fakeNow,
+  twoHundredCommits,
+  typicalDetails,
+} from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { ClusterPageSk } from './cluster-page-sk';
@@ -21,17 +25,28 @@ testOnlySetSettings({
 // Load the demo page with some params to load if there aren't any already. 4 is an arbitrary
 // small number to check against to determine "no query params"
 if (window.location.search.length < 4) {
-  const query = '?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
-    + '&changelist_id=12353&crs=gerrit';
-  history.pushState(null, '', window.location.origin + window.location.pathname + query);
+  const query =
+    '?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra' +
+    '&changelist_id=12353&crs=gerrit';
+  history.pushState(
+    null,
+    '',
+    window.location.origin + window.location.pathname + query
+  );
 }
 
 Date.now = () => fakeNow;
 
 const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
-fetchMock.get('glob:/json/v2/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
-fetchMock.get('/json/v2/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
+fetchMock.get(
+  'glob:/json/v2/clusterdiff*',
+  delay(clusterDiffJSON, fakeRpcDelayMillis)
+);
+fetchMock.get(
+  '/json/v2/paramset',
+  delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis)
+);
 const detailsResponse: DigestDetails = {
   digest: typicalDetails,
   commits: twoHundredCommits,

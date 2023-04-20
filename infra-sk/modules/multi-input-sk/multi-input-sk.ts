@@ -5,9 +5,9 @@
  * multi-input-sk behaves similarly to <input type="text"> but its value is a
  * string[].
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { $$ } from '../dom';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 
@@ -15,29 +15,29 @@ export class MultiInputSk extends ElementSk {
   private static template = (ele: MultiInputSk) => html`
     <div class="input-container">
       ${ele._values.map(
-    (value: string, index: number) => html`
+        (value: string, index: number) => html`
           <div class="input-item">
             ${value}
             <a
               @click=${() => {
-      ele._values.splice(index, 1);
-      ele._render();
-      ele.dispatchEvent(new Event('change', { bubbles: true }));
-    }}
+                ele._values.splice(index, 1);
+                ele._render();
+                ele.dispatchEvent(new Event('change', { bubbles: true }));
+              }}
             >
               <close-icon-sk></close-icon-sk>
             </a>
           </div>
-        `,
-  )}
+        `
+      )}
       <input type="text" @change=${(ev: Event) => {
-    ev.stopPropagation();
-    const inp = $$<HTMLInputElement>('input', ele)!;
-    ele._values.push(inp.value);
-    inp.value = '';
-    ele._render();
-    ele.dispatchEvent(new Event('change', { bubbles: true }));
-  }}></input>
+        ev.stopPropagation();
+        const inp = $$<HTMLInputElement>('input', ele)!;
+        ele._values.push(inp.value);
+        inp.value = '';
+        ele._render();
+        ele.dispatchEvent(new Event('change', { bubbles: true }));
+      }}></input>
     </div>
   `;
 

@@ -8,8 +8,8 @@
  *     "untriaged", "positive", or "negative".
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
@@ -23,17 +23,11 @@ export class TriconSk extends ElementSk {
   private static template = (ele: TriconSk) => {
     switch (ele.value) {
       case 'positive':
-        return html`
-          <check-circle-icon-sk></check-circle-icon-sk>
-        `;
+        return html` <check-circle-icon-sk></check-circle-icon-sk> `;
       case 'negative':
-        return html`
-          <cancel-icon-sk></cancel-icon-sk>
-        `;
+        return html` <cancel-icon-sk></cancel-icon-sk> `;
       default:
-        return html`
-          <help-icon-sk></help-icon-sk>
-        `;
+        return html` <help-icon-sk></help-icon-sk> `;
     }
   };
 

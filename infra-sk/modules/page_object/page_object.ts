@@ -1,5 +1,9 @@
 import { ElementHandle } from 'puppeteer';
-import { AsyncList, PageObjectElement, PageObjectElementList } from './page_object_element';
+import {
+  AsyncList,
+  PageObjectElement,
+  PageObjectElementList,
+} from './page_object_element';
 
 /**
  * A base class for writing page objects[1] that work both on in-browser and Puppeteer tests.
@@ -29,10 +33,10 @@ export abstract class PageObject {
 
   constructor(
     element:
-          Element |
-          ElementHandle<Element> |
-          Promise<ElementHandle<Element> | null> |
-          PageObjectElement,
+      | Element
+      | ElementHandle<Element>
+      | Promise<ElementHandle<Element> | null>
+      | PageObjectElement
   ) {
     if (element instanceof PageObjectElement) {
       this.element = element;
@@ -64,17 +68,22 @@ export abstract class PageObject {
 
   /** Instantiates a PageObject with the first element that matches the given selector. */
   protected poBySelector<T extends PageObject>(
-    selector: string, ctor: { new(...args: any): T },
+    selector: string,
+    ctor: { new (...args: any): T }
   ): T {
     return new ctor(this.bySelector(selector));
   }
 
   /** Instantiates one PageObject for each element that match the given selector. */
   protected poBySelectorAll<T extends PageObject>(
-    selector: string, ctor: { new(...args: any): T },
+    selector: string,
+    ctor: { new (...args: any): T }
   ): PageObjectList<T> {
-    return new PageObjectList(this.bySelectorAll(selector)
-      .map(async (poe: PageObjectElement) => new ctor(poe)));
+    return new PageObjectList(
+      this.bySelectorAll(selector).map(
+        async (poe: PageObjectElement) => new ctor(poe)
+      )
+    );
   }
 }
 

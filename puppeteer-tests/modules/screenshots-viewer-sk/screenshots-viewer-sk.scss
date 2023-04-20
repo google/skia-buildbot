@@ -5,7 +5,7 @@ screenshots-viewer-sk {
   flex-direction: column;
 
   .main {
-     padding: 0 10px;
+    padding: 0 10px;
   }
 
   .filter {
@@ -14,7 +14,7 @@ screenshots-viewer-sk {
     flex-direction: row;
     gap: 10px;
 
-    input[type="text"] {
+    input[type='text'] {
       width: 200px;
     }
   }

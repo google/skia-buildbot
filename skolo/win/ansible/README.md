@@ -1,5 +1,4 @@
-Windows Skolo Ansible Scripts
------------------------------
+## Windows Skolo Ansible Scripts
 
 See "Windows new bot setup" doc for context.
 

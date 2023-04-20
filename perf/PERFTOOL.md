@@ -23,12 +23,9 @@ perf-tool [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
 
 **--logging**: Turn on logging while running commands.
 
-
 # COMMANDS
 
 ## config
-
-
 
 ### create-pubsub-topics
 
@@ -45,8 +42,6 @@ Validate the given config
 **--config_filename**="": Load configuration from `FILE`
 
 ## tiles
-
-
 
 ### last
 
@@ -71,8 +66,6 @@ Prints the last N tiles and the number of traces they contain.
 **--num**="": The number of tiles to display. (default: 10)
 
 ## traces
-
-
 
 ### list
 
@@ -108,11 +101,7 @@ Writes a JSON files with the traces that match --query for the given range of co
 
 ## ingest
 
-
-
 ### force-reingest
-
-
 
 **--config_filename**="": Load configuration from `FILE`
 
@@ -126,15 +115,11 @@ Writes a JSON files with the traces that match --query for the given range of co
 
 ### validate
 
-
-
 **--in**="": The input filename.
 
 **--verbose**: Verbose output.
 
 ## database
-
-
 
 ### migrate
 
@@ -146,11 +131,7 @@ Migrate the database to the latest version of the schema.
 
 ### backup
 
-
-
 #### alerts
-
-
 
 **--config_filename**="": Load configuration from `FILE`
 
@@ -162,8 +143,6 @@ Migrate the database to the latest version of the schema.
 
 #### shortcuts
 
-
-
 **--config_filename**="": Load configuration from `FILE`
 
 **--connection_string**="": Override the connection string in the config file.
@@ -173,8 +152,6 @@ Migrate the database to the latest version of the schema.
 **--out**="": The output filename.
 
 #### regressions
-
-
 
 **--backup_to_date**="": How far back in time to back up Regressions. Defaults to four weeks.
 
@@ -188,11 +165,7 @@ Migrate the database to the latest version of the schema.
 
 ### restore
 
-
-
 #### alerts
-
-
 
 **--config_filename**="": Load configuration from `FILE`
 
@@ -204,8 +177,6 @@ Migrate the database to the latest version of the schema.
 
 #### shortcuts
 
-
-
 **--config_filename**="": Load configuration from `FILE`
 
 **--connection_string**="": Override the connection string in the config file.
@@ -216,8 +187,6 @@ Migrate the database to the latest version of the schema.
 
 #### regressions
 
-
-
 **--config_filename**="": Load configuration from `FILE`
 
 **--connection_string**="": Override the connection string in the config file.
@@ -227,8 +196,6 @@ Migrate the database to the latest version of the schema.
 **--local**: If true then use gcloud credentials.
 
 ## trybot
-
-
 
 ### reference
 
@@ -255,4 +222,3 @@ Generates markdown help for perf-tool.
 ## help, h
 
 Shows a list of commands or help for one command
-

@@ -3,7 +3,6 @@
 @import '../colors';
 
 bulk-triage-sk {
-
   button {
     &.selected {
       background-color: var(--dark-white);
@@ -31,7 +30,7 @@ bulk-triage-sk {
 
     &.closest {
       &.selected view-agenda-icon-sk {
-        fill: #1F78B4;
+        fill: #1f78b4;
       }
     }
   }

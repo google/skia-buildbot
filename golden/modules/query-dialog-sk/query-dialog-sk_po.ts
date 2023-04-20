@@ -34,17 +34,29 @@ export class QueryDialogSkPO extends PageObject {
     return this.dialog.applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
   }
 
-  async isEmptySelectionMessageVisible() { return !(await this.emptySelectionMessage.isEmpty()); }
+  async isEmptySelectionMessageVisible() {
+    return !(await this.emptySelectionMessage.isEmpty());
+  }
 
-  async isParamSetSkVisible() { return !(await this.paramSetSkPO.isEmpty()); }
+  async isParamSetSkVisible() {
+    return !(await this.paramSetSkPO.isEmpty());
+  }
 
-  async clickKey(key: string) { await this.querySkPO.clickKey(key); }
+  async clickKey(key: string) {
+    await this.querySkPO.clickKey(key);
+  }
 
-  async clickValue(value: string) { await this.querySkPO.clickValue(value); }
+  async clickValue(value: string) {
+    await this.querySkPO.clickValue(value);
+  }
 
-  async clickShowMatchesBtn() { await this.showMatchesBtn.click(); }
+  async clickShowMatchesBtn() {
+    await this.showMatchesBtn.click();
+  }
 
-  async clickCancelBtn() { await this.cancelBtn.click(); }
+  async clickCancelBtn() {
+    await this.cancelBtn.click();
+  }
 
   async getParamSetSkContents() {
     const paramSets = await this.paramSetSkPO.getParamSets();
@@ -52,10 +64,14 @@ export class QueryDialogSkPO extends PageObject {
   }
 
   /** Returns the key/value pairs available for the user to choose from. */
-  async getParamSet() { return this.querySkPO.getParamSet(); }
+  async getParamSet() {
+    return this.querySkPO.getParamSet();
+  }
 
   /** Gets the selected query. */
-  async getSelection() { return this.querySkPO.getCurrentQuery(); }
+  async getSelection() {
+    return this.querySkPO.getCurrentQuery();
+  }
 
   /** Sets the selected query via simulated UI interactions. */
   async setSelection(selection: ParamSet) {

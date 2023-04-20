@@ -16,9 +16,15 @@ import { testOnlySetSettings } from '../settings';
 import { ClusterPageSk } from './cluster-page-sk';
 import { ClusterPageSkPO } from './cluster-page-sk_po';
 import {
-  DigestComparison, DigestDetails, TriageRequestV3, TriageResponse,
+  DigestComparison,
+  DigestDetails,
+  TriageRequestV3,
+  TriageResponse,
 } from '../rpc_types';
-import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
+import {
+  twoHundredCommits,
+  typicalDetails,
+} from '../digest-details-sk/test_data';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('cluster-page-sk', () => {
@@ -37,10 +43,10 @@ describe('cluster-page-sk', () => {
 
     // These are the default RPC calls when the page loads.
     fetchMock.get(
-      '/json/v2/clusterdiff?head=true'
-        + '&include=false&neg=false&pos=false&query=name%3Dsome-test'
-        + '&source_type=infra&unt=false',
-      clusterDiffJSON,
+      '/json/v2/clusterdiff?head=true' +
+        '&include=false&neg=false&pos=false&query=name%3Dsome-test' +
+        '&source_type=infra&unt=false',
+      clusterDiffJSON
     );
     fetchMock.get('/json/v2/paramset', clusterDiffJSON.paramsetsUnion);
     fetchMock.getOnce('/json/v1/groupings', groupingsResponse);
@@ -68,22 +74,20 @@ describe('cluster-page-sk', () => {
   });
 
   it('shows the paramset', async () => {
-    expect(await clusterPageSkPO.paramSetSkPO.getParamSets()).to.deep.equal([{
-      ext: ['png'],
-      gpu: ['AMD', 'nVidia'],
-      name: ['dots-legend-sk_too-many-digests'],
-      source_type: ['infra', 'some-other-corpus'],
-    }]);
+    expect(await clusterPageSkPO.paramSetSkPO.getParamSets()).to.deep.equal([
+      {
+        ext: ['png'],
+        gpu: ['AMD', 'nVidia'],
+        name: ['dots-legend-sk_too-many-digests'],
+        source_type: ['infra', 'some-other-corpus'],
+      },
+    ]);
   });
 
   it('removes corpus and test name from the paramset passed to the search controls', async () => {
     await clusterPageSkPO.searchControlsSkPO.traceFilterSkPO.clickEditBtn();
-    const paramset = await clusterPageSkPO
-      .searchControlsSkPO
-      .traceFilterSkPO
-      .queryDialogSkPO
-      .querySkPO
-      .getParamSet();
+    const paramset =
+      await clusterPageSkPO.searchControlsSkPO.traceFilterSkPO.queryDialogSkPO.querySkPO.getParamSet();
     expect(paramset).to.deep.equal({
       ext: ['png'],
       gpu: ['AMD', 'nVidia'],
@@ -96,19 +100,23 @@ describe('cluster-page-sk', () => {
     // The behaviors spanning across SearchControlsSk, SearchCriteria and SearchResponse are
     // thoroughly tested in search-page-sk_tests.ts. There is no need to repeat those tests here.
 
-    fetchMock.get('/json/v2/clusterdiff?head=false'
-        + '&include=false&neg=false&pos=false&query=name%3Dsome-test'
-        + '&source_type=infra&unt=false',
-    clusterDiffJSON);
+    fetchMock.get(
+      '/json/v2/clusterdiff?head=false' +
+        '&include=false&neg=false&pos=false&query=name%3Dsome-test' +
+        '&source_type=infra&unt=false',
+      clusterDiffJSON
+    );
     await clusterPageSkPO.searchControlsSkPO.clickIncludeDigestsNotAtHeadCheckbox();
-    expectQueryStringToEqual('?corpus=infra'
-        + '&grouping=name%3Dsome-test%26source_type%3Dinfra&max_rgba=255&not_at_head=true');
+    expectQueryStringToEqual(
+      '?corpus=infra' +
+        '&grouping=name%3Dsome-test%26source_type%3Dinfra&max_rgba=255&not_at_head=true'
+    );
   });
 
   it('makes an RPC for details when the selection is changed to one digest', async () => {
     fetchMock.post('/json/v2/details', (url, opts) => {
       expect(opts.body).to.equal(
-        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`,
+        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`
       );
       return {
         status: 200,
@@ -122,7 +130,7 @@ describe('cluster-page-sk', () => {
   it('makes an RPC for a diff when the selection is changed to two digests', async () => {
     fetchMock.post('/json/v2/details', (url, opts) => {
       expect(opts.body).to.equal(
-        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`,
+        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`
       );
       return {
         status: 200,
@@ -132,11 +140,14 @@ describe('cluster-page-sk', () => {
 
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
 
-    fetchMock.get('/json/v2/diff?corpus=infra'
-        + `&left=${positiveDigest}`
-        + `&right=${negativeDigest}&test=some-test`, {
-      'these-details': 'do not matter for this test',
-    });
+    fetchMock.get(
+      '/json/v2/diff?corpus=infra' +
+        `&left=${positiveDigest}` +
+        `&right=${negativeDigest}&test=some-test`,
+      {
+        'these-details': 'do not matter for this test',
+      }
+    );
 
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
   });
@@ -164,7 +175,7 @@ describe('cluster-page-sk', () => {
 
       fetchMock.post(
         { url: '/json/v3/triage', body: triageRequest },
-        { status: 200, body: triageResponse },
+        { status: 200, body: triageResponse }
       );
 
       const digestDetails: DigestDetails = {
@@ -180,7 +191,9 @@ describe('cluster-page-sk', () => {
       await endTask;
 
       endTask = eventPromise('end-task');
-      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
+        'negative'
+      );
       await endTask;
     });
 
@@ -200,7 +213,9 @@ describe('cluster-page-sk', () => {
       await endTask;
 
       endTask = eventPromise('end-task');
-      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
+        'negative'
+      );
       await endTask;
     });
   });

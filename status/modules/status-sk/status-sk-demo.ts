@@ -1,11 +1,18 @@
 import './index';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { getAutorollerStatusesResponse, incrementalResponse0, SetupMocks } from '../rpc-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
+import {
+  getAutorollerStatusesResponse,
+  incrementalResponse0,
+  SetupMocks,
+} from '../rpc-mock';
 import { AlertsStatus } from '../../../perf/modules/json/index';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
-import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
+import {
+  GetClientCountsResponse,
+  StatusData,
+} from '../../../bugs-central/modules/json';
 import {
   treeStatusResp,
   generalRoleResp,
@@ -33,7 +40,9 @@ SetTestSettings({
   ]),
 });
 fetchMock.getOnce('path:/loginstatus/', {});
-fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{ alerts: 5 });
+fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{
+  alerts: 5,
+});
 fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
   corpStatus: [
     { name: 'canvaskit', untriagedCount: 0 },
@@ -45,7 +54,9 @@ fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
     { name: 'svg', untriagedCount: 27 },
   ],
 });
-fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
+fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
+  GetClientCountsResponse
+>{
   clients_to_status_data: {
     Android: <StatusData>{
       untriaged_count: 10,
@@ -61,16 +72,37 @@ fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientC
     },
   },
 });
-fetchMock.getOnce('https://example.com/treestatus/skia/current', treeStatusResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
+fetchMock.getOnce(
+  'https://example.com/treestatus/skia/current',
+  treeStatusResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
+  generalRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener',
+  gpuRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener',
+  androidRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
+  infraRoleResp
+);
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 
 (document.querySelector('#AllFilter') as HTMLElement).click();
 
-document.querySelector('status-sk')!.addEventListener('some-event-name', (e) => {
-  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
-});
+document
+  .querySelector('status-sk')!
+  .addEventListener('some-event-name', (e) => {
+    document.querySelector('#events')!.textContent = JSON.stringify(
+      e,
+      null,
+      '  '
+    );
+  });

@@ -2,8 +2,8 @@
  * @module modules/android-layers-sk
  * @description <h2><code>android-layers-sk</code></h2>
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { LayerInfo } from '../commands-sk/commands-sk';
 
@@ -16,52 +16,60 @@ import {
   InspectLayerEvent,
   JumpCommandEvent,
   JumpCommandEventDetail,
-  JumpInspectLayerEvent, NextItemEventDetail,
+  JumpInspectLayerEvent,
+  NextItemEventDetail,
 } from '../events';
 
 export interface LayerDescription {
-  nodeId: number,
-  frameOfLastUpdate: number,
-  fullRedraw: boolean,
-  layerWidth: number,
-  layerHeight: number
-  name: string,
+  nodeId: number;
+  frameOfLastUpdate: number;
+  fullRedraw: boolean;
+  layerWidth: number;
+  layerHeight: number;
+  name: string;
   // A list of indices of drawImageRectLayer commands that reference this layer
-  usesThisFrame: number[],
-  updatedThisFrame: boolean,
+  usesThisFrame: number[];
+  updatedThisFrame: boolean;
 }
 
 export class AndroidLayersSk extends ElementDocSk {
-  private static template = (ele: AndroidLayersSk) => html`
-      <details open>
-        <summary><b>Offscreen Buffers</b></summary>
-        ${ele._layerList.map(
-    (l: LayerDescription) => AndroidLayersSk.layerTemplate(ele, l),
-  )}
-      </details>`;
+  private static template = (ele: AndroidLayersSk) => html` <details open>
+    <summary><b>Offscreen Buffers</b></summary>
+    ${ele._layerList.map((l: LayerDescription) =>
+      AndroidLayersSk.layerTemplate(ele, l)
+    )}
+  </details>`;
 
-  private static layerTemplate = (ele: AndroidLayersSk, item: LayerDescription) => html`
-    <div class="androidlayerbox ${item.nodeId === ele._inspectedLayer ? 'selected' : ''}">
-      <span class="layername"><b>${item.nodeId}</b>: ${item.name}</span><br>
-      Layer size = <b>(${item.layerWidth}, ${item.layerHeight})</b><br>
+  private static layerTemplate = (
+    ele: AndroidLayersSk,
+    item: LayerDescription
+  ) => html`
+    <div
+      class="androidlayerbox ${item.nodeId === ele._inspectedLayer
+        ? 'selected'
+        : ''}"
+    >
+      <span class="layername"><b>${item.nodeId}</b>: ${item.name}</span><br />
+      Layer size = <b>(${item.layerWidth}, ${item.layerHeight})</b><br />
       Uses this frame = <b>${item.usesThisFrame.length}</b>
       Last update (<b>${item.fullRedraw ? 'full' : 'partial'}</b>) on frame
-        <b>${item.frameOfLastUpdate}</b><br>
-      <cycler-button-sk .text=${'Show Use'} .list=${item.usesThisFrame}
+      <b>${item.frameOfLastUpdate}</b><br />
+      <cycler-button-sk
+        .text=${'Show Use'}
+        .list=${item.usesThisFrame}
         @next-item=${ele._jumpCommand}
-        title="Cycle through drawImageRectLayer commands on this frame which used this surface as\
- a source.">
+        title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source."
+      >
       </cycler-button-sk>
-      <button @click=${() => ele._inspectLayer(item.nodeId, item.frameOfLastUpdate)}
+      <button
+        @click=${() => ele._inspectLayer(item.nodeId, item.frameOfLastUpdate)}
         class="${item.nodeId === ele._inspectedLayer ? 'buttonselected' : ''}"
-        title="Open the SkPicture representing the update on frame ${item.frameOfLastUpdate}.">
-        ${item.nodeId === ele._inspectedLayer
-    ? 'Exit'
-    : 'Inspector'
-        }
+        title="Open the SkPicture representing the update on frame ${item.frameOfLastUpdate}."
+      >
+        ${item.nodeId === ele._inspectedLayer ? 'Exit' : 'Inspector'}
       </button>
     </div>
-    `;
+  `;
 
   private _layerList: LayerDescription[] = [];
 
@@ -118,12 +126,10 @@ export class AndroidLayersSk extends ElementDocSk {
     // The current frame must be set to one which has an update for a layer before opening
     // the inspector for that layer. debugger-page-sk will move the frame if necessary.
     this.dispatchEvent(
-      new CustomEvent<InspectLayerEventDetail>(
-        InspectLayerEvent, {
-          detail: { id: this._inspectedLayer, frame: frame },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<InspectLayerEventDetail>(InspectLayerEvent, {
+        detail: { id: this._inspectedLayer, frame: frame },
+        bubbles: true,
+      })
     );
     this._render();
   }
@@ -135,12 +141,10 @@ export class AndroidLayersSk extends ElementDocSk {
       this._inspectLayer(this._inspectedLayer, this._frame);
     }
     this.dispatchEvent(
-      new CustomEvent<JumpCommandEventDetail>(
-        JumpCommandEvent, {
-          detail: { unfilteredIndex: index },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<JumpCommandEventDetail>(JumpCommandEvent, {
+        detail: { unfilteredIndex: index },
+        bubbles: true,
+      })
     );
   }
 }

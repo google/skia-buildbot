@@ -1,17 +1,19 @@
 import './index';
 
+import { expect } from 'chai';
+import chai from 'chai';
 import { ExpandableTextareaSk } from './expandable-textarea-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { setUpElementUnderTest } from '../test_util';
-import { expect } from 'chai';
-import chai from 'chai';
 import 'chai-dom';
 import chaiDom from 'chai-dom';
 
 chai.use(chaiDom);
 
 describe('expandable-textarea-sk', () => {
-  const newInstance = setUpElementUnderTest<ExpandableTextareaSk>('expandable-textarea-sk');
+  const newInstance = setUpElementUnderTest<ExpandableTextareaSk>(
+    'expandable-textarea-sk'
+  );
 
   let expandableTextareaSk: ExpandableTextareaSk;
   let collapseSk: CollapseSk;

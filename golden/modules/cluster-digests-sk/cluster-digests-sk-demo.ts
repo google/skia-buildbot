@@ -1,7 +1,10 @@
 import './index';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { clusterDiffJSON } from '../cluster-page-sk/test_data';
-import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from './cluster-digests-sk';
+import {
+  ClusterDiffNodeWithLabel,
+  ClusterDigestsSk,
+} from './cluster-digests-sk';
 
 const clusterDigestsSk = new ClusterDigestsSk();
 document.body.querySelector('#cluster')!.appendChild(clusterDigestsSk);

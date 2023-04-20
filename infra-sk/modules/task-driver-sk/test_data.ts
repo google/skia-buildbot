@@ -436,7 +436,11 @@ export const taskDriverData: TaskDriverRunDisplay = {
             {
               type: 'command',
               data: {
-                command: ['git', 'rebase', 'b173bcd1ba3215f3d8aa7384c0b2100c565dd458'],
+                command: [
+                  'git',
+                  'rebase',
+                  'b173bcd1ba3215f3d8aa7384c0b2100c565dd458',
+                ],
               },
               timestamp: '2018-10-22T15:29:49.643240791Z',
             },
@@ -663,7 +667,13 @@ export const taskDriverData: TaskDriverRunDisplay = {
             {
               type: 'command',
               data: {
-                command: ['go', 'run', './run_unittests.go', '--alsologtostderr', '--small'],
+                command: [
+                  'go',
+                  'run',
+                  './run_unittests.go',
+                  '--alsologtostderr',
+                  '--small',
+                ],
                 env: [
                   'CHROME_HEADLESS=1',
                   'GOROOT=/mnt/pd0/s/w/ir/go/go',

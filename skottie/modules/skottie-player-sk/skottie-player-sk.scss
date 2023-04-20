@@ -48,7 +48,7 @@ skottie-player-sk {
     transform: translateX(-50%);
     padding: 0px;
     background: var(--light-gray);
-    transition: bottom .25s ease-in;
+    transition: bottom 0.25s ease-in;
   }
 
   .wrapper:hover > .controls {

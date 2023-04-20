@@ -3,6 +3,6 @@ import { SkPerfConfig } from '../json';
 
 declare global {
   interface Window {
-      perf: SkPerfConfig;
+    perf: SkPerfConfig;
   }
 }

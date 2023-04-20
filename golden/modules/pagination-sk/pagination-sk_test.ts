@@ -1,8 +1,15 @@
 import './index';
 
 import { expect } from 'chai';
-import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { PaginationSk, PaginationSkPageChangedEventDetail } from './pagination-sk';
+import {
+  eventPromise,
+  noEventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
+import {
+  PaginationSk,
+  PaginationSkPageChangedEventDetail,
+} from './pagination-sk';
 import { PaginationSkPO } from './pagination-sk_po';
 
 describe('pagination-sk', () => {
@@ -75,18 +82,27 @@ describe('pagination-sk', () => {
       await noPaginationEvent;
 
       // Still at page 1 because nothing happened.
-      let paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      let paginationEvent =
+        eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>(
+          'page-changed'
+        );
       await paginationSkPO.clickNextBtn();
       expect((await paginationEvent).detail.delta).to.equal(1);
 
       // Still at page 1 because the component does not auto update the offset.
-      paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      paginationEvent =
+        eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>(
+          'page-changed'
+        );
       await paginationSkPO.clickSkipBtn();
       expect((await paginationEvent).detail.delta).to.equal(5);
 
       // Move the offset by one page so as to enable the "prev" button.
       paginationSk.offset = 20;
-      paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      paginationEvent =
+        eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>(
+          'page-changed'
+        );
       await paginationSkPO.clickPrevBtn();
       expect((await paginationEvent).detail.delta).to.equal(-1);
     });

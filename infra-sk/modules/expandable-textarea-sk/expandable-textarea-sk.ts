@@ -11,8 +11,8 @@
  * @attr {number} minRows - Minimum (and initial) rows in the textarea.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 
 import '../autogrow-textarea-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
@@ -25,14 +25,16 @@ import '../../../elements-sk/modules/icons/expand-less-icon-sk';
 
 export class ExpandableTextareaSk extends ElementSk {
   private static template = (ele: ExpandableTextareaSk) => html`
-    <button class=expander @click=${ele.toggle}>
+    <button class="expander" @click=${ele.toggle}>
       ${!ele.open
-    ? html`<expand-more-icon-sk></expand-more-icon-sk>`
-    : html`<expand-less-icon-sk></expand-less-icon-sk>`}${ele.displayText}
+        ? html`<expand-more-icon-sk></expand-more-icon-sk>`
+        : html`<expand-less-icon-sk></expand-less-icon-sk>`}${ele.displayText}
     </button>
     <collapse-sk ?closed=${!ele.open}>
-      <autogrow-textarea-sk placeholder=${ele.placeholder}
-        minRows=${ele.minRows}></autogrow-textarea-sk>
+      <autogrow-textarea-sk
+        placeholder=${ele.placeholder}
+        minRows=${ele.minRows}
+      ></autogrow-textarea-sk>
     </collapse-sk>
   `;
 

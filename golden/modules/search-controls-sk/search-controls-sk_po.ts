@@ -46,7 +46,7 @@ export class SearchControlsSkPO extends PageObject {
 
   async isIncludePositiveDigestsCheckboxChecked() {
     return this.includePositiveDigestsCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked,
+      (c) => (c as CheckOrRadio).checked
     );
   }
 
@@ -55,8 +55,9 @@ export class SearchControlsSkPO extends PageObject {
   }
 
   async isIncludeNegativeDigestsCheckboxChecked() {
-    return this.includeNegativeDigestsCheckBox
-      .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.includeNegativeDigestsCheckBox.applyFnToDOMNode(
+      (c) => (c as CheckOrRadio).checked
+    );
   }
 
   async clickIncludeNegativeDigestsCheckbox() {
@@ -65,7 +66,7 @@ export class SearchControlsSkPO extends PageObject {
 
   async isIncludeUntriagedDigestsCheckboxChecked() {
     return this.includeUntriagedDigestsCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked,
+      (c) => (c as CheckOrRadio).checked
     );
   }
 
@@ -75,7 +76,7 @@ export class SearchControlsSkPO extends PageObject {
 
   async isIncludeDigestsNotAtHeadCheckboxChecked() {
     return this.includeDigestsNotAtHeadCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked,
+      (c) => (c as CheckOrRadio).checked
     );
   }
 
@@ -85,7 +86,7 @@ export class SearchControlsSkPO extends PageObject {
 
   async isIncludeIgnoredDigestsCheckboxChecked() {
     return this.includeIgnoredDigestsCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked,
+      (c) => (c as CheckOrRadio).checked
     );
   }
 
@@ -93,7 +94,9 @@ export class SearchControlsSkPO extends PageObject {
     await this.includeIgnoredDigestsCheckBox.click();
   }
 
-  async clickMoreFiltersBtn() { await this.moreFiltersBtn.click(); }
+  async clickMoreFiltersBtn() {
+    await this.moreFiltersBtn.click();
+  }
 
   /**
    * Gets the search criteria via simulated UI interactions.
@@ -102,13 +105,20 @@ export class SearchControlsSkPO extends PageObject {
    */
   async getSearchCriteria() {
     const searchCriteria: Partial<SearchCriteria> = {};
-    searchCriteria.corpus = (await this.corpusSelectorSkPO.getSelectedCorpus())!;
-    searchCriteria.leftHandTraceFilter = await this.traceFilterSkPO.getSelection();
-    searchCriteria.includePositiveDigests = await this.isIncludePositiveDigestsCheckboxChecked();
-    searchCriteria.includeNegativeDigests = await this.isIncludeNegativeDigestsCheckboxChecked();
-    searchCriteria.includeUntriagedDigests = await this.isIncludeUntriagedDigestsCheckboxChecked();
-    searchCriteria.includeDigestsNotAtHead = await this.isIncludeDigestsNotAtHeadCheckboxChecked();
-    searchCriteria.includeIgnoredDigests = await this.isIncludeIgnoredDigestsCheckboxChecked();
+    searchCriteria.corpus =
+      (await this.corpusSelectorSkPO.getSelectedCorpus())!;
+    searchCriteria.leftHandTraceFilter =
+      await this.traceFilterSkPO.getSelection();
+    searchCriteria.includePositiveDigests =
+      await this.isIncludePositiveDigestsCheckboxChecked();
+    searchCriteria.includeNegativeDigests =
+      await this.isIncludeNegativeDigestsCheckboxChecked();
+    searchCriteria.includeUntriagedDigests =
+      await this.isIncludeUntriagedDigestsCheckboxChecked();
+    searchCriteria.includeDigestsNotAtHead =
+      await this.isIncludeDigestsNotAtHeadCheckboxChecked();
+    searchCriteria.includeIgnoredDigests =
+      await this.isIncludeIgnoredDigestsCheckboxChecked();
 
     // More filters dialog.
     await this.clickMoreFiltersBtn();
@@ -129,42 +139,57 @@ export class SearchControlsSkPO extends PageObject {
    * Analogous to the searchCriteria property setter.
    */
   async setSearchCriteria(searchCriteria: SearchCriteria) {
-    if (await this.corpusSelectorSkPO.getSelectedCorpus() !== searchCriteria.corpus) {
+    if (
+      (await this.corpusSelectorSkPO.getSelectedCorpus()) !==
+      searchCriteria.corpus
+    ) {
       await this.corpusSelectorSkPO.clickCorpus(searchCriteria.corpus);
     }
 
     // Left-hand traces.
     await this.traceFilterSkPO.clickEditBtn();
-    await this.traceFilterSkPO.setQueryDialogSkSelection(searchCriteria.leftHandTraceFilter);
+    await this.traceFilterSkPO.setQueryDialogSkSelection(
+      searchCriteria.leftHandTraceFilter
+    );
     await this.traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
     // Include positive digests.
-    if (await this.isIncludePositiveDigestsCheckboxChecked()
-        !== searchCriteria.includePositiveDigests) {
+    if (
+      (await this.isIncludePositiveDigestsCheckboxChecked()) !==
+      searchCriteria.includePositiveDigests
+    ) {
       await this.clickIncludePositiveDigestsCheckbox();
     }
 
     // Include negative digests.
-    if (await this.isIncludeNegativeDigestsCheckboxChecked()
-        !== searchCriteria.includeNegativeDigests) {
+    if (
+      (await this.isIncludeNegativeDigestsCheckboxChecked()) !==
+      searchCriteria.includeNegativeDigests
+    ) {
       await this.clickIncludeNegativeDigestsCheckbox();
     }
 
     // Include untriaged digests.
-    if (await this.isIncludeUntriagedDigestsCheckboxChecked()
-        !== searchCriteria.includeUntriagedDigests) {
+    if (
+      (await this.isIncludeUntriagedDigestsCheckboxChecked()) !==
+      searchCriteria.includeUntriagedDigests
+    ) {
       await this.clickIncludeUntriagedDigestsCheckbox();
     }
 
     // Include digests not at head.
-    if (await this.isIncludeDigestsNotAtHeadCheckboxChecked()
-        !== searchCriteria.includeDigestsNotAtHead) {
+    if (
+      (await this.isIncludeDigestsNotAtHeadCheckboxChecked()) !==
+      searchCriteria.includeDigestsNotAtHead
+    ) {
       await this.clickIncludeDigestsNotAtHeadCheckbox();
     }
 
     // Include ignored digests.
-    if (await this.isIncludeIgnoredDigestsCheckboxChecked()
-    !== searchCriteria.includeIgnoredDigests) {
+    if (
+      (await this.isIncludeIgnoredDigestsCheckboxChecked()) !==
+      searchCriteria.includeIgnoredDigests
+    ) {
       await this.clickIncludeIgnoredDigestsCheckbox();
     }
 

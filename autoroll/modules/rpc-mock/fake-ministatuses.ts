@@ -125,7 +125,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-airmont-chromium',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-airmont-85-4170.0-1592821839-benchmark-85.0.41813-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-airmont-85-4170.0-1592821839-benchmark-85.0.41813-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Airmont AFDO profile',
@@ -135,7 +136,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-airmont-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-airmont-84-4147.51-1592823077-benchmark-84.0.414773-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-airmont-84-4147.51-1592823077-benchmark-84.0.414773-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Airmont AFDO profile',
@@ -145,7 +147,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-airmont-chromium-stable',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-airmont-83-4103.112-1592823658-benchmark-83.0.4103119-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-airmont-83-4103.112-1592823658-benchmark-83.0.4103119-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Airmont AFDO profile',
@@ -155,7 +158,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-broadwell-chromium',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-broadwell-85-4161.0-1592818623-benchmark-85.0.41813-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-broadwell-85-4161.0-1592818623-benchmark-85.0.41813-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Broadwell AFDO profile',
@@ -165,7 +169,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-broadwell-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-broadwell-84-4147.51-1592819553-benchmark-84.0.414773-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-broadwell-84-4147.51-1592819553-benchmark-84.0.414773-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Broadwell AFDO profile',
@@ -175,7 +180,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-broadwell-chromium-stable',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-broadwell-83-4103.97-1592819197-benchmark-83.0.4103119-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-broadwell-83-4103.97-1592819197-benchmark-83.0.4103119-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Broadwell AFDO profile',
@@ -185,7 +191,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-silvermont-chromium',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-silvermont-85-4170.0-1592820725-benchmark-85.0.41813-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-silvermont-85-4170.0-1592820725-benchmark-85.0.41813-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Silvermont AFDO profile',
@@ -195,7 +202,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-silvermont-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-silvermont-84-4147.51-1592820349-benchmark-84.0.414773-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-silvermont-84-4147.51-1592820349-benchmark-84.0.414773-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Silvermont AFDO profile',
@@ -205,7 +213,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-afdo-silvermont-chromium-stable',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-amd64-silvermont-83-4103.112-1592819884-benchmark-83.0.4103119-r1-redacted.afdo.xz',
+      lastRollRev:
+        'chromeos-chrome-amd64-silvermont-83-4103.112-1592819884-benchmark-83.0.4103119-r1-redacted.afdo.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Silvermont AFDO profile',
@@ -215,7 +224,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-orderfile-chromium',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-orderfile-field-85-4170.0-1592820725-benchmark-85.0.4181.3-r1orderfile.xz',
+      lastRollRev:
+        'chromeos-chrome-orderfile-field-85-4170.0-1592820725-benchmark-85.0.4181.3-r1orderfile.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Orderfiles',
@@ -225,7 +235,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-orderfile-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-orderfile-field-84-4147.51-1592820349-benchmark-84.0.414773-r1.orderfile.xz',
+      lastRollRev:
+        'chromeos-chrome-orderfile-field-84-4147.51-1592820349-benchmark-84.0.414773-r1.orderfile.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Orderfiles',
@@ -235,7 +246,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'cros-orderfile-chromium-stable',
       currentRollRev: '',
-      lastRollRev: 'chromeos-chrome-orderfile-field-83-4103.97-1592216557-benchmark-83.0.4103117-r1.orderfile.xz',
+      lastRollRev:
+        'chromeos-chrome-orderfile-field-83-4103.97-1592216557-benchmark-83.0.4103117-r1.orderfile.xz',
       numFailed: 0,
       numBehind: 0,
       childName: 'ChromeOS Orderfiles',
@@ -655,7 +667,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'perfetto-trace-processor-linux-chromium',
       currentRollRev: '',
-      lastRollRev: 'perfetto_binaries/trace_processor_shell/linux47c3c7a55be5a9640d444b1e7826c469796675a5/trace_processor_shell',
+      lastRollRev:
+        'perfetto_binaries/trace_processor_shell/linux47c3c7a55be5a9640d444b1e7826c469796675a5/trace_processor_shell',
       numFailed: 0,
       numBehind: 0,
       childName: 'Perfetto Trace Processor Linux',
@@ -665,7 +678,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'perfetto-trace-processor-mac-chromium',
       currentRollRev: '',
-      lastRollRev: 'perfetto_binaries/trace_processor_shell/mac15131138169a31c1332e7e13914c370e2e5c816e/trace_processor_shell',
+      lastRollRev:
+        'perfetto_binaries/trace_processor_shell/mac15131138169a31c1332e7e13914c370e2e5c816e/trace_processor_shell',
       numFailed: 0,
       numBehind: 0,
       childName: 'Perfetto Trace Processor Mac',
@@ -675,7 +689,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'perfetto-trace-processor-win-chromium',
       currentRollRev: '',
-      lastRollRev: 'perfetto_binaries/trace_processor_shell/win47c3c7a55be5a9640d444b1e7826c469796675a5/trace_processor_shell.exe',
+      lastRollRev:
+        'perfetto_binaries/trace_processor_shell/win47c3c7a55be5a9640d444b1e7826c469796675a5/trace_processor_shell.exe',
       numFailed: 0,
       numBehind: 0,
       childName: 'Perfetto Trace Processor Win',
@@ -684,8 +699,10 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     },
     {
       rollerId: 'pgo-mac-chromium',
-      currentRollRev: 'chrome-mac-master-1593582825-995d8e78b6c8ff09ef0a8c1c9fd4830db0669287.profdata',
-      lastRollRev: 'chrome-mac-master-1593561487-f93d00b844fcb3a1b3a03cdb0ab1966b81282397.profdata',
+      currentRollRev:
+        'chrome-mac-master-1593582825-995d8e78b6c8ff09ef0a8c1c9fd4830db0669287.profdata',
+      lastRollRev:
+        'chrome-mac-master-1593561487-f93d00b844fcb3a1b3a03cdb0ab1966b81282397.profdata',
       numFailed: 0,
       numBehind: 2,
       childName: 'Chrome Mac PGO profile',
@@ -695,7 +712,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-mac-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chrome-mac-4147-1590507938-4068f0fc133424a023d4dd8ed3d45ba11cc79dc8.profdata',
+      lastRollRev:
+        'chrome-mac-4147-1590507938-4068f0fc133424a023d4dd8ed3d45ba11cc79dc8.profdata',
       numFailed: 0,
       numBehind: 67,
       childName: 'Chrome Mac PGO profile',
@@ -704,8 +722,10 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     },
     {
       rollerId: 'pgo-win32-chromium',
-      currentRollRev: 'chrome-win32-master-1593579595-41b97eeea78dc3dd5933ae86ef98a1dfcf4a47b5.profdata',
-      lastRollRev: 'chrome-win32-master-1592964003-9ddbb03b2a49f9cdb1031f0ca4d2168e3c19b2de.profdata',
+      currentRollRev:
+        'chrome-win32-master-1593579595-41b97eeea78dc3dd5933ae86ef98a1dfcf4a47b5.profdata',
+      lastRollRev:
+        'chrome-win32-master-1592964003-9ddbb03b2a49f9cdb1031f0ca4d2168e3c19b2de.profdata',
       numFailed: 9,
       numBehind: 30,
       childName: 'Chrome Win32 PGO profile',
@@ -715,7 +735,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-win32-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chrome-win32-4147-1589956987-e649980210d29d0154d23124ef0dc054ae5123ce.profdata',
+      lastRollRev:
+        'chrome-win32-4147-1589956987-e649980210d29d0154d23124ef0dc054ae5123ce.profdata',
       numFailed: 10,
       numBehind: 54,
       childName: 'Chrome Win32 PGO profile',
@@ -724,8 +745,10 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     },
     {
       rollerId: 'pgo-win64-chromium',
-      currentRollRev: 'chrome-win64-master-1593539505-cfe66a1bbbde44f7bb54335b0509e9000170ecf3.profdata',
-      lastRollRev: 'chrome-win64-master-1593496775-0ea9a3b4c746de291f2e1d9684ad233ef06add08.profdata',
+      currentRollRev:
+        'chrome-win64-master-1593539505-cfe66a1bbbde44f7bb54335b0509e9000170ecf3.profdata',
+      lastRollRev:
+        'chrome-win64-master-1593496775-0ea9a3b4c746de291f2e1d9684ad233ef06add08.profdata',
       numFailed: 1,
       numBehind: 2,
       childName: 'Chrome Win64 PGO profile',
@@ -735,7 +758,8 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-win64-chromium-beta',
       currentRollRev: '',
-      lastRollRev: 'chrome-win64-4147-1590479906-291af69463e19a8b478aca46aa1f76a6402f5638.profdata',
+      lastRollRev:
+        'chrome-win64-4147-1590479906-291af69463e19a8b478aca46aa1f76a6402f5638.profdata',
       numFailed: 0,
       numBehind: 31,
       childName: 'Chrome Win64 PGO profile',

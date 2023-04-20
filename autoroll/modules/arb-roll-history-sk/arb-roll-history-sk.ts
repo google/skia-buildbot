@@ -24,47 +24,68 @@ import {
 
 export class ARBRollHistorySk extends ElementSk {
   private static template = (ele: ARBRollHistorySk) => html`
-  <a href="/r/${ele.roller}" class="small">back to roller status</a>
-  <br/>
-  <table>
-  <tr>
-    <th>Roll</th>
-    <th>Creation Time</th>
-    <th>Result</th>
-  </tr>
-  ${ele.history.map((roll: AutoRollCL) => html`
+    <a href="/r/${ele.roller}" class="small">back to roller status</a>
+    <br />
+    <table>
       <tr>
-        <td>
-          ${ele.issueURLBase != "" ? html`
-            <a href="${ele.issueURL(roll)}" target="_blank">${roll.subject}</a>
-          ` : html`
-            ${roll.subject}
-          ` }
-        </td>
-        <td><human-date-sk .date="${roll.created}" .diff="${true}"></human-date-sk></td>
-        <td>
-          <span class="${ele.rollClass(roll)}">${roll.result}</span>
-        </td>
+        <th>Roll</th>
+        <th>Creation Time</th>
+        <th>Result</th>
       </tr>
-    `,
-  )}
-  </table>
-  <br/>
-  <button
-    @click="${() => { ele.loadPrevious(); }}"
-    ?disabled="${!ele.canLoadPrevious}"
-    >Previous</button>
-  <button
-    @click="${() => { ele.loadNext(); }}"
-    ?disabled="${!ele.canLoadNext}"
-    >Next</button>
-`;
+      ${ele.history.map(
+        (roll: AutoRollCL) => html`
+          <tr>
+            <td>
+              ${ele.issueURLBase != ''
+                ? html`
+                    <a href="${ele.issueURL(roll)}" target="_blank"
+                      >${roll.subject}</a
+                    >
+                  `
+                : html` ${roll.subject} `}
+            </td>
+            <td>
+              <human-date-sk
+                .date="${roll.created}"
+                .diff="${true}"
+              ></human-date-sk>
+            </td>
+            <td>
+              <span class="${ele.rollClass(roll)}">${roll.result}</span>
+            </td>
+          </tr>
+        `
+      )}
+    </table>
+    <br />
+    <button
+      @click="${() => {
+        ele.loadPrevious();
+      }}"
+      ?disabled="${!ele.canLoadPrevious}"
+    >
+      Previous
+    </button>
+    <button
+      @click="${() => {
+        ele.loadNext();
+      }}"
+      ?disabled="${!ele.canLoadNext}"
+    >
+      Next
+    </button>
+  `;
 
   private history: AutoRollCL[] = [];
-  private cursorHistory: string[] = [""]; // [..., prevCursor, currentCursor, nextCursor]
+
+  private cursorHistory: string[] = ['']; // [..., prevCursor, currentCursor, nextCursor]
+
   private canLoadPrevious: boolean = false;
+
   private canLoadNext: boolean = false;
-  private issueURLBase: string = "";
+
+  private issueURLBase: string = '';
+
   private rpc: AutoRollService;
 
   constructor() {
@@ -75,7 +96,7 @@ export class ARBRollHistorySk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this.loadStatus();
-    this.load("");
+    this.load('');
   }
 
   get roller() {
@@ -84,8 +105,8 @@ export class ARBRollHistorySk extends ElementSk {
 
   set roller(v: string) {
     this.setAttribute('roller', v);
-    this.cursorHistory = [""];
-    this.load("");
+    this.cursorHistory = [''];
+    this.load('');
   }
 
   // TODO(borenet): Share this code with arb-status-sk.
@@ -123,7 +144,8 @@ export class ARBRollHistorySk extends ElementSk {
     this.rpc.getRolls(req).then((resp: GetRollsResponse) => {
       this.history = resp.rolls!;
       this.cursorHistory.push(resp.cursor);
-      this.canLoadNext = this.cursorHistory[this.cursorHistory.length - 1] != "";
+      this.canLoadNext =
+        this.cursorHistory[this.cursorHistory.length - 1] != '';
       this.canLoadPrevious = this.cursorHistory.length > 2;
       this._render();
     });
@@ -141,15 +163,20 @@ export class ARBRollHistorySk extends ElementSk {
       return;
     }
     // [..., previous, current, next] => [..., previous]
-    this.cursorHistory = this.cursorHistory.slice(0, this.cursorHistory.length - 2);
+    this.cursorHistory = this.cursorHistory.slice(
+      0,
+      this.cursorHistory.length - 2
+    );
     this.load(this.cursorHistory[this.cursorHistory.length - 1]);
   }
 
   private loadStatus() {
-    this.rpc.getStatus({ rollerId: this.roller }).then((resp: GetStatusResponse) => {
-      this.issueURLBase = resp.status!.issueUrlBase;
-      this._render();
-    });
+    this.rpc
+      .getStatus({ rollerId: this.roller })
+      .then((resp: GetStatusResponse) => {
+        this.issueURLBase = resp.status!.issueUrlBase;
+        this._render();
+      });
   }
 }
 

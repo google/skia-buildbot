@@ -22,7 +22,11 @@ describe('bugs-central-scaffold-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'bugs-central', 'bugs-central-scaffold-sk');
+      await takeScreenshot(
+        testBed.page,
+        'bugs-central',
+        'bugs-central-scaffold-sk'
+      );
     });
   });
 });

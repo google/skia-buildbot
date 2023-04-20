@@ -5,8 +5,8 @@
  * A dialog that displays all bugs that are outside SLO.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 
 import { $$ } from '../../../infra-sk/modules/dom';
 
@@ -23,11 +23,11 @@ export class BugsSLOPopupSk extends ElementSk {
   }
 
   private static template = (el: BugsSLOPopupSk) => html`
-    <dialog class=slo-dialog>
-      <button class=done @click=${el.closeClicked}>Close</button>
+    <dialog class="slo-dialog">
+      <button class="done" @click=${el.closeClicked}>Close</button>
       ${el.displayIssues()}
     </dialog>
-    `;
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -53,17 +53,15 @@ export class BugsSLOPopupSk extends ElementSk {
         issuesHTML.push(html`
           <tr>
             <td>
-              <a href=${issue.link} target=_blank>${issue.id}</a>
+              <a href=${issue.link} target="_blank">${issue.id}</a>
             </td>
-            <td>
-              ${issue.slo_violation_reason}
-            </td>
+            <td>${issue.slo_violation_reason}</td>
           </tr>
         `);
       });
       prioritiesHTML.push(html`
-        <span class=priority-name>Priority: ${priority}</span>
-        <table class=slo-table>
+        <span class="priority-name">Priority: ${priority}</span>
+        <table class="slo-table">
           ${issuesHTML}
         </table>
       `);

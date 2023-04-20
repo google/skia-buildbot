@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import {
   loadCachedTestBed,
-  takeScreenshot, TestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('textarea-numbers-sk', () => {
@@ -29,7 +30,7 @@ describe('textarea-numbers-sk', () => {
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_cleared',
+        'textarea-numbers-sk_cleared'
       );
     });
 
@@ -38,7 +39,7 @@ describe('textarea-numbers-sk', () => {
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_default-fold',
+        'textarea-numbers-sk_default-fold'
       );
     });
 
@@ -48,7 +49,7 @@ describe('textarea-numbers-sk', () => {
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_expand-outer-fold',
+        'textarea-numbers-sk_expand-outer-fold'
       );
     });
 
@@ -59,7 +60,7 @@ describe('textarea-numbers-sk', () => {
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_expand-inner-fold',
+        'textarea-numbers-sk_expand-inner-fold'
       );
     });
   });

@@ -1,4 +1,4 @@
-import { $, $$ } from '../../../infra-sk/modules/dom';
+import { $, $$ } from '../dom';
 import './index';
 import { UniformGenericSk } from './uniform-generic-sk';
 

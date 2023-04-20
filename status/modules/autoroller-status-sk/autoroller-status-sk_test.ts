@@ -1,6 +1,6 @@
 import './index';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { AutorollerStatusSk } from './autoroller-status-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
@@ -8,7 +8,7 @@ import { getAutorollerStatusesResponse, SetupMocks } from '../rpc-mock';
 
 describe('autoroller-status-sk', () => {
   const newInstance = setUpElementUnderTest<AutorollerStatusSk>(
-    'autoroller-status-sk',
+    'autoroller-status-sk'
   );
 
   let element: AutorollerStatusSk;

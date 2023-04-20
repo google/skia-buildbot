@@ -10,8 +10,8 @@
  *    alert, cluster_type, full_summary, and triage.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FullSummary, TriageStatus, Alert } from '../json';
@@ -48,14 +48,14 @@ export class TriageStatusSk extends ElementSk {
   }
 
   private static template = (ele: TriageStatusSk) => html`
-  <button
-    title=${ele.triage.message}
-    @click=${ele._start_triage}
-    class=${ele.triage.status}
-  >
-    <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
-  </button>
-`;
+    <button
+      title=${ele.triage.message}
+      @click=${ele._start_triage}
+      class=${ele.triage.status}
+    >
+      <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
+    </button>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -78,7 +78,7 @@ export class TriageStatusSk extends ElementSk {
       new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', {
         detail,
         bubbles: true,
-      }),
+      })
     );
   }
 

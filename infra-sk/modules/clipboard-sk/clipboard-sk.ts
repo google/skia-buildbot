@@ -12,9 +12,9 @@
  * @attr value - The content to put into the clipboard.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { define } from '../../../elements-sk/modules/define';
+import { $$ } from '../dom';
 import { ElementSk } from '../ElementSk';
 
 import '../../../elements-sk/modules/icons/content-copy-icon-sk';
@@ -35,25 +35,23 @@ export class ClipboardSk extends ElementSk {
   private tooltip: TooltipSk | null = null;
 
   /** If the value to be copied is expensive to calculate then compute the value
-    * in the `calculatedValue` function. See `clipboard-sk-demo.ts` for an
-    * example.
-    * */
-  calculatedValue: (()=> Promise<string>) | null = null;
+   * in the `calculatedValue` function. See `clipboard-sk-demo.ts` for an
+   * example.
+   * */
+  calculatedValue: (() => Promise<string>) | null = null;
 
   constructor() {
     super(ClipboardSk.template);
   }
 
-  private static template = (ele: ClipboardSk) => html`
-  <content-copy-icon-sk
-    id=${ele.icon_id}
-    @click=${() => ele.copyToClipboard()}
-    @mouseleave=${() => ele.restoreToolTipMessage()}>
-  </content-copy-icon-sk>
-  <tooltip-sk
-    target=${ele.icon_id}
-    value=${defaultToolTipMessage}>
-  </tooltip-sk>`;
+  private static template = (ele: ClipboardSk) => html` <content-copy-icon-sk
+      id=${ele.icon_id}
+      @click=${() => ele.copyToClipboard()}
+      @mouseleave=${() => ele.restoreToolTipMessage()}
+    >
+    </content-copy-icon-sk>
+    <tooltip-sk target=${ele.icon_id} value=${defaultToolTipMessage}>
+    </tooltip-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -81,9 +79,13 @@ export class ClipboardSk extends ElementSk {
   }
 
   /** @prop value {string} The content to put into the clipboard. */
-  get value(): string { return this.getAttribute('value') || ''; }
+  get value(): string {
+    return this.getAttribute('value') || '';
+  }
 
-  set value(val: string) { this.setAttribute('value', val); }
+  set value(val: string) {
+    this.setAttribute('value', val);
+  }
 }
 
 define('clipboard-sk', ClipboardSk);

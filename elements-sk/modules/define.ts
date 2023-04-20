@@ -41,9 +41,9 @@ export function define(tagName: string, cl: CustomElementConstructor): void {
     window.customElements.define(tagName, cl);
   } else {
     console.log(
-      `Multiple registration attempts for ${tagName}. `
-      + 'This should only happen during testing, '
-      + 'it\'s probably an error outside of testing.',
+      `Multiple registration attempts for ${tagName}. ` +
+        'This should only happen during testing, ' +
+        "it's probably an error outside of testing."
     );
   }
 }

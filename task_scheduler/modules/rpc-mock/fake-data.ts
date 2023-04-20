@@ -1,7 +1,5 @@
 import { Job, Task } from '../rpc';
-import {
-  TaskStatus, JobStatus, RepoState, SkipTaskRule,
-} from '../rpc/rpc';
+import { TaskStatus, JobStatus, RepoState, SkipTaskRule } from '../rpc/rpc';
 
 // This is an arbitrary date which happens to be after all of the other
 // timestamps listed in this file.

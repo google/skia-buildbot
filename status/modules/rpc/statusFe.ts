@@ -10,7 +10,9 @@ interface IncrementalCommitsRequestJSON {
   to?: string;
 }
 
-const IncrementalCommitsRequestToJSON = (m: IncrementalCommitsRequest): IncrementalCommitsRequestJSON => ({
+const IncrementalCommitsRequestToJSON = (
+  m: IncrementalCommitsRequest
+): IncrementalCommitsRequestJSON => ({
   from: m.from,
   to: m.to,
 });
@@ -25,13 +27,17 @@ interface IncrementalCommitsResponseJSON {
   data?: string[];
 }
 
-const JSONToIncrementalCommitsResponse = (m: IncrementalCommitsResponseJSON): IncrementalCommitsResponse => ({
+const JSONToIncrementalCommitsResponse = (
+  m: IncrementalCommitsResponseJSON
+): IncrementalCommitsResponse => ({
   metadata: m.metadata || '',
   data: m.data,
 });
 
 export interface StatusFe {
-  getIncrementalCommits: (incrementalCommitsRequest: IncrementalCommitsRequest)=> Promise<IncrementalCommitsResponse>;
+  getIncrementalCommits: (
+    incrementalCommitsRequest: IncrementalCommitsRequest
+  ) => Promise<IncrementalCommitsResponse>;
 }
 
 export class StatusFeClient implements StatusFe {
@@ -45,25 +51,35 @@ export class StatusFeClient implements StatusFe {
 
   private optionsOverride: object;
 
-  constructor(hostname: string, fetch: Fetch, writeCamelCase = false, optionsOverride: any = {}) {
+  constructor(
+    hostname: string,
+    fetch: Fetch,
+    writeCamelCase = false,
+    optionsOverride: any = {}
+  ) {
     this.hostname = hostname;
     this.fetch = fetch;
     this.writeCamelCase = writeCamelCase;
     this.optionsOverride = optionsOverride;
   }
 
-  getIncrementalCommits(incrementalCommitsRequest: IncrementalCommitsRequest): Promise<IncrementalCommitsResponse> {
+  getIncrementalCommits(
+    incrementalCommitsRequest: IncrementalCommitsRequest
+  ): Promise<IncrementalCommitsResponse> {
     const url = `${this.hostname + this.pathPrefix}GetIncrementalCommits`;
-    let body: IncrementalCommitsRequest | IncrementalCommitsRequestJSON = incrementalCommitsRequest;
+    let body: IncrementalCommitsRequest | IncrementalCommitsRequestJSON =
+      incrementalCommitsRequest;
     if (!this.writeCamelCase) {
       body = IncrementalCommitsRequestToJSON(incrementalCommitsRequest);
     }
-    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
-      if (!resp.ok) {
-        return throwTwirpError(resp);
-      }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then(
+      (resp) => {
+        if (!resp.ok) {
+          return throwTwirpError(resp);
+        }
 
-      return resp.json().then(JSONToIncrementalCommitsResponse);
-    });
+        return resp.json().then(JSONToIncrementalCommitsResponse);
+      }
+    );
   }
 }

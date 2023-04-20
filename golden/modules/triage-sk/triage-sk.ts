@@ -13,29 +13,35 @@
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Label } from '../rpc_types';
 
 export class TriageSk extends ElementSk {
   private static template = (el: TriageSk) => html`
-    <button class="positive ${el.value === 'positive' ? 'selected' : ''}"
-            @click=${() => el.buttonClicked('positive')}
-            ?disabled=${el._readOnly}
-            title="Triage the left-hand image as positive.">
+    <button
+      class="positive ${el.value === 'positive' ? 'selected' : ''}"
+      @click=${() => el.buttonClicked('positive')}
+      ?disabled=${el._readOnly}
+      title="Triage the left-hand image as positive."
+    >
       <check-circle-icon-sk></check-circle-icon-sk>
     </button>
-    <button class="negative ${el.value === 'negative' ? 'selected' : ''}"
-            @click=${() => el.buttonClicked('negative')}
-            ?disabled=${el._readOnly}
-            title="Triage the left-hand image as negative.">
+    <button
+      class="negative ${el.value === 'negative' ? 'selected' : ''}"
+      @click=${() => el.buttonClicked('negative')}
+      ?disabled=${el._readOnly}
+      title="Triage the left-hand image as negative."
+    >
       <cancel-icon-sk></cancel-icon-sk>
     </button>
-    <button class="untriaged ${el.value === 'untriaged' ? 'selected' : ''}"
-            @click=${() => el.buttonClicked('untriaged')}
-            ?disabled=${el._readOnly}
-            title="Unset the triage status of the left-hand image.">
+    <button
+      class="untriaged ${el.value === 'untriaged' ? 'selected' : ''}"
+      @click=${() => el.buttonClicked('untriaged')}
+      ?disabled=${el._readOnly}
+      title="Unset the triage status of the left-hand image."
+    >
       <help-icon-sk></help-icon-sk>
     </button>
   `;
@@ -77,7 +83,7 @@ export class TriageSk extends ElementSk {
     }
     this.value = newValue;
     this.dispatchEvent(
-      new CustomEvent<Label>('change', { detail: newValue, bubbles: true }),
+      new CustomEvent<Label>('change', { detail: newValue, bubbles: true })
     );
   }
 }

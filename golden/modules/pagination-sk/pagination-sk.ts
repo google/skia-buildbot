@@ -22,7 +22,6 @@ import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-
 // MANY (2^31-1, aka math.MaxInt32) is a special value meaning the
 // server doesn't know how many items there are, only that it's more
 // than are currently being displayed.
@@ -34,25 +33,29 @@ export interface PaginationSkPageChangedEventDetail {
 
 export class PaginationSk extends ElementSk {
   private static _template = (ele: PaginationSk) => html`
-    <button ?disabled=${ele._currPage() <= 1}
-            title="Go to previous page of results."
-            @click=${() => ele._page(-1)}
-            class="prev">
+    <button
+      ?disabled=${ele._currPage() <= 1}
+      title="Go to previous page of results."
+      @click=${() => ele._page(-1)}
+      class="prev"
+    >
       Prev
     </button>
-    <div class=counter>
-      page ${ele._currPage()}
-    </div>
-    <button ?disabled=${!ele._canGoNext(ele.offset + ele.page_size)}
-            title="Go to next page of results."
-            @click=${() => ele._page(1)}
-            class="next">
+    <div class="counter">page ${ele._currPage()}</div>
+    <button
+      ?disabled=${!ele._canGoNext(ele.offset + ele.page_size)}
+      title="Go to next page of results."
+      @click=${() => ele._page(1)}
+      class="next"
+    >
       Next
     </button>
-    <button ?disabled=${!ele._canGoNext(ele.offset + 5 * ele.page_size)}
-            title="Skip forward 5 pages of results."
-            @click=${() => ele._page(5)}
-            class="skip">
+    <button
+      ?disabled=${!ele._canGoNext(ele.offset + 5 * ele.page_size)}
+      title="Skip forward 5 pages of results."
+      @click=${() => ele._page(5)}
+      class="skip"
+    >
       +5
     </button>
   `;
@@ -74,19 +77,31 @@ export class PaginationSk extends ElementSk {
   }
 
   /** Reflects offset attribute for convenience. */
-  get offset(): number { return +this.getAttribute('offset')!; }
+  get offset(): number {
+    return +this.getAttribute('offset')!;
+  }
 
-  set offset(val: number) { this.setAttribute('offset', (+val as unknown) as string); }
+  set offset(val: number) {
+    this.setAttribute('offset', +val as unknown as string);
+  }
 
   /** Reflects page_size attribute for convenience. */
-  get page_size(): number { return +this.getAttribute('page_size')!; }
+  get page_size(): number {
+    return +this.getAttribute('page_size')!;
+  }
 
-  set page_size(val: number) { this.setAttribute('page_size', (+val as unknown) as string); }
+  set page_size(val: number) {
+    this.setAttribute('page_size', +val as unknown as string);
+  }
 
   /** Reflects total attribute for convenience. */
-  get total(): number { return +this.getAttribute('total')!; }
+  get total(): number {
+    return +this.getAttribute('total')!;
+  }
 
-  set total(val: number) { this.setAttribute('total', (+val as unknown) as string); }
+  set total(val: number) {
+    this.setAttribute('total', +val as unknown as string);
+  }
 
   attributeChangedCallback() {
     this._render();
@@ -101,12 +116,14 @@ export class PaginationSk extends ElementSk {
   }
 
   private _page(n: number) {
-    this.dispatchEvent(new CustomEvent<PaginationSkPageChangedEventDetail>('page-changed', {
-      detail: {
-        delta: n,
-      },
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<PaginationSkPageChangedEventDetail>('page-changed', {
+        detail: {
+          delta: n,
+        },
+        bubbles: true,
+      })
+    );
   }
 }
 

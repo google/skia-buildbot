@@ -1,5 +1,4 @@
-Privacy Policy
-==============
+# Privacy Policy
 
 This is a placeholder privacy policy for using all services hosted on
 skia.org.

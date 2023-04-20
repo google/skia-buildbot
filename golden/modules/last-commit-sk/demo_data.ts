@@ -9,7 +9,10 @@ export const exampleStatusData: StatusResponse = {
     message: 'Mark large_image_changer tests as not flaky (#65033)',
     cl_url: '',
   },
-  corpStatus: [{
-    name: 'flutter', untriagedCount: 0,
-  }],
+  corpStatus: [
+    {
+      name: 'flutter',
+      untriagedCount: 0,
+    },
+  ],
 };

@@ -5,20 +5,26 @@
  * Page to view/edit/delete ignore rules.
  */
 
+import { classMap } from 'lit-html/directives/class-map';
+import { html } from 'lit-html';
 import * as human from '../../../infra-sk/modules/human';
 
-import { classMap } from 'lit-html/directives/class-map';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import {
-  humanReadableQuery, sendBeginTask, sendEndTask, sendFetchError,
+  humanReadableQuery,
+  sendBeginTask,
+  sendEndTask,
+  sendFetchError,
 } from '../common';
 import {
-  IgnoreRule, IgnoreRuleBody, IgnoresResponse, ParamSet,
+  IgnoreRule,
+  IgnoreRuleBody,
+  IgnoresResponse,
+  ParamSet,
 } from '../rpc_types';
 import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
 import { ConfirmDialogSk } from '../../../infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk';
@@ -36,20 +42,25 @@ function trimEmail(s: string) {
 
 export class IgnoresPageSk extends ElementSk {
   private static template = (ele: IgnoresPageSk) => html`
-    <div class=controls>
-      <checkbox-sk label="Only count traces with untriaged digests"
-                   ?checked=${!ele.countAllTraces} @click=${ele.toggleCountAll}></checkbox-sk>
+    <div class="controls">
+      <checkbox-sk
+        label="Only count traces with untriaged digests"
+        ?checked=${!ele.countAllTraces}
+        @click=${ele.toggleCountAll}
+      ></checkbox-sk>
 
-      <button @click=${ele.newIgnoreRule} class=create>Create new ignore rule</button>
+      <button @click=${ele.newIgnoreRule} class="create">
+        Create new ignore rule
+      </button>
     </div>
 
     <confirm-dialog-sk></confirm-dialog-sk>
 
-    <dialog id=edit-ignore-rule-dialog>
+    <dialog id="edit-ignore-rule-dialog">
       <h2>${ele.ruleID ? 'Edit Ignore Rule' : 'Create Ignore Rule'}</h2>
       <edit-ignore-rule-sk .paramset=${ele.paramset}></edit-ignore-rule-sk>
       <button @click=${() => ele.editIgnoreRuleDialog?.close()}>Cancel</button>
-      <button id=ok class=action @click=${ele.saveIgnoreRule}>
+      <button id="ok" class="action" @click=${ele.saveIgnoreRule}>
         ${ele.ruleID ? 'Update' : 'Create'}
       </button>
     </dialog>
@@ -57,15 +68,15 @@ export class IgnoresPageSk extends ElementSk {
     <table>
       <thead>
         <tr>
-          <th colspan=2>Filter</th>
+          <th colspan="2">Filter</th>
           <th>Note</th>
-          <th> Traces matched <br> exclusive/all
-            <info-outline-icon-sk class=small-icon
-                title="'all' is the number of traces that a given ignore rule applies to. \
-    'exclusive' is the number of traces which are matched by the given ignore rule and no other \
-    ignore rule of the rules in this list. If the checkbox is checked to only count traces with \
-    untriaged digests, it means 'untriaged digests at head', which is typically an indication of \
-    a flaky test/config.">
+          <th>
+            Traces matched <br />
+            exclusive/all
+            <info-outline-icon-sk
+              class="small-icon"
+              title="'all' is the number of traces that a given ignore rule applies to.     'exclusive' is the number of traces which are matched by the given ignore rule and no other     ignore rule of the rules in this list. If the checkbox is checked to only count traces with     untriaged digests, it means 'untriaged digests at head', which is typically an indication of     a flaky test/config."
+            >
             </info-outline-icon-sk>
           </th>
           <th>Expires in</th>
@@ -74,7 +85,7 @@ export class IgnoresPageSk extends ElementSk {
         </tr>
       </thead>
       <tbody>
-      ${ele.rules.map((r) => IgnoresPageSk.ruleTemplate(ele, r))}
+        ${ele.rules.map((r) => IgnoresPageSk.ruleTemplate(ele, r))}
       </tbody>
     </table>
   `;
@@ -83,16 +94,26 @@ export class IgnoresPageSk extends ElementSk {
     const isExpired = Date.parse(r.expires) < Date.now();
     return html`
       <tr class=${classMap({ expired: isExpired })}>
-        <td class=mutate-icons>
-          <mode-edit-icon-sk title="Edit this rule."
-              @click=${() => ele.editIgnoreRule(r)}></mode-edit-icon-sk>
-          <delete-icon-sk title="Delete this rule."
-              @click=${() => ele.deleteIgnoreRule(r)}></delete-icon-sk>
+        <td class="mutate-icons">
+          <mode-edit-icon-sk
+            title="Edit this rule."
+            @click=${() => ele.editIgnoreRule(r)}
+          ></mode-edit-icon-sk>
+          <delete-icon-sk
+            title="Delete this rule."
+            @click=${() => ele.deleteIgnoreRule(r)}
+          ></delete-icon-sk>
         </td>
-        <td class=query><a href=${`/list?include=true&query=${encodeURIComponent(r.query)}`}
-          >${humanReadableQuery(r.query)}</a></td>
+        <td class="query">
+          <a href=${`/list?include=true&query=${encodeURIComponent(r.query)}`}
+            >${humanReadableQuery(r.query)}</a
+          >
+        </td>
         <td>${escapeAndLinkify(r.note) || '--'}</td>
-        <td class=matches title="These counts are recomputed every few minutes.">
+        <td
+          class="matches"
+          title="These counts are recomputed every few minutes."
+        >
           ${ele.countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
           ${ele.countAllTraces ? r.countAll : r.count}
         </td>
@@ -121,7 +142,7 @@ export class IgnoresPageSk extends ElementSk {
 
   private confirmDialogSk?: ConfirmDialogSk;
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
   private fetchController?: AbortController; // Allows us to abort fetches if we fetch again.
 
@@ -129,40 +150,50 @@ export class IgnoresPageSk extends ElementSk {
     super(IgnoresPageSk.template);
 
     this.stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         count_all: this.countAllTraces,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
 
         // default values if not specified.
-        this.countAllTraces = newState.count_all as boolean || false;
+        this.countAllTraces = (newState.count_all as boolean) || false;
         this.fetch();
         this._render();
-      },
+      }
     );
   }
 
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>('#edit-ignore-rule-dialog')!;
-    this.editIgnoreRuleSk = this.querySelector<EditIgnoreRuleSk>('edit-ignore-rule-sk')!;
-    this.confirmDialogSk = this.querySelector<ConfirmDialogSk>('confirm-dialog-sk')!;
+    this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>(
+      '#edit-ignore-rule-dialog'
+    )!;
+    this.editIgnoreRuleSk = this.querySelector<EditIgnoreRuleSk>(
+      'edit-ignore-rule-sk'
+    )!;
+    this.confirmDialogSk =
+      this.querySelector<ConfirmDialogSk>('confirm-dialog-sk')!;
   }
 
   private deleteIgnoreRule(rule: IgnoreRule) {
-    this.confirmDialogSk!.open('Are you sure you want to delete '
-      + 'this ignore rule?').then(() => {
+    this.confirmDialogSk!.open(
+      'Are you sure you want to delete ' + 'this ignore rule?'
+    ).then(() => {
       sendBeginTask(this);
       fetch(`/json/v1/ignores/del/${rule.id}`, {
         method: 'POST',
-      }).then(jsonOrThrow).then(() => {
-        this.fetch();
-        sendEndTask(this);
-      }).catch((e) => sendFetchError(this, e, 'deleting ignore'));
+      })
+        .then(jsonOrThrow)
+        .then(() => {
+          this.fetch();
+          sendEndTask(this);
+        })
+        .catch((e) => sendFetchError(this, e, 'deleting ignore'));
     });
   }
 
@@ -240,10 +271,13 @@ export class IgnoresPageSk extends ElementSk {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
-      }).then(jsonOrThrow).then(() => {
-        this.fetch();
-        sendEndTask(this);
-      }).catch((e) => sendFetchError(this, e, 'saving ignore'));
+      })
+        .then(jsonOrThrow)
+        .then(() => {
+          this.fetch();
+          sendEndTask(this);
+        })
+        .catch((e) => sendFetchError(this, e, 'saving ignore'));
 
       this.editIgnoreRuleSk!.reset();
       this.editIgnoreRuleDialog!.close();

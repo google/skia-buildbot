@@ -1,10 +1,8 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import {
-  chromiumPatchResult,
-} from './test_data';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { chromiumPatchResult } from './test_data';
 import { PatchSk } from './patch-sk';
 
 fetchMock.config.overwriteRoutes = false;

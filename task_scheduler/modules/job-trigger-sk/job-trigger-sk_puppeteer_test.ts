@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -36,7 +38,7 @@ describe('job-trigger-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'job-trigger-sk_dark',
+        'job-trigger-sk_dark'
       );
     });
     it('deletes job from list', async () => {
@@ -44,7 +46,7 @@ describe('job-trigger-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task_scheduler',
-        'job-trigger-sk_deleted',
+        'job-trigger-sk_deleted'
       );
     });
     it('adds job to list', async () => {
@@ -52,7 +54,7 @@ describe('job-trigger-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task_scheduler',
-        'job-trigger-sk_added',
+        'job-trigger-sk_added'
       );
     });
     it('triggers jobs', async () => {
@@ -61,13 +63,13 @@ describe('job-trigger-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task_scheduler',
-        'job-trigger-sk_pre-trigger',
+        'job-trigger-sk_pre-trigger'
       );
       await testBed.page.click('send-icon-sk');
       await takeScreenshot(
         testBed.page,
         'task_scheduler',
-        'job-trigger-sk_post-trigger',
+        'job-trigger-sk_post-trigger'
       );
     });
   });

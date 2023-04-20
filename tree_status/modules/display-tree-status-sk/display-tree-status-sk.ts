@@ -9,8 +9,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Status } from '../json';
 
@@ -27,15 +27,15 @@ export class DisplayTreeStatusSk extends ElementSk {
   }
 
   private static template = (ele: DisplayTreeStatusSk) => html`
-  <table class="recent_statuses">
-    <tr>
-      <th>Who</th>
-      <th>When</th>
-      <th>Message</th>
-      <th>Wait for</th>
-    </tr>
-    ${ele.recentStatuses()}
-  </table>
+    <table class="recent_statuses">
+      <tr>
+        <th>Who</th>
+        <th>When</th>
+        <th>Message</th>
+        <th>Wait for</th>
+      </tr>
+      ${ele.recentStatuses()}
+    </table>
   `;
 
   connectedCallback(): void {
@@ -61,13 +61,14 @@ export class DisplayTreeStatusSk extends ElementSk {
   }
 
   private recentStatuses() {
-    return this.statusesData.map((status) => html`
-  <tr class=${this.getStatusClass(status.message)}>
-    <td>${status.username}</td>
-    <td>${this.getLocalDate(status.date)}</td>
-    <td>${status.message}</td>
-    <td>${status.rollers}</td>
-  </tr>`);
+    return this.statusesData.map(
+      (status) => html` <tr class=${this.getStatusClass(status.message)}>
+        <td>${status.username}</td>
+        <td>${this.getLocalDate(status.date)}</td>
+        <td>${status.message}</td>
+        <td>${status.rollers}</td>
+      </tr>`
+    );
   }
 
   /** @prop statuses {string} The list of recent tree statuses. */

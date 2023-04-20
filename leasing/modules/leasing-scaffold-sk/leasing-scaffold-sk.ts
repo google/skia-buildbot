@@ -9,8 +9,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -104,9 +104,13 @@ export class LeasingScaffoldSk extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title') || ''; }
+  get appTitle(): string {
+    return this.getAttribute('app_title') || '';
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();

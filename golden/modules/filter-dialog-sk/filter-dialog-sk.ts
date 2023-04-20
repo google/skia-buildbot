@@ -9,9 +9,9 @@
  *         The "detail" field of the event contains the filter values entered by the user.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { live } from 'lit-html/directives/live';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { ParamSet } from '../../../infra-sk/modules/query';
@@ -32,13 +32,15 @@ export interface Filters {
 // This template produces an <input type=range> (a "slider") and an <input type=number> that
 // reflect each other's values. When one changes, the other is updated with the new value, and
 // viceversa.
-const numericParamTemplate = (id: string,
+const numericParamTemplate = (
+  id: string,
   label: string,
-  setterFn: (value: number)=> void,
+  setterFn: (value: number) => void,
   value: number = 0,
   min: number,
   max: number,
-  step: number) => {
+  step: number
+) => {
   const onInput = (e: InputEvent) => {
     const target = e.target as HTMLInputElement;
 
@@ -46,29 +48,34 @@ const numericParamTemplate = (id: string,
     setterFn(parseFloat(target.value));
 
     // Sync up the range and number inputs.
-    const otherSelector = `input[type="${target.type === 'range' ? 'number' : 'range'}"]`;
-    const other = target.parentElement!.querySelector<HTMLInputElement>(otherSelector)!;
+    const otherSelector = `input[type="${
+      target.type === 'range' ? 'number' : 'range'
+    }"]`;
+    const other =
+      target.parentElement!.querySelector<HTMLInputElement>(otherSelector)!;
     other.value = target.value;
   };
 
   // Please see the note on the FilterDialogSk's template regarding the live() directive.
-  return html`
-    <label for="${id}">${label}</label>
-    <div class=numeric-param
-         id=${id}-numeric-param>
-      <input type=range
-             id=${id}
-             .value=${live(value.toString())}
-             min=${min}
-             max=${max}
-             step=${step}
-             @input=${onInput}/>
-      <input type=number
-             .value=${live(value.toString())}
-             min=${min}
-             max=${max}
-             step=${step}
-             @input=${onInput}/>
+  return html` <label for="${id}">${label}</label>
+    <div class="numeric-param" id="${id}-numeric-param">
+      <input
+        type="range"
+        id=${id}
+        .value=${live(value.toString())}
+        min=${min}
+        max=${max}
+        step=${step}
+        @input=${onInput}
+      />
+      <input
+        type="number"
+        .value=${live(value.toString())}
+        min=${min}
+        max=${max}
+        step=${step}
+        @input=${onInput}
+      />
     </div>`;
 };
 
@@ -80,55 +87,63 @@ export class FilterDialogSk extends ElementSk {
   // Concrete example: without the live() directives, if the user opens the dialog, makes changes,
   // cancels and reopens the dialog, the user will see their previous input, when the expected
   // behavior is for their previous input to be discarded.
-  private static _template = (el: FilterDialogSk) => html`
-    <dialog class=filter-dialog>
-      <div class=content>
-        <span class=label>Right-hand traces:</span>
-        <trace-filter-sk .paramSet=${el._paramSet!}
-                         .selection=${live(el._filters?.diffConfig || {})}
-                         @trace-filter-sk-change=${el._onTraceFilterSkChange}>
-        </trace-filter-sk>
+  private static _template = (el: FilterDialogSk) => html` <dialog
+    class="filter-dialog"
+  >
+    <div class="content">
+      <span class="label">Right-hand traces:</span>
+      <trace-filter-sk
+        .paramSet=${el._paramSet!}
+        .selection=${live(el._filters?.diffConfig || {})}
+        @trace-filter-sk-change=${el._onTraceFilterSkChange}
+      >
+      </trace-filter-sk>
 
-        ${numericParamTemplate(
-    'min-rgba-delta',
-    'Min RGBA delta:',
-    /* setterFn= */ (val) => el._filters!.minRGBADelta = val,
-    /* value= */ el._filters?.minRGBADelta,
-    /* min= */ 0,
-    /* max= */ 255,
-    /* step= */ 1,
-  )}
+      ${numericParamTemplate(
+        'min-rgba-delta',
+        'Min RGBA delta:',
+        /* setterFn= */ (val) => (el._filters!.minRGBADelta = val),
+        /* value= */ el._filters?.minRGBADelta,
+        /* min= */ 0,
+        /* max= */ 255,
+        /* step= */ 1
+      )}
+      ${numericParamTemplate(
+        'max-rgba-delta',
+        'Max RGBA delta:',
+        /* setterFn= */ (val) => (el._filters!.maxRGBADelta = val),
+        /* value= */ el._filters?.maxRGBADelta,
+        /* min= */ 0,
+        /* max= */ 255,
+        /* step= */ 1
+      )}
 
-        ${numericParamTemplate(
-    'max-rgba-delta',
-    'Max RGBA delta:',
-    /* setterFn= */ (val) => el._filters!.maxRGBADelta = val,
-    /* value= */ el._filters?.maxRGBADelta,
-    /* min= */ 0,
-    /* max= */ 255,
-    /* step= */ 1,
-  )}
+      <label for="sort-order">Sort order:</label>
+      <select
+        id="sort-order"
+        .value=${live(el._filters?.sortOrder)}
+        @change=${el._sortOrderChanged}
+      >
+        <option value="ascending">Ascending</option>
+        <option value="descending">Descending</option>
+      </select>
 
-        <label for=sort-order>Sort order:</label>
-        <select id=sort-order
-                .value=${live(el._filters?.sortOrder)}
-                @change=${el._sortOrderChanged}>
-          <option value=ascending>Ascending</option>
-          <option value=descending>Descending</option>
-        </select>
+      <checkbox-sk
+        id="must-have-reference-image"
+        label="Must have a reference image."
+        ?checked=${live(el._filters?.mustHaveReferenceImage)}
+        @change=${el._mustHaveReferenceImageChanged}
+      >
+      </checkbox-sk>
+    </div>
 
-        <checkbox-sk id=must-have-reference-image
-                     label="Must have a reference image."
-                     ?checked=${live(el._filters?.mustHaveReferenceImage)}
-                     @change=${el._mustHaveReferenceImageChanged}>
-        </checkbox-sk>
-      </div>
-
-      <div class=buttons>
-        <button class="filter action" @click=${el._filterBtnClicked}>Apply</button>
-        <button class=cancel @click=${el._cancelBtnClicked}>Cancel</button>
-      </div>
-    </dialog>`;
+    <div class="buttons">
+      <button class="filter action" @click=${el._filterBtnClicked}>
+        Apply
+      </button>
+      <button class="cancel" @click=${el._cancelBtnClicked}>Cancel</button>
+    </div>
+  </dialog>`;
 
   private _dialog: HTMLDialogElement | null = null;
 
@@ -165,7 +180,9 @@ export class FilterDialogSk extends ElementSk {
   }
 
   private _sortOrderChanged(e: InputEvent) {
-    const value = (e.target as HTMLSelectElement).value as 'ascending' | 'descending';
+    const value = (e.target as HTMLSelectElement).value as
+      | 'ascending'
+      | 'descending';
     this._filters!.sortOrder = value;
   }
 
@@ -176,10 +193,12 @@ export class FilterDialogSk extends ElementSk {
 
   private _filterBtnClicked() {
     this._dialog!.close();
-    this.dispatchEvent(new CustomEvent<Filters>('edit', {
-      bubbles: true,
-      detail: this._filters!,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<Filters>('edit', {
+        bubbles: true,
+        detail: this._filters!,
+      })
+    );
   }
 
   private _cancelBtnClicked() {

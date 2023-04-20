@@ -8,7 +8,7 @@ icons-demo-sk {
     flex-direction: row;
     gap: 10px;
 
-    input[type="text"] {
+    input[type='text'] {
       width: 200px;
     }
 
@@ -17,7 +17,8 @@ icons-demo-sk {
     }
   }
 
-  h2, .no-results {
+  h2,
+  .no-results {
     margin: 50px 0 20px;
   }
 

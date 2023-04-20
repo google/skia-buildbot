@@ -22,18 +22,17 @@
  * </script>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, render } from 'lit-html';
-
+import { define } from '../../../elements-sk/modules/define';
 
 export class ConfirmDialogSk extends HTMLElement {
   private static template = (ele: ConfirmDialogSk) => html`
     <dialog @cancel=${ele.dismiss}>
       <h2>Confirm</h2>
-      <div class=message>${ele.message}</div>
-      <div class=buttons>
-      <button class=dismiss @click=${ele.dismiss}>Cancel</button>
-      <button class=confirm @click=${ele.confirm}>OK</button>
+      <div class="message">${ele.message}</div>
+      <div class="buttons">
+        <button class="dismiss" @click=${ele.dismiss}>Cancel</button>
+        <button class="confirm" @click=${ele.confirm}>OK</button>
       </div>
     </dialog>
   `;
@@ -42,9 +41,9 @@ export class ConfirmDialogSk extends HTMLElement {
 
   private dialog: HTMLDialogElement | null = null;
 
-  private resolve: ((value?: any)=> void) | null = null;
+  private resolve: ((value?: any) => void) | null = null;
 
-  private reject: ((reason?: any)=> void) | null = null;
+  private reject: ((reason?: any) => void) | null = null;
 
   connectedCallback(): void {
     this.render();

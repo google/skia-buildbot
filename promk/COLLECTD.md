@@ -1,5 +1,4 @@
-collectd.skia.org
-=================
+# collectd.skia.org
 
 Handles POST'd JSON from collectd servers using the write_http plugin.
 

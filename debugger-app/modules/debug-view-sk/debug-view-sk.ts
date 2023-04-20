@@ -5,12 +5,13 @@
  *
  * @evt move-cursor: Emitted when the user has moved the cursor by clicking or hovering.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {
   CursorEventDetail,
-  ToggleBackgroundEventDetail, MoveCursorEvent,
+  ToggleBackgroundEventDetail,
+  MoveCursorEvent,
   Point,
   RenderCursorEvent,
   ToggleBackgroundEvent,
@@ -19,30 +20,39 @@ import {
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
 export class DebugViewSk extends ElementDocSk {
-  private static template = (ele: DebugViewSk) => html`
-    <div class="horizontal-flex">
-      <button title="Original size." @click=${() => ele.fitStyle = 'natural'}>
+  private static template = (ele: DebugViewSk) => html` <div
+      class="horizontal-flex"
+    >
+      <button title="Original size." @click=${() => (ele.fitStyle = 'natural')}>
         <img src="/dist/image.png" />
       </button>
-      <button title="Fit in page." @click=${() => ele.fitStyle = 'fit'}>
+      <button title="Fit in page." @click=${() => (ele.fitStyle = 'fit')}>
         <img src="/dist/both.png" />
       </button>
-      <button title="Fit to width." @click=${() => ele.fitStyle = 'right'}>
+      <button title="Fit to width." @click=${() => (ele.fitStyle = 'right')}>
         <img src="/dist/right.png" />
       </button>
-      <button title="Fit to height." @click=${() => ele.fitStyle = 'bottom'}>
+      <button title="Fit to height." @click=${() => (ele.fitStyle = 'bottom')}>
         <img src="/dist/bottom.png" />
       </button>
     </div>
     <div id="backdrop" class="${ele._backdropStyle} grid">
       ${ele._renderCanvas
-    ? html`<canvas id="main-canvas" class=${ele._fitStyle}
-              width=${ele._width} height=${ele._height}></canvas>`
-    : ''}
-      <canvas id="crosshair-canvas" class=${ele._fitStyle}
-              width=${ele._width} height=${ele._height}
-              @click=${ele._canvasClicked}
-              @mousemove=${ele._canvasMouseMove}></canvas>
+        ? html`<canvas
+            id="main-canvas"
+            class=${ele._fitStyle}
+            width=${ele._width}
+            height=${ele._height}
+          ></canvas>`
+        : ''}
+      <canvas
+        id="crosshair-canvas"
+        class=${ele._fitStyle}
+        width=${ele._width}
+        height=${ele._height}
+        @click=${ele._canvasClicked}
+        @mousemove=${ele._canvasMouseMove}
+      ></canvas>
     </div>`;
 
   // the native width and height of the main canvas, before css is applied
@@ -80,7 +90,9 @@ export class DebugViewSk extends ElementDocSk {
     });
 
     this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
-      this._backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
+      this._backdropStyle = (
+        e as CustomEvent<ToggleBackgroundEventDetail>
+      ).detail.mode;
       this._render();
     });
   }
@@ -129,17 +141,16 @@ export class DebugViewSk extends ElementDocSk {
 
   private _sendCursorMove(p: Point) {
     this.dispatchEvent(
-      new CustomEvent<CursorEventDetail>(
-        MoveCursorEvent, {
-          detail: { position: p, onlyData: false },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<CursorEventDetail>(MoveCursorEvent, {
+        detail: { position: p, onlyData: false },
+        bubbles: true,
+      })
     );
   }
 
   private _drawCrossHairAt(p: Point) {
-    const chCanvas = this.querySelector<HTMLCanvasElement>('#crosshair-canvas')!;
+    const chCanvas =
+      this.querySelector<HTMLCanvasElement>('#crosshair-canvas')!;
     const chx = chCanvas.getContext('2d')!;
     chx.clearRect(0, 0, chCanvas.width, chCanvas.height);
 
@@ -154,7 +165,9 @@ export class DebugViewSk extends ElementDocSk {
   }
 
   private _canvasClicked(e: MouseEvent) {
-    if (e.offsetX < 0) { return; } // border
+    if (e.offsetX < 0) {
+      return;
+    } // border
     const coords = this._mouseOffsetToCanvasPoint(e);
     if (this._crossHairActive) {
       this._crossHairActive = false;
@@ -167,8 +180,12 @@ export class DebugViewSk extends ElementDocSk {
   }
 
   private _canvasMouseMove(e: MouseEvent) {
-    if (e.offsetX < 0) { return; } // border
-    if (this._crossHairActive) { return; }
+    if (e.offsetX < 0) {
+      return;
+    } // border
+    if (this._crossHairActive) {
+      return;
+    }
     this._sendCursorMove(this._mouseOffsetToCanvasPoint(e));
   }
 }

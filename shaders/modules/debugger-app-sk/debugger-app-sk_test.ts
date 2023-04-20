@@ -1,17 +1,16 @@
 import './index';
 import { assert } from 'chai';
+import CodeMirror from 'codemirror';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DebuggerAppSk } from './debugger-app-sk';
 import { exampleTraceString } from './demo_data';
-import CodeMirror from 'codemirror';
 
 function makeFakeLocalStorage(store: Record<string, string>): Storage {
   const fakeLocalStorage: Storage = {
     length: 0,
-    getItem: (key: string): string | null => {
-      return key in store ? store[key] as string : null;
-    },
+    getItem: (key: string): string | null =>
+      key in store ? (store[key] as string) : null,
     setItem: (key: string, value: string) => {
       store[key] = `${value}`;
       length = Object.keys(store).length;
@@ -25,17 +24,20 @@ function makeFakeLocalStorage(store: Record<string, string>): Storage {
     },
     key: function (index: number): string | null {
       return Object.keys(store)[index];
-    }
+    },
   };
   return fakeLocalStorage;
 }
 
-function getLinesWithBgClass(app: DebuggerAppSk, expectedType: string): number[] {
+function getLinesWithBgClass(
+  app: DebuggerAppSk,
+  expectedType: string
+): number[] {
   const editor: CodeMirror.Editor = app.getEditor()!;
   assert.isNotNull(editor);
 
   // Search for lines with the given background class.
-  let result: number[] = [];
+  const result: number[] = [];
   for (let index = 0; index < editor.lineCount(); ++index) {
     const info = editor!.lineInfo(index);
     if (info.bgClass === expectedType) {
@@ -50,19 +52,24 @@ function getLinesWithBgClass(app: DebuggerAppSk, expectedType: string): number[]
 function getCurrentLine(app: DebuggerAppSk): number | null {
   const lines: number[] = getLinesWithBgClass(app, 'cm-current-line');
   assert.isAtMost(lines.length, 1);
-  return (lines.length > 0) ? lines[0] : null;
+  return lines.length > 0 ? lines[0] : null;
 }
 
-function getLinesWithBreakpointMarker(app: DebuggerAppSk, expectedMarker: string): number[] {
+function getLinesWithBreakpointMarker(
+  app: DebuggerAppSk,
+  expectedMarker: string
+): number[] {
   const editor: CodeMirror.Editor = app.getEditor()!;
   assert.isNotNull(editor);
 
   // Search for lines with the given background class.
-  let result: number[] = [];
+  const result: number[] = [];
   for (let index = 0; index < editor.lineCount(); ++index) {
     const info = editor.lineInfo(index);
     if ('cm-breakpoints' in (info.gutterMarkers ?? {})) {
-      if (info.gutterMarkers['cm-breakpoints'].classList.contains(expectedMarker)) {
+      if (
+        info.gutterMarkers['cm-breakpoints'].classList.contains(expectedMarker)
+      ) {
         // CodeMirror line numbers are zero-indexed, so add 1 to compensate.
         result.push(index + 1);
       }
@@ -104,7 +111,10 @@ describe('debugger app', () => {
   it('shows an error message after invalid data is loaded', () => {
     debuggerAppSk.loadJSONData('This is invalid data');
 
-    assert.include($$<HTMLDivElement>('#codeEditor')?.innerText, 'Unexpected token');
+    assert.include(
+      $$<HTMLDivElement>('#codeEditor')?.innerText,
+      'Unexpected token'
+    );
   });
 
   const entrypointLine = 6;
@@ -112,27 +122,36 @@ describe('debugger app', () => {
 
   it('shows breakpointable markers on lines with code', () => {
     debuggerAppSk.loadJSONData(exampleTraceString);
-    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk),
-                           [entrypointLine, entrypointLine + 1,
-                            helperFunctionLine, helperFunctionLine + 1]);
+    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk), [
+      entrypointLine,
+      entrypointLine + 1,
+      helperFunctionLine,
+      helperFunctionLine + 1,
+    ]);
   });
 
   it('shows breakpoint markers on lines after breakpoints are set', () => {
     debuggerAppSk.loadJSONData(exampleTraceString);
     debuggerAppSk.toggleBreakpoint(helperFunctionLine);
     debuggerAppSk.toggleBreakpoint(entrypointLine + 1);
-    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk),
-                           [entrypointLine, helperFunctionLine + 1]);
-    assert.sameDeepMembers(getBreakpointLines(debuggerAppSk),
-                           [entrypointLine + 1, helperFunctionLine]);
+    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk), [
+      entrypointLine,
+      helperFunctionLine + 1,
+    ]);
+    assert.sameDeepMembers(getBreakpointLines(debuggerAppSk), [
+      entrypointLine + 1,
+      helperFunctionLine,
+    ]);
   });
 
   it('shows an error message after invalid data is loaded', () => {
     debuggerAppSk.loadJSONData('This is invalid data');
 
-    assert.include($$<HTMLDivElement>('#codeEditor')?.innerText, 'Unexpected token');
+    assert.include(
+      $$<HTMLDivElement>('#codeEditor')?.innerText,
+      'Unexpected token'
+    );
   });
-
 
   it('highlights the entrypoint after valid data is loaded', () => {
     debuggerAppSk.loadJSONData(exampleTraceString);
@@ -191,35 +210,50 @@ describe('local storage', () => {
 
   it('loads a trace when populated and ?local-storage query param exists', () => {
     debuggerAppSk = newInstance((self: DebuggerAppSk) => {
-      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': exampleTraceString}));
+      self.setLocalStorageForTest(
+        makeFakeLocalStorage({ 'sksl-debug-trace': exampleTraceString })
+      );
       self.setQueryParameterForTest('?local-storage');
     });
 
     const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
     assert.include(codeAreaText, 'half4 convert(float2 c) {');
     assert.include(codeAreaText, 'half4 c = convert(p * 0.001);');
-    assert.notInclude(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+    assert.notInclude(
+      codeAreaText,
+      'Drag in a DebugTrace JSON file to start the debugger.'
+    );
   });
 
   it('does nothing when ?local-storage query param is not present', () => {
     debuggerAppSk = newInstance((self: DebuggerAppSk) => {
-      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': exampleTraceString}));
+      self.setLocalStorageForTest(
+        makeFakeLocalStorage({ 'sksl-debug-trace': exampleTraceString })
+      );
     });
 
     const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
     assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
-    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+    assert.include(
+      codeAreaText,
+      'Drag in a DebugTrace JSON file to start the debugger.'
+    );
   });
 
   it('does nothing when local storage is invalid, even if ?local-storage is set', () => {
     debuggerAppSk = newInstance((self: DebuggerAppSk) => {
-      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': '{}'}));
+      self.setLocalStorageForTest(
+        makeFakeLocalStorage({ 'sksl-debug-trace': '{}' })
+      );
       self.setQueryParameterForTest('?local-storage');
     });
 
     const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
     assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
-    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+    assert.include(
+      codeAreaText,
+      'Drag in a DebugTrace JSON file to start the debugger.'
+    );
   });
 
   it('does nothing when local storage is empty, even if ?local-storage is set', () => {
@@ -230,6 +264,9 @@ describe('local storage', () => {
 
     const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
     assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
-    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+    assert.include(
+      codeAreaText,
+      'Drag in a DebugTrace JSON file to start the debugger.'
+    );
   });
 });

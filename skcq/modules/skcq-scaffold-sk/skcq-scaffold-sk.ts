@@ -11,8 +11,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -43,36 +43,40 @@ export class SkCQScaffold extends ElementSk {
   }
 
   private static template = (el: SkCQScaffold) => html`
-  <app-sk>
-  <header>
-    <h1>${el.appTitle}</h1>
-    <div class=spinner-spacer>
-      <spinner-sk></spinner-sk>
-    </div>
-    <div class=spacer></div>
-    <login-sk ?testing_offline=${el.testingOffline}></login-sk>
-    <theme-chooser-sk></theme-chooser-sk>
-  </header>
+    <app-sk>
+      <header>
+        <h1>${el.appTitle}</h1>
+        <div class="spinner-spacer">
+          <spinner-sk></spinner-sk>
+        </div>
+        <div class="spacer"></div>
+        <login-sk ?testing_offline=${el.testingOffline}></login-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
 
-  <aside>
-    <nav class=surface-themes-sk>
-      <a href="/" tab-index=0 >
-        <home-icon-sk></home-icon-sk><span>SkCQ</span>
-      </a>
-      <a href="http://go/skcq-design-doc" target="_blank" tab-index=0>
-        <help-icon-sk></help-icon-sk><span>Help</span>
-      </a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/skcq" target="_blank" tab-index=0>
-        <folder-icon-sk></folder-icon-sk><span>Code</span>
-      </a>
-    </nav>
-  </aside>
+      <aside>
+        <nav class="surface-themes-sk">
+          <a href="/" tab-index="0">
+            <home-icon-sk></home-icon-sk><span>SkCQ</span>
+          </a>
+          <a href="http://go/skcq-design-doc" target="_blank" tab-index="0">
+            <help-icon-sk></help-icon-sk><span>Help</span>
+          </a>
+          <a
+            href="https://github.com/google/skia-buildbot/tree/master/skcq"
+            target="_blank"
+            tab-index="0"
+          >
+            <folder-icon-sk></folder-icon-sk><span>Code</span>
+          </a>
+        </nav>
+      </aside>
 
-  <main></main>
+      <main></main>
 
-  <footer><error-toast-sk></error-toast-sk></footer>
-  </app-sk>
-`;
+      <footer><error-toast-sk></error-toast-sk></footer>
+    </app-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -122,13 +126,19 @@ export class SkCQScaffold extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title')!; }
+  get appTitle(): string {
+    return this.getAttribute('app_title')!;
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
-  get testingOffline(): boolean { return this.hasAttribute('testing_offline'); }
+  get testingOffline(): boolean {
+    return this.hasAttribute('testing_offline');
+  }
 
   set testingOffline(val: boolean) {
     if (val) {

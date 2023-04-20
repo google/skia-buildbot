@@ -1,22 +1,39 @@
 resources-sk {
-    .light-checkerboard  {
+  .light-checkerboard {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
-      45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
-                      linear-gradient(
-      45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+        45deg,
+        #eee 25%,
+        transparent 25%,
+        transparent 75%,
+        #eee 75%,
+        #eee 100%
+      ),
+      linear-gradient(
+        45deg,
+        #eee 25%,
+        white 25%,
+        white 75%,
+        #eee 75%,
+        #eee 100%
+      );
   }
 
-  .dark-checkerboard  {
+  .dark-checkerboard {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
-      45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
-                      linear-gradient(
-      45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
+        45deg,
+        #555 25%,
+        transparent 25%,
+        transparent 75%,
+        #555 75%,
+        #555 100%
+      ),
+      linear-gradient(45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
   }
 
   .main-box {
@@ -39,7 +56,7 @@ resources-sk {
   }
 
   .selected-image {
-    border-color: #00F;
+    border-color: #00f;
   }
 
   .dark-text {
@@ -63,7 +80,7 @@ resources-sk {
   }
 
   td {
-    background-color: #EEE;
+    background-color: #eee;
     //border: 1px solid white;
   }
 
@@ -74,11 +91,11 @@ resources-sk {
 
   td.command-cell {
     //border: none;
-    background-color: #FFF;
+    background-color: #fff;
     padding-left: 12px;
   }
 
   td.layer-cell {
-    background-color: #FFF;
+    background-color: #fff;
   }
 }

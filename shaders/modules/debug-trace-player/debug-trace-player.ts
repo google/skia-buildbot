@@ -2,19 +2,19 @@ import { DebugTrace, SlotInfo } from '../debug-trace/debug-trace';
 
 // The TraceOp enum must stay in sync with SkSL::SkVMTraceInfo::Op.
 enum TraceOp {
-  Line  = 0,
-  Var   = 1,
+  Line = 0,
+  Var = 1,
   Enter = 2,
-  Exit  = 3,
+  Exit = 3,
   Scope = 4,
 }
 
 // The NumberKind enum must stay in sync with SkSL::Type::NumberKind.
 enum NumberKind {
-  Float      = 0,
-  Signed     = 1,
-  Unsigned   = 2,
-  Boolean    = 3,
+  Float = 0,
+  Signed = 1,
+  Unsigned = 2,
+  Boolean = 3,
   Nonnumeric = 4,
 }
 
@@ -104,24 +104,26 @@ export class DebugTracePlayer {
     const globalStackFrame: StackFrame = {
       func: -1,
       line: -1,
-      displayMask: Array<boolean>(nslots).map(() => (false)),
+      displayMask: Array<boolean>(nslots).map(() => false),
     };
 
     this.trace = trace;
     this.cursor = 0;
     this.slots = [];
     this.stack = [globalStackFrame];
-    this.dirtyMask = Array<boolean>(nslots).map(() => (false));
-    this.returnValues = Array<boolean>(nslots).map(() => (false));
+    this.dirtyMask = Array<boolean>(nslots).map(() => false);
+    this.returnValues = Array<boolean>(nslots).map(() => false);
 
     if (trace !== null) {
-      this.slots = trace.slots.map((): Slot => ({
-        value: 0,
-        scope: Infinity,
-        writeTime: 0,
-      }));
-      this.returnValues = trace.slots.map((slotInfo: SlotInfo): boolean =>
-        (slotInfo.retval ?? -1) >= 0
+      this.slots = trace.slots.map(
+        (): Slot => ({
+          value: 0,
+          scope: Infinity,
+          writeTime: 0,
+        })
+      );
+      this.returnValues = trace.slots.map(
+        (slotInfo: SlotInfo): boolean => (slotInfo.retval ?? -1) >= 0
       );
 
       // Build a map holding the number of times each line is reached.
@@ -156,7 +158,8 @@ export class DebugTracePlayer {
     const initialStackDepth = this.stack.length;
 
     while (!this.traceHasCompleted()) {
-      const canEscapeFromThisStackDepth = (this.stack.length <= initialStackDepth);
+      const canEscapeFromThisStackDepth =
+        this.stack.length <= initialStackDepth;
       if (this.execute(this.cursor++)) {
         if (canEscapeFromThisStackDepth || this.atBreakpoint()) {
           break;
@@ -169,13 +172,14 @@ export class DebugTracePlayer {
    * Advances the simulation until we exit from the current stack frame.
    * Breakpoints will also stop the simulation even if we haven't left the stack frame.
    */
-  public stepOut() : void {
+  public stepOut(): void {
     this.tidyState();
     const initialStackDepth = this.stack.length;
 
     while (!this.traceHasCompleted()) {
       if (this.execute(this.cursor++)) {
-        const hasEscapedFromInitialStackDepth = (this.stack.length < initialStackDepth);
+        const hasEscapedFromInitialStackDepth =
+          this.stack.length < initialStackDepth;
         if (hasEscapedFromInitialStackDepth || this.atBreakpoint()) {
           break;
         }
@@ -184,7 +188,7 @@ export class DebugTracePlayer {
   }
 
   /** Advances the simulation until we hit a breakpoint, or the trace completes. */
-  public run() : void {
+  public run(): void {
     this.tidyState();
 
     while (!this.traceHasCompleted()) {
@@ -210,7 +214,7 @@ export class DebugTracePlayer {
 
   /** Returns true if we have reached the end of the trace. */
   public traceHasCompleted(): boolean {
-    return (this.trace == null) || (this.cursor >= this.trace.trace.length);
+    return this.trace == null || this.cursor >= this.trace.trace.length;
   }
 
   /** Reports the position of the cursor "read head" within the array of trace instructions. */
@@ -270,9 +274,7 @@ export class DebugTracePlayer {
   /** Returns the call stack as an array of FunctionInfo indices. */
   public getCallStack(): number[] {
     this.check(this.stack.length > 0);
-    return this.stack.slice(1).map((frame: StackFrame) => {
-      return frame.func;
-    });
+    return this.stack.slice(1).map((frame: StackFrame) => frame.func);
   }
 
   /** Returns the size of the call stack. */
@@ -286,30 +288,45 @@ export class DebugTracePlayer {
     const slot: SlotInfo = this.trace!.slots[slotIndex];
 
     if (slot.rows > 1) {
-      return "[" + Math.floor(slot.index / slot.rows) + "][" + slot.index % slot.rows + "]";
+      return `[${Math.floor(slot.index / slot.rows)}][${
+        slot.index % slot.rows
+      }]`;
     }
     if (slot.columns > 1) {
       switch (slot.index) {
-        case 0:  return '.x';
-        case 1:  return '.y';
-        case 2:  return '.z';
-        case 3:  return '.w';
-        default: return '[???]';
+        case 0:
+          return '.x';
+        case 1:
+          return '.y';
+        case 2:
+          return '.z';
+        case 3:
+          return '.w';
+        default:
+          return '[???]';
       }
     }
     return '';
   }
 
   /** Bit-casts a value for a given slot into a double, honoring the slot's NumberKind. */
-  private interpretValueBits(slotIdx: number, valueBits: number): number | boolean {
+  private interpretValueBits(
+    slotIdx: number,
+    valueBits: number
+  ): number | boolean {
     const bitArray: Int32Array = new Int32Array(1);
     bitArray[0] = valueBits;
     switch (this.trace!.slots[slotIdx].kind) {
-      case NumberKind.Float:    return new Float32Array(bitArray.buffer)[0];
-      case NumberKind.Unsigned: return new Uint32Array(bitArray.buffer)[0];
-      case NumberKind.Boolean:  return (valueBits !== 0);
-      case NumberKind.Signed:   return valueBits;
-      default:                  return valueBits;
+      case NumberKind.Float:
+        return new Float32Array(bitArray.buffer)[0];
+      case NumberKind.Unsigned:
+        return new Uint32Array(bitArray.buffer)[0];
+      case NumberKind.Boolean:
+        return valueBits !== 0;
+      case NumberKind.Signed:
+        return valueBits;
+      default:
+        return valueBits;
     }
   }
 
@@ -332,7 +349,8 @@ export class DebugTracePlayer {
     // Order the variable list so that the most recently-written variables are shown at the top.
     vars = vars.sort((a: VariableData, b: VariableData) => {
       // Order by descending write-time.
-      const delta = this.slots[b.slotIndex].writeTime - this.slots[a.slotIndex].writeTime;
+      const delta =
+        this.slots[b.slotIndex].writeTime - this.slots[a.slotIndex].writeTime;
       if (delta !== 0) {
         return delta;
       }
@@ -351,7 +369,9 @@ export class DebugTracePlayer {
     ++stackFrameIndex;
     this.check(stackFrameIndex > 0);
     this.check(stackFrameIndex < this.stack.length);
-    return this.getVariablesForDisplayMask(this.stack[stackFrameIndex].displayMask);
+    return this.getVariablesForDisplayMask(
+      this.stack[stackFrameIndex].displayMask
+    );
   }
 
   /** Returns the variables at global scope. */
@@ -395,7 +415,8 @@ export class DebugTracePlayer {
     this.check(this.stack.length > 0);
     const stackTop: StackFrame = this.stack[this.stack.length - 1];
     switch (trace.op) {
-      case TraceOp.Line: { // data: line number, (unused)
+      case TraceOp.Line: {
+        // data: line number, (unused)
         const lineNumber = trace.data[0];
         const lineCount = this.lineNumbers.get(lineNumber) ?? 0;
         this.check(lineNumber >= 0);
@@ -405,13 +426,17 @@ export class DebugTracePlayer {
         this.lineNumbers.set(lineNumber, lineCount - 1);
         return true;
       }
-      case TraceOp.Var: { // data: slot, value
+      case TraceOp.Var: {
+        // data: slot, value
         const slotIdx = trace.data[0];
         const value = trace.data[1];
         this.check(slotIdx >= 0);
         this.check(slotIdx < this.slots.length);
         this.slots[slotIdx].value = value;
-        this.slots[slotIdx].scope = Math.min(this.slots[slotIdx].scope, this.scope);
+        this.slots[slotIdx].scope = Math.min(
+          this.slots[slotIdx].scope,
+          this.scope
+        );
         this.updateVariableWriteTime(slotIdx, position);
         if ((this.trace!.slots[slotIdx].retval ?? -1) < 0) {
           // Normal variables are associated with the current function.
@@ -425,7 +450,8 @@ export class DebugTracePlayer {
         this.dirtyMask[slotIdx] = true;
         break;
       }
-      case TraceOp.Enter: { // data: function index, (unused)
+      case TraceOp.Enter: {
+        // data: function index, (unused)
         const fnIdx = trace.data[0];
         this.check(fnIdx >= 0);
         this.check(fnIdx < this.trace!.functions.length);
@@ -437,13 +463,15 @@ export class DebugTracePlayer {
         this.stack.push(enteredStackFrame);
         break;
       }
-      case TraceOp.Exit: { // data: function index, (unused)
+      case TraceOp.Exit: {
+        // data: function index, (unused)
         const fnIdx = trace.data[0];
         this.check(stackTop.func === fnIdx);
         this.stack.pop();
         return true;
       }
-      case TraceOp.Scope: { // data: scope delta, (unused)
+      case TraceOp.Scope: {
+        // data: scope delta, (unused)
         const scopeDelta = trace.data[0];
         this.scope += scopeDelta;
         if (scopeDelta < 0) {

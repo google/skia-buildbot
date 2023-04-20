@@ -1,8 +1,8 @@
 import './index';
 
 import { assert } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { MachineAppSk } from './index';
 import { Description } from '../json';
 
@@ -53,8 +53,8 @@ describe('machine-app-sk', () => {
     document.body.innerHTML = '';
   });
 
-  it('starts requesting updates for the selected tab when you click on the refresh button',
-    () => window.customElements.whenDefined('machine-app-sk').then(async () => {
+  it('starts requesting updates for the selected tab when you click on the refresh button', () =>
+    window.customElements.whenDefined('machine-app-sk').then(async () => {
       const s = await setUpElement();
 
       // Now set up fetchMock for the requests that happen when the button is clicked.

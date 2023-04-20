@@ -30,9 +30,9 @@ window.localStorage.removeItem(DARKMODE_LOCALSTORAGE_KEY);
 // eslint-disable-next-line import/first
 import './theme-chooser-sk';
 
- interface example {
-    background: string;
-     color: string;
+interface example {
+  background: string;
+  color: string;
 }
 
 const examples: example[] = [
@@ -176,11 +176,16 @@ const examples: example[] = [
 ];
 
 const template = (context: example[]): TemplateResult => html`
-    ${context.map((ex: example): TemplateResult => html`
-    <tr style="background: var(${ex.background})">
-      <td style="color: var(${ex.color})">background: var(${ex.background});</td>
+  ${context.map(
+    (ex: example): TemplateResult => html` <tr
+      style="background: var(${ex.background})"
+    >
+      <td style="color: var(${ex.color})">
+        background: var(${ex.background});
+      </td>
       <td style="color: var(${ex.color})">color: var(${ex.color});</td>
-    </tr>`)}
+    </tr>`
+  )}
 `;
 
 render(template(examples), document.querySelector('#demotable')!);

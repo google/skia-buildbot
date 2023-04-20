@@ -1,8 +1,8 @@
 import './index';
 
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { singleDemoEntry, twoDemoEntries } from './test_data';
 import {
   eventPromise,

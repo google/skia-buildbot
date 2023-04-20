@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('machine-table-columns-dialog-sk', () => {
@@ -15,13 +17,19 @@ describe('machine-table-columns-dialog-sk', () => {
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('machine-table-columns-dialog-sk')).to.have.length(1);
+    expect(
+      await testBed.page.$$('machine-table-columns-dialog-sk')
+    ).to.have.length(1);
   });
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await testBed.page.click('#open');
-      await takeScreenshot(testBed.page, 'machine', 'machine-table-columns-dialog-sk');
+      await takeScreenshot(
+        testBed.page,
+        'machine',
+        'machine-table-columns-dialog-sk'
+      );
     });
   });
 });

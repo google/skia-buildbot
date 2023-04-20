@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  inBazel,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('machines-table-sk', () => {
@@ -10,7 +13,11 @@ describe('machines-table-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/machines-table-sk.html`);
+    await testBed.page.goto(
+      inBazel()
+        ? testBed.baseUrl
+        : `${testBed.baseUrl}/dist/machines-table-sk.html`
+    );
     await testBed.page.setViewport({ width: 2800, height: 500 });
   });
 
@@ -25,13 +32,21 @@ describe('machines-table-sk', () => {
 
     it('shows an device-editor-sk dialog', async () => {
       await testBed.page.click('edit-icon-sk.edit_device');
-      await takeScreenshot(testBed.page, 'machine', 'machines-table-sk_edit_dialog');
+      await takeScreenshot(
+        testBed.page,
+        'machine',
+        'machines-table-sk_edit_dialog'
+      );
     });
 
     it('shows a confirm dialog when clearing dimensions', async () => {
       await testBed.page.click('edit-icon-sk.edit_device');
       await testBed.page.click('device-editor-sk .info button.clear');
-      await takeScreenshot(testBed.page, 'machine', 'machines-table-sk_confirm_edit_dialog');
+      await takeScreenshot(
+        testBed.page,
+        'machine',
+        'machines-table-sk_confirm_edit_dialog'
+      );
     });
   });
 });

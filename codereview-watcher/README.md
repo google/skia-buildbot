@@ -1,5 +1,4 @@
-Codereview Watcher
-==================
+# Codereview Watcher
 
 Skia (https://skia.googlesource.com/skia.git) is mirrored in Github
 (https://github.com/google/skia). Skia sometimes get PRs in Github

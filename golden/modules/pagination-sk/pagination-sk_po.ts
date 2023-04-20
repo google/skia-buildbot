@@ -19,23 +19,37 @@ export class PaginationSkPO extends PageObject {
     return this.bySelector('div.counter');
   }
 
-  async clickPrevBtn() { await this.prevBtn.click(); }
+  async clickPrevBtn() {
+    await this.prevBtn.click();
+  }
 
-  async clickNextBtn() { await this.nextBtn.click(); }
+  async clickNextBtn() {
+    await this.nextBtn.click();
+  }
 
-  async clickSkipBtn() { await this.skipBtn.click(); }
+  async clickSkipBtn() {
+    await this.skipBtn.click();
+  }
 
-  async isPrevBtnDisabled() { return this.prevBtn.hasAttribute('disabled'); }
+  async isPrevBtnDisabled() {
+    return this.prevBtn.hasAttribute('disabled');
+  }
 
-  async isNextBtnDisabled() { return this.nextBtn.hasAttribute('disabled'); }
+  async isNextBtnDisabled() {
+    return this.nextBtn.hasAttribute('disabled');
+  }
 
-  async isSkipBtnDisabled() { return this.skipBtn.hasAttribute('disabled'); }
+  async isSkipBtnDisabled() {
+    return this.skipBtn.hasAttribute('disabled');
+  }
 
   async getCurrentPage(): Promise<number> {
     const counterText = await this.counter.innerText;
     const prefix = 'page ';
     if (!counterText.startsWith(prefix)) {
-      throw new Error(`expected counter to begin with "${prefix}", but was "${counterText}"`);
+      throw new Error(
+        `expected counter to begin with "${prefix}", but was "${counterText}"`
+      );
     }
     return parseInt(counterText.substring(prefix.length));
   }

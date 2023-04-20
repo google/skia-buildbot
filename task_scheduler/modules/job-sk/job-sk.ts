@@ -8,9 +8,9 @@
  *
  * @example
  */
+import { html } from 'lit-html';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -51,20 +51,20 @@ export class JobSk extends ElementSk {
   private static template = (ele: JobSk) => html`
     <div>
       <h2>Job ${ele.job!.name}</h2>
-      <button id=timeline>
+      <button id="timeline">
         <a href="/job/${ele.job!.id}/timeline">
           <timeline-icon-sk></timeline-icon-sk>
           View Timeline
         </a>
       </button>
-${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
-    ? html`
+      ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
+        ? html`
             <button id="cancelButton" @click="${() => ele.cancel()}">
               <delete-icon-sk></delete-icon-sk>
               Cancel Job
             </button>
           `
-    : html``}
+        : html``}
       <table>
         <tr>
           <td>ID</td>
@@ -103,7 +103,7 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
           <td></td>
         </tr>
         ${ele.job!.finishedAt && new Date(ele.job!.finishedAt).getTime() > 0
-      ? html`
+          ? html`
               <tr>
                 <td>Finished</td>
                 <td>
@@ -113,7 +113,7 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
                 <td></td>
               </tr>
             `
-      : html``}
+          : html``}
         <tr>
           <td>Duration</td>
           <td>${ele.duration}</td>
@@ -138,8 +138,8 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
           <td>
             <a
               href="/jobs/search?revision=${encodeURIComponent(
-                ele.job!.repoState!.revision,
-      )}"
+                ele.job!.repoState!.revision
+              )}"
               target="_blank"
             >
               <button><search-icon-sk></search-icon-sk>Search Jobs</button>
@@ -147,7 +147,7 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
           </td>
         </tr>
         ${ele.isTryJob
-        ? html`
+          ? html`
               <tr>
                 <td>Codereview Link</td>
                 <td>
@@ -158,12 +158,12 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
                 <td>
                   <a
                     href="/jobs/search?server=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.server,
-        )}&issue=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.issue,
-        )}&patchset=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.patchset,
-        )}"
+                      ele.job!.repoState!.patch!.server
+                    )}&issue=${encodeURIComponent(
+                      ele.job!.repoState!.patch!.issue
+                    )}&patchset=${encodeURIComponent(
+                      ele.job!.repoState!.patch!.patchset
+                    )}"
                     target="_blank"
                   >
                     <button>
@@ -188,14 +188,16 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
                 <td></td>
               </tr>
             `
-        : html``}
-        ${ele.job!.buildbucketBuildId ? html`
-          <tr>
-            <td>Buildbucket Build ID</td>
-            <td>${ele.job!.buildbucketBuildId}</td>
-            <td></td>
-          </tr>
-        ` : html``}
+          : html``}
+        ${ele.job!.buildbucketBuildId
+          ? html`
+              <tr>
+                <td>Buildbucket Build ID</td>
+                <td>${ele.job!.buildbucketBuildId}</td>
+                <td></td>
+              </tr>
+            `
+          : html``}
         <tr>
           <td>Manually forced</td>
           <td>${ele.job!.isForce ? 'true' : 'false'}</td>
@@ -265,24 +267,25 @@ ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
   private updateFrom(job: Job) {
     this.job = job;
     const start = new Date(this.job.createdAt!);
-    const end = this.job.finishedAt && new Date(this.job.finishedAt).getTime() > 0
-      ? new Date(this.job.finishedAt)
-      : new Date(Date.now()); // Use Date.now so that it can be mocked.
+    const end =
+      this.job.finishedAt && new Date(this.job.finishedAt).getTime() > 0
+        ? new Date(this.job.finishedAt)
+        : new Date(Date.now()); // Use Date.now so that it can be mocked.
     this.duration = diffDate(start.getTime(), end.getTime());
     const rs = this.job.repoState!;
     this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
     if (
-      rs.patch
-      && rs.patch.issue != ''
-      && rs.patch.patchset != ''
-      && rs.patch.server != ''
+      rs.patch &&
+      rs.patch.issue != '' &&
+      rs.patch.patchset != '' &&
+      rs.patch.server != ''
     ) {
       this.isTryJob = true;
       const p = rs.patch!;
       this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
     }
     [this.statusText, this.statusClass] = jobStatusToTextClass.get(
-      this.job.status,
+      this.job.status
     )!;
     this._render();
     const graph = $$<TaskGraphSk>('task-graph-sk', this);

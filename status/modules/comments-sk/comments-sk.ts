@@ -15,13 +15,16 @@
  * @property showIgnoreFailure: boolean - Display ignoreFailure field of comments.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
-  AddCommentRequest, Comment, GetStatusService, StatusService,
+  AddCommentRequest,
+  Comment,
+  GetStatusService,
+  StatusService,
 } from '../rpc';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
@@ -48,51 +51,68 @@ export class CommentData {
 
 export class CommentsSk extends ElementSk {
   private static template = (el: CommentsSk) => html`
-      <table class="comments">
-        ${el.comments.length > 0
-    ? html`
-              <tr>
-                <th>Time</th>
-                <th>User</th>
-                <th>Message</th>
-                ${el.showFlaky ? html`<th>Flaky</th> ` : html``}
-                ${el.showIgnoreFailure ? html`<th>Ignore Failure</th> ` : html``}
-                ${el.allowDelete && el.editRights ? html`<th>Delete</th>` : html``}
-              </tr>
-            `
-    : html``}
-        ${el.comments.map(
-      (c) => html`
-            <tr class="comment">
-              <td><human-date-sk .date=${c.timestamp} .diff=${true}></human-date-sk> ago</td>
-              <td>${c.user}</td>
-              <td class="commentMessage">${escapeAndLinkify(c.message)}</td>
-              ${el.optionalCommentFields(c)}
+    <table class="comments">
+      ${el.comments.length > 0
+        ? html`
+            <tr>
+              <th>Time</th>
+              <th>User</th>
+              <th>Message</th>
+              ${el.showFlaky ? html`<th>Flaky</th> ` : html``}
+              ${el.showIgnoreFailure ? html`<th>Ignore Failure</th> ` : html``}
+              ${el.allowDelete && el.editRights
+                ? html`<th>Delete</th>`
+                : html``}
             </tr>
-          `,
-    )}
-        ${el.allowAdd && el.editRights
-      ? html`
-              <tr>
-                <td colspan="3">
-                  <input-sk value="" class="commentField" label="Comment"></input-sk>
-                </td>
-                ${el.showFlaky
-        ? html`<td><checkbox-sk class="commentFlaky" label="Flaky"></checkbox-sk></td>`
+          `
         : html``}
-                ${el.showIgnoreFailure
-          ? html`<td>
-                      <checkbox-sk class="commentIgnoreFailure" label="IgnoreFailure"></checkbox-sk>
-                    </td>`
-          : html``}
-                <td>
-                  <button @click=${() => el.addComment()}>Submit</button>
-                </td>
-              </tr>
-            `
-      : html``}
-      </table>
-    `;
+      ${el.comments.map(
+        (c) => html`
+          <tr class="comment">
+            <td>
+              <human-date-sk .date=${c.timestamp} .diff=${true}></human-date-sk>
+              ago
+            </td>
+            <td>${c.user}</td>
+            <td class="commentMessage">${escapeAndLinkify(c.message)}</td>
+            ${el.optionalCommentFields(c)}
+          </tr>
+        `
+      )}
+      ${el.allowAdd && el.editRights
+        ? html`
+            <tr>
+              <td colspan="3">
+                <input-sk
+                  value=""
+                  class="commentField"
+                  label="Comment"
+                ></input-sk>
+              </td>
+              ${el.showFlaky
+                ? html`<td>
+                    <checkbox-sk
+                      class="commentFlaky"
+                      label="Flaky"
+                    ></checkbox-sk>
+                  </td>`
+                : html``}
+              ${el.showIgnoreFailure
+                ? html`<td>
+                    <checkbox-sk
+                      class="commentIgnoreFailure"
+                      label="IgnoreFailure"
+                    ></checkbox-sk>
+                  </td>`
+                : html``}
+              <td>
+                <button @click=${() => el.addComment()}>Submit</button>
+              </td>
+            </tr>
+          `
+        : html``}
+    </table>
+  `;
 
   private optionalCommentFields(comment: Comment): Array<TemplateResult> {
     const ret: Array<TemplateResult> = [];
@@ -100,21 +120,25 @@ export class CommentsSk extends ElementSk {
       ret.push(
         comment.flaky
           ? html`<td><check-box-icon-sk></check-box-icon-sk></td> `
-          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`,
+          : html`<td>
+              <check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk>
+            </td>`
       );
     }
     if (this.showIgnoreFailure) {
       ret.push(
         comment.ignoreFailure
           ? html`<td><check-box-icon-sk></check-box-icon-sk></td> `
-          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`,
+          : html`<td>
+              <check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk>
+            </td>`
       );
     }
     if (this.allowDelete && this.editRights) {
       ret.push(
         html`<td @click=${() => this.deleteComment(comment)}>
           <delete-icon-sk></delete-icon-sk>
-        </td>`,
+        </td>`
       );
     }
     return ret;
@@ -239,7 +263,9 @@ export class CommentsSk extends ElementSk {
         // Visually get rid of the comment that was removed, and fire an event for the parent
         // element to refresh so it doesn't reappear.
         this.commentData.comments = this.comments.filter((c) => c != comment);
-        this.dispatchEvent(new CustomEvent('data-update', { bubbles: true, detail: { a: 1 } }));
+        this.dispatchEvent(
+          new CustomEvent('data-update', { bubbles: true, detail: { a: 1 } })
+        );
         this._render();
       })
       .catch(errorMessage);

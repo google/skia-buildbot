@@ -2,7 +2,7 @@ import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { SkottieConfigSk } from './skottie-config-sk';
 
-(function() {
+(function () {
   const ele = $$<SkottieConfigSk>('#given')!;
   const msg = $$('#msg')!;
   ele.state = {
@@ -28,4 +28,4 @@ ${JSON.stringify(detail)}
 
   document.addEventListener('skottie-selected', display);
   document.addEventListener('cancelled', display);
-}());
+})();

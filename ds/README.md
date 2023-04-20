@@ -15,9 +15,9 @@ The bucket has to live in the same project as the datastore data.
 
 The buckets are:
 
-  * `gs://skia-datastore-backups` for `skia-public`
-  * `gs://skia-datastore-backups-skia-buildbots` for `google.com:skia-buildbots`
-  * `gs://skia-datastore-backups-skia-corp` for `skia-corp`
+- `gs://skia-datastore-backups` for `skia-public`
+- `gs://skia-datastore-backups-skia-buildbots` for `google.com:skia-buildbots`
+- `gs://skia-datastore-backups-skia-corp` for `skia-corp`
 
 To see all the running backups run the following on the `skia-public` cluster:
 

@@ -4,9 +4,9 @@
  *
  * Custom element for displaying current rotations for Skia, GPU, Android, and Infra.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Rotation } from '../tree-status-sk/tree-status-sk';
 
@@ -16,7 +16,7 @@ export class RotationsSk extends ElementSk {
   private static template = (el: RotationsSk) => html`
     <div class="table">
       ${el._rotations.map(
-    (rotation) => html`
+        (rotation) => html`
           <a
             class="tr"
             href=${rotation.docLink}
@@ -25,13 +25,13 @@ export class RotationsSk extends ElementSk {
           >
             <div class="td">
               ${unsafeHTML(
-      `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`,
-    )}
+                `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`
+              )}
               ${rotation.role}: ${rotation.name}
             </div>
           </a>
-        `,
-  )}
+        `
+      )}
     </div>
   `;
 

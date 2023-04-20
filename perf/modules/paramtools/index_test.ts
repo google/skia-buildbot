@@ -1,7 +1,10 @@
 import { assert } from 'chai';
 import { ParamSet } from '../json';
 import {
-  addParamsToParamSet, fromKey, makeKey, paramsToParamSet,
+  addParamsToParamSet,
+  fromKey,
+  makeKey,
+  paramsToParamSet,
 } from './index';
 
 describe('paramtooms', () => {
@@ -58,7 +61,7 @@ describe('paramtooms', () => {
 
 describe('paramsToParamSet', () => {
   it('handles empy Params', () => {
-    assert.deepEqual({ }, paramsToParamSet({}));
+    assert.deepEqual({}, paramsToParamSet({}));
   });
 
   it('handles a single Param', () => {
@@ -66,6 +69,9 @@ describe('paramsToParamSet', () => {
   });
 
   it('handles multiple Params', () => {
-    assert.deepEqual({ a: ['1'], b: ['2'] }, paramsToParamSet({ a: '1', b: '2' }));
+    assert.deepEqual(
+      { a: ['1'], b: ['2'] },
+      paramsToParamSet({ a: '1', b: '2' })
+    );
   });
 });

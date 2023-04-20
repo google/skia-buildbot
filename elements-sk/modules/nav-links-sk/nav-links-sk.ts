@@ -62,7 +62,9 @@ export class NavLinksSk extends HTMLElement {
   }
 
   /** Mirrors the shown attribute. */
-  get shown(): boolean { return this.hasAttribute('shown'); }
+  get shown(): boolean {
+    return this.hasAttribute('shown');
+  }
 
   set shown(val: boolean) {
     if (val) {

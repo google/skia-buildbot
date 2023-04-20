@@ -1,6 +1,9 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { TriageSkPO } from '../triage-sk/triage-sk_po';
-import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../../../infra-sk/modules/page_object/page_object_element';
 import { ImageCompareSkPO } from '../image-compare-sk/image-compare-sk_po';
 import { DotsLegendSkPO } from '../dots-legend-sk/dots-legend-sk_po';
 
@@ -84,7 +87,9 @@ export class DigestDetailsSkPO extends PageObject {
 
   async getRightDigest(): Promise<string | null> {
     // Not all DigestDetailsSk instances have a right digest.
-    return (await this.rightDigest.isEmpty()) ? null : this.rightDigest.innerText;
+    return (await this.rightDigest.isEmpty())
+      ? null
+      : this.rightDigest.innerText;
   }
 
   getDiffPageLink(): Promise<string | null> {

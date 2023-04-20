@@ -62,8 +62,7 @@ export function GetFakeStatus(): AutoRollStatus {
         id: 'd489e255b1e9d0a1cab1f7d1f043761399617f9b',
         invalidReason: '',
         time: '2021-01-11T15:23:01Z',
-        url:
-          'https://chromium.googlesource.com/chromium/src.git/+show/d489e255b1e9d0a1cab1f7d1f043761399617f9b',
+        url: 'https://chromium.googlesource.com/chromium/src.git/+show/d489e255b1e9d0a1cab1f7d1f043761399617f9b',
       },
     ],
     strategy: GetStrategyHistory()[0],
@@ -211,24 +210,21 @@ export function GetFakeStatus(): AutoRollStatus {
           category: 'cq',
         },
         {
-          name:
-            'Perf-Ubuntu17-Clang-Golo-GPU-QuadroP400-x86_64-Release-All-ASAN',
+          name: 'Perf-Ubuntu17-Clang-Golo-GPU-QuadroP400-x86_64-Release-All-ASAN',
           status: TryJob_Status.COMPLETED,
           result: TryJob_Result.SUCCESS,
           url: 'https://cr-buildbucket.appspot.com/build/8874275159867309152',
           category: 'cq',
         },
         {
-          name:
-            'Test-Android-Clang-GalaxyS6-GPU-MaliT760-arm64-Release-All-Android',
+          name: 'Test-Android-Clang-GalaxyS6-GPU-MaliT760-arm64-Release-All-Android',
           status: TryJob_Status.COMPLETED,
           result: TryJob_Result.SUCCESS,
           url: 'https://cr-buildbucket.appspot.com/build/8874275159867309136',
           category: 'cq',
         },
         {
-          name:
-            'Test-Android-Clang-NVIDIA_Shield-GPU-TegraX1-arm64-Release-All-Android_Vulkan',
+          name: 'Test-Android-Clang-NVIDIA_Shield-GPU-TegraX1-arm64-Release-All-Android_Vulkan',
           status: TryJob_Status.COMPLETED,
           result: TryJob_Result.SUCCESS,
           url: 'https://cr-buildbucket.appspot.com/build/8874275159867309120',
@@ -249,8 +245,7 @@ export function GetFakeStatus(): AutoRollStatus {
           category: 'cq',
         },
         {
-          name:
-            'Test-Debian9-Clang-NUC7i5BNK-GPU-IntelIris640-x86_64-Debug-All',
+          name: 'Test-Debian9-Clang-NUC7i5BNK-GPU-IntelIris640-x86_64-Debug-All',
           status: TryJob_Status.COMPLETED,
           result: TryJob_Result.SUCCESS,
           url: 'https://cr-buildbucket.appspot.com/build/8874275159867309072',
@@ -285,8 +280,7 @@ export function GetFakeStatus(): AutoRollStatus {
           category: 'cq',
         },
         {
-          name:
-            'Test-Ubuntu17-Clang-Golo-GPU-QuadroP400-x86_64-Debug-All-Vulkan',
+          name: 'Test-Ubuntu17-Clang-Golo-GPU-QuadroP400-x86_64-Debug-All-Vulkan',
           status: TryJob_Status.COMPLETED,
           result: TryJob_Result.SUCCESS,
           url: 'https://cr-buildbucket.appspot.com/build/8874275159867308992',
@@ -379,7 +373,7 @@ export function GetModeHistory(): ModeChange[] {
       mode: Mode.RUNNING,
       user: 'borenet@google.com',
       time: new Date(1574421000 * 1000).toString(),
-    }
+    },
   ];
 }
 
@@ -419,7 +413,7 @@ export function GetStrategyHistory(): StrategyChange[] {
       strategy: Strategy.BATCH,
       user: 'borenet@google.com',
       time: new Date(1570552000 * 1000).toString(),
-    }
+    },
   ];
 }
 

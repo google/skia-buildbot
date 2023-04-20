@@ -5,10 +5,10 @@
  * @property repo {string} - The repo associated with the tasks/taskspecs/commits that will be
  * displayed.
  */
-import { define } from '../../../elements-sk/modules/define';
-import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, TemplateResult } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
+import { define } from '../../../elements-sk/modules/define';
+import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -18,7 +18,10 @@ import { Commit } from '../util';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
 import {
-  logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl,
+  logsUrl,
+  revisionUrlTemplate,
+  swarmingUrl,
+  taskSchedulerUrl,
 } from '../settings';
 
 import '../comments-sk';
@@ -31,7 +34,7 @@ import '../../../infra-sk/modules/task-driver-sk';
 // For reverts of commits and re-running of tasks.
 interface Action {
   buttonText: string;
-  handler: ()=> void;
+  handler: () => void;
 }
 
 export class DetailsDialogSk extends ElementSk {
@@ -39,42 +42,40 @@ export class DetailsDialogSk extends ElementSk {
   // section, and a comments-sk section. Task, TaskSpec, and Commits set the appropriate sections
   // before rendering.
   private static template = (el: DetailsDialogSk) => html`
-      <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
-        <header>
-          <div>${el.titleSection}</div>
-          <div class=spacer></div>
-          ${
-            el.actionButton
-              ? html`<button class="action" @click=${el.actionButton.handler}>
-                  ${el.actionButton.buttonText}
-                </button>`
-              : html``
-          }
-          <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
-        </header>
-        ${
-          el.detailsSection
-            ? [
-              el.detailsSection,
-              html`
-                  <br />
-                  <hr />
-                `,
-            ]
-            : html``
-        }
-        <div>
-          <comments-sk
-            .commentData=${el.commentData}
-            .allowAdd=${true}
-            .allowDelete=${true}
-            .showIgnoreFailure=${el.showCommentsIgnoreFailure}
-            .showFlaky=${el.showCommentsFlaky}
-            .editRights=${el.canEditComments}
-          ></comments-sk>
-        </div>
+    <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
+      <header>
+        <div>${el.titleSection}</div>
+        <div class="spacer"></div>
+        ${el.actionButton
+          ? html`<button class="action" @click=${el.actionButton.handler}>
+              ${el.actionButton.buttonText}
+            </button>`
+          : html``}
+        <button class="close" @click=${() => el.close()}>
+          <close-icon-sk></close-icon-sk>
+        </button>
+      </header>
+      ${el.detailsSection
+        ? [
+            el.detailsSection,
+            html`
+              <br />
+              <hr />
+            `,
+          ]
+        : html``}
+      <div>
+        <comments-sk
+          .commentData=${el.commentData}
+          .allowAdd=${true}
+          .allowDelete=${true}
+          .showIgnoreFailure=${el.showCommentsIgnoreFailure}
+          .showFlaky=${el.showCommentsFlaky}
+          .editRights=${el.canEditComments}
+        ></comments-sk>
       </div>
-    `;
+    </div>
+  `;
 
   private titleSection: TemplateResult = html``;
 
@@ -108,12 +109,12 @@ export class DetailsDialogSk extends ElementSk {
 
   private open() {
     this._render();
-    (<HTMLElement> this).style.display = 'block';
+    (<HTMLElement>this).style.display = 'block';
     document.addEventListener('keydown', this.keydown);
   }
 
   close() {
-    (<HTMLElement> this).style.display = 'none';
+    (<HTMLElement>this).style.display = 'none';
     document.removeEventListener('keydown', this.keydown);
   }
 
@@ -137,7 +138,11 @@ export class DetailsDialogSk extends ElementSk {
     }
   }
 
-  displayTask(task: Task, comments: Array<Comment>, commitsByHash: Map<string, Commit>) {
+  displayTask(
+    task: Task,
+    comments: Array<Comment>,
+    commitsByHash: Map<string, Commit>
+  ) {
     this.reset();
     this.commentData = {
       comments: comments,
@@ -148,7 +153,14 @@ export class DetailsDialogSk extends ElementSk {
     };
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
-      .then((td) => html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`);
+      .then(
+        (td) =>
+          html`<br /><task-driver-sk
+              id="tdStatus"
+              .data=${td}
+              embedded
+            ></task-driver-sk>`
+      );
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
     this.titleSection = html`${until(
@@ -156,7 +168,10 @@ export class DetailsDialogSk extends ElementSk {
       html`
         <h3>
           <span>${task.name}</span
-          ><a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}"
+          ><a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="${logsUrl(task.swarmingTaskId)}"
             ><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
@@ -164,12 +179,18 @@ export class DetailsDialogSk extends ElementSk {
           <table>
             <tr>
               <td>Status:</td>
-              <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
+              <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>
+                ${task.status}
+              </td>
             </tr>
             <tr>
               <td>Context:</td>
               <td>
-                <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
+                <a
+                  href=${this.taskUrl(task)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   View on Task Scheduler
                 </a>
               </td>
@@ -189,35 +210,44 @@ export class DetailsDialogSk extends ElementSk {
             <tr>
               <td>Other Tasks Like This:</td>
               <td>
-                <a target="_blank" rel="noopener noreferrer" href=${this.swarmingUrl(task.name)}>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href=${this.swarmingUrl(task.name)}
+                >
                   View on Swarming
                 </a>
               </td>
             </tr>
           </table>
         </div>
-      `,
+      `
     )}`;
 
     this.detailsSection = html`
       <h3>Blamelist</h3>
       <table class="blamelist">
         ${task.commits?.map((hash: string) => {
-    const commit = commitsByHash.get(hash);
-    return html`
+          const commit = commitsByHash.get(hash);
+          return html`
             <tr>
               <td>
-                <a href="${revisionUrlTemplate(this.repo)}${hash}">${commit?.shortHash || ''}</a>
+                <a href="${revisionUrlTemplate(this.repo)}${hash}"
+                  >${commit?.shortHash || ''}</a
+                >
               </td>
               <td>${commit?.shortAuthor || ''}</td>
               <td>${commit?.shortSubject || ''}</td>
             </tr>
           `;
-  })}
+        })}
       </table>
     `;
 
-    this.actionButton = { buttonText: 'Re-run Job', handler: () => this.rerunJob(task) };
+    this.actionButton = {
+      buttonText: 'Re-run Job',
+      handler: () => this.rerunJob(task),
+    };
     this.open();
   }
 
@@ -233,7 +263,11 @@ export class DetailsDialogSk extends ElementSk {
       repo: this.repo,
     };
     this.titleSection = html` <h3>
-      <a href="${this.swarmingUrl(taskspec)}" target="_blank" rel="noopener noreferrer">
+      <a
+        href="${this.swarmingUrl(taskspec)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         ${taskspec}
       </a>
     </h3>`;
@@ -262,13 +296,15 @@ export class DetailsDialogSk extends ElementSk {
         <content-copy-icon-sk
           class="small-icon clickable"
           @click=${() => {
-    navigator.clipboard.writeText(commit.hash);
-  }}
+            navigator.clipboard.writeText(commit.hash);
+          }}
         ></content-copy-icon-sk>
         <br />
         ${commit.author}
         <br />
-        <span title="${commit.timestamp!}">${this.humanDate(commit.timestamp!)}</span>
+        <span title="${commit.timestamp!}"
+          >${this.humanDate(commit.timestamp!)}</span
+        >
       </p>
     `;
 
@@ -277,7 +313,10 @@ export class DetailsDialogSk extends ElementSk {
       <p>${escapeAndLinkify(commit.body)}</p>
     `;
     if (commit.issue) {
-      this.actionButton = { buttonText: 'Revert', handler: () => this.revertCommit(commit) };
+      this.actionButton = {
+        buttonText: 'Revert',
+        handler: () => this.revertCommit(commit),
+      };
     }
     this.open();
   }
@@ -295,15 +334,18 @@ export class DetailsDialogSk extends ElementSk {
     if (job.indexOf(uploadPrefix) == 0) {
       job = job.substring(uploadPrefix.length);
     }
-    const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${task.revision}`;
+    const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${
+      task.revision
+    }`;
     const win = window.open(url, '_blank') as Window;
     win.focus();
   }
 
   private revertCommit(commit: Commit) {
-    const url = commit.patchStorage === 'gerrit'
-      ? `https://skia-review.googlesource.com/c/${commit.issue}/?revert`
-      : `https://codereview.chromium.org/${commit.issue}/revert`;
+    const url =
+      commit.patchStorage === 'gerrit'
+        ? `https://skia-review.googlesource.com/c/${commit.issue}/?revert`
+        : `https://codereview.chromium.org/${commit.issue}/revert`;
     const win = window.open(url, '_blank') as Window;
     win.focus();
   }

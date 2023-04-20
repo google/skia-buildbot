@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import {
   loadCachedTestBed,
-  takeScreenshot, TestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('multi-input-sk', () => {

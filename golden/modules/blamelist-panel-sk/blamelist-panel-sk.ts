@@ -8,8 +8,8 @@
  *
  * This should typically go into some sort of dialog to show the user.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
@@ -28,7 +28,7 @@ const commitRow = (c: Commit): TemplateResult => {
           ${diffDate(c.commit_time * 1000)}
         </td>
         <td>
-          <a href=${commitHref(c)} target=_blank rel=noopener>
+          <a href=${commitHref(c)} target="_blank" rel="noopener">
             ${c.hash?.substring(0, 8)}
           </a>
         </td>
@@ -39,10 +39,10 @@ const commitRow = (c: Commit): TemplateResult => {
   // This is an instance using non-standard ids
   // TODO(kjlubick) make this link to something useful
   return html`
-      <tr>
-        <td>${c.id}</td>
-      </tr>
-    `;
+    <tr>
+      <td>${c.id}</td>
+    </tr>
+  `;
 };
 
 // lastGoodCommit is the last commit that Gold had data before newest commit. When we create the
@@ -95,24 +95,32 @@ const commitHref = (commit: Commit) => {
 export class BlamelistPanelSk extends ElementSk {
   static template = (ele: BlamelistPanelSk): TemplateResult => {
     const commitRangeHref = commitRange(ele.commits, ele.lastGoodCommit);
-    return html`
-<h2 ?hidden=${!commitRangeHref} class=full_range>
-    <a href=${commitRangeHref} target=_blank rel=noopener>View Full Range</a>
-</h2>
+    return html` <h2 ?hidden=${!commitRangeHref} class="full_range">
+        <a href=${commitRangeHref} target="_blank" rel="noopener"
+          >View Full Range</a
+        >
+      </h2>
 
-<h2>Commits for which Gold saw data:</h2>
-<table>
-  ${ele.commits.slice(0, maxCommitsToDisplay).map(commitRow)}
-</table>
-<div>
-  ${ele.commits.length > maxCommitsToDisplay ? '...and other commits.' : ''}
-</div>`;
+      <h2>Commits for which Gold saw data:</h2>
+      <table>
+        ${ele.commits.slice(0, maxCommitsToDisplay).map(commitRow)}
+      </table>
+      <div>
+        ${ele.commits.length > maxCommitsToDisplay
+          ? '...and other commits.'
+          : ''}
+      </div>`;
   };
 
   private _commits: Commit[] = [];
 
   private lastGoodCommit: Commit = {
-    hash: '', author: '', message: '', commit_time: 0, cl_url: '', id: '',
+    hash: '',
+    author: '',
+    message: '',
+    commit_time: 0,
+    cl_url: '',
+    id: '',
   };
 
   constructor() {
@@ -124,7 +132,9 @@ export class BlamelistPanelSk extends ElementSk {
     this._render();
   }
 
-  get commits(): Commit[] { return this._commits; }
+  get commits(): Commit[] {
+    return this._commits;
+  }
 
   set commits(commits: Commit[]) {
     // This can happen if clicking on the oldest commit.

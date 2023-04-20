@@ -4,9 +4,9 @@
  * task's priority.
  */
 
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 
@@ -15,27 +15,24 @@ import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/select-sk';
 
-import {
-  TaskPrioritiesResponse,
-} from '../json';
+import { TaskPrioritiesResponse } from '../json';
 
 export class TaskPrioritySk extends ElementSk {
-private _priorities: string[][] = [];
+  private _priorities: string[][] = [];
 
-private _selector: SelectSk | null = null;
+  private _selector: SelectSk | null = null;
 
-constructor() {
-  super(TaskPrioritySk.template);
-}
+  constructor() {
+    super(TaskPrioritySk.template);
+  }
 
   private static template = (el: TaskPrioritySk) => html`
-<div class=tr-container>
-  <select-sk>
-    ${el._priorities.map((p) => html`
-    <div>${p[1]}</div>`)}
-  </select-sk>
-</div>
-`;
+    <div class="tr-container">
+      <select-sk>
+        ${el._priorities.map((p) => html` <div>${p[1]}</div>`)}
+      </select-sk>
+    </div>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();

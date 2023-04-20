@@ -2,37 +2,44 @@
  * @module modules/timeline-sk
  * @description An element for displaying a position in a timeline.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { PlaySk } from '../play-sk/play-sk';
 
 import '../play-sk';
 import {
-  MoveToEventDetail, MoveFrameEventDetail, MoveFrameEvent, MoveToEvent,
+  MoveToEventDetail,
+  MoveFrameEventDetail,
+  MoveFrameEvent,
+  MoveToEvent,
 } from '../events';
 
 export class TimelineSk extends ElementSk {
-  private static template = (ele: TimelineSk) => html`
-    <div class='horizontal'>
-      <play-sk .visual=${'simple'}></play-sk>
-      <div class="outer">
-        <div class="hallway">
-          ${[...Array(ele._count).keys()].map((i) => html`
-            <div class="room ${ele._item === i
-    ? 'selected'
-    : 'not-selected'
-              }" @click=${() => { ele._roomClick(i); }}>${(i % ele._modulo) === 0
+  private static template = (ele: TimelineSk) => html` <div class="horizontal">
+    <play-sk .visual=${'simple'}></play-sk>
+    <div class="outer">
+      <div class="hallway">
+        ${[...Array(ele._count).keys()].map(
+          (i) => html`
+            <div
+              class="room ${ele._item === i ? 'selected' : 'not-selected'}"
+              @click=${() => {
+                ele._roomClick(i);
+              }}
+            >
+              ${i % ele._modulo === 0
                 ? html`<div class="rel-point">
                     <span class="label">${i}<span>
                   </div>`
-                : ''
-              }</div>
-          `)}
-        </div>
-        <div class="basement"><div>
+                : ''}
+            </div>
+          `
+        )}
       </div>
-    </div>`;
+      <div class="basement"><div></div></div>
+    </div>
+  </div>`;
 
   private _count = 50;
 
@@ -51,12 +58,10 @@ export class TimelineSk extends ElementSk {
     // this could be fixed by deferring this event with window.setTimeout, but that would break
     // pretty much any other code that sets timeline.item, such as the inspect button.
     this.dispatchEvent(
-      new CustomEvent<MoveFrameEventDetail>(
-        MoveFrameEvent, {
-          detail: { frame: this._item },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<MoveFrameEventDetail>(MoveFrameEvent, {
+        detail: { frame: this._item },
+        bubbles: true,
+      })
     );
   }
 

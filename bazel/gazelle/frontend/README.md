@@ -4,14 +4,14 @@ The Skia Infrastructure Gazelle extension generates Bazel build targets for fron
 (TypeScript, Sass, HTML) using the rules defined in `//infra-sk/index.bzl`. Specifically, it
 generates the following kinds of targets:
 
- - `ts_library`
- - `karma_test`
- - `nodejs_test`
- - `sass_library`
- - `sk_element`
- - `sk_page`
- - `sk_element_demo_page_server`
- - `sk_element_puppeteer_test`
+- `ts_library`
+- `karma_test`
+- `nodejs_test`
+- `sass_library`
+- `sk_element`
+- `sk_page`
+- `sk_element_demo_page_server`
+- `sk_element_puppeteer_test`
 
 ## Glossary
 
@@ -37,7 +37,7 @@ said words in the same fashion as the Gazelle API to avoid confusion.
 
 ## How Gazelle extensions work (high level overview)
 
-This section describes how a *typical* Gazelle extension works. The Skia Infrastructure Gazelle
+This section describes how a _typical_ Gazelle extension works. The Skia Infrastructure Gazelle
 extension differs in that it uses a custom rule index to resolve dependencies between rules. These
 differences are pointed out where necessary.
 
@@ -50,11 +50,11 @@ resolving imports to Bazel labels.
 Gazelle extensions work in (roughly) three steps, each one corresponding to one method in the
 `language.Language` interface:
 
- 1. Index the imports that existing Bazel rules may provide (i.e. what existing rules are we working
+1.  Index the imports that existing Bazel rules may provide (i.e. what existing rules are we working
     with?).
- 2. Generate or update rules in each target directory (i.e. what rules do we need to
+2.  Generate or update rules in each target directory (i.e. what rules do we need to
     create/update?).
- 3. Resolve the dependencies of any generated or updated rules (i.e. populate the `deps` arguments
+3.  Resolve the dependencies of any generated or updated rules (i.e. populate the `deps` arguments
     of the rules we created/updated in step 2 with rules from steps 1 and 2).
 
 When the Gazelle binary runs, it will call the `language.Language` interface methods corresponding
@@ -102,9 +102,9 @@ ts_library(
 
 In this example, `Imports` should return the following imports:
 
- - `measurements/units/customary`
- - `measurements/units/imperial`
- - `measurements/units/international`
+- `measurements/units/customary`
+- `measurements/units/imperial`
+- `measurements/units/international`
 
 Note that the imports returned by `Imports` are based exclusively on the file names of the rule's
 sources (`srcs` attribute). At no point does `Imports` inspect the contents of the source files.
@@ -142,14 +142,14 @@ directory. It returns a
 [`language.GenerateResult`](https://pkg.go.dev/github.com/bazelbuild/bazel-gazelle@v0.23.0/language#GenerateResult)
 struct with the following contents:
 
- - A list of rules generated from the source files in the directory, represented as `rule.Rule`
-   structs (field
-   [`Gen`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L139)).
- - A list of empty rules, that is, existing rules (defined in the directory's `BUILD.bazel` file)
-   that no longer can be built, e.g. because their source files have been deleted (field
-   [`Empty`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L144)).
- - A list of imports parsed from the source files of each generated rule (field
-   [`Imports`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L150)).
+- A list of rules generated from the source files in the directory, represented as `rule.Rule`
+  structs (field
+  [`Gen`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L139)).
+- A list of empty rules, that is, existing rules (defined in the directory's `BUILD.bazel` file)
+  that no longer can be built, e.g. because their source files have been deleted (field
+  [`Empty`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L144)).
+- A list of imports parsed from the source files of each generated rule (field
+  [`Imports`](https://github.com/bazelbuild/bazel-gazelle/blob/e9091445339de2ba7c01c3561f751b64a7fab4a5/language/lang.go#L150)).
 
 As an example, suppose that directory `//measurements/conversions` has files `conversions.ts` and
 `conversions_test.ts` with the following contents:
@@ -160,7 +160,8 @@ As an example, suppose that directory `//measurements/conversions` has files `co
 import { mass as lb } from 'measurements/units/customary';
 import { mass as kg } from 'measurements/units/international';
 
-export const lbsToKg = (lbs: number) => `${lbs} ${lb} is equal to ${lbs * 0.453592} ${kg}`
+export const lbsToKg = (lbs: number) =>
+  `${lbs} ${lb} is equal to ${lbs * 0.453592} ${kg}`;
 ```
 
 ```typescript
@@ -170,7 +171,9 @@ import { lbsToKg } from './conversions';
 
 describe('conversions', () => {
   it('should convert pounds to kilograms', () => {
-    expect(lbsToKg(1)).to.equal('1 pound (lb) is equal to 0.45392 kilogram (kg)');
+    expect(lbsToKg(1)).to.equal(
+      '1 pound (lb) is equal to 0.45392 kilogram (kg)'
+    );
   });
 });
 ```
@@ -262,6 +265,6 @@ Support for new rule kinds (e.g. `foo_library`, `bar_binary`, etc.) can be added
 
 ## Additional readings
 
- - Extending Gazelle: https://github.com/bazelbuild/bazel-gazelle/blob/master/extend.rst.
- - Sample Gazelle extension by Ecosia: https://github.com/jasongwartz/bazel_rules_nodejs_contrib.
- - Tentative Gazelle extension for Sass: https://github.com/bazelbuild/rules_sass/pull/75/files.
+- Extending Gazelle: https://github.com/bazelbuild/bazel-gazelle/blob/master/extend.rst.
+- Sample Gazelle extension by Ecosia: https://github.com/jasongwartz/bazel_rules_nodejs_contrib.
+- Tentative Gazelle extension for Sass: https://github.com/bazelbuild/rules_sass/pull/75/files.

@@ -1,5 +1,4 @@
-NUC foot 3D models
-==================
+# NUC foot 3D models
 
 The "NUC foot" 3D models are designed for
 a [NUC6i5SYK](http://www.intel.com/content/www/us/en/nuc/nuc-kit-nuc6i5syk.html), but should work
@@ -22,11 +21,10 @@ Installation:
    the arrow on the foot to match the "FRONT" arrow printed on the
    NUC. Illustration:
 
-     ![NUC-foot-v1-photo-1.jpg](NUC-foot-v1-photo-1.jpg)
+   ![NUC-foot-v1-photo-1.jpg](NUC-foot-v1-photo-1.jpg)
 
 4. Tighten the screws.
 
 NUCs can then be stacked:
 
 ![NUC-foot-v1-photo-2.jpg](NUC-foot-v1-photo-2.jpg)
-

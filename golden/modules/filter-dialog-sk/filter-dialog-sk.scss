@@ -12,7 +12,8 @@ filter-dialog-sk .filter-dialog {
     flex-direction: column;
   }
 
-  label, .label {
+  label,
+  .label {
     display: block;
     font-weight: bold;
     margin-top: 24px;
@@ -27,11 +28,11 @@ filter-dialog-sk .filter-dialog {
     display: flex;
     flex-direction: row;
 
-    input[type=range] {
+    input[type='range'] {
       flex-grow: 1;
     }
 
-    input[type=number] {
+    input[type='number'] {
       width: 50px;
     }
   }

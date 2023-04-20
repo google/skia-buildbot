@@ -12,8 +12,8 @@
  *
  * @event context-loaded is sent when the context for a fiddle had been loaded from the server.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/error-toast-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -36,7 +36,7 @@ export class FiddleEmbed extends ElementSk {
     sources: [1, 2, 3, 4, 5, 6],
     loop: true,
     play: true,
-  }
+  };
 
   private context: FiddleContext | null = null;
 
@@ -48,10 +48,10 @@ export class FiddleEmbed extends ElementSk {
   }
 
   private static template = (ele: FiddleEmbed) => html`<fiddle-sk
-    .config=${ele.mergedConfig()}
-    .context=${ele.context}></fiddle-sk>
-    <error-toast-sk></error-toast-sk>
-    `;
+      .config=${ele.mergedConfig()}
+      .context=${ele.context}
+    ></fiddle-sk>
+    <error-toast-sk></error-toast-sk> `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -59,16 +59,25 @@ export class FiddleEmbed extends ElementSk {
     this.control = this.querySelector('fiddle-sk');
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
     if (name === 'name') {
       if (!newValue) {
         return;
       }
-      fetch(`${this.config.domain}/e/${newValue}`).then(jsonOrThrow).then((json) => {
-        this.control!.context = json;
-        this._render();
-        this.dispatchEvent(new CustomEvent('context-loaded', { bubbles: true }));
-      }).catch(errorMessage);
+      fetch(`${this.config.domain}/e/${newValue}`)
+        .then(jsonOrThrow)
+        .then((json) => {
+          this.control!.context = json;
+          this._render();
+          this.dispatchEvent(
+            new CustomEvent('context-loaded', { bubbles: true })
+          );
+        })
+        .catch(errorMessage);
     } else {
       this._render();
     }

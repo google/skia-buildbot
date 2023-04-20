@@ -1,11 +1,16 @@
 import './index';
 import { assert } from 'chai';
-import { imageSize, UniformImageresolutionSk } from './uniform-imageresolution-sk';
+import {
+  imageSize,
+  UniformImageresolutionSk,
+} from './uniform-imageresolution-sk';
 
 import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-imageresolution-sk', () => {
-  const newInstance = setUpElementUnderTest<UniformImageresolutionSk>('uniform-imageresolution-sk');
+  const newInstance = setUpElementUnderTest<UniformImageresolutionSk>(
+    'uniform-imageresolution-sk'
+  );
 
   let element: UniformImageresolutionSk;
   beforeEach(() => {

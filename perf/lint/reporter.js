@@ -1,6 +1,6 @@
 // A reporter module to be used by JsHint for formatting the output.
 module.exports = {
-  reporter: function(res) {
+  reporter: function (res) {
     const len = res.length;
     let str = '';
 
@@ -12,8 +12,7 @@ module.exports = {
     });
 
     if (str) {
-      process.stdout.write(`${str}\n${len} error${
-        (len === 1) ? '' : 's'}\n`);
+      process.stdout.write(`${str}\n${len} error${len === 1 ? '' : 's'}\n`);
     }
   },
 };

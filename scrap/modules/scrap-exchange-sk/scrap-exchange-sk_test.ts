@@ -5,7 +5,8 @@ import { ScrapExchangeSk } from './scrap-exchange-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('scrap-exchange-sk', () => {
-  const newInstance = setUpElementUnderTest<ScrapExchangeSk>('scrap-exchange-sk');
+  const newInstance =
+    setUpElementUnderTest<ScrapExchangeSk>('scrap-exchange-sk');
 
   let element: ScrapExchangeSk;
   beforeEach(() => {

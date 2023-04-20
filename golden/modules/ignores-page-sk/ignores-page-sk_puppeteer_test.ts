@@ -38,9 +38,13 @@ describe('ignores-page-sk', () => {
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 1300 });
       await testBed.page.click(
-        'ignores-page-sk tbody > tr:nth-child(1) > td.mutate-icons > delete-icon-sk',
+        'ignores-page-sk tbody > tr:nth-child(1) > td.mutate-icons > delete-icon-sk'
       );
-      await takeScreenshot(testBed.page, 'gold', 'ignores-page-sk_delete-dialog');
+      await takeScreenshot(
+        testBed.page,
+        'gold',
+        'ignores-page-sk_delete-dialog'
+      );
     });
 
     it('should show the edit ignore rule modal when update is clicked', async () => {
@@ -48,9 +52,13 @@ describe('ignores-page-sk', () => {
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 1300 });
       await testBed.page.click(
-        'ignores-page-sk tbody > tr:nth-child(5) > td.mutate-icons > mode-edit-icon-sk',
+        'ignores-page-sk tbody > tr:nth-child(5) > td.mutate-icons > mode-edit-icon-sk'
       );
-      await takeScreenshot(testBed.page, 'gold', 'ignores-page-sk_update-modal');
+      await takeScreenshot(
+        testBed.page,
+        'gold',
+        'ignores-page-sk_update-modal'
+      );
     });
 
     it('should show the create ignore rule modal when create is clicked', async () => {
@@ -58,13 +66,19 @@ describe('ignores-page-sk', () => {
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 1300 });
       await testBed.page.click('ignores-page-sk .controls button.create');
-      await takeScreenshot(testBed.page, 'gold', 'ignores-page-sk_create-modal');
+      await takeScreenshot(
+        testBed.page,
+        'gold',
+        'ignores-page-sk_create-modal'
+      );
     });
   });
 });
 
 async function navigateTo(page: Page, base: string, queryParams = '') {
-  const eventPromise = await addEventListenersToPuppeteerPage(page, ['end-task']);
+  const eventPromise = await addEventListenersToPuppeteerPage(page, [
+    'end-task',
+  ]);
   const loaded = eventPromise('end-task'); // Emitted when page is loaded.
   await page.goto(`${base}${queryParams}`);
   await loaded;

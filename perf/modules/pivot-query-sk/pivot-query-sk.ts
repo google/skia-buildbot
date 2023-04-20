@@ -5,8 +5,8 @@
  * @evt pivot-changed - Emitted every time the control is changed by the user.
  * See PivotQueryChangedEventDetail.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { MultiSelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, pivot } from '../json';
@@ -14,7 +14,9 @@ import '../../../elements-sk/modules/multi-select-sk';
 import '../../../elements-sk/modules/select-sk';
 import { operationDescriptions, validatePivotRequest } from '../pivotutil';
 
-const sortedOps = Object.keys(operationDescriptions).sort() as pivot.Operation[];
+const sortedOps = Object.keys(
+  operationDescriptions
+).sort() as pivot.Operation[];
 
 /** CustomEvent details sent when the control is changed by the user. */
 export type PivotQueryChangedEventDetail = pivot.Request | null;
@@ -38,27 +40,27 @@ export class PivotQuerySk extends ElementSk {
   }
 
   private static template = (ele: PivotQuerySk) => html`
-  <label>
-    <p>Which keys should traces be grouped by:</p>
-    <multi-select-sk id=group_by @selection-changed=${ele.groupByChanged}>
-      ${ele.groupByOptions()}
-    </multi-select-sk>
-  </label>
+    <label>
+      <p>Which keys should traces be grouped by:</p>
+      <multi-select-sk id="group_by" @selection-changed=${ele.groupByChanged}>
+        ${ele.groupByOptions()}
+      </multi-select-sk>
+    </label>
 
-  <label>
-    <p>What operation should be applied:</p>
-    <select @change=${ele.operationChanged}>
-      ${ele.operationOptions()}
-    </select>
-  </label>
+    <label>
+      <p>What operation should be applied:</p>
+      <select @change=${ele.operationChanged}>
+        ${ele.operationOptions()}
+      </select>
+    </label>
 
-  <label>
-    <p>Optional: Choose summary statistics to calculate for each group:</p>
-    <multi-select-sk id=summary @selection-changed=${ele.summaryChanged}>
-      ${ele.summaryOptions()}
-    </multi-select-sk>
-  </label>
-`;
+    <label>
+      <p>Optional: Choose summary statistics to calculate for each group:</p>
+      <multi-select-sk id="summary" @selection-changed=${ele.summaryChanged}>
+        ${ele.summaryOptions()}
+      </multi-select-sk>
+    </label>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -85,34 +87,57 @@ export class PivotQuerySk extends ElementSk {
     // Do this by concatenating psKeys and selectedKeys and then removing
     // duplicates.
     let last = '';
-    return psKeys.concat(selectedKeys).sort().filter((key: string) => {
-      if (key === last) {
-        return false;
-      }
-      last = key;
-      return true;
-    });
+    return psKeys
+      .concat(selectedKeys)
+      .sort()
+      .filter((key: string) => {
+        if (key === last) {
+          return false;
+        }
+        last = key;
+        return true;
+      });
   }
 
   private groupByOptions(): TemplateResult[] {
     const selectedKeys = this._pivotRequest?.group_by || [];
     const allOptions = this.allGroupByOptions();
-    return allOptions.map((key: string): TemplateResult => html`<div ?selected=${selectedKeys.includes(key)}>${key}</div>`);
+    return allOptions.map(
+      (key: string): TemplateResult =>
+        html`<div ?selected=${selectedKeys.includes(key)}>${key}</div>`
+    );
   }
 
   private operationOptions(): TemplateResult[] {
-    return sortedOps.map((key: pivot.Operation): TemplateResult => html`<option value="${key}" .selected=${this._pivotRequest?.operation === key}>${operationDescriptions[key]}</option>`);
+    return sortedOps.map(
+      (key: pivot.Operation): TemplateResult =>
+        html`<option
+          value="${key}"
+          .selected=${this._pivotRequest?.operation === key}
+        >
+          ${operationDescriptions[key]}
+        </option>`
+    );
   }
 
   private summaryOptions(): TemplateResult[] {
     const selections = this._pivotRequest?.summary || [];
-    return sortedOps.map((key: pivot.Operation): TemplateResult => html`<div ?selected=${selections.includes(key)}>${operationDescriptions[key]}</div>`);
+    return sortedOps.map(
+      (key: pivot.Operation): TemplateResult =>
+        html`<div ?selected=${selections.includes(key)}>
+          ${operationDescriptions[key]}
+        </div>`
+    );
   }
 
-  private groupByChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
+  private groupByChanged(
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
+  ): void {
     this.createDefaultPivotRequestIfNull();
     const allOptions = this.allGroupByOptions();
-    this._pivotRequest!.group_by = e.detail.selection.map((index: number) => allOptions[index]);
+    this._pivotRequest!.group_by = e.detail.selection.map(
+      (index: number) => allOptions[index]
+    );
     this.emitChangeEvent();
   }
 
@@ -122,17 +147,26 @@ export class PivotQuerySk extends ElementSk {
     this.emitChangeEvent();
   }
 
-  private summaryChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
+  private summaryChanged(
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
+  ): void {
     this.createDefaultPivotRequestIfNull();
-    this._pivotRequest!.summary = e.detail.selection.map((index: number) => sortedOps[index]);
+    this._pivotRequest!.summary = e.detail.selection.map(
+      (index: number) => sortedOps[index]
+    );
     this.emitChangeEvent();
   }
 
   private emitChangeEvent(): void {
-    this.dispatchEvent(new CustomEvent<PivotQueryChangedEventDetail>(PivotQueryChangedEventName, {
-      detail: this.pivotRequest,
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<PivotQueryChangedEventDetail>(
+        PivotQueryChangedEventName,
+        {
+          detail: this.pivotRequest,
+          bubbles: true,
+        }
+      )
+    );
   }
 
   /** Returns null if the pivot.Request isn't valid. */

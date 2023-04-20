@@ -1,5 +1,4 @@
-api.skia.org
-============
+# api.skia.org
 
 This application serves the Doxygen documentation for the Skia library.
 

@@ -36,7 +36,7 @@ export const Login = fetch('https://skia.org/loginstatus/', {
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export const LoginTo = function(loginStatusURL: string) {
+export const LoginTo = function (loginStatusURL: string) {
   return fetch(loginStatusURL, {
     credentials: 'include',
   }).then((res) => {

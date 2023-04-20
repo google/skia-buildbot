@@ -1,7 +1,7 @@
 import './index';
 import '../gold-scaffold-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { delay } from '../demo_util';
 import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';

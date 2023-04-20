@@ -5,9 +5,9 @@
  * or weekly.
  */
 
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -17,7 +17,8 @@ const frequencies = [
   { num: '0', desc: 'Never repeat' },
   { num: '1', desc: 'Repeat daily' },
   { num: '2', desc: 'Repeat every other day' },
-  { num: '7', desc: 'Repeat weekly' }];
+  { num: '7', desc: 'Repeat weekly' },
+];
 
 export class TaskRepeaterSk extends ElementSk {
   private _selector: SelectSk | null = null;
@@ -27,14 +28,15 @@ export class TaskRepeaterSk extends ElementSk {
   }
 
   private static template = () => html`
-  <div class=tr-container>
-    <select-sk>
-      ${frequencies.map((f) => html`
-      <div>
-        <span class=num>${f.num}</span><span>${f.desc}</span>
-      </div>`)}
-    </select-sk>
-  </div>
+    <div class="tr-container">
+      <select-sk>
+        ${frequencies.map(
+          (f) => html` <div>
+            <span class="num">${f.num}</span><span>${f.desc}</span>
+          </div>`
+        )}
+      </select-sk>
+    </div>
   `;
 
   connectedCallback(): void {

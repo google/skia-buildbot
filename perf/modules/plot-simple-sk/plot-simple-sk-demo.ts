@@ -87,19 +87,19 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_selected', (e) => {
     $$('#selected')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_focused', (e) => {
     $$('#focused')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('zoom', (e) => {
     $$('#zoom')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail,
+      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail
     );
   });
 

@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  inBazel,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('tooltip-sk', () => {
@@ -11,7 +14,9 @@ describe('tooltip-sk', () => {
 
   beforeEach(async () => {
     // Remove the /dist/ below for //infra-sk elements.
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/tooltip-sk.html`);
+    await testBed.page.goto(
+      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/tooltip-sk.html`
+    );
     await testBed.page.setViewport({ width: 600, height: 300 });
   });
 

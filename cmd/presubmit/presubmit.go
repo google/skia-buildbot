@@ -117,6 +117,9 @@ func main() {
 	if !runGofmt(ctx, changedFiles) {
 		os.Exit(1)
 	}
+	if !runPrettier(ctx, changedFiles, *repoDir) {
+		os.Exit(1)
+	}
 	if !runGazelle(ctx, changedFiles, deletedFiles) {
 		os.Exit(1)
 	}
@@ -654,6 +657,24 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot st
 
 	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
 		logf(ctx, "goimports caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	return true
+}
+
+// runPrettier runs prettier --check on any changed files. It returns false if
+// prettier returns a non-zero error code..
+func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot string) bool {
+	args := []string{"run", "--config=mayberemote", "@npm//prettier/bin:prettier", "--run_under=cd " + workspaceRoot + " &&", "--", "--check", "--ignore-unknown"}
+	for _, f := range files {
+		args = append(args, f.fileName)
+	}
+
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "prettier failed!\n")
 		return false
 	}
 	return true

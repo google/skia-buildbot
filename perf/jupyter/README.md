@@ -1,5 +1,4 @@
-Installing Jupyter
-==================
+# Installing Jupyter
 
 Jupyter and IPython are written in Python and Python installs, particularly on
 older Linux distributions, is problematic. This is the most reliable way

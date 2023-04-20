@@ -1,16 +1,26 @@
 import './index';
 import '../gold-scaffold-sk';
+import fetchMock, { MockResponseObject } from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { toParamSet } from '../../../infra-sk/modules/query';
-import fetchMock, { MockResponseObject } from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { SearchPageSk } from './search-page-sk';
 import {
-  searchResponse, statusResponse, paramSetResponse, groupingsResponse, fakeNow, changeListSummaryResponse,
+  searchResponse,
+  statusResponse,
+  paramSetResponse,
+  groupingsResponse,
+  fakeNow,
+  changeListSummaryResponse,
 } from './demo_data';
 import {
-  DigestStatus, SearchResult, TriageDelta, TriageRequest, TriageRequestV3, TriageResponse,
+  DigestStatus,
+  SearchResult,
+  TriageDelta,
+  TriageRequest,
+  TriageRequestV3,
+  TriageResponse,
 } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { delay } from '../demo_util';
@@ -36,16 +46,20 @@ fetchMock.get('glob:/json/v2/search*', (url: string) => {
 
   // Filter only by untriaged/positive/negative.
   filteredSearchResponse.digests = filteredSearchResponse.digests!.filter(
-    (digest) => (digest!.status === 'untriaged' && queryParams.unt[0] === 'true')
-      || (digest!.status === 'positive' && queryParams.pos[0] === 'true')
-      || (digest!.status === 'negative' && queryParams.neg[0] === 'true'),
+    (digest) =>
+      (digest!.status === 'untriaged' && queryParams.unt[0] === 'true') ||
+      (digest!.status === 'positive' && queryParams.pos[0] === 'true') ||
+      (digest!.status === 'negative' && queryParams.neg[0] === 'true')
   );
   filteredSearchResponse.size = filteredSearchResponse.digests.length;
 
   // Apply limit and offset.
   const limit = parseInt(queryParams.limit[0]);
   const offset = parseInt(queryParams.offset[0]);
-  filteredSearchResponse.digests = filteredSearchResponse.digests.slice(offset, offset + limit);
+  filteredSearchResponse.digests = filteredSearchResponse.digests.slice(
+    offset,
+    offset + limit
+  );
   filteredSearchResponse.offset = offset;
 
   return delay(filteredSearchResponse, 1000);
@@ -59,7 +73,10 @@ fetchMock.post('/json/v3/triage', (_: any, req: any) => {
   triageRequest.deltas.forEach((delta: TriageDelta) => {
     searchResponse.digests!.forEach((searchResult: SearchResult | null) => {
       // Update the search result if it matches the current digest.
-      if (searchResult?.digest === delta.digest && searchResult.test === delta.grouping.name) {
+      if (
+        searchResult?.digest === delta.digest &&
+        searchResult.test === delta.grouping.name
+      ) {
         searchResult.status = delta.label_after;
       }
 

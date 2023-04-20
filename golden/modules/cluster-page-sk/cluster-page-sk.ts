@@ -7,24 +7,41 @@
  *
  * It is a top level element.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import { fromParamSet, fromObject, ParamSet } from '../../../infra-sk/modules/query';
+import {
+  fromParamSet,
+  fromObject,
+  ParamSet,
+} from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk';
+import {
+  SearchCriteriaToHintableObject,
+  SearchCriteriaFromHintableObject,
+} from '../search-controls-sk';
 
 import '../cluster-digests-sk';
 import '../digest-details-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import {
-  ClusterDiffLink, ClusterDiffResult, DetailsRequest, Digest, DigestComparison, DigestDetails, GroupingsResponse, Params,
+  ClusterDiffLink,
+  ClusterDiffResult,
+  DetailsRequest,
+  Digest,
+  DigestComparison,
+  DigestDetails,
+  GroupingsResponse,
+  Params,
 } from '../rpc_types';
-import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from '../cluster-digests-sk/cluster-digests-sk';
+import {
+  ClusterDiffNodeWithLabel,
+  ClusterDigestsSk,
+} from '../cluster-digests-sk/cluster-digests-sk';
 import { ParamSetSkClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 
 function mergeParamsets(base: ParamSet, extra: ParamSet) {
@@ -51,14 +68,18 @@ export class ClusterPageSk extends ElementSk {
       return html`<h1>Need a test to cluster by</h1>`;
     }
     return html`
-      <div class=page-container>
-        <search-controls-sk .corpora=${ele.corpora}
-                            .paramSet=${ele.paramset}
-                            .searchCriteria=${ele.searchCriteria}
-                            @search-controls-sk-change=${ele.searchControlsChanged}>
+      <div class="page-container">
+        <search-controls-sk
+          .corpora=${ele.corpora}
+          .paramSet=${ele.paramset}
+          .searchCriteria=${ele.searchCriteria}
+          @search-controls-sk-change=${ele.searchControlsChanged}
+        >
         </search-controls-sk>
 
-        <cluster-digests-sk @selection-changed=${ele.selectionChanged}></cluster-digests-sk>
+        <cluster-digests-sk
+          @selection-changed=${ele.selectionChanged}
+        ></cluster-digests-sk>
 
         ${ClusterPageSk.infoPanel(ele)}
       </div>
@@ -69,23 +90,28 @@ export class ClusterPageSk extends ElementSk {
     if (!ele.selectedDigests.length) {
       return html`
         <div>
-          Click on one digest or shift click multiple digests to see more specific information.
-          Use A/Z to Zoom In/Out and S/X to increase/decrease node distance.
+          Click on one digest or shift click multiple digests to see more
+          specific information. Use A/Z to Zoom In/Out and S/X to
+          increase/decrease node distance.
         </div>
 
-        <paramset-sk clickable
-                     .paramsets=${[ele.paramsetOfAllDigests]}
-                     @paramset-key-click=${ele.paramKeyClicked}
-                     @paramset-key-value-click=${ele.paramValueClicked}>
+        <paramset-sk
+          clickable
+          .paramsets=${[ele.paramsetOfAllDigests]}
+          @paramset-key-click=${ele.paramKeyClicked}
+          @paramset-key-value-click=${ele.paramValueClicked}
+        >
         </paramset-sk>
       `;
     }
     if (ele.selectedDigests.length === 1) {
       if (ele.digestDetails) {
         return html`
-          <digest-details-sk .details=${ele.digestDetails.digest}
-                             .commits=${ele.digestDetails.commits}
-                             .groupings=${ele.groupings}>
+          <digest-details-sk
+            .details=${ele.digestDetails.digest}
+            .commits=${ele.digestDetails.commits}
+            .groupings=${ele.groupings}
+          >
           </digest-details-sk>
         `;
       }
@@ -93,11 +119,12 @@ export class ClusterPageSk extends ElementSk {
     }
     if (ele.selectedDigests.length === 2) {
       if (ele.diffDetails) {
-        return html`
-          <digest-details-sk .details=${ele.diffDetails.left}
-                             .right=${ele.diffDetails.right}
-                             .groupings=${ele.groupings}>
-          </digest-details-sk>`;
+        return html` <digest-details-sk
+          .details=${ele.diffDetails.left}
+          .right=${ele.diffDetails.right}
+          .groupings=${ele.groupings}
+        >
+        </digest-details-sk>`;
       }
       return html`<h2>Loading diff details</h2>`;
     }
@@ -111,10 +138,12 @@ export class ClusterPageSk extends ElementSk {
     return html`
       <div>Summary of ${ele.selectedDigests.length} digests</div>
 
-      <paramset-sk clickable
-                   .paramsets=${[selectedDigestParamset]}
-                   @paramset-key-click=${ele.paramKeyClicked}
-                   @paramset-key-value-click=${ele.paramValueClicked}>
+      <paramset-sk
+        clickable
+        .paramsets=${[selectedDigestParamset]}
+        @paramset-key-click=${ele.paramKeyClicked}
+        @paramset-key-value-click=${ele.paramValueClicked}
+      >
       </paramset-sk>
     `;
   };
@@ -169,33 +198,35 @@ export class ClusterPageSk extends ElementSk {
   // Allows us to abort fetches if we fetch again.
   private fetchController?: AbortController;
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
-  private readonly keyEventHandler: (e: KeyboardEvent)=> void;
+  private readonly keyEventHandler: (e: KeyboardEvent) => void;
 
   constructor() {
     super(ClusterPageSk.template);
 
     this.stateChanged = stateReflector(
-      /* getState */() => {
-        const state = SearchCriteriaToHintableObject(this.searchCriteria) as any;
+      /* getState */ () => {
+        const state = SearchCriteriaToHintableObject(
+          this.searchCriteria
+        ) as any;
         state.grouping = this.grouping;
         state.changeListID = this.changeListID;
         state.crs = this.crs;
         return state;
       },
-      /* setState */(newState) => {
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
         this.searchCriteria = SearchCriteriaFromHintableObject(newState);
-        this.grouping = newState.grouping as Params || {};
+        this.grouping = (newState.grouping as Params) || {};
         this.changeListID = newState.changeListID as string;
         this.crs = newState.crs as string;
         this.fetchGroupingsOnce();
         this.fetchClusterData();
         this._render();
-      },
+      }
     );
 
     this.keyEventHandler = (e: KeyboardEvent) => this.keyPressed(e);
@@ -220,7 +251,9 @@ export class ClusterPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this.groupings = await fetch('/json/v1/groupings', {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -318,7 +351,8 @@ export class ClusterPageSk extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(jsonOrThrow)
+    })
+      .then(jsonOrThrow)
       .then((digestDetails: DigestDetails) => {
         this.digestDetails = digestDetails;
         this._render();
@@ -362,16 +396,20 @@ export class ClusterPageSk extends ElementSk {
     }
     const key = e.key || e.keyCode;
     switch (key) {
-      case 'z': case 90: // Zoom in (loosen links)
+      case 'z':
+      case 90: // Zoom in (loosen links)
         cluster.changeLinkTightness(false);
         break;
-      case 'a': case 65: // Zoom out (tighten links)
+      case 'a':
+      case 65: // Zoom out (tighten links)
         cluster.changeLinkTightness(true);
         break;
-      case 's': case 83: // Increase distance between nodes
+      case 's':
+      case 83: // Increase distance between nodes
         cluster.changeNodeRepulsion(true);
         break;
-      case 'x': case 88: // Decrease distance between nodes
+      case 'x':
+      case 88: // Decrease distance between nodes
         cluster.changeNodeRepulsion(false);
         break;
       default:
@@ -382,8 +420,10 @@ export class ClusterPageSk extends ElementSk {
   }
 
   private layoutCluster() {
-    this.querySelector<ClusterDigestsSk>('cluster-digests-sk')
-      ?.setData(this.renderedNodes, this.renderedLinks);
+    this.querySelector<ClusterDigestsSk>('cluster-digests-sk')?.setData(
+      this.renderedNodes,
+      this.renderedLinks
+    );
   }
 
   private paramKeyClicked(e: CustomEvent<ParamSetSkClickEventDetail>) {

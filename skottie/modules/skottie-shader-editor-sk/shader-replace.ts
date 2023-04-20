@@ -14,8 +14,8 @@ export interface ShaderData {
   items: ExtraLayerData[];
 }
 
-//TODO(jmbetancourt): return LottieAnimation with replaced shaders
-export const replaceShaders = (texts: ShaderData[],
-                               currentAnimation: LottieAnimation): LottieAnimation => {
-  return currentAnimation;
-};
+// TODO(jmbetancourt): return LottieAnimation with replaced shaders
+export const replaceShaders = (
+  texts: ShaderData[],
+  currentAnimation: LottieAnimation
+): LottieAnimation => currentAnimation;

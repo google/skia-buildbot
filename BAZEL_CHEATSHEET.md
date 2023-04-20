@@ -7,9 +7,9 @@ to Bazel.
 
 The original design documents for our Bazel build can be found at the following Golinks:
 
- - [go/skia-infra-bazel](http://go/skia-infra-bazel)
- - [go/skia-infra-bazel-frontend](http://go/skia-infra-bazel-frontend)
- - [go/skia-infra-bazel-backend](http://go/skia-infra-bazel-backend)
+- [go/skia-infra-bazel](http://go/skia-infra-bazel)
+- [go/skia-infra-bazel-frontend](http://go/skia-infra-bazel-frontend)
+- [go/skia-infra-bazel-backend](http://go/skia-infra-bazel-backend)
 
 ## Initial setup
 
@@ -30,10 +30,10 @@ To install Bazelisk, grab the latest binary for your platform from
 
 Tips:
 
- - Make a Bash alias with `alias bazel="bazelisk"` and add it to your `~/.bash_aliases` file.
- - Set the full path to `bazel` to be the full path to `bazelisk` in your IDE of choice. This is
-   necessary for some extensions to work correctly, such as the
-   [Bazel plugin for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
+- Make a Bash alias with `alias bazel="bazelisk"` and add it to your `~/.bash_aliases` file.
+- Set the full path to `bazel` to be the full path to `bazelisk` in your IDE of choice. This is
+  necessary for some extensions to work correctly, such as the
+  [Bazel plugin for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
 ### Get your RBE credentials
 
@@ -77,15 +77,15 @@ Run `bazel run //:buildifier`.
 
 Our Bazel build is tested on RBE via the following tasks:
 
- - Infra-PerCommit-Build-Bazel-RBE (roughly equivalent to `bazel build //... --config=remote`)
- - Infra-PerCommit-Test-Bazel-RBE (roughly equivalent to `bazel test //... --config=remote`)
+- Infra-PerCommit-Build-Bazel-RBE (roughly equivalent to `bazel build //... --config=remote`)
+- Infra-PerCommit-Test-Bazel-RBE (roughly equivalent to `bazel test //... --config=remote`)
 
 We regard the above tasks as the source of truth for build and test correctness.
 
 As an insurance policy against RBE outages, we also have the following tasks:
 
- - Infra-PerCommit-Build-Bazel-Local (roughly equivalent to `bazel build //...`)
- - Infra-PerCommit-Test-Bazel-Local (roughly equivalent to `bazel test //...`)
+- Infra-PerCommit-Build-Bazel-Local (roughly equivalent to `bazel build //...`)
+- Infra-PerCommit-Test-Bazel-Local (roughly equivalent to `bazel test //...`)
 
 The non-RBE tasks tend to be a bit more brittle than the RBE ones, which is why they are excluded
 from the CQ.
@@ -151,9 +151,10 @@ build:mayberemote --config=remote
 ```
 
 To learn more about the `mayberemote` configuration:
- - See comments in `//.bazelrc`
-[here](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/.bazelrc#142).
- - See [`//bazel/user/README.md`](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/bazel/user/README.md).
+
+- See comments in `//.bazelrc`
+  [here](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/.bazelrc#142).
+- See [`//bazel/user/README.md`](https://skia.googlesource.com/buildbot/+/576558265598b54751233441814aa389f1e96d53/bazel/user/README.md).
 
 ## Running Bazel-built binaries
 
@@ -336,16 +337,16 @@ Tip: Start by reading the [General testing tips](#general-testing-tips) section.
 
 Front-end code testing is done via three different Bazel rules:
 
- - `karma_test` for in-browser tests based on the Karma test runner.
- - `sk_element_puppeteer_test` for Puppeteer tests that require a running `sk_demo_page_server`.
- - `nodejs_test` for any other server-side TypeScript tests (i.e. NodeJS tests).
+- `karma_test` for in-browser tests based on the Karma test runner.
+- `sk_element_puppeteer_test` for Puppeteer tests that require a running `sk_demo_page_server`.
+- `nodejs_test` for any other server-side TypeScript tests (i.e. NodeJS tests).
 
 Gazelle decides which rule to generate for a given `*_test.ts` file based the following patterns:
 
- - `karma_test` is used for files matching `//<app>/modules/<element>/<element>_test.ts`.
- - `sk_element_puppeteer_test` is used for files matching
-   `//<app>/modules/<element>/<element>_puppeteer_test.ts`.
- - `nodejs_test` is used for files matching `*_nodejs_test.ts`.
+- `karma_test` is used for files matching `//<app>/modules/<element>/<element>_test.ts`.
+- `sk_element_puppeteer_test` is used for files matching
+  `//<app>/modules/<element>/<element>_puppeteer_test.ts`.
+- `nodejs_test` is used for files matching `*_nodejs_test.ts`.
 
 #### Karma tests (`karma_test` rule)
 
@@ -420,6 +421,7 @@ continuing.
 Example debug session with Chrome DevTools:
 
 1. Add one or more `debugger` statements in your test code to set breakpoints, e.g.:
+
 ```
 // //golden/modules/dots-sk/dots-sk_puppeteer_test.ts
 
@@ -430,6 +432,7 @@ describe('dots-sk', () => {
   });
 });
 ```
+
 2. Run `bazel run //golden/modules/dots-sk:dots-sk_puppeteer_test_debugger`.
 3. Launch Chrome **in the machine where the test is running**, otherwise Chrome won't see the
    Node.js process associated to your test.
@@ -660,6 +663,7 @@ build.
 To get a detailed log of all the actions your build is taking:
 
 1. Add the following to your .bazelrc
+
 ```
 # ensure there are no disk cache hits
 build --disk_cache=/path/to/debugging/cache
@@ -667,9 +671,10 @@ build --disk_cache=/path/to/debugging/cache
 build --experimental_execution_log_file=yourLogFile.log
 
 ```
+
 2. Run `bazel clean --expunge`. We want all actions to get executed, so nothing cached.
 3. Look at the yourLogFile.log, it will contain a record of every action bazel executed,
-environment variables, command line, input files, and output files of every action.
+   environment variables, command line, input files, and output files of every action.
 
 ### Querying
 
@@ -680,6 +685,7 @@ There's a `query` and `cquery` variant that lets one query for the maximal set o
 or the information in one specific case, respectively.
 
 For example:
+
 ```
 # Show all possible build flags (e.g. defines, copts) and other information about a label
 bazel query 'kind("rule", //:skia_public)' --output xml
@@ -688,5 +694,4 @@ bazel query 'kind("rule", //:skia_public)' --output xml
 bazel cquery 'kind("rule", //:skia_public)' --output jsonproto --config=release
 ```
 
-This type of [querying is used extensively to generate .gni and CMakefiles](
-https://github.com/google/skia/blob/cf1fad655769f3e1a47a7b6d876efb0d7c5e0efa/bazel/exporter/bazel_query_command.go#L76-L116).
+This type of [querying is used extensively to generate .gni and CMakefiles](https://github.com/google/skia/blob/cf1fad655769f3e1a47a7b6d876efb0d7c5e0efa/bazel/exporter/bazel_query_command.go#L76-L116).

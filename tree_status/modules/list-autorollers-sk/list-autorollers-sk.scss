@@ -17,7 +17,12 @@ list-autorollers-sk {
     font-size: 1.2em;
   }
 
-  div, td, th, a, label, span {
+  div,
+  td,
+  th,
+  a,
+  label,
+  span {
     font-size: 1.2em;
   }
 
@@ -33,4 +38,3 @@ list-autorollers-sk {
 list-autorollers-sk[collapsable][collapsed] div.autorollers {
   display: none;
 }
-

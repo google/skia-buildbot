@@ -4,30 +4,30 @@ import { TryBotResponse } from '../json';
 
 // The average stddevRatio across all traces with the given keyValue.
 export interface AveForParam {
-    keyValue: string;
-    aveStdDevRatio: number;
+  keyValue: string;
+  aveStdDevRatio: number;
 
-    /** Total number of traces that match this keyValue. */
-    n: number;
+  /** Total number of traces that match this keyValue. */
+  n: number;
 
-    /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
-    high: number;
+  /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
+  high: number;
 
-    /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
-    low: number;
+  /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
+  low: number;
 }
 
 interface runningTotal {
-    totalStdDevRatio: number;
+  totalStdDevRatio: number;
 
-    /** Total number of traces that match this keyValue. */
-    n: number;
+  /** Total number of traces that match this keyValue. */
+  n: number;
 
-    /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
-    high: number;
+  /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
+  high: number;
 
-    /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
-    low: number;
+  /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
+  low: number;
 }
 
 /** Returns an array of AveForParam, where each one contains
@@ -38,7 +38,7 @@ interface runningTotal {
  */
 export function byParams(res: TryBotResponse): AveForParam[] {
   // Sum up all the stdDevRatios over all the key=value axes.
-  const runningTotals: {[key: string]: runningTotal} = {};
+  const runningTotals: { [key: string]: runningTotal } = {};
   res.results!.forEach((r) => {
     Object.entries(r.params).forEach((keyValue) => {
       const [key, value] = keyValue;
@@ -77,7 +77,9 @@ export function byParams(res: TryBotResponse): AveForParam[] {
   });
 
   // Sort by aveStdDevRatio.
-  ret.sort((a: AveForParam, b: AveForParam) => b.aveStdDevRatio - a.aveStdDevRatio);
+  ret.sort(
+    (a: AveForParam, b: AveForParam) => b.aveStdDevRatio - a.aveStdDevRatio
+  );
 
   return ret;
 }

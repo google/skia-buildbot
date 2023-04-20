@@ -1,7 +1,10 @@
 import { HintableObject } from '../../infra-sk/modules/hintable';
 import { fromObject } from '../../infra-sk/modules/query';
 import { Params } from './rpc_types';
-import { SearchCriteria, SearchCriteriaToHintableObject } from './search-controls-sk/search-controls-sk';
+import {
+  SearchCriteria,
+  SearchCriteriaToHintableObject,
+} from './search-controls-sk/search-controls-sk';
 
 /**
  * Takes a URL-encoded search query and returns that query with newlines between each of the
@@ -50,8 +53,15 @@ export function digestDiffImagePath(d1: string, d2: string): string {
  * @param clID CL ID. Optional, omit or use empty string for master branch.
  * @param crs Code review system. Optional, omit or use empty string for master branch.
  */
-export function detailHref(grouping: Params, digest: string, clID = '', crs = ''): string {
-  const u = `/detail?grouping=${encodeURIComponent(fromObject(grouping))}&digest=${digest}`;
+export function detailHref(
+  grouping: Params,
+  digest: string,
+  clID = '',
+  crs = ''
+): string {
+  const u = `/detail?grouping=${encodeURIComponent(
+    fromObject(grouping)
+  )}&digest=${digest}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
@@ -72,14 +82,15 @@ export function diffPageHref(
   left: string,
   right: string,
   clID = '',
-  crs = '',
+  crs = ''
 ): string {
   if (!left || !right) {
     return '';
   }
 
-  const u = `/diff?grouping=${encodeURIComponent(fromObject(grouping))}`
-    + `&left=${left}&right=${right}`;
+  const u =
+    `/diff?grouping=${encodeURIComponent(fromObject(grouping))}` +
+    `&left=${left}&right=${right}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
@@ -101,13 +112,14 @@ export function clusterPageHref(
   grouping: Params,
   searchCriteria: Partial<SearchCriteria>,
   clID = '',
-  crs = '',
+  crs = ''
 ): string {
-  const searchCriteriaHintableObject = SearchCriteriaToHintableObject(searchCriteria);
+  const searchCriteriaHintableObject =
+    SearchCriteriaToHintableObject(searchCriteria);
   searchCriteriaHintableObject.left_filter = '';
-  const u = `${'/cluster?'
-    + `grouping=${encodeURIComponent(fromObject(grouping))}&`}${
-    fromObject(searchCriteriaHintableObject as HintableObject)}`;
+  const u = `${
+    '/cluster?' + `grouping=${encodeURIComponent(fromObject(grouping))}&`
+  }${fromObject(searchCriteriaHintableObject as HintableObject)}`;
   if (clID) {
     return `${u}&changeListID=${clID}&crs=${crs}`;
   }
@@ -141,11 +153,13 @@ export interface FetchErrorEventDetail {
  * @param what Description of what was being fetched.
  */
 export function sendFetchError(ele: Element, e: any, what: string) {
-  ele.dispatchEvent(new CustomEvent<FetchErrorEventDetail>('fetch-error', {
-    detail: {
-      error: e,
-      loading: what,
-    },
-    bubbles: true,
-  }));
+  ele.dispatchEvent(
+    new CustomEvent<FetchErrorEventDetail>('fetch-error', {
+      detail: {
+        error: e,
+        loading: what,
+      },
+      bubbles: true,
+    })
+  );
 }

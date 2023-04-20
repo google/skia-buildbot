@@ -1,5 +1,4 @@
 skottie-library-sk {
-
   .header {
     align-items: center;
     display: flex;
@@ -22,7 +21,6 @@ skottie-library-sk {
   }
 
   .thumbnails {
-
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -32,12 +30,12 @@ skottie-library-sk {
       border: 1px solid black;
       cursor: pointer;
       display: none;
-      list-style-type:none;
+      list-style-type: none;
       margin: 5px;
       padding: 5px;
 
       &:hover {
-        border: 1px solid rgba(0,0,0,0);
+        border: 1px solid rgba(0, 0, 0, 0);
         outline: 2px solid var(--blue);
       }
     }

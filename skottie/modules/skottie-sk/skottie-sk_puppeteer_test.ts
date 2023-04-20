@@ -104,7 +104,9 @@ describe('skottie-sk', () => {
 });
 
 async function navigateTo(page: Page, base: string, queryParams: string = '') {
-  const eventPromise = await addEventListenersToPuppeteerPage(page, ['initial-animation-loaded']);
+  const eventPromise = await addEventListenersToPuppeteerPage(page, [
+    'initial-animation-loaded',
+  ]);
   const loaded = eventPromise('initial-animation-loaded');
   await page.goto(`${base}${queryParams}`);
   await loaded;
@@ -116,11 +118,11 @@ async function navigateTo(page: Page, base: string, queryParams: string = '') {
 }
 
 async function pause(page: Page) {
-  await page.$eval('#playpause', ((ele: Element) => {
+  await page.$eval('#playpause', (ele: Element) => {
     if (ele.textContent === 'Pause') {
       (ele as HTMLButtonElement).click();
     }
-  }));
+  });
 }
 
 async function rewind(page: Page) {

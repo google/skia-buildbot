@@ -9,23 +9,23 @@ import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/toast-sk';
 
+import { html } from 'lit-html';
 import { $$, DomReady } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
-  getFormattedTimestamp, taskDescriptors, getTimestamp, getCtDbTimestamp, TaskDescriptor,
+  getFormattedTimestamp,
+  taskDescriptors,
+  getTimestamp,
+  getCtDbTimestamp,
+  TaskDescriptor,
 } from '../ctfe_utils';
 
-import {
-  CommonCols,
-  DeleteTaskRequest,
-  GetTasksResponse,
-} from '../json';
+import { CommonCols, DeleteTaskRequest, GetTasksResponse } from '../json';
 
 function hideDialog(e: Event) {
   const classList = (e.target as HTMLElement).classList;
@@ -48,55 +48,76 @@ export class TaskQueueSk extends ElementSk {
   }
 
   private static template = (el: TaskQueueSk) => html`
-  <table class="runssummary surface-themes-sk secondary-links" id=queue>
-    <tr>
-      <th>Queue Position</th>
-      <th>Added</th>
-      <th>Task Type</th>
-      <th>User</th>
-      <th>Swarming Logs</th>
-      <th>Request</th>
-    </tr>
-    ${el._pendingTasks.map((task: CommonCols, index: number) => TaskQueueSk.taskRowTemplate(el, task, index))}
-   </table>
-  ${el._pendingTasks.map((task, index) => TaskQueueSk.taskDetailDialogTemplate(task, index))}
-  <toast-sk id=confirm_toast duration=5000></toast-sk>
+    <table class="runssummary surface-themes-sk secondary-links" id="queue">
+      <tr>
+        <th>Queue Position</th>
+        <th>Added</th>
+        <th>Task Type</th>
+        <th>User</th>
+        <th>Swarming Logs</th>
+        <th>Request</th>
+      </tr>
+      ${el._pendingTasks.map((task: CommonCols, index: number) =>
+        TaskQueueSk.taskRowTemplate(el, task, index)
+      )}
+    </table>
+    ${el._pendingTasks.map((task, index) =>
+      TaskQueueSk.taskDetailDialogTemplate(task, index)
+    )}
+    <toast-sk id="confirm_toast" duration="5000"></toast-sk>
   `;
 
-  private static taskRowTemplate = (el: TaskQueueSk, task: CommonCols, index: number) => html`
-  <tr>
-    <td class=nowrap>
+  private static taskRowTemplate = (
+    el: TaskQueueSk,
+    task: CommonCols,
+    index: number
+  ) => html` <tr>
+    <td class="nowrap">
       ${index + 1}
-      <delete-icon-sk title="Delete this task" alt=Delete ?hidden=${!task.can_delete}
-        @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
+      <delete-icon-sk
+        title="Delete this task"
+        alt="Delete"
+        ?hidden=${!task.can_delete}
+        @click=${() => el.confirmDeleteTask(index)}
+      ></delete-icon-sk>
     </td>
     <td>
       ${getFormattedTimestamp(task.ts_added)}
       ${task.future_date
-    ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
-    : ''}
+        ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
+        : ''}
     </td>
     <td>${task.task_type}</td>
     <td>${task.username}</td>
-    <td class=nowrap>${
-    task.future_date
-      ? html`N/A`
-      : task.swarming_logs
-        ? html`<a href="${task.swarming_logs}" rel=noopener target=_blank>Swarming Logs</a>`
-        : html`No Swarming Logs`}</td>
-    <td class=nowrap>
-      <a href=# class=details
-        @click=${() => el.showDetailsDialog(index)}>Task Details</a>
+    <td class="nowrap">
+      ${task.future_date
+        ? html`N/A`
+        : task.swarming_logs
+        ? html`<a href="${task.swarming_logs}" rel="noopener" target="_blank"
+            >Swarming Logs</a
+          >`
+        : html`No Swarming Logs`}
+    </td>
+    <td class="nowrap">
+      <a href="#" class="details" @click=${() => el.showDetailsDialog(index)}
+        >Task Details</a
+      >
     </td>
   </tr>`;
 
-  private static taskDetailDialogTemplate = (task: CommonCols, index: number) => html`
-  <div id=${`detailsDialog${index}`} class="dialog-background hidden overlay-themes-sk"
-    @click=${hideDialog}>
-    <div class="dialog-content surface-themes-sk">
-      <pre>${formatTask(task)}</pre>
+  private static taskDetailDialogTemplate = (
+    task: CommonCols,
+    index: number
+  ) => html`
+    <div
+      id=${`detailsDialog${index}`}
+      class="dialog-background hidden overlay-themes-sk"
+      @click=${hideDialog}
+    >
+      <div class="dialog-content surface-themes-sk">
+        <pre>${formatTask(task)}</pre>
+      </div>
     </div>
-  </div>
   `;
 
   connectedCallback(): void {
@@ -119,7 +140,9 @@ export class TaskQueueSk extends ElementSk {
   }
 
   showDetailsDialog(index: number): void {
-    ($$(`#detailsDialog${index}`, this) as HTMLElement).classList.remove('hidden');
+    ($$(`#detailsDialog${index}`, this) as HTMLElement).classList.remove(
+      'hidden'
+    );
   }
 
   // Dispatch requests to fetch tasks in queue. Returns a promise that resolves
@@ -137,12 +160,14 @@ export class TaskQueueSk extends ElementSk {
     let queryStr = `?${fromObject(queryParams)}`;
     const allPromises = [];
     for (const obj of taskDescriptors) {
-      allPromises.push(fetch(obj.get_url + queryStr, { method: 'POST' })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.updatePendingTasks(json, obj);
-        })
-        .catch(errorMessage));
+      allPromises.push(
+        fetch(obj.get_url + queryStr, { method: 'POST' })
+          .then(jsonOrThrow)
+          .then((json) => {
+            this.updatePendingTasks(json, obj);
+          })
+          .catch(errorMessage)
+      );
     }
 
     // Find all tasks scheduled in the future.
@@ -151,18 +176,23 @@ export class TaskQueueSk extends ElementSk {
     };
     queryStr = `?${fromObject(futureQueryParams)}`;
     for (const obj of taskDescriptors) {
-      allPromises.push(fetch(obj.get_url + queryStr, { method: 'POST' })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.updatePendingTasks(json, obj);
-        })
-        .catch(errorMessage));
+      allPromises.push(
+        fetch(obj.get_url + queryStr, { method: 'POST' })
+          .then(jsonOrThrow)
+          .then((json) => {
+            this.updatePendingTasks(json, obj);
+          })
+          .catch(errorMessage)
+      );
     }
     return Promise.all(allPromises);
   }
 
   // Add responses to pending tasks list.
-  updatePendingTasks(json: GetTasksResponse, taskDescriptor: TaskDescriptor): void {
+  updatePendingTasks(
+    json: GetTasksResponse,
+    taskDescriptor: TaskDescriptor
+  ): void {
     const tasks = json.data;
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i] as CommonCols;
@@ -196,15 +226,22 @@ export class TaskQueueSk extends ElementSk {
     const pendingTask = this._pendingTasks[index];
     const params: DeleteTaskRequest = { id: pendingTask.id };
     // params.id = pendingTask.Id;
-    fetch(pendingTask.delete_url, { method: 'POST', body: JSON.stringify(params) })
+    fetch(pendingTask.delete_url, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
       .then((res) => {
         if (res.ok) {
           this._pendingTasks.splice(index, 1);
-          window.alert(`Deleted ${pendingTask.task_type} task ${pendingTask.id}`);
+          window.alert(
+            `Deleted ${pendingTask.task_type} task ${pendingTask.id}`
+          );
           return;
         }
         // Non-OK status. Read the response and punt it to the catch.
-        res.text().then((text) => { throw new Error(`Failed to delete the task: ${text}`); });
+        res.text().then((text) => {
+          throw new Error(`Failed to delete the task: ${text}`);
+        });
       })
       .then(() => {
         this._render();

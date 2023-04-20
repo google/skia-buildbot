@@ -1,21 +1,16 @@
-jsdoc
-=====
+# jsdoc
 
 Serves the jsdoc generated documentation for the elements-sk
 and common-sk libraries.
 
-
-Design
-------
+## Design
 
 jsdoc is a simple program that serves up the documentation and demo pages for select folders
 and serves them over HTTP.
 
 jsdoc runs in a Docker container (See the [Dockerfile](./Dockerfile)).
 
-
-Debugging Locally
------------------
+## Debugging Locally
 
 `make release` builds a Docker container and uploads it to [GKE](https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/jsdoc?project=skia-public&gcrImageListsize=50).
 One can run one of those containers locally as follows:

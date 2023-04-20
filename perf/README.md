@@ -37,7 +37,7 @@ To run a local instance of Perf against a fake dataset:
 
     make run-demo-instance
 
-You can also view demo/test pages of a  web components by running
+You can also view demo/test pages of a web components by running
 `demopage.sh` from the root of the repo and passing in the relative path
 of the web component you want to view, for example:
 

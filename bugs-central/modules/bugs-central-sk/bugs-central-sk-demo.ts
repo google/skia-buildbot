@@ -60,7 +60,7 @@ customElements.whenDefined('bugs-central-sk').then(() => {
     .querySelector('h1')!
     .insertAdjacentElement(
       'afterend',
-      document.createElement('bugs-central-sk'),
+      document.createElement('bugs-central-sk')
     );
 
   const elems = document.querySelectorAll<BugsCentralSk>('bugs-central-sk')!;

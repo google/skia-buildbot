@@ -26,8 +26,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     offset: 43389,
     author: 'Avinash Parchuri (aparchur@google.com)',
     message: 'Reland "[skottie] Add onTextProperty support into ',
-    url:
-      'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
+    url: 'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
     hash: '3a543aafd4e68af182ef88572086c094cd63f0b2',
     ts: 1565099441,
     body: 'Commit body.',
@@ -36,8 +35,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     offset: 43390,
     author: 'Robert Phillips (robertphillips@google.com)',
     message: 'Use GrComputeTightCombinedBufferSize in GrMtlGpu::',
-    url:
-      'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
+    url: 'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     hash: 'bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     ts: 1565107798,
     body: 'Commit body.',
@@ -46,8 +44,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     offset: 43391,
     author: 'Hal Canary (halcanary@google.com)',
     message: 'experimental/editor: interface no longer uses stri',
-    url:
-      'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
+    url: 'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     hash: 'e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     ts: 1565220328,
     body: 'Commit body.',

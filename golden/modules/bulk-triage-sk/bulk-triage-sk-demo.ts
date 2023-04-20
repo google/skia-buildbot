@@ -1,6 +1,6 @@
 import './index';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { bulkTriageDeltaInfos } from './test_data';
 import { BulkTriageSk } from './bulk-triage-sk';
@@ -31,7 +31,10 @@ eleCL.addEventListener('bulk_triage_cancelled', handleCancelled);
 $$('#changelist')!.appendChild(eleCL);
 
 const response: TriageResponse = { status: 'ok' };
-fetchMock.post({ url: '/json/v3/triage' }, {
-  status: 200,
-  body: response,
-});
+fetchMock.post(
+  { url: '/json/v3/triage' },
+  {
+    status: 200,
+    body: response,
+  }
+);

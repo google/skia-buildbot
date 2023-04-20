@@ -15,7 +15,9 @@ digest-details-sk {
     overflow-x: auto;
   }
 
-  .top_bar, .digest_labels, .comparison_data {
+  .top_bar,
+  .digest_labels,
+  .comparison_data {
     display: flex;
     flex-direction: row;
   }
@@ -24,7 +26,8 @@ digest-details-sk {
     flex-grow: 1;
   }
 
-  .grouping_name, .digest_label {
+  .grouping_name,
+  .digest_label {
     font-weight: bold;
   }
 
@@ -68,7 +71,8 @@ digest-details-sk {
     }
   }
 
-  .size_warning, .negative_warning {
+  .size_warning,
+  .negative_warning {
     font-weight: bold;
     color: var(--red);
   }

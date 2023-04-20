@@ -5,13 +5,16 @@ import { setUpElementUnderTest } from '../test_util';
 
 function invertPromise(p: Promise<any>) {
   return p.then(
-    (x) => { throw x; },
-    (x) => x,
+    (x) => {
+      throw x;
+    },
+    (x) => x
   );
 }
 
 describe('confirm-dialog-sk', () => {
-  const newElement = setUpElementUnderTest<ConfirmDialogSk>('confirm-dialog-sk');
+  const newElement =
+    setUpElementUnderTest<ConfirmDialogSk>('confirm-dialog-sk');
 
   let confirmDialogSk: ConfirmDialogSk;
 
@@ -22,16 +25,20 @@ describe('confirm-dialog-sk', () => {
   describe('promise', () => {
     it('resolves when OK is clicked', () => {
       const promise = confirmDialogSk.open('Testing');
-      const button = confirmDialogSk.querySelector<HTMLButtonElement>('button.confirm')!;
+      const button =
+        confirmDialogSk.querySelector<HTMLButtonElement>('button.confirm')!;
       expect(button.textContent).to.equal('OK');
-      expect(confirmDialogSk.querySelector('.message')?.textContent).to.equal('Testing');
+      expect(confirmDialogSk.querySelector('.message')?.textContent).to.equal(
+        'Testing'
+      );
       button.click();
       return promise; // Return the promise and let Mocha check that it resolves.
     });
 
     it('rejects when Cancel is clicked', () => {
       const promise = confirmDialogSk.open('Testing');
-      const button = confirmDialogSk.querySelector<HTMLButtonElement>('button.dismiss')!;
+      const button =
+        confirmDialogSk.querySelector<HTMLButtonElement>('button.dismiss')!;
       expect(button.textContent).to.equal('Cancel');
       button.click();
       return invertPromise(promise);
@@ -40,9 +47,11 @@ describe('confirm-dialog-sk', () => {
 
   describe('appearance', () => {
     it('sets shown on the inner dialog-sk', () => {
-      expect(confirmDialogSk.querySelector('dialog')?.hasAttribute('open')).to.be.false;
+      expect(confirmDialogSk.querySelector('dialog')?.hasAttribute('open')).to
+        .be.false;
       confirmDialogSk.open('whatever');
-      expect(confirmDialogSk.querySelector('dialog')?.hasAttribute('open')).to.be.true;
+      expect(confirmDialogSk.querySelector('dialog')?.hasAttribute('open')).to
+        .be.true;
     });
   });
 });

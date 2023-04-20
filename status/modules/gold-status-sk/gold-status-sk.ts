@@ -6,12 +6,15 @@
 
  * Custom element to display untriaged Gold iamges.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { GUICorpusStatus, StatusResponse } from '../../../golden/modules/rpc_types';
+import {
+  GUICorpusStatus,
+  StatusResponse,
+} from '../../../golden/modules/rpc_types';
 
 const defaultGoldURL = 'https://gold.skia.org';
 
@@ -32,8 +35,8 @@ export class GoldStatusSk extends ElementSk {
   private static template = (el: GoldStatusSk) => html`
     <div class="table">
       ${el.resp && el.resp.corpStatus
-    ? el.resp!.corpStatus!.map(
-      (c) => html`
+        ? el.resp!.corpStatus!.map(
+            (c) => html`
               <a
                 class="tr"
                 href="${el.getGoldURL()}${`/?corpus=${c!.name}`}"
@@ -46,9 +49,9 @@ export class GoldStatusSk extends ElementSk {
                   <span class="value">${c!.untriagedCount}</span>
                 </div>
               </a>
-            `,
-    )
-    : html``}
+            `
+          )
+        : html``}
     </div>
   `;
 
@@ -86,7 +89,8 @@ export class GoldStatusSk extends ElementSk {
       .then((json: StatusResponse) => {
         this.resp = json;
         this.resp.corpStatus?.sort(
-          (a: GUICorpusStatus, b: GUICorpusStatus) => b!.untriagedCount - a!.untriagedCount,
+          (a: GUICorpusStatus, b: GUICorpusStatus) =>
+            b!.untriagedCount - a!.untriagedCount
         );
         this._render();
       })

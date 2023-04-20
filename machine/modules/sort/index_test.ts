@@ -2,7 +2,10 @@ import { assert } from 'chai';
 import { Description } from '../json';
 import {
   columnSortFunctions,
-  down, SortHistory, SortSelection, up,
+  down,
+  SortHistory,
+  SortSelection,
+  up,
 } from './index';
 
 describe('SortSelection', () => {
@@ -35,10 +38,7 @@ describe('SortSelection', () => {
 });
 
 describe('SortHistory', () => {
-  const columnSorters: columnSortFunctions<Description> = [
-    () => 0,
-    () => 0,
-  ];
+  const columnSorters: columnSortFunctions<Description> = [() => 0, () => 0];
 
   describe('selectColumnToSortOn', () => {
     it('updates sort history', () => {
@@ -80,7 +80,11 @@ describe('SortHistory', () => {
     it('is robust to garbage input', () => {
       const hydrated = new SortHistory(columnSorters);
       hydrated.decode('u1-d0-some garbage value');
-      assert.equal(hydrated.encode(), 'u0-u1', 'The decode value was invalid, so stick with the default value of SortHistory.history.');
+      assert.equal(
+        hydrated.encode(),
+        'u0-u1',
+        'The decode value was invalid, so stick with the default value of SortHistory.history.'
+      );
     });
   });
 
@@ -112,9 +116,7 @@ describe('SortHistory', () => {
       DeviceUptime: 0,
       SSHUserIP: '',
       Dimensions: {
-        id: [
-          'linux-101',
-        ],
+        id: ['linux-101'],
       },
       RecoveryStart: '2022-02-26T16:40:38.008347Z',
       SuppliedDimensions: {},
@@ -127,9 +129,7 @@ describe('SortHistory', () => {
       PowerCycle: true,
       Battery: 100,
       Dimensions: {
-        id: [
-          'linux-102',
-        ],
+        id: ['linux-102'],
       },
     });
 
@@ -138,15 +138,15 @@ describe('SortHistory', () => {
       AttachedDevice: 'adb',
       Battery: 50,
       Dimensions: {
-        id: [
-          'linux-103',
-        ],
+        id: ['linux-103'],
       },
     });
 
     // Sort functions for different clumns, i.e. values in Description.
-    const sortByAttachDevice = (a: Description, b: Description): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
-    const sortByBattery = (a: Description, b: Description): number => a.Battery - b.Battery;
+    const sortByAttachDevice = (a: Description, b: Description): number =>
+      a.AttachedDevice.localeCompare(b.AttachedDevice);
+    const sortByBattery = (a: Description, b: Description): number =>
+      a.Battery - b.Battery;
     const sortByPowerCycle = (a: Description, b: Description): number => {
       if (a.PowerCycle === b.PowerCycle) {
         return 0;
@@ -158,9 +158,7 @@ describe('SortHistory', () => {
     };
 
     it('sorts', () => {
-      const descriptions: Description[] = [
-        desc1, desc2, desc3,
-      ];
+      const descriptions: Description[] = [desc1, desc2, desc3];
 
       const sh = new SortHistory<Description>([
         sortByAttachDevice,
@@ -171,27 +169,54 @@ describe('SortHistory', () => {
       // Sort in the default order.
       descriptions.sort(sh.compare.bind(sh));
       assert.equal(sh.encode(), 'u0-u1-u2');
-      assert.deepEqual(['adb', 'ios', 'nodevice'], descriptions.map((d: Description): string => d.AttachedDevice));
-      assert.deepEqual([50, 100, 0], descriptions.map((d: Description): number => d.Battery));
-      assert.deepEqual([false, true, false], descriptions.map((d: Description): boolean => d.PowerCycle));
+      assert.deepEqual(
+        ['adb', 'ios', 'nodevice'],
+        descriptions.map((d: Description): string => d.AttachedDevice)
+      );
+      assert.deepEqual(
+        [50, 100, 0],
+        descriptions.map((d: Description): number => d.Battery)
+      );
+      assert.deepEqual(
+        [false, true, false],
+        descriptions.map((d: Description): boolean => d.PowerCycle)
+      );
 
       // Now sort with col 1 (Battery), descending.
       sh.selectColumnToSortOn(1);
       assert.equal(sh.encode(), 'd1-u0-u2');
       descriptions.sort(sh.compare.bind(sh));
-      assert.deepEqual(['ios', 'adb', 'nodevice'], descriptions.map((d: Description): string => d.AttachedDevice));
-      assert.deepEqual([100, 50, 0], descriptions.map((d: Description): number => d.Battery));
-      assert.deepEqual([true, false, false], descriptions.map((d: Description): boolean => d.PowerCycle));
+      assert.deepEqual(
+        ['ios', 'adb', 'nodevice'],
+        descriptions.map((d: Description): string => d.AttachedDevice)
+      );
+      assert.deepEqual(
+        [100, 50, 0],
+        descriptions.map((d: Description): number => d.Battery)
+      );
+      assert.deepEqual(
+        [true, false, false],
+        descriptions.map((d: Description): boolean => d.PowerCycle)
+      );
 
       // Now sort with col 2 (PowerCycle) descending and col 1 (Battery) ascending.
       sh.selectColumnToSortOn(1);
       sh.selectColumnToSortOn(2);
       assert.equal(sh.encode(), 'd2-u1-u0');
       descriptions.sort(sh.compare.bind(sh));
-      assert.deepEqual(['ios', 'nodevice', 'adb'], descriptions.map((d: Description): string => d.AttachedDevice));
+      assert.deepEqual(
+        ['ios', 'nodevice', 'adb'],
+        descriptions.map((d: Description): string => d.AttachedDevice)
+      );
       // This shows Battery was sorted ascending when PowerCycle values were the same.
-      assert.deepEqual([100, 0, 50], descriptions.map((d: Description): number => d.Battery));
-      assert.deepEqual([true, false, false], descriptions.map((d: Description): boolean => d.PowerCycle));
+      assert.deepEqual(
+        [100, 0, 50],
+        descriptions.map((d: Description): number => d.Battery)
+      );
+      assert.deepEqual(
+        [true, false, false],
+        descriptions.map((d: Description): boolean => d.PowerCycle)
+      );
     });
   });
 });

@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
 
 describe('trace-filter-sk', () => {
@@ -13,7 +17,9 @@ describe('trace-filter-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    traceFilterSkPO = new TraceFilterSkPO((await testBed.page.$('trace-filter-sk'))!);
+    traceFilterSkPO = new TraceFilterSkPO(
+      (await testBed.page.$('trace-filter-sk'))!
+    );
   });
 
   it('should render the demo page', async () => {
@@ -37,7 +43,9 @@ describe('trace-filter-sk', () => {
       const queryDialogSkPO = await traceFilterSkPO.queryDialogSkPO;
       await queryDialogSkPO.clickKey('car make');
       await takeScreenshot(
-        testBed.page, 'gold', 'trace-filter-sk_query-dialog-open',
+        testBed.page,
+        'gold',
+        'trace-filter-sk_query-dialog-open'
       );
     });
   });
@@ -52,7 +60,9 @@ describe('trace-filter-sk', () => {
       const queryDialogSkPO = await traceFilterSkPO.queryDialogSkPO;
       await queryDialogSkPO.clickKey('car make');
       await takeScreenshot(
-        testBed.page, 'gold', 'trace-filter-sk_nonempty_query-dialog-open',
+        testBed.page,
+        'gold',
+        'trace-filter-sk_nonempty_query-dialog-open'
       );
     });
   });

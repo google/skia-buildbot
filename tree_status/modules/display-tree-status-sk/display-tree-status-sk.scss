@@ -8,10 +8,11 @@ display-tree-status-sk {
     border-collapse: collapse;
     margin-right: auto;
     margin-left: auto;
-    width: 80%
+    width: 80%;
   }
 
-  td, th {
+  td,
+  th {
     border: 1px solid var(--on-background);
     padding: 0.5em;
     font-size: 1.2em;

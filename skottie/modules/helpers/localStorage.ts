@@ -7,7 +7,7 @@
 const localStorage = window.localStorage || {};
 
 const _localStorage = {
-  get: (key: string): string|null => localStorage.getItem(key),
+  get: (key: string): string | null => localStorage.getItem(key),
   set: (key: string, value: string): void => localStorage.setItem(key, value),
   // Gets a serialized object from localStorage and parses it
   getObject: (key: string): Record<string, unknown> => {
@@ -33,7 +33,11 @@ const _localStorage = {
   },
   // Gets a value from a serialized object.
   // If the attribute does not exist, it returns the defaultValue passed as argument.
-  getValueFromObject: <T>(objectKey: string, key: string, defaultValue: T): T => {
+  getValueFromObject: <T>(
+    objectKey: string,
+    key: string,
+    defaultValue: T
+  ): T => {
     const object = _localStorage.getObject(objectKey);
     return object[key] !== undefined ? (object[key] as T) : defaultValue;
   },

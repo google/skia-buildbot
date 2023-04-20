@@ -36,12 +36,11 @@ describe('triage-sk', () => {
       await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'untriaged');
     });
 
-    it('does not emit event "change" when setting value via property',
-      async () => {
-        const noTriageEvent = noEventPromise('change');
-        triageSk.value = 'positive';
-        await noTriageEvent;
-      });
+    it('does not emit event "change" when setting value via property', async () => {
+      const noTriageEvent = noEventPromise('change');
+      triageSk.value = 'positive';
+      await noTriageEvent;
+    });
   });
 
   describe('buttons', () => {
@@ -67,12 +66,11 @@ describe('triage-sk', () => {
       expect((await changeEvent).detail).to.equal('untriaged');
     });
 
-    it('does not emit event "change" when clicking button for current value',
-      async () => {
-        const noChangeEvent = noEventPromise('change');
-        await triageSkPO.clickButton('untriaged');
-        await noChangeEvent;
-      });
+    it('does not emit event "change" when clicking button for current value', async () => {
+      const noChangeEvent = noEventPromise('change');
+      await triageSkPO.clickButton('untriaged');
+      await noChangeEvent;
+    });
 
     it('all buttons enabled when not read only', async () => {
       expect(await triageSkPO.isButtonDisabled('positive')).to.be.false;
@@ -101,7 +99,11 @@ describe('triage-sk', () => {
   });
 });
 
-const expectValueAndToggledButtonToBe = async (triageSk: TriageSk, triageSkPO: TriageSkPO, value: Label) => {
+const expectValueAndToggledButtonToBe = async (
+  triageSk: TriageSk,
+  triageSkPO: TriageSkPO,
+  value: Label
+) => {
   expect(triageSk.value).to.equal(value);
   expect(await triageSkPO.getLabel()).to.equal(value);
 };

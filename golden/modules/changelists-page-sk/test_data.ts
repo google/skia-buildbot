@@ -9,7 +9,8 @@ export const changelistSummaries_5: ChangelistsResponse = {
       id: '1788313',
       owner: 'alpha@example.org',
       status: 'Open',
-      subject: '[omnibox] Add flag to preserve the default match against async updates',
+      subject:
+        '[omnibox] Add flag to preserve the default match against async updates',
       updated: '2019-09-09T19:31:14Z',
       url: 'https://chromium-review.googlesource.com/1788313',
     },
@@ -18,7 +19,8 @@ export const changelistSummaries_5: ChangelistsResponse = {
       id: '1787403',
       owner: 'beta-autoroll@example.iam.gserviceaccount.com',
       status: 'Open',
-      subject: 'Convert AssociatedInterfacePtr to AssociatedRemote in chrome/b/android',
+      subject:
+        'Convert AssociatedInterfacePtr to AssociatedRemote in chrome/b/android',
       updated: '2019-09-09T19:30:41Z',
       url: 'https://chromium-review.googlesource.com/1787403',
     },
@@ -28,9 +30,9 @@ export const changelistSummaries_5: ChangelistsResponse = {
       owner: 'gamma@example.org',
       status: 'Open',
       subject:
-          'Implement deep content compliance and malware scans for uploads. '
-          + 'This is a really long subject, like wow! '
-          + "I hope the web UI doesn't mishandle this massively long subject",
+        'Implement deep content compliance and malware scans for uploads. ' +
+        'This is a really long subject, like wow! ' +
+        "I hope the web UI doesn't mishandle this massively long subject",
       updated: '2019-09-09T19:28:54Z',
       url: 'https://chromium-review.googlesource.com/1788259',
     },
@@ -48,7 +50,8 @@ export const changelistSummaries_5: ChangelistsResponse = {
       id: '1790066',
       owner: 'epsilon@example.com',
       status: 'Landed',
-      subject: 'Performance improvement for ITextRangeProvider::GetEnclosingElement',
+      subject:
+        'Performance improvement for ITextRangeProvider::GetEnclosingElement',
       updated: '2019-09-09T19:24:10Z',
       url: 'https://chromium-review.googlesource.com/1790066',
     },
@@ -164,7 +167,9 @@ export const changelistSummaries_5_offset10: ChangelistsResponse = {
   total: 2147483647,
 };
 
-export const empty = (partial?: Partial<ChangelistsResponse>): ChangelistsResponse => ({
+export const empty = (
+  partial?: Partial<ChangelistsResponse>
+): ChangelistsResponse => ({
   changelists: null,
   offset: partial?.offset || 0,
   size: partial?.size || 5,

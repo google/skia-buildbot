@@ -39,10 +39,14 @@ describe('image-compare-sk', () => {
     });
 
     it('captions the images with the respective links', async () => {
-      expect(await imageCompareSkPO.getImageCaptionTexts())
-        .to.deep.equal(['a digest title', 'the other image']);
-      expect(await imageCompareSkPO.getImageCaptionHrefs())
-        .to.deep.equal(['example.com#aDigest', 'example.com#bDigest']);
+      expect(await imageCompareSkPO.getImageCaptionTexts()).to.deep.equal([
+        'a digest title',
+        'the other image',
+      ]);
+      expect(await imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
+        'example.com#aDigest',
+        'example.com#bDigest',
+      ]);
     });
   });
 
@@ -56,8 +60,9 @@ describe('image-compare-sk', () => {
     });
 
     it('has one image and no zoom button', async () => {
-      expect(await imageCompareSkPO.getImageSrcs())
-        .to.deep.equal(['/img/images/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png']);
+      expect(await imageCompareSkPO.getImageSrcs()).to.deep.equal([
+        '/img/images/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png',
+      ]);
       expect(await imageCompareSkPO.isZoomBtnVisible()).to.be.false;
     });
   });

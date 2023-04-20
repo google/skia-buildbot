@@ -10,8 +10,8 @@
  *   force the corresponding request_type to be always set.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { RequestType } from '../json';
 
@@ -30,7 +30,8 @@ const toDate = (seconds: number) => new Date(seconds * 1000);
 const toForceRequestType = (s: string | null): ForceRequestType => {
   if (s === 'range') {
     return 'range';
-  } if (s === 'dense') {
+  }
+  if (s === 'dense') {
     return 'dense';
   }
   return '';

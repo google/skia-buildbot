@@ -66,8 +66,7 @@ fetchMock.post('/_/cidRange/', () => [
     author: 'Avinash Parchuri (aparchur@google.com)',
     message:
       '3a543aa - 23h 34m - Reland "[skottie] Add onTextProperty support into ',
-    url:
-      'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
+    url: 'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
     hash: '3a543aafd4e68af182ef88572086c094cd63f0b2',
     ts: 1565099441,
   },
@@ -76,8 +75,7 @@ fetchMock.post('/_/cidRange/', () => [
     author: 'Robert Phillips (robertphillips@google.com)',
     message:
       'bdb0919 - 21h 15m - Use GrComputeTightCombinedBufferSize in GrMtlGpu::',
-    url:
-      'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
+    url: 'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     hash: 'bdb0919dcc6a700b41492c53ecf06b40983d13d7',
     ts: 1565107798,
   },
@@ -86,8 +84,7 @@ fetchMock.post('/_/cidRange/', () => [
     author: 'Hal Canary (halcanary@google.com)',
     message:
       'e45bf6a - 20h 33m - experimental/editor: interface no longer uses stri',
-    url:
-      'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
+    url: 'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     hash: 'e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',
     ts: 1565110328,
   },
@@ -109,7 +106,7 @@ customElements.whenDefined('cluster-page-sk').then(() => {
     .querySelector('h1')!
     .insertAdjacentElement(
       'afterend',
-      document.createElement('cluster-page-sk'),
+      document.createElement('cluster-page-sk')
     );
 });
 

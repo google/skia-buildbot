@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 
 describe('search-controls-sk', () => {
   let testBed: TestBed;
@@ -29,19 +33,29 @@ describe('search-controls-sk', () => {
 
   it('shows the left-hand trace filter editor', async () => {
     await testBed.page.click('.traces button.edit-query');
-    await takeScreenshot(testBed.page, 'gold', 'search-controls-sk_left-hand-trace-filter-editor');
+    await takeScreenshot(
+      testBed.page,
+      'gold',
+      'search-controls-sk_left-hand-trace-filter-editor'
+    );
   });
 
   it('shows more filters', async () => {
     await testBed.page.click('button.more-filters');
-    await takeScreenshot(testBed.page, 'gold', 'search-controls-sk_more-filters');
+    await takeScreenshot(
+      testBed.page,
+      'gold',
+      'search-controls-sk_more-filters'
+    );
   });
 
   it('shows the left-hand trace filter editor', async () => {
     await testBed.page.click('button.more-filters');
     await testBed.page.click('filter-dialog-sk button.edit-query');
     await takeScreenshot(
-      testBed.page, 'gold', 'search-controls-sk_right-hand-trace-filter-editor',
+      testBed.page,
+      'gold',
+      'search-controls-sk_right-hand-trace-filter-editor'
     );
   });
 });

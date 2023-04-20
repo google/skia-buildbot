@@ -1,23 +1,9 @@
 import { ParamSet } from '../../infra-sk/modules/query';
 
 export const manyParams: ParamSet = {
-  alpha_type: [
-    'Opaque',
-    'Premul',
-  ],
-  arch: [
-    'arm',
-    'arm64',
-    'x86',
-    'x86_64',
-  ],
-  color_depth: [
-    '1010102',
-    '565',
-    '8888',
-    'F16',
-    'G8',
-  ],
+  alpha_type: ['Opaque', 'Premul'],
+  arch: ['arm', 'arm64', 'x86', 'x86_64'],
+  color_depth: ['1010102', '565', '8888', 'F16', 'G8'],
   color_type: [
     'BGRA_8888',
     'Gray_8',
@@ -26,11 +12,7 @@ export const manyParams: ParamSet = {
     'RGBA_F16',
     'RGB_565',
   ],
-  compiler: [
-    'Clang',
-    'GCC',
-    'MSVC',
-  ],
+  compiler: ['Clang', 'GCC', 'MSVC'],
   config: [
     '565',
     '8888',
@@ -78,14 +60,8 @@ export const manyParams: ParamSet = {
     'vkmsaa4',
     'vkmsaa8',
   ],
-  configuration: [
-    'Debug',
-    'Release',
-  ],
-  cpu_or_gpu: [
-    'CPU',
-    'GPU',
-  ],
+  configuration: ['Debug', 'Release'],
+  cpu_or_gpu: ['CPU', 'GPU'],
   cpu_or_gpu_value: [
     'AVX',
     'AVX2',
@@ -125,9 +101,7 @@ export const manyParams: ParamSet = {
     'TegraK1',
     'TegraX1',
   ],
-  ext: [
-    'png',
-  ],
+  ext: ['png'],
   extra_config: [
     'ANGLE',
     'Android',
@@ -163,13 +137,7 @@ export const manyParams: ParamSet = {
     'Vulkan_ProcDump',
     'Wuffs',
   ],
-  gamut: [
-    '2020',
-    'P3',
-    'narrow',
-    'sRGB',
-    'untagged',
-  ],
+  gamut: ['2020', 'P3', 'narrow', 'sRGB', 'untagged'],
   model: [
     'ASUSChromebookFlipC100',
     'AcerChromebook13_CB5_311',
@@ -1983,22 +1951,7 @@ export const manyParams: ParamSet = {
     'stripe_kNonNative_premul_0.875',
     'stripe_premul',
   ],
-  source_type: [
-    'colorImage',
-    'gm',
-    'image',
-    'skp',
-    'svg',
-  ],
-  style: [
-    'DDL',
-    'default',
-  ],
-  transfer_fn: [
-    '2020',
-    'gamma 1',
-    'gamma 2.2',
-    'sRGB',
-    'untagged',
-  ],
+  source_type: ['colorImage', 'gm', 'image', 'skp', 'svg'],
+  style: ['DDL', 'default'],
+  transfer_fn: ['2020', 'gamma 1', 'gamma 2.2', 'sRGB', 'untagged'],
 };

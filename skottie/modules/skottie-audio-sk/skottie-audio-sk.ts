@@ -29,9 +29,9 @@
  *
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { Howl } from 'howler';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
 
@@ -108,40 +108,45 @@ export class SkottieAudioSk extends ElementSk {
 `;
 
   private startButtonTemplate = () => {
-    if (this.loadingState === 'idle' || this.loadingState === 'submitted'
-    ) {
+    if (this.loadingState === 'idle' || this.loadingState === 'submitted') {
       return null;
     }
-    if (this.loadingState === 'loading' || this.bpmCalculationState === 'loading') {
+    if (
+      this.loadingState === 'loading' ||
+      this.bpmCalculationState === 'loading'
+    ) {
       return html`<div>Loading...</div>`;
     }
     return html`
-    <button
-    class=start
-    id=${START_BUTTON_ID}
-    @click=${this.start}
-    >Start</button>
-  `;
+      <button class="start" id=${START_BUTTON_ID} @click=${this.start}>
+        Start
+      </button>
+    `;
   };
 
-  private static bpmListOptionTemplate = (option: tempoInterval, onClick: (t: number)=> void) => html`
-  <li class=bpm-options-item>
-    <button class=bpm-options-item-button
-      @click=${() => onClick(option.tempo)}
-    >
-      ${option.tempo}
-    </button>
-  </li>
-`;
+  private static bpmListOptionTemplate = (
+    option: tempoInterval,
+    onClick: (t: number) => void
+  ) => html`
+    <li class="bpm-options-item">
+      <button
+        class="bpm-options-item-button"
+        @click=${() => onClick(option.tempo)}
+      >
+        ${option.tempo}
+      </button>
+    </li>
+  `;
 
   private bpmListTemplate = () => html`
-  <ul class=bpm-options>
-    ${this.bmpList.map(((b: tempoInterval) => SkottieAudioSk.bpmListOptionTemplate(
-    b,
-    (option: number) => this.onBpmSelected(option),
-  )))}
-  </ul>
-`;
+    <ul class="bpm-options">
+      ${this.bmpList.map((b: tempoInterval) =>
+        SkottieAudioSk.bpmListOptionTemplate(b, (option: number) =>
+          this.onBpmSelected(option)
+        )
+      )}
+    </ul>
+  `;
 
   private _animation: LottieAnimation | null = null;
 
@@ -219,7 +224,7 @@ export class SkottieAudioSk extends ElementSk {
       let max: tempoPeak | null = null;
       for (let j = i * partSize; j < (i + 1) * partSize; j++) {
         const volume = Math.max(Math.abs(data[0][j]), Math.abs(data[1][j]));
-        if (!max || (volume > max.volume)) {
+        if (!max || volume > max.volume) {
           max = {
             position: j,
             volume: volume,
@@ -247,7 +252,7 @@ export class SkottieAudioSk extends ElementSk {
     const groups: tempoInterval[] = [];
 
     peaks.forEach((peak: tempoPeak, index: number) => {
-      for (let i = 1; (index + i) < peaks.length && i < 10; i++) {
+      for (let i = 1; index + i < peaks.length && i < 10; i++) {
         const group = {
           tempo: (60 * 44100) / (peaks[index + i].position - peak.position),
           count: 1,
@@ -263,7 +268,9 @@ export class SkottieAudioSk extends ElementSk {
 
         group.tempo = Math.round(group.tempo);
 
-        const groupTempo = groups.find((interval: tempoInterval) => interval.tempo === group.tempo);
+        const groupTempo = groups.find(
+          (interval: tempoInterval) => interval.tempo === group.tempo
+        );
         if (!groupTempo) {
           groups.push(group);
         } else {
@@ -276,10 +283,17 @@ export class SkottieAudioSk extends ElementSk {
 
   private onOfflineRenderComplete(e: OfflineAudioCompletionEvent): void {
     const buffer = e.renderedBuffer;
-    const peaks = SkottieAudioSk.getPeaks([buffer.getChannelData(0), buffer.getChannelData(1)]);
+    const peaks = SkottieAudioSk.getPeaks([
+      buffer.getChannelData(0),
+      buffer.getChannelData(1),
+    ]);
     const groups = this.getIntervals(peaks);
 
-    const top = groups.sort((intA: tempoInterval, intB: tempoInterval) => intB.count - intA.count).splice(0, 5);
+    const top = groups
+      .sort(
+        (intA: tempoInterval, intB: tempoInterval) => intB.count - intA.count
+      )
+      .splice(0, 5);
     this.bmpList = top;
     if (!this.bpm) {
       this.bpm = top[0].tempo;
@@ -336,7 +350,8 @@ export class SkottieAudioSk extends ElementSk {
       offlineContext.startRendering();
     });
 
-    offlineContext.oncomplete = (e: OfflineAudioCompletionEvent) => this.onOfflineRenderComplete(e);
+    offlineContext.oncomplete = (e: OfflineAudioCompletionEvent) =>
+      this.onOfflineRenderComplete(e);
   }
 
   private onBpmSelected(option: number): void {
@@ -417,11 +432,13 @@ export class SkottieAudioSk extends ElementSk {
     if (animSpeed > 1.5) {
       animSpeed /= 2;
     }
-    this.dispatchEvent(new CustomEvent<AudioStartEventDetail>('apply', {
-      detail: {
-        speed: animSpeed,
-      },
-    }));
+    this.dispatchEvent(
+      new CustomEvent<AudioStartEventDetail>('apply', {
+        detail: {
+          speed: animSpeed,
+        },
+      })
+    );
     if (this.sound) {
       this.sound.seek(0);
       if (!this.sound.playing()) {
@@ -457,10 +474,18 @@ export class SkottieAudioSk extends ElementSk {
     this.bpmCalculationState = 'loading';
     const reader = new FileReader();
     reader.readAsDataURL(this.file);
-    reader.addEventListener('load', (e: ProgressEvent<FileReader>) => this.onFileDataLoaded(e), false);
+    reader.addEventListener(
+      'load',
+      (e: ProgressEvent<FileReader>) => this.onFileDataLoaded(e),
+      false
+    );
     const arrayBufferReader = new FileReader();
     arrayBufferReader.readAsArrayBuffer(this.file);
-    arrayBufferReader.addEventListener('load', (e: ProgressEvent<FileReader>) => this.detectBPMs(e), false);
+    arrayBufferReader.addEventListener(
+      'load',
+      (e: ProgressEvent<FileReader>) => this.detectBPMs(e),
+      false
+    );
     this._render();
   }
 

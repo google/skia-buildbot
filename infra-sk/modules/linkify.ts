@@ -31,12 +31,15 @@ export function escapeAndLinkifyToString(s: string): string {
     }
     for (const foundBug of foundBugs) {
       const bugNumber = foundBug.split(':')[1];
-      s = s.replace(foundBug, `<a href="${project.url + bugNumber}"
-                                  target=_blank rel=noopener>${foundBug}</a>`);
+      s = s.replace(
+        foundBug,
+        `<a href="${project.url + bugNumber}"
+                                  target=_blank rel=noopener>${foundBug}</a>`
+      );
     }
   }
 
-  return s
+  return s;
 }
 
 /**
@@ -62,10 +65,13 @@ const supportedIssueTrackers = [
   {
     re: /chromium:[0-9]+/g,
     url: 'http://crbug.com/',
-  }, {
+  },
+  {
     re: /skia:[0-9]+/g,
     url: 'http://skbug.com/',
-  }, {
+  },
+  {
     re: /v8:[0-9]+/g,
     url: 'http://crbug.com/v8/',
-  }];
+  },
+];

@@ -48,9 +48,9 @@
  * that contains the key and values for that row.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
-import { ParamSet } from '../../../infra-sk/modules/query';
+import { define } from '../../../elements-sk/modules/define';
+import { ParamSet } from '../query';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/add-icon-sk';
 
@@ -67,56 +67,71 @@ export interface ParamSetSkPlusClickEventDetail {
 
 export class ParamSetSk extends ElementSk {
   private static template = (ele: ParamSetSk) => html`
-  <table @click=${ele._click} class=${ele._computeClass()}>
-    <tbody>
-      <tr>
-        <th></th>
-        ${ParamSetSk.titlesTemplate(ele)}
-      </tr>
-      ${ParamSetSk.rowsTemplate(ele)}
-    </tbody>
-  </table>
-`;
+    <table @click=${ele._click} class=${ele._computeClass()}>
+      <tbody>
+        <tr>
+          <th></th>
+          ${ParamSetSk.titlesTemplate(ele)}
+        </tr>
+        ${ParamSetSk.rowsTemplate(ele)}
+      </tbody>
+    </table>
+  `;
 
-  private static titlesTemplate =
-    (ele: ParamSetSk) => ele._normalizedTitles().map((t) => html`<th>${t}</th>`);
+  private static titlesTemplate = (ele: ParamSetSk) =>
+    ele._normalizedTitles().map((t) => html`<th>${t}</th>`);
 
-  private static rowsTemplate =
-    (ele: ParamSetSk) => ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
+  private static rowsTemplate = (ele: ParamSetSk) =>
+    ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
 
-  private static rowTemplate = (ele: ParamSetSk, key: string) => html`
-    <tr>
-      <th data-key=${key}>${key}</th>
-      ${ParamSetSk.paramsetValuesTemplate(ele, key)}
-    </tr>`;
+  private static rowTemplate = (ele: ParamSetSk, key: string) => html` <tr>
+    <th data-key=${key}>${key}</th>
+    ${ParamSetSk.paramsetValuesTemplate(ele, key)}
+  </tr>`;
 
-  private static paramsetValuesTemplate =
-    (ele: ParamSetSk, key: string) => {
-      const ret: TemplateResult[] = [];
-      ele._paramsets.forEach(
-        (p) => ret.push(
-          html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`,
-          ParamSetSk.optionalPlusSign(ele, key, p),
-        ),
-      );
-      return ret;
-    };
+  private static paramsetValuesTemplate = (ele: ParamSetSk, key: string) => {
+    const ret: TemplateResult[] = [];
+    ele._paramsets.forEach((p) =>
+      ret.push(
+        html`<td>
+          ${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}
+        </td>`,
+        ParamSetSk.optionalPlusSign(ele, key, p)
+      )
+    );
+    return ret;
+  };
 
-  private static optionalPlusSign = (ele: ParamSetSk, key: string, p: ParamSet): TemplateResult => {
+  private static optionalPlusSign = (
+    ele: ParamSetSk,
+    key: string,
+    p: ParamSet
+  ): TemplateResult => {
     if (!ele.clickable_plus) {
       return html``;
     }
-    return html`
-    <td><add-icon-sk
-      data-key=${key}
-      data-values=${JSON.stringify(p[key])}
-    ></add-icon-sk></td>`;
-  }
+    return html` <td>
+      <add-icon-sk
+        data-key=${key}
+        data-values=${JSON.stringify(p[key])}
+      ></add-icon-sk>
+    </td>`;
+  };
 
-  private static paramsetValueTemplate =
-    (ele: ParamSetSk, key: string, params: string[]) => params.map((value) => html`<div class=${ele._highlighted(key, value)}
-                                      data-key=${key}
-                                      data-value=${value}>${value}</div>`);
+  private static paramsetValueTemplate = (
+    ele: ParamSetSk,
+    key: string,
+    params: string[]
+  ) =>
+    params.map(
+      (value) => html`<div
+        class=${ele._highlighted(key, value)}
+        data-key=${key}
+        data-value=${value}
+      >
+        ${value}
+      </div>`
+    );
 
   private _titles: string[] = [];
 
@@ -142,7 +157,8 @@ export class ParamSetSk extends ElementSk {
   private _computeClass() {
     if (this.clickable_values) {
       return 'clickable_values';
-    } if (this.clickable) {
+    }
+    if (this.clickable) {
       return 'clickable';
     }
     return '';
@@ -168,29 +184,38 @@ export class ParamSetSk extends ElementSk {
         key: t.dataset.key,
         ctrl: e.ctrlKey,
       };
-      this.dispatchEvent(new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-click', {
-        detail,
-        bubbles: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-click', {
+          detail,
+          bubbles: true,
+        })
+      );
     } else if (t.nodeName === 'DIV') {
       const detail: ParamSetSkClickEventDetail = {
         key: t.dataset.key,
         value: t.dataset.value,
         ctrl: e.ctrlKey,
       };
-      this.dispatchEvent(new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-value-click', {
-        detail,
-        bubbles: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent<ParamSetSkClickEventDetail>(
+          'paramset-key-value-click',
+          {
+            detail,
+            bubbles: true,
+          }
+        )
+      );
     } else if (t.nodeName === 'ADD-ICON-SK') {
       const detail: ParamSetSkPlusClickEventDetail = {
         key: t.dataset.key,
         values: JSON.parse(t.dataset.values!) as string[],
       };
-      this.dispatchEvent(new CustomEvent<ParamSetSkPlusClickEventDetail>('plus-click', {
-        detail,
-        bubbles: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent<ParamSetSkPlusClickEventDetail>('plus-click', {
+          detail,
+          bubbles: true,
+        })
+      );
     }
   }
 
@@ -199,7 +224,9 @@ export class ParamSetSk extends ElementSk {
   }
 
   /** Mirrors the clickable attribute.  */
-  get clickable() { return this.hasAttribute('clickable'); }
+  get clickable() {
+    return this.hasAttribute('clickable');
+  }
 
   set clickable(val) {
     if (val) {
@@ -210,7 +237,9 @@ export class ParamSetSk extends ElementSk {
   }
 
   /** Mirrors the clickable_values attribute.  */
-  get clickable_values() { return this.hasAttribute('clickable_values'); }
+  get clickable_values() {
+    return this.hasAttribute('clickable_values');
+  }
 
   set clickable_values(val) {
     if (val) {
@@ -221,7 +250,9 @@ export class ParamSetSk extends ElementSk {
   }
 
   /** Mirrors the clickable_plus attribute.  */
-  get clickable_plus() { return this.hasAttribute('clickable_plus'); }
+  get clickable_plus() {
+    return this.hasAttribute('clickable_plus');
+  }
 
   set clickable_plus(val) {
     if (val) {
@@ -239,7 +270,9 @@ export class ParamSetSk extends ElementSk {
    * Titles for the ParamSets to display. The number of titles must match the
    * number of ParamSets, otherwise no titles will be shown.
    */
-  get titles() { return this._titles; }
+  get titles() {
+    return this._titles;
+  }
 
   set titles(val) {
     this._titles = val;
@@ -256,7 +289,9 @@ export class ParamSetSk extends ElementSk {
   }
 
   /** ParamSets to display. */
-  get paramsets() { return this._paramsets; }
+  get paramsets() {
+    return this._paramsets;
+  }
 
   set paramsets(val) {
     this._paramsets = val;
@@ -273,7 +308,9 @@ export class ParamSetSk extends ElementSk {
   }
 
   /** A serialized paramtools.Params indicating the entries to highlight. */
-  get highlight() { return this._highlight; }
+  get highlight() {
+    return this._highlight;
+  }
 
   set highlight(val) {
     this._highlight = val;

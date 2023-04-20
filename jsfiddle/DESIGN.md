@@ -1,5 +1,4 @@
-URLs
-----
+## URLs
 
 The URL structure of fiddle is:
 
@@ -29,8 +28,7 @@ This returns JSON of the form:
       "new_url": "/pathkit/<fiddlehash>",
     }
 
-Storage
--------
+## Storage
 
 Fiddles are stored in Google Storage under gs://skia-jsfiddle/
 For each fiddle we store the user's code at:

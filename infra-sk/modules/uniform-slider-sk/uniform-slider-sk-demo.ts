@@ -1,6 +1,6 @@
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import './index';
-import { $ } from '../../../infra-sk/modules/dom';
+import { $ } from '../dom';
 import { UniformSliderSk } from './uniform-slider-sk';
 
 $$('#apply')!.addEventListener('click', () => {

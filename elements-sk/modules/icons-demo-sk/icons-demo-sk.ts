@@ -1,6 +1,6 @@
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { define } from '../define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { icons } from './icons';
 
@@ -9,30 +9,39 @@ class IconsDemoSk extends ElementSk {
     <h1>Icons demo</h1>
 
     <div class="search">
-      <input type="text"
-             placeholder="Filter icons by name"
-             @input=${(e: Event) => el.onFilterInput(e)}/>
+      <input
+        type="text"
+        placeholder="Filter icons by name"
+        @input=${(e: Event) => el.onFilterInput(e)}
+      />
       <button @click=${() => el.onClearClick()}>Clear</button>
     </div>
 
     ${el.getCategories().length === 0
-    ? html`<p class="no-results">No icons match "${el.filter}".</p>`
-    : el.getCategories().map((category: string) => IconsDemoSk.categoryTemplate(el, category))}
+      ? html`<p class="no-results">No icons match "${el.filter}".</p>`
+      : el
+          .getCategories()
+          .map((category: string) =>
+            IconsDemoSk.categoryTemplate(el, category)
+          )}
   `;
 
   private static categoryTemplate = (el: IconsDemoSk, category: string) => html`
     <div class="category category-${category}">
       <h2>${category}</h2>
       <div class="icons">
-        ${el.getIconsForCategory(category)
-    .map((iconName: string) => IconsDemoSk.iconTemplate(iconName))}
+        ${el
+          .getIconsForCategory(category)
+          .map((iconName: string) => IconsDemoSk.iconTemplate(iconName))}
       </div>
     </div>
   `;
 
   private static iconTemplate = (iconName: string) => html`
     <figure class="icon">
-      ${unsafeHTML(`<${iconName}-icon-sk title="${iconName}-icon-sk"></${iconName}-icon-sk>`)}
+      ${unsafeHTML(
+        `<${iconName}-icon-sk title="${iconName}-icon-sk"></${iconName}-icon-sk>`
+      )}
       <figcaption>${iconName}</figcaption>
     </figure>
   `;
@@ -49,7 +58,9 @@ class IconsDemoSk extends ElementSk {
   }
 
   private getCategories(): string[] {
-    return Array.from(icons.keys()).filter((cat) => this.getIconsForCategory(cat).length > 0);
+    return Array.from(icons.keys()).filter(
+      (cat) => this.getIconsForCategory(cat).length > 0
+    );
   }
 
   private getIconsForCategory(category: string): string[] {

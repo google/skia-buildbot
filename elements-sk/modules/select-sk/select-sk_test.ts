@@ -26,13 +26,16 @@ describe('select-sk', () => {
     selectedItemId: string;
   }
 
-  const newInstanceWithOpts = async (opts: Partial<InstantiationOptions>): Promise<SelectSk> => {
+  const newInstanceWithOpts = async (
+    opts: Partial<InstantiationOptions>
+  ): Promise<SelectSk> => {
     const instance = newInstance((instance: SelectSk) => {
       if (opts.disabled) instance.setAttribute('disabled', '');
       (opts.itemIds || []).forEach((id) => {
         const item = document.createElement('div');
         item.id = id;
-        if (opts.selectedItemId && opts.selectedItemId === id) item.setAttribute('selected', '');
+        if (opts.selectedItemId && opts.selectedItemId === id)
+          item.setAttribute('selected', '');
         instance.appendChild(item);
       });
     });
@@ -236,16 +239,26 @@ describe('select-sk', () => {
         selectedItemId: 'd2',
       });
       assert.equal(2, selectSk.selection);
-      (selectSk as any)._onKeyDown(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+      (selectSk as any)._onKeyDown(
+        new KeyboardEvent('keydown', { key: 'ArrowUp' })
+      );
       assert.equal(1, selectSk.selection);
-      (selectSk as any)._onKeyDown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+      (selectSk as any)._onKeyDown(
+        new KeyboardEvent('keydown', { key: 'ArrowDown' })
+      );
       assert.equal(2, selectSk.selection);
-      (selectSk as any)._onKeyDown(new KeyboardEvent('keydown', { key: 'Home' }));
+      (selectSk as any)._onKeyDown(
+        new KeyboardEvent('keydown', { key: 'Home' })
+      );
       assert.equal(0, selectSk.selection);
-      (selectSk as any)._onKeyDown(new KeyboardEvent('keydown', { key: 'End' }));
+      (selectSk as any)._onKeyDown(
+        new KeyboardEvent('keydown', { key: 'End' })
+      );
       assert.equal(2, selectSk.selection);
       // Don't wrap around.
-      (selectSk as any)._onKeyDown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+      (selectSk as any)._onKeyDown(
+        new KeyboardEvent('keydown', { key: 'ArrowDown' })
+      );
       assert.equal(2, selectSk.selection);
     });
   }); // end describe('keyboard navigation')
@@ -255,7 +268,8 @@ describe('select-sk', () => {
       const selectSk = await newInstanceWithOpts({
         itemIds: ['', '', 'd2'],
         selectedItemId: 'd2',
-      }); selectSk.focus();
+      });
+      selectSk.focus();
       assert.equal(selectSk, document.activeElement);
       selectSk.disabled = true;
       assert.notEqual(selectSk, document.activeElement);

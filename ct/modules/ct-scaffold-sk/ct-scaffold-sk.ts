@@ -14,11 +14,11 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import * as ctfe_utils from '../ctfe_utils';
@@ -138,12 +138,14 @@ export class CtScaffoldSk extends ElementSk {
         not_completed: true,
       };
       const queryStr = `?${fromObject(queryParams)}`;
-      allFetches.push(fetch(obj.get_url + queryStr, { method: 'POST' })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this._task_queue_length += json.pagination.total;
-        })
-        .catch(errorMessage));
+      allFetches.push(
+        fetch(obj.get_url + queryStr, { method: 'POST' })
+          .then(jsonOrThrow)
+          .then((json) => {
+            this._task_queue_length += json.pagination.total;
+          })
+          .catch(errorMessage)
+      );
     });
     // We aren't using shadow dom so we need to manually move the children of
     // ct-scaffold-sk to be children of 'main'. We have to do this for the
@@ -186,18 +188,26 @@ export class CtScaffoldSk extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title') || ''; }
+  get appTitle(): string {
+    return this.getAttribute('app_title') || '';
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 
   /** @prop {boolean} busy Indicates if there any on-going tasks (e.g. RPCs).
    *                  This also mirrors the status of the embedded spinner-sk.
    *                  Read-only. */
-  get busy(): boolean { return !!this._busyTaskCount; }
+  get busy(): boolean {
+    return !!this._busyTaskCount;
+  }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
-  get testingOffline(): boolean { return this.hasAttribute('testing_offline'); }
+  get testingOffline(): boolean {
+    return this.hasAttribute('testing_offline');
+  }
 
   set testingOffline(val: boolean) {
     if (val) {
@@ -246,8 +256,10 @@ export class CtScaffoldSk extends ElementSk {
       // We can ignore AbortError since they fire anytime an AbortController was canceled.
       // Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
-      errorMessage(`Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000);
+      errorMessage(
+        `Unexpected error loading ${loadingWhat}: ${e.message}`,
+        5000
+      );
     }
     this._finishedTask();
   }

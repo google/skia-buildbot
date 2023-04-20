@@ -6,9 +6,9 @@
  *
  * May be expanded in the future to also edit the ScrapHashOrName.
  */
+import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChildShader } from '../json';
 import { childShaderUniformNameRegex } from '../shadernode';
@@ -25,19 +25,35 @@ export class EditChildShaderSk extends ElementSk {
 
   private input: HTMLInputElement | null = null;
 
-  private resolve: ((value: ChildShader | undefined)=> void) | null = null;
+  private resolve: ((value: ChildShader | undefined) => void) | null = null;
 
   constructor() {
     super(EditChildShaderSk.template);
   }
 
   private static template = (ele: EditChildShaderSk) => html`<dialog>
-    <label>Uniform Name: <input @input=${() => ele._render()} id=uniformName type=text pattern=${childShaderUniformNameRegex.source} .value=${ele.childShader.UniformName}></label>
-    <div class=controls>
-      <button @click=${ele.cancelClick} id=cancel>Cancel</button>
-      <button @click=${ele.okClick} id=ok ?disabled=${ele.input?.validity.patternMismatch}>OK</button>
+    <label
+      >Uniform Name:
+      <input
+        @input=${() => ele._render()}
+        id="uniformName"
+        type="text"
+        pattern=${childShaderUniformNameRegex.source}
+        .value=${ele.childShader.UniformName}
+    /></label>
+    <div class="controls">
+      <button @click=${ele.cancelClick} id="cancel">Cancel</button>
+      <button
+        @click=${ele.okClick}
+        id="ok"
+        ?disabled=${ele.input?.validity.patternMismatch}
+      >
+        OK
+      </button>
     </div>
-    <span class=error ?hidden=${!ele.input?.validity.patternMismatch} >Not a valid uniform name.</span>
+    <span class="error" ?hidden=${!ele.input?.validity.patternMismatch}
+      >Not a valid uniform name.</span
+    >
   </dialog>`;
 
   connectedCallback(): void {
@@ -84,7 +100,10 @@ export class EditChildShaderSk extends ElementSk {
     if (!this.resolve) {
       return;
     }
-    this.childShader.UniformName = $$<HTMLInputElement>('#uniformName', this)!.value;
+    this.childShader.UniformName = $$<HTMLInputElement>(
+      '#uniformName',
+      this
+    )!.value;
     this.resolve(this.childShader);
     this.dialog!.close();
     this.resolve = null;

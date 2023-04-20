@@ -4,6 +4,7 @@ Prober monitors the uptime of our servers and pumps the results of those probes
 into Prometheus.
 
 ## Design
+
 Prober periodically polls a set of URLs and uses an appropriate `ResponseTester` function to
 make sure the URL is serving the correct response or lack of response.
 

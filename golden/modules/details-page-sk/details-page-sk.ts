@@ -4,8 +4,8 @@
  *
  * Page to view details about a digest. This includes other digests similar to it and trace history.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -13,7 +13,14 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import {
-  Commit, DetailsRequest, DigestDetails, GroupingForTestRequest, GroupingForTestResponse, GroupingsResponse, Params, SearchResult,
+  Commit,
+  DetailsRequest,
+  DigestDetails,
+  GroupingForTestRequest,
+  GroupingForTestResponse,
+  GroupingsResponse,
+  Params,
+  SearchResult,
 } from '../rpc_types';
 
 export class DetailsPageSk extends ElementSk {
@@ -22,23 +29,27 @@ export class DetailsPageSk extends ElementSk {
       return html`<h1>Loading...</h1>`;
     }
     if (!ele.details?.digest) {
-      const testName = Object.keys(ele.grouping).length === 0
-        ? ele.testName
-        : ele.grouping.name;
+      const testName =
+        Object.keys(ele.grouping).length === 0
+          ? ele.testName
+          : ele.grouping.name;
       return html`
         <div>
-          Could not load details for digest ${ele.digest} and test "${testName}".
-          <br>
+          Could not load details for digest ${ele.digest} and test
+          "${testName}".
+          <br />
           It might not exist or be too new so as not to be indexed yet.
         </div>
       `;
     }
     return html`
-      <digest-details-sk .groupings=${ele.groupings}
-                         .commits=${ele.commits}
-                         .changeListID=${ele.changeListID}
-                         .crs=${ele.crs}
-                         .details=${ele.details}>
+      <digest-details-sk
+        .groupings=${ele.groupings}
+        .commits=${ele.commits}
+        .changeListID=${ele.changeListID}
+        .crs=${ele.crs}
+        .details=${ele.details}
+      >
       </digest-details-sk>
     `;
   };
@@ -61,7 +72,7 @@ export class DetailsPageSk extends ElementSk {
 
   private didInitialLoad = false;
 
-  private stateChanged?: ()=> void;
+  private stateChanged?: () => void;
 
   // Allows us to abort fetches if we fetch again.
   private fetchController?: AbortController;
@@ -70,28 +81,29 @@ export class DetailsPageSk extends ElementSk {
     super(DetailsPageSk.template);
 
     this.stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         grouping: this.grouping,
         test: this.testName, // TODO(lovisolo): Delete once all inbound links include a grouping.
         digest: this.digest,
         changelist_id: this.changeListID,
         crs: this.crs,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
         // default values if not specified.
-        this.grouping = newState.grouping as Params || {};
+        this.grouping = (newState.grouping as Params) || {};
         // TODO(lovisolo): Delete once all inbound links include a grouping.
-        this.testName = newState.test as string || '';
-        this.digest = newState.digest as string || '';
-        this.changeListID = newState.changelist_id as string || '';
-        this.crs = newState.crs as string || '';
+        this.testName = (newState.test as string) || '';
+        this.digest = (newState.digest as string) || '';
+        this.changeListID = (newState.changelist_id as string) || '';
+        this.crs = (newState.crs as string) || '';
         this.fetchGroupingsOnce();
         this.fetchDigestDetails();
         this._render();
-      },
+      }
     );
   }
 
@@ -106,7 +118,9 @@ export class DetailsPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this.groupings = await fetch('/json/v1/groupings', {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -131,13 +145,16 @@ export class DetailsPageSk extends ElementSk {
         test_name: this.testName,
       };
       try {
-        const response: GroupingForTestResponse = await fetch('/json/v1/groupingfortest', {
-          method: 'POST',
-          body: JSON.stringify(request),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }).then(jsonOrThrow);
+        const response: GroupingForTestResponse = await fetch(
+          '/json/v1/groupingfortest',
+          {
+            method: 'POST',
+            body: JSON.stringify(request),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        ).then(jsonOrThrow);
         this.grouping = response.grouping;
       } catch (e) {
         this._render();
@@ -162,7 +179,8 @@ export class DetailsPageSk extends ElementSk {
         'Content-Type': 'application/json',
       },
       signal: this.fetchController.signal,
-    }).then(jsonOrThrow)
+    })
+      .then(jsonOrThrow)
       .then((digestDetails: DigestDetails) => {
         this.commits = digestDetails.commits || [];
         this.details = digestDetails.digest;

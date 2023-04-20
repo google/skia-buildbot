@@ -12,8 +12,8 @@
  *   from the fetch response.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -95,7 +95,7 @@ export class QueryCountSk extends ElementSk {
           new CustomEvent<ParamSet>('paramset-changed', {
             detail: json.paramset,
             bubbles: true,
-          }),
+          })
         );
       })
       .catch((msg) => {

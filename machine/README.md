@@ -62,18 +62,10 @@ See the [Design Doc](http://go/skia-switchboard).
 | test_machine_monitor | >PubSub([Event][event])      | machineserver | Sends results from interrogate.               |
 | test_machine_monitor | <WebAPI([Description][desc]) | machineserver | GET to `/json/v1/machine/description/{id:.+}` |
 
-[desc]:
-  https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Description
-  'machine.Description'
-[event]:
-  https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Event
-  'machine.Event'
-[lpcr]:
-  https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#ListPowerCycleResponse
-  'rpc.ListPowerCycleResponse'
-[pssu]:
-  https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#UpdatePowerCycleStateRequest
-  'rpc.UpdatePowerCycleStateRequest'
+[desc]: https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Description 'machine.Description'
+[event]: https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Event 'machine.Event'
+[lpcr]: https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#ListPowerCycleResponse 'rpc.ListPowerCycleResponse'
+[pssu]: https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#UpdatePowerCycleStateRequest 'rpc.UpdatePowerCycleStateRequest'
 
 # Legend
 

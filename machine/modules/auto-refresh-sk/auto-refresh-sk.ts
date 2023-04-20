@@ -11,8 +11,8 @@
  * @evt refresh-page - This event bubbles, and is produced every time the data
  *   on the page should be refreshed.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/pause-icon-sk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
@@ -29,20 +29,17 @@ export class AutoRefreshSk extends ElementSk {
     super(AutoRefreshSk.template);
   }
 
-  private static refreshButtonDisplayValue = (ele: AutoRefreshSk): TemplateResult => {
+  private static refreshButtonDisplayValue = (
+    ele: AutoRefreshSk
+  ): TemplateResult => {
     if (ele.refreshing) {
-      return html`
-        <pause-icon-sk></pause-icon-sk>
-      `;
+      return html` <pause-icon-sk></pause-icon-sk> `;
     }
-    return html`
-      <play-arrow-icon-sk></play-arrow-icon-sk>
-    `;
+    return html` <play-arrow-icon-sk></play-arrow-icon-sk> `;
   };
 
-  private static template = (ele: AutoRefreshSk) => html`
-  <span
-    id=refresh
+  private static template = (ele: AutoRefreshSk) => html` <span
+    id="refresh"
     @click=${() => ele.toggleRefresh()}
     title="Start/Stop the automatic refreshing of data on the page."
   >

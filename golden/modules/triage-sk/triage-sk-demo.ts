@@ -10,17 +10,23 @@ const log = (message: string) => {
 };
 
 const triageSk = new TriageSk();
-triageSk.addEventListener('change', (e: Event) => log((e as CustomEvent<Label>).detail));
+triageSk.addEventListener('change', (e: Event) =>
+  log((e as CustomEvent<Label>).detail)
+);
 
 document.querySelector<HTMLDivElement>('#container')!.appendChild(triageSk);
 
-document.querySelector<HTMLInputElement>('#read-only-checkbox')!.addEventListener('change', (e) => {
-  const checkBox = e.target as HTMLInputElement;
-  triageSk.readOnly = checkBox.checked;
-});
+document
+  .querySelector<HTMLInputElement>('#read-only-checkbox')!
+  .addEventListener('change', (e) => {
+    const checkBox = e.target as HTMLInputElement;
+    triageSk.readOnly = checkBox.checked;
+  });
 
 // Hide event log if we're within a Puppeteer test. We don't need the event log
 // to appear in any screenshots uploaded to Gold.
 if (isPuppeteerTest()) {
-  document.querySelector<HTMLDivElement>('#event-log-container')!.style.display = 'none';
+  document.querySelector<HTMLDivElement>(
+    '#event-log-container'
+  )!.style.display = 'none';
 }

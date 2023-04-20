@@ -1,17 +1,19 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { pageSets } from './test_data';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PagesetSelectorSk } from './pageset-selector-sk';
 
 describe('pageset-selector-sk', () => {
-  const factory = setUpElementUnderTest<PagesetSelectorSk>('pageset-selector-sk');
+  const factory = setUpElementUnderTest<PagesetSelectorSk>(
+    'pageset-selector-sk'
+  );
   // Returns a new element with the pagesets fetch complete.
-  const newInstance = async (init?: ((instance: PagesetSelectorSk)=> void)) => {
+  const newInstance = async (init?: (instance: PagesetSelectorSk) => void) => {
     const ele = factory(init);
     await new Promise((resolve) => setTimeout(resolve, 0));
     return ele;
@@ -38,10 +40,12 @@ describe('pageset-selector-sk', () => {
     const ele = $$('textarea', selector) as HTMLInputElement;
     ele.focus();
     ele.value = value;
-    ele.dispatchEvent(new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    ele.dispatchEvent(
+      new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
   };
 
   it('loads selections', async () => {
@@ -94,7 +98,9 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance((ele) => {
       ele.setAttribute('disable-custom-webpages', '');
     });
-    expect(selector.querySelectorAll('expandable-textarea-sk').length).to.equal(0);
+    expect(selector.querySelectorAll('expandable-textarea-sk').length).to.equal(
+      0
+    );
     expect(selector.querySelectorAll('select-sk').length).to.equal(1);
   });
 });

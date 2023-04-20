@@ -29,7 +29,10 @@ import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { html, render, Template, TemplateResult } from 'lit-html';
-import { jsonOrThrow, JsonOrThrowError } from '../../../infra-sk/modules/jsonOrThrow';
+import {
+  jsonOrThrow,
+  JsonOrThrowError,
+} from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { Login } from '../../../infra-sk/modules/login';
@@ -42,7 +45,15 @@ import * as paramset from '../paramset';
 import { displaySilence, expiresIn, getSilenceFullName } from '../am';
 
 import {
-  Silence, Incident, StatsRequest, Stat, IncidentsResponse, ParamSet, Params, IncidentsInRangeRequest, AuditLog,
+  Silence,
+  Incident,
+  StatsRequest,
+  Stat,
+  IncidentsResponse,
+  ParamSet,
+  Params,
+  IncidentsInRangeRequest,
+  AuditLog,
 } from '../json';
 
 // Legal states.
@@ -87,7 +98,7 @@ export class AlertManagerSk extends HTMLElement {
 
   private rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
 
-  private selected: Incident|Silence|null = null; // The selected incident, i.e. you clicked on the name.
+  private selected: Incident | Silence | null = null; // The selected incident, i.e. you clicked on the name.
 
   private checked = new Set(); // Checked incidents, i.e. you clicked the checkbox.
 
@@ -95,16 +106,25 @@ export class AlertManagerSk extends HTMLElement {
 
   private isBotCentricView = false; // Determines if bot-centric view is displayed on incidents tab.
 
-  private current_silence: Silence|null = null; // A silence under construction.
+  private current_silence: Silence | null = null; // A silence under construction.
 
   // Params to ignore when constructing silences.
-  private ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
-    'kubernetes_pod_name', 'instance', 'pod_template_hash', 'abbr_owner_regex',
-    'controller_revision_hash'];
+  private ignored = [
+    '__silence_state',
+    'description',
+    'id',
+    'swarming',
+    'assigned_to',
+    'kubernetes_pod_name',
+    'instance',
+    'pod_template_hash',
+    'abbr_owner_regex',
+    'controller_revision_hash',
+  ];
 
   private shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
 
-  private last_checked_incident: string|null = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
+  private last_checked_incident: string | null = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
 
   private incidents_notified: Record<string, boolean> = {}; // Keeps track of all incidents that were notified via desktop notifications.
 
@@ -131,10 +151,15 @@ export class AlertManagerSk extends HTMLElement {
   constructor() {
     super();
 
-    fetch('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', { mode: 'cors' }).then(jsonOrThrow).then((json: RotationResp) => {
-      this.infra_gardener = json.emails[0];
-      this._render();
-    });
+    fetch(
+      'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
+      { mode: 'cors' }
+    )
+      .then(jsonOrThrow)
+      .then((json: RotationResp) => {
+        this.infra_gardener = json.emails[0];
+        this._render();
+      });
     Login.then((loginstatus) => {
       this.user = loginstatus.Email;
       this._render();
@@ -193,25 +218,43 @@ export class AlertManagerSk extends HTMLElement {
       ${ele.incidentList(ele.incidents, ele.isBotCentricView)}
     </section>
     <section class=silences>
-      <input class=silences-filter placeholder="Filter silences" .value="${ele.filterSilencesVal}" @input=${(e: Event) => ele.filterSilencesEvent(e)}></input>
+      <input class=silences-filter placeholder="Filter silences" .value="${
+        ele.filterSilencesVal
+      }" @input=${(e: Event) => ele.filterSilencesEvent(e)}></input>
       <br/><br/>
-      ${ele.silences.filter((silence: Silence) => getSilenceFullName(silence.param_set).includes(ele.filterSilencesVal)).slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
-        <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele.silenceClick(i)}>
-          <span>
-            ${displaySilence(i.param_set)}
-          </span>
-          <span>
-            <span title='Expires in'>${expiresIn(i.active, i.created, i.duration)}</span>
-            <comment-icon-sk title='This silence has notes.' class=${ele.hasNotes(i)}></comment-icon-sk>
-            <span title='The number of active alerts that match this silence.'>${ele.numMatchSilence(i)}</span>
-          </span>
-        </h2>`)}
+      ${ele.silences
+        .filter((silence: Silence) =>
+          getSilenceFullName(silence.param_set).includes(ele.filterSilencesVal)
+        )
+        .slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB)
+        .map(
+          (i: Silence) => html` <h2
+            class=${ele.classOfSilenceH2(i)}
+            @click=${() => ele.silenceClick(i)}
+          >
+            <span> ${displaySilence(i.param_set)} </span>
+            <span>
+              <span title="Expires in"
+                >${expiresIn(i.active, i.created, i.duration)}</span
+              >
+              <comment-icon-sk
+                title="This silence has notes."
+                class=${ele.hasNotes(i)}
+              ></comment-icon-sk>
+              <span title="The number of active alerts that match this silence."
+                >${ele.numMatchSilence(i)}</span
+              >
+            </span>
+          </h2>`
+        )}
     </section>
     <section class=stats>
       ${ele.statsList()}
     </section>
     <section class=auditlogs>
-      <input class=auditlogs-filter placeholder="Filter audit logs" .value="${ele.filterAuditLogsVal}" @input=${(e: Event) => ele.filterAuditLogsEvent(e)}></input>
+      <input class=auditlogs-filter placeholder="Filter audit logs" .value="${
+        ele.filterAuditLogsVal
+      }" @input=${(e: Event) => ele.filterAuditLogsEvent(e)}></input>
     </section>
   </tabs-panel-sk>
 </section>
@@ -230,35 +273,55 @@ export class AlertManagerSk extends HTMLElement {
   connectedCallback(): void {
     this.requestDesktopNotificationPermission();
 
-    this.addEventListener('save-silence', (e) => this.saveSilence((e as CustomEvent).detail.silence));
-    this.addEventListener('archive-silence', (e) => this.archiveSilence((e as CustomEvent).detail.silence));
-    this.addEventListener('reactivate-silence', (e) => this.reactivateSilence((e as CustomEvent).detail.silence));
-    this.addEventListener('delete-silence', (e) => this.deleteSilence((e as CustomEvent).detail.silence));
-    this.addEventListener('add-silence-note', (e) => this.addSilenceNote(e as CustomEvent));
-    this.addEventListener('del-silence-note', (e) => this.delSilenceNote(e as CustomEvent));
-    this.addEventListener('add-silence-param', (e) => this.addSilenceParam((e as CustomEvent).detail.silence));
-    this.addEventListener('delete-silence-param', (e) => this.deleteSilenceParam((e as CustomEvent).detail.silence));
-    this.addEventListener('modify-silence-param', (e) => this.modifySilenceParam((e as CustomEvent).detail.silence));
+    this.addEventListener('save-silence', (e) =>
+      this.saveSilence((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('archive-silence', (e) =>
+      this.archiveSilence((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('reactivate-silence', (e) =>
+      this.reactivateSilence((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('delete-silence', (e) =>
+      this.deleteSilence((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('add-silence-note', (e) =>
+      this.addSilenceNote(e as CustomEvent)
+    );
+    this.addEventListener('del-silence-note', (e) =>
+      this.delSilenceNote(e as CustomEvent)
+    );
+    this.addEventListener('add-silence-param', (e) =>
+      this.addSilenceParam((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('delete-silence-param', (e) =>
+      this.deleteSilenceParam((e as CustomEvent).detail.silence)
+    );
+    this.addEventListener('modify-silence-param', (e) =>
+      this.modifySilenceParam((e as CustomEvent).detail.silence)
+    );
     this.addEventListener('add-note', (e) => this.addNote(e as CustomEvent));
     this.addEventListener('del-note', (e) => this.delNote(e as CustomEvent));
     this.addEventListener('take', (e) => this.take(e as CustomEvent));
     this.addEventListener('bot-chooser', () => this.botChooser());
     this.addEventListener('assign', (e) => this.assign(e as CustomEvent));
-    this.addEventListener('assign-to-owner', (e) => this.assignToOwner(e as CustomEvent));
+    this.addEventListener('assign-to-owner', (e) =>
+      this.assignToOwner(e as CustomEvent)
+    );
     // For keyboard navigation.
     document.addEventListener('keydown', (e) => this.keyDown(e));
 
     this.stateHasChanged = stateReflector(
-      /* getState */ () => (this.state as unknown) as HintableObject,
+      /* getState */ () => this.state as unknown as HintableObject,
       /* setState */ (newState) => {
-        this.state = (newState as unknown) as State;
+        this.state = newState as unknown as State;
         // Set rhs_side to AUDIT_LOG if tab is on Audit.
         if (this.state.tab === 4) {
           this.getAuditLogs();
           this.rhs_state = VIEW_AUDITLOG;
         }
         this._render();
-      },
+      }
     );
 
     this._render();
@@ -272,11 +335,14 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private getMyIncidents(): Incident[] {
-    return this.incidents.filter((i: Incident) => i.active
-          && i.params.__silence_state !== 'silenced'
-          && (this.user === this.infra_gardener
-            || i.params.assigned_to === this.user
-            || (i.params.owner === this.user && !i.params.assigned_to)));
+    return this.incidents.filter(
+      (i: Incident) =>
+        i.active &&
+        i.params.__silence_state !== 'silenced' &&
+        (this.user === this.infra_gardener ||
+          i.params.assigned_to === this.user ||
+          (i.params.owner === this.user && !i.params.assigned_to))
+    );
   }
 
   private keyDown(e: KeyboardEvent) {
@@ -301,7 +367,10 @@ export class AlertManagerSk extends HTMLElement {
     // selected.
     const focusedElem: Element | null = document.activeElement;
     const ignoreKeyboardNavigationInTags = ['input', 'textarea', 'select'];
-    if (focusedElem && ignoreKeyboardNavigationInTags.includes(focusedElem.tagName.toLowerCase())) {
+    if (
+      focusedElem &&
+      ignoreKeyboardNavigationInTags.includes(focusedElem.tagName.toLowerCase())
+    ) {
       return;
     }
 
@@ -348,8 +417,8 @@ export class AlertManagerSk extends HTMLElement {
         this.assignMultiple();
         break;
       case 'A':
-          this.autoAssign();
-          break;
+        this.autoAssign();
+        break;
       case '1':
         this.keyboardNavigateTabs(0);
         break;
@@ -371,10 +440,13 @@ export class AlertManagerSk extends HTMLElement {
     this._render();
   }
 
-  private keyboardNavigateIncidents(e: KeyboardEvent, reverseDirection: boolean) {
+  private keyboardNavigateIncidents(
+    e: KeyboardEvent,
+    reverseDirection: boolean
+  ) {
     // If an alert is not selected or checked then the first incident in the
     // incidents array can be starting point.
-    let foundStartingPoint = (this.selected === null) && (this.checked.size === 0);
+    let foundStartingPoint = this.selected === null && this.checked.size === 0;
 
     // Figure out which incidents we are looking at.
     let incidentsArray = this.incidents;
@@ -413,7 +485,10 @@ export class AlertManagerSk extends HTMLElement {
         // We found the selected incident, the next incident in the iteration
         // is the one we need to process.
         foundStartingPoint = true;
-      } else if (this.checked.size > 0 && this.last_checked_incident === incident.key) {
+      } else if (
+        this.checked.size > 0 &&
+        this.last_checked_incident === incident.key
+      ) {
         // We found the last checked incident, the next incident in the
         // iteration is the one we need to process.
         foundStartingPoint = true;
@@ -454,22 +529,33 @@ export class AlertManagerSk extends HTMLElement {
 
   private editIncident(): TemplateResult {
     if (this.selected) {
-      return html`<incident-sk .incident_silences=${this.silences} .incident_state=${this.selected}
-        ></incident-sk>`;
+      return html`<incident-sk
+        .incident_silences=${this.silences}
+        .incident_state=${this.selected}
+      ></incident-sk>`;
     }
     return html``;
   }
 
   private editSilence(): TemplateResult {
-    return html`<silence-sk .silence_state=${this.current_silence} .silence_incidents=${this.incidents}
-      ></silence-sk>`;
+    return html`<silence-sk
+      .silence_state=${this.current_silence}
+      .silence_incidents=${this.incidents}
+    ></silence-sk>`;
   }
 
   private viewStats(): TemplateResult[] {
-    return this.incident_stats.map((i, index) => html`<incident-sk .incident_state=${i} minimized params=${index === 0}></incident-sk>`);
+    return this.incident_stats.map(
+      (i, index) =>
+        html`<incident-sk
+          .incident_state=${i}
+          minimized
+          params=${index === 0}
+        ></incident-sk>`
+    );
   }
 
-  private rightHandSide(): TemplateResult|TemplateResult[] {
+  private rightHandSide(): TemplateResult | TemplateResult[] {
     switch (this.rhs_state) {
       case START:
         return [];
@@ -486,12 +572,12 @@ export class AlertManagerSk extends HTMLElement {
     }
   }
 
-  private hasNotes(o: Incident| Silence): string {
-    return (o.notes && o.notes.length > 0) ? '' : 'invisible';
+  private hasNotes(o: Incident | Silence): string {
+    return o.notes && o.notes.length > 0 ? '' : 'invisible';
   }
 
   private hasRecentlyExpiredSilence(incident: Incident): string {
-    return (this.incidentsToRecentlyExpired[incident.id]) ? '' : 'invisible';
+    return this.incidentsToRecentlyExpired[incident.id] ? '' : 'invisible';
   }
 
   private displayIncident(incident: Incident): TemplateResult {
@@ -510,16 +596,25 @@ export class AlertManagerSk extends HTMLElement {
 
   private infraGardener(): TemplateResult {
     if (this.infra_gardener === this.user) {
-      return html`<notifications-icon-sk title='You are the Infra Gardener, awesome!'></notifications-icon-sk>`;
+      return html`<notifications-icon-sk
+        title="You are the Infra Gardener, awesome!"
+      ></notifications-icon-sk>`;
     }
     return html``;
   }
 
   private assignedTo(incident: Incident): TemplateResult {
     if (incident.params.assigned_to === this.user) {
-      return html`<person-icon-sk title='This item is assigned to you.'></person-icon-sk>`;
-    } if (incident.params.assigned_to) {
-      return html`<span class='assigned-circle' title='This item is assigned to ${incident.params.assigned_to}.'>${incident.params.assigned_to[0].toUpperCase()}</span>`;
+      return html`<person-icon-sk
+        title="This item is assigned to you."
+      ></person-icon-sk>`;
+    }
+    if (incident.params.assigned_to) {
+      return html`<span
+        class="assigned-circle"
+        title="This item is assigned to ${incident.params.assigned_to}."
+        >${incident.params.assigned_to[0].toUpperCase()}</span
+      >`;
     }
     return html``;
   }
@@ -531,8 +626,11 @@ export class AlertManagerSk extends HTMLElement {
       const incident = incidents[i];
       if (incident.params && incident.params.bot) {
         // Only consider active bot incidents that are not assigned or silenced.
-        if (!incident.active || incident.params.__silence_state === 'silenced'
-            || incident.params.assigned_to) {
+        if (
+          !incident.active ||
+          incident.params.__silence_state === 'silenced' ||
+          incident.params.assigned_to
+        ) {
           continue;
         }
         const botName = incident.params.bot;
@@ -551,11 +649,17 @@ export class AlertManagerSk extends HTMLElement {
     Object.keys(this.bots_to_incidents).forEach((botName) => {
       botsHTML.push(html`
         <h2 class="bot-centric">
-          <span class=noselect>
-            <checkbox-sk class=bot-alert-checkbox ?checked=${this.isBotChecked(this.bots_to_incidents[botName])} @change=${this.check_selected} @click=${this.clickHandler} id=${botName}></checkbox-sk>
-            <span class=bot-alert>
+          <span class="noselect">
+            <checkbox-sk
+              class="bot-alert-checkbox"
+              ?checked=${this.isBotChecked(this.bots_to_incidents[botName])}
+              @change=${this.check_selected}
+              @click=${this.clickHandler}
+              id=${botName}
+            ></checkbox-sk>
+            <span class="bot-alert">
               ${botName}
-              <span class=bot-incident-list>
+              <span class="bot-incident-list">
                 ${this.incidentListForBot(this.bots_to_incidents[botName])}
               </span>
             </span>
@@ -577,59 +681,83 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private incidentListForBot(incidents: Incident[]): TemplateResult {
-    const incidentsHTML = incidents.map((i) => html`<li @click=${() => this.select(i)}>${i.params.alertname}</li>`);
-    return html`<ul class=bot-incident-elem>${incidentsHTML}</ul>`;
+    const incidentsHTML = incidents.map(
+      (i) => html`<li @click=${() => this.select(i)}>${i.params.alertname}</li>`
+    );
+    return html`<ul class="bot-incident-elem">
+      ${incidentsHTML}
+    </ul>`;
   }
 
-  private incidentList(incidents: Incident[], isBotCentricView: boolean): TemplateResult[] {
+  private incidentList(
+    incidents: Incident[],
+    isBotCentricView: boolean
+  ): TemplateResult[] {
     if (isBotCentricView) {
       return this.botCentricView();
     }
-    return incidents.map((i) => html`
-        <h2 class=${this.classOfH2(i)} @click=${() => this.select(i)} id=container-${i.key}>
-        <span class=noselect>
-          <checkbox-sk ?checked=${this.checked.has(i.key)} @change=${this.check_selected} @click=${this.clickHandler} id=${i.key}></checkbox-sk>
-          ${this.assignedTo(i)}
-          ${this.displayIncident(i)}
-        </span>
-        <span>
-          <alarm-off-icon-sk title='This incident has a recently expired silence' class=${this.hasRecentlyExpiredSilence(i)}></alarm-off-icon-sk>
-          <comment-icon-sk title='This incident has notes.' class=${this.hasNotes(i)}></comment-icon-sk>
-        </span>
+    return incidents.map(
+      (i) => html`
+        <h2
+          class=${this.classOfH2(i)}
+          @click=${() => this.select(i)}
+          id="container-${i.key}"
+        >
+          <span class="noselect">
+            <checkbox-sk
+              ?checked=${this.checked.has(i.key)}
+              @change=${this.check_selected}
+              @click=${this.clickHandler}
+              id=${i.key}
+            ></checkbox-sk>
+            ${this.assignedTo(i)} ${this.displayIncident(i)}
+          </span>
+          <span>
+            <alarm-off-icon-sk
+              title="This incident has a recently expired silence"
+              class=${this.hasRecentlyExpiredSilence(i)}
+            ></alarm-off-icon-sk>
+            <comment-icon-sk
+              title="This incident has notes."
+              class=${this.hasNotes(i)}
+            ></comment-icon-sk>
+          </span>
         </h2>
-      `);
+      `
+    );
   }
 
   private statsList(): TemplateResult[] {
-    return this.stats.map((stat: Stat) => html`<h2 @click=${() => this.statsClick(stat.incident)}>${this.displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
+    return this.stats.map(
+      (stat: Stat) =>
+        html`<h2 @click=${() => this.statsClick(stat.incident)}>
+          ${this.displayIncident(stat.incident)} <span>${stat.num}</span>
+        </h2>`
+    );
   }
 
   private viewAuditLogsTable(): TemplateResult {
     return html`
-      <table id=audit-logs-table>
+      <table id="audit-logs-table">
         ${this.getAuditLogsRows()}
       </table>
     `;
   }
 
   private getAuditLogsRows(): TemplateResult[] {
-    const filtered_audit_logs = this.audit_logs.filter((a) => a.body.includes(this.filterAuditLogsVal));
-    return filtered_audit_logs.map((a) => html`
-      <tr>
-        <td>
-          ${diffDate(a.timestamp * 1000)} ago
-        </td>
-        <td>
-          ${a.action}
-        </td>
-        <td>
-          ${a.user}
-        </td>
-        <td>
-          ${a.body}
-        </td>
-      </tr>
-    `);
+    const filtered_audit_logs = this.audit_logs.filter((a) =>
+      a.body.includes(this.filterAuditLogsVal)
+    );
+    return filtered_audit_logs.map(
+      (a) => html`
+        <tr>
+          <td>${diffDate(a.timestamp * 1000)} ago</td>
+          <td>${a.action}</td>
+          <td>${a.user}</td>
+          <td>${a.body}</td>
+        </tr>
+      `
+    );
   }
 
   private numMatchSilence(s: Silence): number {
@@ -637,12 +765,19 @@ export class AlertManagerSk extends HTMLElement {
       return 0;
     }
     return this.incidents.filter(
-      (incident: Incident) => paramset.match(s.param_set, incident.params) && incident.active,
+      (incident: Incident) =>
+        paramset.match(s.param_set, incident.params) && incident.active
     ).length;
   }
 
   private displayClearSelections(): TemplateResult {
-    return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.clearSelections}>Clear selections</button>`;
+    return html`<button
+      class="selection"
+      ?disabled=${this.checked.size === 0}
+      @click=${this.clearSelections}
+    >
+      Clear selections
+    </button>`;
   }
 
   private getAutoAssignIncidents(): Incident[] {
@@ -650,10 +785,12 @@ export class AlertManagerSk extends HTMLElement {
     this.incidents.forEach((incident) => {
       // We only auto-assign active alerts which are not silenced, which have
       // owners defined but are not already assigned to them.
-      if (incident.active
-          && incident.params.__silence_state === 'active'
-          && incident.params.owner
-          && !incident.params.assigned_to) {
+      if (
+        incident.active &&
+        incident.params.__silence_state === 'active' &&
+        incident.params.owner &&
+        !incident.params.assigned_to
+      ) {
         autoAssignIncidents.push(incident);
       }
     });
@@ -662,7 +799,13 @@ export class AlertManagerSk extends HTMLElement {
 
   private displayAutoAssign(): TemplateResult {
     const autoAssignIncidents = this.getAutoAssignIncidents();
-    return html`<button class=selection ?disabled=${autoAssignIncidents.length === 0} @click=${this.autoAssign}>Auto-Assign</button>`;
+    return html`<button
+      class="selection"
+      ?disabled=${autoAssignIncidents.length === 0}
+      @click=${this.autoAssign}
+    >
+      Auto-Assign
+    </button>`;
   }
 
   private filterSilencesEvent(e: Event): void {
@@ -682,7 +825,10 @@ export class AlertManagerSk extends HTMLElement {
 
   private async autoAssign(): Promise<void> {
     const autoAssignIncidents = this.getAutoAssignIncidents();
-    const selectedIncidentKeys = await $$<AutoAssignSk>('#auto-assign', this)!.open(autoAssignIncidents);
+    const selectedIncidentKeys = await $$<AutoAssignSk>(
+      '#auto-assign',
+      this
+    )!.open(autoAssignIncidents);
 
     if (!selectedIncidentKeys) {
       // Nothing to do if there are no incidents to auto-assign.
@@ -698,28 +844,32 @@ export class AlertManagerSk extends HTMLElement {
         if (!ownersToIncidentKeys[this.incidents[i].params.owner]) {
           ownersToIncidentKeys[this.incidents[i].params.owner] = [];
         }
-        ownersToIncidentKeys[this.incidents[i].params.owner].push(this.incidents[i].key);
+        ownersToIncidentKeys[this.incidents[i].params.owner].push(
+          this.incidents[i].key
+        );
       }
     }
 
     // Gather and execute promises that assign batches of incidents to
     // their owners.
-    const promises: Promise<void>[] = Object.keys(ownersToIncidentKeys).map(async (owner: string): Promise<void> => {
-      const detail = {
-        keys: ownersToIncidentKeys[owner],
-        email: owner,
-      };
-      const response = await fetch('/_/assign_multiple', {
-        body: JSON.stringify(detail),
-        headers: {
-          'content-type': 'application/json',
-        },
-        credentials: 'include',
-        method: 'POST',
-      });
-      const json = await jsonOrThrow(response) as Incident[];
-      this.incidents = json;
-    });
+    const promises: Promise<void>[] = Object.keys(ownersToIncidentKeys).map(
+      async (owner: string): Promise<void> => {
+        const detail = {
+          keys: ownersToIncidentKeys[owner],
+          email: owner,
+        };
+        const response = await fetch('/_/assign_multiple', {
+          body: JSON.stringify(detail),
+          headers: {
+            'content-type': 'application/json',
+          },
+          credentials: 'include',
+          method: 'POST',
+        });
+        const json = (await jsonOrThrow(response)) as Incident[];
+        this.incidents = json;
+      }
+    );
 
     try {
       await Promise.all(promises);
@@ -731,7 +881,13 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private displayAssignMultiple(): TemplateResult {
-    return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.assignMultiple}>Assign ${this.checked.size} alerts</button>`;
+    return html`<button
+      class="selection"
+      ?disabled=${this.checked.size === 0}
+      @click=${this.assignMultiple}
+    >
+      Assign ${this.checked.size} alerts
+    </button>`;
   }
 
   private botCentricBtn(): TemplateResult {
@@ -741,11 +897,16 @@ export class AlertManagerSk extends HTMLElement {
     } else {
       buttonText = 'Switch to Bot-centric view';
     }
-    return html`<button @click=${this.flipBotCentricView}>${buttonText}</button>`;
+    return html`<button @click=${this.flipBotCentricView}>
+      ${buttonText}
+    </button>`;
   }
 
-  private findParent(ele: HTMLElement|null, tagName: string): HTMLElement|null {
-    while (ele && (ele.tagName !== tagName)) {
+  private findParent(
+    ele: HTMLElement | null,
+    tagName: string
+  ): HTMLElement | null {
+    while (ele && ele.tagName !== tagName) {
       ele = ele.parentElement;
     }
     return ele;
@@ -754,47 +915,61 @@ export class AlertManagerSk extends HTMLElement {
   private poll(stopSpinner: boolean): void {
     const incidents = fetch('/_/incidents', {
       credentials: 'include',
-    }).then(jsonOrThrow).then((json: IncidentsResponse) => {
-      this.incidents = json.incidents || [];
-      // If alert_id is specified and it is in supported rhs_states then display
-      // an incident.
-      if ((this.rhs_state === START || this.rhs_state === INCIDENT)
-          && this.state.alert_id) {
-        for (let i = 0; i < this.incidents.length; i++) {
-          if (this.incidents[i].id === this.state.alert_id) {
-            this.select(this.incidents[i]);
-            break;
+    })
+      .then(jsonOrThrow)
+      .then((json: IncidentsResponse) => {
+        this.incidents = json.incidents || [];
+        // If alert_id is specified and it is in supported rhs_states then display
+        // an incident.
+        if (
+          (this.rhs_state === START || this.rhs_state === INCIDENT) &&
+          this.state.alert_id
+        ) {
+          for (let i = 0; i < this.incidents.length; i++) {
+            if (this.incidents[i].id === this.state.alert_id) {
+              this.select(this.incidents[i]);
+              break;
+            }
           }
         }
-      }
-      this.incidents = json.incidents || [];
-      this.incidentsToRecentlyExpired = json.ids_to_recently_expired_silences || {};
-    });
+        this.incidents = json.incidents || [];
+        this.incidentsToRecentlyExpired =
+          json.ids_to_recently_expired_silences || {};
+      });
 
     const silences = fetch('/_/silences', {
       credentials: 'include',
-    }).then(jsonOrThrow).then((json: Silence[]) => {
-      this.silences = json;
-    });
+    })
+      .then(jsonOrThrow)
+      .then((json: Silence[]) => {
+        this.silences = json;
+      });
 
     const emails = fetch('/_/emails', {
       credentials: 'include',
-    }).then(jsonOrThrow).then((json: string[]) => {
-      this.emails = json;
-    });
+    })
+      .then(jsonOrThrow)
+      .then((json: string[]) => {
+        this.emails = json;
+      });
 
-    Promise.all([incidents, silences, emails]).then(() => { this._render(); }).catch((msg) => {
-      if (msg.resp) {
-        msg.resp.text().then(errorMessage);
-      } else {
-        errorMessage(msg);
-      }
-    }).finally(() => {
-      if (stopSpinner) {
-        this.spinner!.active = false;
-      }
-      window.setTimeout(() => this.poll(false), 10000);
-    });
+    Promise.all([incidents, silences, emails])
+      .then(() => {
+        this._render();
+      })
+      .catch((msg) => {
+        if (msg.resp) {
+          msg.resp.text().then(errorMessage);
+        } else {
+          errorMessage(msg);
+        }
+      })
+      .finally(() => {
+        if (stopSpinner) {
+          this.spinner!.active = false;
+        }
+        window.setTimeout(() => this.poll(false), 10000);
+      });
   }
 
   private tabSwitch(e: CustomEvent): void {
@@ -815,12 +990,15 @@ export class AlertManagerSk extends HTMLElement {
     if (e.detail.index === 2) {
       fetch('/_/new_silence', {
         credentials: 'include',
-      }).then(jsonOrThrow).then((json: Silence) => {
-        this.selected = null;
-        this.current_silence = json;
-        this.rhs_state = EDIT_SILENCE;
-        this._render();
-      }).catch(errorMessage);
+      })
+        .then(jsonOrThrow)
+        .then((json: Silence) => {
+          this.selected = null;
+          this.current_silence = json;
+          this.rhs_state = EDIT_SILENCE;
+          this._render();
+        })
+        .catch(errorMessage);
     } else if (e.detail.index === 4) {
       // If tab is audit logs then load them.
       this.getAuditLogs();
@@ -889,10 +1067,16 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private async check_selected(e: Event): Promise<void> {
-    const checkbox = this.findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
+    const checkbox = this.findParent(
+      e.target as HTMLElement,
+      'CHECKBOX-SK'
+    ) as CheckOrRadio;
     const incidents_to_check: string[] = [];
-    if (this.isBotCentricView && this.bots_to_incidents
-        && this.bots_to_incidents[checkbox.id]) {
+    if (
+      this.isBotCentricView &&
+      this.bots_to_incidents &&
+      this.bots_to_incidents[checkbox.id]
+    ) {
       this.bots_to_incidents[checkbox.id].forEach((i) => {
         incidents_to_check.push(i.key);
       });
@@ -924,7 +1108,6 @@ export class AlertManagerSk extends HTMLElement {
       // Find all incidents included in the range during shift click.
       const incidents_included_in_range: string[] = [];
 
-
       let incidents: Incident[] = [];
       if (this.state.tab === 0) {
         // Use "my" incidents if we are on the "Mine" tab.
@@ -938,8 +1121,10 @@ export class AlertManagerSk extends HTMLElement {
       }
 
       incidents.some((i) => {
-        if (i.key === this.last_checked_incident
-                || incidents_to_check.includes(i.key)) {
+        if (
+          i.key === this.last_checked_incident ||
+          incidents_to_check.includes(i.key)
+        ) {
           if (!foundStart) {
             // This is the 1st time we have entered this block. This means we
             // found the first incident.
@@ -998,7 +1183,9 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/save_silence', silence, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private deleteSilenceParam(silence: Silence): void {
@@ -1009,7 +1196,9 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/save_silence', silence, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private modifySilenceParam(silence: Silence): void {
@@ -1020,20 +1209,28 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/save_silence', silence, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private saveSilence(silence: Silence): void {
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, true));
+    this.doImpl('/_/save_silence', silence, (json: Silence) =>
+      this.silenceAction(json, true)
+    );
   }
 
   private archiveSilence(silence: Silence): void {
-    this.doImpl('/_/archive_silence', silence, (json: Silence) => this.silenceAction(json, true));
+    this.doImpl('/_/archive_silence', silence, (json: Silence) =>
+      this.silenceAction(json, true)
+    );
   }
 
   private reactivateSilence(silence: Silence): void {
-    this.doImpl('/_/reactivate_silence', silence, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/reactivate_silence', silence, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private deleteSilence(silence: Silence): void {
@@ -1049,40 +1246,52 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private addSilenceNote(e: CustomEvent): void {
-    this.doImpl('/_/add_silence_note', e.detail, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/add_silence_note', e.detail, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private delSilenceNote(e: CustomEvent): void {
-    this.doImpl('/_/del_silence_note', e.detail, (json: Silence) => this.silenceAction(json, false));
+    this.doImpl('/_/del_silence_note', e.detail, (json: Silence) =>
+      this.silenceAction(json, false)
+    );
   }
 
   private botChooser(): void {
     this.populateBotsToIncidents(this.incidents);
-    ($$('#bot-chooser', this) as BotChooserSk).open(this.bots_to_incidents, this.current_silence!.param_set.bot!).then((bot) => {
-      if (!bot) {
-        return;
-      }
-      const bot_incidents = this.bots_to_incidents[bot];
-      bot_incidents.forEach((i) => {
-        const bot_centric_params: Params = {};
-        BOT_CENTRIC_PARAMS.forEach((p) => {
-          bot_centric_params[p] = i.params[p];
+    ($$('#bot-chooser', this) as BotChooserSk)
+      .open(this.bots_to_incidents, this.current_silence!.param_set.bot!)
+      .then((bot) => {
+        if (!bot) {
+          return;
+        }
+        const bot_incidents = this.bots_to_incidents[bot];
+        bot_incidents.forEach((i) => {
+          const bot_centric_params: Params = {};
+          BOT_CENTRIC_PARAMS.forEach((p) => {
+            bot_centric_params[p] = i.params[p];
+          });
+          paramset.add(
+            this.current_silence!.param_set,
+            bot_centric_params,
+            this.ignored
+          );
         });
-        paramset.add(this.current_silence!.param_set, bot_centric_params, this.ignored);
+        this.modifySilenceParam(this.current_silence!);
       });
-      this.modifySilenceParam(this.current_silence!);
-    });
   }
 
   private assign(e: CustomEvent): void {
     const owner = this.selected && (this.selected as Incident).params.owner;
-    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, owner!).then((email) => {
-      const detail = {
-        key: e.detail.key,
-        email: email,
-      };
-      this.doImpl('/_/assign', detail);
-    });
+    ($$('#email-chooser', this) as EmailChooserSk)
+      .open(this.emails, owner!)
+      .then((email) => {
+        const detail = {
+          key: e.detail.key,
+          email: email,
+        };
+        this.doImpl('/_/assign', detail);
+      });
   }
 
   private flipBotCentricView(): void {
@@ -1115,17 +1324,19 @@ export class AlertManagerSk extends HTMLElement {
       }
     }
 
-    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, commonOwner).then((email) => {
-      const detail = {
-        keys: Array.from(this.checked),
-        email: email,
-      };
-      this.doImpl('/_/assign_multiple', detail, (json) => {
-        this.incidents = json;
-        this.checked = new Set();
-        this._render();
+    ($$('#email-chooser', this) as EmailChooserSk)
+      .open(this.emails, commonOwner)
+      .then((email) => {
+        const detail = {
+          keys: Array.from(this.checked),
+          email: email,
+        };
+        this.doImpl('/_/assign_multiple', detail, (json) => {
+          this.incidents = json;
+          this.checked = new Set();
+          this._render();
+        });
       });
-    });
   }
 
   private assignToOwner(e: CustomEvent): void {
@@ -1151,7 +1362,9 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private getAuditLogs(): void {
-    this.doImpl('/_/audit_logs', {}, (json: AuditLog[]) => this.auditLogsAction(json));
+    this.doImpl('/_/audit_logs', {}, (json: AuditLog[]) =>
+      this.auditLogsAction(json)
+    );
   }
 
   private incidentStats(): void {
@@ -1159,7 +1372,9 @@ export class AlertManagerSk extends HTMLElement {
       incident: this.selected as Incident,
       range: this.stats_range,
     };
-    this.doImpl('/_/incidents_in_range', detail, (json: Incident[]) => this.incidentStatsAction(json));
+    this.doImpl('/_/incidents_in_range', detail, (json: Incident[]) =>
+      this.incidentStatsAction(json)
+    );
   }
 
   // Actions to take after updating incident stats.
@@ -1209,7 +1424,11 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   // Common work done for all fetch requests.
-  private doImpl(url: string, detail: any, action = (json: any) => this.incidentAction(json)): void {
+  private doImpl(
+    url: string,
+    detail: any,
+    action = (json: any) => this.incidentAction(json)
+  ): void {
     this.spinner!.active = true;
     fetch(url, {
       body: JSON.stringify(detail),
@@ -1218,26 +1437,40 @@ export class AlertManagerSk extends HTMLElement {
       },
       credentials: 'include',
       method: 'POST',
-    }).then(jsonOrThrow).then((json) => {
-      action(json);
-      this._render();
-      this.spinner!.active = false;
-    }).catch((msg) => {
-      this.spinner!.active = false;
-      msg.resp.text().then(errorMessage);
-    });
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        action(json);
+        this._render();
+        this.spinner!.active = false;
+      })
+      .catch((msg) => {
+        this.spinner!.active = false;
+        msg.resp.text().then(errorMessage);
+      });
   }
 
   // Fix-up all the incidents and silences, including re-sorting them.
   private rationalize(): void {
     this.incidents.forEach((incident) => {
-      const silenced = this.silences.reduce((isSilenced, silence) => isSilenced
-              || (silence.active && paramset.match(silence.param_set, incident.params)), false);
+      const silenced = this.silences.reduce(
+        (isSilenced, silence) =>
+          isSilenced ||
+          (silence.active &&
+            paramset.match(silence.param_set, incident.params)),
+        false
+      );
       incident.params.__silence_state = silenced ? 'silenced' : 'active';
     });
 
     // Sort the incidents, using the following 'sortby' list as tiebreakers.
-    const sortby = ['__silence_state', 'assigned_to', 'alertname', 'abbr', 'id'];
+    const sortby = [
+      '__silence_state',
+      'assigned_to',
+      'alertname',
+      'abbr',
+      'id',
+    ];
     this.incidents.sort((a, b) => {
       // Sort active before inactive.
       if (a.active !== b.active) {
@@ -1271,14 +1504,12 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private needsTriaging(incident: Incident, isInfraGardener: boolean): boolean {
-    if (incident.active
-      && (incident.params.__silence_state !== 'silenced')
-      && (
-        (isInfraGardener && !incident.params.assigned_to)
-        || (incident.params.assigned_to === this.user)
-        || (incident.params.owner === this.user
-            && !incident.params.assigned_to)
-      )
+    if (
+      incident.active &&
+      incident.params.__silence_state !== 'silenced' &&
+      ((isInfraGardener && !incident.params.assigned_to) ||
+        incident.params.assigned_to === this.user ||
+        (incident.params.owner === this.user && !incident.params.assigned_to))
     ) {
       return true;
     }
@@ -1324,15 +1555,25 @@ export class AlertManagerSk extends HTMLElement {
     render(AlertManagerSk.template(this), this, { eventContext: this });
     // Update the icon.
     const isInfraGardener = this.user === this.infra_gardener;
-    const numActive = this.incidents.reduce((n, incident) => n += this.needsTriaging(incident, isInfraGardener) ? 1 : 0, 0);
+    const numActive = this.incidents.reduce(
+      (n, incident) =>
+        (n += this.needsTriaging(incident, isInfraGardener) ? 1 : 0),
+      0
+    );
 
     // Show desktop notifications only if permission was granted and only if
     // silences have been successfully fetched. If silences have not been
     // fetched yet then we might end up notifying on silenced incidents.
     if (Notification.permission === 'granted' && this.silences.length !== 0) {
-      const unNotifiedIncidents = this.incidents.filter((i) => !this.incidents_notified[i.key] && this.needsTriaging(i, isInfraGardener));
+      const unNotifiedIncidents = this.incidents.filter(
+        (i) =>
+          !this.incidents_notified[i.key] &&
+          this.needsTriaging(i, isInfraGardener)
+      );
       this.sendDesktopNotification(unNotifiedIncidents);
-      unNotifiedIncidents.forEach((i) => this.incidents_notified[i.key] = true);
+      unNotifiedIncidents.forEach(
+        (i) => (this.incidents_notified[i.key] = true)
+      );
     }
 
     document.title = `${numActive} - AlertManager`;

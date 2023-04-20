@@ -3,11 +3,18 @@ import './index';
 import { assert } from 'chai';
 import { $$ } from '../../../infra-sk/modules/dom';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { DataFrame, pivot, TraceSet } from '../json';
 import {
   KeyValues,
-  keyValuesFromTraceSet, PivotTableSk, PivotTableSkChangeEventDetail, SortHistory, SortSelection,
+  keyValuesFromTraceSet,
+  PivotTableSk,
+  PivotTableSkChangeEventDetail,
+  SortHistory,
+  SortSelection,
 } from './pivot-table-sk';
 
 const df: DataFrame = {
@@ -43,9 +50,13 @@ describe('pivot-table-sk', () => {
   describe('click sort icon on first column', () => {
     it('sorts column descending', async () => {
       let firstSortSelection = element['sortHistory']!.history[0];
-      assert.deepEqual(firstSortSelection, new SortSelection(0, 'summaryValues', 'up'));
+      assert.deepEqual(
+        firstSortSelection,
+        new SortSelection(0, 'summaryValues', 'up')
+      );
 
-      const event = eventPromise<CustomEvent<PivotTableSkChangeEventDetail>>('change');
+      const event =
+        eventPromise<CustomEvent<PivotTableSkChangeEventDetail>>('change');
 
       // Click on the sort up icon that appears over the 'config' column.
       $$<HTMLElement>('sort-icon-sk', element)!.click();
@@ -57,7 +68,10 @@ describe('pivot-table-sk', () => {
 
       // Confirm sort state has changed.
       firstSortSelection = element['sortHistory']!.history[0];
-      assert.deepEqual(firstSortSelection, new SortSelection(0, 'keyValues', 'down'));
+      assert.deepEqual(
+        firstSortSelection,
+        new SortSelection(0, 'keyValues', 'down')
+      );
       assert.isTrue(encodedHistory.startsWith(firstSortSelection.encode()));
     });
   });
@@ -76,10 +90,20 @@ describe('SortSelection', () => {
     const s = new SortSelection(1, 'summaryValues', 'up');
     const compare = s.buildCompare(df.traceset, keyValues);
 
-    assert.equal(compare(',arch=x86,config=8888,', ',arch=x86,config=8888,'), 0, 'matching keys returns 0');
-    assert.isTrue(compare(',arch=x86,config=8888,', ',arch=arm,config=8888,') < 0, '1.3e27 < 2.3e27 sorting up');
+    assert.equal(
+      compare(',arch=x86,config=8888,', ',arch=x86,config=8888,'),
+      0,
+      'matching keys returns 0'
+    );
+    assert.isTrue(
+      compare(',arch=x86,config=8888,', ',arch=arm,config=8888,') < 0,
+      '1.3e27 < 2.3e27 sorting up'
+    );
     s.toggleDirection();
-    assert.isTrue(compare(',arch=x86,config=8888,', ',arch=arm,config=8888,') > 0, '1.3e27 < 2.3e27 sorting down');
+    assert.isTrue(
+      compare(',arch=x86,config=8888,', ',arch=arm,config=8888,') > 0,
+      '1.3e27 < 2.3e27 sorting down'
+    );
   });
 
   it('builds a compareFunction that operates correctly in sort for summary values', () => {
@@ -89,13 +113,10 @@ describe('SortSelection', () => {
     const compare = s.buildCompare(df.traceset, keyValues);
 
     assert.deepEqual(
-      Object.keys(df.traceset).sort(compare).map((traceKey) => df.traceset[traceKey][1]),
-      [
-        1.2345,
-        Math.PI,
-        1.3e27,
-        2.3e27,
-      ],
+      Object.keys(df.traceset)
+        .sort(compare)
+        .map((traceKey) => df.traceset[traceKey][1]),
+      [1.2345, Math.PI, 1.3e27, 2.3e27]
     );
   });
 
@@ -105,10 +126,22 @@ describe('SortSelection', () => {
     const s = new SortSelection(0, 'keyValues', 'up');
     const compare = s.buildCompare(df.traceset, keyValues);
 
-    assert.equal(compare(',arch=x86,config=gpu,', ',arch=x86,config=gpu,'), 0, 'matching keys returns 0');
-    assert.equal(compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'), -1, '8888 < gpu sorting up');
+    assert.equal(
+      compare(',arch=x86,config=gpu,', ',arch=x86,config=gpu,'),
+      0,
+      'matching keys returns 0'
+    );
+    assert.equal(
+      compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'),
+      -1,
+      '8888 < gpu sorting up'
+    );
     s.toggleDirection();
-    assert.equal(compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'), 1, '8888 < gpu sorting down');
+    assert.equal(
+      compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'),
+      1,
+      '8888 < gpu sorting down'
+    );
   });
 
   it('round trips through encode and decode', () => {

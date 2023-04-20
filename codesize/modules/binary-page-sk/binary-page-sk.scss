@@ -5,7 +5,7 @@ binary-page-sk {
 
   .author-and-timestamp,
   .compile-task {
-    font-size: .8em;
+    font-size: 0.8em;
   }
 
   .instructions {
@@ -15,7 +15,7 @@ binary-page-sk {
   .search-bar {
     display: flex;
     flex-direction: column;
-    margin:1em;
+    margin: 1em;
     max-width: 90%;
     background: var(--background);
     min-height: 20px;
@@ -23,7 +23,7 @@ binary-page-sk {
   }
 
   // /* The search box inside the navigation bar */
-  .search-bar input[type=text] {
+  .search-bar input[type='text'] {
     font-size: 1rem;
   }
 
@@ -58,7 +58,7 @@ binary-page-sk {
 }
 .cell-tooltip {
   border-radius: 8px;
-  padding:10px;
+  padding: 10px;
   border-style: solid;
   font-size: 1rem;
   font-family: serif;

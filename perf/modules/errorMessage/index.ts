@@ -5,6 +5,9 @@ import { errorMessage as elementsErrorMessage } from '../../../elements-sk/modul
  * delay, which means the toast doesn't close automatically.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export const errorMessage = (message: string | {message: string} | {resp: Response} | object, duration: number = 0): void => {
+export const errorMessage = (
+  message: string | { message: string } | { resp: Response } | object,
+  duration: number = 0
+): void => {
   elementsErrorMessage(message, duration);
 };

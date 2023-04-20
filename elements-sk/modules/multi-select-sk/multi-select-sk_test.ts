@@ -26,13 +26,16 @@ describe('multi-select-sk', () => {
     selectedItemIds: string[];
   }
 
-  const newInstanceWithOpts = async (opts: Partial<InstantiationOptions>): Promise<MultiSelectSk> => {
+  const newInstanceWithOpts = async (
+    opts: Partial<InstantiationOptions>
+  ): Promise<MultiSelectSk> => {
     const instance = newInstance((instance: MultiSelectSk) => {
       if (opts.disabled) instance.setAttribute('disabled', '');
       (opts.itemIds || []).forEach((id) => {
         const item = document.createElement('div');
         item.id = id;
-        if (opts.selectedItemIds?.includes(id)) item.setAttribute('selected', '');
+        if (opts.selectedItemIds?.includes(id))
+          item.setAttribute('selected', '');
         instance.appendChild(item);
       });
     });
@@ -63,7 +66,9 @@ describe('multi-select-sk', () => {
       });
       multiSelectSk.selection = [];
       assert.deepEqual([], multiSelectSk.selection);
-      assert.isFalse(multiSelectSk.querySelector('#b')!.hasAttribute('selected'));
+      assert.isFalse(
+        multiSelectSk.querySelector('#b')!.hasAttribute('selected')
+      );
     });
 
     it('changes the selected attributes on the children', async () => {
@@ -111,7 +116,9 @@ describe('multi-select-sk', () => {
     });
 
     it('is always sorted when read', async () => {
-      const multiSelectSk = await newInstanceWithOpts({ itemIds: ['', '', '', '', '', ''] });
+      const multiSelectSk = await newInstanceWithOpts({
+        itemIds: ['', '', '', '', '', ''],
+      });
       multiSelectSk.selection = [5, 4, 0, 2];
       assert.deepEqual([0, 2, 4, 5], multiSelectSk.selection);
     });
@@ -119,7 +126,9 @@ describe('multi-select-sk', () => {
 
   describe('click', () => {
     it('changes selection in an additive fashion', async () => {
-      const multiSelectSk = await newInstanceWithOpts({ itemIds: ['a', 'b', 'c'] });
+      const multiSelectSk = await newInstanceWithOpts({
+        itemIds: ['a', 'b', 'c'],
+      });
       const a = multiSelectSk.querySelector<HTMLDivElement>('#a')!;
       const b = multiSelectSk.querySelector<HTMLDivElement>('#b')!;
       const c = multiSelectSk.querySelector<HTMLDivElement>('#c')!;
@@ -170,7 +179,9 @@ describe('multi-select-sk', () => {
 
   describe('addition of children', () => {
     it('updates selection when a selected child is added', async () => {
-      const multiSelectSk = await newInstanceWithOpts({ itemIds: ['', '', ''] });
+      const multiSelectSk = await newInstanceWithOpts({
+        itemIds: ['', '', ''],
+      });
       assert.deepEqual([], multiSelectSk.selection);
       let div = document.createElement('div');
       div.setAttribute('selected', '');

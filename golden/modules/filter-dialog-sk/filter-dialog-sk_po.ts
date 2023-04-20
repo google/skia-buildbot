@@ -19,17 +19,29 @@ export class NumericParamPO extends PageObject {
     return this.bySelector('input[type=number]');
   }
 
-  async focusRangeInput() { await this.rangeInput.focus(); }
+  async focusRangeInput() {
+    await this.rangeInput.focus();
+  }
 
-  async focusNumberInput() { await this.numberInput.focus(); }
+  async focusNumberInput() {
+    await this.numberInput.focus();
+  }
 
-  async getRangeInputValue() { return parseInt(await this.rangeInput.value); }
+  async getRangeInputValue() {
+    return parseInt(await this.rangeInput.value);
+  }
 
-  async setRangeInputValue(value: number) { await this.rangeInput.enterValue(value.toString()); }
+  async setRangeInputValue(value: number) {
+    await this.rangeInput.enterValue(value.toString());
+  }
 
-  async geNumberInputValue() { return parseInt(await this.numberInput.value); }
+  async geNumberInputValue() {
+    return parseInt(await this.numberInput.value);
+  }
 
-  async setNumberInputValue(value: number) { await this.numberInput.enterValue(value.toString()); }
+  async setNumberInputValue(value: number) {
+    await this.numberInput.enterValue(value.toString());
+  }
 }
 
 /** A page object for the FilterDialogSk component. */
@@ -67,33 +79,52 @@ export class FilterDialogSkPO extends PageObject {
   }
 
   async isDialogOpen() {
-    return this.filterDialog.applyFnToDOMNode((dialog) => (dialog as HTMLDialogElement).open);
+    return this.filterDialog.applyFnToDOMNode(
+      (dialog) => (dialog as HTMLDialogElement).open
+    );
   }
 
-  async getMinRGBADelta() { return this.minRGBADeltaPO.getRangeInputValue(); }
+  async getMinRGBADelta() {
+    return this.minRGBADeltaPO.getRangeInputValue();
+  }
 
-  async setMinRGBADelta(value: number) { await this.minRGBADeltaPO.setRangeInputValue(value); }
+  async setMinRGBADelta(value: number) {
+    await this.minRGBADeltaPO.setRangeInputValue(value);
+  }
 
-  async getMaxRGBADelta() { return this.maxRGBADeltaPO.getRangeInputValue(); }
+  async getMaxRGBADelta() {
+    return this.maxRGBADeltaPO.getRangeInputValue();
+  }
 
-  async setMaxRGBADelta(value: number) { await this.maxRGBADeltaPO.setRangeInputValue(value); }
+  async setMaxRGBADelta(value: number) {
+    await this.maxRGBADeltaPO.setRangeInputValue(value);
+  }
 
-  async getSortOrder() { return await this.sortOrderDropDown.value as 'ascending' | 'descending'; }
+  async getSortOrder() {
+    return (await this.sortOrderDropDown.value) as 'ascending' | 'descending';
+  }
 
   async setSortOrder(value: 'ascending' | 'descending') {
     await this.sortOrderDropDown.enterValue(value);
   }
 
   async isReferenceImageCheckboxChecked() {
-    return this.mustHaveReferenceImageCheckBox
-      .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.mustHaveReferenceImageCheckBox.applyFnToDOMNode(
+      (c) => (c as CheckOrRadio).checked
+    );
   }
 
-  async clickReferenceImageCheckbox() { await this.mustHaveReferenceImageCheckBox.click(); }
+  async clickReferenceImageCheckbox() {
+    await this.mustHaveReferenceImageCheckBox.click();
+  }
 
-  async clickFilterBtn() { await this.filterDialogFilterBtn.click(); }
+  async clickFilterBtn() {
+    await this.filterDialogFilterBtn.click();
+  }
 
-  async clickCancelBtn() { await this.filterDialogCancelBtn.click(); }
+  async clickCancelBtn() {
+    await this.filterDialogCancelBtn.click();
+  }
 
   /** Gets the selected filters. */
   async getSelectedFilters() {
@@ -117,7 +148,10 @@ export class FilterDialogSkPO extends PageObject {
     await this.setMaxRGBADelta(filters.maxRGBADelta);
     await this.setSortOrder(filters.sortOrder);
 
-    if (filters.mustHaveReferenceImage !== (await this.isReferenceImageCheckboxChecked())) {
+    if (
+      filters.mustHaveReferenceImage !==
+      (await this.isReferenceImageCheckboxChecked())
+    ) {
       await this.clickReferenceImageCheckbox();
     }
   }

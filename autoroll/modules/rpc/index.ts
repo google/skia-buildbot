@@ -1,12 +1,12 @@
-import {
-  AutoRollService,
-  AutoRollServiceClient,
-} from './rpc';
+import { AutoRollService, AutoRollServiceClient } from './rpc';
 
 export * from './rpc';
 
 const host = `${window.location.protocol}//${window.location.host}`;
-let rpcClient: AutoRollService = new AutoRollServiceClient(host, window.fetch.bind(window));
+let rpcClient: AutoRollService = new AutoRollServiceClient(
+  host,
+  window.fetch.bind(window)
+);
 
 /**
  * GetAutoRollService returns an AutoRollService implementation which dispatches
@@ -20,19 +20,24 @@ export function GetAutoRollService(ele: HTMLElement): AutoRollService {
       const origMethod = target[propKey];
       return function (...args: any[]) {
         ele.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-        return origMethod.apply(rpcClient, args).then((v: any) => {
-          ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-          return v;
-        }).catch((err: any) => {
-          ele.dispatchEvent(new CustomEvent('fetch-error', {
-            detail: {
-              error: err,
-              loading: propKey,
-            },
-            bubbles: true,
-          }));
-          Promise.reject(err);
-        });
+        return origMethod
+          .apply(rpcClient, args)
+          .then((v: any) => {
+            ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+            return v;
+          })
+          .catch((err: any) => {
+            ele.dispatchEvent(
+              new CustomEvent('fetch-error', {
+                detail: {
+                  error: err,
+                  loading: propKey,
+                },
+                bubbles: true,
+              })
+            );
+            Promise.reject(err);
+          });
       };
     },
   };

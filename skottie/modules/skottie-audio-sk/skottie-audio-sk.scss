@@ -1,45 +1,43 @@
 skottie-audio-sk {
+  .bpm-options {
+    padding: 0;
+    margin: 0 0 8px 0;
 
-    .bpm-options {
+    &-item {
+      list-style-type: none;
+      display: inline-block;
 
-        padding: 0;
-        margin: 0 0 8px 0;
+      &-button {
+        cursor: pointer;
+        min-width: unset;
+        border-radius: 2px;
+        border-color: var(--primary);
+        color: var(--primary);
+        padding: 2px;
+        margin: 0;
+        height: auto;
 
-        &-item {
-            list-style-type: none;
-            display: inline-block;
-
-            &-button {
-                cursor: pointer;
-                min-width: unset;
-                border-radius: 2px;
-                border-color: var(--primary);
-                color: var(--primary);
-                padding: 2px;
-                margin: 0;
-                height: auto;
-
-                &:focus {
-                    outline: none;
-                }
-            }
+        &:focus {
+          outline: none;
         }
+      }
+    }
+  }
+
+  .section {
+    padding: 10px 0;
+
+    .inputs {
+      padding: 2px 8px;
     }
 
-    .section {
-        padding: 10px 0;
-
-        .inputs {
-            padding: 2px 8px;
-        }
-
-        .input-label {
-            display: block;
-            padding: 4px 0;
-        }
-
-        .start {
-            cursor: pointer;
-        }
+    .input-label {
+      display: block;
+      padding: 4px 0;
     }
+
+    .start {
+      cursor: pointer;
+    }
+  }
 }

@@ -34,12 +34,17 @@ open.total = 3;
 
 const fakeRpcDelayMillis = 300;
 
-fetchMock.get('/json/v2/changelists?offset=0&size=10', delay(ten, fakeRpcDelayMillis));
 fetchMock.get(
-  '/json/v2/changelists?offset=0&size=10&active=true', delay(open, fakeRpcDelayMillis),
+  '/json/v2/changelists?offset=0&size=10',
+  delay(ten, fakeRpcDelayMillis)
 );
 fetchMock.get(
-  '/json/v2/changelists?offset=10&size=10', delay(changelistSummaries_5, fakeRpcDelayMillis),
+  '/json/v2/changelists?offset=0&size=10&active=true',
+  delay(open, fakeRpcDelayMillis)
+);
+fetchMock.get(
+  '/json/v2/changelists?offset=10&size=10',
+  delay(changelistSummaries_5, fakeRpcDelayMillis)
 );
 fetchMock.get('glob:/json/v2/changelists*', delay(empty(), fakeRpcDelayMillis));
 fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));

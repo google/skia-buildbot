@@ -7,8 +7,8 @@
  * that is, a blame group of untriaged digests.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
@@ -28,22 +28,22 @@ const commitHref = (hash: string) => {
 
 export class ByBlameEntrySk extends ElementSk {
   private static template = (el: ByBlameEntrySk) => html`
-    <div class=blame>
+    <div class="blame">
       <p>
-        <a href=${el.blameHref()} class=triage target=_blank rel=noopener>
+        <a href=${el.blameHref()} class="triage" target="_blank" rel="noopener">
           ${el.byBlameEntry!.nDigests === 1
-    ? '1 untriaged digest'
-    : `${el.byBlameEntry!.nDigests} untriaged digests`}
+            ? '1 untriaged digest'
+            : `${el.byBlameEntry!.nDigests} untriaged digests`}
         </a>
       </p>
 
       ${ByBlameEntrySk.blameListTemplate(el.byBlameEntry?.commits)}
 
       <h3>Tests affected</h3>
-      <p class=num-tests-affected>
+      <p class="num-tests-affected">
         ${el.byBlameEntry!.nTests === 1
-      ? '1 test affected.'
-      : `${el.byBlameEntry!.nTests} tests affected.`}
+          ? '1 test affected.'
+          : `${el.byBlameEntry!.nTests} tests affected.`}
       </p>
 
       ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests)}
@@ -52,40 +52,39 @@ export class ByBlameEntrySk extends ElementSk {
 
   private static blameListTemplate = (commits?: Commit[] | null) => {
     if (!commits || commits.length === 0) {
-      return html`<p class=no-blamelist>No blamelist.</p>`;
+      return html`<p class="no-blamelist">No blamelist.</p>`;
     }
     const andNMore = commits.length - MAX_COMMITS;
 
     commits = commits.slice(0, MAX_COMMITS);
 
-    return html`
-      <h3>Blame</h3>
+    return html` <h3>Blame</h3>
 
-      <ul class=blames>
-        ${commits.map((commit: Commit) => html`
-          <li>
-            <a href=${commitHref(commit.hash)} target=_blank rel=noopener>
+      <ul class="blames">
+        ${commits.map(
+          (commit: Commit) => html` <li>
+            <a href=${commitHref(commit.hash)} target="_blank" rel="noopener">
               ${commit.hash.slice(0, 7)}
             </a>
-            <span class=commit-message>
-              ${commit.message}
-            </span>
-            <br/>
+            <span class="commit-message"> ${commit.message} </span>
+            <br />
             <small>
-              <span class=author>${commit.author}</span>,
-              <span class=age>
-                ${diffDate(commit.commit_time * 1000)}
-              </span> ago.
+              <span class="author">${commit.author}</span>,
+              <span class="age"> ${diffDate(commit.commit_time * 1000)} </span>
+              ago.
             </small>
-          </li>`)}
-          ${andNMore > 0 ? html`<li>And ${andNMore} other commit(s)</li>` : ''}
+          </li>`
+        )}
+        ${andNMore > 0 ? html`<li>And ${andNMore} other commit(s)</li>` : ''}
       </ul>`;
   };
 
-  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null) => {
+  private static affectedTestsTemplate = (
+    affectedTests: TestRollup[] | undefined | null
+  ) => {
     if (!affectedTests || affectedTests.length === 0) return '';
     return html`
-      <table class=affected-tests>
+      <table class="affected-tests">
         <thead>
           <tr>
             <th>Test</th>
@@ -96,25 +95,26 @@ export class ByBlameEntrySk extends ElementSk {
         </thead>
         <tbody>
           ${affectedTests.map(
-      (test: TestRollup) => html`
-                  <tr>
-                    <td class=test>${test.grouping.name}</td>
-                    <td class=corpus>${test.grouping.source_type}</td>
-                    <td class=num-digests>${test.num}</td>
-                    <td>
-                      <a href=${detailHref(test.grouping, test.sample_digest)}
-                         class=example-link
-                         target=_blank
-                         rel=noopener>
-                        ${test.sample_digest}
-                      </a>
-                    </td>
-                  </tr>`,
-    )}
+            (test: TestRollup) => html` <tr>
+              <td class="test">${test.grouping.name}</td>
+              <td class="corpus">${test.grouping.source_type}</td>
+              <td class="num-digests">${test.num}</td>
+              <td>
+                <a
+                  href=${detailHref(test.grouping, test.sample_digest)}
+                  class="example-link"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  ${test.sample_digest}
+                </a>
+              </td>
+            </tr>`
+          )}
         </tbody>
       </table>
     `;
-  }
+  };
 
   private _byBlameEntry: ByBlameEntry | null = null;
 
@@ -130,7 +130,9 @@ export class ByBlameEntrySk extends ElementSk {
   }
 
   /** A ByBlameEntry object returned by the /json/v1/byblame RPC endpoint. */
-  get byBlameEntry(): ByBlameEntry | null { return this._byBlameEntry; }
+  get byBlameEntry(): ByBlameEntry | null {
+    return this._byBlameEntry;
+  }
 
   set byBlameEntry(v: ByBlameEntry | null) {
     this._byBlameEntry = v;
@@ -138,7 +140,9 @@ export class ByBlameEntrySk extends ElementSk {
   }
 
   /** The corpus corresponding to this blame group. */
-  get corpus(): string { return this._corpus; }
+  get corpus(): string {
+    return this._corpus;
+  }
 
   set corpus(v: string) {
     this._corpus = v;

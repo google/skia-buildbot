@@ -3,14 +3,29 @@ import { expect } from 'chai';
 import { ParamSet } from '../../../infra-sk/modules/query';
 import * as query from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
-import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import {
-  SearchControlsSk, SearchCriteria, SearchCriteriaHintableObject, SearchCriteriaFromHintableObject, SearchCriteriaToHintableObject,
+  setUpElementUnderTest,
+  eventPromise,
+} from '../../../infra-sk/modules/test_util';
+import {
+  SearchControlsSk,
+  SearchCriteria,
+  SearchCriteriaHintableObject,
+  SearchCriteriaFromHintableObject,
+  SearchCriteriaToHintableObject,
 } from './search-controls-sk';
 import { SearchControlsSkPO } from './search-controls-sk_po';
 import { testOnlySetSettings } from '../settings';
 
-const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+const corpora = [
+  'canvaskit',
+  'colorImage',
+  'gm',
+  'image',
+  'pathkit',
+  'skp',
+  'svg',
+];
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
@@ -40,7 +55,8 @@ const makeSearchCriteria = (partial: Partial<SearchCriteria> = {}) => {
 };
 
 describe('search-controls-sk', () => {
-  const newInstance = setUpElementUnderTest<SearchControlsSk>('search-controls-sk');
+  const newInstance =
+    setUpElementUnderTest<SearchControlsSk>('search-controls-sk');
 
   let searchControlsSk: SearchControlsSk;
   let searchControlsSkPO: SearchControlsSkPO;
@@ -55,15 +71,21 @@ describe('search-controls-sk', () => {
   });
 
   it('shows the initial value', async () => {
-    expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(makeSearchCriteria());
+    expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(
+      makeSearchCriteria()
+    );
   });
 
-  const fieldCanChangeProgrammaticallyAndViaTheUI = (partialSearchCriteria: Partial<SearchCriteria>) => {
+  const fieldCanChangeProgrammaticallyAndViaTheUI = (
+    partialSearchCriteria: Partial<SearchCriteria>
+  ) => {
     const searchCriteria = makeSearchCriteria(partialSearchCriteria);
 
     it('can change programmatically', async () => {
       searchControlsSk.searchCriteria = searchCriteria;
-      expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(searchCriteria);
+      expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(
+        searchCriteria
+      );
     });
 
     it('can change via the UI', async () => {
@@ -72,7 +94,9 @@ describe('search-controls-sk', () => {
     });
 
     it('emits event "search-controls-sk-change" when it changes via the UI', async () => {
-      const event = eventPromise<CustomEvent<SearchCriteria>>('search-controls-sk-change');
+      const event = eventPromise<CustomEvent<SearchCriteria>>(
+        'search-controls-sk-change'
+      );
       await searchControlsSkPO.setSearchCriteria(searchCriteria);
       expect((await event).detail).to.deep.equal(searchCriteria);
     });
@@ -91,11 +115,15 @@ describe('search-controls-sk', () => {
   });
 
   describe('include untriaged digests', () => {
-    fieldCanChangeProgrammaticallyAndViaTheUI({ includeUntriagedDigests: true });
+    fieldCanChangeProgrammaticallyAndViaTheUI({
+      includeUntriagedDigests: true,
+    });
   });
 
   describe('include digests not at head', () => {
-    fieldCanChangeProgrammaticallyAndViaTheUI({ includeDigestsNotAtHead: true });
+    fieldCanChangeProgrammaticallyAndViaTheUI({
+      includeDigestsNotAtHead: true,
+    });
   });
 
   describe('include ignored digests', () => {
@@ -103,11 +131,15 @@ describe('search-controls-sk', () => {
   });
 
   describe('left-hand trace filter', () => {
-    fieldCanChangeProgrammaticallyAndViaTheUI({ leftHandTraceFilter: { 'car make': ['ford'] } });
+    fieldCanChangeProgrammaticallyAndViaTheUI({
+      leftHandTraceFilter: { 'car make': ['ford'] },
+    });
   });
 
   describe('right-hand trace filter', () => {
-    fieldCanChangeProgrammaticallyAndViaTheUI({ rightHandTraceFilter: { 'car make': ['ford'] } });
+    fieldCanChangeProgrammaticallyAndViaTheUI({
+      rightHandTraceFilter: { 'car make': ['ford'] },
+    });
   });
 
   describe('min RGBA delta', () => {
@@ -140,26 +172,33 @@ describe('SearchCriteriaHintableObject helpers', () => {
 
   describe('SearchCriteriaToHintableObject', () => {
     it('returns a HintableObject with default values given an empty SearchCriteria', () => {
-      expect(SearchCriteriaToHintableObject({})).to.deep.equal(hintableObjectWithDefaultValues);
+      expect(SearchCriteriaToHintableObject({})).to.deep.equal(
+        hintableObjectWithDefaultValues
+      );
     });
 
-    it('returns a HintableObject with the expected values given a fully populated SearchCriteria',
-      () => {
-        expect(SearchCriteriaToHintableObject(fullyPopulatedSearchCriteria))
-          .to.deep.equal(fullyPopulatedHintableObject);
-      });
+    it('returns a HintableObject with the expected values given a fully populated SearchCriteria', () => {
+      expect(
+        SearchCriteriaToHintableObject(fullyPopulatedSearchCriteria)
+      ).to.deep.equal(fullyPopulatedHintableObject);
+    });
 
     describe('SearchCriteria to query string end-to-end tests', () => {
       it('converts an empty SearchCriteria to the expected query string', () => {
-        expect(searchCriteriaToQueryString({})).to.equal(queryStringWithDefaultValues);
+        expect(searchCriteriaToQueryString({})).to.equal(
+          queryStringWithDefaultValues
+        );
       });
 
       it('converts a fully populated SearchCriteria to the expected query string', () => {
-        expect(searchCriteriaToQueryString(fullyPopulatedSearchCriteria))
-          .to.equal(fullyPopulatedQueryString);
+        expect(
+          searchCriteriaToQueryString(fullyPopulatedSearchCriteria)
+        ).to.equal(fullyPopulatedQueryString);
       });
 
-      const searchCriteriaToQueryString = (searchCriteria: Partial<SearchCriteria>) => {
+      const searchCriteriaToQueryString = (
+        searchCriteria: Partial<SearchCriteria>
+      ) => {
         const hintableObject = SearchCriteriaToHintableObject(searchCriteria);
         return query.fromObject(hintableObject as HintableObject);
       };
@@ -168,32 +207,41 @@ describe('SearchCriteriaHintableObject helpers', () => {
 
   describe('SearchCriteriaFromHintableObject', () => {
     it('returns a SearchCriteria with default values given an empty HintableObject', () => {
-      expect(SearchCriteriaFromHintableObject({})).to.deep.equal(searchCriteriaWithDefaultValues);
+      expect(SearchCriteriaFromHintableObject({})).to.deep.equal(
+        searchCriteriaWithDefaultValues
+      );
     });
 
-    it('returns a SearchCriteria with the expected values given a fully populated HintableObject',
-      () => {
-        expect(SearchCriteriaFromHintableObject(fullyPopulatedHintableObject))
-          .to.deep.equal(fullyPopulatedSearchCriteria);
-      });
+    it('returns a SearchCriteria with the expected values given a fully populated HintableObject', () => {
+      expect(
+        SearchCriteriaFromHintableObject(fullyPopulatedHintableObject)
+      ).to.deep.equal(fullyPopulatedSearchCriteria);
+    });
 
     describe('query string to SearchCriteria end-to-end tests', () => {
       it('converts an empty query string to the expected SearchCriteria', () => {
-        expect(queryStringToSearchCriteria('')).to.deep.equal(searchCriteriaWithDefaultValues);
+        expect(queryStringToSearchCriteria('')).to.deep.equal(
+          searchCriteriaWithDefaultValues
+        );
       });
 
       it('converts a query string with empty values to the expected SearchCriteria', () => {
-        expect(queryStringToSearchCriteria(queryStringWithDefaultValues))
-          .to.deep.equal(searchCriteriaWithDefaultValues);
+        expect(
+          queryStringToSearchCriteria(queryStringWithDefaultValues)
+        ).to.deep.equal(searchCriteriaWithDefaultValues);
       });
 
       it('converts a fully populated query string to the expected SearchCriteria', () => {
-        expect(queryStringToSearchCriteria(fullyPopulatedQueryString))
-          .to.deep.equal(fullyPopulatedSearchCriteria);
+        expect(
+          queryStringToSearchCriteria(fullyPopulatedQueryString)
+        ).to.deep.equal(fullyPopulatedSearchCriteria);
       });
 
       const queryStringToSearchCriteria = (queryString: string) => {
-        const hintableObject = query.toObject(queryString, SearchCriteriaToHintableObject({}) as HintableObject);
+        const hintableObject = query.toObject(
+          queryString,
+          SearchCriteriaToHintableObject({}) as HintableObject
+        );
         return SearchCriteriaFromHintableObject(hintableObject);
       };
     });
@@ -231,9 +279,10 @@ describe('SearchCriteriaHintableObject helpers', () => {
     sort: 'descending',
   };
 
-  const queryStringWithDefaultValues = 'corpus=&include_ignored=false&left_filter=&max_rgba=0&min_rgba=0&negative=false'
-    + '&not_at_head=false&positive=false&reference_image_required=false&right_filter='
-    + '&sort=descending&untriaged=false';
+  const queryStringWithDefaultValues =
+    'corpus=&include_ignored=false&left_filter=&max_rgba=0&min_rgba=0&negative=false' +
+    '&not_at_head=false&positive=false&reference_image_required=false&right_filter=' +
+    '&sort=descending&untriaged=false';
 
   // Fully populated values.
 
@@ -267,8 +316,9 @@ describe('SearchCriteriaHintableObject helpers', () => {
     sort: 'ascending',
   };
 
-  const fullyPopulatedQueryString = 'corpus=some_corpus&include_ignored=true'
-    + '&left_filter=config%3D1234%26config%3D5678%26os%3Dapple%26os%3Dbanana&max_rgba=89&min_rgba=7'
-    + '&negative=false&not_at_head=false&positive=true&reference_image_required=true'
-    + '&right_filter=gpu%3Dgrape&sort=ascending&untriaged=true';
+  const fullyPopulatedQueryString =
+    'corpus=some_corpus&include_ignored=true' +
+    '&left_filter=config%3D1234%26config%3D5678%26os%3Dapple%26os%3Dbanana&max_rgba=89&min_rgba=7' +
+    '&negative=false&not_at_head=false&positive=true&reference_image_required=true' +
+    '&right_filter=gpu%3Dgrape&sort=ascending&untriaged=true';
 });

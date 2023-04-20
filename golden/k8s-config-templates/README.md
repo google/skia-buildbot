@@ -1,5 +1,4 @@
-Kubernetes Configuration Templates
-==================================
+# Kubernetes Configuration Templates
 
 This directory contains templates to generate the boilerplate for creating Gold instances.
 

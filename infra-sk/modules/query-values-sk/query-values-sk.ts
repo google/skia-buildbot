@@ -13,8 +13,8 @@
  * @attr {boolean} hide_regex - If the option to include regex in the query should be made
  *       available to the user.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import {
   MultiSelectSk,
@@ -58,11 +58,12 @@ export class QueryValuesSk extends ElementSk {
     </multi-select-sk>
   `;
 
-  private static valuesTemplate = (ele: QueryValuesSk) => ele._options.map(
-    (v) => html`
+  private static valuesTemplate = (ele: QueryValuesSk) =>
+    ele._options.map(
+      (v) => html`
         <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
-      `,
-  );
+      `
+    );
 
   private _options: string[] = [];
 
@@ -114,7 +115,7 @@ export class QueryValuesSk extends ElementSk {
   }
 
   private _selectionChange(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>,
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
   ) {
     this._selected = e.detail.selection.map((i) => this._options[i]);
     this._render();
@@ -124,7 +125,7 @@ export class QueryValuesSk extends ElementSk {
   private _fireEvent() {
     const prefix = this._invert!.checked ? '!' : '';
     let selected = this._values!.selection.map(
-      (i) => prefix + this._options[i],
+      (i) => prefix + this._options[i]
     );
     if (this._regex!.checked) {
       selected = [`~${this._regexValue!.value}`];
@@ -139,8 +140,8 @@ export class QueryValuesSk extends ElementSk {
             values: selected,
           },
           bubbles: true,
-        },
-      ),
+        }
+      )
     );
   }
 

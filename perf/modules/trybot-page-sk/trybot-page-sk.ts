@@ -5,8 +5,8 @@
  * This page allows the user to select either a CL or an existing commit in the
  * repo to analyze looking for regressions.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -44,7 +44,10 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/icons/timeline-icon-sk';
-import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
+import {
+  PlotSimpleSk,
+  PlotSimpleSkTraceEventDetails,
+} from '../plot-simple-sk/plot-simple-sk';
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { messagesToErrorString, startRequest } from '../progress/progress';
@@ -64,9 +67,9 @@ export class TrybotPageSk extends ElementSk {
 
   private results: TryBotResponse | null = null;
 
-  private individualPlot: PlotSimpleSk | null = null
+  private individualPlot: PlotSimpleSk | null = null;
 
-  private byParamsPlot: PlotSimpleSk | null = null
+  private byParamsPlot: PlotSimpleSk | null = null;
 
   private byParams: AveForParam[] = [];
 
@@ -215,7 +218,9 @@ export class TrybotPageSk extends ElementSk {
     </div>
   `;
 
-  private static paramKeysAsHeaders = (ele: TrybotPageSk): TemplateResult[] | null => {
+  private static paramKeysAsHeaders = (
+    ele: TrybotPageSk
+  ): TemplateResult[] | null => {
     if (!ele.results) {
       return null;
     }
@@ -223,9 +228,11 @@ export class TrybotPageSk extends ElementSk {
     keys.sort();
 
     return keys.map((key) => html`<th>${key}</th>`);
-  }
+  };
 
-  private static individualResults = (ele: TrybotPageSk): TemplateResult[] | null => {
+  private static individualResults = (
+    ele: TrybotPageSk
+  ): TemplateResult[] | null => {
     if (!ele.results) {
       return null;
     }
@@ -252,16 +259,32 @@ export class TrybotPageSk extends ElementSk {
             keyValueDelta.push(html`<td>〃</td>`);
           }
         } else {
-          keyValueDelta.push(html`<td title="Does not exists on this trace.">∅</td>`);
+          keyValueDelta.push(
+            html`<td title="Does not exists on this trace.">∅</td>`
+          );
         }
       });
-      ret.push(html`<tr><td>${i + 1}</td> <td>${r.stddevRatio}</td> <td class=link @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}><timeline-icon-sk></timeline-icon-sk></td> ${keyValueDelta}</tr>`);
+      ret.push(
+        html`<tr>
+          <td>${i + 1}</td>
+          <td>${r.stddevRatio}</td>
+          <td
+            class="link"
+            @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}
+          >
+            <timeline-icon-sk></timeline-icon-sk>
+          </td>
+          ${keyValueDelta}
+        </tr>`
+      );
       lastParams = r.params;
     });
     return ret;
-  }
+  };
 
-  private static byParamsResults = (ele: TrybotPageSk): TemplateResult[] | null => {
+  private static byParamsResults = (
+    ele: TrybotPageSk
+  ): TemplateResult[] | null => {
     if (!ele.byParams) {
       return null;
     }
@@ -274,7 +297,12 @@ export class TrybotPageSk extends ElementSk {
       }
       ret.push(html`<tr>
         <td>${i + 1}</td>
-        <td class=link @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}><timeline-icon-sk></timeline-icon-sk></td>
+        <td
+          class="link"
+          @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}
+        >
+          <timeline-icon-sk></timeline-icon-sk>
+        </td>
         <td>${b.keyValue}</td>
         <td>${b.aveStdDevRatio}</td>
         <td>${b.n}</td>
@@ -283,7 +311,7 @@ export class TrybotPageSk extends ElementSk {
       </tr>`);
     });
     return ret;
-  }
+  };
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
@@ -320,7 +348,13 @@ export class TrybotPageSk extends ElementSk {
     this.byParamsTraceID!.innerText = '';
     this._render();
     try {
-      const prog = await startRequest('/_/trybot/load/', this.state, 200, this.spinner!, null);
+      const prog = await startRequest(
+        '/_/trybot/load/',
+        this.state,
+        200,
+        this.spinner!,
+        null
+      );
       if (prog.status === 'Finished') {
         this.results = prog.results! as TryBotResponse;
         this.byParams = byParams(this.results!);
@@ -334,10 +368,12 @@ export class TrybotPageSk extends ElementSk {
   }
 
   private getLabels() {
-    return this.results!.header!.map((colHeader) => new Date(colHeader!.timestamp * 1000));
+    return this.results!.header!.map(
+      (colHeader) => new Date(colHeader!.timestamp * 1000)
+    );
   }
 
-  private addZero(lines: {[key: string]: number[]|null}, n: number) {
+  private addZero(lines: { [key: string]: number[] | null }, n: number) {
     lines.special_zero = new Array(n).fill(0);
   }
 
@@ -345,7 +381,7 @@ export class TrybotPageSk extends ElementSk {
     const result = this.results!.results![i];
     const params = result.params;
 
-    const lines: {[key: string]: number[]|null} = {};
+    const lines: { [key: string]: number[] | null } = {};
     lines[makeKey(params)] = result.values;
 
     this.addZero(lines, result.values!.length);
@@ -376,7 +412,7 @@ export class TrybotPageSk extends ElementSk {
     // Truncate the list.
     matches = matches.slice(0, maxByParamsPlot);
 
-    const lines: {[key: string]: number[]|null} = {};
+    const lines: { [key: string]: number[] | null } = {};
     matches.forEach((r) => {
       lines[makeKey(r.params)] = r.values;
     });
@@ -416,18 +452,18 @@ export class TrybotPageSk extends ElementSk {
 
   private startStateReflector() {
     this.stateHasChanged = stateReflector(
-      () => (this.state as unknown) as HintableObject,
+      () => this.state as unknown as HintableObject,
       (state) => {
-        this.state = (state as unknown) as TryBotRequest;
+        this.state = state as unknown as TryBotRequest;
         this._render();
-      },
+      }
     );
   }
 
   private commitSelected(
-    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>,
+    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
   ) {
-    this.state.commit_number = ((e.detail.commit as unknown) as Commit).offset;
+    this.state.commit_number = (e.detail.commit as unknown as Commit).offset;
     this.stateHasChanged();
     this._render();
   }
@@ -437,9 +473,7 @@ export class TrybotPageSk extends ElementSk {
     this.query!.paramset = e.detail;
   }
 
-  private queryChangeDelayed(
-    e: CustomEvent<QuerySkQueryChangeEventDetail>,
-  ) {
+  private queryChangeDelayed(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     // Pass to queryCount so it can update the number of traces that match the
     // query.
     this.queryCount!.current_query = e.detail.q;

@@ -1,9 +1,14 @@
 import fetchMock from 'fetch-mock';
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
+import {
+  GetClientCountsResponse,
+  StatusData,
+} from '../../../bugs-central/modules/json';
 
-fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
+fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
+  GetClientCountsResponse
+>{
   clients_to_status_data: {
     Android: <StatusData>{
       untriaged_count: 10,

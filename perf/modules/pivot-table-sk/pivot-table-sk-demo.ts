@@ -21,5 +21,9 @@ const req: pivot.Request = {
 };
 const query = 'config=8888&config=gpu&arch=x86&arch=arm';
 $$<PivotTableSk>('#good')!.set(df, req, query);
-$$<PivotTableSk>('#invalid-pivot')!.set(df, null as unknown as pivot.Request, query);
+$$<PivotTableSk>('#invalid-pivot')!.set(
+  df,
+  null as unknown as pivot.Request,
+  query
+);
 $$<PivotTableSk>('#null-df')!.set(null as unknown as DataFrame, req, query);

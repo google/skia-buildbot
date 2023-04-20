@@ -4,8 +4,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -26,9 +26,9 @@ export class SkCQ extends ElementSk {
   }
 
   private static template = () => html`
-  <processing-table-sk id=cq-table></processing-table-sk>
-  <processing-table-sk id=dry-runs-table dryrun></processing-table-sk>
-`;
+    <processing-table-sk id="cq-table"></processing-table-sk>
+    <processing-table-sk id="dry-runs-table" dryrun></processing-table-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();

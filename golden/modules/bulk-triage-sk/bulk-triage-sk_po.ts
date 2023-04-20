@@ -36,37 +36,69 @@ export class BulkTriageSkPO extends PageObject {
     return this.bySelector('button.cancel');
   }
 
-  async isAffectedChangelistIdVisible() { return !(await this.cl.isEmpty()); }
-
-  async getAffectedChangelistId() { return this.cl.innerText; }
-
-  async isUntriagedBtnSelected() { return this.untriagedBtn.hasClassName('selected'); }
-
-  async clickUntriagedBtn() { await this.untriagedBtn.click(); }
-
-  async isPositiveBtnSelected() { return this.positiveBtn.hasClassName('selected'); }
-
-  async clickPositiveBtn() { await this.positiveBtn.click(); }
-
-  async isNegativeBtnSelected() { return this.negativeBtn.hasClassName('selected'); }
-
-  async clickNegativeBtn() { await this.negativeBtn.click(); }
-
-  async isClosestBtnSelected() { return this.closestBtn.hasClassName('selected'); }
-
-  async clickClosestBtn() { await this.closestBtn.click(); }
-
-  async getTriageAllCheckboxLabel() { return this.triageAllCheckBox.innerText; }
-
-  async isTriageAllCheckboxChecked() {
-    return this.triageAllCheckBox.applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+  async isAffectedChangelistIdVisible() {
+    return !(await this.cl.isEmpty());
   }
 
-  async clickTriageAllCheckbox() { await this.triageAllCheckBox.click(); }
+  async getAffectedChangelistId() {
+    return this.cl.innerText;
+  }
 
-  async getTriageBtnLabel() { return this.triageBtn.innerText; }
+  async isUntriagedBtnSelected() {
+    return this.untriagedBtn.hasClassName('selected');
+  }
 
-  async clickTriageBtn() { await this.triageBtn.click(); }
+  async clickUntriagedBtn() {
+    await this.untriagedBtn.click();
+  }
 
-  async clickCancelBtn() { await this.cancelBtn.click(); }
+  async isPositiveBtnSelected() {
+    return this.positiveBtn.hasClassName('selected');
+  }
+
+  async clickPositiveBtn() {
+    await this.positiveBtn.click();
+  }
+
+  async isNegativeBtnSelected() {
+    return this.negativeBtn.hasClassName('selected');
+  }
+
+  async clickNegativeBtn() {
+    await this.negativeBtn.click();
+  }
+
+  async isClosestBtnSelected() {
+    return this.closestBtn.hasClassName('selected');
+  }
+
+  async clickClosestBtn() {
+    await this.closestBtn.click();
+  }
+
+  async getTriageAllCheckboxLabel() {
+    return this.triageAllCheckBox.innerText;
+  }
+
+  async isTriageAllCheckboxChecked() {
+    return this.triageAllCheckBox.applyFnToDOMNode(
+      (c) => (c as CheckOrRadio).checked
+    );
+  }
+
+  async clickTriageAllCheckbox() {
+    await this.triageAllCheckBox.click();
+  }
+
+  async getTriageBtnLabel() {
+    return this.triageBtn.innerText;
+  }
+
+  async clickTriageBtn() {
+    await this.triageBtn.click();
+  }
+
+  async clickCancelBtn() {
+    await this.cancelBtn.click();
+  }
 }

@@ -15,7 +15,10 @@
 import './index';
 import { assert } from 'chai';
 import { RadioElement } from './radio-sk';
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 
 describe('radio-sk', () => {
   const newInstance = setUpElementUnderTest<RadioElement>('radio-sk');

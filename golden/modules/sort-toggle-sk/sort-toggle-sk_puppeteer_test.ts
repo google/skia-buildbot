@@ -1,8 +1,11 @@
 import { expect } from 'chai';
 import { ElementHandle } from 'puppeteer';
 import {
-  addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
-  takeScreenshot, TestBed,
+  addEventListenersToPuppeteerPage,
+  EventName,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('sort-toggle-sk', () => {
@@ -12,12 +15,13 @@ describe('sort-toggle-sk', () => {
     testBed = await loadCachedTestBed();
   });
 
-  let promiseFactory: <T>(eventName: EventName)=> Promise<T>;
+  let promiseFactory: <T>(eventName: EventName) => Promise<T>;
   let sortToggleSk: ElementHandle;
 
   beforeEach(async () => {
-    promiseFactory = await addEventListenersToPuppeteerPage(testBed.page,
-      ['sort-changed']);
+    promiseFactory = await addEventListenersToPuppeteerPage(testBed.page, [
+      'sort-changed',
+    ]);
     const loaded = promiseFactory('sort-changed'); // Emitted when sorted.
     await testBed.page.goto(testBed.baseUrl);
     await loaded;
@@ -31,21 +35,33 @@ describe('sort-toggle-sk', () => {
 
   it('should respect the default sort order', async () => {
     await expectSortOrderToMatch(['alfa', 'bravo', 'charlie', 'delta']);
-    await takeScreenshot(sortToggleSk, 'gold', 'sort-toggle-sk_sort-alpha-ascending');
+    await takeScreenshot(
+      sortToggleSk,
+      'gold',
+      'sort-toggle-sk_sort-alpha-ascending'
+    );
   });
 
   it('can sort alphabetically in descending order', async () => {
     await clickSortHeader('name');
 
     await expectSortOrderToMatch(['delta', 'charlie', 'bravo', 'alfa']);
-    await takeScreenshot(sortToggleSk, 'gold', 'sort-toggle-sk_sort-alpha-descending');
+    await takeScreenshot(
+      sortToggleSk,
+      'gold',
+      'sort-toggle-sk_sort-alpha-descending'
+    );
   });
 
   it('it can sort by numeric values in descending order', async () => {
     await clickSortHeader('weight');
 
     await expectSortOrderToMatch(['charlie', 'bravo', 'alfa', 'delta']);
-    await takeScreenshot(sortToggleSk, 'gold', 'sort-toggle-sk_sort-numeric-descending');
+    await takeScreenshot(
+      sortToggleSk,
+      'gold',
+      'sort-toggle-sk_sort-numeric-descending'
+    );
   });
 
   it('it can sort by numeric values in ascending order', async () => {
@@ -53,12 +69,18 @@ describe('sort-toggle-sk', () => {
     await clickSortHeader('weight'); // then should toggle to be in ascending order
 
     await expectSortOrderToMatch(['delta', 'alfa', 'bravo', 'charlie']);
-    await takeScreenshot(sortToggleSk, 'gold', 'sort-toggle-sk_sort-numeric-ascending');
+    await takeScreenshot(
+      sortToggleSk,
+      'gold',
+      'sort-toggle-sk_sort-numeric-ascending'
+    );
   });
 
   async function expectSortOrderToMatch(names: string[]) {
-    const nameOrder = await sortToggleSk.$$eval('tbody tr td:first-child',
-      (tds: Element[]) => tds.map((td) => td.textContent));
+    const nameOrder = await sortToggleSk.$$eval(
+      'tbody tr td:first-child',
+      (tds: Element[]) => tds.map((td) => td.textContent)
+    );
     expect(names).to.deep.equal(nameOrder);
   }
 

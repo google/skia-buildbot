@@ -25,7 +25,11 @@ describe('codesize-scaffold-sk', () => {
     it('uses darkmode theme by default', async () => {
       // Defaults to dark mode.
       await expectDarkMode();
-      await takeScreenshot(testBed.page, 'codesize', 'codesize-scaffold-sk_darkmode');
+      await takeScreenshot(
+        testBed.page,
+        'codesize',
+        'codesize-scaffold-sk_darkmode'
+      );
     });
 
     it('switches to non-darkmode theme when clicking the theme chooser', async () => {

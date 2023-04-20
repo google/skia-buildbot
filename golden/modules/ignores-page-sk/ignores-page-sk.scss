@@ -6,7 +6,8 @@ ignores-page-sk {
   .controls {
     display: flex;
     padding: 4px 0;
-    *, checkbox-sk .box {
+    *,
+    checkbox-sk .box {
       margin: auto 5px;
     }
   }
@@ -39,15 +40,17 @@ ignores-page-sk {
     padding: 6px 2px;
 
     &.mutate-icons {
-      *:hover{
+      *:hover {
         fill: var(--gold);
         cursor: pointer;
       }
     }
     &.query {
-      white-space: pre;
       vertical-align: middle;
       text-align: left;
+      a {
+        white-space: pre;
+      }
     }
     &.expired {
       font-weight: bolder;

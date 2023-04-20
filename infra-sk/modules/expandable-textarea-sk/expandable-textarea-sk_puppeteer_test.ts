@@ -24,12 +24,20 @@ describe('expandable-textarea-sk', () => {
 
   describe('screenshots', () => {
     it('shows the closed view', async () => {
-      await takeScreenshot(testBed.page, 'infra-sk', 'expandable-textarea-sk_closed');
+      await takeScreenshot(
+        testBed.page,
+        'infra-sk',
+        'expandable-textarea-sk_closed'
+      );
     });
 
     it('shows the expanded view', async () => {
       await testBed.page.click('button');
-      await takeScreenshot(testBed.page, 'infra-sk', 'expandable-textarea-sk_open');
+      await takeScreenshot(
+        testBed.page,
+        'infra-sk',
+        'expandable-textarea-sk_open'
+      );
     });
   });
 });

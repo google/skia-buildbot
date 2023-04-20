@@ -4,9 +4,9 @@
  *
  *  Allows trying out an alert by clustering over a range of commits.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject } from '../../../infra-sk/modules/query';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -111,12 +111,11 @@ export class ClusterLastNPageSk extends ElementSk {
         ${ClusterLastNPageSk.configTitle(ele)}
       </button>
       <p>
-        You can optionally change the range of commits over which the Alert is run:
+        You can optionally change the range of commits over which the Alert is
+        run:
       </p>
       <details>
-        <summary>
-          Range
-        </summary>
+        <summary>Range</summary>
         <domain-picker-sk
           id="range"
           .state=${ele.domain}
@@ -135,8 +134,10 @@ export class ClusterLastNPageSk extends ElementSk {
         >
           Run
         </button>
-        <spinner-sk id=run-spinner></spinner-sk>
-        <pre class="messages ${ClusterLastNPageSk.classIfError(ele.hasError)}">${ele.runningStatus}</pre>
+        <spinner-sk id="run-spinner"></spinner-sk>
+        <pre class="messages ${ClusterLastNPageSk.classIfError(ele.hasError)}">
+${ele.runningStatus}</pre
+        >
       </div>
       <div class="saving">
         <p>
@@ -219,8 +220,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="low"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.low,
-      )}
+              reg.regression!.low
+            )}
             .triage=${reg.regression!.low_status}
           ></triage-status-sk>
         </td>
@@ -241,8 +242,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="high"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.high,
-      )}
+              reg.regression!.high
+            )}
             .triage=${reg.regression!.high_status}
           ></triage-status-sk>
         </td>
@@ -258,8 +259,9 @@ export class ClusterLastNPageSk extends ElementSk {
     return html``;
   };
 
-  private static tableRows = (ele: ClusterLastNPageSk) => ele.regressions.map(
-    (reg) => html`
+  private static tableRows = (ele: ClusterLastNPageSk) =>
+    ele.regressions.map(
+      (reg) => html`
         <tr>
           <td class="fixed">
             <commit-detail-sk .cid=${reg!.cid}></commit-detail-sk>
@@ -269,8 +271,8 @@ export class ClusterLastNPageSk extends ElementSk {
           ${ClusterLastNPageSk.high(ele, reg!)}
           ${ClusterLastNPageSk.filler(ele)}
         </tr>
-      `,
-  );
+      `
+    );
 
   private static configTitle = (ele: ClusterLastNPageSk) => {
     // Original style regression detection is indicated by the empty string for
@@ -280,8 +282,8 @@ export class ClusterLastNPageSk extends ElementSk {
       detection = 'original';
     }
     return html`
-      Algo: ${detection}/${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
-      ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
+      Algo: ${detection}/${ele.state!.algo} - Radius: ${ele.state!.radius} -
+      Sparse: ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
   };
 
@@ -302,7 +304,9 @@ export class ClusterLastNPageSk extends ElementSk {
           <th>Commit</th>
           <th colspan="2">Regressions</th>
         </tr>
-        <tr> ${ClusterLastNPageSk.tableHeader(ele)} </tr>
+        <tr>
+          ${ClusterLastNPageSk.tableHeader(ele)}
+        </tr>
         ${ClusterLastNPageSk.tableRows(ele)}
       </table>
     `;
@@ -331,11 +335,11 @@ export class ClusterLastNPageSk extends ElementSk {
         this.alertConfig = this.querySelector('alert-config-sk');
         this.runSpinner = this.querySelector('#run-spinner');
         this.stateHasChanged = stateReflector(
-          () => (this.state as unknown) as HintableObject,
+          () => this.state as unknown as HintableObject,
           (state) => {
-            this.state = (state as unknown) as Alert;
+            this.state = state as unknown as Alert;
             this._render();
-          },
+          }
         );
       })
       .catch(errorMessage);
@@ -435,15 +439,23 @@ export class ClusterLastNPageSk extends ElementSk {
 
     try {
       this.requestId = 'running';
-      const finalProg = await startRequest('/_/dryrun/start', body, 300, this.runSpinner!, (prog: progress.SerializedProgress) => {
-        if (prog.results) {
-          this.regressions = prog.results;
+      const finalProg = await startRequest(
+        '/_/dryrun/start',
+        body,
+        300,
+        this.runSpinner!,
+        (prog: progress.SerializedProgress) => {
+          if (prog.results) {
+            this.regressions = prog.results;
+          }
+          this.runningStatus = prog.messages
+            .map((msg) => `${msg.key}: ${msg.value}`)
+            .join('\n');
+          this._render();
         }
-        this.runningStatus = prog.messages.map(((msg) => `${msg.key}: ${msg.value}`)).join('\n');
-        this._render();
-      });
+      );
       if (finalProg.status !== 'Finished') {
-        throw (new Error(messagesToErrorString(finalProg.messages)));
+        throw new Error(messagesToErrorString(finalProg.messages));
       }
       this.regressions = finalProg.results;
       this.runningStatus = '';

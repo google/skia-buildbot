@@ -78,7 +78,10 @@ describe('DebugTrace JSON parsing', () => {
       "functions": [],
       "trace": []
     }`;
-    assert.throws(() => Convert.toDebugTrace(text), /Version mismatch.*987654321z.*/);
+    assert.throws(
+      () => Convert.toDebugTrace(text),
+      /Version mismatch.*987654321z.*/
+    );
   });
 
   it('throws when parsing invalid JSON', () => {
@@ -113,7 +116,9 @@ describe('DebugTrace JSON parsing', () => {
       "functions": [{ "name": "void testFunc();" }],
       "trace": [[2], [0, 5], [1, 10, 15], [3, 20
     }`;
-    expect(() => { Convert.toDebugTrace(text); }).to.throw();
+    expect(() => {
+      Convert.toDebugTrace(text);
+    }).to.throw();
   });
 
   it('throws when missing a key', () => {
@@ -147,7 +152,9 @@ describe('DebugTrace JSON parsing', () => {
       ],
       "trace": [[2], [0, 5], [1, 10, 15], [3, 20]]
     }`;
-    expect(() => { Convert.toDebugTrace(text); }).to.throw();
+    expect(() => {
+      Convert.toDebugTrace(text);
+    }).to.throw();
   });
 
   it('throws when finding an invalid key', () => {
@@ -182,6 +189,8 @@ describe('DebugTrace JSON parsing', () => {
       "trace": [[2], [0, 5], [1, 10, 15], [3, 20]],
       "bogus": [9999]
     }`;
-    expect(() => { Convert.toDebugTrace(text); }).to.throw();
+    expect(() => {
+      Convert.toDebugTrace(text);
+    }).to.throw();
   });
 });

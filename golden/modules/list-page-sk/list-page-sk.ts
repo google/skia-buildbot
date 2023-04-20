@@ -7,8 +7,8 @@
  *
  * It is a top level element.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -16,7 +16,10 @@ import { fromObject } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
-  clusterPageHref, sendBeginTask, sendEndTask, sendFetchError,
+  clusterPageHref,
+  sendBeginTask,
+  sendEndTask,
+  sendFetchError,
 } from '../common';
 import { defaultCorpus } from '../settings';
 
@@ -41,38 +44,49 @@ const searchQuery = (corpus: string, query: string): string => {
 
 /** We extend TestSummary with the test name to facilitate sorting with SortToggleSk. */
 interface TestSummaryWithTestName extends TestSummary {
-  name: string
+  name: string;
 }
 
 export class ListPageSk extends ElementSk {
   private static template = (ele: ListPageSk) => html`
     <div>
-      <corpus-selector-sk .corpora=${ele.corpora}
-          .selectedCorpus=${ele.currentCorpus} @corpus-selected=${ele.currentCorpusChanged}>
+      <corpus-selector-sk
+        .corpora=${ele.corpora}
+        .selectedCorpus=${ele.currentCorpus}
+        @corpus-selected=${ele.currentCorpusChanged}
+      >
       </corpus-selector-sk>
 
-      <div class=query_params>
-        <button class=show_query_dialog @click=${ele.showQueryDialog}>
+      <div class="query_params">
+        <button class="show_query_dialog" @click=${ele.showQueryDialog}>
           <tune-icon-sk></tune-icon-sk>
         </button>
         <pre>${searchQuery(ele.currentCorpus, ele.currentQuery)}</pre>
-        <checkbox-sk label="Disregard Ignore Rules" class=ignore_rules
-                 ?checked=${ele.disregardIgnoreRules} @click=${ele.toggleIgnoreRules}></checkbox-sk>
+        <checkbox-sk
+          label="Disregard Ignore Rules"
+          class="ignore_rules"
+          ?checked=${ele.disregardIgnoreRules}
+          @click=${ele.toggleIgnoreRules}
+        ></checkbox-sk>
       </div>
     </div>
 
     <!-- lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.-->
-    <sort-toggle-sk id=sort_table .data=${ele.byTestCounts} @sort-changed=${ele._render}>
+    <sort-toggle-sk
+      id="sort_table"
+      .data=${ele.byTestCounts}
+      @sort-changed=${ele._render}
+    >
       <table>
-         <thead>
-             <tr>
-              <th data-key=name data-sort-toggle-sk=up>Test name</th>
-              <th data-key=positive_digests>Positive</th>
-              <th data-key=negative_digests>Negative</th>
-              <th data-key=untriaged_digests>Untriaged</th>
-              <th data-key=total_digests>Total</th>
-              <th>Cluster View</th>
-            </tr>
+        <thead>
+          <tr>
+            <th data-key="name" data-sort-toggle-sk="up">Test name</th>
+            <th data-key="positive_digests">Positive</th>
+            <th data-key="negative_digests">Negative</th>
+            <th data-key="untriaged_digests">Untriaged</th>
+            <th data-key="total_digests">Total</th>
+            <th>Cluster View</th>
+          </tr>
         </thead>
         <tbody>
           <!-- repeat was tested here; map is about twice as fast as using the repeat directive
@@ -94,7 +108,9 @@ export class ListPageSk extends ElementSk {
     }
 
     // Returns a HintableObject for building the GET parameters to the search page.
-    const makeSearchCriteria = (opts: MakeSearchCriteriaOpts): Partial<SearchCriteria> => ({
+    const makeSearchCriteria = (
+      opts: MakeSearchCriteriaOpts
+    ): Partial<SearchCriteria> => ({
       corpus: ele.currentCorpus,
       leftHandTraceFilter: { name: [row.name] },
       includePositiveDigests: opts.positive,
@@ -106,7 +122,9 @@ export class ListPageSk extends ElementSk {
 
     const searchPageHref = (opts: MakeSearchCriteriaOpts) => {
       const searchCriteria = makeSearchCriteria(opts);
-      const queryParameters = fromObject(SearchCriteriaToHintableObject(searchCriteria) as HintableObject);
+      const queryParameters = fromObject(
+        SearchCriteriaToHintableObject(searchCriteria) as HintableObject
+      );
       return `/search?${queryParameters}`;
     };
 
@@ -121,38 +139,76 @@ export class ListPageSk extends ElementSk {
     return html`
       <tr>
         <td>
-          <a href="${searchPageHref({ positive: true, negative: true, untriaged: true })}"
-             target=_blank rel=noopener>
+          <a
+            href="${searchPageHref({
+              positive: true,
+              negative: true,
+              untriaged: true,
+            })}"
+            target="_blank"
+            rel="noopener"
+          >
             ${row.name}
           </a>
         </td>
-        <td class=center>
-          <a href="${searchPageHref({ positive: true, negative: false, untriaged: false })}"
-             target=_blank rel=noopener>
-           ${row.positive_digests}
+        <td class="center">
+          <a
+            href="${searchPageHref({
+              positive: true,
+              negative: false,
+              untriaged: false,
+            })}"
+            target="_blank"
+            rel="noopener"
+          >
+            ${row.positive_digests}
           </a>
         </td>
-        <td class=center>
-          <a href="${searchPageHref({ positive: false, negative: true, untriaged: false })}"
-             target=_blank rel=noopener>
-           ${row.negative_digests}
+        <td class="center">
+          <a
+            href="${searchPageHref({
+              positive: false,
+              negative: true,
+              untriaged: false,
+            })}"
+            target="_blank"
+            rel="noopener"
+          >
+            ${row.negative_digests}
           </a>
         </td>
-        <td class=center>
-          <a href="${searchPageHref({ positive: false, negative: false, untriaged: true })}"
-             target=_blank rel=noopener>
-           ${row.untriaged_digests}
+        <td class="center">
+          <a
+            href="${searchPageHref({
+              positive: false,
+              negative: false,
+              untriaged: true,
+            })}"
+            target="_blank"
+            rel="noopener"
+          >
+            ${row.untriaged_digests}
           </a>
         </td>
-        <td class=center>
-          <a href="${searchPageHref({ positive: true, negative: true, untriaged: true })}"
-             target=_blank rel=noopener>
+        <td class="center">
+          <a
+            href="${searchPageHref({
+              positive: true,
+              negative: true,
+              untriaged: true,
+            })}"
+            target="_blank"
+            rel="noopener"
+          >
             ${row.total_digests}
           </a>
         </td>
-        <td class=center>
-          <a href="${clusterPageHref(row.grouping, clusterPageSearchCriteria)}"
-             target=_blank rel=noopener>
+        <td class="center">
+          <a
+            href="${clusterPageHref(row.grouping, clusterPageSearchCriteria)}"
+            target="_blank"
+            rel="noopener"
+          >
             <group-work-icon-sk></group-work-icon-sk>
           </a>
         </td>
@@ -172,7 +228,7 @@ export class ListPageSk extends ElementSk {
 
   private byTestCounts: TestSummaryWithTestName[] = [];
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
   // Allows us to abort fetches if we fetch again.
   private fetchController?: AbortController;
@@ -181,22 +237,24 @@ export class ListPageSk extends ElementSk {
     super(ListPageSk.template);
 
     this.stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         disregard_ignores: this.disregardIgnoreRules,
         corpus: this.currentCorpus,
         query: this.currentQuery,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
         // default values if not specified.
-        this.disregardIgnoreRules = newState.disregard_ignores as boolean || false;
-        this.currentCorpus = newState.corpus as string || defaultCorpus();
-        this.currentQuery = newState.query as string || '';
+        this.disregardIgnoreRules =
+          (newState.disregard_ignores as boolean) || false;
+        this.currentCorpus = (newState.corpus as string) || defaultCorpus();
+        this.currentQuery = (newState.query as string) || '';
         this.fetch();
         this._render();
-      },
+      }
     );
   }
 
@@ -249,13 +307,19 @@ export class ListPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then((response: ListTestsResponse) => {
         this.byTestCounts = response.tests
-          ? response.tests.map((test: TestSummary) => ({ ...test, name: test.grouping.name }))
+          ? response.tests.map((test: TestSummary) => ({
+              ...test,
+              name: test.grouping.name,
+            }))
           : [];
         this._render();
-          // By default, sort the data by name in ascending order (to match the direction set
-          // above).
-          $$<SortToggleSk<TestSummaryWithTestName>>('#sort_table', this)!.sort('name', 'up');
-          sendEndTask(this);
+        // By default, sort the data by name in ascending order (to match the direction set
+        // above).
+        $$<SortToggleSk<TestSummaryWithTestName>>('#sort_table', this)!.sort(
+          'name',
+          'up'
+        );
+        sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'list'));
 
@@ -279,7 +343,10 @@ export class ListPageSk extends ElementSk {
   }
 
   private showQueryDialog() {
-    $$<QueryDialogSk>('query-dialog-sk')!.open(this.paramset, this.currentQuery);
+    $$<QueryDialogSk>('query-dialog-sk')!.open(
+      this.paramset,
+      this.currentQuery
+    );
   }
 
   private toggleIgnoreRules(e: Event) {

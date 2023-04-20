@@ -1,8 +1,8 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
 import { priorities } from './test_data';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

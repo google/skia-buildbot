@@ -14,8 +14,8 @@
 
 import '@google-web-components/google-chart';
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -70,24 +70,37 @@ export class BugsChartSk extends ElementSk {
     <google-chart
       id="${el.chart_type}-chart"
       options="${getChartOptions(el.chart_type)}"
-      data="${el.data}">
+      data="${el.data}"
+    >
     </google-chart>
-`;
+  `;
 
   /** Reflects chart_type attribute for convenience. */
-  get chart_type(): string { return this.getAttribute('chart_type')!; }
+  get chart_type(): string {
+    return this.getAttribute('chart_type')!;
+  }
 
-  set chart_type(val: string) { this.setAttribute('chart_type', (+val as unknown) as string); }
+  set chart_type(val: string) {
+    this.setAttribute('chart_type', +val as unknown as string);
+  }
 
   /** Reflects chart_type attribute for convenience. */
-  get chart_title(): string { return this.getAttribute('chart_title')!; }
+  get chart_title(): string {
+    return this.getAttribute('chart_title')!;
+  }
 
-  set chart_title(val: string) { this.setAttribute('chart_title', (+val as unknown) as string); }
+  set chart_title(val: string) {
+    this.setAttribute('chart_title', +val as unknown as string);
+  }
 
   /** Reflects data attribute for convenience. */
-  get data(): string { return this.getAttribute('data')!; }
+  get data(): string {
+    return this.getAttribute('data')!;
+  }
 
-  set data(val: string) { this.setAttribute('data', (+val as unknown) as string); }
+  set data(val: string) {
+    this.setAttribute('data', +val as unknown as string);
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -103,7 +116,11 @@ export class BugsChartSk extends ElementSk {
     return ['chart_type', 'chart_title', 'data'];
   }
 
-  attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
+  attributeChangedCallback(
+    _name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
     if (oldValue !== newValue) {
       this._render();
     }

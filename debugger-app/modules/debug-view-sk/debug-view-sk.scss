@@ -1,5 +1,4 @@
 debug-view-sk {
-
   // copied this trick from https://css-tricks.com/how-to-stack-elements-in-css/
   .grid {
     display: grid;
@@ -33,29 +32,46 @@ debug-view-sk {
     height: auto;
   }
 
-  .right{
+  .right {
     width: 100%;
     height: auto;
   }
 
-  .light-checkerboard  {
+  .light-checkerboard {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
-      45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
-                      linear-gradient(
-      45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+        45deg,
+        #eee 25%,
+        transparent 25%,
+        transparent 75%,
+        #eee 75%,
+        #eee 100%
+      ),
+      linear-gradient(
+        45deg,
+        #eee 25%,
+        white 25%,
+        white 75%,
+        #eee 75%,
+        #eee 100%
+      );
   }
 
-  .dark-checkerboard  {
+  .dark-checkerboard {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
-      45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
-                      linear-gradient(
-      45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
+        45deg,
+        #555 25%,
+        transparent 25%,
+        transparent 75%,
+        #555 75%,
+        #555 100%
+      ),
+      linear-gradient(45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
   }
 
   button {
@@ -65,7 +81,6 @@ debug-view-sk {
   }
 
   img {
-    opacity: 0.5 /* I have black icons but want grey ones */
+    opacity: 0.5; /* I have black icons but want grey ones */
   }
-
 }

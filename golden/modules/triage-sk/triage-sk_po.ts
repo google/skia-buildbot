@@ -34,7 +34,9 @@ export class TriageSkPO extends PageObject {
     return this.getButtonForLabel(label).hasAttribute('disabled');
   }
 
-  async clickButton(label: Label) { await this.getButtonForLabel(label).click(); }
+  async clickButton(label: Label) {
+    await this.getButtonForLabel(label).click();
+  }
 
   private getButtonForLabel(label: Label) {
     switch (label) {

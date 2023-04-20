@@ -1,5 +1,4 @@
-Service Account Keys Checker
-============================
+# Service Account Keys Checker
 
 The goal of this service is to add metrics for when the keys of the service
 accounts in Skia's cloud projects are going to expire, so we can get alerts

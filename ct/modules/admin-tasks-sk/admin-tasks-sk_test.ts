@@ -1,9 +1,9 @@
 import './index';
 
 import sinon from 'sinon';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { pageSets } from '../pageset-selector-sk/test_data';
 import { AdminTasksSk } from './admin-tasks-sk';
 import { AdminAddTaskVars } from '../json';
@@ -35,7 +35,7 @@ describe('admin-tasks-sk', () => {
     sinon.restore();
   });
 
-  const mockActiveTasks = (n: number|undefined) => {
+  const mockActiveTasks = (n: number | undefined) => {
     n = n || 0;
     // For running tasks for the user we put a nonzero total in one of the
     // responses, and 0 in the remaining 6.
@@ -45,12 +45,16 @@ describe('admin-tasks-sk', () => {
       pagination: { offset: 0, size: 1, total: n },
       permissions: [],
     });
-    fetchMock.post('begin:/_/get', {
-      data: [],
-      ids: [],
-      pagination: { offset: 0, size: 1, total: 0 },
-      permissions: [],
-    }, { repeat: 6 });
+    fetchMock.post(
+      'begin:/_/get',
+      {
+        data: [],
+        ids: [],
+        pagination: { offset: 0, size: 1, total: 0 },
+        permissions: [],
+      },
+      { repeat: 6 }
+    );
   };
 
   const clickSubmit = () => {
@@ -73,7 +77,9 @@ describe('admin-tasks-sk', () => {
     sinon.stub(window, 'confirm').returns(true);
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as AdminAddTaskVars;
+    const taskJson = JSON.parse(
+      fetchMock.lastOptions()!.body as any
+    ) as AdminAddTaskVars;
     const expectation = {
       page_sets: '10k',
       repeat_after_days: '0',
@@ -93,7 +99,9 @@ describe('admin-tasks-sk', () => {
     ($('tabs-sk button', adminTasks)[1] as HTMLElement).click();
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as AdminAddTaskVars;
+    const taskJson = JSON.parse(
+      fetchMock.lastOptions()!.body as any
+    ) as AdminAddTaskVars;
     const expectation = {
       page_sets: '10k',
       repeat_after_days: '0',
@@ -108,6 +116,8 @@ describe('admin-tasks-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.contain('You have 4 currently running tasks');
+    expect((err as CustomEvent).detail.message).to.contain(
+      'You have 4 currently running tasks'
+    );
   });
 });

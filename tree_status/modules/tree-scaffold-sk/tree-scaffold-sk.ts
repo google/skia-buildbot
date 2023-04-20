@@ -9,8 +9,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -40,29 +40,37 @@ export class TreeScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: TreeScaffoldSk) => html`
-  <app-sk>
-    <header>
-      <h1 class=name>${ele.appTitle}</h1>
-      <div class="spacer"></div>
-      <login-sk></login-sk>
-      <theme-chooser-sk></theme-chooser-sk>
-    </header>
+    <app-sk>
+      <header>
+        <h1 class="name">${ele.appTitle}</h1>
+        <div class="spacer"></div>
+        <login-sk></login-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
 
-    <aside class="surface-themes-sk">
-      <nav>
-        <a href="https://tree-status.skia.org/skia" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
-        <a href="http://go/skia-tree-status-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
-        <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
-      </nav>
-    </aside>
+      <aside class="surface-themes-sk">
+        <nav>
+          <a href="https://tree-status.skia.org/skia" tab-index="0"
+            ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a
+          >
+          <a href="http://go/skia-tree-status-doc" tab-index="0"
+            ><help-icon-sk></help-icon-sk><span>Help</span></a
+          >
+          <a
+            href="https://github.com/google/skia-buildbot/tree/master/tree_status"
+            tab-index="0"
+            ><folder-icon-sk></folder-icon-sk><span>Code</span></a
+          >
+        </nav>
+      </aside>
 
-    <main></main>
+      <main></main>
 
-    <footer>
-      <error-toast-sk></error-toast-sk>
-    </footer>
-  </app-sk>
-`;
+      <footer>
+        <error-toast-sk></error-toast-sk>
+      </footer>
+    </app-sk>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -100,9 +108,13 @@ export class TreeScaffoldSk extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle(): string { return this.getAttribute('app_title') || ''; }
+  get appTitle(): string {
+    return this.getAttribute('app_title') || '';
+  }
 
-  set appTitle(val: string) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) {
+    this.setAttribute('app_title', val);
+  }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();

@@ -62,7 +62,7 @@ describe('fiddle-sk', () => {
 
   describe('some action', () => {
     it('some result', () => {
-      assert.isNotNull((element));
+      assert.isNotNull(element);
     });
   });
 });

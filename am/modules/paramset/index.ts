@@ -7,7 +7,11 @@ import { Params, ParamSet } from '../json';
  * @param params - Key-value pairs where both keys and values are strings.
  * @param ignored - List of keys to ignore.
  */
-export function add(paramset: ParamSet, params: Params, ignored: string[] = []): void {
+export function add(
+  paramset: ParamSet,
+  params: Params,
+  ignored: string[] = []
+): void {
   Object.keys(params).forEach((key) => {
     if (ignored.includes(key)) {
       return;

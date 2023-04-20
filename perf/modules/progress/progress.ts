@@ -3,7 +3,7 @@
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { progress } from '../json';
 
-export type callback = (arg: progress.SerializedProgress)=> void;
+export type callback = (arg: progress.SerializedProgress) => void;
 
 /**
  * startRequest returns a Promise that resolves then the long running server
@@ -25,55 +25,56 @@ export const startRequest = (
   body: any,
   period: number,
   spinner: SpinnerSk,
-  cb: callback | null,
-): Promise<progress.SerializedProgress> => new Promise<progress.SerializedProgress>((resolve, reject) => {
-  spinner.active = true;
+  cb: callback | null
+): Promise<progress.SerializedProgress> =>
+  new Promise<progress.SerializedProgress>((resolve, reject) => {
+    spinner.active = true;
 
-  // Regardless if this is the first fetch, or any of the subsequent polling
-  // fetches, we do the same exact processing on the Promise, so consolidate all
-  // the functionality into a single function.
-  const processFetch = (fetchPromise: Promise<Response>) => {
-    fetchPromise
-      .then((resp: Response) => {
-        if (!resp.ok) {
-          reject(new Error(`Bad network response: ${resp.statusText}`));
-        }
-        return resp.json();
-      })
-      .then((json: progress.SerializedProgress) => {
-        if (cb) {
-          cb(json);
-        }
-        if (json.status === 'Running') {
-          window.setTimeout(() => {
-            processFetch(
-              fetch(json.url, {
-                method: 'GET',
-              }),
-            );
-          }, period);
-        } else {
+    // Regardless if this is the first fetch, or any of the subsequent polling
+    // fetches, we do the same exact processing on the Promise, so consolidate all
+    // the functionality into a single function.
+    const processFetch = (fetchPromise: Promise<Response>) => {
+      fetchPromise
+        .then((resp: Response) => {
+          if (!resp.ok) {
+            reject(new Error(`Bad network response: ${resp.statusText}`));
+          }
+          return resp.json();
+        })
+        .then((json: progress.SerializedProgress) => {
+          if (cb) {
+            cb(json);
+          }
+          if (json.status === 'Running') {
+            window.setTimeout(() => {
+              processFetch(
+                fetch(json.url, {
+                  method: 'GET',
+                })
+              );
+            }, period);
+          } else {
+            spinner.active = false;
+            resolve(json);
+          }
+        })
+        .catch((msg) => {
           spinner.active = false;
-          resolve(json);
-        }
-      })
-      .catch((msg) => {
-        spinner.active = false;
-        reject(msg);
-      });
-  };
+          reject(msg);
+        });
+    };
 
-  // Make the initial request that starts the polling process.
-  processFetch(
-    fetch(startingURL, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
-  );
-});
+    // Make the initial request that starts the polling process.
+    processFetch(
+      fetch(startingURL, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    );
+  });
 
 /**
  * Utility function to convert Messages into an error string.
@@ -81,7 +82,7 @@ export const startRequest = (
  * If there is no 'Error' message and all the key/value pairs in 'messages' are
  * returned in a single string.
  */
-export const messagesToErrorString = (messages: (progress.Message)[]): string => {
+export const messagesToErrorString = (messages: progress.Message[]): string => {
   if (!messages || messages.length === 0) {
     return '(no error message available)';
   }
@@ -94,7 +95,11 @@ export const messagesToErrorString = (messages: (progress.Message)[]): string =>
 };
 
 /** Utility function to extract on Message from an Array of Messages. */
-export const messageByName = (messages: (progress.Message)[], key: string, fallback: string = ''): string => {
+export const messageByName = (
+  messages: progress.Message[],
+  key: string,
+  fallback: string = ''
+): string => {
   if (!messages || messages.length === 0) {
     return fallback;
   }

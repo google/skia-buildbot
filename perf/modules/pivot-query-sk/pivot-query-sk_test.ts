@@ -1,9 +1,16 @@
 import './index';
 import { assert } from 'chai';
 import { $$ } from '../../../infra-sk/modules/dom';
-import { PivotQueryChangedEventDetail, PivotQueryChangedEventName, PivotQuerySk } from './pivot-query-sk';
+import {
+  PivotQueryChangedEventDetail,
+  PivotQueryChangedEventName,
+  PivotQuerySk,
+} from './pivot-query-sk';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { ParamSet, pivot } from '../json';
 
 describe('pivot-query-sk', () => {
@@ -31,7 +38,9 @@ describe('pivot-query-sk', () => {
 
   describe('click group_by option', () => {
     it('emits event with group_by option added', async () => {
-      const ep = eventPromise<CustomEvent<PivotQueryChangedEventDetail>>(PivotQueryChangedEventName);
+      const ep = eventPromise<CustomEvent<PivotQueryChangedEventDetail>>(
+        PivotQueryChangedEventName
+      );
       // Click 'arch' which will be first, but isn't in the pivot.Request yet.
       $$<HTMLDivElement>('#group_by div', element)!.click();
       const e = await ep;
@@ -41,7 +50,9 @@ describe('pivot-query-sk', () => {
 
   describe('click summary option', () => {
     it('emits event with summary option added', async () => {
-      const ep = eventPromise<CustomEvent<PivotQueryChangedEventDetail>>(PivotQueryChangedEventName);
+      const ep = eventPromise<CustomEvent<PivotQueryChangedEventDetail>>(
+        PivotQueryChangedEventName
+      );
       // Click 'avg' which will be first, but isn't in the pivot.Request yet.
       $$<HTMLDivElement>('#summary div', element)!.click();
       const e = await ep;

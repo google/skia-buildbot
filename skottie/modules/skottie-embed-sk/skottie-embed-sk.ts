@@ -16,8 +16,8 @@
  *  </iframe>
  */
 import '../skottie-player-sk';
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -25,8 +25,8 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 
 export class SkottieEmbedSk extends ElementSk {
-  private static template = () => html`
-    <skottie-player-sk></skottie-player-sk>`;
+  private static template = () =>
+    html` <skottie-player-sk></skottie-player-sk>`;
 
   private hash: string = '';
 
@@ -62,24 +62,28 @@ export class SkottieEmbedSk extends ElementSk {
       /* setState */ (newState: HintableObject) => {
         this.width = +newState.w;
         this.height = +newState.h;
-      },
+      }
     );
 
     // Run this on the next micro-task to allow mocks to be set up if needed.
     setTimeout(() => {
       fetch(`/_/j/${this.hash}`, {
         credentials: 'include',
-      }).then(jsonOrThrow).then((json) => {
-        const player = this.querySelector<SkottiePlayerSk>('skottie-player-sk');
-        return player!.initialize({
-          width: this.width,
-          height: this.height,
-          lottie: json.lottie,
-          fps: 0,
+      })
+        .then(jsonOrThrow)
+        .then((json) => {
+          const player =
+            this.querySelector<SkottiePlayerSk>('skottie-player-sk');
+          return player!.initialize({
+            width: this.width,
+            height: this.height,
+            lottie: json.lottie,
+            fps: 0,
+          });
+        })
+        .catch((msg) => {
+          console.error(msg);
         });
-      }).catch((msg) => {
-        console.error(msg);
-      });
     });
   }
 }

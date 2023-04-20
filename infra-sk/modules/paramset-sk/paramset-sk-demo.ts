@@ -1,5 +1,5 @@
 import './index';
-import { ParamSet } from '../../../infra-sk/modules/query';
+import { ParamSet } from '../query';
 import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 
 const paramSet1: ParamSet = {
@@ -47,7 +47,9 @@ paramSetSk.paramsets = [paramSet1, paramSet2];
 paramSetSk.titles = [title1, title2];
 paramSetSk.clickable_values = true;
 
-paramSetSk = findParamSetSk('#many-paramsets-with-titles-keys-and-values-clickable');
+paramSetSk = findParamSetSk(
+  '#many-paramsets-with-titles-keys-and-values-clickable'
+);
 paramSetSk.paramsets = [paramSet1, paramSet2];
 paramSetSk.titles = [title1, title2];
 paramSetSk.clickable = true;
@@ -63,26 +65,30 @@ paramSetSk.titles = [title1];
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent = JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent =
+      JSON.stringify(detail, null, '  ');
   });
 
   paramSetSk.addEventListener('paramset-key-value-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#key-value-click-event')!.textContent = JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>(
+      '#key-value-click-event'
+    )!.textContent = JSON.stringify(detail, null, '  ');
   });
 
   paramSetSk.addEventListener('plus-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent = JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent =
+      JSON.stringify(detail, null, '  ');
   });
 });
 
 document.querySelector('#highlight')!.addEventListener('click', () => {
   allParamSetSks.forEach(
-    (paramSetSk) => paramSetSk.highlight = { arch: 'Arm7', cpu_or_gpu: 'GPU' },
+    (paramSetSk) => (paramSetSk.highlight = { arch: 'Arm7', cpu_or_gpu: 'GPU' })
   );
 });
 
 document.querySelector('#clear')!.addEventListener('click', () => {
-  allParamSetSks.forEach((paramSetSk) => paramSetSk.highlight = {});
+  allParamSetSks.forEach((paramSetSk) => (paramSetSk.highlight = {}));
 });

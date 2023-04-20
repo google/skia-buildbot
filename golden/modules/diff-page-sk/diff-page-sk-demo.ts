@@ -1,9 +1,12 @@
 import './index';
 import '../gold-scaffold-sk';
 
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { fakeNow, makeTypicalSearchResult } from '../digest-details-sk/test_data';
+import { $$ } from '../../../infra-sk/modules/dom';
+import {
+  fakeNow,
+  makeTypicalSearchResult,
+} from '../digest-details-sk/test_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
@@ -21,9 +24,9 @@ testOnlySetSettings({
 // Load the demo page with some params to load if there aren't any already.
 if (window.location.search.length === 0) {
   setQueryString(
-    '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&'
-      + 'grouping=name%3DThis%2520is%2520a%2520test%2520with%2520spaces%26source_type%3Dinfra&'
-      + 'changelist_id=12353&crs=gerrit',
+    '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&' +
+      'grouping=name%3DThis%2520is%2520a%2520test%2520with%2520spaces%26source_type%3Dinfra&' +
+      'changelist_id=12353&crs=gerrit'
   );
 }
 
@@ -40,7 +43,7 @@ fetchMock.post('/json/v2/diff', (url, opts) => {
   const searchResult = makeTypicalSearchResult(
     request.grouping.name,
     request.left_digest,
-    request.right_digest,
+    request.right_digest
   );
   const leftInfo: LeftDiffInfo = {
     test: searchResult.test,
@@ -67,9 +70,11 @@ document.body.insertBefore(scaffold, document.body.childNodes[0]);
 let diffPageSk = new DiffPageSk();
 scaffold.appendChild(diffPageSk);
 
-document.querySelector('#simulate-rpc-error')!.addEventListener('change', () => {
-  // Reload the page to trigger an RPC error.
-  diffPageSk.parentNode!.removeChild(diffPageSk);
-  diffPageSk = new DiffPageSk();
-  scaffold.appendChild(diffPageSk);
-});
+document
+  .querySelector('#simulate-rpc-error')!
+  .addEventListener('change', () => {
+    // Reload the page to trigger an RPC error.
+    diffPageSk.parentNode!.removeChild(diffPageSk);
+    diffPageSk = new DiffPageSk();
+    scaffold.appendChild(diffPageSk);
+  });

@@ -1,13 +1,14 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('query-chooser-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {

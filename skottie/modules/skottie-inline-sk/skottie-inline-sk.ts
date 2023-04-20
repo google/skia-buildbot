@@ -23,15 +23,15 @@
  *  </skottie-inline-sk>
  */
 import '../skottie-player-sk';
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 
 export class SkottieInlineSk extends ElementSk {
-  private static template = () => html`
-    <skottie-player-sk></skottie-player-sk>`;
+  private static template = () =>
+    html` <skottie-player-sk></skottie-player-sk>`;
 
   private fetching: boolean = false;
 
@@ -44,7 +44,9 @@ export class SkottieInlineSk extends ElementSk {
     this._render();
   }
 
-  get width(): string | null { return this.getAttribute('width'); }
+  get width(): string | null {
+    return this.getAttribute('width');
+  }
 
   set width(val: string | null) {
     if (val) {
@@ -52,7 +54,9 @@ export class SkottieInlineSk extends ElementSk {
     }
   }
 
-  get height(): string | null { return this.getAttribute('height'); }
+  get height(): string | null {
+    return this.getAttribute('height');
+  }
 
   set height(val: string | null) {
     if (val) {
@@ -60,7 +64,9 @@ export class SkottieInlineSk extends ElementSk {
     }
   }
 
-  get src(): string | null { return this.getAttribute('src'); }
+  get src(): string | null {
+    return this.getAttribute('src');
+  }
 
   set src(val: string | null) {
     if (val) {
@@ -73,32 +79,35 @@ export class SkottieInlineSk extends ElementSk {
       return;
     }
     this.fetching = true;
-    fetch(this.src).then(jsonOrThrow).then((json) => {
-      this.fetching = false;
-      const init = {
-        width: 128,
-        height: 128,
-        lottie: json,
-        fps: 0,
-      };
-      // If this is a file from skottie.skia.org.
-      if (json.lottie !== undefined) {
-        init.width = json.width;
-        init.height = json.height;
-        init.lottie = json.lottie;
-      }
-      if (this.width) {
-        init.width = +this.width;
-      }
-      if (this.height) {
-        init.height = +this.height;
-      }
-      const player = this.querySelector<SkottiePlayerSk>('skottie-player-sk');
-      return player!.initialize(init);
-    }).catch((msg) => {
-      console.error(msg);
-      this.fetching = false;
-    });
+    fetch(this.src)
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.fetching = false;
+        const init = {
+          width: 128,
+          height: 128,
+          lottie: json,
+          fps: 0,
+        };
+        // If this is a file from skottie.skia.org.
+        if (json.lottie !== undefined) {
+          init.width = json.width;
+          init.height = json.height;
+          init.lottie = json.lottie;
+        }
+        if (this.width) {
+          init.width = +this.width;
+        }
+        if (this.height) {
+          init.height = +this.height;
+        }
+        const player = this.querySelector<SkottiePlayerSk>('skottie-player-sk');
+        return player!.initialize(init);
+      })
+      .catch((msg) => {
+        console.error(msg);
+        this.fetching = false;
+      });
   }
 
   static get observedAttributes(): string[] {

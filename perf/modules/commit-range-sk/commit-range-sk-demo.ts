@@ -1,5 +1,5 @@
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { CommitRangeSk } from './commit-range-sk';
 
@@ -38,7 +38,8 @@ fetchMock.post('/_/cid/', () => ({
       url: 'https://skia.googlesource.com/skia/+show/9039c60688c9511f9a553cd2443e412f68b5a107',
     },
   ],
-  logEntry: 'commit 3b8de1058a896b613b451db1b6e2b28d58f64a4a\nAuthor: Joe Gregorio \u003cjcgregorio@google.com\u003e\nDate:   Mon Feb 13 10:20:19 2023 -0500\n\n    Add -prune to gazelle_update_repo run of gazelle.\n    \n    Bug: b/269015892\n    Change-Id: Iafd3c63e2e952ce1b95b52e56fb6d93a9410f69c\n    Reviewed-on: https://skia-review.googlesource.com/c/skia/+/642338\n    Reviewed-by: Leandro Lovisolo \u003clovisolo@google.com\u003e\n    Commit-Queue: Joe Gregorio \u003cjcgregorio@google.com\u003e\n',
+  logEntry:
+    'commit 3b8de1058a896b613b451db1b6e2b28d58f64a4a\nAuthor: Joe Gregorio \u003cjcgregorio@google.com\u003e\nDate:   Mon Feb 13 10:20:19 2023 -0500\n\n    Add -prune to gazelle_update_repo run of gazelle.\n    \n    Bug: b/269015892\n    Change-Id: Iafd3c63e2e952ce1b95b52e56fb6d93a9410f69c\n    Reviewed-on: https://skia-review.googlesource.com/c/skia/+/642338\n    Reviewed-by: Leandro Lovisolo \u003clovisolo@google.com\u003e\n    Commit-Queue: Joe Gregorio \u003cjcgregorio@google.com\u003e\n',
 }));
 
 window.customElements.whenDefined('commit-range-sk').then(async () => {

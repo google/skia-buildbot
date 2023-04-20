@@ -8,7 +8,8 @@ import { DefaultMap } from '../default-map';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('android-layers-sk', () => {
-  const newInstance = setUpElementUnderTest<AndroidLayersSk>('android-layers-sk');
+  const newInstance =
+    setUpElementUnderTest<AndroidLayersSk>('android-layers-sk');
 
   let androidLayersSk: AndroidLayersSk;
   beforeEach(() => {

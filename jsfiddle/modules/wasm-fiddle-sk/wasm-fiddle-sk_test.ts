@@ -2,7 +2,8 @@ import './index';
 import { assert } from 'chai';
 import {
   colorPickerRegex,
-  extractControlNames, sliderRegex,
+  extractControlNames,
+  sliderRegex,
 } from './wasm-fiddle-sk';
 
 describe('wasm-fiddle', () => {
@@ -12,12 +13,18 @@ describe('wasm-fiddle', () => {
 #slider1:Foo
 #slider2:Bar
       `;
-      assert.deepEqual([undefined, 'Foo', 'Bar'], extractControlNames(sliderRegex, code));
+      assert.deepEqual(
+        [undefined, 'Foo', 'Bar'],
+        extractControlNames(sliderRegex, code)
+      );
     });
 
     it('finds all sliders on the same line', () => {
       const code = '  #slider1:Foo #slider2:Bar    ';
-      assert.deepEqual([undefined, 'Foo', 'Bar'], extractControlNames(sliderRegex, code));
+      assert.deepEqual(
+        [undefined, 'Foo', 'Bar'],
+        extractControlNames(sliderRegex, code)
+      );
     });
 
     it('does not crash on empty string', () => {
@@ -30,8 +37,16 @@ describe('wasm-fiddle', () => {
   // #slider0:strokeWidth #color0:dashColor
   // #slider1:Bar #color1:Foo
     `;
-      assert.deepEqual(['strokeWidth', 'Bar'], extractControlNames(sliderRegex, code), 'sliders');
-      assert.deepEqual(['dashColor', 'Foo'], extractControlNames(colorPickerRegex, code), 'color pickers');
+      assert.deepEqual(
+        ['strokeWidth', 'Bar'],
+        extractControlNames(sliderRegex, code),
+        'sliders'
+      );
+      assert.deepEqual(
+        ['dashColor', 'Foo'],
+        extractControlNames(colorPickerRegex, code),
+        'color pickers'
+      );
     });
   });
 });

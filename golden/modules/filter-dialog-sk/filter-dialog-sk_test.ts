@@ -2,7 +2,11 @@ import './index';
 
 import { expect } from 'chai';
 import { ParamSet } from '../../../infra-sk/modules/query';
-import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
+import {
+  setUpElementUnderTest,
+  eventPromise,
+  noEventPromise,
+} from '../../../infra-sk/modules/test_util';
 import { FilterDialogSk, Filters } from './filter-dialog-sk';
 import { FilterDialogSkPO } from './filter-dialog-sk_po';
 
@@ -59,7 +63,9 @@ describe('filter-dialog-sk', () => {
     await filterDialogSkPO.clickCancelBtn();
 
     filterDialogSk.open(paramSet, differentFilters);
-    expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(differentFilters);
+    expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(
+      differentFilters
+    );
   });
 
   describe('filter button', () => {
@@ -108,7 +114,9 @@ describe('filter-dialog-sk', () => {
       await filterDialogSkPO.clickCancelBtn();
 
       filterDialogSk.open(paramSet, filters);
-      expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(filters);
+      expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(
+        filters
+      );
     });
   });
 });

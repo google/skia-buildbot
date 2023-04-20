@@ -1,12 +1,13 @@
 import http from 'http';
 import net from 'net';
 import express from 'express';
-import {
-  Browser, Page, ElementHandle,
-} from 'puppeteer';
+import { Browser, Page, ElementHandle } from 'puppeteer';
 import { launchBrowser } from '../../../puppeteer-tests/util';
 import { PageObjectElement, Serializable } from './page_object_element';
-import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
+import {
+  TestBed,
+  describePageObjectElement,
+} from './page_object_element_test_cases';
 
 describe('PageObjectElement on Puppeter', () => {
   let browser: Browser;
@@ -40,8 +41,12 @@ describe('PageObjectElement on Puppeter', () => {
     await new Promise((resolve) => httpServer.close(resolve));
   });
 
-  beforeEach(async () => { page = await browser.newPage(); });
-  afterEach(async () => { await page.close(); });
+  beforeEach(async () => {
+    page = await browser.newPage();
+  });
+  afterEach(async () => {
+    await page.close();
+  });
 
   // A handle for the top-level element in the HTML provided via the test bed.
   let container: ElementHandle<Element>;
@@ -60,7 +65,9 @@ describe('PageObjectElement on Puppeter', () => {
       // Make sure there is only one top-level element.
       const elements = await page.$$('body > *');
       if (elements.length !== 1) {
-        throw new Error('the given HTML contains more than one top-level element');
+        throw new Error(
+          'the given HTML contains more than one top-level element'
+        );
       }
 
       // Retrieve the top-level element and wrap it inside a PageObjectElement.
@@ -68,7 +75,9 @@ describe('PageObjectElement on Puppeter', () => {
       return new PageObjectElement(container);
     },
 
-    evaluate: async <T extends Serializable | void = void>(fn: (el: Element)=> T) => await container.evaluate(fn) as T,
+    evaluate: async <T extends Serializable | void = void>(
+      fn: (el: Element) => T
+    ) => (await container.evaluate(fn)) as T,
   };
 
   describePageObjectElement(testBed);

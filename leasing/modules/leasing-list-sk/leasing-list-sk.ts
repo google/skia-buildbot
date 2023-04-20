@@ -8,8 +8,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -46,7 +46,11 @@ export class LeasingListSk extends ElementSk {
     this._render();
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
     switch (name) {
       case 'filter_by_user':
         if (newValue !== '') {
@@ -62,9 +66,9 @@ export class LeasingListSk extends ElementSk {
   }
 
   private displayTasks(): TemplateResult[] {
-    return this.tasks.map((task) => html`
-      <leasing-task-sk .task=${task}></leasing-task-sk>
-    `);
+    return this.tasks.map(
+      (task) => html` <leasing-task-sk .task=${task}></leasing-task-sk> `
+    );
   }
 
   private fetchTasks(): void {

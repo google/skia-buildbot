@@ -43,7 +43,7 @@ export function addParamsToParamSet(ps: ParamSet, p: Params): void {
 }
 
 export function paramsToParamSet(p: Params): ParamSet {
-  const ret: ParamSet = { };
+  const ret: ParamSet = {};
 
   Object.entries(p).forEach((value: [string, string]) => {
     ret[value[0]] = [value[1]];

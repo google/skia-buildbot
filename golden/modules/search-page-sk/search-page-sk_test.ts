@@ -4,15 +4,31 @@ import { expect } from 'chai';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { fromObject } from '../../../infra-sk/modules/query';
 import {
-  searchResponse, statusResponse, paramSetResponse, changeListSummaryResponse, groupingsResponse,
+  searchResponse,
+  statusResponse,
+  paramSetResponse,
+  changeListSummaryResponse,
+  groupingsResponse,
 } from './demo_data';
 import {
-  setUpElementUnderTest, eventSequencePromise, eventPromise, setQueryString, expectQueryStringToEqual, noEventPromise,
+  setUpElementUnderTest,
+  eventSequencePromise,
+  eventPromise,
+  setQueryString,
+  expectQueryStringToEqual,
+  noEventPromise,
 } from '../../../infra-sk/modules/test_util';
-import { SearchPageSk, SearchRequest, DEFAULT_SEARCH_RESULTS_LIMIT } from './search-page-sk';
+import {
+  SearchPageSk,
+  SearchRequest,
+  DEFAULT_SEARCH_RESULTS_LIMIT,
+} from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
 import {
-  Label, SearchResponse, TriageRequestV3, TriageResponse,
+  Label,
+  SearchResponse,
+  TriageRequestV3,
+  TriageResponse,
 } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
@@ -111,7 +127,7 @@ describe('search-page-sk', () => {
     fetchMock.getOnce('/json/v1/groupings', () => groupingsResponse);
     fetchMock.get(
       `/json/v2/search?${fromObject(opts.expectedInitialSearchRequest as any)}`,
-      () => opts.initialSearchResponse,
+      () => opts.initialSearchResponse
     );
 
     // We always wait for at least the four above RPCs.
@@ -120,7 +136,10 @@ describe('search-page-sk', () => {
     // This mocked RPC corresponds to the queryStringWithCL and searchRequestWithCL constants
     // defined above.
     if (opts.mockAndWaitForChangelistSummaryRPC) {
-      fetchMock.getOnce('/json/v2/changelist/gerrit/123456', () => changeListSummaryResponse);
+      fetchMock.getOnce(
+        '/json/v2/changelist/gerrit/123456',
+        () => changeListSummaryResponse
+      );
       eventsToWaitFor.push('end-task');
     }
 
@@ -159,10 +178,10 @@ describe('search-page-sk', () => {
   const searchFieldIsBoundToURLAndRPC = <T>(
     instantiationOpts: Partial<InstantiationOptions>,
     queryStringWithSearchField: string,
-    uiValueGetterFn: ()=> Promise<T>,
-    uiValueSetterFn: ()=> Promise<void>,
+    uiValueGetterFn: () => Promise<T>,
+    uiValueSetterFn: () => Promise<void>,
     expectedUiValue: T,
-    expectedSearchRequest: SearchRequest,
+    expectedSearchRequest: SearchRequest
   ) => {
     it('is read from the URL and included in the initial search RPC', async () => {
       // We initialize the search page using a query string that contains the search field under
@@ -188,7 +207,8 @@ describe('search-page-sk', () => {
       // If the RPC is not called with the expected SearchRequest, the top-level afterEach() hook
       // will fail.
       fetchMock.get(
-        `/json/v2/search?${fromObject(expectedSearchRequest as any)}`, () => searchResponse,
+        `/json/v2/search?${fromObject(expectedSearchRequest as any)}`,
+        () => searchResponse
       );
 
       // Set the search field under test via the UI and wait for the above RPC to complete.
@@ -209,8 +229,11 @@ describe('search-page-sk', () => {
       // We will trigger a search RPC using the pagination-sk element's "next" button. The exact
       // element does not matter as long as a search RPC is triggered.
       fetchMock.get(
-        `/json/v2/search?${fromObject({ ...defaultSearchRequest, offset: 50 })}`,
-        () => searchResponse, // This test does not care about the search response. Any is fine.
+        `/json/v2/search?${fromObject({
+          ...defaultSearchRequest,
+          offset: 50,
+        })}`,
+        () => searchResponse // This test does not care about the search response. Any is fine.
       );
 
       const beginTaskEvent = eventPromise('begin-task');
@@ -231,10 +254,16 @@ describe('search-page-sk', () => {
     const itIsBoundToURLAndRPC = (
       queryString: string,
       searchCriteria: Partial<SearchCriteria>,
-      serachRequest: Partial<SearchRequest>,
+      serachRequest: Partial<SearchRequest>
     ) => {
-      const expectedSearchCriteria: SearchCriteria = { ...defaultSearchCriteria, ...searchCriteria };
-      const expectedSearchRequest: SearchRequest = { ...defaultSearchRequest, ...serachRequest };
+      const expectedSearchCriteria: SearchCriteria = {
+        ...defaultSearchCriteria,
+        ...searchCriteria,
+      };
+      const expectedSearchRequest: SearchRequest = {
+        ...defaultSearchRequest,
+        ...serachRequest,
+      };
 
       searchFieldIsBoundToURLAndRPC<SearchCriteria>(
         /* initializationOpts= */ {},
@@ -242,7 +271,7 @@ describe('search-page-sk', () => {
         () => searchControlsSkPO.getSearchCriteria(),
         () => searchControlsSkPO.setSearchCriteria(expectedSearchCriteria!),
         expectedSearchCriteria!,
-        expectedSearchRequest!,
+        expectedSearchRequest!
       );
     };
 
@@ -250,7 +279,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?corpus=my-corpus',
         { corpus: 'my-corpus' },
-        { query: 'source_type=my-corpus', rquery: 'source_type=my-corpus' },
+        { query: 'source_type=my-corpus', rquery: 'source_type=my-corpus' }
       );
     });
 
@@ -258,7 +287,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?left_filter=name%3Dam_email-chooser-sk',
         { leftHandTraceFilter: { name: ['am_email-chooser-sk'] } },
-        { query: 'name=am_email-chooser-sk&source_type=infra' },
+        { query: 'name=am_email-chooser-sk&source_type=infra' }
       );
     });
 
@@ -266,7 +295,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?right_filter=name%3Dam_email-chooser-sk',
         { rightHandTraceFilter: { name: ['am_email-chooser-sk'] } },
-        { rquery: 'name=am_email-chooser-sk&source_type=infra' },
+        { rquery: 'name=am_email-chooser-sk&source_type=infra' }
       );
     });
 
@@ -274,7 +303,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?positive=true',
         { includePositiveDigests: true },
-        { pos: true },
+        { pos: true }
       );
     });
 
@@ -282,7 +311,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?negative=true',
         { includeNegativeDigests: true },
-        { neg: true },
+        { neg: true }
       );
     });
 
@@ -291,7 +320,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?untriaged=false',
         { includeUntriagedDigests: false },
-        { unt: false },
+        { unt: false }
       );
     });
 
@@ -299,7 +328,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?not_at_head=true',
         { includeDigestsNotAtHead: true },
-        { head: false },
+        { head: false }
       ); // SearchRequest field "head" means "at head only".
     });
 
@@ -307,7 +336,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?include_ignored=true',
         { includeIgnoredDigests: true },
-        { include: true },
+        { include: true }
       );
     });
 
@@ -315,7 +344,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?min_rgba=10',
         { minRGBADelta: 10 },
-        { frgbamin: 10 },
+        { frgbamin: 10 }
       );
     });
 
@@ -323,7 +352,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?max_rgba=200',
         { maxRGBADelta: 200 },
-        { frgbamax: 200 },
+        { frgbamax: 200 }
       );
     });
 
@@ -331,7 +360,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?max_rgba=200',
         { maxRGBADelta: 200 },
-        { frgbamax: 200 },
+        { frgbamax: 200 }
       );
     });
 
@@ -339,7 +368,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?reference_image_required=true',
         { mustHaveReferenceImage: true },
-        { fref: true },
+        { fref: true }
       );
     });
 
@@ -347,7 +376,7 @@ describe('search-page-sk', () => {
       itIsBoundToURLAndRPC(
         '?sort=ascending',
         { sortOrder: 'ascending' },
-        { sort: 'asc' },
+        { sort: 'asc' }
       );
     });
   });
@@ -362,15 +391,15 @@ describe('search-page-sk', () => {
     });
 
     it(
-      'is visible if a CL is provided in the query string and /json/v2/changelist returns a '
-        + 'non-empty response',
+      'is visible if a CL is provided in the query string and /json/v2/changelist returns a ' +
+        'non-empty response',
       async () => {
-      // We instantiate the serach page with URL parameters "crs" and "issue", which causes it to
-      // make an RPC to /json/v2/changelist. The returned changelist summary is passed to the
-      // changelist-controls-sk component, which then makes itself visible.
+        // We instantiate the serach page with URL parameters "crs" and "issue", which causes it to
+        // make an RPC to /json/v2/changelist. The returned changelist summary is passed to the
+        // changelist-controls-sk component, which then makes itself visible.
         await instantiate(instantiationOptionsWithCL);
         expect(await changelistControlsSkPO.isVisible()).to.be.true;
-      },
+      }
     );
 
     describe('field "patchset"', () => {
@@ -380,7 +409,7 @@ describe('search-page-sk', () => {
         () => changelistControlsSkPO.getPatchset(),
         () => changelistControlsSkPO.setPatchset('PS 1'),
         /* expectedUiValue= */ 'PS 1',
-        { ...searchRequestWithCL, patchsets: 1 },
+        { ...searchRequestWithCL, patchsets: 1 }
       );
     });
 
@@ -393,14 +422,18 @@ describe('search-page-sk', () => {
       searchFieldIsBoundToURLAndRPC<boolean>(
         {
           ...instantiationOptionsWithCL,
-          expectedInitialSearchRequest: { ...searchRequestWithCL, master: true, patchsets: 2 },
+          expectedInitialSearchRequest: {
+            ...searchRequestWithCL,
+            master: true,
+            patchsets: 2,
+          },
           initialQueryString: `${queryStringWithCL}&master=true&patchsets=2`,
         },
         `${queryStringWithCL}&patchsets=2`,
         () => changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked(),
         () => changelistControlsSkPO.clickExcludeResultsFromPrimaryRadio(),
         /* expectedUiValue= */ true,
-        { ...searchRequestWithCL, patchsets: 2 },
+        { ...searchRequestWithCL, patchsets: 2 }
       );
     });
 
@@ -411,20 +444,21 @@ describe('search-page-sk', () => {
         () => changelistControlsSkPO.isShowAllResultsRadioChecked(),
         () => changelistControlsSkPO.clickShowAllResultsRadio(),
         /* expectedUiValue= */ true,
-        { ...searchRequestWithCL, master: true, patchsets: 2 },
+        { ...searchRequestWithCL, master: true, patchsets: 2 }
       );
     });
   });
 
-  const testPaginationSk = (getPaginationSkPO: ()=> PaginationSkPO) => {
+  const testPaginationSk = (getPaginationSkPO: () => PaginationSkPO) => {
     // Returns the current page displayed by both the top and bottom pagination-sk elements as a
     // single pipe-separated string (e.g. "4|4"). This allows us to test that both elements show
     // the same page number.
-    const getCurrentPageFromBothPaginationSkElements = async (): Promise<string> => {
-      const top = await topPaginationSkPO.getCurrentPage();
-      const bottom = await bottomPaginationSkPO.getCurrentPage();
-      return `${top}|${bottom}`;
-    };
+    const getCurrentPageFromBothPaginationSkElements =
+      async (): Promise<string> => {
+        const top = await topPaginationSkPO.getCurrentPage();
+        const bottom = await bottomPaginationSkPO.getCurrentPage();
+        return `${top}|${bottom}`;
+      };
 
     describe('button "next" with no explicit "limit" URL parameter', () => {
       searchFieldIsBoundToURLAndRPC<string>(
@@ -436,7 +470,7 @@ describe('search-page-sk', () => {
         getCurrentPageFromBothPaginationSkElements,
         () => getPaginationSkPO().clickNextBtn(),
         /* expectedUiValue= */ '2|2',
-        { ...defaultSearchRequest, offset: 50 },
+        { ...defaultSearchRequest, offset: 50 }
       );
     });
 
@@ -450,7 +484,7 @@ describe('search-page-sk', () => {
         getCurrentPageFromBothPaginationSkElements,
         () => getPaginationSkPO().clickNextBtn(),
         /* expectedUiValue= */ '2|2',
-        { ...defaultSearchRequest, limit: 3, offset: 3 },
+        { ...defaultSearchRequest, limit: 3, offset: 3 }
       );
     });
 
@@ -464,7 +498,7 @@ describe('search-page-sk', () => {
         getCurrentPageFromBothPaginationSkElements,
         () => getPaginationSkPO().clickSkipBtn(),
         /* expectedUiValue= */ '6|6',
-        { ...defaultSearchRequest, limit: 3, offset: 15 },
+        { ...defaultSearchRequest, limit: 3, offset: 15 }
       );
     });
 
@@ -472,13 +506,17 @@ describe('search-page-sk', () => {
       searchFieldIsBoundToURLAndRPC<string>(
         {
           initialQueryString: '?limit=3&offset=12',
-          expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3, offset: 12 },
+          expectedInitialSearchRequest: {
+            ...defaultSearchRequest,
+            limit: 3,
+            offset: 12,
+          },
         },
         '?limit=3&offset=9',
         getCurrentPageFromBothPaginationSkElements,
         () => getPaginationSkPO().clickPrevBtn(),
         /* expectedUiValue= */ '4|4',
-        { ...defaultSearchRequest, limit: 3, offset: 9 },
+        { ...defaultSearchRequest, limit: 3, offset: 9 }
       );
     });
   };
@@ -495,8 +533,9 @@ describe('search-page-sk', () => {
     it('shows empty search results', async () => {
       await instantiate({ initialSearchResponse: emptySearchResponse });
 
-      expect(await searchPageSkPO.getSummary())
-        .to.equal('No results matched your search criteria.');
+      expect(await searchPageSkPO.getSummary()).to.equal(
+        'No results matched your search criteria.'
+      );
       expect(await searchPageSkPO.getDigests()).to.be.empty;
       expect(await topPaginationSkPO.isEmpty()).to.be.true;
       expect(await bottomPaginationSkPO.isEmpty()).to.be.true;
@@ -505,7 +544,9 @@ describe('search-page-sk', () => {
     it('shows search results', async () => {
       await instantiate();
 
-      expect(await searchPageSkPO.getSummary()).to.equal('Showing results 1 to 3 (out of 85).');
+      expect(await searchPageSkPO.getSummary()).to.equal(
+        'Showing results 1 to 3 (out of 85).'
+      );
       expect(await searchPageSkPO.getDigests()).to.deep.equal([
         'Left: fbd3de3fff6b852ae0bb6751b9763d27',
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
@@ -555,7 +596,7 @@ describe('search-page-sk', () => {
         await instantiate();
         fetchMock.post(
           { url: '/json/v3/triage', body: triageRequest },
-          { status: 200, body: triageResponse },
+          { status: 200, body: triageResponse }
         );
 
         const digest = await searchPageSkPO.digestDetailsSkPOs.item(0);
@@ -571,7 +612,7 @@ describe('search-page-sk', () => {
         };
         fetchMock.post(
           { url: '/json/v3/triage', body: triageRequestForCL },
-          { status: 200, body: triageResponse },
+          { status: 200, body: triageResponse }
         );
 
         const digest = await searchPageSkPO.digestDetailsSkPOs.item(0);
@@ -591,7 +632,8 @@ describe('search-page-sk', () => {
           '?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         expectedInitialSearchRequest: {
           ...defaultSearchRequest,
-          blame: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          blame:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         },
       });
     });
@@ -651,7 +693,8 @@ describe('search-page-sk', () => {
       it('does not show an affected CL if none is provided', async () => {
         await instantiate();
         await searchPageSkPO.clickBulkTriageBtn();
-        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.false;
+        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be
+          .false;
       });
 
       it('shows the affected CL if one is provided', async () => {
@@ -659,7 +702,7 @@ describe('search-page-sk', () => {
         await searchPageSkPO.clickBulkTriageBtn();
         expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
         expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal(
-          'This affects Changelist 123456.',
+          'This affects Changelist 123456.'
         );
       });
     });
@@ -699,7 +742,9 @@ describe('search-page-sk', () => {
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v3/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v3/triage', 200, {
+            body: expectedTriageRequest,
+          });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -811,7 +856,9 @@ describe('search-page-sk', () => {
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v3/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v3/triage', 200, {
+            body: expectedTriageRequest,
+          });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -846,10 +893,20 @@ describe('search-page-sk', () => {
     const secondDigest = 'Left: 2fa58aa430e9c815755624ca6cca4a72';
     const thirdDigest = 'Left: ed4a8cf9ea9fbb57bf1f302537e07572';
 
-    const expectLabelsForFirstSecondAndThirdDigestsToBe = async (firstLabel: Label, secondLabel: Label, thirdLabel: Label) => {
-      expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal(firstLabel);
-      expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal(secondLabel);
-      expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal(thirdLabel);
+    const expectLabelsForFirstSecondAndThirdDigestsToBe = async (
+      firstLabel: Label,
+      secondLabel: Label,
+      thirdLabel: Label
+    ) => {
+      expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal(
+        firstLabel
+      );
+      expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal(
+        secondLabel
+      );
+      expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal(
+        thirdLabel
+      );
     };
 
     describe('navigation', () => {
@@ -915,30 +972,53 @@ describe('search-page-sk', () => {
         await instantiate();
 
         // Check initial labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Triaging as positive should have no effect.
         await searchPageSkPO.typeKey('a');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Triaging as negative should have no effect.
         await searchPageSkPO.typeKey('s');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Triaging as untriaged should have no effect.
         await searchPageSkPO.typeKey('d');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
       });
 
       it('can triage the selected digest with keys "A", "S" and "D"', async () => {
         // We ignore the TriageRequest in this test.
         const triageResponse: TriageResponse = { status: 'ok' };
-        fetchMock.post('/json/v3/triage', { status: 200, body: triageResponse });
+        fetchMock.post('/json/v3/triage', {
+          status: 200,
+          body: triageResponse,
+        });
 
         await instantiate();
 
         // Check initial labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Select the second search result.
         await searchPageSkPO.typeKey('j');
@@ -974,9 +1054,17 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be positive, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'positive',
+          'untriaged'
+        );
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'positive',
+          'untriaged'
+        );
 
         // Triage as negative.
         event = eventPromise('end-task');
@@ -984,9 +1072,17 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be negative, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Triage as untriaged.
         event = eventPromise('end-task');
@@ -994,9 +1090,17 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be untriaged, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'untriaged',
+          'untriaged'
+        );
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'untriaged',
+          'untriaged'
+        );
       });
     });
 
@@ -1021,7 +1125,9 @@ describe('search-page-sk', () => {
 
         // The zoom dialog for the second search result should open.
         await searchPageSkPO.typeKey('w');
-        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(secondDigest);
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(
+          secondDigest
+        );
       });
     });
 
@@ -1050,25 +1156,41 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
 
         // Check initial triage labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Shortcut for triaging as positive should have no effect.
         let noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('a');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Shortcut for triaging as negative should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('s');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Shortcut for triaging as untriagaed should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('d');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe(
+          'positive',
+          'negative',
+          'untriaged'
+        );
 
         // Shortcut for the help dialog should have no effect, but we can only test this if the
         // help dialog is not already open, otherwise the shortcut has no effect.
@@ -1093,7 +1215,8 @@ describe('search-page-sk', () => {
       });
 
       it('disables keyboard shortcuts when the left-hand trace filter dialog is open', async () => {
-        const leftHandTraceFilterSkPO = await searchControlsSkPO.traceFilterSkPO;
+        const leftHandTraceFilterSkPO =
+          await searchControlsSkPO.traceFilterSkPO;
         await leftHandTraceFilterSkPO.clickEditBtn(); // Open left-hand trace filter dialog.
 
         expect(await leftHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
@@ -1108,25 +1231,23 @@ describe('search-page-sk', () => {
         await expectKeyboardShortcutsToBeDisabled();
       });
 
-      it(
-        'disables keyboard shortcuts when the right-hand trace filter dialog is open',
-        async () => {
-          const filterDialogSkPO = await searchControlsSkPO.filterDialogSkPO;
-          await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
+      it('disables keyboard shortcuts when the right-hand trace filter dialog is open', async () => {
+        const filterDialogSkPO = await searchControlsSkPO.filterDialogSkPO;
+        await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
 
-          const rightHandTraceFilterSkPO = await filterDialogSkPO.traceFilterSkPO;
-          await rightHandTraceFilterSkPO.clickEditBtn(); // Open right-hand trace filter dialog.
+        const rightHandTraceFilterSkPO = await filterDialogSkPO.traceFilterSkPO;
+        await rightHandTraceFilterSkPO.clickEditBtn(); // Open right-hand trace filter dialog.
 
-          expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
-          expect(await rightHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
-          await expectKeyboardShortcutsToBeDisabled();
-        },
-      );
+        expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
+        expect(await rightHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
 
       it('disables keyboard shortcuts when the zoom dialog is open', async () => {
         await searchPageSkPO.typeKey('w'); // Open zoom dialog.
 
-        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.not.be.null;
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.not.be
+          .null;
         await expectKeyboardShortcutsToBeDisabled();
       });
     });

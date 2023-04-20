@@ -1,9 +1,11 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import {
-  singleResultCanDelete, singleResultNoDelete, resultSetTwoItems,
+  singleResultCanDelete,
+  singleResultNoDelete,
+  resultSetTwoItems,
 } from './test_data';
 
 function newTaskQueue(parentSelector: string) {

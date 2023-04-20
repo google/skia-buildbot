@@ -6,8 +6,8 @@
  *
  * It emits events when the user takes actions.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/checkbox-sk';
 import { SwarmingDimensions } from '../json';
@@ -40,52 +40,98 @@ export class DeviceEditorSk extends ElementSk {
   private dimensions: SwarmingDimensions = {};
 
   private static template = (ele: DeviceEditorSk) => html`
-  <dialog class="info">
-    <h1>Edit device dimensions for ${ele.machineID}</h1>
+    <dialog class="info">
+      <h1>Edit device dimensions for ${ele.machineID}</h1>
 
-    <div class="center">Set the below boxes to indicate a ChromeOS machine</div>
-    <table>
-      <tr>
-        <td>User and IP address:</td>
-        <td><input placeholder="e.g. root@skia-pixelbook-01" type=text
-                   id="user_ip" .value=${ele.sshUserIP}></td>
-      </tr>
-      <tr>
-        <td>GPU (from chrome://gpu/). Comma seperated if multiple.</td>
-        <td><input type=text id="chromeos_gpu"
-                   .value=${ele.displayDimensions('gpu')}></td>
-      </tr>
-      <tr>
-        <td>CPU (x86,x86_64,arm,arm32,arm64). Comma seperated if multiple.</td>
-        <td><input type=text id="chromeos_cpu"
-                   .value=${ele.displayDimensions('cpu')}></td>
-      </tr>
-    </table>
+      <div class="center">
+        Set the below boxes to indicate a ChromeOS machine
+      </div>
+      <table>
+        <tr>
+          <td>User and IP address:</td>
+          <td>
+            <input
+              placeholder="e.g. root@skia-pixelbook-01"
+              type="text"
+              id="user_ip"
+              .value=${ele.sshUserIP}
+            />
+          </td>
+        </tr>
+        <tr>
+          <td>GPU (from chrome://gpu/). Comma seperated if multiple.</td>
+          <td>
+            <input
+              type="text"
+              id="chromeos_gpu"
+              .value=${ele.displayDimensions('gpu')}
+            />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            CPU (x86,x86_64,arm,arm32,arm64). Comma seperated if multiple.
+          </td>
+          <td>
+            <input
+              type="text"
+              id="chromeos_cpu"
+              .value=${ele.displayDimensions('cpu')}
+            />
+          </td>
+        </tr>
+      </table>
 
-    <div class=buttons>
-      <button title="Make the machine forget it had any device attached."
-              @click=${ele.confirmClearClick} class=clear>Clear Device Dimensions</button>
-      <button title="Apply the above dimensions and user ip"
-              @click=${ele.applyUpdates} class=apply>Apply Updates</button>
-      <button title="Do nothing except close the dialog box. The machine remains unchanged."
-              @click=${ele.cancelClick} class=cancel>Cancel</button>
-    </div>
-  </dialog>
-  <dialog class="confirm">
-    <div class="warning">
-      Clearing the dimensions, especially for ChromeOS can be annoying to undo.
-      <br>
-      Are you sure?
-      <br>
-    </div>
+      <div class="buttons">
+        <button
+          title="Make the machine forget it had any device attached."
+          @click=${ele.confirmClearClick}
+          class="clear"
+        >
+          Clear Device Dimensions
+        </button>
+        <button
+          title="Apply the above dimensions and user ip"
+          @click=${ele.applyUpdates}
+          class="apply"
+        >
+          Apply Updates
+        </button>
+        <button
+          title="Do nothing except close the dialog box. The machine remains unchanged."
+          @click=${ele.cancelClick}
+          class="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </dialog>
+    <dialog class="confirm">
+      <div class="warning">
+        Clearing the dimensions, especially for ChromeOS can be annoying to
+        undo.
+        <br />
+        Are you sure?
+        <br />
+      </div>
 
-    <div>
-      <button title="Do nothing except close the dialog box. The machine remains unchanged."
-              @click=${ele.cancelClick} class=cancel>Cancel</button>
-      <button title="Make the machine forget it had any device attached."
-              @click=${ele.clearClick} class=clear_yes_im_sure>Yes, clear the dimensions</button>
-    </div>
-  </dialog>
+      <div>
+        <button
+          title="Do nothing except close the dialog box. The machine remains unchanged."
+          @click=${ele.cancelClick}
+          class="cancel"
+        >
+          Cancel
+        </button>
+        <button
+          title="Make the machine forget it had any device attached."
+          @click=${ele.clearClick}
+          class="clear_yes_im_sure"
+        >
+          Yes, clear the dimensions
+        </button>
+      </div>
+    </dialog>
   `;
 
   constructor() {
@@ -96,24 +142,31 @@ export class DeviceEditorSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.infoDialog = this.querySelector<HTMLDialogElement>('dialog.info');
-    this.confirmDialog = this.querySelector<HTMLDialogElement>('dialog.confirm');
+    this.confirmDialog =
+      this.querySelector<HTMLDialogElement>('dialog.confirm');
   }
 
   private applyUpdates(): void {
-    const gpus = $$<HTMLInputElement>('input#chromeos_gpu', this)!.value.split(',');
-    const cpus = $$<HTMLInputElement>('input#chromeos_cpu', this)!.value.split(',');
+    const gpus = $$<HTMLInputElement>('input#chromeos_gpu', this)!.value.split(
+      ','
+    );
+    const cpus = $$<HTMLInputElement>('input#chromeos_cpu', this)!.value.split(
+      ','
+    );
 
-    this.dispatchEvent(new CustomEvent<UpdateDimensionsDetails>(UpdateDimensionsEvent, {
-      bubbles: true,
-      detail: {
-        machineID: this.machineID,
-        sshUserIP: $$<HTMLInputElement>('input#user_ip', this)!.value,
-        specifiedDimensions: {
-          gpu: gpus,
-          cpu: cpus,
+    this.dispatchEvent(
+      new CustomEvent<UpdateDimensionsDetails>(UpdateDimensionsEvent, {
+        bubbles: true,
+        detail: {
+          machineID: this.machineID,
+          sshUserIP: $$<HTMLInputElement>('input#user_ip', this)!.value,
+          specifiedDimensions: {
+            gpu: gpus,
+            cpu: cpus,
+          },
         },
-      },
-    }));
+      })
+    );
     this.infoDialog?.close();
   }
 
@@ -125,10 +178,12 @@ export class DeviceEditorSk extends ElementSk {
   private clearClick(): void {
     this.infoDialog?.close();
     this.confirmDialog?.close();
-    this.dispatchEvent(new CustomEvent<string>(ClearDeviceEvent, {
-      bubbles: true,
-      detail: this.machineID,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<string>(ClearDeviceEvent, {
+        bubbles: true,
+        detail: this.machineID,
+      })
+    );
   }
 
   private confirmClearClick(): void {

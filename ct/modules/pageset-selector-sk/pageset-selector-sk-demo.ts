@@ -1,7 +1,7 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { pageSets } from './test_data';
 
 fetchMock.post('begin:/_/page_sets/', pageSets);

@@ -7,8 +7,8 @@
  * @event rollers-update: Periodic event for updated roller status. Detail
  * is of type Array<AutorollerStatus>
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { StatusService, GetStatusService, AutorollerStatus } from '../rpc';
 
@@ -31,9 +31,11 @@ function colorClass(status: AutorollerStatus) {
   }
   if (status.mode === 'stopped') {
     return 'bg-unexpected';
-  } if (badness < 0.5) {
+  }
+  if (badness < 0.5) {
     return 'bg-success';
-  } if (badness < 1.0) {
+  }
+  if (badness < 1.0) {
     return 'bg-warning';
   }
   return 'bg-failure';
@@ -45,30 +47,30 @@ export class AutorollerStatusSk extends ElementSk {
   private rollers: Array<AutorollerStatus> = [];
 
   private static template = (el: AutorollerStatusSk) => html`
-      <div class="table">
-        <div class="tr">
-          <div class="th">Roller</div>
-          <div class="th">Mode</div>
-          <div class="th">Failed</div>
-          <div class="th">Behind</div>
-        </div>
-        ${el.rollers.map(
-    (roller) => html`
-            <a
-              class="tr roller ${colorClass(roller)}"
-              href=${roller.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <div class="td">${roller.name}</div>
-              <div class="td">${roller.mode}</div>
-              <div class="td number">${roller.numFailed}</div>
-              <div class="td number">${roller.numBehind}</div>
-            </a>
-          `,
-  )}
+    <div class="table">
+      <div class="tr">
+        <div class="th">Roller</div>
+        <div class="th">Mode</div>
+        <div class="th">Failed</div>
+        <div class="th">Behind</div>
       </div>
-    `;
+      ${el.rollers.map(
+        (roller) => html`
+          <a
+            class="tr roller ${colorClass(roller)}"
+            href=${roller.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="td">${roller.name}</div>
+            <div class="td">${roller.mode}</div>
+            <div class="td number">${roller.numFailed}</div>
+            <div class="td number">${roller.numBehind}</div>
+          </a>
+        `
+      )}
+    </div>
+  `;
 
   constructor() {
     super(AutorollerStatusSk.template);
@@ -90,7 +92,7 @@ export class AutorollerStatusSk extends ElementSk {
           new CustomEvent<Array<AutorollerStatus>>('rollers-update', {
             bubbles: true,
             detail: this.rollers.slice(),
-          }),
+          })
         );
       })
       .finally(() => {

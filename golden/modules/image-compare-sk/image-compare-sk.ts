@@ -6,8 +6,8 @@
  * only display one.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MultiZoomSk } from '../multi-zoom-sk/multi-zoom-sk';
 
@@ -24,57 +24,80 @@ export interface ImageComparisonData {
 
 export class ImageCompareSk extends ElementSk {
   private static template = (ele: ImageCompareSk) => html`
-    <div class=comparison_bar>
+    <div class="comparison_bar">
       <figure>
-        <img class="thumbnail ${ele._fullSizeLeftImage ? 'fullsize' : ''}"
-             alt="left image"
-             src=${digestImagePath(ele.left.digest)}
-             @click=${ele.toggleFullSizeLeftImage}>
+        <img
+          class="thumbnail ${ele._fullSizeLeftImage ? 'fullsize' : ''}"
+          alt="left image"
+          src=${digestImagePath(ele.left.digest)}
+          @click=${ele.toggleFullSizeLeftImage}
+        />
         <figcaption>
-          <span class=legend_dot></span>
-          <a target=_blank rel=noopener href=${ele.left.detail}>${ele.left.title}</a>
+          <span class="legend_dot"></span>
+          <a target="_blank" rel="noopener" href=${ele.left.detail}
+            >${ele.left.title}</a
+          >
         </figcaption>
       </figure>
-      <a target=_blank rel=noopener href=${digestImagePath(ele.left.digest)}>
+      <a
+        target="_blank"
+        rel="noopener"
+        href=${digestImagePath(ele.left.digest)}
+      >
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
       ${ImageCompareSk.comparison(ele)}
     </div>
 
-    <button class=zoom_btn ?hidden=${!ele.right} @click=${ele.openZoomWindow}>Zoom</button>
-    <dialog class=zoom_dialog @close=${ele.closeEvent}))}>
-      <button class=close_btn @click=${ele.closeDialog}>Close</button>
+    <button class="zoom_btn" ?hidden=${!ele.right} @click=${ele.openZoomWindow}>
+      Zoom
+    </button>
+    <dialog class="zoom_dialog" @close="${ele.closeEvent}))}">
+      <button class="close_btn" @click=${ele.closeDialog}>Close</button>
     </dialog>
   `;
 
   private static comparison = (ele: ImageCompareSk) => {
     if (!ele.right) {
       if (ele.isComputingDiffs) {
-        return html`<div class=computing title="Check back later">
-            Computing closest positive and negative image. Check back later.</div>`;
+        return html`<div class="computing" title="Check back later">
+          Computing closest positive and negative image. Check back later.
+        </div>`;
       }
-      return html`<div class=no_compare>No other images to compare against.</div>`;
+      return html`<div class="no_compare">
+        No other images to compare against.
+      </div>`;
     }
     const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
     return html`
-      <img class="thumbnail diff ${ele._fullSizeDiffImage ? 'fullsize' : ''}"
-           alt="diff between left and right image"
-           src=${diffSrc}
-           @click=${ele.toggleFullSizeDiffImage}>
-      <a target=_blank rel=noopener href=${diffSrc}>
+      <img
+        class="thumbnail diff ${ele._fullSizeDiffImage ? 'fullsize' : ''}"
+        alt="diff between left and right image"
+        src=${diffSrc}
+        @click=${ele.toggleFullSizeDiffImage}
+      />
+      <a target="_blank" rel="noopener" href=${diffSrc}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
 
       <figure>
-        <img class="thumbnail ${ele._fullSizeRightImage ? 'fullsize' : ''}"
-             alt="right image"
-             src=${digestImagePath(ele.right.digest)}
-             @click=${ele.toggleFullSizeRightImage}>
+        <img
+          class="thumbnail ${ele._fullSizeRightImage ? 'fullsize' : ''}"
+          alt="right image"
+          src=${digestImagePath(ele.right.digest)}
+          @click=${ele.toggleFullSizeRightImage}
+        />
         <figcaption>
-          <a target=_blank rel=noopener href=${ele.right.detail}>${ele.right.title}</a>
+          <a target="_blank" rel="noopener" href=${ele.right.detail}
+            >${ele.right.title}</a
+          >
         </figcaption>
       </figure>
-      <a target=_blank rel=noopener href=${digestImagePath(ele.right.digest)}>
+      <a
+        target="_blank"
+        rel="noopener"
+        href=${digestImagePath(ele.right.digest)}
+      >
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
     `;
@@ -86,7 +109,7 @@ export class ImageCompareSk extends ElementSk {
     // We can't derive the detail url w/o also passing down changelistID, crs etc, so we have
     // the caller compute those URLs and pass them into this element.
     detail: '',
-  }
+  };
 
   private _right: ImageComparisonData | null = null;
 
@@ -109,21 +132,27 @@ export class ImageCompareSk extends ElementSk {
     this._render();
   }
 
-  get isComputingDiffs(): boolean { return this.computingDiffs; }
+  get isComputingDiffs(): boolean {
+    return this.computingDiffs;
+  }
 
   set isComputingDiffs(b: boolean) {
     this.computingDiffs = b;
     this._render();
   }
 
-  get left(): ImageComparisonData { return this._left; }
+  get left(): ImageComparisonData {
+    return this._left;
+  }
 
   set left(img: ImageComparisonData) {
     this._left = img;
     this._render();
   }
 
-  get right(): ImageComparisonData | null { return this._right; }
+  get right(): ImageComparisonData | null {
+    return this._right;
+  }
 
   set right(img: ImageComparisonData | null) {
     this._right = img;

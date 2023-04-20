@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import {
   inBazel,
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('day-range-sk', () => {

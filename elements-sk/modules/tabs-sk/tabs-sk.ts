@@ -72,9 +72,13 @@ export class TabsSk extends HTMLElement {
   }
 
   /** Reflects the 'selected' attribute.  */
-  get selected(): number { return +(this.getAttribute('selected') || ''); }
+  get selected(): number {
+    return +(this.getAttribute('selected') || '');
+  }
 
-  set selected(val: number) { this.setAttribute('selected', String(val)); }
+  set selected(val: number) {
+    this.setAttribute('selected', String(val));
+  }
 
   /**
    * Force the selection of a tab
@@ -92,10 +96,12 @@ export class TabsSk extends HTMLElement {
 
   private _trigger(index: number, trigger: boolean): void {
     if (trigger) {
-      this.dispatchEvent(new CustomEvent<TabSelectedSkEventDetail>('tab-selected-sk', {
-        bubbles: true,
-        detail: { index: index },
-      }));
+      this.dispatchEvent(
+        new CustomEvent<TabSelectedSkEventDetail>('tab-selected-sk', {
+          bubbles: true,
+          detail: { index: index },
+        })
+      );
     }
     if (this.nextElementSibling?.tagName === 'TABS-PANEL-SK') {
       this.nextElementSibling.setAttribute('selected', String(index));

@@ -8,7 +8,11 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import { fromObject, fromParamSet, ParamSet } from '../../../infra-sk/modules/query';
+import {
+  fromObject,
+  fromParamSet,
+  ParamSet,
+} from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
@@ -86,18 +90,27 @@ export interface SearchRequest {
 }
 
 export class SearchPageSk extends ElementSk {
-  private static template = (el: SearchPageSk) => html`
-    <div class="top-controls">
-      <search-controls-sk .corpora=${el.corpora}
-                          .searchCriteria=${el.searchCriteria}
-                          .paramSet=${el.paramSet}
-                          @search-controls-sk-change=${el.onSearchControlsChange}>
+  private static template = (el: SearchPageSk) => html` <div
+      class="top-controls"
+    >
+      <search-controls-sk
+        .corpora=${el.corpora}
+        .searchCriteria=${el.searchCriteria}
+        .paramSet=${el.paramSet}
+        @search-controls-sk-change=${el.onSearchControlsChange}
+      >
       </search-controls-sk>
       <div class="buttons">
-        <button class="bulk-triage" @click=${() => el.bulkTriageDialog?.showModal()}>
+        <button
+          class="bulk-triage"
+          @click=${() => el.bulkTriageDialog?.showModal()}
+        >
           Bulk Triage
         </button>
-        <button class="full-size-images" @click=${() => el.toggleFullSizeImages()}>
+        <button
+          class="full-size-images"
+          @click=${() => el.toggleFullSizeImages()}
+        >
           Toggle Full Size Images
         </button>
         <button class="help" @click=${() => el.helpDialog?.showModal()}>
@@ -107,49 +120,66 @@ export class SearchPageSk extends ElementSk {
     </div>
 
     <!-- This is only visible when the summary property is not null. -->
-    <changelist-controls-sk .ps_order=${el.patchset}
-                            .include_master=${el.includeDigestsFromPrimary}
-                            .summary=${el.changeListSummaryResponse}
-                            @cl-control-change=${el.onChangelistControlsChange}>
+    <changelist-controls-sk
+      .ps_order=${el.patchset}
+      .include_master=${el.includeDigestsFromPrimary}
+      .summary=${el.changeListSummaryResponse}
+      @cl-control-change=${el.onChangelistControlsChange}
+    >
     </changelist-controls-sk>
 
-    <p class=summary>${SearchPageSk.summary(el)}</p>
+    <p class="summary">${SearchPageSk.summary(el)}</p>
 
     ${SearchPageSk.paginationTemplate(el, 'top')}
 
     <div class="results">
       ${el.searchResponse?.digests?.map(
-    (result: SearchResult | null, idx: number) => SearchPageSk.resultTemplate(
-      el, result, /* selected= */ idx === el.selectedSearchResultIdx,
-    ),
-  )}
+        (result: SearchResult | null, idx: number) =>
+          SearchPageSk.resultTemplate(
+            el,
+            result,
+            /* selected= */ idx === el.selectedSearchResultIdx
+          )
+      )}
     </div>
 
     ${SearchPageSk.paginationTemplate(el, 'bottom')}
 
     <dialog class="bulk-triage">
-      <bulk-triage-sk .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos || []}
-                      .crs=${el.crs || ''}
-                      .changeListID=${el.changelistId || ''}
-                      @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
-                      @bulk_triage_finished=${() => el.fetchSearchResults()}
-                      @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
+      <bulk-triage-sk
+        .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos ||
+        []}
+        .crs=${el.crs || ''}
+        .changeListID=${el.changelistId || ''}
+        @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
+        @bulk_triage_finished=${() => el.fetchSearchResults()}
+        @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}
+      >
       </bulk-triage-sk>
     </dialog>
 
     <dialog class="help">
       <h2>Keyboard shortcuts</h2>
       <dl>
-        <dt>J</dt> <dd>Next digest</dd>
-        <dt>K</dt> <dd>Previous digest</dd>
-        <dt>W</dt> <dd>Zoom into current digest</dd>
-        <dt>A</dt> <dd>Mark as positive</dd>
-        <dt>S</dt> <dd>Mark as negative</dd>
-        <dt>D</dt> <dd>Mark as untriaged</dd>
-        <dt>?</dt> <dd>Show help dialog</dd>
+        <dt>J</dt>
+        <dd>Next digest</dd>
+        <dt>K</dt>
+        <dd>Previous digest</dd>
+        <dt>W</dt>
+        <dd>Zoom into current digest</dd>
+        <dt>A</dt>
+        <dd>Mark as positive</dd>
+        <dt>S</dt>
+        <dd>Mark as negative</dd>
+        <dt>D</dt>
+        <dd>Mark as untriaged</dd>
+        <dt>?</dt>
+        <dd>Show help dialog</dd>
       </dl>
       <div class="buttons">
-        <button class="cancel action" @click=${() => el.helpDialog?.close()}>Close</button>
+        <button class="cancel action" @click=${() => el.helpDialog?.close()}>
+          Close
+        </button>
       </div>
     </dialog>`;
 
@@ -166,29 +196,34 @@ export class SearchPageSk extends ElementSk {
     const last = el.searchResponse.offset + el.searchResponse.digests.length;
     const total = el.searchResponse.size;
     return `Showing results ${first} to ${last} (out of ${total}).`;
-  }
+  };
 
   // Note: The "selected" class is added/removed via DOM manipulations outside of lit-html for
   // performance reasons when navigating search results via the "J" and "K" keyboard shortcuts.
   // This is because re-rendering the search page can be very slow when displaying a large number of
   // search results.
-  private static resultTemplate =
-    (el: SearchPageSk, result: SearchResult | null, selected: boolean) => {
-      if (!result) {
-        return html``;
-      }
-      return html`
-      <digest-details-sk .commits=${el.searchResponse?.commits}
-                         .details=${result}
-                         .groupings=${el.groupings}
-                         .changeListID=${el.changelistId}
-                         .crs=${el.crs}
-                         .fullSizeImages=${el.fullSizeImages}
-                         @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
-                         class="${selected ? 'selected' : ''}">
+  private static resultTemplate = (
+    el: SearchPageSk,
+    result: SearchResult | null,
+    selected: boolean
+  ) => {
+    if (!result) {
+      return html``;
+    }
+    return html`
+      <digest-details-sk
+        .commits=${el.searchResponse?.commits}
+        .details=${result}
+        .groupings=${el.groupings}
+        .changeListID=${el.changelistId}
+        .crs=${el.crs}
+        .fullSizeImages=${el.fullSizeImages}
+        @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
+        class="${selected ? 'selected' : ''}"
+      >
       </digest-details-sk>
     `;
-    }
+  };
 
   private static paginationTemplate = (el: SearchPageSk, cssClass: string) => {
     const numResults = el.searchResponse?.size || 0;
@@ -196,14 +231,16 @@ export class SearchPageSk extends ElementSk {
       return html``;
     }
     return html`
-       <pagination-sk class="${cssClass}"
-                      offset="${el.offset || 0}"
-                      page_size="${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}"
-                      total="${el.searchResponse?.size || 0}"
-                      @page-changed=${el.onPageChange}>
-       </pagination-sk>
+      <pagination-sk
+        class="${cssClass}"
+        offset="${el.offset || 0}"
+        page_size="${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}"
+        total="${el.searchResponse?.size || 0}"
+        @page-changed=${el.onPageChange}
+      >
+      </pagination-sk>
     `;
-  }
+  };
 
   // Reflected to/from the URL and modified by the search-controls-sk.
   private searchCriteria: SearchCriteria = {
@@ -238,7 +275,7 @@ export class SearchPageSk extends ElementSk {
   private offset = 0;
 
   // stateReflector update function.
-  private readonly stateChanged: (()=> void) | null;
+  private readonly stateChanged: (() => void) | null;
 
   // Fields populated from JSON RPCs.
   private corpora: string[] = [];
@@ -261,7 +298,7 @@ export class SearchPageSk extends ElementSk {
 
   private fullSizeImages = false;
 
-  private keyDownEventHandlerFn: ((event: KeyboardEvent)=> void) | null = null;
+  private keyDownEventHandlerFn: ((event: KeyboardEvent) => void) | null = null;
 
   // Search result currently selected (e.g. via the J and K keyboard shortcuts). A negative value
   // represents an empty selection.
@@ -272,7 +309,9 @@ export class SearchPageSk extends ElementSk {
 
     this.stateChanged = stateReflector(
       /* getState */ () => {
-        const state = SearchCriteriaToHintableObject(this.searchCriteria) as HintableObject;
+        const state = SearchCriteriaToHintableObject(
+          this.searchCriteria
+        ) as HintableObject;
         state.blame = this.blame || '';
         state.crs = this.crs || '';
         state.issue = this.changelistId || '';
@@ -305,7 +344,7 @@ export class SearchPageSk extends ElementSk {
         this.fetchSearchResults();
 
         this._render();
-      },
+      }
     );
   }
 
@@ -313,7 +352,8 @@ export class SearchPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    this.keyDownEventHandlerFn = (event: KeyboardEvent) => this.onKeyDown(event);
+    this.keyDownEventHandlerFn = (event: KeyboardEvent) =>
+      this.onKeyDown(event);
     document.addEventListener('keydown', this.keyDownEventHandlerFn);
 
     this.bulkTriageDialog = this.querySelector('dialog.bulk-triage');
@@ -332,7 +372,9 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const statusResponse: StatusResponse = await fetch('/json/v2/trstatus', { method: 'GET' }).then(jsonOrThrow);
+      const statusResponse: StatusResponse = await fetch('/json/v2/trstatus', {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this.corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
       this._render();
       sendEndTask(this);
@@ -350,9 +392,8 @@ export class SearchPageSk extends ElementSk {
       const url = '/json/v2/paramset';
       const paramSetResponse: ParamSetResponse = await fetch(
         url + (changeListId ? `?changelist_id=${changeListId}` : ''),
-        { method: 'GET' },
-      )
-        .then(jsonOrThrow);
+        { method: 'GET' }
+      ).then(jsonOrThrow);
 
       this.paramSet = paramSetResponse as ParamSet;
 
@@ -373,7 +414,9 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      this.groupings = await fetch('/json/v1/groupings', { method: 'GET' }).then(jsonOrThrow);
+      this.groupings = await fetch('/json/v1/groupings', {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -391,8 +434,10 @@ export class SearchPageSk extends ElementSk {
     try {
       sendBeginTask(this);
       const base = '/json/v2/changelist';
-      this.changeListSummaryResponse = await fetch(`${base}/${this.crs}/${this.changelistId}`, { method: 'GET' })
-        .then(jsonOrThrow);
+      this.changeListSummaryResponse = await fetch(
+        `${base}/${this.crs}/${this.changelistId}`,
+        { method: 'GET' }
+      ).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -412,8 +457,12 @@ export class SearchPageSk extends ElementSk {
     // Populate a SearchRequest object, which we'll use to generate the query string for the
     // /json/v1/search RPC.
     const searchRequest: SearchRequest = {
-      query: fromParamSet(insertCorpus(this.searchCriteria.leftHandTraceFilter)),
-      rquery: fromParamSet(insertCorpus(this.searchCriteria.rightHandTraceFilter)),
+      query: fromParamSet(
+        insertCorpus(this.searchCriteria.leftHandTraceFilter)
+      ),
+      rquery: fromParamSet(
+        insertCorpus(this.searchCriteria.rightHandTraceFilter)
+      ),
       pos: this.searchCriteria.includePositiveDigests,
       neg: this.searchCriteria.includeNegativeDigests,
       unt: this.searchCriteria.includeUntriagedDigests,
@@ -431,7 +480,8 @@ export class SearchPageSk extends ElementSk {
     if (this.blame) searchRequest.blame = this.blame;
     if (this.crs) searchRequest.crs = this.crs;
     if (this.changelistId) searchRequest.issue = this.changelistId;
-    if (this.includeDigestsFromPrimary) searchRequest.master = this.includeDigestsFromPrimary;
+    if (this.includeDigestsFromPrimary)
+      searchRequest.master = this.includeDigestsFromPrimary;
     if (this.patchset) searchRequest.patchsets = this.patchset;
 
     return searchRequest;
@@ -453,9 +503,8 @@ export class SearchPageSk extends ElementSk {
       sendBeginTask(this);
       this.searchResponse = await fetch(
         `/json/v2/search?${fromObject(searchRequest as any)}`,
-        { method: 'GET', signal: this.searchResultsFetchController.signal },
-      )
-        .then(jsonOrThrow);
+        { method: 'GET', signal: this.searchResultsFetchController.signal }
+      ).then(jsonOrThrow);
 
       // Reset UI and render.
       this.loading = false;
@@ -473,7 +522,9 @@ export class SearchPageSk extends ElementSk {
     this.fetchSearchResults();
   }
 
-  private onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>): void {
+  private onChangelistControlsChange(
+    event: CustomEvent<ChangelistControlsSkChangeEventDetail>
+  ): void {
     this.includeDigestsFromPrimary = event.detail.include_master;
     this.patchset = event.detail.ps_order;
     this.stateChanged!();
@@ -552,9 +603,12 @@ export class SearchPageSk extends ElementSk {
 
     // We update the selected search result by hand to avoid re-rendering the entire page, which can
     // be very slow if there are many search results.
-    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
-    this.querySelector<HTMLElement>(`digest-details-sk:nth-child(${index + 1})`)
-      ?.classList.add('selected');
+    this.querySelector<HTMLElement>(
+      'digest-details-sk.selected'
+    )?.classList.remove('selected');
+    this.querySelector<HTMLElement>(
+      `digest-details-sk:nth-child(${index + 1})`
+    )?.classList.add('selected');
 
     // We also keep track of the selected result so we can correctly add the "selected" CSS class
     // in the lit-html template in case we re-render the page with the cached search results.
@@ -566,7 +620,9 @@ export class SearchPageSk extends ElementSk {
   /** Clears the selected search result without re-rendering the entire page. */
   private clearSelectedSearchResult(): void {
     this.selectedSearchResultIdx = -1;
-    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
+    this.querySelector<HTMLElement>(
+      'digest-details-sk.selected'
+    )?.classList.remove('selected');
   }
 
   /**
@@ -598,7 +654,7 @@ export class SearchPageSk extends ElementSk {
   private getSelectedDigestDetailsSk(): DigestDetailsSk | null {
     if (this.selectedSearchResultIdx < 0) return null;
     return this.querySelector<DigestDetailsSk>(
-      `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`,
+      `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`
     );
   }
 

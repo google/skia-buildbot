@@ -22,23 +22,23 @@ describe('note-editor-sk', () => {
 
   it('returns undefined on cancel', async () => {
     const promise = element.edit(start);
-      $$<HTMLButtonElement>('#cancel', element)!.click();
-      assert.isUndefined(await promise);
+    $$<HTMLButtonElement>('#cancel', element)!.click();
+    assert.isUndefined(await promise);
   });
 
   it('returns a modified Message on OK', async () => {
     const modifiedString = 'This is an edited message.';
     const promise = element.edit(start);
-      $$<HTMLInputElement>('#note', element)!.value = modifiedString;
-      $$<HTMLButtonElement>('#ok', element)!.click();
-      const note = await promise;
-      assert.equal(note?.Message, modifiedString);
+    $$<HTMLInputElement>('#note', element)!.value = modifiedString;
+    $$<HTMLButtonElement>('#ok', element)!.click();
+    const note = await promise;
+    assert.equal(note?.Message, modifiedString);
   });
 
   it('returns an empty Message on Clear', async () => {
     const promise = element.edit(start);
-      $$<HTMLButtonElement>('#clear', element)!.click();
-      const note = await promise;
-      assert.isEmpty(note!.Message);
+    $$<HTMLButtonElement>('#clear', element)!.click();
+    const note = await promise;
+    assert.isEmpty(note!.Message);
   });
 });

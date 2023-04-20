@@ -8,22 +8,22 @@
 
 /* Universal table style */
 table {
-    border-spacing: 0px;
-    .nowrap {
-        white-space: nowrap;
-    }
-    th {
-        text-align: center;
-    }
+  border-spacing: 0px;
+  .nowrap {
+    white-space: nowrap;
+  }
+  th {
+    text-align: center;
+  }
 }
 
 /* Make Darkmode links visible */
 .darkmode a {
-    color: var(--secondary);
+  color: var(--secondary);
 }
 
 .darkmode table.options {
-    background-color: var(--surface-2dp);
+  background-color: var(--surface-2dp);
 }
 
 /* Make sure the app doesn't leave empty space on the bottom/right. e.g. blank
@@ -32,5 +32,5 @@ table {
 html,
 body,
 app-sk {
-    background-color: var(--background);
+  background-color: var(--background);
 }

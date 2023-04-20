@@ -12,11 +12,26 @@ import {
 import { TreeStatus, TreeStatusSk } from '../tree-status-sk/tree-status-sk';
 import { RotationsSk } from './rotations-sk';
 
-fetchMock.getOnce('https://example.com/treestatus/test-repo/current', treeStatusResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
-fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
+fetchMock.getOnce(
+  'https://example.com/treestatus/test-repo/current',
+  treeStatusResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
+  generalRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener',
+  gpuRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener',
+  androidRoleResp
+);
+fetchMock.getOnce(
+  'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
+  infraRoleResp
+);
 Date.now = () => 1600883976659;
 
 const ts = document.createElement('tree-status-sk') as TreeStatusSk;

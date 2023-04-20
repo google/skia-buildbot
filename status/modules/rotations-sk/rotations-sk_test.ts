@@ -13,16 +13,32 @@ describe('rotations-sk', () => {
     element = newInstance((el: RotationsSk) => {
       el.rotations = [
         {
-          role: 'Arborist', icon: 'nature', currentUrl: '', docLink: '', name: 'alice',
+          role: 'Arborist',
+          icon: 'nature',
+          currentUrl: '',
+          docLink: '',
+          name: 'alice',
         },
         {
-          role: 'Wrangler', icon: 'gesture', currentUrl: '', docLink: '', name: 'bob',
+          role: 'Wrangler',
+          icon: 'gesture',
+          currentUrl: '',
+          docLink: '',
+          name: 'bob',
         },
         {
-          role: 'Android', icon: 'android', currentUrl: '', docLink: '', name: 'christy',
+          role: 'Android',
+          icon: 'android',
+          currentUrl: '',
+          docLink: '',
+          name: 'christy',
         },
         {
-          role: 'Beekeeper', icon: 'grain', currentUrl: '', docLink: '', name: 'dan',
+          role: 'Beekeeper',
+          icon: 'grain',
+          currentUrl: '',
+          docLink: '',
+          name: 'dan',
         },
       ];
     });

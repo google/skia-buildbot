@@ -1,12 +1,9 @@
-AutoRoll
-========
+# AutoRoll
 
 AutoRoll is a program which creates and manages DEPS rolls of a child project,
 eg. Skia, into a parent project, eg. Chrome.
 
-
-For Gardeners of Parent Projects
--------------------------------
+## For Gardeners of Parent Projects
 
 If a roll has caused a breakage, feel free to revert first and ask questions
 later. Generally you should stop the roller first, otherwise rolls will continue
@@ -21,9 +18,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 If you need immediate attention, contact skiabot@google.com. Note that we do not
 use pagers, and our gardener is generally only active during working hours.
 
-
-For Child Project Roller Owners
--------------------------------
+## For Child Project Roller Owners
 
 In the case of any problems or unexpected behavior, please stop the roller and
 file a bug:
@@ -44,37 +39,30 @@ of this behavior if you know that the current roll is doomed to fail and the
 next will contain a fix: rather than waiting for the commit queue to fail, stop
 the roller, wait for the current roll to be abandoned, and resume the roller.
 
-
-Configuration
--------------
+## Configuration
 
 Configuration files for each of the autorollers may be found
 [here](https://skia.googlesource.com/skia-autoroll-internal-config) (Googlers
-only).  Feel free to make a CL to modify a roller config, or
+only). Feel free to make a CL to modify a roller config, or
 [file a bug](https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug)
 to request a change.
 
-
-AutoRoll Modes
---------------
+## AutoRoll Modes
 
 There are three modes in which the roller may run:
 
-
-#### Running ####
+#### Running
 
 This is the "normal" mode. The roller will upload DEPS roll CLs, close those
 which fail, and upload new CLs until the child repo is up-to-date in the parent
 repo's DEPS.
 
-
-#### Stopped ####
+#### Stopped
 
 The roller will not upload any CLs. Any in-progress roll CL will be closed when
 the roller is stopped.
 
-
-#### Dry Run ####
+#### Dry Run
 
 The roller will upload CLs and run the commit queue dry run. If the
 dry run succeeds, the CL is left open until either the roller is set back to
@@ -82,38 +70,31 @@ dry run succeeds, the CL is left open until either the roller is set back to
 or more commits lands in the child repo, in which case the roller closes the
 CL and uploads a new one.
 
-
-AutoRoll Strategies
--------------------
+## AutoRoll Strategies
 
 There are three strategies which the roller may use to choose the next revision
 to roll:
 
-
-#### Batch ####
+#### Batch
 
 Using this strategy, the roller always chooses the most recent revision to roll,
 potentially resulting in large batches of commits in each roll.
 
-
-#### N-Batch ####
+#### N-Batch
 
 Similar to the "batch" strategy, the roller will upload rolls containing
 multiple commits, but only up to a maximum of N commits, where N is hard-coded
 to 20 as of May 2 2022.
 
+#### Single
 
-#### Single ####
-
-The roller will only roll a single commit at a time.  This can be useful for
-keeping blamelists clear, but it has some drawbacks.  If the commit queue is not
+The roller will only roll a single commit at a time. This can be useful for
+keeping blamelists clear, but it has some drawbacks. If the commit queue is not
 fast enough to keep up with the commit rate of the child project, the roller
-will lag behind.  If a particular commit breaks the commit queue, the roller may
+will lag behind. If a particular commit breaks the commit queue, the roller may
 get stuck, since it won't automatically include the fix or revert in the rolls.
 Therefore, this strategy may require occasional manual intervention.
 
-
-For Skia Infra Team Members
----------------------------
+## For Skia Infra Team Members
 
 See [PROD.md](./PROD.md) for information about handling alerts.

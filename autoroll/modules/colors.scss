@@ -33,7 +33,8 @@ a.visited {
   color: var(--link-color);
 }
 
-.darkmode input, .darkmode textarea {
+.darkmode input,
+.darkmode textarea {
   background-color: var(--surface-2dp);
   color: var(--on-surface);
 }

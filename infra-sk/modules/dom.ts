@@ -37,7 +37,7 @@ export const DomReady = new Promise((resolve) => {
  */
 export function $<E extends Element = Element>(
   query: string,
-  ele: Element | Document = document,
+  ele: Element | Document = document
 ): E[] {
   return Array.from(ele.querySelectorAll<E>(query));
 }
@@ -52,7 +52,7 @@ export function $<E extends Element = Element>(
  */
 export function $$<E extends Element = Element>(
   query: string,
-  ele: Element | Document = document,
+  ele: Element | Document = document
 ): E | null {
   return ele.querySelector(query);
 }
@@ -72,7 +72,7 @@ export function $$<E extends Element = Element>(
  */
 export function findParent(
   ele: HTMLElement | null,
-  nodeName: string,
+  nodeName: string
 ): HTMLElement | null {
   while (ele !== null) {
     if (ele.nodeName === nodeName) {
@@ -99,7 +99,7 @@ export function findParent(
  */
 export function findParentSafe<K extends keyof HTMLElementTagNameMap>(
   ele: HTMLElement | null,
-  nodeName: K,
+  nodeName: K
 ): HTMLElementTagNameMap[K] | null {
   while (ele !== null) {
     if (ele.nodeName.toLowerCase() === nodeName) {

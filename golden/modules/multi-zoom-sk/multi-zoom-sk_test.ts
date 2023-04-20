@@ -1,6 +1,9 @@
 import './index';
 import { expect } from 'chai';
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { diff16x16, left16x16, right16x16 } from './test_data';
 import { MultiZoomSk } from './multi-zoom-sk';
 import { MultiZoomSkPO } from './multi-zoom-sk_po';
@@ -55,21 +58,27 @@ describe('multi-zoom-sk', () => {
     expect(multiZoomSk.y).to.equal(13);
     expect(await multiZoomSkPO.getCoordinate()).to.equal('(12, 13)');
 
-    expect(await multiZoomSkPO.getNthDiff()).to.equal('1st biggest pixel diff (out of 32)');
+    expect(await multiZoomSkPO.getNthDiff()).to.equal(
+      '1st biggest pixel diff (out of 32)'
+    );
 
     await multiZoomSkPO.sendKeypress('u');
     expect(multiZoomSk.x).to.equal(12);
     expect(multiZoomSk.y).to.equal(14);
     expect(await multiZoomSkPO.getCoordinate()).to.equal('(12, 14)');
 
-    expect(await multiZoomSkPO.getNthDiff()).to.equal('2nd biggest pixel diff (out of 32)');
+    expect(await multiZoomSkPO.getNthDiff()).to.equal(
+      '2nd biggest pixel diff (out of 32)'
+    );
 
     await multiZoomSkPO.sendKeypress('y');
     expect(multiZoomSk.x).to.equal(12);
     expect(multiZoomSk.y).to.equal(13);
     expect(await multiZoomSkPO.getCoordinate()).to.equal('(12, 13)');
 
-    expect(await multiZoomSkPO.getNthDiff()).to.equal('1st biggest pixel diff (out of 32)');
+    expect(await multiZoomSkPO.getNthDiff()).to.equal(
+      '1st biggest pixel diff (out of 32)'
+    );
 
     // Already at the beginning - this won't move anywhere.
     await multiZoomSkPO.sendKeypress('y');
@@ -84,9 +93,13 @@ describe('multi-zoom-sk', () => {
 
     // We know there's a diff, but we haven't calculated all the diffs yet (it's done on demand
     // the first time the user clicks 'u')
-    expect(await multiZoomSkPO.getLeftPixel()).to.equal('rgba(255, 10, 10, 128) #FF0A0A80');
+    expect(await multiZoomSkPO.getLeftPixel()).to.equal(
+      'rgba(255, 10, 10, 128) #FF0A0A80'
+    );
     expect(await multiZoomSkPO.getDiffPixel()).to.equal('rgba(0, 0, 0, 76)');
-    expect(await multiZoomSkPO.getRightPixel()).to.equal('rgba(255, 10, 10, 204) #FF0A0ACC');
+    expect(await multiZoomSkPO.getRightPixel()).to.equal(
+      'rgba(255, 10, 10, 204) #FF0A0ACC'
+    );
     expect(await multiZoomSkPO.isNthDiffVisible()).to.be.false;
 
     // calculate the diffs.
@@ -96,7 +109,9 @@ describe('multi-zoom-sk', () => {
     multiZoomSk.y = 0;
 
     expect(await multiZoomSkPO.getDiffPixel()).to.equal('rgba(0, 0, 0, 76)');
-    expect(await multiZoomSkPO.getNthDiff()).to.equal('13th biggest pixel diff (out of 32)');
+    expect(await multiZoomSkPO.getNthDiff()).to.equal(
+      '13th biggest pixel diff (out of 32)'
+    );
   });
 
   it('uses z and a to zoom in and out', async () => {

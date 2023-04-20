@@ -3,9 +3,7 @@ import { assert } from 'chai';
 import { TestSrcSk } from './test-src-sk';
 import './test-src-sk';
 
-import {
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 fetchMock.config.overwriteRoutes = true;
 

@@ -1,5 +1,4 @@
-alert-manager
-=============
+# alert-manager
 
 Alert manager converts Prometheus alerts into PubSub events which
 are then used to drive the state in alert-manager.

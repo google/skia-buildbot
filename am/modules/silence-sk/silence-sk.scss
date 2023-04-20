@@ -9,7 +9,8 @@ silence-sk {
     margin: 1em;
   }
 
-  td, th {
+  td,
+  th {
     padding: 0.3em;
     border: solid 1px gray;
   }
@@ -119,7 +120,6 @@ silence-sk {
   p.note-text {
     white-space: pre-wrap;
   }
-
 }
 
 silence-sk[collapsable][collapsed] .body {
@@ -134,7 +134,9 @@ silence-sk[collapsable] {
   margin: 1em;
   background: var(--minimized);
   border-radius: 0.5em;
-  p, input, textarea {
+  p,
+  input,
+  textarea {
     background: var(--background);
   }
 }

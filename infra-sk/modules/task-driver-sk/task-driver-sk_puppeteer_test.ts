@@ -1,6 +1,7 @@
 import {
   loadCachedTestBed,
-  takeScreenshot, TestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('task-driver-sk', () => {
@@ -21,7 +22,9 @@ describe('task-driver-sk', () => {
 
     it('expands children on a click', async () => {
       await testBed.page.setViewport({ width: 800, height: 1800 });
-      await testBed.page.click('#button_children_f7bc5c4f-1bf5-493b-b8e4-fa288df1d949');
+      await testBed.page.click(
+        '#button_children_f7bc5c4f-1bf5-493b-b8e4-fa288df1d949'
+      );
       await takeScreenshot(testBed.page, 'infra-sk', 'task-driver-sk_expanded');
     });
   });

@@ -2,12 +2,15 @@ import './index';
 
 import sinon from 'sinon';
 import { expect } from 'chai';
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 
 import { GetTasksResponse } from '../json';
 import {
-  singleResultCanDelete, singleResultNoDelete, resultSetOneItem, resultSetTwoItems,
+  singleResultCanDelete,
+  singleResultNoDelete,
+  resultSetOneItem,
+  resultSetTwoItems,
 } from './test_data';
 import {
   eventPromise,
@@ -31,7 +34,9 @@ describe('task-queue-sk', () => {
     for (let i = 0; i < replyCount; ++i) {
       fetchMock.postOnce('begin:/_/get_', replies[i]);
     }
-    fetchMock.post('begin:/_/get_', 200, { repeat: kNumTaskQueries - replyCount });
+    fetchMock.post('begin:/_/get_', 200, {
+      repeat: kNumTaskQueries - replyCount,
+    });
 
     return loadTable();
   };
@@ -45,7 +50,10 @@ describe('task-queue-sk', () => {
 
   it('shows table entries', async () => {
     // Return some results for 2 of the 16 task queries.
-    const table = await loadTableWithReplies([resultSetOneItem, resultSetTwoItems]);
+    const table = await loadTableWithReplies([
+      resultSetOneItem,
+      resultSetTwoItems,
+    ]);
 
     // (3 items) * 6 columns
     expect($('td', table).length).to.equal(18);
@@ -68,17 +76,28 @@ describe('task-queue-sk', () => {
 
     sinon.stub(window, 'confirm').returns(true);
     sinon.stub(window, 'alert');
-    fetchMock.postOnce((url, options) => url.startsWith('/_/delete_') && options.body === JSON.stringify({ id: 1 }), 200);
+    fetchMock.postOnce(
+      (url, options) =>
+        url.startsWith('/_/delete_') &&
+        options.body === JSON.stringify({ id: 1 }),
+      200
+    );
     ($$('delete-icon-sk', table) as HTMLElement).click();
   });
 
   it('task details works', async () => {
     const table = await loadTableWithReplies([resultSetOneItem]);
 
-    expect($$('.dialog-background', table)!.classList.value).to.include('hidden');
-    expect($$('.dialog-background', table)!.classList.value).to.include('hidden');
+    expect($$('.dialog-background', table)!.classList.value).to.include(
+      'hidden'
+    );
+    expect($$('.dialog-background', table)!.classList.value).to.include(
+      'hidden'
+    );
     ($$('.details', table) as HTMLElement).click();
 
-    expect($$('.dialog-background', table)!.classList.value).to.not.include('hidden');
+    expect($$('.dialog-background', table)!.classList.value).to.not.include(
+      'hidden'
+    );
   });
 });

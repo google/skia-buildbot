@@ -15,7 +15,10 @@
 import './index';
 import { assert } from 'chai';
 import { CheckOrRadio } from './checkbox-sk';
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 
 describe('checkbox-sk', () => {
   const newInstance = setUpElementUnderTest<CheckOrRadio>('checkbox-sk');

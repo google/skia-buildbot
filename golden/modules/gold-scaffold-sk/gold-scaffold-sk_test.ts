@@ -1,10 +1,13 @@
 import './index';
 
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { sendBeginTask, sendEndTask } from '../common';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { testOnlySetSettings } from '../settings';
@@ -53,7 +56,7 @@ describe('gold-scaffold-sk', () => {
       expect(content).to.not.be.null;
       expect(content!.textContent).to.equal('content');
     });
-  });// end describe('html layout')
+  }); // end describe('html layout')
 
   describe('spinner and busy property', () => {
     it('becomes busy while there are tasks to be done', () => {

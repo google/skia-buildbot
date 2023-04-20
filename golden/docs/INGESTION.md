@@ -1,8 +1,6 @@
-Ingesting data into Gold
-========================
+# Ingesting data into Gold
 
-Overview
---------
+## Overview
 
 Gold ingests images and JSON files. The images are also referred to as
 'digests' since we rely on a content addressable approach where the file name
@@ -25,8 +23,7 @@ added to GCS. The content in GCS is considered the 'source for truth' for Gold.
 Note: Since all images are content addressable - we only need to upload images
 that are not already in GCS.
 
-Storage Layout in GCS
---------------------
+## Storage Layout in GCS
 
 JSON files are stored at
 
@@ -60,115 +57,114 @@ when the data were generated and it has to be based on the UTC timezone.
 The bucket and directory values for JSON files and images are shared between the
 bot and the Gold ingestion process.
 
-JSON Input file
----------------
+## JSON Input file
 
-The JSON file intended to be simple with  flexibility for the specific application
+The JSON file intended to be simple with flexibility for the specific application
 that generates the baseline images.
 (See below for a tool to validate JSON input to Gold.)
 
 Here is a shortened but representative example of the input format:
+
 ```json5
 {
-   "gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
-   "key" : {
-      "arch" : "arm64",
-      "compiler" : "Clang",
-      "configuration" : "Debug",
-      "cpu_or_gpu" : "GPU",
-      "cpu_or_gpu_value" : "PowerVRGT7600",
-      "extra_config" : "Metal",
-      "model" : "iPhone7",
-      "os" : "iOS"
-   },
-   "results" : [
-      {
-         "key" : {
-            "config" : "mtl",
-            "name" : "yuv_nv12_to_rgb_effect",
-            "source_type" : "gm"
-         },
-         "md5" : "30a470b6ac174aa1ffb54fcb77a21f21",
-         "options" : {
-            "ext" : "png",
-            "gamma_correct" : "no"
-         }
+  gitHash: 'c4711517219f333c1116f47706eb57b51b5f8fc7',
+  key: {
+    arch: 'arm64',
+    compiler: 'Clang',
+    configuration: 'Debug',
+    cpu_or_gpu: 'GPU',
+    cpu_or_gpu_value: 'PowerVRGT7600',
+    extra_config: 'Metal',
+    model: 'iPhone7',
+    os: 'iOS',
+  },
+  results: [
+    {
+      key: {
+        config: 'mtl',
+        name: 'yuv_nv12_to_rgb_effect',
+        source_type: 'gm',
       },
-      {
-         "key" : {
-            "config" : "mtl",
-            "name" : "yuv_to_rgb_effect",
-            "source_type" : "gm"
-         },
-         "md5" : "0ea32027e1e651e4250797aa44bfadaa",
-         "options" : {
-            "ext" : "png",
-            "gamma_correct" : "no"
-         }
+      md5: '30a470b6ac174aa1ffb54fcb77a21f21',
+      options: {
+        ext: 'png',
+        gamma_correct: 'no',
       },
-      {
-         "key" : {
-            "config" : "pipe-8888",
-            "name" : "clipcubic",
-            "source_type" : "gm"
-         },
-         "md5" : "64e446d96bebba035887dd7dda6db6c4",
-         "options" : {
-            "ext" : "png"
-         }
-      }
-   ],
-   // These keys are required for tryjobs and can be omitted for non-tryjobs.
-   // GitHub support coming soon, Gerrit/googlesource support only at the moment.
-   "issue": "0",
-   "patchset": "0",
-   "buildbucket_build_id" : "0",
-   // These keys are optional, but can assist in debugging
-   "builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
-   "swarming_bot_id" : "skia-rpi-102",
-   "swarming_task_id" : "3fcd8d4a539ba311",
+    },
+    {
+      key: {
+        config: 'mtl',
+        name: 'yuv_to_rgb_effect',
+        source_type: 'gm',
+      },
+      md5: '0ea32027e1e651e4250797aa44bfadaa',
+      options: {
+        ext: 'png',
+        gamma_correct: 'no',
+      },
+    },
+    {
+      key: {
+        config: 'pipe-8888',
+        name: 'clipcubic',
+        source_type: 'gm',
+      },
+      md5: '64e446d96bebba035887dd7dda6db6c4',
+      options: {
+        ext: 'png',
+      },
+    },
+  ],
+  // These keys are required for tryjobs and can be omitted for non-tryjobs.
+  // GitHub support coming soon, Gerrit/googlesource support only at the moment.
+  issue: '0',
+  patchset: '0',
+  buildbucket_build_id: '0',
+  // These keys are optional, but can assist in debugging
+  builder: 'Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal',
+  swarming_bot_id: 'skia-rpi-102',
+  swarming_task_id: '3fcd8d4a539ba311',
 }
 ```
 
 In the root of the object these fields are required:
 
-* gitHash: The git commit hash of the version being tested (Not important
+- gitHash: The git commit hash of the version being tested (Not important
   for trybot runs).
 
-* issue: Only relevant for trybot runs (before a code change is commited). It
+- issue: Only relevant for trybot runs (before a code change is commited). It
   refers to the Gerrit issue that contains the change list being tested.
 
-* patchset: Only relevant for trybot runs. It refers to the patchset within the
+- patchset: Only relevant for trybot runs. It refers to the patchset within the
   issue that was used for this test run.
 
-* key: The set of key-value pairs shared by all results. This is usually the
+- key: The set of key-value pairs shared by all results. This is usually the
   hardware/OS configuration of the bot that ran the test. These are
   application dependent key-value pairs and are used later by Gold's UI to
   filter results.
 
-* results: A list of results each representing an image that generated by a
+- results: A list of results each representing an image that generated by a
   specific test and configuration.
   The objects in 'result' need to contain at least the following fields:
 
-    - key.name: the name of the test.
+  - key.name: the name of the test.
 
-    - key.source_type: used to group different tests together. This has to be
-      present even if you don't have different test groups. In that case
-      simply use a constant value.
+  - key.source_type: used to group different tests together. This has to be
+    present even if you don't have different test groups. In that case
+    simply use a constant value.
 
-    - md5: the digest of the resulting image. It does not have to be MD5 based,
-      but should be a hash (with MD5 like properties) that is unique to the
-      resulting image. This is used by Gold later to fetch the images associated
-      with the test.
+  - md5: the digest of the resulting image. It does not have to be MD5 based,
+    but should be a hash (with MD5 like properties) that is unique to the
+    resulting image. This is used by Gold later to fetch the images associated
+    with the test.
 
-    - options.ext: The file type. This needs to be "png" for the test to be
-      ingested.
+  - options.ext: The file type. This needs to be "png" for the test to be
+    ingested.
 
- * options: these keys are meant as an FYI - they can be filtered by, but they
-   do not impact the trace uniqueness.
+- options: these keys are meant as an FYI - they can be filtered by, but they
+  do not impact the trace uniqueness.
 
-Validating Gold input with goldctl
-----------------------------------
+## Validating Gold input with goldctl
 
 To validate whether JSON is valid Gold input you can use the `goldctl` tool.
 

@@ -2,7 +2,15 @@ import './index';
 import fetchMock, { MockResponseObject } from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import {
-  typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow, typicalDetailsDisallowTriaging, noRefsDisallowTriaging,
+  typicalDetails,
+  negativeOnly,
+  noRefs,
+  noRefsYet,
+  noTraces,
+  twoHundredCommits,
+  fakeNow,
+  typicalDetailsDisallowTriaging,
+  noRefsDisallowTriaging,
 } from './test_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
@@ -88,23 +96,32 @@ ele.fullSizeImages = true;
 $$('#full_size_images')!.appendChild(ele);
 
 document.addEventListener('triage', (e) => {
-  $$('#event')!.textContent = `triage: ${JSON.stringify((e as CustomEvent).detail)}`;
+  $$('#event')!.textContent = `triage: ${JSON.stringify(
+    (e as CustomEvent).detail
+  )}`;
 });
 document.addEventListener('show-commits', (e) => {
-  $$('#event')!.textContent = `show-commits: ${JSON.stringify((e as CustomEvent).detail)}`;
+  $$('#event')!.textContent = `show-commits: ${JSON.stringify(
+    (e as CustomEvent).detail
+  )}`;
 });
 document.addEventListener('fetch-error', (e) => {
-  $$('#event')!.textContent = `fetch-error: ${JSON.stringify((e as CustomEvent).detail)}`;
+  $$('#event')!.textContent = `fetch-error: ${JSON.stringify(
+    (e as CustomEvent).detail
+  )}`;
 });
 
-fetchMock.post('/json/v3/triage', delay(() => {
-  if ($$<HTMLInputElement>('#simulate-not-logged-in')!.checked) {
-    return 403;
-  }
-  const triageResponse: TriageResponse = { status: 'ok' };
-  const mro: MockResponseObject = {
-    status: 200,
-    body: triageResponse,
-  };
-  return mro;
-}, 300));
+fetchMock.post(
+  '/json/v3/triage',
+  delay(() => {
+    if ($$<HTMLInputElement>('#simulate-not-logged-in')!.checked) {
+      return 403;
+    }
+    const triageResponse: TriageResponse = { status: 'ok' };
+    const mro: MockResponseObject = {
+      status: 200,
+      body: triageResponse,
+    };
+    return mro;
+  }, 300)
+);

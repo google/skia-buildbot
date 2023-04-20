@@ -23,8 +23,8 @@
  *       [ debug-view-sk ]                     [ debugger- ]                     [ zoom-sk ]
  *       [               ] <- render-cursor -- [ page-sk   ] -- render-cursor -> [         ]
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/tabs-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
@@ -50,9 +50,8 @@ import type {
   CanvasKitInitOptions,
   Paint,
   Surface,
-}
-// @ts-ignore
-from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+  // @ts-ignore
+} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {
   Debugger,
   Matrix3x3,
@@ -87,7 +86,9 @@ import {
   RenderCursorEvent,
   SelectImageEvent,
   SelectImageEventDetail,
-  ToggleBackgroundEvent, ModeChangedManuallyEventDetail, MoveFrameEventDetail,
+  ToggleBackgroundEvent,
+  ModeChangedManuallyEventDetail,
+  MoveFrameEventDetail,
 } from '../events';
 
 // Declarations for variables defined in JS files included by main.html;
@@ -103,130 +104,180 @@ interface FileContext {
 
 export class DebuggerPageSk extends ElementDocSk {
   private static template = (ele: DebuggerPageSk) => html`
-  <app-sk>
-    <header>
-      <h2>Skia WASM Debugger</h2>
-      <span>
-        <a class="version-link"
-          href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
-          title="The skia commit at which the debugger WASM module was built">
-          ${ele._skiaVersionShort}
-        </a>
-        &nbsp;
-        <a href="/versions">Older Debugger Versions</a>
-        <theme-chooser-sk></theme-chooser-sk>
-      </span>
-    </header>
-    <main id=content>
-      <div class="horizontal-flex">
-        <label>SKP to open:</label>
-        <input type="file" @change=${ele._fileInputChanged}
-         ?disabled=${ele._debugger === null} />
-        <a href="https://skia.org/dev/tools/debugger">User Guide</a>
-        <p class="file-version">File version: ${ele._fileContext?.version}</p>
-        <p class="file-version">Minimum version this build can open: ${ele._debugger?.MinVersion()}</p>
-      </div>
-      <timeline-sk></timeline-sk>
-      <div class="horizontal-flex-start">
-        <commands-sk></commands-sk>
-        <div id=center>
-          <tabs-sk id='center-tabs'>
-            <button class=selected>SKP</button>
-            <button>Image Resources</button>
-          </tabs-sk>
-          <tabs-panel-sk>
-            <div>
-              <debug-view-sk></debug-view-sk>
-            </div>
-            <div>
-              <resources-sk></resources-sk>
-            </div>
-          </tabs-panel-sk>
+    <app-sk>
+      <header>
+        <h2>Skia WASM Debugger</h2>
+        <span>
+          <a
+            class="version-link"
+            href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
+            title="The skia commit at which the debugger WASM module was built"
+          >
+            ${ele._skiaVersionShort}
+          </a>
+          &nbsp;
+          <a href="/versions">Older Debugger Versions</a>
+          <theme-chooser-sk></theme-chooser-sk>
+        </span>
+      </header>
+      <main id="content">
+        <div class="horizontal-flex">
+          <label>SKP to open:</label>
+          <input
+            type="file"
+            @change=${ele._fileInputChanged}
+            ?disabled=${ele._debugger === null}
+          />
+          <a href="https://skia.org/dev/tools/debugger">User Guide</a>
+          <p class="file-version">File version: ${ele._fileContext?.version}</p>
+          <p class="file-version">
+            Minimum version this build can open: ${ele._debugger?.MinVersion()}
+          </p>
         </div>
-        <div id=right>
-          ${DebuggerPageSk.controlsTemplate(ele)}
-          <histogram-sk></histogram-sk>
-          <div>Command which shaded the<br>selected pixel: ${ele._pointCommandIndex}
-            <button @click=${() => {
-    ele._jumpToCommand(ele._pointCommandIndex);
-  }}>Jump</button>
+        <timeline-sk></timeline-sk>
+        <div class="horizontal-flex-start">
+          <commands-sk></commands-sk>
+          <div id="center">
+            <tabs-sk id="center-tabs">
+              <button class="selected">SKP</button>
+              <button>Image Resources</button>
+            </tabs-sk>
+            <tabs-panel-sk>
+              <div>
+                <debug-view-sk></debug-view-sk>
+              </div>
+              <div>
+                <resources-sk></resources-sk>
+              </div>
+            </tabs-panel-sk>
           </div>
-          <zoom-sk></zoom-sk>
-          <android-layers-sk></android-layers-sk>
+          <div id="right">
+            ${DebuggerPageSk.controlsTemplate(ele)}
+            <histogram-sk></histogram-sk>
+            <div>
+              Command which shaded the<br />selected pixel:
+              ${ele._pointCommandIndex}
+              <button
+                @click=${() => {
+                  ele._jumpToCommand(ele._pointCommandIndex);
+                }}
+              >
+                Jump
+              </button>
+            </div>
+            <zoom-sk></zoom-sk>
+            <android-layers-sk></android-layers-sk>
+          </div>
         </div>
-      </div>
-    </main>
-    <footer>
-      <error-toast-sk></error-toast-sk>
-    </footer>
-  </app-sk>
-    `;
+      </main>
+      <footer>
+        <error-toast-sk></error-toast-sk>
+      </footer>
+    </app-sk>
+  `;
 
-  private static controlsTemplate = (ele: DebuggerPageSk) => html`
-    <div>
-      <table>
+  private static controlsTemplate = (ele: DebuggerPageSk) => html` <div>
+    <table>
+      <tr>
+        <td>
+          <checkbox-sk
+            label="GPU"
+            ?checked=${ele._gpuMode}
+            title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and copying the buffer into a Canvas2D element."
+            @change=${ele._gpuHandler}
+          ></checkbox-sk>
+        </td>
+        <td>
+          <checkbox-sk
+            label="Display GPU Op Bounds"
+            ?disabled=${!ele._gpuMode}
+            title="Show a visual representation of the GPU operations recorded in each command's audit trail."
+            @change=${ele._opBoundsHandler}
+          ></checkbox-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <checkbox-sk
+            label="Light/Dark"
+            title="Show transparency backrounds as light or dark"
+            @change=${ele._lightDarkHandler}
+          ></checkbox-sk>
+        </td>
+        <td>
+          <checkbox-sk
+            label="Display Overdraw Viz"
+            title="Shades pixels redder in proportion to how many times they were written to in the current frame."
+            @change=${ele._overdrawHandler}
+          ></checkbox-sk>
+        </td>
+      </tr>
+    </table>
+    <details ?open=${ele._showOpBounds}>
+      <summary><b> GPU Op Bounds Legend</b></summary>
+      <p style="width: 200px">
+        GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean
+        you can't see them unless you scale the canvas view to its original
+        size.
+      </p>
+      <table class="shortcuts">
         <tr>
-          <td><checkbox-sk label="GPU" ?checked=${ele._gpuMode}
-               title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and\
- copying the buffer into a Canvas2D element."
-                       @change=${ele._gpuHandler}></checkbox-sk></td>
-          <td><checkbox-sk label="Display GPU Op Bounds" ?disabled=${!ele._gpuMode}
-               title="Show a visual representation of the GPU operations recorded in each\
- command's audit trail."
-                       @change=${ele._opBoundsHandler}></checkbox-sk></td>
+          <td class="gpuDrawBoundColor">Bounds for the current draw.</td>
         </tr>
         <tr>
-          <td><checkbox-sk label="Light/Dark"
-               title="Show transparency backrounds as light or dark"
-                       @change=${ele._lightDarkHandler}></checkbox-sk></td>
-          <td><checkbox-sk label="Display Overdraw Viz"
-               title="Shades pixels redder in proportion to how many times they were written\
- to in the current frame."
-                       @change=${ele._overdrawHandler}></checkbox-sk></td>
+          <td class="gpuOpBoundColor">
+            Individual bounds for other draws in the same op.
+          </td>
+        </tr>
+        <tr>
+          <td class="gpuTotalOpColor">Total bounds of the current op.</td>
         </tr>
       </table>
-      <details ?open=${ele._showOpBounds}>
-        <summary><b> GPU Op Bounds Legend</b></summary>
-        <p style="width: 200px">GPU op bounds are rectangles with a 1 pixel wide stroke. This may\
- mean you can't see them unless you scale the canvas view to its original size.</p>
-        <table class=shortcuts>
-          <tr><td class=gpuDrawBoundColor>Bounds for the current draw.</td></tr>
-          <tr><td class=gpuOpBoundColor>Individual bounds for other draws in the same op.</td></tr>
-          <tr><td class=gpuTotalOpColor>Total bounds of the current op.</td></tr>
-        </table>
-      </details>
-      <details open>
-        <summary><b>Overlay Options</b></summary>
-        <checkbox-sk label="Show Clip"
-                     title="Show a semi-transparent teal overlay on the areas within the current\
- clip."
-                     id=clip @change=${ele._clipHandler}></checkbox-sk>
-        <checkbox-sk label="Show Android Device Clip Restriction"
-                     title="Show a semi-transparent peach overlay on the areas within the current\
- andorid device clip restriction.
-                     This is set at the beginning of each frame and recorded in the DrawAnnotation\
- Command labeled AndroidDeviceClipRestriction"
-                     id=androidclip @change=${ele._androidClipHandler}></checkbox-sk>
-        <checkbox-sk label="Show Origin"
-                     title="Show the origin of the coordinate space defined by the current matrix."
-                     id=origin @change=${ele._originHandler}></checkbox-sk>
-        <div class="horizontal-flex">
-          <div class="matrixClipBox">
-            <h3 class="compact">Clip</h3>
-            <table>
-              <tr><td>${ele._info.ClipRect[0]}</td><td>${ele._info.ClipRect[1]}</td></tr>
-              <tr><td>${ele._info.ClipRect[2]}</td><td>${ele._info.ClipRect[3]}</td></tr>
-            </table>
-          </div>
-          <div class="matrixClipBox">
-            <h3 class="compact">Matrix</h3>
-            <table>
-              ${ele._matrixTable(ele._info.ViewMatrix)}
-            </table>
-          </div>
+    </details>
+    <details open>
+      <summary><b>Overlay Options</b></summary>
+      <checkbox-sk
+        label="Show Clip"
+        title="Show a semi-transparent teal overlay on the areas within the current clip."
+        id="clip"
+        @change=${ele._clipHandler}
+      ></checkbox-sk>
+      <checkbox-sk
+        label="Show Android Device Clip Restriction"
+        title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction.
+                     This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction"
+        id="androidclip"
+        @change=${ele._androidClipHandler}
+      ></checkbox-sk>
+      <checkbox-sk
+        label="Show Origin"
+        title="Show the origin of the coordinate space defined by the current matrix."
+        id="origin"
+        @change=${ele._originHandler}
+      ></checkbox-sk>
+      <div class="horizontal-flex">
+        <div class="matrixClipBox">
+          <h3 class="compact">Clip</h3>
+          <table>
+            <tr>
+              <td>${ele._info.ClipRect[0]}</td>
+              <td>${ele._info.ClipRect[1]}</td>
+            </tr>
+            <tr>
+              <td>${ele._info.ClipRect[2]}</td>
+              <td>${ele._info.ClipRect[3]}</td>
+            </tr>
+          </table>
         </div>
-      </details>
-    </div>`;
+        <div class="matrixClipBox">
+          <h3 class="compact">Matrix</h3>
+          <table>
+            ${ele._matrixTable(ele._info.ViewMatrix)}
+          </table>
+        </div>
+      </div>
+    </details>
+  </div>`;
 
   // defined by version.js which is included by main.html and generated in Makefile.
   private _skiaVersion: string = SKIA_VERSION;
@@ -253,7 +304,7 @@ export class DebuggerPageSk extends ElementDocSk {
 
   private _timelineSk: TimelineSk | null = null;
 
-  private _zoom: ZoomSk | null = null
+  private _zoom: ZoomSk | null = null;
 
   // application state
   private _targetItem: number = 0; // current command playback index in filtered list
@@ -307,7 +358,8 @@ export class DebuggerPageSk extends ElementDocSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this._androidLayersSk = this.querySelector<AndroidLayersSk>('android-layers-sk')!;
+    this._androidLayersSk =
+      this.querySelector<AndroidLayersSk>('android-layers-sk')!;
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
     this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
     this._resourcesSk = this.querySelector<ResourcesSk>('resources-sk')!;
@@ -325,14 +377,13 @@ export class DebuggerPageSk extends ElementDocSk {
       }
     });
 
-    this._timelineSk.playsk.addEventListener(
-      ModeChangedManuallyEvent, (e) => {
-        const mode = (e as CustomEvent<ModeChangedManuallyEventDetail>).detail.mode;
-        if (mode === 'pause') {
-          this._setCommands();
-        }
-      },
-    );
+    this._timelineSk.playsk.addEventListener(ModeChangedManuallyEvent, (e) => {
+      const mode = (e as CustomEvent<ModeChangedManuallyEventDetail>).detail
+        .mode;
+      if (mode === 'pause') {
+        this._setCommands();
+      }
+    });
 
     // this is the timeline, which owns the frame position, telling this element to update
     this._timelineSk.addEventListener(MoveFrameEvent, (e) => {
@@ -353,8 +404,11 @@ export class DebuggerPageSk extends ElementDocSk {
       this.querySelector<TabsSk>('tabs-sk')!.select(0);
     });
 
-    this.addDocumentEventListener('keydown', this._keyDownHandler.bind(this),
-      true /* useCapture */);
+    this.addDocumentEventListener(
+      'keydown',
+      this._keyDownHandler.bind(this),
+      true /* useCapture */
+    );
 
     this.addDocumentEventListener(MoveCursorEvent, (e) => {
       const detail = (e as CustomEvent<CursorEventDetail>).detail;
@@ -362,12 +416,10 @@ export class DebuggerPageSk extends ElementDocSk {
       this._updateJumpButton(detail.position);
       // re-emit event as render-cursor
       this.dispatchEvent(
-        new CustomEvent<CursorEventDetail>(
-          RenderCursorEvent, {
-            detail: detail,
-            bubbles: true,
-          },
-        ),
+        new CustomEvent<CursorEventDetail>(RenderCursorEvent, {
+          detail: detail,
+          bubbles: true,
+        })
       );
     });
   }
@@ -376,13 +428,15 @@ export class DebuggerPageSk extends ElementDocSk {
     const params = new URLSearchParams(window.location.search);
     if (params.has('url')) {
       const skpurl = params.get('url')!;
-      fetch(skpurl).then((response) => response.arrayBuffer()).then((ab) => {
-        if (ab) {
-          this._openSkpFile(ab);
-        } else {
-          errorMessage(`No data received from ${skpurl}`);
-        }
-      });
+      fetch(skpurl)
+        .then((response) => response.arrayBuffer())
+        .then((ab) => {
+          if (ab) {
+            this._openSkpFile(ab);
+          } else {
+            errorMessage(`No data received from ${skpurl}`);
+          }
+        });
     }
   }
 
@@ -394,14 +448,22 @@ export class DebuggerPageSk extends ElementDocSk {
       return; // Too slow to do this on every mouse move.
     }
     this._pointCommandIndex = this._fileContext!.player.findCommandByPixel(
-      this._surface!, p[0], p[1], this._targetItem,
+      this._surface!,
+      p[0],
+      p[1],
+      this._targetItem
     );
     this._render();
   }
 
   // Template helper rendering a number[][] in a table
   private _matrixTable(m: Matrix3x3 | Matrix4x4): TemplateResult[] {
-    return (m as number[][]).map((row: number[]) => html`<tr>${row.map((i: number) => html`<td>${i}</td>`)}</tr>`);
+    return (m as number[][]).map(
+      (row: number[]) =>
+        html`<tr>
+          ${row.map((i: number) => html`<td>${i}</td>`)}
+        </tr>`
+    );
   }
 
   // Called when the filename in the file input element changs
@@ -434,7 +496,9 @@ export class DebuggerPageSk extends ElementDocSk {
     // number we're looking for.
     const head = new Uint8Array(fileContents).subarray(0, 2000);
     function isMagicWord(element: number, index: number, array: Uint8Array) {
-      return utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict';
+      return (
+        utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict'
+      );
     }
     // Note that we want to locate the offset in a Uint8Array, not in a string that
     // might interpret binary stuff before "skiapict" as multi-byte code points.
@@ -446,7 +510,9 @@ export class DebuggerPageSk extends ElementDocSk {
   // Open an SKP or MSKP file. fileContents is expected to be an arraybuffer
   // with the file's contents
   private _openSkpFile(fileContents: ArrayBuffer): void {
-    if (!this._debugger) { return; }
+    if (!this._debugger) {
+      return;
+    }
     const version = this._skpFileVersion(fileContents);
     const minVersion = this._debugger.MinVersion();
     if (version < minVersion) {
@@ -493,8 +559,11 @@ export class DebuggerPageSk extends ElementDocSk {
     // Pull the command list for the first frame.
     // triggers render
     this._setCommands();
-    this._androidLayersSk!.update(this._commandsSk!.layerInfo,
-      this._fileContext!.player.getLayerSummariesJs(), 0);
+    this._androidLayersSk!.update(
+      this._commandsSk!.layerInfo,
+      this._fileContext!.player.getLayerSummariesJs(),
+      0
+    );
   }
 
   // Create a new drawing surface. this should be called when
@@ -502,7 +571,9 @@ export class DebuggerPageSk extends ElementDocSk {
   // * Bounds of the skp change (skp loaded)
   // * (not yet supported) Color mode changes
   private _replaceSurface(): void {
-    if (!this._debugger) { return; }
+    if (!this._debugger) {
+      return;
+    }
 
     let width = 400;
     let height = 400;
@@ -520,17 +591,24 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // replace surface, using the given size
   private _replaceSurfaceKnownBounds(width: number, height: number): void {
-    if (!this._debugger) { return; }
+    if (!this._debugger) {
+      return;
+    }
     const canvas = this._debugViewSk!.resize(width, height);
     // free the wasm memory of the previous surface
-    if (this._surface) { this._surface.dispose(); }
+    if (this._surface) {
+      this._surface.dispose();
+    }
     if (this._gpuMode) {
-      let glAttrs = {
+      const glAttrs = {
         // for the zoom to be able to access the pixels. Incurs performance penalty
-        'preserveDrawingBuffer': 1,
+        preserveDrawingBuffer: 1,
       };
-      this._surface = this._debugger.MakeWebGLCanvasSurface(canvas,
-        this._debugger.ColorSpace.SRGB, glAttrs);
+      this._surface = this._debugger.MakeWebGLCanvasSurface(
+        canvas,
+        this._debugger.ColorSpace.SRGB,
+        glAttrs
+      );
     } else {
       this._surface = this._debugger.MakeSWCanvasSurface(canvas);
     }
@@ -559,8 +637,11 @@ export class DebuggerPageSk extends ElementDocSk {
     const mode = this._timelineSk!.querySelector<PlaySk>('play-sk')!.mode;
     if (mode === 'pause') {
       this._setCommands();
-      this._androidLayersSk!.update(this._commandsSk!.layerInfo,
-        this._fileContext!.player.getLayerSummariesJs(), n);
+      this._androidLayersSk!.update(
+        this._commandsSk!.layerInfo,
+        this._fileContext!.player.getLayerSummariesJs(),
+        n
+      );
     } else {
       this._updateDebuggerView();
     }
@@ -568,10 +649,12 @@ export class DebuggerPageSk extends ElementDocSk {
   }
 
   private _boundsEqual(a: SkIRect, b: SkIRect): boolean {
-    return (a.fLeft === b.fLeft
-         && a.fTop === b.fTop
-         && a.fRight === b.fRight
-         && a.fBottom === b.fBottom);
+    return (
+      a.fLeft === b.fLeft &&
+      a.fTop === b.fTop &&
+      a.fRight === b.fRight &&
+      a.fBottom === b.fBottom
+    );
   }
 
   // Fetch the list of commands for the frame or layer the debugger is currently showing
@@ -589,12 +672,10 @@ export class DebuggerPageSk extends ElementDocSk {
   private _jumpToCommand(i: number): void {
     // listened to by commands-sk
     this.dispatchEvent(
-      new CustomEvent<JumpCommandEventDetail>(
-        JumpCommandEvent, {
-          detail: { unfilteredIndex: i },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<JumpCommandEventDetail>(JumpCommandEvent, {
+        detail: { unfilteredIndex: i },
+        bubbles: true,
+      })
     );
   }
 
@@ -614,12 +695,10 @@ export class DebuggerPageSk extends ElementDocSk {
       this._surface!.flush();
     }
     this.dispatchEvent(
-      new CustomEvent<CursorEventDetail>(
-        RenderCursorEvent, {
-          detail: { position: [0, 0], onlyData: true },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<CursorEventDetail>(RenderCursorEvent, {
+        detail: { position: [0, 0], onlyData: true },
+        bubbles: true,
+      })
     );
 
     const clipmatjson = this._fileContext.player.lastCommandInfo();
@@ -644,12 +723,14 @@ export class DebuggerPageSk extends ElementDocSk {
     // should be received by anything in the application that shows a checkerboard
     // background for transparency
     this.dispatchEvent(
-      new CustomEvent<ToggleBackgroundEventDetail>(
-        ToggleBackgroundEvent, {
-          detail: { mode: this._darkBackgrounds ? 'dark-checkerboard' : 'light-checkerboard' },
-          bubbles: true,
+      new CustomEvent<ToggleBackgroundEventDetail>(ToggleBackgroundEvent, {
+        detail: {
+          mode: this._darkBackgrounds
+            ? 'dark-checkerboard'
+            : 'light-checkerboard',
         },
-      ),
+        bubbles: true,
+      })
     );
   }
 
@@ -667,9 +748,11 @@ export class DebuggerPageSk extends ElementDocSk {
 
   private _clipHandler(e: Event): void {
     this._showClip = (e.target as CheckOrRadio).checked;
-    if (this._showClip) { // ON: 30% transparent dark teal
+    if (this._showClip) {
+      // ON: 30% transparent dark teal
       this._fileContext!.player.setClipVizColor(0x500e978d);
-    } else { // OFF: transparent black
+    } else {
+      // OFF: transparent black
       this._fileContext!.player.setClipVizColor(0);
     }
     this._updateDebuggerView();
@@ -690,17 +773,18 @@ export class DebuggerPageSk extends ElementDocSk {
   private _updateCursor(x: number, y: number): void {
     this._updateJumpButton([x, y]);
     this.dispatchEvent(
-      new CustomEvent<CursorEventDetail>(
-        RenderCursorEvent, {
-          detail: { position: [x, y], onlyData: false },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<CursorEventDetail>(RenderCursorEvent, {
+        detail: { position: [x, y], onlyData: false },
+        bubbles: true,
+      })
     );
   }
 
   private _keyDownHandler(e: KeyboardEvent): void {
-    if (this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
+    if (
+      this.querySelector<HTMLInputElement>('#text-filter') ===
+      document.activeElement
+    ) {
       return; // don't interfere with the filter textbox.
     }
     const [x, y] = this._zoom!.point;

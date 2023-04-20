@@ -30,10 +30,10 @@ describe('Test query encoding and decoding functions.', () => {
     assert.equal(query.fromObject({ a: {}, b: '3' }), 'a=&b=3');
     assert.equal(
       query.fromObject({ a: { b: { c: 'foo bar' } } }),
-      'a=b%3Dc%253Dfoo%252520bar',
+      'a=b%3Dc%253Dfoo%252520bar'
     );
     assert.isTrue(
-      ['a=2&b=3', 'b=3&a=2'].indexOf(query.fromObject({ a: 2, b: 3 })) !== -1,
+      ['a=2&b=3', 'b=3&a=2'].indexOf(query.fromObject({ a: 2, b: 3 })) !== -1
     );
   }
 
@@ -54,11 +54,11 @@ describe('Test query encoding and decoding functions.', () => {
     });
     assert.deepEqual(
       query.toObject('b=1&a=true%20false&b=2.2', { a: [], b: [] }),
-      { a: ['true false'], b: ['1', '2.2'] },
+      { a: ['true false'], b: ['1', '2.2'] }
     );
     assert.deepEqual(
       query.toObject('a=b%3Dc%253Dfoo%252520bar', { a: { b: { c: '' } } }),
-      { a: { b: { c: 'foo bar' } } },
+      { a: { b: { c: 'foo bar' } } }
     );
 
     assert.deepEqual(query.toObject('a=2&b=true', { a: 1.0, b: false }), {
@@ -104,7 +104,7 @@ describe('Test query encoding and decoding functions.', () => {
     assert.deepEqual(query.fromParamSet({ a: ['2', '3'] }), 'a=2&a=3');
     assert.deepEqual(
       query.fromParamSet({ a: ['2', '3'], b: ['foo'] }),
-      'a=2&a=3&b=foo',
+      'a=2&a=3&b=foo'
     );
     assert.deepEqual(query.fromParamSet({ a: ['2 '] }), 'a=2%20');
   }

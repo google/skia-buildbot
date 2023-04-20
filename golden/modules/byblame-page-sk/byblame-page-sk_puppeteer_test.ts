@@ -14,7 +14,9 @@ describe('byblame-page-sk', () => {
   });
 
   beforeEach(async () => {
-    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
+    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [
+      'end-task',
+    ]);
     const loaded = eventPromise('end-task'); // Emitted when page is loaded.
     await testBed.page.goto(testBed.baseUrl);
     await loaded;
@@ -35,7 +37,11 @@ describe('byblame-page-sk', () => {
     // click on "svg"
     await testBed.page.click('corpus-selector-sk > ul > li:nth-child(3)');
     await expectSelectedCorpusToBe('svg');
-    await takeScreenshot(testBed.page, 'gold', 'byblame-page-sk_limits-blamelist-commits');
+    await takeScreenshot(
+      testBed.page,
+      'gold',
+      'byblame-page-sk_limits-blamelist-commits'
+    );
   });
 
   it('responds to forward and back browser buttons', async () => {
@@ -63,7 +69,7 @@ describe('byblame-page-sk', () => {
   const expectSelectedCorpusToBe = async (corpus: string) => {
     const selectedTitle = await testBed.page.$eval(
       'corpus-selector-sk li.selected',
-      (e: Element) => (e as HTMLLIElement).innerText,
+      (e: Element) => (e as HTMLLIElement).innerText
     );
     expect(selectedTitle).to.contain(corpus);
   };

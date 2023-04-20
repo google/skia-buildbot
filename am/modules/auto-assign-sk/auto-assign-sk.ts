@@ -18,13 +18,14 @@ import { Incident } from '../json';
 export class AutoAssignSk extends ElementSk {
   private dialog: HTMLDialogElement | null = null;
 
-  private resolve: ((value: string[] | undefined)=> void) | null = null;
+  private resolve: ((value: string[] | undefined) => void) | null = null;
 
   private incidents: Incident[] = [];
 
   private selected: string[] = [];
 
-  private static template = (ele: AutoAssignSk) => html`<dialog>${ele.displayDialogContents()}</dialog>`;
+  private static template = (ele: AutoAssignSk) =>
+    html`<dialog>${ele.displayDialogContents()}</dialog>`;
 
   constructor() {
     super(AutoAssignSk.template);
@@ -64,18 +65,20 @@ export class AutoAssignSk extends ElementSk {
     if (Object.keys(this.incidents).length === 0) {
       return html`
         <h2>No unassigned active alerts found</h2>
-        <br/>
-        <div class=buttons>
+        <br />
+        <div class="buttons">
           <button @click=${this.dismiss}>OK</button>
         </div>
       `;
     }
     return html`
       <h2>The selected active alerts will be auto-assigned to owners</h2>
-      <select size=10 @input=${this.input} @keyup=${this.keyup} multiple>
-        ${this.incidents.map((incident: Incident) => this.displayIncident(incident))}
+      <select size="10" @input=${this.input} @keyup=${this.keyup} multiple>
+        ${this.incidents.map((incident: Incident) =>
+          this.displayIncident(incident)
+        )}
       </select>
-      <div class=buttons>
+      <div class="buttons">
         <button @click=${this.dismiss}>Cancel</button>
         <button @click=${this.confirm}>OK</button>
       </div>
@@ -97,9 +100,11 @@ export class AutoAssignSk extends ElementSk {
 
   private input(e: Event): void {
     this.selected = [];
-    Array.from((e.target as HTMLSelectElement).selectedOptions).forEach((option) => {
-      this.selected.push(option.value);
-    });
+    Array.from((e.target as HTMLSelectElement).selectedOptions).forEach(
+      (option) => {
+        this.selected.push(option.value);
+      }
+    );
   }
 
   private dismiss(): void {

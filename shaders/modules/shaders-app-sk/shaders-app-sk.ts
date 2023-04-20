@@ -19,9 +19,8 @@ import type {
   CanvasKitInit as CKInit,
   Paint,
   Surface,
-}
-// @ts-ignore
-from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+  // @ts-ignore
+} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -43,7 +42,10 @@ import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
   defaultScrapBody,
-  defaultShader, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
+  defaultShader,
+  numPredefinedUniformLines,
+  predefinedUniforms,
+  ShaderNode,
 } from '../shadernode';
 import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk';
 import '../edit-child-shader-sk';
@@ -59,14 +61,15 @@ declare const SKIA_VERSION: string;
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
-const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src).origin;
+const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src)
+  .origin;
 const kitReady = CanvasKitInit({
   locateFile: (file: string) => `${scriptOrigin}/dist/${file}`,
 });
 
 const DEFAULT_SIZE = 512;
 
-type stateChangedCallback = ()=> void;
+type stateChangedCallback = () => void;
 
 // This works around a TS lint rule included in Bazel rules which requires promises be awaited
 // on. We do not necessarily want to await on errorMessage, especially when we tell the error
@@ -108,7 +111,7 @@ const RAF_NOT_RUNNING = -1;
  * the codemirror and canvas. The image source is the source of the thumbnail image (a jpeg) and
  * the alt is the alternative text
  */
- interface shaderExample {
+interface shaderExample {
   hash: string;
   imageName: string;
 }
@@ -207,7 +210,7 @@ const exampleShadersGalleryTemplate = (ele: ShadersAppSk) => html`
       ${uniformExamples.map((i) => uniformExampleEntry(ele, i))}
     </ol>
   </div>
-  `;
+`;
 
 /** DOM IDs must not contain an '@', so replace them, and also prepend 'x' so
  *  that the id never starts with a number.
@@ -223,27 +226,35 @@ const domIDFromHashOrName = (hashOrName: string): string => {
  * @param i the shader example
  * @returns formated shader exanple entry div
  */
-const shaderEntry = (ele: ShadersAppSk, i: shaderExample) => html`
-  <li class="thumbnails" id='${domIDFromHashOrName(i.hash)}'>
-    <a href="/?id=${i.hash}">
-      <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`}>
-    </a>
-  </li>`;
+const shaderEntry = (ele: ShadersAppSk, i: shaderExample) => html` <li
+  class="thumbnails"
+  id="${domIDFromHashOrName(i.hash)}"
+>
+  <a href="/?id=${i.hash}">
+    <img
+      src=${cdnImage(i)}
+      alt=${`Clickable thumbnail of ${i.imageName} shader example`}
+    />
+  </a>
+</li>`;
 
 /**
  * Formats each uniform entry attaching the link with the display text.
  */
-const uniformExampleEntry = (ele: ShadersAppSk, uni: uniformExample) => html`
- <li class="thumbnails" id='${domIDFromHashOrName(uni.id)}'>
-   <a href="/?id=${uni.id}">${uni.name}</a>
- </li>`;
+const uniformExampleEntry = (
+  ele: ShadersAppSk,
+  uni: uniformExample
+) => html` <li class="thumbnails" id="${domIDFromHashOrName(uni.id)}">
+  <a href="/?id=${uni.id}">${uni.name}</a>
+</li>`;
 
 /**
  * Formats the shader example thumbnail url
  * @param i a shader example
  * @returns the corrrect url for a shader example
  */
-const cdnImage = (i: shaderExample) => `https://storage.googleapis.com/skia-world-readable/example-shaders/${i.imageName}-thumbnail.jpeg`;
+const cdnImage = (i: shaderExample) =>
+  `https://storage.googleapis.com/skia-world-readable/example-shaders/${i.imageName}-thumbnail.jpeg`;
 
 export class ShadersAppSk extends ElementSk {
   private width: number = DEFAULT_SIZE;
@@ -300,73 +311,102 @@ export class ShadersAppSk extends ElementSk {
     super(ShadersAppSk.template);
   }
 
-  private static deleteButton = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, index: number): TemplateResult => {
+  private static deleteButton = (
+    ele: ShadersAppSk,
+    parentNode: ShaderNode | null,
+    node: ShaderNode,
+    index: number
+  ): TemplateResult => {
     if (ele.rootShaderNode === node || parentNode === null) {
       return html``;
     }
     return html`
       <button
-        class=deleteButton
+        class="deleteButton"
         title="Delete child shader."
-        @click=${(e: Event) => ele.removeChildShader(e, parentNode, index)}>
+        @click=${(e: Event) => ele.removeChildShader(e, parentNode, index)}
+      >
         <delete-icon-sk></delete-icon-sk>
       </button>
     `;
-  }
+  };
 
-  private static editButton = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, index: number): TemplateResult => {
+  private static editButton = (
+    ele: ShadersAppSk,
+    parentNode: ShaderNode | null,
+    node: ShaderNode,
+    index: number
+  ): TemplateResult => {
     if (ele.rootShaderNode === node || parentNode === null) {
       return html``;
     }
     return html`
       <button
-        class=editButton
+        class="editButton"
         title="Edit child shader uniform name."
-        @click=${(e: Event) => ele.editChildShader(e, parentNode, index)}>
+        @click=${(e: Event) => ele.editChildShader(e, parentNode, index)}
+      >
         <edit-icon-sk></edit-icon-sk>
       </button>
     `;
-  }
+  };
 
-  private static displayShaderTreeImpl = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, depth: number = 0, name: string = '/', childIndex: number = 0): TemplateResult[] => {
+  private static displayShaderTreeImpl = (
+    ele: ShadersAppSk,
+    parentNode: ShaderNode | null,
+    node: ShaderNode,
+    depth: number = 0,
+    name: string = '/',
+    childIndex: number = 0
+  ): TemplateResult[] => {
     let ret: TemplateResult[] = [];
     // Prepend some fixed width spaces based on the depth so we get a nested
     // directory type of layout. See https://en.wikipedia.org/wiki/Figure_space.
     const prefix = new Array(depth).fill('&numsp;&numsp;').join('');
-    ret.push(html`
-      <p
-        class="childShader"
-        @click=${() => ele.childShaderClick(node)}>
-          <span>
-            ${unsafeHTML(prefix)}
-            <span class=linkish>${name}</span>
-            ${(ele.rootShaderNode!.children.length > 0 && ele.currentNode === node) ? '*' : ''}
-          </span>
-          <span>
-            ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
-            ${ShadersAppSk.editButton(ele, parentNode, node, childIndex)}
-            <button
-              class=addButton
-              title="Append a new child shader."
-              @click=${(e: Event) => ele.appendChildShader(e, node)}>
-                <add-icon-sk></add-icon-sk>
-            </button>
-          </span>
-      </p>`);
+    ret.push(html` <p
+      class="childShader"
+      @click=${() => ele.childShaderClick(node)}
+    >
+      <span>
+        ${unsafeHTML(prefix)}
+        <span class="linkish">${name}</span>
+        ${ele.rootShaderNode!.children.length > 0 && ele.currentNode === node
+          ? '*'
+          : ''}
+      </span>
+      <span>
+        ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
+        ${ShadersAppSk.editButton(ele, parentNode, node, childIndex)}
+        <button
+          class="addButton"
+          title="Append a new child shader."
+          @click=${(e: Event) => ele.appendChildShader(e, node)}
+        >
+          <add-icon-sk></add-icon-sk>
+        </button>
+      </span>
+    </p>`);
     node.children.forEach((childNode, index) => {
-      ret = ret.concat(ShadersAppSk.displayShaderTreeImpl(ele, node, childNode, depth + 1, node.getChildShaderUniformName(index), index));
+      ret = ret.concat(
+        ShadersAppSk.displayShaderTreeImpl(
+          ele,
+          node,
+          childNode,
+          depth + 1,
+          node.getChildShaderUniformName(index),
+          index
+        )
+      );
     });
     return ret;
-  }
+  };
 
   private static displayShaderTree = (ele: ShadersAppSk): TemplateResult[] => {
     if (!ele.rootShaderNode) {
-      return [
-        html``,
-      ];
+      return [html``];
     }
     return ShadersAppSk.displayShaderTreeImpl(ele, null, ele.rootShaderNode);
-  }
+  };
 
   // TODO (anjulij): add this back to example shaders
   private static uniformControls = (ele: ShadersAppSk): TemplateResult[] => {
@@ -386,19 +426,25 @@ export class ShadersAppSk extends ElementSk {
       switch (uniform.name) {
         case 'iTime':
           ele.numPredefinedUniformControls++;
-          ret.push(html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`);
+          ret.push(
+            html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`
+          );
           break;
         case 'iMouse':
           ele.numPredefinedUniformControls++;
-          ret.push(html`<uniform-mouse-sk .uniform=${uniform} .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`);
+          ret.push(
+            html`<uniform-mouse-sk
+              .uniform=${uniform}
+              .elementToMonitor=${ele.canvasEle}
+            ></uniform-mouse-sk>`
+          );
           break;
         case 'iResolution':
           ele.numPredefinedUniformControls++;
-          ret.push(html`
-            <uniform-dimensions-sk
-              .uniform=${uniform}
-              @dimensions-changed=${ele.dimensionsChanged}
-            ></uniform-dimensions-sk>`);
+          ret.push(html` <uniform-dimensions-sk
+            .uniform=${uniform}
+            @dimensions-changed=${ele.dimensionsChanged}
+          ></uniform-dimensions-sk>`);
           break;
         case 'iImageResolution':
           // No-op. This is no longer handled via uniform control, the
@@ -407,132 +453,166 @@ export class ShadersAppSk extends ElementSk {
           break;
         default:
           if (uniform.name.toLowerCase().indexOf('color') !== -1) {
-            ret.push(html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`);
+            ret.push(
+              html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`
+            );
           } else if (uniform.rows === 1 && uniform.columns === 1) {
-            ret.push(html`<uniform-slider-sk .uniform=${uniform}></uniform-slider-sk>`);
+            ret.push(
+              html`<uniform-slider-sk .uniform=${uniform}></uniform-slider-sk>`
+            );
           } else {
-            ret.push(html`<uniform-generic-sk .uniform=${uniform}></uniform-generic-sk>`);
+            ret.push(
+              html`<uniform-generic-sk
+                .uniform=${uniform}
+              ></uniform-generic-sk>`
+            );
           }
           break;
       }
     }
     return ret;
-  }
+  };
 
   private static template = (ele: ShadersAppSk) => html`
-  <app-sk>
-    <header>
-      <a href="/"><h1>SkSL Shaders</h1></a>
-      <span>
-        <a
-          id="githash"
-          href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
-        >
-          ${SKIA_VERSION.slice(0, 7)}
-        </a>
-        <theme-chooser-sk class="theme-chooser"></theme-chooser-sk>
-      </span>
-    </header>
-    <main>
-      <div>
-        <div class="example-gallery-and-canvas-wrapper">
-          <div>
-            ${exampleShadersGalleryTemplate(ele)}
+    <app-sk>
+      <header>
+        <a href="/"><h1>SkSL Shaders</h1></a>
+        <span>
+          <a
+            id="githash"
+            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
+          >
+            ${SKIA_VERSION.slice(0, 7)}
+          </a>
+          <theme-chooser-sk class="theme-chooser"></theme-chooser-sk>
+        </span>
+      </header>
+      <main>
+        <div>
+          <div class="example-gallery-and-canvas-wrapper">
+            <div>${exampleShadersGalleryTemplate(ele)}</div>
+            <canvas id="player" width=${ele.width} height=${ele.height}>
+              Your browser does not support the canvas tag.
+            </canvas>
           </div>
-        <canvas
-          id="player"
-          width=${ele.width}
-          height=${ele.height}
-        >
-          Your browser does not support the canvas tag.
-        </canvas>
+          <div>${ShadersAppSk.displayShaderTree(ele)}</div>
         </div>
         <div>
-          ${ShadersAppSk.displayShaderTree(ele)}
-        </div>
-      </div>
-      <div>
-        <details id=shaderinputs>
-          <summary>Shader Inputs</summary>
-          <textarea rows=${numPredefinedUniformLines} cols=75 readonly id="predefinedShaderInputs">${predefinedUniforms}</textarea>
-          <div id=imageSources>
-            <figure>
-              ${ele.currentNode?.inputImageElement}
-              <figcaption>iImage1</figcaption>
-            </figure>
-            <details id=image_edit>
-              <summary><edit-icon-sk></edit-icon-sk></summary>
-              <div id=image_edit_dialog>
-                <label for=image_url>
-                  Change the URL used for the source image.
-                </label>
-                <div>
-                  <input type=url id=image_url placeholder="URL of image to use." .value="${ele.currentNode?.getSafeImageURL() || ''}">
-                  <button @click=${ele.imageURLChanged}>Use</button>
+          <details id="shaderinputs">
+            <summary>Shader Inputs</summary>
+            <textarea
+              rows=${numPredefinedUniformLines}
+              cols="75"
+              readonly
+              id="predefinedShaderInputs"
+            >
+${predefinedUniforms}</textarea
+            >
+            <div id="imageSources">
+              <figure>
+                ${ele.currentNode?.inputImageElement}
+                <figcaption>iImage1</figcaption>
+              </figure>
+              <details id="image_edit">
+                <summary><edit-icon-sk></edit-icon-sk></summary>
+                <div id="image_edit_dialog">
+                  <label for="image_url">
+                    Change the URL used for the source image.
+                  </label>
+                  <div>
+                    <input
+                      type="url"
+                      id="image_url"
+                      placeholder="URL of image to use."
+                      .value="${ele.currentNode?.getSafeImageURL() || ''}"
+                    />
+                    <button @click=${ele.imageURLChanged}>Use</button>
+                  </div>
+                  <label for="image_upload">
+                    Or upload an image to <em>temporarily</em> try as a source
+                    for the shader. Uploaded images are not saved.
+                  </label>
+                  <div>
+                    <input
+                      @change=${ele.imageUploaded}
+                      type="file"
+                      id="image_upload"
+                      accept="image/*"
+                    />
+                  </div>
                 </div>
-                <label for=image_upload>
-                  Or upload an image to <em>temporarily</em> try as a source for the shader. Uploaded images are not saved.
-                </label>
-                <div>
-                  <input @change=${ele.imageUploaded} type=file id=image_upload accept="image/*">
-                </div>
-              </div>
-            </details>
+              </details>
+            </div>
+          </details>
+          <textarea
+            style="display: ${ele.currentNode?.children.length
+              ? 'block'
+              : 'none'}"
+            rows=${ele.currentNode?.children.length || 0}
+            cols="75"
+          >
+${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
+          >
+          <div id="codeEditor"></div>
+          <div
+            ?hidden=${!ele.currentNode?.compileErrorMessage}
+            id="compileErrors"
+          >
+            <h3>Errors</h3>
+            <pre>${ele.currentNode?.compileErrorMessage}</pre>
           </div>
-        </details>
-        <textarea style="display: ${ele.currentNode?.children.length ? 'block' : 'none'}" rows=${ele.currentNode?.children.length || 0} cols=75>${ele.currentNode?.getChildShaderUniforms() || ''}</textarea>
-        <div id="codeEditor"></div>
-        <div ?hidden=${!ele.currentNode?.compileErrorMessage} id="compileErrors">
-          <h3>Errors</h3>
-          <pre>${ele.currentNode?.compileErrorMessage}</pre>
         </div>
-      </div>
-      <div id=shaderControls>
-        <div id=uniformControls @input=${ele.uniformControlsChange} @change=${ele.uniformControlsChange}>
-          ${ShadersAppSk.uniformControls(ele)}
+        <div id="shaderControls">
+          <div
+            id="uniformControls"
+            @input=${ele.uniformControlsChange}
+            @change=${ele.uniformControlsChange}
+          >
+            ${ShadersAppSk.uniformControls(ele)}
+          </div>
+          <button
+            ?hidden=${!ele.rootShaderNode?.needsCompile()}
+            @click=${ele.runClick}
+            class="action"
+          >
+            Run
+          </button>
+          <button
+            ?hidden=${!ele.rootShaderNode?.needsSave()}
+            @click=${ele.saveClick}
+            class="action"
+          >
+            Save
+          </button>
+          <button
+            ?hidden=${ele.currentNode?.compileErrorMessage ||
+            ele.rootShaderNode?.needsCompile()}
+            @click=${ele.createDebugTrace}
+            class="action"
+          >
+            Debug
+          </button>
+          <button
+            ?hidden=${ele.rootShaderNode?.needsSave()}
+            @click=${ele.viewInFiddle}
+            class="action"
+          >
+            View in fiddle
+          </button>
+          <button
+            ?hidden=${ele.rootShaderNode?.needsSave()}
+            @click=${ele.viewInJsFiddle}
+            class="action"
+          >
+            View in jsfiddle
+          </button>
         </div>
-        <button
-          ?hidden=${!ele.rootShaderNode?.needsCompile()}
-          @click=${ele.runClick}
-          class=action
-        >
-          Run
-        </button>
-        <button
-          ?hidden=${!ele.rootShaderNode?.needsSave()}
-          @click=${ele.saveClick}
-          class=action
-        >
-          Save
-        </button>
-        <button
-          ?hidden=${ele.currentNode?.compileErrorMessage || ele.rootShaderNode?.needsCompile()}
-          @click=${ele.createDebugTrace}
-          class=action
-        >
-          Debug
-        </button>
-        <button
-          ?hidden=${ele.rootShaderNode?.needsSave()}
-          @click=${ele.viewInFiddle}
-          class=action
-        >
-          View in fiddle
-        </button>
-        <button
-          ?hidden=${ele.rootShaderNode?.needsSave()}
-          @click=${ele.viewInJsFiddle}
-          class=action
-         >
-          View in jsfiddle
-        </button>
-      </div>
-    </main>
-    <footer>
-      <edit-child-shader-sk></edit-child-shader-sk>
-      <error-toast-sk></error-toast-sk>
-    </footer>
-  </app-sk>
+      </main>
+      <footer>
+        <edit-child-shader-sk></edit-child-shader-sk>
+        <error-toast-sk></error-toast-sk>
+      </footer>
+    </app-sk>
   `;
 
   /** Returns the CodeMirror theme based on the state of the page's darkmode.
@@ -540,7 +620,8 @@ export class ShadersAppSk extends ElementSk {
    * For this to work the associated CSS themes must be loaded. See
    * shaders-app-sk.scss.
    */
-  private static themeFromCurrentMode = () => (isDarkMode() ? 'ambiance' : 'base16-light');
+  private static themeFromCurrentMode = () =>
+    isDarkMode() ? 'ambiance' : 'base16-light';
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -574,9 +655,9 @@ export class ShadersAppSk extends ElementSk {
       this.paint = new this.kit.Paint();
       try {
         this.stateChanged = stateReflector(
-          /* getState */ () => (this.state as unknown) as HintableObject,
+          /* getState */ () => this.state as unknown as HintableObject,
           /* setState */ async (newState: HintableObject) => {
-            this.state = (newState as unknown) as State;
+            this.state = newState as unknown as State;
             this.rootShaderNode = new ShaderNode(this.kit!);
             this.currentNode = this.rootShaderNode;
             if (!this.state.id) {
@@ -585,7 +666,7 @@ export class ShadersAppSk extends ElementSk {
             } else {
               await this.loadShaderIfNecessary();
             }
-          },
+          }
         );
       } catch (error) {
         doNotWait(errorMessage(error as Error, 0));
@@ -619,7 +700,9 @@ export class ShadersAppSk extends ElementSk {
       this.setUniformValuesToControls();
       // If we loaded this shader from the gallery then make sure the thumbnail
       // is scrolled into view.
-      const galleryEntry = this.querySelector(`#${domIDFromHashOrName(this.state.id)}`);
+      const galleryEntry = this.querySelector(
+        `#${domIDFromHashOrName(this.state.id)}`
+      );
       if (galleryEntry) {
         galleryEntry.scrollIntoView();
       }
@@ -696,13 +779,15 @@ export class ShadersAppSk extends ElementSk {
 
   private setEditorErrorLineAnnotation(lineNumber: number): void {
     // Set the class of that line to 'cm-error'.
-    this.compileErrorLines.push(this.codeMirror!.markText(
-      { line: lineNumber - 1, ch: 0 },
-      { line: lineNumber - 1, ch: 9999 }, // Some large number for the character offset.
-      {
-        className: 'cm-error', // See the ambiance.css file in CodeMirror for the class name.
-      },
-    ));
+    this.compileErrorLines.push(
+      this.codeMirror!.markText(
+        { line: lineNumber - 1, ch: 0 },
+        { line: lineNumber - 1, ch: 9999 }, // Some large number for the character offset.
+        {
+          className: 'cm-error', // See the ambiance.css file in CodeMirror for the class name.
+        }
+      )
+    );
   }
 
   /** Query the uniforms from the controls defined by the user. These uniforms will be packed into
@@ -713,7 +798,9 @@ export class ShadersAppSk extends ElementSk {
     if (!this.currentNode) {
       return [];
     }
-    const uniforms: number[] = new Array(this.currentNode.numPredefinedUniformValues).fill(0);
+    const uniforms: number[] = new Array(
+      this.currentNode.numPredefinedUniformValues
+    ).fill(0);
     $<UniformControlElement>('#uniformControls > *')
       .slice(0, this.numPredefinedUniformControls) // stop after the predefined controls
       .forEach((control: UniformControl) => {
@@ -731,7 +818,9 @@ export class ShadersAppSk extends ElementSk {
     }
     // Make a full array because the application of uniform values are implemented to write to
     // specific indexes and we need those later indexes to exist.
-    const uniforms: number[] = new Array(this.currentNode.getUniformFloatCount()).fill(0);
+    const uniforms: number[] = new Array(
+      this.currentNode.getUniformFloatCount()
+    ).fill(0);
     $<UniformControlElement>('#uniformControls > *')
       .slice(this.numPredefinedUniformControls) // start after the predefined controls
       .forEach((control: UniformControl) => {
@@ -744,30 +833,41 @@ export class ShadersAppSk extends ElementSk {
 
   /** Populate the control values from the uniforms. */
   private setUniformValuesToControls(): void {
-    const predefinedUniformValues = new Array(this.currentNode!.numPredefinedUniformValues).fill(0);
-    const uniforms = predefinedUniformValues.concat(this.currentNode!.currentUserUniformValues);
-    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
-      control.restoreUniformValues(uniforms);
-    });
+    const predefinedUniformValues = new Array(
+      this.currentNode!.numPredefinedUniformValues
+    ).fill(0);
+    const uniforms = predefinedUniformValues.concat(
+      this.currentNode!.currentUserUniformValues
+    );
+    $<UniformControlElement>('#uniformControls > *').forEach(
+      (control: UniformControl) => {
+        control.restoreUniformValues(uniforms);
+      }
+    );
     this.findAllUniformControlsThatNeedRAF();
   }
 
   private findAllUniformControlsThatNeedRAF(): void {
     this.uniformControlsNeedingRAF = [];
-    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
-      if (control.needsRAF()) {
-        this.uniformControlsNeedingRAF.push(control);
+    $<UniformControlElement>('#uniformControls > *').forEach(
+      (control: UniformControl) => {
+        if (control.needsRAF()) {
+          this.uniformControlsNeedingRAF.push(control);
+        }
       }
-    });
+    );
   }
 
   private uniformControlsChange(): void {
-    this.currentNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
+    this.currentNode!.currentUserUniformValues =
+      this.getUserUniformValuesFromControls();
     this._render();
   }
 
   private drawFrame(): void {
-    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
+    const shader = this.currentNode!.getShader(
+      this.getPredefinedUniformValuesFromControls()
+    );
     if (!shader || !this.kit) {
       return;
     }
@@ -787,16 +887,20 @@ export class ShadersAppSk extends ElementSk {
     // The circle pulses three times; each pulse lasts 200ms.
     const blinkMs: number = Date.now() - this.traceCoordClickMs;
     if (blinkMs < 600) {
-      const phase = ((blinkMs % 200) / 200); // increases from 0 to 1 over each pulse
+      const phase = (blinkMs % 200) / 200; // increases from 0 to 1 over each pulse
       const paint: Paint = new this.kit.Paint();
       paint.setAntiAlias(true);
       paint.setStyle(this.kit.PaintStyle.Stroke);
       paint.setStrokeWidth(2.0);
       const opacity: number = 1.0 - phase;
       paint.setColor(this.kit.Color4f(1, 0, 0, opacity));
-      const size: number = 10 + (phase * 5);
-      const ovalFrame = this.kit.XYWHRect(this.traceCoordX - size, this.traceCoordY - size,
-        2 * size, 2 * size);
+      const size: number = 10 + phase * 5;
+      const ovalFrame = this.kit.XYWHRect(
+        this.traceCoordX - size,
+        this.traceCoordY - size,
+        2 * size,
+        2 * size
+      );
       this.canvas!.drawOval(ovalFrame, paint);
       paint.delete();
     }
@@ -810,7 +914,9 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private createDebugTrace(): void {
-    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
+    const shader = this.currentNode!.getShader(
+      this.getPredefinedUniformValuesFromControls()
+    );
     if (!shader || !this.kit) {
       return;
     }
@@ -820,11 +926,24 @@ export class ShadersAppSk extends ElementSk {
     if (surface) {
       const canvas: Canvas = surface.getCanvas();
       const paint: Paint = new this.kit.Paint();
-      const traced = this.kit.RuntimeEffect.MakeTraced(shader, this.traceCoordX, this.traceCoordY);
+      const traced = this.kit.RuntimeEffect.MakeTraced(
+        shader,
+        this.traceCoordX,
+        this.traceCoordY
+      );
       paint.setShader(traced.shader);
       // Clip to a tight rectangle around the trace coordinate to reduce draw time.
-      const tightClip = this.kit.XYWHRect(this.traceCoordX - 2, this.traceCoordY - 2, 5, 5);
-      canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /* doAntiAlias= */ false);
+      const tightClip = this.kit.XYWHRect(
+        this.traceCoordX - 2,
+        this.traceCoordY - 2,
+        5,
+        5
+      );
+      canvas.clipRect(
+        tightClip,
+        this.kit.ClipOp.Intersect,
+        /* doAntiAlias= */ false
+      );
       const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
       canvas.drawRect(rect, paint);
       const traceJSON: string = traced.debugTrace.writeTrace();
@@ -845,9 +964,9 @@ export class ShadersAppSk extends ElementSk {
 
   private async viewInFiddle() {
     const loadInFiddle = function (scrapID: string) {
-      const url = 'https://fiddle.skia.org/scrap/sksl/' + scrapID;
+      const url = `https://fiddle.skia.org/scrap/sksl/${scrapID}`;
       window.open(url);
-    }
+    };
 
     if (this.state.id) {
       loadInFiddle(this.state.id);
@@ -859,9 +978,9 @@ export class ShadersAppSk extends ElementSk {
 
   private async viewInJsFiddle() {
     const loadInJSFiddle = function (scrapID: string) {
-      const url = 'https://jsfiddle.skia.org/scrap/sksl/' + scrapID;
+      const url = `https://jsfiddle.skia.org/scrap/sksl/${scrapID}`;
       window.open(url);
-    }
+    };
 
     if (this.state.id) {
       loadInJSFiddle(this.state.id);
@@ -922,7 +1041,11 @@ export class ShadersAppSk extends ElementSk {
     }
   }
 
-  private async removeChildShader(e: Event, parentNode: ShaderNode, index: number) {
+  private async removeChildShader(
+    e: Event,
+    parentNode: ShaderNode,
+    index: number
+  ) {
     e.stopPropagation();
     // We could write a bunch of complicated logic to track which current shader
     // is selected and restore that correctly on delete, or we can just always
@@ -935,13 +1058,22 @@ export class ShadersAppSk extends ElementSk {
     await this.runClick();
   }
 
-  private async editChildShader(e: Event, parentNode: ShaderNode, index: number) {
+  private async editChildShader(
+    e: Event,
+    parentNode: ShaderNode,
+    index: number
+  ) {
     e.stopPropagation();
-    const editedChildShader = await this.editChildShaderControl!.show(parentNode.getChildShader(index));
+    const editedChildShader = await this.editChildShaderControl!.show(
+      parentNode.getChildShader(index)
+    );
     if (!editedChildShader) {
       return;
     }
-    await parentNode.setChildShaderUniformName(index, editedChildShader.UniformName);
+    await parentNode.setChildShaderUniformName(
+      index,
+      editedChildShader.UniformName
+    );
     this._render();
     await this.runClick();
   }
@@ -957,7 +1089,7 @@ export class ShadersAppSk extends ElementSk {
    * Load example by changing state rather than actually following the links.
    */
   private async fastLoad(e: Event): Promise<void> {
-    const ele = (e.target as HTMLLinkElement);
+    const ele = e.target as HTMLLinkElement;
     if (ele.tagName !== 'A') {
       return;
     }

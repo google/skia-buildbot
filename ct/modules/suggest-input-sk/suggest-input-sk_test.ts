@@ -29,19 +29,19 @@ describe('suggest-input-sk', () => {
   // Simulates up/down/enter navigation through suggestion list.
   const simulateKeyboardNavigation = (code: string) => {
     ($$('input', suggestInput) as HTMLInputElement).dispatchEvent(
-      new KeyboardEvent('keyup', { code: code }),
+      new KeyboardEvent('keyup', { code: code })
     );
   };
 
   const simulateUserClick = () => {
     ($$('input', suggestInput) as HTMLInputElement).dispatchEvent(
-      new Event('focus', { bubbles: true, cancelable: true }),
+      new Event('focus', { bubbles: true, cancelable: true })
     );
   };
 
   const simulateUserClickAway = () => {
     ($$('input', suggestInput) as HTMLInputElement).dispatchEvent(
-      new Event('blur', { bubbles: true, cancelable: true }),
+      new Event('blur', { bubbles: true, cancelable: true })
     );
   };
 
@@ -51,10 +51,12 @@ describe('suggest-input-sk', () => {
     const ele = $$('input', suggestInput) as HTMLInputElement;
     ele.focus();
     ele.value = value;
-    ele.dispatchEvent(new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    ele.dispatchEvent(
+      new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
   };
 
   it('hides suggestions initially', () => {
@@ -131,11 +133,13 @@ describe('suggest-input-sk', () => {
     const valueChangedEvent = eventPromise('value-changed');
     // Click 'Python2.7'.
     $('li', suggestInput)[1].dispatchEvent(
-      new MouseEvent('click', { bubbles: true, cancelable: true }),
+      new MouseEvent('click', { bubbles: true, cancelable: true })
     );
     const selectionMade = await valueChangedEvent;
     expect((selectionMade as CustomEvent).detail.value).to.equal('Python2.7');
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python2.7');
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
+      'Python2.7'
+    );
   });
 
   it('select suggestion by arrows/enter', () => {
@@ -165,7 +169,9 @@ describe('suggest-input-sk', () => {
     checkSelected('Python3');
     // Select.
     simulateKeyboardNavigation(ENTER);
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python3');
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
+      'Python3'
+    );
   });
 
   it('select suggestion by arrows/blur', () => {
@@ -173,7 +179,9 @@ describe('suggest-input-sk', () => {
     // Go to first suggestion (Python2.7)
     simulateKeyboardNavigation(DOWN_ARROW);
     simulateUserClickAway();
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python2.7');
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
+      'Python2.7'
+    );
   });
 
   it('clears on unlisted value without acceptCustomValue', () => {
@@ -186,6 +194,8 @@ describe('suggest-input-sk', () => {
     suggestInput.acceptCustomValue = true;
     simulateUserTyping('blarg');
     simulateUserClickAway();
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('blarg');
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
+      'blarg'
+    );
   });
 });

@@ -11,12 +11,13 @@ const fakeRpcDelayMillis = 300;
 
 fetchMock.get(
   '/rpc/most_recent_binaries/v1',
-  () => new Promise(
-    (resolve) => setTimeout(
-      () => resolve(JSON.stringify(fakeMostRecentBinariesRPCResponse)),
-      fakeRpcDelayMillis,
-    ),
-  ),
+  () =>
+    new Promise((resolve) =>
+      setTimeout(
+        () => resolve(JSON.stringify(fakeMostRecentBinariesRPCResponse)),
+        fakeRpcDelayMillis
+      )
+    )
 );
 
 // Add the page under test only after all RPCs are mocked out.

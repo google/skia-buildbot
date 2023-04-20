@@ -7,8 +7,8 @@
  * id.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
@@ -36,9 +36,9 @@ export class JSONSourceSk extends ElementSk {
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls">
       <button @click=${ele._loadSource}>View Source File</button>
-      <button @click=${ele._loadSourceSmall}
-        >View Source File Without Results</button
-      >
+      <button @click=${ele._loadSourceSmall}>
+        View Source File Without Results
+      </button>
       <spinner-sk id="spinner"></spinner-sk>
     </div>
     <pre>${ele._json}</pre>

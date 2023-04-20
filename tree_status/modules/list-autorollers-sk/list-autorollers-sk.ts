@@ -17,8 +17,8 @@
  *
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { findParent } from '../../../infra-sk/modules/dom';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -39,24 +39,34 @@ export class ListAutorollersSk extends ElementSk {
   }
 
   private static template = (ele: ListAutorollersSk) => html`
-  <div class="autorollers">
-    Choose state:
-    <hr/>
-    <radio-sk label="Caution" name=tree_state ?checked=${ele.selectedTreeStatus === 'Caution'} @change=${() => ele.radioHandler('Caution')}></radio-sk>
-    <radio-sk label="Closed" name=tree_state ?checked=${ele.selectedTreeStatus === 'Closed'} @change=${() => ele.radioHandler('Closed')}></radio-sk>
-    <br/><br/>
-    Choose rollers to wait for:
-    <hr/>
-    <table>
-      ${ele.autorollerRow()}
-      <tr>
-        <td colspan=3 class="submit-button">
-          <br/>
-          <button @click=${ele.submit}>Submit</button>
-        </td>
-      </tr>
-    </table>
-  </div>
+    <div class="autorollers">
+      Choose state:
+      <hr />
+      <radio-sk
+        label="Caution"
+        name="tree_state"
+        ?checked=${ele.selectedTreeStatus === 'Caution'}
+        @change=${() => ele.radioHandler('Caution')}
+      ></radio-sk>
+      <radio-sk
+        label="Closed"
+        name="tree_state"
+        ?checked=${ele.selectedTreeStatus === 'Closed'}
+        @change=${() => ele.radioHandler('Closed')}
+      ></radio-sk>
+      <br /><br />
+      Choose rollers to wait for:
+      <hr />
+      <table>
+        ${ele.autorollerRow()}
+        <tr>
+          <td colspan="3" class="submit-button">
+            <br />
+            <button @click=${ele.submit}>Submit</button>
+          </td>
+        </tr>
+      </table>
+    </div>
   `;
 
   // resets the textfield, radio buttons and check boxes.
@@ -78,19 +88,23 @@ export class ListAutorollersSk extends ElementSk {
   }
 
   private autorollerRow() {
-    return this.autorollers.map((autoroller) => html`
-  <tr>
-    <td>
-      <checkbox-sk ?checked=${this.checkedAutorollers.has(autoroller.name)} @change=${this.clickHandler} id=${autoroller.name}></checkbox-sk>
-    </td>
-    <td>
-      <a href="${autoroller.url}" target="_blank">${autoroller.name}</a>
-    </td>
-    <td>
-      [Failing: ${autoroller.num_failed}]
-    </td>
-  </tr>
-  `);
+    return this.autorollers.map(
+      (autoroller) => html`
+        <tr>
+          <td>
+            <checkbox-sk
+              ?checked=${this.checkedAutorollers.has(autoroller.name)}
+              @change=${this.clickHandler}
+              id=${autoroller.name}
+            ></checkbox-sk>
+          </td>
+          <td>
+            <a href="${autoroller.url}" target="_blank">${autoroller.name}</a>
+          </td>
+          <td>[Failing: ${autoroller.num_failed}]</td>
+        </tr>
+      `
+    );
   }
 
   // The list of autorollers.
@@ -108,7 +122,10 @@ export class ListAutorollersSk extends ElementSk {
   }
 
   private clickHandler(e: Event) {
-    const checkbox = findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
+    const checkbox = findParent(
+      e.target as HTMLElement,
+      'CHECKBOX-SK'
+    ) as CheckOrRadio;
     if (checkbox.checked) {
       this.checkedAutorollers.add(checkbox.id);
     } else {
@@ -121,13 +138,17 @@ export class ListAutorollersSk extends ElementSk {
     let treeStatus = this.selectedTreeStatus;
     const rollerNamesStr = this.getSelectedRollerNames();
     if (rollerNamesStr) {
-      treeStatus = `${treeStatus}: Waiting for ${rollerNamesStr} roller${this.checkedAutorollers.size > 1 ? 's' : ''} to land`;
+      treeStatus = `${treeStatus}: Waiting for ${rollerNamesStr} roller${
+        this.checkedAutorollers.size > 1 ? 's' : ''
+      } to land`;
     }
     return treeStatus;
   }
 
   private setTreeStatus(treeStatus: string) {
-    this.dispatchEvent(new CustomEvent('set-tree-status', { detail: treeStatus, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('set-tree-status', { detail: treeStatus, bubbles: true })
+    );
   }
 
   private radioHandler(state: string) {

@@ -7,10 +7,13 @@
  *     Puppeteer test.
  * @param delayMs Delay in milliseconds.
  */
-export function delay<T>(toReturn: T | (()=> T), delayMs = 100): ()=> Promise<T | Response> {
+export function delay<T>(
+  toReturn: T | (() => T),
+  delayMs = 100
+): () => Promise<T | Response> {
   // We return a function that returns the promise so each call has a "fresh" promise and waits
   // for the allotted time.
-  return function() {
+  return function () {
     // For puppeteer tests, we want more deterministic page loads; removing the time does this.
     if (isPuppeteerTest()) {
       delayMs = 0;

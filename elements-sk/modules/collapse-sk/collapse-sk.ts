@@ -34,7 +34,9 @@ export class CollapseSk extends HTMLElement {
   }
 
   /** Mirrors the closed attribute. */
-  get closed(): boolean { return this.hasAttribute('closed'); }
+  get closed(): boolean {
+    return this.hasAttribute('closed');
+  }
 
   set closed(val: boolean) {
     if (val) {

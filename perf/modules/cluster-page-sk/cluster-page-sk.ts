@@ -5,9 +5,9 @@
  *   The top level element for clustering traces.
  *
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -145,16 +145,14 @@ export class ClusterPageSk extends ElementSk {
           Run
         </button>
         <div>
-          <spinner-sk id=run-spinner></spinner-sk>
+          <spinner-sk id="run-spinner"></spinner-sk>
           <span>${ele.status}</span>
         </div>
       </div>
     </div>
 
     <details>
-      <summary id="advanced">
-        Advanced
-      </summary>
+      <summary id="advanced">Advanced</summary>
       <div id="inputs">
         <label>
           K (A value of 0 means the server chooses).
@@ -162,7 +160,10 @@ export class ClusterPageSk extends ElementSk {
         </label>
         <label>
           Number of commits to include on either side.
-          <input .value=${ele.state.radius.toString()} @input=${ele.radiusChange} />
+          <input
+            .value=${ele.state.radius.toString()}
+            @input=${ele.radiusChange}
+          />
         </label>
         <label>
           Clusters are interesting if regression score &gt;= this.
@@ -195,14 +196,14 @@ export class ClusterPageSk extends ElementSk {
   private static _summaryRows = (ele: ClusterPageSk) => {
     const ret = ele.summaries.map(
       (summary) => html`
-          <cluster-summary2-sk
-            .full_summary=${summary}
-            notriage
-          ></cluster-summary2-sk>
-        `,
+        <cluster-summary2-sk
+          .full_summary=${summary}
+          notriage
+        ></cluster-summary2-sk>
+      `
     );
     if (!ret.length) {
-      ret.push(html`<p class="info"> No clusters found. </p>`);
+      ret.push(html`<p class="info">No clusters found.</p>`);
     }
     return ret;
   };
@@ -222,11 +223,11 @@ export class ClusterPageSk extends ElementSk {
       .catch(errorMessage);
 
     this.stateHasChanged = stateReflector(
-      () => (this.state as unknown) as HintableObject,
+      () => this.state as unknown as HintableObject,
       (state) => {
-        this.state = (state as unknown) as State;
+        this.state = state as unknown as State;
         this._render();
-      },
+      }
     );
   }
 
@@ -284,9 +285,9 @@ export class ClusterPageSk extends ElementSk {
   }
 
   private commitSelected(
-    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>,
+    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
   ) {
-    this.state.offset = ((e.detail.commit as unknown) as Commit).offset;
+    this.state.offset = (e.detail.commit as unknown as Commit).offset;
     this.stateHasChanged();
   }
 
@@ -341,16 +342,25 @@ export class ClusterPageSk extends ElementSk {
     this._render();
 
     try {
-      const prog = await startRequest('/_/cluster/start', body, 300, this.spinner!, (prog: progress.SerializedProgress) => {
-        this.runningStatus = prog.messages.map(((msg) => `${msg.key}: ${msg.value}`)).join('\n');
-        this._render();
-      });
+      const prog = await startRequest(
+        '/_/cluster/start',
+        body,
+        300,
+        this.spinner!,
+        (prog: progress.SerializedProgress) => {
+          this.runningStatus = prog.messages
+            .map((msg) => `${msg.key}: ${msg.value}`)
+            .join('\n');
+          this._render();
+        }
+      );
       if (prog.status === 'Error') {
         throw new Error(messagesToErrorString(prog.messages));
       }
 
       this.summaries = [];
-      const regressionDetectionResponse = prog.results as RegressionDetectionResponse;
+      const regressionDetectionResponse =
+        prog.results as RegressionDetectionResponse;
       regressionDetectionResponse.summary!.Clusters!.forEach(
         (clusterSummary) => {
           this.summaries.push({
@@ -361,7 +371,7 @@ export class ClusterPageSk extends ElementSk {
               message: '',
             },
           });
-        },
+        }
       );
     } catch (error: any) {
       this.catch(error);

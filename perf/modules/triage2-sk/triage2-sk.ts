@@ -13,8 +13,8 @@
  * @example
  *   <triage2-sk value=positive></triage2-sk>
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
@@ -84,14 +84,18 @@ export class TriageSk extends ElementSk {
     this.setAttribute('value', val);
   }
 
-  attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
+  attributeChangedCallback(
+    _name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
     if (oldValue !== newValue) {
       this._render();
       this.dispatchEvent(
         new CustomEvent<Status>('change', {
           detail: newValue as Status,
           bubbles: true,
-        }),
+        })
       );
     }
   }

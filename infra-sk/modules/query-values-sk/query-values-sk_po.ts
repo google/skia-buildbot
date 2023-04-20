@@ -1,6 +1,9 @@
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { PageObject } from '../page_object/page_object';
-import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../page_object/page_object_element';
 import { asyncForEach } from '../async';
 
 /** A page object for the QueryValuesSk component. */
@@ -26,35 +29,55 @@ export class QueryValuesSkPO extends PageObject {
   }
 
   async isInvertCheckboxChecked() {
-    return (await this.invertCheckBox)
-      .applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
+    return (await this.invertCheckBox).applyFnToDOMNode(
+      (c: Element) => (c as CheckOrRadio).checked
+    );
   }
 
   async isRegexCheckboxChecked() {
-    return (await this.regexCheckBox)
-      .applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
+    return (await this.regexCheckBox).applyFnToDOMNode(
+      (c: Element) => (c as CheckOrRadio).checked
+    );
   }
 
-  async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }
+  async clickInvertCheckbox() {
+    await (await this.invertCheckBox).click();
+  }
 
-  async clickRegexCheckbox() { await (await this.regexCheckBox).click(); }
+  async clickRegexCheckbox() {
+    await (await this.regexCheckBox).click();
+  }
 
-  async isInvertCheckboxHidden() { return (await this.invertCheckBox).hasAttribute('hidden'); }
+  async isInvertCheckboxHidden() {
+    return (await this.invertCheckBox).hasAttribute('hidden');
+  }
 
-  async isRegexCheckboxHidden() { return (await this.regexCheckBox).hasAttribute('hidden'); }
+  async isRegexCheckboxHidden() {
+    return (await this.regexCheckBox).hasAttribute('hidden');
+  }
 
-  async getRegexValue() { return (await this.regexInput).value; }
+  async getRegexValue() {
+    return (await this.regexInput).value;
+  }
 
-  async setRegexValue(value: string) { await (await this.regexInput).enterValue(value); }
+  async setRegexValue(value: string) {
+    await (await this.regexInput).enterValue(value);
+  }
 
   async clickOption(option: string) {
-    const optionDiv = await this.options.find((div) => div.isInnerTextEqualTo(option));
+    const optionDiv = await this.options.find((div) =>
+      div.isInnerTextEqualTo(option)
+    );
     await optionDiv?.click();
   }
 
-  getOptions() { return this.options.map((option) => option.innerText); }
+  getOptions() {
+    return this.options.map((option) => option.innerText);
+  }
 
-  getSelectedOptions() { return this.selectedOptions.map((option) => option.innerText); }
+  getSelectedOptions() {
+    return this.selectedOptions.map((option) => option.innerText);
+  }
 
   /** Analogous to the "selected" property getter. */
   async getSelected() {
@@ -76,7 +99,9 @@ export class QueryValuesSkPO extends PageObject {
     if (selected.some((value) => value.startsWith('~'))) {
       // There can only be one regex.
       if (selected.length > 1) {
-        throw new Error('invalid selection: regex found in selection of length > 1');
+        throw new Error(
+          'invalid selection: regex found in selection of length > 1'
+        );
       }
 
       // Click the regex checkbox if it isn't checked.
@@ -93,7 +118,9 @@ export class QueryValuesSkPO extends PageObject {
     if (selected.some((value) => value.startsWith('!'))) {
       // If one item is inverted, all items must be inverted as well.
       if (!selected.every((value) => value.startsWith('!'))) {
-        throw new Error('invalid selection: inverted and non-inverted items found');
+        throw new Error(
+          'invalid selection: inverted and non-inverted items found'
+        );
       }
 
       // Click the invert checkbox if it isn't checked.

@@ -4,8 +4,8 @@
  *
  * Main page of Perf, for exploring data.
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
@@ -68,11 +68,21 @@ import {
 } from '../../../infra-sk/modules/query-sk/query-sk';
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
-import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
+import {
+  messageByName,
+  messagesToErrorString,
+  startRequest,
+} from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
-import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
-import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
+import {
+  PivotQueryChangedEventDetail,
+  PivotQuerySk,
+} from '../pivot-query-sk/pivot-query-sk';
+import {
+  PivotTableSk,
+  PivotTableSkChangeEventDetail,
+} from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
@@ -110,7 +120,7 @@ const RANGE_CHANGE_ON_ZOOM_PERCENT = 0.5;
 // The minimum length [right - left] of a zoom range.
 const MIN_ZOOM_RANGE = 0.1;
 
-type RequestFrameCallback = (frameResponse: FrameResponse)=> void;
+type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
 // Even though pivot.Request sent to the server can be null, we don't want to
 // put use a null in state, as that won't let stateReflector figure out the
@@ -123,8 +133,8 @@ const defaultPivotRequest = (): pivot.Request => ({
 
 // Stores the trace name and commit number of a single point on a trace.
 export interface PointSelected {
-  commit: number
-  name: string
+  commit: number;
+  name: string;
 }
 
 /** Returns true if the PointSelected is valid. */
@@ -137,7 +147,10 @@ export const isValidSelection = (p: PointSelected): boolean => p.name !== '';
  * offset. Also note that might fail, in which case the 'x' value will be set to
  * -1.
  */
-export const selectionToEvent = (p: PointSelected, header: (ColumnHeader | null)[] | null): CustomEvent<PlotSimpleSkTraceEventDetails> => {
+export const selectionToEvent = (
+  p: PointSelected,
+  header: (ColumnHeader | null)[] | null
+): CustomEvent<PlotSimpleSkTraceEventDetails> => {
   let x = -1;
   if (header !== null) {
     // Find the index of the ColumnHeader that matches the commit.
@@ -145,7 +158,7 @@ export const selectionToEvent = (p: PointSelected, header: (ColumnHeader | null)
       if (h === null) {
         return false;
       }
-      return (h.offset === p.commit);
+      return h.offset === p.commit;
     });
   }
   return new CustomEvent<PlotSimpleSkTraceEventDetails>('', {
@@ -189,7 +202,7 @@ class State {
 
   pivotRequest: pivot.Request = defaultPivotRequest();
 
-  sort: string = '' // Pivot table sort order.
+  sort: string = ''; // Pivot table sort order.
 
   summary: boolean = false; // Whether to show the zoom/summary area.
 
@@ -232,11 +245,11 @@ function clampToNonNegative(x: number): number {
 export function calculateRangeChange(
   zoom: [number, number],
   clampedZoom: [number, number],
-  offsets: [number, number],
+  offsets: [number, number]
 ): RangeChange {
   // How much we will change the offset if we zoom beyond an edge.
   const offsetDelta = Math.floor(
-    (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT,
+    (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT
   );
   const exceedsLeftEdge = zoom[0] !== clampedZoom[0];
   const exceedsRightEdge = zoom[1] !== clampedZoom[1];
@@ -249,13 +262,15 @@ export function calculateRangeChange(
         offsets[1] + offsetDelta,
       ],
     };
-  } if (exceedsLeftEdge) {
+  }
+  if (exceedsLeftEdge) {
     // shift left
     return {
       rangeChange: true,
       newOffsets: [clampToNonNegative(offsets[0] - offsetDelta), offsets[1]],
     };
-  } if (exceedsRightEdge) {
+  }
+  if (exceedsRightEdge) {
     // shift right
     return {
       rangeChange: true,
@@ -350,7 +365,7 @@ export class ExploreSk extends ElementSk {
 
   private helpDialog: HTMLDialogElement | null = null;
 
-  private commitRangeSk: CommitRangeSk |null = null;
+  private commitRangeSk: CommitRangeSk | null = null;
 
   constructor() {
     super(ExploreSk.template);
@@ -429,7 +444,9 @@ export class ExploreSk extends ElementSk {
             Scale By Avg
           </button>
           <button
-            @click=${() => { ele.applyFuncToTraces('iqrr'); }}
+            @click=${() => {
+              ele.applyFuncToTraces('iqrr');
+            }}
             title='Apply iqrr() to all the traces.'>
             Remove outliers
           </button>
@@ -497,7 +514,8 @@ export class ExploreSk extends ElementSk {
       </tabs-sk>
       <tabs-panel-sk>
         <div>
-          <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
+          <button @click=${() =>
+            ele.add(true, 'query')} class=action>Plot</button>
           <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
         </div>
         <div>
@@ -507,8 +525,10 @@ export class ExploreSk extends ElementSk {
               <textarea id=formula rows=3 cols=80></textarea>
             </label>
             <div>
-              <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
-              <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
+              <button @click=${() =>
+                ele.add(true, 'formula')} class=action>Plot</button>
+              <button @click=${() =>
+                ele.add(false, 'formula')}>Add to Plot</button>
               <a href=/help/ target=_blank>
                 <help-icon-sk></help-icon-sk>
               </a>
@@ -615,7 +635,9 @@ export class ExploreSk extends ElementSk {
           </div>
           <div>
             <commit-range-sk></commit-range-sk>
-            <commit-detail-panel-sk id=commits selectable .hide=${window.perf.hide_list_of_commits_on_explore}></commit-detail-panel-sk>
+            <commit-detail-panel-sk id=commits selectable .hide=${
+              window.perf.hide_list_of_commits_on_explore
+            }></commit-detail-panel-sk>
             <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
             <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
           </div>
@@ -657,7 +679,9 @@ export class ExploreSk extends ElementSk {
     this.traceID = this.querySelector('#trace_id');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
-    this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
+    this.fromParamsQueryDialog = this.querySelector(
+      '#from-params-query-dialog'
+    );
     this.helpDialog = this.querySelector('#help');
     this.commitRangeSk = this.querySelector('commit-range-sk');
 
@@ -835,14 +859,16 @@ export class ExploreSk extends ElementSk {
   }
 
   private pivotChanged(e: CustomEvent<PivotQueryChangedEventDetail>): void {
-      // Only enable the Display button if we have a valid pivot.Request and a
-      // query.
-      this.pivotDisplayButton!.disabled = (validatePivotRequest(e.detail) !== '' || this.query!.current_query.trim() === '');
-      if (!e.detail || e.detail.summary!.length === 0) {
-        this.pivotDisplayButton!.textContent = 'Display';
-      } else {
-        this.pivotDisplayButton!.textContent = 'Display Table';
-      }
+    // Only enable the Display button if we have a valid pivot.Request and a
+    // query.
+    this.pivotDisplayButton!.disabled =
+      validatePivotRequest(e.detail) !== '' ||
+      this.query!.current_query.trim() === '';
+    if (!e.detail || e.detail.summary!.length === 0) {
+      this.pivotDisplayButton!.textContent = 'Display';
+    } else {
+      this.pivotDisplayButton!.textContent = 'Display Table';
+    }
   }
 
   private zoomInKey() {
@@ -884,7 +910,9 @@ export class ExploreSk extends ElementSk {
   /**  Returns true if we have any traces to be displayed. */
   private hasData() {
     // We have data if at least one traceID isn't a special name.
-    return Object.keys(this._dataframe.traceset).some((traceID) => !SPECIAL_TRACE_NAMES.includes(traceID));
+    return Object.keys(this._dataframe.traceset).some(
+      (traceID) => !SPECIAL_TRACE_NAMES.includes(traceID)
+    );
   }
 
   /** Open the query dialog box. */
@@ -914,11 +942,18 @@ export class ExploreSk extends ElementSk {
   private fromParamsOKQueryDialog() {
     // This query only contains the key this.fromParamsKey and it's values, so we need
     // to construct the full query using the traceID.
-    const updatedParamValues: ParamSet = toParamSet(this.fromParamsQuery!.current_query);
-    const traceIDAsQuery: ParamSet = paramsToParamSet(fromKey(this.state.selected.name));
+    const updatedParamValues: ParamSet = toParamSet(
+      this.fromParamsQuery!.current_query
+    );
+    const traceIDAsQuery: ParamSet = paramsToParamSet(
+      fromKey(this.state.selected.name)
+    );
 
     // Merge the two ParamSets.
-    const newQuery: ParamSet = Object.assign(traceIDAsQuery, updatedParamValues);
+    const newQuery: ParamSet = Object.assign(
+      traceIDAsQuery,
+      updatedParamValues
+    );
     this.addFromQueryOrFormula(false, 'query', fromParamSet(newQuery), '');
     this.fromParamsQueryDialog!.close();
   }
@@ -929,7 +964,9 @@ export class ExploreSk extends ElementSk {
     this.fromParamsKey = e.detail.key;
 
     // Convert the traceID into a ParamSet.
-    const keyAsParamSet: ParamSet = paramsToParamSet(fromKey(this.state.selected.name));
+    const keyAsParamSet: ParamSet = paramsToParamSet(
+      fromKey(this.state.selected.name)
+    );
 
     // And remove the Params key that was clicked on.
     keyAsParamSet[this.fromParamsKey] = [];
@@ -950,7 +987,7 @@ export class ExploreSk extends ElementSk {
   }
 
   private queryChangeDelayedHandler(
-    e: CustomEvent<QuerySkQueryChangeEventDetail>,
+    e: CustomEvent<QuerySkQueryChangeEventDetail>
   ) {
     this.queryCount!.current_query = e.detail.q;
   }
@@ -968,7 +1005,9 @@ export class ExploreSk extends ElementSk {
     }
   }
 
-  private pivotTableSortChange(e: CustomEvent<PivotTableSkChangeEventDetail>): void {
+  private pivotTableSortChange(
+    e: CustomEvent<PivotTableSkChangeEventDetail>
+  ): void {
     this.state.sort = e.detail;
     this._stateHasChanged();
   }
@@ -1085,9 +1124,9 @@ export class ExploreSk extends ElementSk {
 
   private startStateReflector() {
     this._stateHasChanged = stateReflector(
-      () => (this.state as unknown) as HintableObject,
+      () => this.state as unknown as HintableObject,
       (hintableState) => {
-        let state = (hintableState as unknown) as State;
+        let state = hintableState as unknown as State;
         state = this.rationalizeTimeRange(state);
         this.state = state;
         this.range!.state = {
@@ -1111,7 +1150,7 @@ export class ExploreSk extends ElementSk {
         this.zeroChanged();
         this.autoRefreshChanged();
         this.rangeChangeImpl();
-      },
+      }
     );
   }
 
@@ -1163,7 +1202,10 @@ export class ExploreSk extends ElementSk {
       queries: this.state.queries,
       keys: this.state.keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      pivot: (validatePivotRequest(this.state.pivotRequest) === '') ? this.state.pivotRequest : null,
+      pivot:
+        validatePivotRequest(this.state.pivotRequest) === ''
+          ? this.state.pivotRequest
+          : null,
     };
   }
 
@@ -1173,9 +1215,9 @@ export class ExploreSk extends ElementSk {
       return;
     }
     if (
-      this.state.formulas.length === 0
-      && this.state.queries.length === 0
-      && this.state.keys === ''
+      this.state.formulas.length === 0 &&
+      this.state.queries.length === 0 &&
+      this.state.keys === ''
     ) {
       return;
     }
@@ -1184,7 +1226,8 @@ export class ExploreSk extends ElementSk {
       this.traceID.textContent = '';
     }
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab =
+      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       if (json == null) {
         errorMessage('Failed to find any matching traces.');
@@ -1251,7 +1294,7 @@ export class ExploreSk extends ElementSk {
     } else {
       this._refreshId = window.setInterval(
         () => this.autoRefresh(),
-        REFRESH_TIMEOUT,
+        REFRESH_TIMEOUT
       );
     }
   }
@@ -1260,7 +1303,8 @@ export class ExploreSk extends ElementSk {
     // Update end to be now.
     this.state.end = Math.floor(Date.now() / 1000);
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab =
+      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
@@ -1277,7 +1321,10 @@ export class ExploreSk extends ElementSk {
    */
   private addTraces(json: FrameResponse, tab: boolean) {
     const dataframe = json.dataframe!;
-    if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
+    if (
+      dataframe.traceset === null ||
+      Object.keys(dataframe.traceset).length === 0
+    ) {
       this.displayMode = 'display_query_only';
       this._render();
       return;
@@ -1287,7 +1334,12 @@ export class ExploreSk extends ElementSk {
     this._render();
 
     if (this.displayMode === 'display_pivot_table') {
-      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!, this.state.queries[0], this.state.sort);
+      this.pivotTable!.set(
+        dataframe,
+        this.pivotControl!.pivotRequest!,
+        this.state.queries[0],
+        this.state.sort
+      );
       return;
     }
 
@@ -1364,7 +1416,12 @@ export class ExploreSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  private addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
+  private addFromQueryOrFormula(
+    replace: boolean,
+    plotType: addPlotType,
+    q: string,
+    f: string
+  ) {
     this.queryDialog!.close();
 
     if (plotType === 'query') {
@@ -1516,7 +1573,7 @@ export class ExploreSk extends ElementSk {
 
     // Also apply the func to any existing formulas.
     updatedFormulas = updatedFormulas.concat(
-      this.state.formulas.map((f) => `${funcName}(${f})`),
+      this.state.formulas.map((f) => `${funcName}(${f})`)
     );
 
     this.removeAll(true);
@@ -1644,11 +1701,21 @@ export class ExploreSk extends ElementSk {
     this._requestId = 'About to make request';
     this.spinning = true;
     try {
-      const finishedProg = await startRequest('/_/frame/start', body, 200, this.spinner!, (prog: progress.SerializedProgress) => {
-        this.percent!.textContent = `${messageByName(prog.messages, 'Percent', '0')}%`;
-      });
+      const finishedProg = await startRequest(
+        '/_/frame/start',
+        body,
+        200,
+        this.spinner!,
+        (prog: progress.SerializedProgress) => {
+          this.percent!.textContent = `${messageByName(
+            prog.messages,
+            'Percent',
+            '0'
+          )}%`;
+        }
+      );
       if (finishedProg.status !== 'Finished') {
-        throw (new Error(messagesToErrorString(finishedProg.messages)));
+        throw new Error(messagesToErrorString(finishedProg.messages));
       }
       const msg = messageByName(finishedProg.messages, 'Message');
       if (msg) {

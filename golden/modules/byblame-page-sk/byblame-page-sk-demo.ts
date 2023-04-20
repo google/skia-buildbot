@@ -1,14 +1,8 @@
 import './index';
 import '../gold-scaffold-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import {
-  canvaskit,
-  fakeNow,
-  gm,
-  svg,
-  trstatus,
-} from './demo_data';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { canvaskit, fakeNow, gm, svg, trstatus } from './demo_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import { ByBlameResponse } from '../rpc_types';
@@ -21,12 +15,18 @@ testOnlySetSettings({
 });
 
 // Set up RPC failure simulation.
-const getSimulateRpcFailure = (): boolean => sessionStorage.getItem('simulateRpcFailure') === 'true';
-const setSimulateRpcFailure = (val: boolean) => sessionStorage.setItem('simulateRpcFailure', val.toString());
-$$<HTMLInputElement>('#simulate-rpc-failure')!.checked = getSimulateRpcFailure();
-$$<HTMLInputElement>('#simulate-rpc-failure')!.addEventListener('change', (e: Event) => {
-  setSimulateRpcFailure((e.target as HTMLInputElement).checked);
-});
+const getSimulateRpcFailure = (): boolean =>
+  sessionStorage.getItem('simulateRpcFailure') === 'true';
+const setSimulateRpcFailure = (val: boolean) =>
+  sessionStorage.setItem('simulateRpcFailure', val.toString());
+$$<HTMLInputElement>('#simulate-rpc-failure')!.checked =
+  getSimulateRpcFailure();
+$$<HTMLInputElement>('#simulate-rpc-failure')!.addEventListener(
+  'change',
+  (e: Event) => {
+    setSimulateRpcFailure((e.target as HTMLInputElement).checked);
+  }
+);
 
 const fakeRpcDelayMillis = 300;
 
@@ -39,7 +39,9 @@ function byBlame(response: ByBlameResponse) {
 
 Date.now = () => fakeNow;
 
-fetchMock.get('/json/v2/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
+fetchMock.get('/json/v2/byblame?query=source_type%3Dcanvaskit', () =>
+  byBlame(canvaskit)
+);
 fetchMock.get('/json/v2/byblame?query=source_type%3Dgm', () => byBlame(gm));
 fetchMock.get('/json/v2/byblame?query=source_type%3Dsvg', () => byBlame(svg));
 fetchMock.get('/json/v2/trstatus', () => {

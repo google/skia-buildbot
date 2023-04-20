@@ -4,7 +4,6 @@ This is the common set of custom elements used by Skia Infrastructure. It is bui
 
 There is [documentation for each element](https://jsdoc.skia.org).
 
-Disclaimer
-==========
+# Disclaimer
 
 This is not an officially supported Google product.

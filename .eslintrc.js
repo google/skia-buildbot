@@ -9,7 +9,7 @@ module.exports = {
     browser: true,
     es6: true,
   },
-  extends: ['airbnb-base'],
+  extends: ['airbnb-base', 'prettier'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -40,10 +40,7 @@ module.exports = {
     'object-shorthand': ['off'],
     'prefer-destructuring': ['off'],
     'prefer-object-spread': ['off'],
-    'space-before-function-paren': [
-      'error',
-      { anonymous: 'never', named: 'never', asyncArrow: 'always' },
-    ],
+    'space-before-function-paren': ['off'],
   },
   overrides: [
     {
@@ -87,6 +84,12 @@ module.exports = {
           {
             before: false,
             after: true,
+            overrides: {
+              arrow: {
+                before: true,
+                after: true,
+              },
+            },
           },
         ],
 
@@ -98,16 +101,8 @@ module.exports = {
           { exceptAfterOverload: true },
         ],
 
-        // note you must disable the base rule as it can report incorrect errors
         'space-before-function-paren': 'off',
-        '@typescript-eslint/space-before-function-paren': [
-          'error',
-          {
-            anonymous: 'never',
-            named: 'never',
-            asyncArrow: 'always',
-          },
-        ],
+        '@typescript-eslint/space-before-function-paren': ['off'],
 
         // We already disallow implicit-any, explicit is fine.
         '@typescript-eslint/no-explicit-any': 'off',

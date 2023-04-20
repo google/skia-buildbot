@@ -1,7 +1,7 @@
 // Functions used by more than one element.
-import { diffDate } from '../../infra-sk/modules/human';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { TemplateResult, html, Part } from 'lit-html';
+import { diffDate } from '../../infra-sk/modules/human';
 import { Note, ParamSet } from './json';
 
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
@@ -48,36 +48,55 @@ export function abbr(paramsAbbr: string): string {
 /**
  * Convert all URLs in a string into links in a lit-html TemplateResult.
  */
-export function linkify(s: string): (part: Part)=> void {
-  return unsafeHTML(s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>'));
+// eslint-disable-next-line @typescript-eslint/type-annotation-spacing
+export function linkify(s: string): (part: Part) => void {
+  return unsafeHTML(
+    s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>')
+  );
 }
 
 /**
  * Templates notes to be displayed.
  */
-export function displayNotes(notes: Note[], stateKey: string, eventName: string): TemplateResult[] {
+export function displayNotes(
+  notes: Note[],
+  stateKey: string,
+  eventName: string
+): TemplateResult[] {
   if (!notes) {
     return [];
   }
-  return notes.map((note: Note, index: number) => html`<section class=note>
-  <p class="note-text">${linkify(note.text)}</p>
-  <div class=meta>
-    <span class=author>${note.author}</span>
-    <span class=date>${diffDate(note.ts * 1000)}</span>
-    <delete-icon-sk title='Delete comment.' @click=${(e: Event) => deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
-  </div>
-</section>`);
+  return notes.map(
+    (note: Note, index: number) => html`<section class="note">
+      <p class="note-text">${linkify(note.text)}</p>
+      <div class="meta">
+        <span class="author">${note.author}</span>
+        <span class="date">${diffDate(note.ts * 1000)}</span>
+        <delete-icon-sk
+          title="Delete comment."
+          @click=${(e: Event) => deleteNote(index, stateKey, eventName, e)}
+        ></delete-icon-sk>
+      </div>
+    </section>`
+  );
 }
 
 /**
  * Deletes notes in the specified event's target.
  */
-function deleteNote(index: number, key: string, eventName: string, e: Event): void {
+function deleteNote(
+  index: number,
+  key: string,
+  eventName: string,
+  e: Event
+): void {
   const detail = {
     key: key,
     index: index,
   };
-  e.target!.dispatchEvent(new CustomEvent(eventName, { detail: detail, bubbles: true }));
+  e.target!.dispatchEvent(
+    new CustomEvent(eventName, { detail: detail, bubbles: true })
+  );
 }
 
 const TIME_DELTAS = [
@@ -108,7 +127,11 @@ export function parseDuration(d: string): number {
   return 0;
 }
 
-export function expiresIn(active: boolean, created: number, duration: string): string {
+export function expiresIn(
+  active: boolean,
+  created: number,
+  duration: string
+): string {
   if (active) {
     return diffDate((created + parseDuration(duration)) * 1000);
   }

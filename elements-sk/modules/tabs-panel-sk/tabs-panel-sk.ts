@@ -36,7 +36,9 @@ export class TabsPanelSk extends HTMLElement {
   }
 
   /** Mirrors the 'selected' attribute. */
-  get selected(): number { return +(this.getAttribute('selected') || ''); }
+  get selected(): number {
+    return +(this.getAttribute('selected') || '');
+  }
 
   set selected(val: number) {
     this.setAttribute('selected', String(val));

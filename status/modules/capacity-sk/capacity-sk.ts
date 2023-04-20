@@ -9,8 +9,8 @@
  *
  * @example
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
@@ -26,7 +26,10 @@ import { $$, DomReady } from '../../../infra-sk/modules/dom';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import {
-  StatusService, GetStatusService, BotSet, BotSet_DimensionsEntry,
+  StatusService,
+  GetStatusService,
+  BotSet,
+  BotSet_DimensionsEntry,
 } from '../rpc';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -87,117 +90,127 @@ export class CapacitySk extends ElementSk {
   private stateHasChanged = () => {};
 
   private static template = (el: CapacitySk) => html`<app-sk>
-      <header>
-        <h1>Capacity Statistics for Skia Bots</h1>
-        <div class="spacer"></div>
-        <login-sk></login-sk>
-        <theme-chooser-sk></theme-chooser-sk>
-      </header>
-      <aside>
-        <div>
-          <div class="table">
-            <a class="tr" href="/">
-              <span class="td">
-                <dashboard-icon-sk class="icon"></dashboard-icon-sk> Status Tree
-              </span>
-            </a>
-            <a class="tr" href="https://goto.google.com/skbl">
-              <span class="td">
-                <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots
-              </span>
-            </a>
-            <a class="tr" href="/capacity">
-              <span class="td">
-                <battery-charging-80-icon-sk class="icon"></battery-charging-80-icon-sk>
-                Capacity Stats
-              </span>
-            </a>
-          </div>
+    <header>
+      <h1>Capacity Statistics for Skia Bots</h1>
+      <div class="spacer"></div>
+      <login-sk></login-sk>
+      <theme-chooser-sk></theme-chooser-sk>
+    </header>
+    <aside>
+      <div>
+        <div class="table">
+          <a class="tr" href="/">
+            <span class="td">
+              <dashboard-icon-sk class="icon"></dashboard-icon-sk> Status Tree
+            </span>
+          </a>
+          <a class="tr" href="https://goto.google.com/skbl">
+            <span class="td">
+              <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots
+            </span>
+          </a>
+          <a class="tr" href="/capacity">
+            <span class="td">
+              <battery-charging-80-icon-sk
+                class="icon"
+              ></battery-charging-80-icon-sk>
+              Capacity Stats
+            </span>
+          </a>
         </div>
-      </aside>
+      </div>
+    </aside>
 
-      <main>
-        <div class="inputs horizontal">
-          <input-sk
-            @change=${() => el.refresh()}
-            id="commits"
-            label="Commits Per Day (typically 15-35)"
-          ></input-sk>
-          <input-sk @change=${() => el.refresh()} id="cq" label="CQ attempts per commit"></input-sk>
-          <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
+    <main>
+      <div class="inputs horizontal">
+        <input-sk
+          @change=${() => el.refresh()}
+          id="commits"
+          label="Commits Per Day (typically 15-35)"
+        ></input-sk>
+        <input-sk
+          @change=${() => el.refresh()}
+          id="cq"
+          label="CQ attempts per commit"
+        ></input-sk>
+        <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
           reference.-->
-          <input-sk
-            @change=${() => el.refresh()}
-            id="optimistic"
-            label="Optimistic Utilization % Estimate"
-          ></input-sk>
-          <input-sk
-            @change=${() => el.refresh()}
-            id="pessimistic"
-            label="Pessimistic Utilization % Estimate"
-          ></input-sk>
-          <input-sk
-            @change=${() => el.refresh()}
-            id="backfill"
-            label="Target Backfill %"
-          ></input-sk>
-        </div>
+        <input-sk
+          @change=${() => el.refresh()}
+          id="optimistic"
+          label="Optimistic Utilization % Estimate"
+        ></input-sk>
+        <input-sk
+          @change=${() => el.refresh()}
+          id="pessimistic"
+          label="Pessimistic Utilization % Estimate"
+        ></input-sk>
+        <input-sk
+          @change=${() => el.refresh()}
+          id="backfill"
+          label="Target Backfill %"
+        ></input-sk>
+      </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th @click=${() => el.updateSort('config')}>Bot Config${el.sortIcon('config')}</th>
-              <th @click=${() => el.updateSort('commitTime')}>
-                Minutes per Commit${el.sortIcon('commitTime')}
-              </th>
-              <th @click=${() => el.updateSort('commitTasks')}>
-                Tasks per Commit${el.sortIcon('commitTasks')}
-              </th>
-              <th @click=${() => el.updateSort('cqTime')}>
-                Minutes per CQ run${el.sortIcon('cqTime')}
-              </th>
-              <th @click=${() => el.updateSort('cqTasks')}>Tasks on CQ${el.sortIcon('cqTasks')}</th>
-              <th @click=${() => el.updateSort('botDays')}>
-                Bot days of work / actual day${el.sortIcon('botDays')}
-              </th>
-              <th @click=${() => el.updateSort('optimisticBots')}>
-                Required Bots (optimistic)${el.sortIcon('optimisticBots')}
-              </th>
-              <th @click=${() => el.updateSort('pessimisticBots')}>
-                Required Bots (pessimistic)${el.sortIcon('pessimisticBots')}
-              </th>
-              <th @click=${() => el.updateSort('botCount')}>
-                Actual Bot Count${el.sortIcon('botCount')}
-              </th>
-              <th @click=${() => el.updateSort('optimisticPercent')}>
-                Percent of Optimistic Estimate${el.sortIcon('optimisticPercent')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${el.botsets
-    .map((botset) => el.rowFromBotset(botset))
-    .sort((a, b) => el.compareRow(a, b))
-    .map(
-      (row) => html` <tr class=${row.displayClass}>
-                  <td><a href=${row.swarmingUrl}>${row.config}</a></td>
-                  <td>${row.commitTime.toFixed(1)}</td>
-                  <td>${row.commitTasks}</td>
-                  <td>${row.cqTime.toFixed(1)}</td>
-                  <td>${row.cqTasks}</td>
-                  <td>${row.botDays.toFixed(1)}</td>
-                  <td>${row.optimisticBots.toFixed(1)}</td>
-                  <td>${row.pessimisticBots.toFixed(1)}</td>
-                  <td>${row.botCount}</td>
-                  <td>${row.optimisticPercent.toFixed(1)} %</td>
-                </tr>`,
-    )}
-          </tbody>
-        </table>
-      </main>
+      <table>
+        <thead>
+          <tr>
+            <th @click=${() => el.updateSort('config')}>
+              Bot Config${el.sortIcon('config')}
+            </th>
+            <th @click=${() => el.updateSort('commitTime')}>
+              Minutes per Commit${el.sortIcon('commitTime')}
+            </th>
+            <th @click=${() => el.updateSort('commitTasks')}>
+              Tasks per Commit${el.sortIcon('commitTasks')}
+            </th>
+            <th @click=${() => el.updateSort('cqTime')}>
+              Minutes per CQ run${el.sortIcon('cqTime')}
+            </th>
+            <th @click=${() => el.updateSort('cqTasks')}>
+              Tasks on CQ${el.sortIcon('cqTasks')}
+            </th>
+            <th @click=${() => el.updateSort('botDays')}>
+              Bot days of work / actual day${el.sortIcon('botDays')}
+            </th>
+            <th @click=${() => el.updateSort('optimisticBots')}>
+              Required Bots (optimistic)${el.sortIcon('optimisticBots')}
+            </th>
+            <th @click=${() => el.updateSort('pessimisticBots')}>
+              Required Bots (pessimistic)${el.sortIcon('pessimisticBots')}
+            </th>
+            <th @click=${() => el.updateSort('botCount')}>
+              Actual Bot Count${el.sortIcon('botCount')}
+            </th>
+            <th @click=${() => el.updateSort('optimisticPercent')}>
+              Percent of Optimistic Estimate${el.sortIcon('optimisticPercent')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          ${el.botsets
+            .map((botset) => el.rowFromBotset(botset))
+            .sort((a, b) => el.compareRow(a, b))
+            .map(
+              (row) => html` <tr class=${row.displayClass}>
+                <td><a href=${row.swarmingUrl}>${row.config}</a></td>
+                <td>${row.commitTime.toFixed(1)}</td>
+                <td>${row.commitTasks}</td>
+                <td>${row.cqTime.toFixed(1)}</td>
+                <td>${row.cqTasks}</td>
+                <td>${row.botDays.toFixed(1)}</td>
+                <td>${row.optimisticBots.toFixed(1)}</td>
+                <td>${row.pessimisticBots.toFixed(1)}</td>
+                <td>${row.botCount}</td>
+                <td>${row.optimisticPercent.toFixed(1)} %</td>
+              </tr>`
+            )}
+        </tbody>
+      </table>
+    </main>
 
-      <footer><error-toast-sk></error-toast-sk></footer>
-    </app-sk> `;
+    <footer><error-toast-sk></error-toast-sk></footer>
+  </app-sk> `;
 
   constructor() {
     super(CapacitySk.template);
@@ -207,12 +220,12 @@ export class CapacitySk extends ElementSk {
     super.connectedCallback();
     this._render();
     // Load default values into inputs.
-    this.setState((new State() as unknown) as HintableObject);
+    this.setState(new State() as unknown as HintableObject);
     // This will cause setState to be called again once the page loads, loading
     // any parameters from the url.
     this.stateHasChanged = stateReflector(
       () => this.getState(),
-      (fromUrl) => this.setState(fromUrl),
+      (fromUrl) => this.setState(fromUrl)
     );
     this.client
       .getBotUsage({})
@@ -244,8 +257,8 @@ export class CapacitySk extends ElementSk {
     return column !== this.sortColumn
       ? html``
       : this.sortDirection === 1
-        ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
-        : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
+      ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
+      : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
   }
 
   private refresh() {
@@ -261,22 +274,30 @@ export class CapacitySk extends ElementSk {
   }
 
   private rowFromBotset(botset: BotSet) {
-    const commitsPerDay = Number(($$('#commits', this) as HTMLInputElement).value);
+    const commitsPerDay = Number(
+      ($$('#commits', this) as HTMLInputElement).value
+    );
     const cqMultiplier = Number(($$('#cq', this) as HTMLInputElement).value);
-    const optimisticUtilization = Number(($$('#optimistic', this) as HTMLInputElement).value);
-    const pessimisticUtilization = Number(($$('#pessimistic', this) as HTMLInputElement).value);
-    const targetBackfillPercent = Number(($$('#backfill', this) as HTMLInputElement).value);
+    const optimisticUtilization = Number(
+      ($$('#optimistic', this) as HTMLInputElement).value
+    );
+    const pessimisticUtilization = Number(
+      ($$('#pessimistic', this) as HTMLInputElement).value
+    );
+    const targetBackfillPercent = Number(
+      ($$('#backfill', this) as HTMLInputElement).value
+    );
     const workMultiplier = botWorkMultiplier(
       botset,
       commitsPerDay,
       cqMultiplier,
-      targetBackfillPercent,
+      targetBackfillPercent
     );
     const optimisticBots = botEstimate(workMultiplier, optimisticUtilization);
     const pessimisticBots = botEstimate(workMultiplier, pessimisticUtilization);
     const swarmingUrl = Object.keys(botset.dimensions!).reduce(
       (url, dimKey) => `${url}&f=${dimKey}:${botset.dimensions![dimKey]}`,
-      'https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&c=gpu&c=device_type&c=os&l=50&s=created_ts%3Adesc',
+      'https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&c=gpu&c=device_type&c=os&l=50&s=created_ts%3Adesc'
     );
     return <Row>{
       config: botConfig(botset.dimensions!),
@@ -294,8 +315,8 @@ export class CapacitySk extends ElementSk {
         botset.botCount < optimisticBots
           ? 'lowBotCount'
           : botset.botCount < pessimisticBots
-            ? 'mediumBotCount'
-            : 'highBotCount',
+          ? 'mediumBotCount'
+          : 'highBotCount',
     };
   }
 
@@ -309,16 +330,19 @@ export class CapacitySk extends ElementSk {
       sortColumn: this.sortColumn,
       sortDirection: this.sortDirection,
     };
-    return (state as unknown) as HintableObject;
+    return state as unknown as HintableObject;
   }
 
   private setState(fromUrl: HintableObject) {
-    const state = (fromUrl as unknown) as State;
+    const state = fromUrl as unknown as State;
     ($$('#commits', this) as HTMLInputElement).value = state.commits.toString();
     ($$('#cq', this) as HTMLInputElement).value = state.cq.toString();
-    ($$('#optimistic', this) as HTMLInputElement).value = state.optimistic.toString();
-    ($$('#pessimistic', this) as HTMLInputElement).value = state.pessimistic.toString();
-    ($$('#backfill', this) as HTMLInputElement).value = state.backfill.toString();
+    ($$('#optimistic', this) as HTMLInputElement).value =
+      state.optimistic.toString();
+    ($$('#pessimistic', this) as HTMLInputElement).value =
+      state.pessimistic.toString();
+    ($$('#backfill', this) as HTMLInputElement).value =
+      state.backfill.toString();
     this.sortColumn = state.sortColumn;
     this.sortDirection = state.sortDirection;
     this._render();
@@ -334,7 +358,7 @@ function botWorkMultiplier(
   item: BotSet,
   commits_per_day: number,
   cq_multiplier: number,
-  target_backfill: number,
+  target_backfill: number
 ) {
   let days = (item.msPerCommit * commits_per_day * target_backfill) / 100;
   days += item.msPerCq * cq_multiplier * commits_per_day;

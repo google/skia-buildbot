@@ -17,11 +17,11 @@
  *   contains a list of digests that are selected.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
 import * as d3Force from 'd3-force';
 import * as d3Select from 'd3-selection';
 import { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ClusterDiffLink, ClusterDiffNode, Digest } from '../rpc_types';
 
@@ -95,7 +95,8 @@ export class ClusterDigestsSk extends ElementSk {
     // This force acts as a repulsion force between digest nodes. This acts a lot like charged
     // particles repelling one another. The main purpose here is to keep nodes from overlapping.
     // See https://github.com/d3/d3-force#forceManyBody
-    const chargeForce = d3Force.forceManyBody()
+    const chargeForce = d3Force
+      .forceManyBody()
       .strength(-this.nodeRepulsion)
       // Given our nodes have a radius of 12, if two nodes are 60 pixels apart, they are definitely
       // not overlapping, so we can stop counting their "charge". This should help performance by
@@ -105,7 +106,8 @@ export class ClusterDigestsSk extends ElementSk {
     // This force acts as a spring force between digest nodes. More similar digests pull more
     // tightly and should be closer together.
     // See https://github.com/d3/d3-force#links
-    const linkForce = d3Force.forceLink(this.links)
+    const linkForce = d3Force
+      .forceLink(this.links)
       .distance((d) => d.value / this.linkTightness);
 
     // This force keeps the diagram centered in the SVG.
@@ -121,7 +123,8 @@ export class ClusterDigestsSk extends ElementSk {
     // This starts a simulation that will render over the next few seconds as the nodes are
     // simulated into place.
     // See https://github.com/d3/d3-force#forceSimulation
-    d3Force.forceSimulation(this.nodes)
+    d3Force
+      .forceSimulation(this.nodes)
       .force('charge', chargeForce) // The names are arbitrary (and inspired by D3 documentation).
       .force('link', linkForce)
       .force('center', centerForce)
@@ -131,25 +134,30 @@ export class ClusterDigestsSk extends ElementSk {
       .on('tick', () => {
         // On each tick, the simulation will update the x,y values of the nodes. We can then
         // select and update those nodes.
-        d3Select.select(clusterSk)
+        d3Select
+          .select(clusterSk)
           .selectAll<SVGCircleElement, SimNode>('.node')
           .attr('cx', (d) => d.x!)
           .attr('cy', (d) => d.y!);
 
-        d3Select.select(clusterSk)
+        d3Select
+          .select(clusterSk)
           .selectAll<SVGTextElement, SimNode>('.label')
           .attr('x', (d) => d.x! + 14) // offset the labels from the center of the nodes.
           .attr('y', (d) => d.y! + 20);
 
         // Type guard to narrow down the type of the source and target fields in a SimLink. See
         // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/9bd58256d08405c4e0ee3b065efc984f9a28ca17/types/d3-force/d3-force-tests.ts#L647.
-        function isSimNode(maybeNode: SimNode | string | number): maybeNode is SimNode {
+        function isSimNode(
+          maybeNode: SimNode | string | number
+        ): maybeNode is SimNode {
           return typeof maybeNode !== 'string' && typeof maybeNode !== 'number';
         }
 
         // source and target are supplied and updated by forceLink:
         // https://github.com/d3/d3-force#link_links
-        d3Select.select(clusterSk)
+        d3Select
+          .select(clusterSk)
           .selectAll<SVGLineElement, SimLink>('.link')
           .attr('x1', (d) => (isSimNode(d.source) ? d.source.x! : 0))
           .attr('y1', (d) => (isSimNode(d.source) ? d.source.y! : 0))
@@ -157,7 +165,9 @@ export class ClusterDigestsSk extends ElementSk {
           .attr('y2', (d) => (isSimNode(d.target) ? d.target.y! : 0));
       })
       .on('end', () => {
-        this.dispatchEvent(new CustomEvent('layout-complete', { bubbles: true }));
+        this.dispatchEvent(
+          new CustomEvent('layout-complete', { bubbles: true })
+        );
       });
   }
 
@@ -182,9 +192,7 @@ export class ClusterDigestsSk extends ElementSk {
       const clusterSk = this.querySelector('svg')!;
 
       // Delete existing SVG elements
-      d3Select.select(clusterSk)
-        .selectAll('.link,.node,.label')
-        .remove();
+      d3Select.select(clusterSk).selectAll('.link,.node,.label').remove();
 
       // Reset selection.
       this.selectedDigests = [];
@@ -193,7 +201,8 @@ export class ClusterDigestsSk extends ElementSk {
       // we don't need to supply an id function to the data calls below.
 
       // Draw the lines first so they are behind the circles.
-      d3Select.select(clusterSk)
+      d3Select
+        .select(clusterSk)
         .selectAll('line.link')
         .data(this.links)
         .enter()
@@ -203,18 +212,21 @@ export class ClusterDigestsSk extends ElementSk {
         .attr('stroke-width', '2');
 
       // Draw the labels behind the circles because the circles are clickable.
-      d3Select.select(clusterSk)
+      d3Select
+        .select(clusterSk)
         .selectAll('text.label')
         .data(this.nodes)
         .enter()
         .append('text')
         .attr('class', 'label');
-      d3Select.select(clusterSk) // update all nodes with the correct label.
+      d3Select
+        .select(clusterSk) // update all nodes with the correct label.
         .selectAll<SVGTextElement, SimNode>('text.label')
         .text((d) => d.label || '');
 
       // Draw a circle for each node.
-      d3Select.select(clusterSk)
+      d3Select
+        .select(clusterSk)
         .selectAll('circle.node')
         .data(this.nodes)
         .enter()
@@ -267,15 +279,18 @@ export class ClusterDigestsSk extends ElementSk {
   }
 
   private updateSelection() {
-    d3Select.select(this.querySelector('svg'))
+    d3Select
+      .select(this.querySelector('svg'))
       .selectAll('circle.node')
       .data(this.nodes)
       .attr('class', (d) => this.getNodeCSSClass(d));
 
-    this.dispatchEvent(new CustomEvent<Digest[]>('selection-changed', {
-      bubbles: true,
-      detail: this.selectedDigests,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<Digest[]>('selection-changed', {
+        bubbles: true,
+        detail: this.selectedDigests,
+      })
+    );
   }
 }
 

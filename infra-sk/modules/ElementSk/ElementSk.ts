@@ -26,7 +26,7 @@ import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
  * }
  */
 export class ElementSk extends HTMLElement {
-  protected _template: ((el: any)=> unknown) | null = null;
+  protected _template: ((el: any) => unknown) | null = null;
 
   protected _connected: boolean = false;
 
@@ -34,7 +34,7 @@ export class ElementSk extends HTMLElement {
    * @param templateFn A function that, when applied to this component, will returns the component's
    *     lit-html template.
    */
-  constructor(templateFn?: (el: any)=> unknown) {
+  constructor(templateFn?: (el: any) => unknown) {
     super();
     this._template = templateFn || null;
   }

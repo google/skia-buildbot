@@ -1,7 +1,5 @@
 import { expect } from 'chai';
-import {
-  asyncFilter, asyncFind, asyncForEach, asyncMap,
-} from './async';
+import { asyncFilter, asyncFind, asyncForEach, asyncMap } from './async';
 
 describe('async utilities', () => {
   describe('asyncFind', () => {
@@ -107,14 +105,20 @@ describe('async utilities', () => {
       // Raw array.
       visitedItems = [];
       visitedIndices = [];
-      expect(await asyncFilter(input, filterFn)).to.deep.equal(['alpha', 'gamma']);
+      expect(await asyncFilter(input, filterFn)).to.deep.equal([
+        'alpha',
+        'gamma',
+      ]);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1, 2, 3]);
 
       // Array wrapped in promise.
       visitedItems = [];
       visitedIndices = [];
-      expect(await asyncFilter(wrapInPromise(input), filterFn)).to.deep.equal(['alpha', 'gamma']);
+      expect(await asyncFilter(wrapInPromise(input), filterFn)).to.deep.equal([
+        'alpha',
+        'gamma',
+      ]);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1, 2, 3]);
     });
@@ -159,7 +163,10 @@ describe('async utilities', () => {
       // Array wrapped in promise.
       visitedItems = [];
       visitedIndices = [];
-      expect(await asyncMap(wrapInPromise(input), mapperFn)).to.deep.equal(['HELLO', 'WORLD']);
+      expect(await asyncMap(wrapInPromise(input), mapperFn)).to.deep.equal([
+        'HELLO',
+        'WORLD',
+      ]);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1]);
     });
@@ -238,17 +245,16 @@ describe('examples with and without async.ts', () => {
   ]);
 
   // Simulates an RPC operation.
-  const getStatesRPC = (): Promise<string[]> => wrapInPromise(Array.from(stateCapitalsMap.keys()));
+  const getStatesRPC = (): Promise<string[]> =>
+    wrapInPromise(Array.from(stateCapitalsMap.keys()));
 
   // Simulates an RPC operation.
-  const getStateCapitalRPC = (state: string): Promise<string> => (
-    wrapInPromise(stateCapitalsMap.get(state)!)
-  );
+  const getStateCapitalRPC = (state: string): Promise<string> =>
+    wrapInPromise(stateCapitalsMap.get(state)!);
 
   // Simulates an RPC operation.
-  const getCityPopulationRPC = (city: string): Promise<number> => (
-    wrapInPromise(cityPopulationsMap.get(city)!)
-  );
+  const getCityPopulationRPC = (city: string): Promise<number> =>
+    wrapInPromise(cityPopulationsMap.get(city)!);
 
   describe('without async.ts', () => {
     it('fetches state capitals', async () => {
@@ -257,7 +263,13 @@ describe('examples with and without async.ts', () => {
       const stateCapitals = await Promise.all(stateCapitalPromises);
 
       expect(stateCapitals).to.have.length(5);
-      expect(stateCapitals).to.have.members(['Atlanta', 'Austin', 'Boston', 'Denver', 'Raleigh']);
+      expect(stateCapitals).to.have.members([
+        'Atlanta',
+        'Austin',
+        'Boston',
+        'Denver',
+        'Raleigh',
+      ]);
     });
 
     it('fetches state capitals with population > 500k', async () => {
@@ -267,18 +279,24 @@ describe('examples with and without async.ts', () => {
       // We can't use Array.prototype.filter because async predicates return promises, which are
       // truthy, and thus nothing gets filtered out.
       const failedAttempt = stateCapitals.filter(
-        async (city) => (await getCityPopulationRPC(city)) > 500_000,
+        async (city) => (await getCityPopulationRPC(city)) > 500_000
       );
       expect(failedAttempt).to.have.length(5);
 
       const populousStateCapitals: string[] = [];
-      await Promise.all(stateCapitals.map(async (city) => {
-        const population = await getCityPopulationRPC(city);
-        if (population > 500_000) populousStateCapitals.push(city);
-      }));
+      await Promise.all(
+        stateCapitals.map(async (city) => {
+          const population = await getCityPopulationRPC(city);
+          if (population > 500_000) populousStateCapitals.push(city);
+        })
+      );
 
       expect(populousStateCapitals).to.have.length(3);
-      expect(populousStateCapitals).to.have.members(['Austin', 'Boston', 'Denver']);
+      expect(populousStateCapitals).to.have.members([
+        'Austin',
+        'Boston',
+        'Denver',
+      ]);
     });
   });
 
@@ -287,18 +305,28 @@ describe('examples with and without async.ts', () => {
       const stateCapitals = await asyncMap(getStatesRPC(), getStateCapitalRPC);
 
       expect(stateCapitals).to.have.length(5);
-      expect(stateCapitals).to.have.members(['Atlanta', 'Austin', 'Boston', 'Denver', 'Raleigh']);
+      expect(stateCapitals).to.have.members([
+        'Atlanta',
+        'Austin',
+        'Boston',
+        'Denver',
+        'Raleigh',
+      ]);
     });
 
     it('fetches state capitals with population > 500k', async () => {
       const stateCapitals = asyncMap(getStatesRPC(), getStateCapitalRPC);
       const populousStateCapitals = await asyncFilter(
         stateCapitals,
-        async (city) => (await getCityPopulationRPC(city)) > 500_000,
+        async (city) => (await getCityPopulationRPC(city)) > 500_000
       );
 
       expect(populousStateCapitals).to.have.length(3);
-      expect(populousStateCapitals).to.have.members(['Austin', 'Boston', 'Denver']);
+      expect(populousStateCapitals).to.have.members([
+        'Austin',
+        'Boston',
+        'Denver',
+      ]);
     });
   });
 });

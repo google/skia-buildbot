@@ -41,60 +41,28 @@ export const clusterDiffJSON: ClusterDiffResult = {
   test: 'dots-legend-sk_too-many-digests',
   paramsetByDigest: {
     [positiveDigest]: {
-      ext: [
-        'png',
-      ],
-      name: [
-        'dots-legend-sk_too-many-digests',
-      ],
-      gpu: [
-        'nVidia',
-      ],
-      source_type: [
-        'infra',
-      ],
+      ext: ['png'],
+      name: ['dots-legend-sk_too-many-digests'],
+      gpu: ['nVidia'],
+      source_type: ['infra'],
     },
     [untriagedDigest]: {
-      ext: [
-        'png',
-      ],
-      name: [
-        'dots-legend-sk_too-many-digests',
-      ],
-      gpu: [
-        'AMD',
-      ],
-      source_type: [
-        'infra',
-      ],
+      ext: ['png'],
+      name: ['dots-legend-sk_too-many-digests'],
+      gpu: ['AMD'],
+      source_type: ['infra'],
     },
     [negativeDigest]: {
-      ext: [
-        'png',
-      ],
-      name: [
-        'dots-legend-sk_too-many-digests',
-      ],
-      gpu: [
-        'AMD', 'nVidia',
-      ],
-      source_type: [
-        'infra',
-      ],
+      ext: ['png'],
+      name: ['dots-legend-sk_too-many-digests'],
+      gpu: ['AMD', 'nVidia'],
+      source_type: ['infra'],
     },
   },
   paramsetsUnion: {
-    ext: [
-      'png',
-    ],
-    name: [
-      'dots-legend-sk_too-many-digests',
-    ],
-    gpu: [
-      'AMD', 'nVidia',
-    ],
-    source_type: [
-      'infra', 'some-other-corpus',
-    ],
+    ext: ['png'],
+    name: ['dots-legend-sk_too-many-digests'],
+    gpu: ['AMD', 'nVidia'],
+    source_type: ['infra', 'some-other-corpus'],
   },
 };

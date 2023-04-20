@@ -16,7 +16,8 @@ function copy<T>(obj: T): T {
 }
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
-const timestampBeforeNow = (minutes: number = 0) => new Date(Date.now() - 1000 * 60 * minutes).toISOString();
+const timestampBeforeNow = (minutes: number = 0) =>
+  new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 
 export const branch0: Branch = { name: 'main', head: 'abc123' };
 export const branch1: Branch = { name: 'bar', head: '456789' };
@@ -203,12 +204,24 @@ export const responseTasksToFilter = (() => {
   // Add some other tasks to make it interesting.
   const tasks = [
     { name: 'Always-Green-Spec', status: 'SUCCESS', commits: ['abc123'] },
-    { name: 'Always-Green-Spec', status: 'SUCCESS', commits: ['parentofabc123'] },
+    {
+      name: 'Always-Green-Spec',
+      status: 'SUCCESS',
+      commits: ['parentofabc123'],
+    },
     { name: 'Always-Red-Spec', status: 'FAILURE', commits: ['abc123'] },
     { name: 'Always-Red-Spec', status: 'FAILURE', commits: ['parentofabc123'] },
     { name: 'Interesting-Spec', status: 'FAILURE', commits: ['abc123'] },
-    { name: 'Interesting-Spec', status: 'SUCCESS', commits: ['parentofabc123'] },
-    { name: 'Only-Failed-On-Commented-Commit-Spec', status: 'SUCCESS', commits: ['abc123'] },
+    {
+      name: 'Interesting-Spec',
+      status: 'SUCCESS',
+      commits: ['parentofabc123'],
+    },
+    {
+      name: 'Only-Failed-On-Commented-Commit-Spec',
+      status: 'SUCCESS',
+      commits: ['abc123'],
+    },
     {
       name: 'Only-Failed-On-Commented-Commit-Spec',
       status: 'FAILURE',
@@ -221,7 +234,10 @@ export const responseTasksToFilter = (() => {
   }
   // Add a comment to 'Always-Red-Spec'.
   r.update!.comments!.push(
-    Object.assign(copy(commentTaskSpec), { ignoreFailure: false, taskSpecName: 'Always-Red-Spec' }),
+    Object.assign(copy(commentTaskSpec), {
+      ignoreFailure: false,
+      taskSpecName: 'Always-Red-Spec',
+    })
   );
   return r;
 })();

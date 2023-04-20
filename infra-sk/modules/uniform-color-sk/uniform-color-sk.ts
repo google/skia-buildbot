@@ -7,9 +7,9 @@
  *
  * The color uniform values are floats in [0, 1] and are in RGB order.
  */
-import { $$ } from '../../../infra-sk/modules/dom';
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { $$ } from '../dom';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
@@ -30,7 +30,11 @@ export const slotToHex = (uniforms: number[], slot: number): string => {
 };
 
 /** Converts the two digit hex into a uniform value in the range [0, 1] */
-export const hexToSlot = (hexDigits: string, uniforms: number[], slot: number): void => {
+export const hexToSlot = (
+  hexDigits: string,
+  uniforms: number[],
+  slot: number
+): void => {
   let colorAsFloat = parseInt(hexDigits, 16) / 255;
   // Truncate to 4 digits of precision.
   colorAsFloat = Math.floor(colorAsFloat * 10000) / 10000;
@@ -49,14 +53,14 @@ export class UniformColorSk extends ElementSk implements UniformControl {
   }
 
   private static template = (ele: UniformColorSk) => html`
-  <label>
-    <input id=colorInput value="#808080" type="color" />
-    ${ele.uniform.name}
-  </label>
-  <label class="${ele.hasAlphaChannel() ? '' : 'hidden'}">
-    <input id=alphaInput min="0" max="1" step="0.001" type="range" />
-    Alpha
-  </label>
+    <label>
+      <input id="colorInput" value="#808080" type="color" />
+      ${ele.uniform.name}
+    </label>
+    <label class="${ele.hasAlphaChannel() ? '' : 'hidden'}">
+      <input id="alphaInput" min="0" max="1" step="0.001" type="range" />
+      Alpha
+    </label>
   `;
 
   connectedCallback(): void {
@@ -73,7 +77,9 @@ export class UniformColorSk extends ElementSk implements UniformControl {
 
   set uniform(val: Uniform) {
     if ((val.columns !== 3 && val.columns !== 4) || val.rows !== 1) {
-      throw new Error('uniform-color-sk can only work on a uniform of float3 or float4.');
+      throw new Error(
+        'uniform-color-sk can only work on a uniform of float3 or float4.'
+      );
     }
     this._uniform = val;
     this._render();

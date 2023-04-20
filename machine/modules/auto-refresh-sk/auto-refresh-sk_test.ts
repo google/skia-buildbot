@@ -3,7 +3,10 @@ import { assert } from 'chai';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { AutoRefreshSk } from './auto-refresh-sk';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 
 describe('auto-refresh-sk', () => {
   const newInstance = setUpElementUnderTest<AutoRefreshSk>('auto-refresh-sk');

@@ -13,5 +13,6 @@ fetchMock.get('/_/machines', descriptions);
   document.body.appendChild(element);
   await element.update();
 
-  element.querySelectorAll<HTMLDetailsElement>('details.dimensions')[1]!.open = true;
+  element.querySelectorAll<HTMLDetailsElement>('details.dimensions')[1]!.open =
+    true;
 })();

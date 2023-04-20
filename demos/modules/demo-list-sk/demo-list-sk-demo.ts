@@ -1,9 +1,7 @@
 import './index';
-import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import {
-  twoDemoEntries,
-} from './test_data';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { twoDemoEntries } from './test_data';
 
 fetchMock.getOnce('/demo/metadata.json', twoDemoEntries);
 const dl = document.createElement('demo-list-sk');

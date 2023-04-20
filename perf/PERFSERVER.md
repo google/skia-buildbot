@@ -20,7 +20,6 @@ perfserver [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
 
 **--help, -h**: show help
 
-
 # COMMANDS
 
 ## frontend
@@ -33,7 +32,7 @@ The main web UI.
 
 **--config_filename**="": The name of the config file to use. (default: ./configs/nano.json)
 
-**--connection_string**="":  Override Usage: the connection_string in the config file.
+**--connection_string**="": Override Usage: the connection_string in the config file.
 
 **--default_sparse**: The default value for 'Sparse' in Alerts.
 
@@ -81,7 +80,7 @@ Run the ingestion process.
 
 **--config_filename**="": Instance config file. Must be supplied.
 
-**--connection_string**="":  Override the connection_string in the config file.
+**--connection_string**="": Override the connection_string in the config file.
 
 **--local**: True if running locally and not in production.
 
@@ -99,7 +98,7 @@ Run the regression detection process.
 
 **--config_filename**="": The name of the config file to use. (default: ./configs/nano.json)
 
-**--connection_string**="":  Override Usage: the connection_string in the config file.
+**--connection_string**="": Override Usage: the connection_string in the config file.
 
 **--default_sparse**: The default value for 'Sparse' in Alerts.
 
@@ -150,4 +149,3 @@ Generates markdown help for perfserver.
 ## help, h
 
 Shows a list of commands or help for one command
-

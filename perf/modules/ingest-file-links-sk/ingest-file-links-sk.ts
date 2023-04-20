@@ -7,8 +7,8 @@
  *
  * See also https://pkg.go.dev/go.skia.org/infra/perf/go/ingest/format#Format
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { $$ } from '../../../infra-sk/modules/dom';
@@ -20,11 +20,10 @@ function isUrl(link: string): boolean {
   try {
     new URL(link);
     return true;
-  } catch(e) {
+  } catch (e) {
     return false;
   }
 }
-
 
 export class IngestFileLinksSk extends ElementSk {
   private links: { [key: string]: string } | null = null;
@@ -38,25 +37,24 @@ export class IngestFileLinksSk extends ElementSk {
   private static displayLinks = (ele: IngestFileLinksSk): TemplateResult[] => {
     const keys = Object.keys(ele.links || {}).sort();
     const getHtml = (key: string): TemplateResult => {
-      const link = ele.links![key]
+      const link = ele.links![key];
       if (isUrl(link)) {
         return html`<li><a href="${link}">${key}</a></li>`;
-      } else {
-        return html`<li>${key}: ${link}</li>`;
       }
-    }
+      return html`<li>${key}: ${link}</li>`;
+    };
 
     return keys.map(getHtml);
-  }
+  };
 
   private static template = (ele: IngestFileLinksSk) => html`
-  <div ?hidden=${Object.keys(ele.links || {}).length === 0}>
-    <h3> Links</h3>
-    <spinner-sk id="spinner"></spinner-sk>
-    <ul>
-      ${IngestFileLinksSk.displayLinks(ele)}
-    </ul>
-  </div>
+    <div ?hidden=${Object.keys(ele.links || {}).length === 0}>
+      <h3>Links</h3>
+      <spinner-sk id="spinner"></spinner-sk>
+      <ul>
+        ${IngestFileLinksSk.displayLinks(ele)}
+      </ul>
+    </div>
   `;
 
   connectedCallback(): void {

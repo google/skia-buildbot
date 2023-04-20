@@ -2,42 +2,41 @@
 @import '../colors';
 
 changelists-page-sk {
+  .controls {
+    display: flex;
+    checkbox-sk {
+      margin: auto 2px;
+    }
+  }
 
-	.controls {
-		display: flex;
-		checkbox-sk {
-			margin: auto 2px;
-		}
-	}
+  table {
+    border-collapse: collapse;
+  }
 
-	table {
-		border-collapse: collapse;
-	}
+  thead th {
+    font-weight: bold;
+    text-align: left;
+    border: 1px solid var(--light-gray);
+  }
 
-	thead th {
-		font-weight: bold;
-		text-align: left;
-		border: 1px solid var(--light-gray);
-	}
+  tr:hover {
+    background: var(--dark-white);
+  }
 
-	tr:hover {
-		background: var(--dark-white);
-	}
+  td {
+    padding: 0.25em;
+    min-width: 4em;
+    &.owner {
+      word-break: break-word;
+    }
+    &.id {
+      white-space: nowrap;
+    }
+  }
 
-	td {
-		padding: 0.25em;
-		min-width: 4em;
-		&.owner {
-			word-break: break-word;
-		}
-		&.id {
-			white-space: nowrap;
-		}
-	}
-
-	a {
-		color: var(--bright-orange);
-		font-weight: bold;
-		cursor: pointer;
-	}
+  a {
+    color: var(--bright-orange);
+    font-weight: bold;
+    cursor: pointer;
+  }
 }

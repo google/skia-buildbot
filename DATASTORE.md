@@ -1,13 +1,11 @@
-Google Cloud Datastore
-======================
+# Google Cloud Datastore
 
 We use the Namespace in Cloud Datastore to differentiate applications (Perf,
 Gold) and different installations of the same application (Perf, Perf-Android,
 Gold, Gold-PDFium). Since there may end up being many namespaces, a naming
 convention has been established:
 
-Naming convention for namespaces
---------------------------------
+## Naming convention for namespaces
 
     <app>[-<instance>]
     <app>-localhost-<user>
@@ -24,8 +22,7 @@ Examples:
     gold-pdfium
     gold-localhost-stephana
 
-Indexes
--------
+## Indexes
 
 Composite Indexes for all applications are defined in `ds/index.yaml`. Keeping
 the indexes in a single location makes it possible to run

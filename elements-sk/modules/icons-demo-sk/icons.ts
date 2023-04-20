@@ -1210,12 +1210,7 @@ icons.set('action', [
   'zoom-in',
   'zoom-out',
 ]);
-icons.set('alert', [
-  'add-alert',
-  'error',
-  'error-outline',
-  'warning',
-]);
+icons.set('alert', ['add-alert', 'error', 'error-outline', 'warning']);
 icons.set('av', [
   'add-to-queue',
   'airplay',

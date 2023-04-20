@@ -1,10 +1,10 @@
-Skia Task Scheduler
-===================
+# Skia Task Scheduler
 
 This directory contains code for a custom Swarming task scheduler used by Skia's
 bots.
 
-### Motivation ###
+### Motivation
+
 Skia's automated testing involves sets of tasks which depend on one another,
 for example compiling code and then running tests on a particular platform.
 These tasks are performed on Skia's bots via Swarming. We need a way to
@@ -15,7 +15,8 @@ idle time run tests at commits which were previously batched to increase the
 granularity of our test data. Additionally, the scheduler must keep track of the
 directed acyclic graph of tasks for each commit.
 
-## Design ##
+## Design
+
 At a high level, the scheduler first generates a set of all tasks which could
 possibly be scheduled, filters out tasks which cannot run (eg. due to
 unsatisfied dependencies) or should not run (eg. we've already run it), then

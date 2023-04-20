@@ -1,7 +1,7 @@
 import { pivot } from '../json';
 
 /** Maps pivot.Operations to human readable names. */
-export const operationDescriptions: {[key in pivot.Operation]: string} = {
+export const operationDescriptions: { [key in pivot.Operation]: string } = {
   sum: 'Sum',
   avg: 'Mean',
   geo: 'Geometric Mean',

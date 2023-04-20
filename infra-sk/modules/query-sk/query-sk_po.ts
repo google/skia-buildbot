@@ -1,7 +1,10 @@
-import { ParamSet } from '../../../infra-sk/modules/query';
+import { ParamSet } from '../query';
 import { PageObject } from '../page_object/page_object';
 import { QueryValuesSkPO } from '../query-values-sk/query-values-sk_po';
-import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../page_object/page_object_element';
 
 /** A page object for the QuerySk component. */
 export class QuerySkPO extends PageObject {
@@ -29,24 +32,42 @@ export class QuerySkPO extends PageObject {
     return this.bySelector('select-sk div[selected]');
   }
 
-  async getFilter(): Promise<string> { return this.filter.value; }
+  async getFilter(): Promise<string> {
+    return this.filter.value;
+  }
 
-  async setFilter(value: string): Promise<void> { await this.filter.enterValue(value); }
+  async setFilter(value: string): Promise<void> {
+    await this.filter.enterValue(value);
+  }
 
-  async clickClearFilter(): Promise<void> { await this.clearFiltersBtn.click(); }
+  async clickClearFilter(): Promise<void> {
+    await this.clearFiltersBtn.click();
+  }
 
-  async clickClearSelections(): Promise<void> { await this.clearSelectionsBtn.click(); }
+  async clickClearSelections(): Promise<void> {
+    await this.clearSelectionsBtn.click();
+  }
 
-  async getSelectedKey(): Promise<string> { return this.selectSkSelectedKey.innerText; }
+  async getSelectedKey(): Promise<string> {
+    return this.selectSkSelectedKey.innerText;
+  }
 
-  async getSelectedValues(): Promise<string[]> { return this.queryValuesSkPO.getSelectedOptions(); }
+  async getSelectedValues(): Promise<string[]> {
+    return this.queryValuesSkPO.getSelectedOptions();
+  }
 
-  async clickValue(value: string): Promise<void> { await this.queryValuesSkPO.clickOption(value); }
+  async clickValue(value: string): Promise<void> {
+    await this.queryValuesSkPO.clickOption(value);
+  }
 
-  getKeys(): Promise<string[]> { return this.selectSkKeys.map((div) => div.innerText); }
+  getKeys(): Promise<string[]> {
+    return this.selectSkKeys.map((div) => div.innerText);
+  }
 
   async clickKey(key: string): Promise<void> {
-    const keyDiv = await this.selectSkKeys.find((div) => div.isInnerTextEqualTo(key));
+    const keyDiv = await this.selectSkKeys.find((div) =>
+      div.isInnerTextEqualTo(key)
+    );
     await keyDiv?.click();
   }
 

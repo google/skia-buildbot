@@ -7,10 +7,10 @@
  * TODO(jcgregorio) Needs working demo page and tests.
  *
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { equals, deepCopy } from '../../../infra-sk/modules/object';
 import { fromObject } from '../../../infra-sk/modules/query';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -45,7 +45,7 @@ import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
 
 function _full_summary(
   frame: FrameResponse,
-  summary: ClusterSummary,
+  summary: ClusterSummary
 ): FullSummary {
   return {
     frame,
@@ -129,9 +129,7 @@ export class TriagePageSk extends ElementSk {
   private static template = (ele: TriagePageSk) => html`
     <header>
       <details>
-        <summary>
-          Filter
-        </summary>
+        <summary>Filter</summary>
         <h3>Which commits to display.</h3>
         <select @input=${ele.commitsChange}>
           <option
@@ -164,9 +162,7 @@ export class TriagePageSk extends ElementSk {
         </select>
       </details>
       <details>
-        <summary>
-          Range
-        </summary>
+        <summary>Range</summary>
         <day-range-sk
           @day-range-change=${ele.rangeChange}
           begin=${ele.state.begin}
@@ -174,12 +170,10 @@ export class TriagePageSk extends ElementSk {
         ></day-range-sk>
       </details>
       <details @toggle=${ele.toggleStatus}>
-        <summary>
-          Status
-        </summary>
+        <summary>Status</summary>
         <div>
           <p>The current work on detecting regressions:</p>
-          <div class="status"> ${TriagePageSk.statusItems(ele)} </div>
+          <div class="status">${TriagePageSk.statusItems(ele)}</div>
         </div>
       </details>
     </header>
@@ -213,51 +207,53 @@ export class TriagePageSk extends ElementSk {
     </table>
   `;
 
-  private static rows = (ele: TriagePageSk) => ele.reg!.table!.map(
-    (row, rowIndex) => html`
+  private static rows = (ele: TriagePageSk) =>
+    ele.reg!.table!.map(
+      (row, rowIndex) => html`
         <tr>
           <td class="fixed">
             <commit-detail-sk .cid=${row!.cid}></commit-detail-sk>
           </td>
           ${TriagePageSk.columns(ele, row!, rowIndex)}
         </tr>
-      `,
-  );
+      `
+    );
 
   private static columns = (
     ele: TriagePageSk,
     row: RegressionRow,
-    rowIndex: number,
-  ) => row.columns!.map((col, colIndex) => {
-    const ret = [];
+    rowIndex: number
+  ) =>
+    row.columns!.map((col, colIndex) => {
+      const ret = [];
 
-    if (ele.stepDownAt(colIndex)) {
-      ret.push(html`
+      if (ele.stepDownAt(colIndex)) {
+        ret.push(html`
           <td class="cluster">
             ${TriagePageSk.lowCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
-    }
+      }
 
-    if (ele.stepUpAt(colIndex)) {
-      ret.push(html`
+      if (ele.stepUpAt(colIndex)) {
+        ret.push(html`
           <td class="cluster">
             ${TriagePageSk.highCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
-    }
+      }
 
-    if (ele.notBoth(colIndex)) {
-      ret.push(html` <td></td> `);
-    }
-    return ret;
-  });
+      if (ele.notBoth(colIndex)) {
+        ret.push(html` <td></td> `);
+      }
+      return ret;
+    });
 
   private static lowCell = (
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
-    colIndex: number,
+    colIndex: number
   ) => {
     if (col && col.low) {
       return html`
@@ -273,8 +269,8 @@ export class TriagePageSk extends ElementSk {
       <a
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-      colIndex,
-    )}"
+          colIndex
+        )}"
       >
         ∅
       </a>
@@ -285,7 +281,7 @@ export class TriagePageSk extends ElementSk {
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
-    colIndex: number,
+    colIndex: number
   ) => {
     if (col && col.high) {
       return html`
@@ -301,46 +297,49 @@ export class TriagePageSk extends ElementSk {
       <a
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-      colIndex,
-    )}"
+          colIndex
+        )}"
       >
         ∅
       </a>
     `;
   };
 
-  private static subHeaders = (ele: TriagePageSk) => ele.reg.header!.map((_, index) => {
-    const ret = [];
-    if (ele.stepDownAt(index)) {
-      ret.push(html` <th>Low</th> `);
-    }
-    if (ele.stepUpAt(index)) {
-      ret.push(html` <th>High</th> `);
-    }
-    // If we have only one of High or Low we stuff in an empty th to match
-    // colspan=2 above.
-    if (ele.notBoth(index)) {
-      ret.push(html` <th></th> `);
-    }
-    return ret;
-  });
+  private static subHeaders = (ele: TriagePageSk) =>
+    ele.reg.header!.map((_, index) => {
+      const ret = [];
+      if (ele.stepDownAt(index)) {
+        ret.push(html` <th>Low</th> `);
+      }
+      if (ele.stepUpAt(index)) {
+        ret.push(html` <th>High</th> `);
+      }
+      // If we have only one of High or Low we stuff in an empty th to match
+      // colspan=2 above.
+      if (ele.notBoth(index)) {
+        ret.push(html` <th></th> `);
+      }
+      return ret;
+    });
 
-  private static headers = (ele: TriagePageSk) => ele.reg.header!.map((item) => {
-    let displayName = item!.display_name;
-    if (!item!.display_name) {
-      displayName = item!.query.slice(0, 10);
-    }
-    // The colspan=2 is important since we will have two columns under each
-    // header, one for high and one for low.
-    return html`
+  private static headers = (ele: TriagePageSk) =>
+    ele.reg.header!.map((item) => {
+      let displayName = item!.display_name;
+      if (!item!.display_name) {
+        displayName = item!.query.slice(0, 10);
+      }
+      // The colspan=2 is important since we will have two columns under each
+      // header, one for high and one for low.
+      return html`
         <th colspan="2">
           <a href="/a/?${item!.id_as_string}">${displayName}</a>
         </th>
       `;
-  });
+    });
 
-  private static statusItems = (ele: TriagePageSk) => ele.currentClusteringStatus.map(
-    (item) => html`
+  private static statusItems = (ele: TriagePageSk) =>
+    ele.currentClusteringStatus.map(
+      (item) => html`
         <table>
           <tr>
             <th>Alert</th>
@@ -359,11 +358,12 @@ export class TriagePageSk extends ElementSk {
             <td>${item.message}</td>
           </tr>
         </table>
-      `,
-  );
+      `
+    );
 
-  private static allFilters = (ele: TriagePageSk) => ele.allFilterOptions.map(
-    (o) => html`
+  private static allFilters = (ele: TriagePageSk) =>
+    ele.allFilterOptions.map(
+      (o) => html`
         <option
           ?selected=${ele.state.alert_filter === o.value}
           value=${o.value}
@@ -371,8 +371,8 @@ export class TriagePageSk extends ElementSk {
         >
           ${o.display}
         </option>
-      `,
-  );
+      `
+    );
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -384,16 +384,16 @@ export class TriagePageSk extends ElementSk {
     this._render();
     this.dialog = this.querySelector('triage-page-sk > dialog');
     this.stateHasChanged = stateReflector(
-      () => (this.state as unknown) as HintableObject,
+      () => this.state as unknown as HintableObject,
       (state) => {
-        this.state = (state as unknown) as State;
+        this.state = state as unknown as State;
         // Support the legacy query parameter.
         if (this.state.filter) {
           this.state.alert_filter = this.state.filter;
         }
         this._render();
         this.updateRange();
-      },
+      }
     );
   }
 
@@ -532,8 +532,8 @@ export class TriagePageSk extends ElementSk {
     }
     if (
       equals(
-        (this.lastState! as unknown) as HintableObject,
-        (this.state as unknown) as HintableObject,
+        this.lastState! as unknown as HintableObject,
+        this.state as unknown as HintableObject
       )
     ) {
       return;

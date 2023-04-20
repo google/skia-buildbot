@@ -29,10 +29,7 @@ import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
 import { PatchSk } from '../patch-sk/patch-sk';
 import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
 import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
-import {
-  ChromiumPerfAddTaskVars,
-  EditTaskRequest,
-} from '../json';
+import { ChromiumPerfAddTaskVars, EditTaskRequest } from '../json';
 import {
   combineClDescriptions,
   missingLiveSitesWithCustomWebpages,
@@ -100,209 +97,302 @@ export class ChromiumPerfSk extends ElementSk {
   }
 
   private static template = (el: ChromiumPerfSk) => html`
-
-<table class=options>
-  <tr>
-    <td>Benchmark Name</td>
-    <td>
-      <suggest-input-sk
-        id=benchmark_name
-        .options=${el._benchmarks}
-        .label=${'Hit <enter> at end if entering custom benchmark'}
-        accept-custom-value
-        @value-changed=${el._refreshBenchmarkDoc}
-      ></suggest-input-sk>
-      <div>
-        <a hidden id=benchmark_doc href=#
-        target=_blank rel="noopener noreferrer">
-          Documentation
-        </a>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <td>Target Platform</td>
-    <td>
-      <select-sk id=platform_selector @selection-changed=${el._platformChanged}>
-        ${el._platforms.map((p, i) => (html`<div ?selected=${i === 1}>${p[1]}</div>`))}
-      </select-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>PageSets Type</td>
-    <td>
-      <pageset-selector-sk id=pageset_selector
-        .hideKeys=${unsupportedPageSets}>
-      </pageset-selector-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Run in Parallel<br/>
-      Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
-    </td>
-    <td>
-      <select-sk id=run_in_parallel>
-        <div>True</div>
-        <div selected>False</div>
-      </select-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>GN Arguments for Build</td>
-    <td>
-      <input-sk value="is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1" id=gn_args class=long-field></input-sk>
-      <span class=smaller-font><b>Note:</b> Android runs will automatically include target_os=\"android\".</span><br/>
-    </td>
-  </tr>
-  <tr>
-    <td>Benchmark Arguments</td>
-    <td>
-      <input-sk value="--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format" id=benchmark_args class=long-field></input-sk>
-      <span class=smaller-font><b>Note:</b> Change the --pageset-repeat value if you would like lower/higher repeats of each web page. 1 is the default.</span><br/>
-      <span class=smaller-font><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the run_benchmark script. 300 is the default.</span><br/>
-      <span class=smaller-font><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per bot. 100 is the default.</span>
-    </td>
-  </tr>
-  <tr>
-    <td>Browser Arguments (nopatch run)</td>
-    <td>
-      <input-sk value="" id=browser_args_nopatch class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Browser Arguments (withpatch run)</td>
-    <td>
-      <input-sk value="" id=browser_args_withpatch class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Field Value Column Name</td>
-    <td>
-      <input-sk value="avg" id=value_column_name class="medium-field"></input-sk>
-      <span class="smaller-font">Which column's entries to use as field values.</span>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Chromium Git patch (optional)<br/>
-      Applied to Chromium ToT<br/>
-      or to the hash specified below.
-    </td>
-    <td>
-      <patch-sk id=chromium_patch
-                patchType=chromium
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Skia Git patch (optional)<br/>
-      Applied to Skia Rev in <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
-    </td>
-    <td>
-      <patch-sk id=skia_patch
-                patchType=skia
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      V8 Git patch (optional)<br/>
-      Applied to V8 Rev in <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
-    </td>
-    <td>
-      <patch-sk id=v8_patch
-                patchType=v8
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Catapult Git patch (optional)<br/>
-      Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
-    </td>
-    <td>
-      <patch-sk id=catapult_patch
-                patchType=catapult
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Chromium Git metrics patch (optional)<br/>
-      Applied to Chromium ToT<br/>
-      or to the hash specified below.<br/>
-      Used to create the base build (See <a href="http://skbug.com/9029">skbug/9029</a>)
-    </td>
-    <td>
-      <patch-sk id=chromium_patch_base_build
-                patchType=chromium
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Chromium hash to sync to (optional)<br/></td>
-    <td>
-      <input-sk value="" id=chromium_hash class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Repeat this task</td>
-    <td>
-      <task-repeater-sk id=repeat_after_days></task-repeater-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Task Priority</td>
-    <td>
-      <task-priority-sk id=task_priority></task-priority-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Notifications CC list (optional)<br/>
-      Email will be sent by ct@skia.org
-    </td>
-    <td>
-      <input-sk value="" id=cc_list label="email1,email2,email3" class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Group name (optional)<br/>
-      Will be used to track runs
-    </td>
-    <td>
-      <input-sk value="" id=group_name class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Description</td>
-    <td>
-      <input-sk value="" id=description label="Description is required" class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" class="center">
-      <div class="triggering-spinner">
-        <spinner-sk .active=${el._triggeringTask} alt="Trigger task"></spinner-sk>
-      </div>
-      <button id=submit ?disabled=${el._triggeringTask} @click=${el._validateTask}>Queue Task</button>
-    </td>
-  </tr>
-  <tr>
-    <td colspan=2 class=center>
-      <button id=view_history @click=${el._gotoRunsHistory}>View runs history</button>
-    </td>
-  </tr>
-</table>
-`;
+    <table class="options">
+      <tr>
+        <td>Benchmark Name</td>
+        <td>
+          <suggest-input-sk
+            id="benchmark_name"
+            .options=${el._benchmarks}
+            .label=${'Hit <enter> at end if entering custom benchmark'}
+            accept-custom-value
+            @value-changed=${el._refreshBenchmarkDoc}
+          ></suggest-input-sk>
+          <div>
+            <a
+              hidden
+              id="benchmark_doc"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Target Platform</td>
+        <td>
+          <select-sk
+            id="platform_selector"
+            @selection-changed=${el._platformChanged}
+          >
+            ${el._platforms.map(
+              (p, i) => html`<div ?selected=${i === 1}>${p[1]}</div>`
+            )}
+          </select-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>PageSets Type</td>
+        <td>
+          <pageset-selector-sk
+            id="pageset_selector"
+            .hideKeys=${unsupportedPageSets}
+          >
+          </pageset-selector-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Run in Parallel<br />
+          Read about the trade-offs
+          <a
+            href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z"
+            >here</a
+          >
+        </td>
+        <td>
+          <select-sk id="run_in_parallel">
+            <div>True</div>
+            <div selected>False</div>
+          </select-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>GN Arguments for Build</td>
+        <td>
+          <input-sk
+            value="is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1"
+            id="gn_args"
+            class="long-field"
+          ></input-sk>
+          <span class="smaller-font"
+            ><b>Note:</b> Android runs will automatically include
+            target_os="android".</span
+          ><br />
+        </td>
+      </tr>
+      <tr>
+        <td>Benchmark Arguments</td>
+        <td>
+          <input-sk
+            value="--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format"
+            id="benchmark_args"
+            class="long-field"
+          ></input-sk>
+          <span class="smaller-font"
+            ><b>Note:</b> Change the --pageset-repeat value if you would like
+            lower/higher repeats of each web page. 1 is the default.</span
+          ><br />
+          <span class="smaller-font"
+            ><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the
+            timeout of the run_benchmark script. 300 is the default.</span
+          ><br />
+          <span class="smaller-font"
+            ><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of
+            pages to run per bot. 100 is the default.</span
+          >
+        </td>
+      </tr>
+      <tr>
+        <td>Browser Arguments (nopatch run)</td>
+        <td>
+          <input-sk
+            value=""
+            id="browser_args_nopatch"
+            class="long-field"
+          ></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Browser Arguments (withpatch run)</td>
+        <td>
+          <input-sk
+            value=""
+            id="browser_args_withpatch"
+            class="long-field"
+          ></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Field Value Column Name</td>
+        <td>
+          <input-sk
+            value="avg"
+            id="value_column_name"
+            class="medium-field"
+          ></input-sk>
+          <span class="smaller-font"
+            >Which column's entries to use as field values.</span
+          >
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Chromium Git patch (optional)<br />
+          Applied to Chromium ToT<br />
+          or to the hash specified below.
+        </td>
+        <td>
+          <patch-sk
+            id="chromium_patch"
+            patchType="chromium"
+            @cl-description-changed=${el._patchChanged}
+          >
+          </patch-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Skia Git patch (optional)<br />
+          Applied to Skia Rev in
+          <a
+            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
+            >DEPS</a
+          >
+        </td>
+        <td>
+          <patch-sk
+            id="skia_patch"
+            patchType="skia"
+            @cl-description-changed=${el._patchChanged}
+          >
+          </patch-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          V8 Git patch (optional)<br />
+          Applied to V8 Rev in
+          <a
+            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
+            >DEPS</a
+          >
+        </td>
+        <td>
+          <patch-sk
+            id="v8_patch"
+            patchType="v8"
+            @cl-description-changed=${el._patchChanged}
+          >
+          </patch-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Catapult Git patch (optional)<br />
+          Applied to Catapult Rev in
+          <a
+            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
+            >DEPS</a
+          >
+        </td>
+        <td>
+          <patch-sk
+            id="catapult_patch"
+            patchType="catapult"
+            @cl-description-changed=${el._patchChanged}
+          >
+          </patch-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Chromium Git metrics patch (optional)<br />
+          Applied to Chromium ToT<br />
+          or to the hash specified below.<br />
+          Used to create the base build (See
+          <a href="http://skbug.com/9029">skbug/9029</a>)
+        </td>
+        <td>
+          <patch-sk
+            id="chromium_patch_base_build"
+            patchType="chromium"
+            @cl-description-changed=${el._patchChanged}
+          >
+          </patch-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Chromium hash to sync to (optional)<br /></td>
+        <td>
+          <input-sk value="" id="chromium_hash" class="long-field"></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Repeat this task</td>
+        <td>
+          <task-repeater-sk id="repeat_after_days"></task-repeater-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Task Priority</td>
+        <td>
+          <task-priority-sk id="task_priority"></task-priority-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Notifications CC list (optional)<br />
+          Email will be sent by ct@skia.org
+        </td>
+        <td>
+          <input-sk
+            value=""
+            id="cc_list"
+            label="email1,email2,email3"
+            class="long-field"
+          ></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Group name (optional)<br />
+          Will be used to track runs
+        </td>
+        <td>
+          <input-sk value="" id="group_name" class="long-field"></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td>Description</td>
+        <td>
+          <input-sk
+            value=""
+            id="description"
+            label="Description is required"
+            class="long-field"
+          ></input-sk>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="center">
+          <div class="triggering-spinner">
+            <spinner-sk
+              .active=${el._triggeringTask}
+              alt="Trigger task"
+            ></spinner-sk>
+          </div>
+          <button
+            id="submit"
+            ?disabled=${el._triggeringTask}
+            @click=${el._validateTask}
+          >
+            Queue Task
+          </button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="center">
+          <button id="view_history" @click=${el._gotoRunsHistory}>
+            View runs history
+          </button>
+        </td>
+      </tr>
+    </table>
+  `;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -323,7 +413,10 @@ export class ChromiumPerfSk extends ElementSk {
     this.skiaPatch = $$<PatchSk>('#skia_patch', this)!;
     this.v8Patch = $$<PatchSk>('#v8_patch', this)!;
     this.catapultPatch = $$<PatchSk>('#catapult_patch', this)!;
-    this.chromiumBaseBuildPatch = $$<PatchSk>('#chromium_patch_base_build', this)!;
+    this.chromiumBaseBuildPatch = $$<PatchSk>(
+      '#chromium_patch_base_build',
+      this
+    )!;
     this.chromiumHash = $$<InputSk>('#chromium_hash', this)!;
     this.repeatAfterDays = $$<TaskRepeaterSk>('#repeat_after_days', this)!;
     this.taskPriority = $$<TaskPrioritySk>('#task_priority', this)!;
@@ -351,7 +444,10 @@ export class ChromiumPerfSk extends ElementSk {
   handleTemplateID(template_id: string): void {
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
     const req: EditTaskRequest = { id: +template_id };
-    fetch('/_/edit_chromium_perf_task', { method: 'POST', body: JSON.stringify(req) })
+    fetch('/_/edit_chromium_perf_task', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    })
       .then(jsonOrThrow)
       .then((json: ChromiumPerfAddTaskVars) => {
         // Populate all fields from the EditTaskRequest.
@@ -443,7 +539,7 @@ export class ChromiumPerfSk extends ElementSk {
 
   _patchChanged(): void {
     this.description.value = combineClDescriptions(
-      $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription),
+      $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription)
     );
   }
 
@@ -461,10 +557,12 @@ export class ChromiumPerfSk extends ElementSk {
       this.benchmark.focus();
       return;
     }
-    if (missingLiveSitesWithCustomWebpages(
-      this.pageSets.customPages,
-      this.benchmarkArgs.value,
-    )) {
+    if (
+      missingLiveSitesWithCustomWebpages(
+        this.pageSets.customPages,
+        this.benchmarkArgs.value
+      )
+    ) {
       this.benchmarkArgs.focus();
       return;
     }

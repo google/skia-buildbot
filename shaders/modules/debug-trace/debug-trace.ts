@@ -5,7 +5,7 @@ import {
   Convert as GencodeConvert,
   DebugTrace,
   Function as FunctionInfo,
-  Slot as SlotInfo
+  Slot as SlotInfo,
 } from './generate/debug-trace-quicktype';
 
 export { DebugTrace, FunctionInfo, SlotInfo };
@@ -20,7 +20,8 @@ export class Convert extends GencodeConvert {
     if (out.version != expectedVersion) {
       throw Error(
         `Version mismatch. Trace version is '${out.version}', expected version ` +
-        `is '${expectedVersion}'`);
+          `is '${expectedVersion}'`
+      );
     }
 
     // The trace data consists of three values--one trace-op and two data fields.

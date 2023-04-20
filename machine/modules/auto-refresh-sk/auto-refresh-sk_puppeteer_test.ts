@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  inBazel,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('auto-refresh-sk', () => {
@@ -11,7 +14,11 @@ describe('auto-refresh-sk', () => {
 
   beforeEach(async () => {
     // Remove the /dist/ below for //infra-sk elements.
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/auto-refresh-sk.html`);
+    await testBed.page.goto(
+      inBazel()
+        ? testBed.baseUrl
+        : `${testBed.baseUrl}/dist/auto-refresh-sk.html`
+    );
     await testBed.page.setViewport({ width: 300, height: 300 });
   });
 

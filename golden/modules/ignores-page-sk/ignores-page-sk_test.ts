@@ -1,9 +1,9 @@
 import './index';
 
-import { $, $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import {
   eventPromise,
   eventSequencePromise,
@@ -62,10 +62,10 @@ describe('ignores-page-sk', () => {
       const rows = $('table tbody tr', ignoresPageSk);
       const queryLink = $$<HTMLAnchorElement>('.query a', rows[9])!;
       expect(queryLink.href).to.contain(
-        'include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg',
+        'include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg'
       );
       expect(queryLink.textContent).to.equal(
-        'config=glmsaa4\ncpu_or_gpu_value=TegraX1\nname=rg1024_green_grapes.svg',
+        'config=glmsaa4\ncpu_or_gpu_value=TegraX1\nname=rg1024_green_grapes.svg'
       );
     });
 
@@ -138,7 +138,10 @@ describe('ignores-page-sk', () => {
       const del = findDeleteForRow(ignoresPageSk, 2);
       del.click();
 
-      fetchMock.post(`/json/v1/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
+      fetchMock.post(
+        `/json/v1/ignores/del/${idOfThirdRule}`,
+        '{"deleted": "true"}'
+      );
       const p = eventPromise('end-task');
       clickConfirmDeleteButton(ignoresPageSk);
       await p;
@@ -151,11 +154,15 @@ describe('ignores-page-sk', () => {
       clickCreateIgnoreRuleButton(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.true;
 
-      setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
-        '2020-02-01T00:00:00Z', 'see skia:9525');
+      setIgnoreRuleProperties(
+        ignoresPageSk,
+        'alpha=beta&gamma=delta',
+        '2020-02-01T00:00:00Z',
+        'see skia:9525'
+      );
       fetchMock.post('/json/v1/ignores/add/', (url, opts) => {
         expect(opts.body).to.equal(
-          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
         );
         return '{"created": "true"}';
       });
@@ -178,11 +185,15 @@ describe('ignores-page-sk', () => {
       const dialog = findCreateEditIgnoreRuleDialog(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.true;
 
-      setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
-        '2020-02-01T00:00:00Z', 'see skia:9525');
+      setIgnoreRuleProperties(
+        ignoresPageSk,
+        'alpha=beta&gamma=delta',
+        '2020-02-01T00:00:00Z',
+        'see skia:9525'
+      );
       fetchMock.post(`/json/v1/ignores/save/${idOfThirdRule}`, (url, opts) => {
         expect(opts.body).to.equal(
-          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
         );
         return '{"created": "true"}';
       });
@@ -236,7 +247,9 @@ function findCreateEditIgnoreRuleDialog(ele: IgnoresPageSk): HTMLDialogElement {
   return $$<HTMLDialogElement>('dialog#edit-ignore-rule-dialog', ele)!;
 }
 
-function findConfirmSaveIgnoreRuleButton(ele: IgnoresPageSk): HTMLButtonElement {
+function findConfirmSaveIgnoreRuleButton(
+  ele: IgnoresPageSk
+): HTMLButtonElement {
   return $$<HTMLButtonElement>('#edit-ignore-rule-dialog button#ok', ele)!;
 }
 
@@ -244,20 +257,34 @@ function clickUntriagedDigestsCheckbox(ele: IgnoresPageSk) {
   // We need to click on the input element to accurately mimic a user event. This is
   // because the checkbox-sk element listens for the click event created by the
   // internal input event.
-  const input = $$<HTMLInputElement>('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele))!;
+  const input = $$<HTMLInputElement>(
+    'input[type="checkbox"]',
+    findUntriagedDigestsCheckbox(ele)
+  )!;
   input.click();
 }
 
 function clickConfirmDeleteButton(ele: IgnoresPageSk) {
-  $$<HTMLButtonElement>('button.confirm', findConfirmDeleteDialog(ele))!.click();
+  $$<HTMLButtonElement>(
+    'button.confirm',
+    findConfirmDeleteDialog(ele)
+  )!.click();
 }
 
 function clickCreateIgnoreRuleButton(ele: IgnoresPageSk) {
   $$<HTMLButtonElement>('.controls button.create', ele)!.click();
 }
 
-function setIgnoreRuleProperties(ele: IgnoresPageSk, query: string, expires: string, note: string) {
-  const editor = $$<EditIgnoreRuleSk>('edit-ignore-rule-sk', findCreateEditIgnoreRuleDialog(ele))!;
+function setIgnoreRuleProperties(
+  ele: IgnoresPageSk,
+  query: string,
+  expires: string,
+  note: string
+) {
+  const editor = $$<EditIgnoreRuleSk>(
+    'edit-ignore-rule-sk',
+    findCreateEditIgnoreRuleDialog(ele)
+  )!;
   editor.query = query;
   editor.expires = expires;
   editor.note = note;

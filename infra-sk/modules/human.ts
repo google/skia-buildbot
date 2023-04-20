@@ -151,7 +151,8 @@ export function localeTime(date: Date): string {
 function humanize(n: number, deltas: Delta[]) {
   for (let i = 0; i < deltas.length - 1; i++) {
     // If n would round to '60s', return '1m' instead.
-    const nextDeltaRounded = Math.round(n / deltas[i + 1].delta) * deltas[i + 1].delta;
+    const nextDeltaRounded =
+      Math.round(n / deltas[i + 1].delta) * deltas[i + 1].delta;
     if (nextDeltaRounded / deltas[i].delta >= 1) {
       return Math.round(n / deltas[i].delta) + deltas[i].units;
     }

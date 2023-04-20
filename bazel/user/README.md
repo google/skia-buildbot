@@ -8,7 +8,7 @@ Note that the `bazelrc` file is gitignored.
 ## The "mayberemote" configuration
 
 One notable use case for a user-specific `bazelrc` file is to override the "mayberemote"
-configuration, which is used e.g. from Makefile targets that *may* perform RBE builds with Bazel.
+configuration, which is used e.g. from Makefile targets that _may_ perform RBE builds with Bazel.
 
 By default, `bazel build --config=mayberemote //path/to:target` will be equivalent to
 `bazel build //path/to:target`, that is, it will perform a local (non-RBE) build. In order for the

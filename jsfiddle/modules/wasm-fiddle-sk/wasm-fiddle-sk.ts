@@ -1,13 +1,10 @@
-
 import 'codemirror/mode/javascript/javascript'; // Syntax highlighting for js.
+import { html, render, TemplateResult } from 'lit-html';
+import CodeMirror from 'codemirror';
+import type { CanvasKit } from 'canvaskit-wasm';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { html, render, TemplateResult } from 'lit-html';
-import CodeMirror from 'codemirror';
-import type {
-  CanvasKit,
-} from 'canvaskit-wasm';
 import { FPS } from '../../../infra-sk/modules/fps/fps';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 
@@ -23,10 +20,10 @@ export const colorPickerRegex = /#color(\d):(\S+)/g; // Exported for tests.
 type PathKit = any;
 
 /** What users call the library e.g. 'CanvasKit' */
-type LibraryName = 'CanvasKit' | 'PathKit'
+type LibraryName = 'CanvasKit' | 'PathKit';
 
 /** The backend name for the fiddle e.g. 'canvasKit'. */
-type FiddleType = 'canvaskit' | 'pathkit'
+type FiddleType = 'canvaskit' | 'pathkit';
 
 /** Uses the regular expression to pull out either the slider or color pickers
  * from the code. */
@@ -62,7 +59,7 @@ export class WasmFiddle extends HTMLElement {
 
   editor: CodeMirror.Editor | null = null;
 
-  templateFunc: (ele: WasmFiddle)=> TemplateResult;
+  templateFunc: (ele: WasmFiddle) => TemplateResult;
 
   libraryName: LibraryName;
 
@@ -91,12 +88,17 @@ export class WasmFiddle extends HTMLElement {
   runID: number = 0;
 
   /**
-    * @param wasmPromise: Promise that will resolve with the WASM library.
-    * @param templateFunc: The base template for this element.
-    * @param libraryName: What users call the library e.g. 'CanvasKit'
-    * @param fiddleType: The backend name for the fiddle e.g. 'canvasKit'
-    */
-  constructor(wasmPromise: Promise<CanvasKit | PathKit>, templateFunc: (ele: WasmFiddle)=> TemplateResult, libraryName: LibraryName, fiddleType: FiddleType) {
+   * @param wasmPromise: Promise that will resolve with the WASM library.
+   * @param templateFunc: The base template for this element.
+   * @param libraryName: What users call the library e.g. 'CanvasKit'
+   * @param fiddleType: The backend name for the fiddle e.g. 'canvasKit'
+   */
+  constructor(
+    wasmPromise: Promise<CanvasKit | PathKit>,
+    templateFunc: (ele: WasmFiddle) => TemplateResult,
+    libraryName: LibraryName,
+    fiddleType: FiddleType
+  ) {
     super();
 
     this.wasmPromise = wasmPromise;
@@ -110,18 +112,21 @@ export class WasmFiddle extends HTMLElement {
    * editor with less than 10 lines looks a bit strange). See
    * https://stackoverflow.com/a/4009768
    */
-  static lines = (str: string): number => Math.max(10, (str.match(/\n/g) || []).length + 1)
+  static lines = (str: string): number =>
+    Math.max(10, (str.match(/\n/g) || []).length + 1);
 
   /**
    * repeat returns an array of n 'undefined' which allows for repeating a
    * template a fixed number of times  using map. See
    * https://stackoverflow.com/a/10050831
    */
-  static repeat = (n: number): any[] => [...Array(n)]
+  static repeat = (n: number): any[] => [...Array(n)];
 
-  static lineNumber = (n: number): TemplateResult => html`<div id=${`L${n}`}>${n}</div>`;
+  static lineNumber = (n: number): TemplateResult =>
+    html`<div id=${`L${n}`}>${n}</div>`;
 
-  static codeEditor = (ele: WasmFiddle): TemplateResult => html`<div id=editor></div>`
+  static codeEditor = (ele: WasmFiddle): TemplateResult =>
+    html`<div id="editor"></div>`;
 
   static floatSlider = (name: string, i: number): TemplateResult => {
     if (!name) {
@@ -141,7 +146,7 @@ export class WasmFiddle extends HTMLElement {
       />
       <label for=${`slider${i}`}>${name}</label>
     </div>`;
-  }
+  };
 
   static colorPicker = (name: string, i: number): TemplateResult => {
     if (!name) {
@@ -154,7 +159,7 @@ export class WasmFiddle extends HTMLElement {
       <input name=${`color${i}`} id=${`color${i}`} type="color" />
       <label for=${`color${i}`}>${name}</label>
     </div>`;
-  }
+  };
 
   /** @prop The current code in the editor. */
   get content(): string {
@@ -176,7 +181,8 @@ export class WasmFiddle extends HTMLElement {
    * For this to work the associated CSS themes must be loaded. See
    * wasm-fiddle.scss.
    */
-  private static themeFromCurrentMode = () => (isDarkMode() ? 'ambiance' : 'base16-light');
+  private static themeFromCurrentMode = () =>
+    isDarkMode() ? 'ambiance' : 'base16-light';
 
   connectedCallback(): void {
     // Allows demo pages to supply content w/o making a network request
@@ -247,7 +253,9 @@ export class WasmFiddle extends HTMLElement {
     };
 
     if (!this.Wasm) {
-      errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
+      errorMessage(
+        `${this.libraryName} is still loading. Try again in a few seconds.`
+      );
       return;
     }
     this.hasRun = true;
@@ -267,19 +275,24 @@ export class WasmFiddle extends HTMLElement {
         // window.console.log('foo')].
         'benchmarkFPS', // provide a helper that the user can call to get an FPS output.
         'isRunning', // provide a helper for the user to stop their animation when run is clicked.
-        this.content, // user provided code, as a string, which will be interpreted and executed.
+        this.content // user provided code, as a string, which will be interpreted and executed.
       );
-      f(this.Wasm, canvas, consoleInterceptor, this._benchmarkFPSInstance(this.runID),
-        this.activeRunInstance(this.runID));
+      f(
+        this.Wasm,
+        canvas,
+        consoleInterceptor,
+        this._benchmarkFPSInstance(this.runID),
+        this.activeRunInstance(this.runID)
+      );
     } catch (e) {
       errorMessage(e as Error);
     }
   }
 
   /**
-    * Sends the code to the backend to be saved. Updates the URL upon success
-    * to the new permalink for this fiddle.
-    */
+   * Sends the code to the backend to be saved. Updates the URL upon success
+   * to the new permalink for this fiddle.
+   */
   save(): void {
     fetch('/_/save', {
       method: 'PUT',
@@ -290,9 +303,12 @@ export class WasmFiddle extends HTMLElement {
         code: this.content,
         type: this.fiddleType,
       }),
-    }).then(jsonOrThrow).then((json) => {
-      window.history.pushState(null, '', json.new_url);
-    }).catch(errorMessage);
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        window.history.pushState(null, '', json.new_url);
+      })
+      .catch(errorMessage);
   }
 
   // create a brand new canvas. Without this, the context can get muddled
@@ -360,7 +376,7 @@ export class WasmFiddle extends HTMLElement {
   // in a closure so that new instances will not conflict with each other (e.g. when run is clicked)
   // It also checks to see if this invocation is the latest and will do nothing if it is not (e.g.
   // prevent competing updates to the fps meter.
-  private _benchmarkFPSInstance(currentRunID: number): ()=> void {
+  private _benchmarkFPSInstance(currentRunID: number): () => void {
     const fps = new FPS();
     let fpsEle: HTMLElement | null = null;
     return (): void => {

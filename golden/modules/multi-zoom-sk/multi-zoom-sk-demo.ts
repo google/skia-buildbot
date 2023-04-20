@@ -13,7 +13,8 @@ ele.cyclingView = !isPuppeteer;
 ele.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
   diffImageSrc: digestDiffImagePath(
-    '99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2',
+    '99c58c7002073346ff55f446d47d6311',
+    '6246b773851984c726cb2e1cb13510c2'
   ),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: '99c58c700207...',
@@ -28,8 +29,10 @@ ele = new MultiZoomSk();
 ele.cyclingView = !isPuppeteer;
 ele.details = {
   leftImageSrc: digestImagePath('ec3b8f27397d99581e06eaa46d6d5837'),
-  diffImageSrc:
-      digestDiffImagePath('ec3b8f27397d99581e06eaa46d6d5837', '6246b773851984c726cb2e1cb13510c2'),
+  diffImageSrc: digestDiffImagePath(
+    'ec3b8f27397d99581e06eaa46d6d5837',
+    '6246b773851984c726cb2e1cb13510c2'
+  ),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: 'ec3b8f27397...',
   rightLabel: '6246b773851...',
@@ -51,8 +54,10 @@ ele = new MultiZoomSk();
 ele.cyclingView = !isPuppeteer;
 ele.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
-  diffImageSrc:
-      digestDiffImagePath('99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2'),
+  diffImageSrc: digestDiffImagePath(
+    '99c58c7002073346ff55f446d47d6311',
+    '6246b773851984c726cb2e1cb13510c2'
+  ),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: '99c58c700207...',
   rightLabel: 'Closest Positive',
@@ -83,8 +88,10 @@ $$<HTMLDivElement>('#base64_nthpixel')!.appendChild(nthPixel);
 // puppeteer.
 $$<MultiZoomSk>('#in_dialog')!.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
-  diffImageSrc:
-      digestDiffImagePath('99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2'),
+  diffImageSrc: digestDiffImagePath(
+    '99c58c7002073346ff55f446d47d6311',
+    '6246b773851984c726cb2e1cb13510c2'
+  ),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: '99c58c700207...',
   rightLabel: 'Closest Positive',

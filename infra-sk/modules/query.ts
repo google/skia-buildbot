@@ -112,7 +112,7 @@ export function fromObject(o: HintableObject): string {
         });
       } else if (typeof value === 'object') {
         ret.push(
-          `${encodeURIComponent(key)}=${encodeURIComponent(fromObject(value))}`,
+          `${encodeURIComponent(key)}=${encodeURIComponent(fromObject(value))}`
         );
       } else {
         ret.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);

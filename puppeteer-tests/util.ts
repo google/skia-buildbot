@@ -19,7 +19,7 @@ export type EventName = string;
  *
  * Note: this works for standard DOM events as well, not just custom events.
  */
-export type EventPromiseFactory = <T>(eventName: EventName)=> Promise<T>;
+export type EventPromiseFactory = <T>(eventName: EventName) => Promise<T>;
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -35,18 +35,25 @@ export type EventPromiseFactory = <T>(eventName: EventName)=> Promise<T>;
  * order that they were created, i.e. one caught event resolves the oldest
  * pending promise.
  */
-export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eventNames: EventName[]) => {
+export const addEventListenersToPuppeteerPage = async (
+  page: puppeteer.Page,
+  eventNames: EventName[]
+) => {
   // Maps event names to FIFO queues of promise resolver functions.
   const resolverFnQueues = new Map<EventName, Function[]>();
   eventNames.forEach((eventName) => resolverFnQueues.set(eventName, []));
 
   // Use an unlikely prefix to reduce chances of name collision.
-  await page.exposeFunction('__pptr_onEvent', (eventName: EventName, eventDetail: any) => {
-    const resolverFn = resolverFnQueues.get(eventName)!.shift(); // Dequeue.
-    if (resolverFn) { // Undefined if queue length was 0.
-      resolverFn(eventDetail);
+  await page.exposeFunction(
+    '__pptr_onEvent',
+    (eventName: EventName, eventDetail: any) => {
+      const resolverFn = resolverFnQueues.get(eventName)!.shift(); // Dequeue.
+      if (resolverFn) {
+        // Undefined if queue length was 0.
+        resolverFn(eventDetail);
+      }
     }
-  });
+  );
 
   // This function will be executed inside the Puppeteer page for each of the
   // events we want to listen for. It adds an event listener that will call the
@@ -58,7 +65,9 @@ export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eve
   };
 
   // Add an event listener for each one of the given events.
-  const promises = eventNames.map((name) => page.evaluateOnNewDocument(addEventListener, name));
+  const promises = eventNames.map((name) =>
+    page.evaluateOnNewDocument(addEventListener, name)
+  );
   await Promise.all(promises);
 
   // The returned function takes an event name and returns a promise that will
@@ -70,7 +79,7 @@ export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eve
     }
     return new Promise(
       // Enqueue resolver function at the end of the queue.
-      (resolve) => resolverFnQueues.get(eventName)!.push(resolve),
+      (resolve) => resolverFnQueues.get(eventName)!.push(resolve)
     );
   };
 
@@ -89,9 +98,8 @@ export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
  *  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
  *  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
  */
-const bazelRunfilesDir = () => {
-  return path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
-}
+const bazelRunfilesDir = () =>
+  path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
 
 /**
  * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
@@ -146,9 +154,14 @@ export const outputDir = () => {
   if (exports.inBazel()) {
     const undeclaredOutputsDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR;
     if (!undeclaredOutputsDir) {
-      throw new Error('required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset');
+      throw new Error(
+        'required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset'
+      );
     }
-    const outputDir = path.join(undeclaredOutputsDir, 'puppeteer-test-screenshots');
+    const outputDir = path.join(
+      undeclaredOutputsDir,
+      'puppeteer-test-screenshots'
+    );
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir);
     }
@@ -167,13 +180,16 @@ export const outputDir = () => {
  * application name as a prefix prevents name collisions between different apps
  * and increases consistency among test names.
  */
-export function takeScreenshot(handle: puppeteer.Page | puppeteer.ElementHandle,
-                               appName: string, testName: string): Promise<Buffer | string> {
-    const pngPath = path.join(exports.outputDir(), `${appName}_${testName}.png`);
-    // Typescript is unhappy about the type union due to the ElementHandle having a "this"
-    // typing. Both Page and ElementHandle have a screenshot method, so we can just
-    // pretend it's one of those two.
-    return (handle as puppeteer.Page).screenshot({ path:  pngPath});
+export function takeScreenshot(
+  handle: puppeteer.Page | puppeteer.ElementHandle,
+  appName: string,
+  testName: string
+): Promise<Buffer | string> {
+  const pngPath = path.join(exports.outputDir(), `${appName}_${testName}.png`);
+  // Typescript is unhappy about the type union due to the ElementHandle having a "this"
+  // typing. Both Page and ElementHandle have a screenshot method, so we can just
+  // pretend it's one of those two.
+  return (handle as puppeteer.Page).screenshot({ path: pngPath });
 }
 
 let browser: puppeteer.Browser;
@@ -202,8 +218,11 @@ export async function loadCachedTestBed(showBrowser?: boolean) {
 
   // Read the demo page server's TCP port.
   const envDir = process.env.ENV_DIR; // This is set by the test_on_env Bazel rule.
-  if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
-  const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
+  if (!envDir)
+    throw new Error('required environment variable ENV_DIR is unset');
+  const port = parseInt(
+    fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8')
+  );
   newTestBed.baseUrl = `http://localhost:${port}`;
 
   if (typeof showBrowser === 'undefined') {

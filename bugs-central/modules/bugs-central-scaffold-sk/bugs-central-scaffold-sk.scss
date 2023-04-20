@@ -3,7 +3,7 @@
 
 bugs-central-scaffold-sk {
   nav {
-    display:flex;
+    display: flex;
     flex-direction: column;
 
     a {
@@ -18,7 +18,8 @@ bugs-central-scaffold-sk {
     }
   }
 
-  app-sk, app-sk > aside {
+  app-sk,
+  app-sk > aside {
     aside {
       border-right: 1px solid var(--on-background);
     }

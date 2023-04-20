@@ -3,7 +3,11 @@ import './index';
 import { expect } from 'chai';
 import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
-import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
+import {
+  setUpElementUnderTest,
+  eventPromise,
+  noEventPromise,
+} from '../../../infra-sk/modules/test_util';
 import { QueryDialogSk } from './query-dialog-sk';
 import { QueryDialogSkPO } from './query-dialog-sk_po';
 
@@ -25,21 +29,25 @@ describe('query-dialog-sk', () => {
       await event;
     });
 
-    it('should emit "query-dialog-close" but not "edit" when closed via the "Cancel" button',
-      async () => {
-        queryDialogSk.open({}, '');
-        const events = Promise.all([eventPromise('query-dialog-close'), noEventPromise('edit')]);
-        await queryDialogSkPO.clickCancelBtn();
-        await events;
-      });
+    it('should emit "query-dialog-close" but not "edit" when closed via the "Cancel" button', async () => {
+      queryDialogSk.open({}, '');
+      const events = Promise.all([
+        eventPromise('query-dialog-close'),
+        noEventPromise('edit'),
+      ]);
+      await queryDialogSkPO.clickCancelBtn();
+      await events;
+    });
 
-    it('should emit "query-dialog-close" and "edit" when closed via the "Show Matches" button',
-      async () => {
-        queryDialogSk.open({}, '');
-        const events = Promise.all([eventPromise('query-dialog-close'), eventPromise('edit')]);
-        await queryDialogSkPO.clickShowMatchesBtn();
-        await events;
-      });
+    it('should emit "query-dialog-close" and "edit" when closed via the "Show Matches" button', async () => {
+      queryDialogSk.open({}, '');
+      const events = Promise.all([
+        eventPromise('query-dialog-close'),
+        eventPromise('edit'),
+      ]);
+      await queryDialogSkPO.clickShowMatchesBtn();
+      await events;
+    });
   });
 
   describe('opened with an empty selection', () => {
@@ -63,38 +71,46 @@ describe('query-dialog-sk', () => {
 
     it('should update paramset-sk when selection changes', async () => {
       await queryDialogSkPO.setSelection({ a: ['1'] });
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({ a: ['1'] });
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({
+        a: ['1'],
+      });
 
       // The placeholder text should not be visible. It suffices to assert this just once.
-      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be.false;
+      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be
+        .false;
 
       await queryDialogSkPO.setSelection({ a: ['1', '2'] });
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({ a: ['1', '2'] });
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({
+        a: ['1', '2'],
+      });
 
       await queryDialogSkPO.setSelection({ a: ['1', '2'], b: ['4'] });
-      expect(await queryDialogSkPO.getParamSetSkContents())
-        .to.deep.equal({ a: ['1', '2'], b: ['4'] });
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({
+        a: ['1', '2'],
+        b: ['4'],
+      });
     });
 
-    it('should emit event "edit" containing the current selection when "Show Matches" is clicked',
-      async () => {
-        await queryDialogSkPO.setSelection({ a: ['1', '2'], b: ['4'] });
+    it('should emit event "edit" containing the current selection when "Show Matches" is clicked', async () => {
+      await queryDialogSkPO.setSelection({ a: ['1', '2'], b: ['4'] });
 
-        // Click "Show Matches" button and catch the "edit" event.
-        const event = eventPromise<CustomEvent<string>>('edit');
-        await queryDialogSkPO.clickShowMatchesBtn();
-        const eventSelection = (await event).detail;
+      // Click "Show Matches" button and catch the "edit" event.
+      const event = eventPromise<CustomEvent<string>>('edit');
+      await queryDialogSkPO.clickShowMatchesBtn();
+      const eventSelection = (await event).detail;
 
-        // The event contents should match the selection.
-        expect(eventSelection).to.equal('a=1&a=2&b=4');
-      });
+      // The event contents should match the selection.
+      expect(eventSelection).to.equal('a=1&a=2&b=4');
+    });
 
     it('should clear the previous selection when reopened with an empty selection', async () => {
       // Select a=1
       await queryDialogSkPO.setSelection({ a: ['1'] });
 
       // It should have selected a=1.
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({ a: ['1'] });
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal({
+        a: ['1'],
+      });
 
       // Close dialog.
       await queryDialogSkPO.clickCancelBtn();
@@ -120,10 +136,13 @@ describe('query-dialog-sk', () => {
     it('shows the passed in selection', async () => {
       // Both query-sk and paramset-sk show the passed in selection.
       expect(await queryDialogSkPO.getSelection()).to.deep.equal(selection);
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(selection);
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(
+        selection
+      );
 
       // The "empty selection" placeholder text is not visible.
-      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be.false;
+      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be
+        .false;
     });
 
     it('can be reopened with a different selection', async () => {
@@ -134,8 +153,12 @@ describe('query-dialog-sk', () => {
       queryDialogSk.open(paramSet, fromParamSet(differentSelection));
 
       // Both query-sk and paramset-sk show the passed in selection.
-      expect(await queryDialogSkPO.getSelection()).to.deep.equal(differentSelection);
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(differentSelection);
+      expect(await queryDialogSkPO.getSelection()).to.deep.equal(
+        differentSelection
+      );
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(
+        differentSelection
+      );
     });
   });
 
@@ -143,7 +166,11 @@ describe('query-dialog-sk', () => {
     const paramSet: ParamSet = { a: ['1', '2', '3'], b: ['4', '5'], c: ['6'] };
     const selection: ParamSet = { a: ['3'], b: ['4'] };
 
-    const differentParamSet: ParamSet = { a: ['3', '4', '5'], b: ['6'], z: ['7'] };
+    const differentParamSet: ParamSet = {
+      a: ['3', '4', '5'],
+      b: ['6'],
+      z: ['7'],
+    };
     const differentSelection: ParamSet = { a: ['3', '4'], b: ['6'] };
 
     beforeEach(() => {
@@ -156,7 +183,9 @@ describe('query-dialog-sk', () => {
       queryDialogSk.open(differentParamSet, /* selection= */ '');
 
       // The query-sk component shows the new ParamSet, and the selection is empty.
-      expect(await queryDialogSkPO.getParamSet()).to.deep.equal(differentParamSet);
+      expect(await queryDialogSkPO.getParamSet()).to.deep.equal(
+        differentParamSet
+      );
       expect(await queryDialogSkPO.getSelection()).to.deep.equal({});
 
       // The "empty selection" placeholder text is visible instead of the paramset-sk component.
@@ -170,11 +199,16 @@ describe('query-dialog-sk', () => {
       queryDialogSk.open(differentParamSet, fromParamSet(differentSelection));
 
       // Both query-sk and paramset-sk show the passed in selection.
-      expect(await queryDialogSkPO.getSelection()).to.deep.equal(differentSelection);
-      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(differentSelection);
+      expect(await queryDialogSkPO.getSelection()).to.deep.equal(
+        differentSelection
+      );
+      expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(
+        differentSelection
+      );
 
       // The placeholder text should not be visible.
-      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be.false;
+      expect(await queryDialogSkPO.isEmptySelectionMessageVisible()).to.be
+        .false;
     });
   });
 
@@ -182,7 +216,11 @@ describe('query-dialog-sk', () => {
     const paramSet: ParamSet = { a: ['1', '2', '3'], b: ['4', '5'], c: ['6'] };
 
     // This contains the invalid value "a=4" and a value for the invalid key "d".
-    const invalidSelection: ParamSet = { a: ['2', '3', '4'], b: ['5'], d: ['7'] };
+    const invalidSelection: ParamSet = {
+      a: ['2', '3', '4'],
+      b: ['5'],
+      d: ['7'],
+    };
 
     // This is the invalidSelection with the invalid key/value pairs removed.
     const rationalizedSelection: ParamSet = { a: ['2', '3'], b: ['5'] };
@@ -191,15 +229,22 @@ describe('query-dialog-sk', () => {
     queryDialogSk.open(paramSet, fromParamSet(invalidSelection));
 
     // The dialog should rationalize the invalid selection.
-    expect(await queryDialogSkPO.getSelection()).to.deep.equal(rationalizedSelection);
-    expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(rationalizedSelection);
+    expect(await queryDialogSkPO.getSelection()).to.deep.equal(
+      rationalizedSelection
+    );
+    expect(await queryDialogSkPO.getParamSetSkContents()).to.deep.equal(
+      rationalizedSelection
+    );
   });
 
   it('can customize the submit button label', () => {
     // Dialog contents do not matter.
     queryDialogSk.open({ a: ['1'] }, '');
 
-    const showMatchesBtn = $$<HTMLButtonElement>('button.show-matches', queryDialogSk)!;
+    const showMatchesBtn = $$<HTMLButtonElement>(
+      'button.show-matches',
+      queryDialogSk
+    )!;
 
     // Shows "Show Matches" by default.
     expect(showMatchesBtn.innerText).to.equal('Show Matches');

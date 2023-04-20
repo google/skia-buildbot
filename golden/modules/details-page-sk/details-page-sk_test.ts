@@ -3,15 +3,25 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import {
-  eventPromise, eventSequencePromise, setQueryString, setUpElementUnderTest,
+  eventPromise,
+  eventSequencePromise,
+  setQueryString,
+  setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import {
-  DigestDetails, GroupingForTestRequest, GroupingForTestResponse, TriageRequestV3, TriageResponse,
+  DigestDetails,
+  GroupingForTestRequest,
+  GroupingForTestResponse,
+  TriageRequestV3,
+  TriageResponse,
 } from '../rpc_types';
 import { DetailsPageSk } from './details-page-sk';
 import { DetailsPageSkPO } from './details-page-sk_po';
 import { groupingsResponse } from '../search-page-sk/demo_data';
-import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
+import {
+  twoHundredCommits,
+  typicalDetails,
+} from '../digest-details-sk/test_data';
 
 describe('details-page-sk', () => {
   const newInstance = setUpElementUnderTest<DetailsPageSk>('details-page-sk');
@@ -19,7 +29,10 @@ describe('details-page-sk', () => {
   let detailsPageSk: DetailsPageSk;
   let detailsPageSkPO: DetailsPageSkPO;
 
-  const initialize = async (queryString: string, useGroupingForTestRPC: boolean) => {
+  const initialize = async (
+    queryString: string,
+    useGroupingForTestRPC: boolean
+  ) => {
     setQueryString(queryString);
 
     detailsPageSk = newInstance();
@@ -28,7 +41,9 @@ describe('details-page-sk', () => {
     fetchMock.getOnce('/json/v1/groupings', () => deepCopy(groupingsResponse));
     if (useGroupingForTestRPC) {
       fetchMock.post('/json/v1/groupingfortest', (url, opts) => {
-        const request: GroupingForTestRequest = JSON.parse(opts.body!.toString());
+        const request: GroupingForTestRequest = JSON.parse(
+          opts.body!.toString()
+        );
         const response: GroupingForTestResponse = {
           grouping: {
             name: request.test_name,
@@ -50,8 +65,9 @@ describe('details-page-sk', () => {
 
   const addTests = () => {
     it('renders', async () => {
-      expect(await detailsPageSkPO.digestDetailsSkPO.getTestName())
-        .to.equal('Test: dots-legend-sk_too-many-digests');
+      expect(await detailsPageSkPO.digestDetailsSkPO.getTestName()).to.equal(
+        'Test: dots-legend-sk_too-many-digests'
+      );
     });
 
     it('can triage', async () => {
@@ -75,11 +91,13 @@ describe('details-page-sk', () => {
       const triageResponse: TriageResponse = { status: 'ok' };
       fetchMock.post(
         { url: '/json/v3/triage', body: triageRequest },
-        { status: 200, body: triageResponse },
+        { status: 200, body: triageResponse }
       );
 
       const endTask = eventPromise('end-task');
-      await detailsPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
+      await detailsPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
+        'negative'
+      );
       await endTask;
     });
   };
@@ -92,10 +110,10 @@ describe('details-page-sk', () => {
   describe('with grouping in URL', () => {
     beforeEach(async () => {
       await initialize(
-        '?digest=6246b773851984c726cb2e1cb13510c2&'
-          + 'grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-          + 'changelist_id=12353&crs=gerrit-internal',
-        /* useGroupingForTestRPC= */ false,
+        '?digest=6246b773851984c726cb2e1cb13510c2&' +
+          'grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'changelist_id=12353&crs=gerrit-internal',
+        /* useGroupingForTestRPC= */ false
       );
     });
 
@@ -106,10 +124,10 @@ describe('details-page-sk', () => {
   describe('legacy links with just test in URL', () => {
     beforeEach(async () => {
       await initialize(
-        '?digest=6246b773851984c726cb2e1cb13510c2&'
-          + 'test=dots-legend-sk_too-many-digests&'
-          + 'changelist_id=12353&crs=gerrit-internal',
-        /* useGroupingForTestRPC= */ true,
+        '?digest=6246b773851984c726cb2e1cb13510c2&' +
+          'test=dots-legend-sk_too-many-digests&' +
+          'changelist_id=12353&crs=gerrit-internal',
+        /* useGroupingForTestRPC= */ true
       );
     });
 

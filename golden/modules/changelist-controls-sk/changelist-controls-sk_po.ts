@@ -1,6 +1,9 @@
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the ChangelistControlsSk component. */
 export class ChangelistControlsSkPO extends PageObject {
@@ -24,21 +27,35 @@ export class ChangelistControlsSkPO extends PageObject {
     return this.element.applyFnToDOMNode((el) => el.children.length > 0);
   }
 
-  async getPatchset() { return this.patchsetDropDown.value; }
+  async getPatchset() {
+    return this.patchsetDropDown.value;
+  }
 
-  async setPatchset(value: string) { await this.patchsetDropDown.enterValue(value); }
+  async setPatchset(value: string) {
+    await this.patchsetDropDown.enterValue(value);
+  }
 
   async isExcludeResultsFromPrimaryRadioChecked() {
-    return this.excludeMasterRadio.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return this.excludeMasterRadio.applyFnToDOMNode(
+      (el) => (el as CheckOrRadio).checked
+    );
   }
 
-  async clickExcludeResultsFromPrimaryRadio() { await this.excludeMasterRadio.click(); }
+  async clickExcludeResultsFromPrimaryRadio() {
+    await this.excludeMasterRadio.click();
+  }
 
   async isShowAllResultsRadioChecked() {
-    return this.includeMasterRadio.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return this.includeMasterRadio.applyFnToDOMNode(
+      (el) => (el as CheckOrRadio).checked
+    );
   }
 
-  async clickShowAllResultsRadio() { await this.includeMasterRadio.click(); }
+  async clickShowAllResultsRadio() {
+    await this.includeMasterRadio.click();
+  }
 
-  async getTryJobs() { return this.tryjobs.map((tryjob) => tryjob.innerText); }
+  async getTryJobs() {
+    return this.tryjobs.map((tryjob) => tryjob.innerText);
+  }
 }

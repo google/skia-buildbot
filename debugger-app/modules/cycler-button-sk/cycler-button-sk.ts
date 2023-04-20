@@ -11,13 +11,14 @@
  *    <cycler-button-sk .text=${'next'} .list=${[1, 2, 3]} @next-item=${(e: Event)=>{}}>
  *    </cycler-button-sk>
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { NextItemEventDetail, NextItemEvent } from '../events';
 
 export class CyclerButtonSk extends ElementSk {
-  private static template = (ele: CyclerButtonSk) => html`<button @click=${ele._click}>${ele.text}</button>`;
+  private static template = (ele: CyclerButtonSk) =>
+    html`<button @click=${ele._click}>${ele.text}</button>`;
 
   public text = '';
 
@@ -36,12 +37,10 @@ export class CyclerButtonSk extends ElementSk {
 
   private _click() {
     this.dispatchEvent(
-      new CustomEvent<NextItemEventDetail>(
-        NextItemEvent, {
-          detail: { item: this.list[this._index] },
-          bubbles: true,
-        },
-      ),
+      new CustomEvent<NextItemEventDetail>(NextItemEvent, {
+        detail: { item: this.list[this._index] },
+        bubbles: true,
+      })
     );
     this._index = (this._index + 1) % this.list.length;
   }

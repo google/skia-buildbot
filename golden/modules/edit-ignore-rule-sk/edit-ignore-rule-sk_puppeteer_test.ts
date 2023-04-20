@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 
 describe('edit-ignore-rule-sk', () => {
   let testBed: TestBed;
@@ -35,7 +39,11 @@ describe('edit-ignore-rule-sk', () => {
 
     it('shows an error when one or more of custom key/value is not filled out', async () => {
       const editor = await testBed.page.$('#partial_custom_values');
-      await takeScreenshot(editor!, 'gold', 'edit-ignore-rule-sk_missing-custom-value');
+      await takeScreenshot(
+        editor!,
+        'gold',
+        'edit-ignore-rule-sk_missing-custom-value'
+      );
     });
   });
 });

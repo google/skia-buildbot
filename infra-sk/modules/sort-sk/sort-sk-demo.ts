@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import { SortSk } from './sort-sk';
 
 const sortSk = $$('#as_table')! as SortSk;

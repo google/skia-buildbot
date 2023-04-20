@@ -10,9 +10,13 @@
  *                           contains the new ParamSet.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
+import { define } from '../../../elements-sk/modules/define';
+import {
+  ParamSet,
+  fromParamSet,
+  toParamSet,
+} from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
@@ -22,16 +26,17 @@ import '../../../infra-sk/modules/paramset-sk';
 import '../query-dialog-sk';
 
 export class TraceFilterSk extends ElementSk {
-  private static template = (el: TraceFilterSk) => html`
-    <div class=selection>
+  private static template = (el: TraceFilterSk) => html` <div class="selection">
       ${Object.keys(el._selection).length === 0
-    ? html`<div class=empty-placeholder>All traces.</div>`
-    : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
+        ? html`<div class="empty-placeholder">All traces.</div>`
+        : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
     </div>
-    <button class=edit-query @click=${el._onEditQueryBtnClick}>Edit</button>
+    <button class="edit-query" @click=${el._onEditQueryBtnClick}>Edit</button>
 
-    <query-dialog-sk .submitButtonLabel=${'Select'}
-                     @edit=${el._onQueryDialogEdit}>
+    <query-dialog-sk
+      .submitButtonLabel=${'Select'}
+      @edit=${el._onQueryDialogEdit}
+    >
     </query-dialog-sk>`;
 
   private _paramSet: ParamSet = {};
@@ -51,7 +56,9 @@ export class TraceFilterSk extends ElementSk {
   }
 
   /** The set of parameters available for the user to choose from. */
-  get paramSet() { return this._paramSet; }
+  get paramSet() {
+    return this._paramSet;
+  }
 
   set paramSet(value) {
     this._paramSet = value;
@@ -59,7 +66,9 @@ export class TraceFilterSk extends ElementSk {
   }
 
   /** The current trace filter visible to or entered by the user. */
-  get selection() { return this._selection; }
+  get selection() {
+    return this._selection;
+  }
 
   set selection(value) {
     this._selection = value;
@@ -74,10 +83,12 @@ export class TraceFilterSk extends ElementSk {
     e.stopPropagation();
     this._selection = toParamSet(e.detail);
     this._render();
-    this.dispatchEvent(new CustomEvent<ParamSet>('trace-filter-sk-change', {
-      detail: this._selection,
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<ParamSet>('trace-filter-sk-change', {
+        detail: this._selection,
+        bubbles: true,
+      })
+    );
   }
 }
 

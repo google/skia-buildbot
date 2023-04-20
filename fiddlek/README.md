@@ -1,10 +1,8 @@
-Fiddle
-======
+# Fiddle
 
 Allows trying out Skia code in the browser.
 
-Running locally
----------------
+## Running locally
 
 In two different shells:
 
@@ -21,8 +19,7 @@ to be started:
 
 Then visit http://localhost:8080
 
-fiddler Deployment
-------------------
+## fiddler Deployment
 
 The fiddler image is continuously deployed as new Skia commits come in. See
 documentation at [docker_pushes_watcher/README.md](../docker_pushes_watcher/README.md).
@@ -46,15 +43,13 @@ the push needs to be compatible with the version on the image being
 used by fiddle. After deployment make sure to run a test fiddle to
 ensure successful compilation on fiddle.
 
-fiddle Deployment
------------------
+## fiddle Deployment
 
 fiddle must be manually deployed as so:
 
     make push_fiddle
 
-Node Pool
----------
+## Node Pool
 
 The fiddler-pool node pool is dedicated to running just fiddler pods. This was
 setup because fiddler latency was high for fiddle when run along with many

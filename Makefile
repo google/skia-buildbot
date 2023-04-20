@@ -39,6 +39,10 @@ buildifier:
 gofmt:
 	$(BAZEL) run --config=mayberemote //:gofmt -- -s -w .
 
+.PHONY: prettier
+prettier:
+	$(BAZEL) run --config=mayberemote @npm//prettier/bin:prettier --run_under="cd $(PWD) &&" -- --write .
+
 .PHONY: bazel-build
 bazel-build:
 	$(BAZEL) build //...

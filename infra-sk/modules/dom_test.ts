@@ -13,9 +13,7 @@
 // limitations under the License.
 
 import { assert } from 'chai';
-import {
-  $, $$, findParent, findParentSafe,
-} from './dom';
+import { $, $$, findParent, findParentSafe } from './dom';
 
 const container = document.createElement('div');
 document.body.appendChild(container);
@@ -48,7 +46,7 @@ describe('$ aka querySelectorAll', () => {
     assertEquals($('.alpha', container), container.querySelectorAll('.alpha'));
     assertEquals(
       $('#epsilon', container),
-      container.querySelectorAll('#epsilon'),
+      container.querySelectorAll('#epsilon')
     );
     assertEquals($('span', container), container.querySelectorAll('span'));
   });
@@ -75,7 +73,7 @@ describe('$$ aka querySelector', () => {
     assert.equal($$('.alpha', container), container.querySelector('.alpha'));
     assert.equal(
       $$('#epsilon', container),
-      container.querySelector('#epsilon'),
+      container.querySelector('#epsilon')
     );
     assert.equal($$('span', container), container.querySelector('span'));
   });
@@ -166,7 +164,7 @@ describe('findParentSafe', () => {
     assert.equal(
       findParentSafe($$('#a', div), 'div'),
       $$('#a', div),
-      'Top level',
+      'Top level'
     );
     assert.equal(findParentSafe($$('#a', div), 'span'), null);
     assert.equal(findParentSafe($$('#aa', div), 'div'), $$('#a', div));

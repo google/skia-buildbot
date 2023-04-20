@@ -50,12 +50,15 @@ export class ErrorToastSk extends HTMLElement {
   private span: HTMLSpanElement | null = null;
 
   connectedCallback(): void {
-    this.innerHTML = '<toast-sk><span></span><button title="Close">✗</button></toast-sk>';
+    this.innerHTML =
+      '<toast-sk><span></span><button title="Close">✗</button></toast-sk>';
     this.toast = this.firstElementChild as ToastSk;
     this.span = this.toast!.firstElementChild as HTMLSpanElement;
 
     document.addEventListener('error-sk', this);
-    this.querySelector('button')!.addEventListener('click', (e) => this.clickHandler());
+    this.querySelector('button')!.addEventListener('click', (e) =>
+      this.clickHandler()
+    );
   }
 
   disconnectedCallback(): void {

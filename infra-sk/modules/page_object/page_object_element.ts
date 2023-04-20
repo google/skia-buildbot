@@ -1,14 +1,12 @@
 import { ElementHandle } from 'puppeteer';
-import {
-  asyncFilter, asyncFind, asyncForEach, asyncMap,
-} from '../async';
+import { asyncFilter, asyncFind, asyncForEach, asyncMap } from '../async';
 
 // Puppeteer used to have a Serializable type, but it is now just "unknown".
 export type Serializable = unknown;
 
 // Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
-  element: Element | ElementHandle<Element>,
+  element: Element | ElementHandle<Element>
 ): element is ElementHandle<Element> {
   return !!(element as ElementHandle).asElement;
 }
@@ -34,13 +32,15 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private readonly elementPromise: Promise<Element | ElementHandle<Element> | null>;
+  private readonly elementPromise: Promise<
+    Element | ElementHandle<Element> | null
+  >;
 
   constructor(
     element:
-          Element |
-          ElementHandle<Element> |
-          Promise<Element | ElementHandle<Element> | null>,
+      | Element
+      | ElementHandle<Element>
+      | Promise<Element | ElementHandle<Element> | null>
   ) {
     if (element instanceof Promise) {
       this.elementPromise = element;
@@ -54,9 +54,9 @@ export class PageObjectElement {
     return !(await this.elementPromise);
   }
 
-  /////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////
   // Wrappers around various Element methods and properties. //
-  /////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////
 
   // Please add any missing wrappers as needed.
 
@@ -79,7 +79,7 @@ export class PageObjectElement {
   async hasClassName(className: string) {
     return this.applyFnToDOMNode(
       (el, className) => el.classList.contains(className as string),
-      className,
+      className
     );
   }
 
@@ -98,14 +98,16 @@ export class PageObjectElement {
   /** Analogous to Element#hasAttribute(). */
   async hasAttribute(attribute: string): Promise<boolean> {
     return this.applyFnToDOMNode(
-      (el, attribute) => el.hasAttribute(attribute as string), attribute,
+      (el, attribute) => el.hasAttribute(attribute as string),
+      attribute
     );
   }
 
   /** Analogous to Element#getAttribute(). */
   async getAttribute(attribute: string): Promise<string | null> {
     return this.applyFnToDOMNode(
-      (el: Element, attribute: unknown) => el.getAttribute(attribute as string), attribute,
+      (el: Element, attribute: unknown) => el.getAttribute(attribute as string),
+      attribute
     );
   }
 
@@ -129,9 +131,13 @@ export class PageObjectElement {
     if (isPptrElement(element!)) {
       return (element as ElementHandle).type(key);
     }
-    const ele = (element as Element);
-    ele.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: key }));
-    ele.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: key }));
+    const ele = element as Element;
+    ele.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: key })
+    );
+    ele.dispatchEvent(
+      new KeyboardEvent('keypress', { bubbles: true, key: key })
+    );
     ele.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: key }));
   }
 
@@ -149,7 +155,8 @@ export class PageObjectElement {
     // https://github.com/google/pageloader/blob/80766100da9fe05d99eb92edd69b7ddfa82cc10e/lib/src/html/html_page_loader_element.dart#L393.
     await this.applyFnToDOMNode((el, value) => {
       // The below type union is non-exhaustive and for illustration purposes only.
-      (el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value = value as string;
+      (el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value =
+        value as string;
 
       // Simulate a subset of the input events (just one). This should be enough for most tests.
       el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -165,12 +172,15 @@ export class PageObjectElement {
    * element.
    */
   async applyFnToDOMNode<T extends Serializable | void>(
-    fn: (element: Element, ...args: Serializable[])=> T,
+    fn: (element: Element, ...args: Serializable[]) => T,
     ...args: Serializable[]
   ): Promise<T> {
     const element = await this.elementPromise;
     if (isPptrElement(element!)) {
-      return await (element as ElementHandle<Element>).evaluate(fn, ...args) as T;
+      return (await (element as ElementHandle<Element>).evaluate(
+        fn,
+        ...args
+      )) as T;
     }
     return fn(element as Element, ...args);
   }
@@ -182,40 +192,48 @@ export class PageObjectElement {
   /** Analogous to Element#querySelector(). */
   bySelector(selector: string): PageObjectElement {
     return new PageObjectElement(
-        this.elementPromise.then((element) => {
-          if (!element) {
-            return null;
-          }
-          if (isPptrElement(element)) {
-            // Note that common-sk functions $ and $$ are aliases for
-            // Element#querySelectorAll() and Element#querySelector(), respectively,
-            // whereas Puppeteer's ElementHandle#$() and ElementHandle#$$() methods are the other
-            // way around.
-            return (element as ElementHandle).$(selector) as Promise<ElementHandle<Element>>;
-          }
-          return new Promise((resolve) => resolve(
-              (element as Element).querySelector<Element>(selector)
-          ));
-        })
+      this.elementPromise.then((element) => {
+        if (!element) {
+          return null;
+        }
+        if (isPptrElement(element)) {
+          // Note that common-sk functions $ and $$ are aliases for
+          // Element#querySelectorAll() and Element#querySelector(), respectively,
+          // whereas Puppeteer's ElementHandle#$() and ElementHandle#$$() methods are the other
+          // way around.
+          return (element as ElementHandle).$(selector) as Promise<
+            ElementHandle<Element>
+          >;
+        }
+        return new Promise((resolve) =>
+          resolve((element as Element).querySelector<Element>(selector))
+        );
+      })
     );
   }
 
   /** Analogous to Element#querySelectorAll(). */
   bySelectorAll(selector: string): PageObjectElementList {
-    return new PageObjectElementList(this.elementPromise.then((element) => {
-      if (!element) {
-        return [];
-      }
-      if (isPptrElement(element)) {
-        // Note that common-sk functions $ and $$ are aliases for Element#querySelectorAll() and
-        // Element#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
-        // ElementHandle#$$() methods are the other way around.
-        return (element as ElementHandle).$$(selector) as Promise<ElementHandle<Element>[]>;
-      }
-      return new Promise((resolve) => resolve(
-          Array.from((element as Element).querySelectorAll<Element>(selector)))
-      );
-    }));
+    return new PageObjectElementList(
+      this.elementPromise.then((element) => {
+        if (!element) {
+          return [];
+        }
+        if (isPptrElement(element)) {
+          // Note that common-sk functions $ and $$ are aliases for Element#querySelectorAll() and
+          // Element#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
+          // ElementHandle#$$() methods are the other way around.
+          return (element as ElementHandle).$$(selector) as Promise<
+            ElementHandle<Element>[]
+          >;
+        }
+        return new Promise((resolve) =>
+          resolve(
+            Array.from((element as Element).querySelectorAll<Element>(selector))
+          )
+        );
+      })
+    );
   }
 }
 
@@ -241,22 +259,22 @@ export abstract class AsyncList<T> {
   }
 
   /** Analogous to Array.prototype.filter, where the callback function returns a promise. */
-  filter(fn: (item: T, index: number)=> Promise<boolean>): Promise<T[]> {
+  filter(fn: (item: T, index: number) => Promise<boolean>): Promise<T[]> {
     return asyncFilter(this.itemsPromise, fn);
   }
 
   /** Analogous to Array.prototype.find, where the callback function returns a promise. */
-  find(fn: (item: T, index: number)=> Promise<boolean>): Promise<T | null> {
+  find(fn: (item: T, index: number) => Promise<boolean>): Promise<T | null> {
     return asyncFind(this.itemsPromise, fn);
   }
 
   /** Analogous to Array.prototype.forEach, where the callback function returns a promise. */
-  forEach(fn: (item: T, index: number)=> Promise<void>): Promise<void> {
+  forEach(fn: (item: T, index: number) => Promise<void>): Promise<void> {
     return asyncForEach(this.itemsPromise, fn);
   }
 
   /** Analogous to Array.prototype.map, where the callback function returns a promise. */
-  map<U>(fn: (item: T, index: number)=> Promise<U>): Promise<U[]> {
+  map<U>(fn: (item: T, index: number) => Promise<U>): Promise<U[]> {
     return asyncMap(this.itemsPromise, fn);
   }
 }
@@ -264,6 +282,13 @@ export abstract class AsyncList<T> {
 /** Convenience wrapper around a Promise<PageObjectElement[]>. */
 export class PageObjectElementList extends AsyncList<PageObjectElement> {
   constructor(itemsPromise?: Promise<Element[] | ElementHandle<Element>[]>) {
-    super(itemsPromise?.then((items) => items.map((item: Element | ElementHandle<Element>) => new PageObjectElement(item))));
+    super(
+      itemsPromise?.then((items) =>
+        items.map(
+          (item: Element | ElementHandle<Element>) =>
+            new PageObjectElement(item)
+        )
+      )
+    );
   }
 }

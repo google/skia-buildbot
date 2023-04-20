@@ -62,14 +62,14 @@ export class SortSelection {
  *
  *  It should always sort a column in an ascending direction.
  */
-export type compareFunc<T> = (a: T, b: T)=> number;
+export type compareFunc<T> = (a: T, b: T) => number;
 
 /** An array of the sort functions for all the columns. Note that the index of a
-  *  sort function does not need to correspond to location of a column on the
-  *  display. Every value for the full length of columnSortFunctions should be
-  *  populated, even if populated with a noop function, e.g. a function that
-  *  return 0 for all inputs.
-  */
+ *  sort function does not need to correspond to location of a column on the
+ *  display. Every value for the full length of columnSortFunctions should be
+ *  populated, even if populated with a noop function, e.g. a function that
+ *  return 0 for all inputs.
+ */
 export type columnSortFunctions<T> = compareFunc<T>[];
 
 /**
@@ -90,13 +90,15 @@ export class SortHistory<T> {
   /** Columns will be sorted by the first entry in history. If that yields a
    * tie, then the second entry in history will be used to break the tie, etc.
    */
-  history: SortSelection[] = []
+  history: SortSelection[] = [];
 
-  sortFunctions: columnSortFunctions<T> = []
+  sortFunctions: columnSortFunctions<T> = [];
 
   constructor(sortFunctions: columnSortFunctions<T>) {
     this.sortFunctions = sortFunctions;
-    this.history = this.sortFunctions.map((_, column) => new SortSelection(column, up));
+    this.history = this.sortFunctions.map(
+      (_, column) => new SortSelection(column, up)
+    );
   }
 
   /** Moves the selected column to the front of the list for sorting, and also
@@ -150,16 +152,27 @@ export class SortHistory<T> {
       return;
     }
     const oldHistory = [...this.history];
-    this.history = s.split('-').map((encodedSortSelection: string) => SortSelection.decode(encodedSortSelection));
+    this.history = s
+      .split('-')
+      .map((encodedSortSelection: string) =>
+        SortSelection.decode(encodedSortSelection)
+      );
 
     // Now add in all the members of oldHistory that don't appear in this.history.
     oldHistory.forEach((oldSelection: SortSelection) => {
-      if (!this.history.some((sel: SortSelection) => sel.column === oldSelection.column)) {
+      if (
+        !this.history.some(
+          (sel: SortSelection) => sel.column === oldSelection.column
+        )
+      ) {
         this.history.push(oldSelection);
       }
     });
 
-    const isValid = this.history.every((ss: SortSelection): boolean => (ss.column >= 0) && (ss.column < this.sortFunctions.length));
+    const isValid = this.history.every(
+      (ss: SortSelection): boolean =>
+        ss.column >= 0 && ss.column < this.sortFunctions.length
+    );
     if (!isValid) {
       this.history = oldHistory;
     }

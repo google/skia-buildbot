@@ -20,13 +20,13 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/toast-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
+import { html } from 'lit-html';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import * as ctfe_utils from '../ctfe_utils';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -51,32 +51,39 @@ export class PatchSk extends ElementSk {
   }
 
   private static template = (ele: PatchSk) => html`
-  <table>
-    <tr>
-      <td>CL:</td>
-      <td>
-        <input-sk @input=${ele._clChanged}
-          label="Please paste a complete Gerrit URL"></input-sk>
-      </td>
-      <td>
-        <div class=cl-detail-container>
-          <div class="cl-detail">
-            <spinner-sk alt="Loading CL details"></spinner-sk>
+    <table>
+      <tr>
+        <td>CL:</td>
+        <td>
+          <input-sk
+            @input=${ele._clChanged}
+            label="Please paste a complete Gerrit URL"
+          ></input-sk>
+        </td>
+        <td>
+          <div class="cl-detail-container">
+            <div class="cl-detail">
+              <spinner-sk alt="Loading CL details"></spinner-sk>
+            </div>
+            <div class="cl-detail">
+              <a href=${ele._clUrl()} target="_blank"
+                >${ele._formattedClData()}</a
+              >
+              <span class="cl-error">${ele._formattedClError()}</span>
+            </div>
           </div>
-          <div class="cl-detail">
-            <a href=${ele._clUrl()} target=_blank>${ele._formattedClData()}</a>
-            <span class="cl-error">${ele._formattedClError()}</span>
-          </div>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td colspan=3 class=patch-manual>
-        <expandable-textarea-sk displaytext="Specify Patch Manually" @input=${ele._patchChanged}>
-        </expandable-textarea-sk>
-      </td>
-    </tr>
-  </table>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3" class="patch-manual">
+          <expandable-textarea-sk
+            displaytext="Specify Patch Manually"
+            @input=${ele._patchChanged}
+          >
+          </expandable-textarea-sk>
+        </td>
+      </tr>
+    </table>
   `;
 
   connectedCallback(): void {
@@ -108,7 +115,8 @@ export class PatchSk extends ElementSk {
         if (this.cl === newValue) {
           if (json.cl) {
             this._clData = json;
-            const patch = this._clData![`${this.patchType}_patch` as keyof CLDataResponse];
+            const patch =
+              this._clData![`${this.patchType}_patch` as keyof CLDataResponse];
             if (!patch) {
               this._clError = new Error(`This is not a ${this.patchType} CL.`);
               this._patchFetchError();
@@ -184,8 +192,12 @@ export class PatchSk extends ElementSk {
   set clDescription(val: string) {
     this._clDescription = val;
     // shadow dom, do we need composed: true?
-    this.dispatchEvent(new CustomEvent('cl-description-changed',
-      { bubbles: true, detail: { clDescription: val } }));
+    this.dispatchEvent(
+      new CustomEvent('cl-description-changed', {
+        bubbles: true,
+        detail: { clDescription: val },
+      })
+    );
   }
 
   /**
@@ -222,8 +234,10 @@ export class PatchSk extends ElementSk {
 
   _formattedClData(): string {
     if (this._clData && !this._clError) {
-      return `${this._clData.subject} (modified `
-        + `${ctfe_utils.getFormattedTimestamp(+this._clData.modified)})`;
+      return (
+        `${this._clData.subject} (modified ` +
+        `${ctfe_utils.getFormattedTimestamp(+this._clData.modified)})`
+      );
     }
     return '';
   }
@@ -243,18 +257,26 @@ export class PatchSk extends ElementSk {
   }
 
   _clLoadError(): void {
-    errorMessage(`Unable to load ${this.patchType} CL ${this.cl}`
-    + '. Please specify patches manually.');
+    errorMessage(
+      `Unable to load ${this.patchType} CL ${this.cl}` +
+        '. Please specify patches manually.'
+    );
   }
 
   _patchFetchError(): void {
-    errorMessage(`Unable to fetch ${this.patchType} patch from CL ${this.cl}`
-    + '. Please specify patches manually.');
+    errorMessage(
+      `Unable to fetch ${this.patchType} patch from CL ${this.cl}` +
+        '. Please specify patches manually.'
+    );
   }
 
   _patchChanged(): void {
-    this.dispatchEvent(new CustomEvent('patch-changed',
-      { bubbles: true, detail: { patch: this.patch } }));
+    this.dispatchEvent(
+      new CustomEvent('patch-changed', {
+        bubbles: true,
+        detail: { patch: this.patch },
+      })
+    );
   }
 }
 

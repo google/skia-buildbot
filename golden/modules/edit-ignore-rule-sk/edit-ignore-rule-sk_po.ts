@@ -36,29 +36,51 @@ export class EditIgnoreRuleSkPO extends PageObject {
     return this.bySelector('.error');
   }
 
-  async getExpires(): Promise<string> { return this.expiresInput.value; }
+  async getExpires(): Promise<string> {
+    return this.expiresInput.value;
+  }
 
-  async setExpires(value: string) { await this.expiresInput.enterValue(value); }
+  async setExpires(value: string) {
+    await this.expiresInput.enterValue(value);
+  }
 
-  async getNote(): Promise<string> { return this.noteInput.value; }
+  async getNote(): Promise<string> {
+    return this.noteInput.value;
+  }
 
-  async setNote(value: string) { await this.noteInput.enterValue(value); }
+  async setNote(value: string) {
+    await this.noteInput.enterValue(value);
+  }
 
-  async getCustomKey(): Promise<string> { return this.customKeyInput.value; }
+  async getCustomKey(): Promise<string> {
+    return this.customKeyInput.value;
+  }
 
-  async setCustomKey(value: string) { await this.customKeyInput.enterValue(value); }
+  async setCustomKey(value: string) {
+    await this.customKeyInput.enterValue(value);
+  }
 
-  async getCustomValue(): Promise<string> { return this.customValueInput.value; }
+  async getCustomValue(): Promise<string> {
+    return this.customValueInput.value;
+  }
 
-  async setCustomValue(value: string) { await this.customValueInput.enterValue(value); }
+  async setCustomValue(value: string) {
+    await this.customValueInput.enterValue(value);
+  }
 
-  async clickAddCustomParamBtn() { await this.addCustomParamBtn.click(); }
+  async clickAddCustomParamBtn() {
+    await this.addCustomParamBtn.click();
+  }
 
-  async getQuery(): Promise<string> { return this.query.innerText; }
+  async getQuery(): Promise<string> {
+    return this.query.innerText;
+  }
 
   async isErrorMessageVisible(): Promise<boolean> {
     return !(await this.errorMessage.hasAttribute('hidden'));
   }
 
-  async getErrorMessage(): Promise<string> { return this.errorMessage.innerText; }
+  async getErrorMessage(): Promise<string> {
+    return this.errorMessage.innerText;
+  }
 }

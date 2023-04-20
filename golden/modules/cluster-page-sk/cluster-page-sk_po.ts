@@ -7,11 +7,17 @@ import { DigestDetailsSkPO } from '../digest-details-sk/digest-details-sk_po';
 /** A page object for the ClusterPageSk component. */
 export class ClusterPageSkPO extends PageObject {
   get searchControlsSkPO(): SearchControlsSkPO {
-    return this.poBySelector('.page-container > search-controls-sk', SearchControlsSkPO);
+    return this.poBySelector(
+      '.page-container > search-controls-sk',
+      SearchControlsSkPO
+    );
   }
 
   get clusterDigestsSkPO(): ClusterDigestsSkPO {
-    return this.poBySelector('.page-container > cluster-digests-sk', ClusterDigestsSkPO);
+    return this.poBySelector(
+      '.page-container > cluster-digests-sk',
+      ClusterDigestsSkPO
+    );
   }
 
   get paramSetSkPO(): ParamSetSkPO {
@@ -19,6 +25,9 @@ export class ClusterPageSkPO extends PageObject {
   }
 
   get digestDetailsSkPO(): DigestDetailsSkPO {
-    return this.poBySelector('.page-container > digest-details-sk', DigestDetailsSkPO);
+    return this.poBySelector(
+      '.page-container > digest-details-sk',
+      DigestDetailsSkPO
+    );
   }
 }

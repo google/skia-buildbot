@@ -111,7 +111,7 @@ export const blamelist19: Commit[] = [
     commit_time: 1584700000,
     hash: 'f5132a05c893a86f8bf26bcf3253985d9973fea2',
     author: 'Quebec (quebec@example.com)',
-    message: "Reland \"Optimize GrTessellatePathOp's code to emit inner tri",
+    message: 'Reland "Optimize GrTessellatePathOp\'s code to emit inner tri',
     cl_url: '',
     id: '001000001613',
   },

@@ -16,9 +16,9 @@
  * @attr {boolean} testing_offline - If we should operate entirely in offline
  *     mode.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -46,33 +46,39 @@ export class ARBScaffoldSk extends ElementSk {
   private spinner: SpinnerSk | null = null;
 
   private static template = (ele: ARBScaffoldSk) => html`
-<app-sk>
-  <header>
-    <h1>${ele.title}</h1>
-    <div class=spinner-spacer>
-      <spinner-sk></spinner-sk>
-    </div>
-    <div class=spacer></div>
-    <login-sk ?testing_offline=${ele.testingOffline} login_host="${ele.loginHost}"></login-sk>
-    <theme-chooser-sk></theme-chooser-sk>
-  </header>
+    <app-sk>
+      <header>
+        <h1>${ele.title}</h1>
+        <div class="spinner-spacer">
+          <spinner-sk></spinner-sk>
+        </div>
+        <div class="spacer"></div>
+        <login-sk
+          ?testing_offline=${ele.testingOffline}
+          login_host="${ele.loginHost}"
+        ></login-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
 
-  <aside class=surface-themes-sk>
-    <nav>
-      <a href="/" tab-index=0>
-        <home-icon-sk></home-icon-sk><span>Home</span>
-      </a>
-      <a href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md" tab-index=0>
-        <help-icon-sk></help-icon-sk><span>Docs</span>
-      </a>
-    </nav>
-  </aside>
+      <aside class="surface-themes-sk">
+        <nav>
+          <a href="/" tab-index="0">
+            <home-icon-sk></home-icon-sk><span>Home</span>
+          </a>
+          <a
+            href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md"
+            tab-index="0"
+          >
+            <help-icon-sk></help-icon-sk><span>Docs</span>
+          </a>
+        </nav>
+      </aside>
 
-  <main></main>
+      <main></main>
 
-  <footer><error-toast-sk></error-toast-sk></footer>
-</app-sk>
-`;
+      <footer><error-toast-sk></error-toast-sk></footer>
+    </app-sk>
+  `;
 
   constructor() {
     super(ARBScaffoldSk.template);
@@ -127,20 +133,30 @@ export class ARBScaffoldSk extends ElementSk {
   }
 
   /** @prop loginHost Host name used for login. */
-  get loginHost() { return window.location.host; }
+  get loginHost() {
+    return window.location.host;
+  }
 
   /** @prop title Reflects the app_title attribute for ease of use. */
-  get title() { return <string> this.getAttribute('title'); }
+  get title() {
+    return <string>this.getAttribute('title');
+  }
 
-  set title(val: string) { this.setAttribute('title', val); }
+  set title(val: string) {
+    this.setAttribute('title', val);
+  }
 
   /** @prop busy Indicates if there any on-going tasks (e.g. RPCs). This also
    * mirrors the status of the embedded spinner-sk. Read-only. */
-  get busy() { return !!this.busyTaskCount; }
+  get busy() {
+    return !!this.busyTaskCount;
+  }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for
    * ease of use. */
-  get testingOffline() { return this.hasAttribute('testing_offline'); }
+  get testingOffline() {
+    return this.hasAttribute('testing_offline');
+  }
 
   set testingOffline(val) {
     if (val) {
@@ -187,8 +203,10 @@ export class ARBScaffoldSk extends ElementSk {
       // We can ignore AbortError since they fire anytime an AbortController was
       // canceled. Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
-      errorMessage(`Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000);
+      errorMessage(
+        `Unexpected error loading ${loadingWhat}: ${e.message}`,
+        5000
+      );
     }
     this.finishedTask();
   }

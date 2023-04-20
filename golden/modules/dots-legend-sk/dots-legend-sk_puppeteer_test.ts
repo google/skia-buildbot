@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 
 describe('dots-legend-sk', () => {
   let testBed: TestBed;
@@ -25,7 +29,11 @@ describe('dots-legend-sk', () => {
 
     it('too many digests', async () => {
       const dotsLegendSk = await testBed.page.$('#too-many-digests');
-      await takeScreenshot(dotsLegendSk!, 'gold', 'dots-legend-sk_too-many-digests');
+      await takeScreenshot(
+        dotsLegendSk!,
+        'gold',
+        'dots-legend-sk_too-many-digests'
+      );
     });
   });
 });

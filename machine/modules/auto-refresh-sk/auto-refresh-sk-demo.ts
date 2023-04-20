@@ -9,5 +9,9 @@ element.refreshing = false;
 
 // Display refresh-page events and when they occur.
 element.addEventListener('refresh-page', (e) => {
-    document.querySelector('#events')!.textContent = `${JSON.stringify(e, null, '  ')}\n${Date.now()}`;
+  document.querySelector('#events')!.textContent = `${JSON.stringify(
+    e,
+    null,
+    '  '
+  )}\n${Date.now()}`;
 });

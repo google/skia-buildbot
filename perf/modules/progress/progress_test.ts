@@ -77,11 +77,20 @@ describe('messageToErrorString', () => {
   });
 
   it('uses the Error value if available', () => {
-    assert.equal('Error: This is my error', messagesToErrorString([{ key: 'Error', value: 'This is my error' }]));
+    assert.equal(
+      'Error: This is my error',
+      messagesToErrorString([{ key: 'Error', value: 'This is my error' }])
+    );
   });
 
   it('falls back to using all the key/value pairs if Error is not present', () => {
-    assert.equal('Step: 1/2 Status: Querying database', messagesToErrorString([{ key: 'Step', value: '1/2' }, { key: 'Status', value: 'Querying database' }]));
+    assert.equal(
+      'Step: 1/2 Status: Querying database',
+      messagesToErrorString([
+        { key: 'Step', value: '1/2' },
+        { key: 'Status', value: 'Querying database' },
+      ])
+    );
   });
 });
 
@@ -92,10 +101,19 @@ describe('messageByName', () => {
   });
 
   it('retrieves the message if it exists', () => {
-    assert.equal('This is the value', messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'SomeKey'));
+    assert.equal(
+      'This is the value',
+      messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'SomeKey')
+    );
   });
 
   it('retrieves the default string if the key does not exist', () => {
-    assert.equal('', messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'NotAKeyInTheMessages'));
+    assert.equal(
+      '',
+      messageByName(
+        [{ key: 'SomeKey', value: 'This is the value' }],
+        'NotAKeyInTheMessages'
+      )
+    );
   });
 });

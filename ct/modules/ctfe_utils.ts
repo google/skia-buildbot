@@ -28,8 +28,8 @@ export function getTimestamp(timestamp: number): Date {
   // Timestamp is of the form YYYYMMDDhhmmss.
   // Consume the pieces off the right to build the date.
   const consumeDigits = (n: number) => {
-    const first_n_digits = timestamp % (10 ** n);
-    timestamp = (timestamp - first_n_digits) / (10 ** n);
+    const first_n_digits = timestamp % 10 ** n;
+    timestamp = (timestamp - first_n_digits) / 10 ** n;
     return first_n_digits;
   };
   date.setUTCSeconds(consumeDigits(2));
@@ -45,9 +45,13 @@ export function getTimestamp(timestamp: number): Date {
  * Convert from Javascript Date to timestamp recognized by CTFE DB.
  */
 export function getCtDbTimestamp(d: Date): string {
-  const timestamp = String(d.getUTCFullYear()) + pad(d.getUTCMonth() + 1, 2)
-                  + pad(d.getUTCDate(), 2) + pad(d.getUTCHours(), 2)
-                  + pad(d.getUTCMinutes(), 2) + pad(d.getUTCSeconds(), 2);
+  const timestamp =
+    String(d.getUTCFullYear()) +
+    pad(d.getUTCMonth() + 1, 2) +
+    pad(d.getUTCDate(), 2) +
+    pad(d.getUTCHours(), 2) +
+    pad(d.getUTCMinutes(), 2) +
+    pad(d.getUTCSeconds(), 2);
   return timestamp;
 }
 
@@ -59,12 +63,15 @@ export function getGSLink(gsPath: string): string {
 }
 
 /**
-   * Returns true if gsPath is not set or if the patch's SHA1 digest in the specified
-   * google storage path is for an empty string.
-   */
+ * Returns true if gsPath is not set or if the patch's SHA1 digest in the specified
+ * google storage path is for an empty string.
+ */
 export function isEmptyPatch(gsPath: string): boolean {
   // Compare against empty string and against the SHA1 digest of an empty string.
-  return gsPath === '' || gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch';
+  return (
+    gsPath === '' ||
+    gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch'
+  );
 }
 
 /**
@@ -73,9 +80,11 @@ export function isEmptyPatch(gsPath: string): boolean {
 export function formatRepeatAfterDays(num: number): string {
   if (num === 0) {
     return 'N/A';
-  } if (num === 1) {
+  }
+  if (num === 1) {
     return 'Daily';
-  } if (num === 7) {
+  }
+  if (num === 7) {
     return 'Weekly';
   }
   return `Every ${num} days`;
@@ -87,7 +96,9 @@ export function formatRepeatAfterDays(num: number): string {
  * @param {func<Object>} func - Function called with fetched benchmarks and
  * platforms object.
  */
-export function fetchBenchmarksAndPlatforms(func: (json: BenchmarksPlatformsResponse)=> void): void {
+export function fetchBenchmarksAndPlatforms(
+  func: (json: BenchmarksPlatformsResponse) => void
+): void {
   fetch('/_/benchmarks_platforms/', {
     method: 'POST',
   })
@@ -104,16 +115,21 @@ export function fetchBenchmarksAndPlatforms(func: (json: BenchmarksPlatformsResp
  * @returns string - Combined description.
  */
 export function combineClDescriptions(descriptions: string[]): string {
-  const combinedDesc = descriptions.filter(Boolean).reduce(
-    (str, desc) => str += (str === '' ? desc : ` and ${desc}`), '',
-  );
+  const combinedDesc = descriptions
+    .filter(Boolean)
+    .reduce((str, desc) => (str += str === '' ? desc : ` and ${desc}`), '');
   return combinedDesc ? `Testing ${combinedDesc}` : '';
 }
 
-export function missingLiveSitesWithCustomWebpages(customWebpages: string, benchmarkArgs: string): boolean {
+export function missingLiveSitesWithCustomWebpages(
+  customWebpages: string,
+  benchmarkArgs: string
+): boolean {
   if (customWebpages && !benchmarkArgs.includes('--use-live-sites')) {
-    errorMessage('Please specify --use-live-sites in benchmark arguments '
-                    + 'when using custom web pages.');
+    errorMessage(
+      'Please specify --use-live-sites in benchmark arguments ' +
+        'when using custom web pages.'
+    );
     return true;
   }
   return false;
@@ -127,7 +143,7 @@ let activeTasks = 0;
  * @returns function() boolean : Whether or not the task count
  * previously fetched is more than 3.
  */
-export function moreThanThreeActiveTasksChecker(): ()=> boolean {
+export function moreThanThreeActiveTasksChecker(): () => boolean {
   const queryParams = {
     size: 1,
     not_completed: true,
@@ -147,8 +163,10 @@ export function moreThanThreeActiveTasksChecker(): ()=> boolean {
   });
   return () => {
     if (activeTasks > 3) {
-      errorMessage(`You have ${activeTasks} currently running tasks. Please wait`
-        + ' for them to complete before scheduling more CT tasks.');
+      errorMessage(
+        `You have ${activeTasks} currently running tasks. Please wait` +
+          ' for them to complete before scheduling more CT tasks.'
+      );
       return true;
     }
     return false;
@@ -159,9 +177,9 @@ export function moreThanThreeActiveTasksChecker(): ()=> boolean {
  * Used to describe the type and get/delete URLs of various CT tasks.
  */
 export interface TaskDescriptor {
-  type: string,
-  get_url: string,
-  delete_url: string,
+  type: string;
+  get_url: string;
+  delete_url: string;
 }
 
 /**

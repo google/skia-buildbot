@@ -17,9 +17,9 @@
  * @attr {boolean} testing_offline - If we should operate entirely in offline
  *     mode.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -151,7 +151,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
 
   /** @prop title Reflects the app_title attribute for ease of use. */
   get title() {
-    return <string> this.getAttribute('title');
+    return <string>this.getAttribute('title');
   }
 
   set title(val: string) {
@@ -217,7 +217,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
       errorMessage(
         `Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000,
+        5000
       );
     }
     this.finishedTask();

@@ -12,8 +12,8 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
@@ -22,7 +22,6 @@ import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/query-sk';
 
 import '../query-count-sk';
-
 
 export class QueryChooserSk extends ElementSk {
   private _dialog: HTMLDivElement | null;
@@ -54,13 +53,13 @@ export class QueryChooserSk extends ElementSk {
         .key_order=${ele.key_order}
         @query-change=${ele._queryChange}
       ></query-sk>
-      <div class="matches"
-        >Matches:
+      <div class="matches">
+        Matches:
         <query-count-sk
           url=${ele.count_url}
           current_query=${ele.current_query}
-        ></query-count-sk
-      ></div>
+        ></query-count-sk>
+      </div>
       <button @click=${ele._closeClick}>Close</button>
     </div>
   `;

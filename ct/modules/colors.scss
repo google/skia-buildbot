@@ -6,7 +6,6 @@
     @import '../colors';
 */
 
-
 /*
  * TODO(rmistry): The below has been copied over from infra-sk/themes.css to
  * look similar to other Skia infra apps.
@@ -16,7 +15,7 @@
  * More work is needed to make body-sk behaviors work here.
  */
 :root {
-/* Semantic colors defined by elements-sk. */
+  /* Semantic colors defined by elements-sk. */
   --background: var(--grey-50);
   --disabled: var(--grey-500);
   --error: var(--red-900);
@@ -36,7 +35,7 @@
   --transparent-overlay: rgba(0, 0, 0, 0.5);
   --primary-highlight: var(--light-blue-100);
 
- &.darkmode,
+  &.darkmode,
   & .darkmode {
     /* Semantic colors defined by elements-sk. */
     --background: #121212;

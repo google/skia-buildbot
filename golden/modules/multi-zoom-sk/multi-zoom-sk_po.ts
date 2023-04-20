@@ -41,42 +41,74 @@ export class MultiZoomSkPO extends PageObject {
   }
 
   isLeftCheckboxChecked(): Promise<boolean> {
-    return this.leftCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return this.leftCheckbox.applyFnToDOMNode(
+      (el) => (el as CheckOrRadio).checked
+    );
   }
 
-  async clickLeftCheckbox() { await this.leftCheckbox.click(); }
+  async clickLeftCheckbox() {
+    await this.leftCheckbox.click();
+  }
 
   isDiffCheckboxChecked(): Promise<boolean> {
-    return this.diffCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return this.diffCheckbox.applyFnToDOMNode(
+      (el) => (el as CheckOrRadio).checked
+    );
   }
 
-  async clickDiffCheckbox() { await this.diffCheckbox.click(); }
+  async clickDiffCheckbox() {
+    await this.diffCheckbox.click();
+  }
 
   isRightCheckboxChecked(): Promise<boolean> {
-    return this.rightCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return this.rightCheckbox.applyFnToDOMNode(
+      (el) => (el as CheckOrRadio).checked
+    );
   }
 
-  async clickRightCheckbox() { await this.rightCheckbox.click(); }
+  async clickRightCheckbox() {
+    await this.rightCheckbox.click();
+  }
 
-  isLeftDisplayed(): Promise<boolean> { return this.leftCheckbox.hasClassName('displayed'); }
+  isLeftDisplayed(): Promise<boolean> {
+    return this.leftCheckbox.hasClassName('displayed');
+  }
 
-  isDiffDisplayed(): Promise<boolean> { return this.diffCheckbox.hasClassName('displayed'); }
+  isDiffDisplayed(): Promise<boolean> {
+    return this.diffCheckbox.hasClassName('displayed');
+  }
 
-  isRightDisplayed(): Promise<boolean> { return this.rightCheckbox.hasClassName('displayed'); }
+  isRightDisplayed(): Promise<boolean> {
+    return this.rightCheckbox.hasClassName('displayed');
+  }
 
-  getCoordinate(): Promise<string> { return this.coordinate.innerText; }
+  getCoordinate(): Promise<string> {
+    return this.coordinate.innerText;
+  }
 
-  getLeftPixel(): Promise<string> { return this.leftPixel.innerText; }
+  getLeftPixel(): Promise<string> {
+    return this.leftPixel.innerText;
+  }
 
-  getDiffPixel(): Promise<string> { return this.diffPixel.innerText; }
+  getDiffPixel(): Promise<string> {
+    return this.diffPixel.innerText;
+  }
 
-  getRightPixel(): Promise<string> { return this.rightPixel.innerText; }
+  getRightPixel(): Promise<string> {
+    return this.rightPixel.innerText;
+  }
 
-  async isSizeWarningVisible(): Promise<boolean> { return !(await this.sizeWarning.isEmpty()); }
+  async isSizeWarningVisible(): Promise<boolean> {
+    return !(await this.sizeWarning.isEmpty());
+  }
 
-  async isNthDiffVisible(): Promise<boolean> { return !(await this.nthDiff.isEmpty()); }
+  async isNthDiffVisible(): Promise<boolean> {
+    return !(await this.nthDiff.isEmpty());
+  }
 
-  getNthDiff(): Promise<string> { return this.nthDiff.innerText; }
+  getNthDiff(): Promise<string> {
+    return this.nthDiff.innerText;
+  }
 
   async getDisplayedImage(): Promise<'left' | 'diff' | 'right'> {
     let numDisplayedImages = 0;
@@ -95,11 +127,13 @@ export class MultiZoomSkPO extends PageObject {
     }
     if (numDisplayedImages !== 1) {
       throw new Error(
-        `Expected 1 image to be displayed, was: ${numDisplayedImages}. This is a bug.`,
+        `Expected 1 image to be displayed, was: ${numDisplayedImages}. This is a bug.`
       );
     }
     return displayedImage!;
   }
 
-  async sendKeypress(key: string) { await this.element.typeKey(key); }
+  async sendKeypress(key: string) {
+    await this.element.typeKey(key);
+  }
 }

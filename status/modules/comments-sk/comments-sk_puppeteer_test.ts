@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import {
   addEventListenersToPuppeteerPage,
-  EventPromiseFactory, loadCachedTestBed,
-  takeScreenshot, TestBed,
+  EventPromiseFactory,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('comments-sk', () => {
@@ -12,7 +14,9 @@ describe('comments-sk', () => {
   });
   let eventPromise: EventPromiseFactory;
   beforeEach(async () => {
-    eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['data-update']);
+    eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [
+      'data-update',
+    ]);
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 600, height: 550 });
   });
@@ -29,7 +33,8 @@ describe('comments-sk', () => {
     it('add comment flow', async () => {
       (await testBed.page.$('checkbox-sk[label=Flaky]'))!.click();
       (await testBed.page.$('checkbox-sk[label=IgnoreFailure]'))!.click();
-      ((await testBed.page.$('input-sk')) as any).value = 'This is flaky, lets ignore it.';
+      ((await testBed.page.$('input-sk')) as any).value =
+        'This is flaky, lets ignore it.';
       const updated = eventPromise('data-update');
       (await testBed.page.$('button'))!.click();
       await updated;
@@ -40,7 +45,11 @@ describe('comments-sk', () => {
       const updated = eventPromise('data-update');
       (await testBed.page.$('delete-icon-sk'))!.click();
       await updated;
-      await takeScreenshot(testBed.page, 'status', 'comments-sk delete comment');
+      await takeScreenshot(
+        testBed.page,
+        'status',
+        'comments-sk delete comment'
+      );
     });
   });
 });

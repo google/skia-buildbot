@@ -1,38 +1,37 @@
 skottie-gif-exporter {
-	.form {
-		width: 100%;
+  .form {
+    width: 100%;
 
-		 &-elem {
-		 	margin-bottom: 10px;
+    &-elem {
+      margin-bottom: 10px;
 
-			&-label {
-				margin-top: 16px;
-				margin-bottom: 4px;
-			}
-		 }
-	}
+      &-label {
+        margin-top: 16px;
+        margin-bottom: 4px;
+      }
+    }
+  }
 
-	.main {
-		padding: 20px 0;
-	}
+  .main {
+    padding: 20px 0;
+  }
 
-	.export-info {
-		display: inline-block;
-		padding: 10px;
-		background-color: #EEE;
+  .export-info {
+    display: inline-block;
+    padding: 10px;
+    background-color: #eee;
 
-		.export-info-row {
-			padding: 4px;
-		}
-	}
+    .export-info-row {
+      padding: 4px;
+    }
+  }
 
-	.download {
-		display: block;
-		padding-top: 10px;
-	}
+  .download {
+    display: block;
+    padding-top: 10px;
+  }
 
-	.editor-header-save-button {
-		cursor: pointer;
-	}
-
+  .editor-header-save-button {
+    cursor: pointer;
+  }
 }

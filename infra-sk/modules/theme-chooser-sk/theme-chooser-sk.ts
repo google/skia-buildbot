@@ -26,8 +26,8 @@
  *   </pre>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/invert-colors-icon-sk';
 
@@ -49,7 +49,8 @@ export class ThemeChooserSk extends ElementSk {
     super(ThemeChooserSk.template);
   }
 
-  private static template = () => html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
+  private static template = () =>
+    html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -80,7 +81,7 @@ export class ThemeChooserSk extends ElementSk {
       new CustomEvent<ThemeChooserSkEventDetail>('theme-chooser-toggle', {
         detail: { darkmode: val },
         bubbles: true,
-      }),
+      })
     );
   }
 }
@@ -89,6 +90,7 @@ export class ThemeChooserSk extends ElementSk {
 //
 // Note that this function is only valid after the theme-chooser-sk element has
 // finished connectedCallback().
-export const isDarkMode = (): boolean => window.localStorage.getItem(DARKMODE_LOCALSTORAGE_KEY) === 'true';
+export const isDarkMode = (): boolean =>
+  window.localStorage.getItem(DARKMODE_LOCALSTORAGE_KEY) === 'true';
 
 define('theme-chooser-sk', ThemeChooserSk);

@@ -3,15 +3,24 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { ErrorSkEventDetail } from '../../../elements-sk/modules/errorMessage';
-import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { twoHundredCommits, typicalDetails, typicalDetailsDisallowTriaging } from './test_data';
+import {
+  eventPromise,
+  noEventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
+import {
+  twoHundredCommits,
+  typicalDetails,
+  typicalDetailsDisallowTriaging,
+} from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
 import { Label, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('digest-details-sk', () => {
-  const newInstance = setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
+  const newInstance =
+    setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
 
   let digestDetailsSk: DigestDetailsSk;
   let digestDetailsSkPO: DigestDetailsSkPO;
@@ -37,30 +46,33 @@ describe('digest-details-sk', () => {
     });
 
     it('shows the test name', async () => {
-      expect(await digestDetailsSkPO.getTestName())
-        .to.equal('Test: dots-legend-sk_too-many-digests');
+      expect(await digestDetailsSkPO.getTestName()).to.equal(
+        'Test: dots-legend-sk_too-many-digests'
+      );
     });
 
     it('has a link to the cluster view', async () => {
       expect(await digestDetailsSkPO.getClusterHref()).to.equal(
-        '/cluster?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
-        + '&corpus=infra&include_ignored=false&left_filter=&max_rgba=0&min_rgba=0&negative=true'
-        + '&not_at_head=true&positive=true&reference_image_required=false&right_filter='
-        + '&sort=descending&untriaged=true',
+        '/cluster?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra' +
+          '&corpus=infra&include_ignored=false&left_filter=&max_rgba=0&min_rgba=0&negative=true' +
+          '&not_at_head=true&positive=true&reference_image_required=false&right_filter=' +
+          '&sort=descending&untriaged=true'
       );
     });
 
     it('shows shows both digests', async () => {
-      expect(await digestDetailsSkPO.getLeftDigest())
-        .to.equal('Left: 6246b773851984c726cb2e1cb13510c2');
-      expect(await digestDetailsSkPO.getRightDigest())
-        .to.equal('Right: 99c58c7002073346ff55f446d47d6311');
+      expect(await digestDetailsSkPO.getLeftDigest()).to.equal(
+        'Left: 6246b773851984c726cb2e1cb13510c2'
+      );
+      expect(await digestDetailsSkPO.getRightDigest()).to.equal(
+        'Right: 99c58c7002073346ff55f446d47d6311'
+      );
     });
 
     it('shows the metrics and the link to the diff page', async () => {
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
-            + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311',
+        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra' +
+          '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311'
       );
 
       expect(await digestDetailsSkPO.getMetrics()).to.deep.equal([
@@ -74,38 +86,46 @@ describe('digest-details-sk', () => {
     });
 
     it('has a triage button and shows the triage history', async () => {
-      expect(await digestDetailsSkPO.triageSkPO.getLabel()).to.equal('positive');
-      expect(await digestDetailsSkPO.getTriageHistory()).to.equal('8w ago by user1@');
+      expect(await digestDetailsSkPO.triageSkPO.getLabel()).to.equal(
+        'positive'
+      );
+      expect(await digestDetailsSkPO.getTriageHistory()).to.equal(
+        '8w ago by user1@'
+      );
     });
 
     it('has an image-compare-sk with the right values', async () => {
-      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()).to.deep.equal([
-        '6246b7738519...',
-        'Closest Positive',
+      expect(
+        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()
+      ).to.deep.equal(['6246b7738519...', 'Closest Positive']);
+      expect(
+        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
+      ).to.deep.equal([
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=6246b773851984c726cb2e1cb13510c2',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=99c58c7002073346ff55f446d47d6311',
       ]);
-      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-          + 'digest=6246b773851984c726cb2e1cb13510c2',
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-          + 'digest=99c58c7002073346ff55f446d47d6311',
-      ]);
-      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.false;
+      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible())
+        .to.be.false;
     });
 
     it('changes the reference image when the toggle button is clicked', async () => {
       await digestDetailsSkPO.clickToggleReferenceBtn();
 
-      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()).to.deep.equal([
-        '6246b7738519...',
-        'Closest Negative',
+      expect(
+        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()
+      ).to.deep.equal(['6246b7738519...', 'Closest Negative']);
+      expect(
+        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
+      ).to.deep.equal([
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=6246b773851984c726cb2e1cb13510c2',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=ec3b8f27397d99581e06eaa46d6d5837',
       ]);
-      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-          + 'digest=6246b773851984c726cb2e1cb13510c2',
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-          + 'digest=ec3b8f27397d99581e06eaa46d6d5837',
-      ]);
-      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.true;
+      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible())
+        .to.be.true;
     });
 
     it('emits a "triage" event when a triage button is clicked', async () => {
@@ -149,7 +169,7 @@ describe('digest-details-sk', () => {
         const triageResponse: TriageResponse = { status: 'ok' };
         fetchMock.post(
           { url: '/json/v3/triage', body: triageRequest },
-          { status: 200, body: triageResponse },
+          { status: 200, body: triageResponse }
         );
 
         const endPromise = eventPromise('end-task');
@@ -172,16 +192,17 @@ describe('digest-details-sk', () => {
         };
         fetchMock.post(
           { url: '/json/v3/triage', body: triageRequest },
-          { status: 200, body: triageResponse },
+          { status: 200, body: triageResponse }
         );
 
-        const errorPromise = eventPromise<CustomEvent<ErrorSkEventDetail>>('error-sk');
+        const errorPromise =
+          eventPromise<CustomEvent<ErrorSkEventDetail>>('error-sk');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         const detail = await errorPromise;
         expect(detail.detail.message).to.equal(
-          'Triage conflict: Attempted to triage from positive to negative, but the digest\'s '
-          + 'current label is untriaged. It is possible that another user triaged this digest. '
-          + 'Try refreshing the page.',
+          "Triage conflict: Attempted to triage from positive to negative, but the digest's " +
+            'current label is untriaged. It is possible that another user triaged this digest. ' +
+            'Try refreshing the page.'
         );
       });
     });
@@ -192,13 +213,17 @@ describe('digest-details-sk', () => {
       });
 
       it('disallows triage buttons', async () => {
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('positive')).to.be.true;
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('negative')).to.be.true;
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('untriaged')).to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('positive'))
+          .to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('negative'))
+          .to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('untriaged'))
+          .to.be.true;
       });
 
       it('shows the "triaging disallowed" message', async () => {
-        expect(await digestDetailsSkPO.isTriagingDisallowedVisible()).to.be.true;
+        expect(await digestDetailsSkPO.isTriagingDisallowedVisible()).to.be
+          .true;
       });
 
       it('does not emit a "triage" event when a triage button is clicked', async () => {
@@ -221,28 +246,32 @@ describe('digest-details-sk', () => {
     });
 
     it('includes changelist id on the appropriate links', async () => {
-      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-            + 'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-            + 'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
+      expect(
+        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
+      ).to.deep.equal([
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
       ]);
 
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
-        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra'
-        + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311'
-        + '&changelist_id=12345&crs=github',
+        '/diff?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra' +
+          '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311' +
+          '&changelist_id=12345&crs=github'
       );
     });
 
     it('passes changeListID and crs to appropriate subelements', async () => {
-      expect(await digestDetailsSkPO.dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-            + 'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-            + 'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
-        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&'
-            + 'digest=ec3b8f27397d99581e06eaa46d6d5837&changelist_id=12345&crs=github',
+      expect(
+        await digestDetailsSkPO.dotsLegendSkPO.getDigestHrefs()
+      ).to.deep.equal([
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
+        '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
+          'digest=ec3b8f27397d99581e06eaa46d6d5837&changelist_id=12345&crs=github',
       ]);
     });
 
@@ -271,7 +300,7 @@ describe('digest-details-sk', () => {
         const triageResponse: TriageResponse = { status: 'ok' };
         fetchMock.post(
           { url: '/json/v3/triage', body: triageRequest },
-          { status: 200, body: triageResponse },
+          { status: 200, body: triageResponse }
         );
 
         const endPromise = eventPromise('end-task');

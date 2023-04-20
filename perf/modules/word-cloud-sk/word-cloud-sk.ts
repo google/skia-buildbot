@@ -7,8 +7,8 @@
  *
  * @example
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ValuePercent } from '../json';
 
@@ -20,15 +20,16 @@ export class WordCloudSk extends ElementSk {
     this._items = [];
   }
 
-  private static rows = (ele: WordCloudSk) => ele._items.map(
-    (item) => html` <tr>
+  private static rows = (ele: WordCloudSk) =>
+    ele._items.map(
+      (item) => html` <tr>
         <td class="value">${item.value}</td>
         <td class="textpercent">${item.percent}%</td>
-        <td class="percent" title="${item.percent}%"
-          ><div style="width: ${item.percent}px"></div
-        ></td>
-      </tr>`,
-  );
+        <td class="percent" title="${item.percent}%">
+          <div style="width: ${item.percent}px"></div>
+        </td>
+      </tr>`
+    );
 
   private static template = (ele: WordCloudSk) => html`
     <table>

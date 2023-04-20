@@ -4,7 +4,6 @@ When launching a new Perf instance:
 
 ## 1. Create new database in CockroachDB.
 
-
 This needs to be done from a machine on corp and also requires breakglass. Note
 that there is a different connect script for each cluster.
 
@@ -44,6 +43,7 @@ root@perf-cockroachdb-public:26257/defaultdb> CREATE TABLE ...
 ```
 
 ## 3. Add the database to be backed up to `./images/backup/backup.sh`.
+
 ## 4. Push a new version of `perf-cockroachdb-backup`.
 
     make push_backup
@@ -52,7 +52,6 @@ root@perf-cockroachdb-public:26257/defaultdb> CREATE TABLE ...
 
 Make sure the workload identity service account used for the running
 Perf instance has read access to the bucket the ingesters are reading from.
-
 
 ## 6. Create the PubSub topic for ingestion.
 
@@ -104,6 +103,6 @@ This will also create the envoy config to route traffic to the instance.
 
 Add the sub-domain of the new Perf instance to the zone file and run:
 
-   ./update-zone-records.sh
+./update-zone-records.sh
 
 ## 12. Add probers for the frontend.

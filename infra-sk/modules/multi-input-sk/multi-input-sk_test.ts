@@ -1,6 +1,6 @@
 import './index';
 import { expect } from 'chai';
-import { $ } from '../../../infra-sk/modules/dom';
+import { $ } from '../dom';
 import { MultiInputSk } from './multi-input-sk';
 
 import { setUpElementUnderTest } from '../test_util';

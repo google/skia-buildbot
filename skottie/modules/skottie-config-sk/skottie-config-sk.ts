@@ -25,9 +25,9 @@
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SoundMap } from '../audio';
@@ -41,111 +41,151 @@ const BACKGROUND_VALUES = {
   DARK: '#000000',
 };
 
-const allowZips = window.location.hostname === 'skottie-internal.skia.org'
-                  || window.location.hostname === 'localhost';
+const allowZips =
+  window.location.hostname === 'skottie-internal.skia.org' ||
+  window.location.hostname === 'localhost';
 
 export interface SkottieConfigState {
   assets?: Record<string, ArrayBuffer>;
-  filename: string,
-  lottie: LottieAnimation | null,
-  assetsZip: string,
-  assetsFilename: string,
-  w?: number,
-  h?: number,
-  soundMap?: SoundMap,
+  filename: string;
+  lottie: LottieAnimation | null;
+  assetsZip: string;
+  assetsFilename: string;
+  w?: number;
+  h?: number;
+  soundMap?: SoundMap;
 }
 
 export interface SkottieConfigEventDetail {
-  state: SkottieConfigState,
-  fileChanged: boolean,
-  width: number,
-  height: number,
-  fps: number,
-  backgroundColor: string,
+  state: SkottieConfigState;
+  fileChanged: boolean;
+  width: number;
+  height: number;
+  fps: number;
+  backgroundColor: string;
 }
 
 export class SkottieConfigSk extends ElementSk {
   private static template = (ele: SkottieConfigSk) => html`
-  <div ?hidden=${!allowZips}>
-    We support 3 types of uploads:
-    <ul>
-      <li>A plain JSON file.</li>
-      <li>A JSON file with a zip file of assets (e.g. images) used by the animation.</li>
-      <li>
-        A zip file produced by lottiefiles.com
-        (<a href="https://lottiefiles.com/1187-puppy-run">example</a>)
-        with a JSON file in the top level and an images/ directory.
-      </li>
-    </ul>
-  </div>
-  <label class=button-like>Lottie file to upload
-    <input type=file name=file id=file @change=${ele.onFileChange}/>
-  </label>
-  <div class="filename input-like ${ele._state.filename ? '' : 'empty'}">
-    ${ele._state.filename ? ele._state.filename : 'No file selected.'}
-  </div>
-  <label class=button-like ?hidden=${!allowZips}>Optional Asset Folder (.zip)
-    <input type=file name=folder id=folder @change=${ele.onFolderChange}/>
-  </label>
-  <div class="filename input-like ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
-    ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
-  </div>
-  <label class=number>
-    Background Color
-    <select id="backgroundColor">
-      <option
-        value=${BACKGROUND_VALUES.TRANSPARENT}
-        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.TRANSPARENT}
-      >Transparent</option>
-      <option
-        value=${BACKGROUND_VALUES.LIGHT}
-        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.LIGHT}
-      >Light</option>
-      <option
-        value=${BACKGROUND_VALUES.DARK}
-        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}
-       >Dark</option>
-    </select>
-  </label>
-  <checkbox-sk label="Lock aspect ratio"
-                ?checked=${ele._isRatioLocked}
-                @click=${ele.toggleRatioLock}>
-    </checkbox-sk>
-  <label class=number>
-    <input type=number id=width @change=${ele.onWidthInput}
-                       .value=${ele._width} required /> Width (px)
-  </label>
-  <label class=number>
-    <input type=number id=height @change=${ele.onHeightInput}
-                       .value=${ele._height} required /> Height (px)
-  </label>
-  <label class=number>
-    <input type=number id=fps .value=${ele._fps} required /> FPS
-  </label>
-  <div>
-    0 for width/height means use the default from the animation. For FPS, 0 means "as smooth as possible"
-    and -1 means "use what the animation says".
-  </div>
-  <div class=warning ?hidden=${ele.warningHidden()}>
-    <p>
-    The width or height of your file exceeds 1024, which may not fit on the screen.
-    Press a 'Rescale' button to fix the dimensions while preserving the aspect ratio.
-    </p>
-    <div>
-      <button @click=${() => ele.rescale(1024)}>Rescale to 1024</button>
-      <button @click=${() => ele.rescale(512)}>Rescale to 512</button>
-      <button @click=${() => ele.rescale(128)}>Rescale to 128</button>
+    <div ?hidden=${!allowZips}>
+      We support 3 types of uploads:
+      <ul>
+        <li>A plain JSON file.</li>
+        <li>
+          A JSON file with a zip file of assets (e.g. images) used by the
+          animation.
+        </li>
+        <li>
+          A zip file produced by lottiefiles.com (<a
+            href="https://lottiefiles.com/1187-puppy-run"
+            >example</a
+          >) with a JSON file in the top level and an images/ directory.
+        </li>
+      </ul>
     </div>
-  </div>
-  <div id=dialog-buttons>
-    ${ele.cancelButton()}
-    <button class=action ?disabled=${ele.readyToGo()} @click=${ele.go}>Go</button>
-  </div>
-`;
+    <label class="button-like"
+      >Lottie file to upload
+      <input type="file" name="file" id="file" @change=${ele.onFileChange} />
+    </label>
+    <div class="filename input-like ${ele._state.filename ? '' : 'empty'}">
+      ${ele._state.filename ? ele._state.filename : 'No file selected.'}
+    </div>
+    <label class="button-like" ?hidden=${!allowZips}
+      >Optional Asset Folder (.zip)
+      <input
+        type="file"
+        name="folder"
+        id="folder"
+        @change=${ele.onFolderChange}
+      />
+    </label>
+    <div
+      class="filename input-like ${ele._state.assetsFilename ? '' : 'empty'}"
+      ?hidden=${!allowZips}
+    >
+      ${ele._state.assetsFilename
+        ? ele._state.assetsFilename
+        : 'No asset folder selected.'}
+    </div>
+    <label class="number">
+      Background Color
+      <select id="backgroundColor">
+        <option
+          value=${BACKGROUND_VALUES.TRANSPARENT}
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.TRANSPARENT}
+        >
+          Transparent
+        </option>
+        <option
+          value=${BACKGROUND_VALUES.LIGHT}
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.LIGHT}
+        >
+          Light
+        </option>
+        <option
+          value=${BACKGROUND_VALUES.DARK}
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}
+        >
+          Dark
+        </option>
+      </select>
+    </label>
+    <checkbox-sk
+      label="Lock aspect ratio"
+      ?checked=${ele._isRatioLocked}
+      @click=${ele.toggleRatioLock}
+    >
+    </checkbox-sk>
+    <label class="number">
+      <input
+        type="number"
+        id="width"
+        @change=${ele.onWidthInput}
+        .value=${ele._width}
+        required
+      />
+      Width (px)
+    </label>
+    <label class="number">
+      <input
+        type="number"
+        id="height"
+        @change=${ele.onHeightInput}
+        .value=${ele._height}
+        required
+      />
+      Height (px)
+    </label>
+    <label class="number">
+      <input type="number" id="fps" .value=${ele._fps} required /> FPS
+    </label>
+    <div>
+      0 for width/height means use the default from the animation. For FPS, 0
+      means "as smooth as possible" and -1 means "use what the animation says".
+    </div>
+    <div class="warning" ?hidden=${ele.warningHidden()}>
+      <p>
+        The width or height of your file exceeds 1024, which may not fit on the
+        screen. Press a 'Rescale' button to fix the dimensions while preserving
+        the aspect ratio.
+      </p>
+      <div>
+        <button @click=${() => ele.rescale(1024)}>Rescale to 1024</button>
+        <button @click=${() => ele.rescale(512)}>Rescale to 512</button>
+        <button @click=${() => ele.rescale(128)}>Rescale to 128</button>
+      </div>
+    </div>
+    <div id="dialog-buttons">
+      ${ele.cancelButton()}
+      <button class="action" ?disabled=${ele.readyToGo()} @click=${ele.go}>
+        Go
+      </button>
+    </div>
+  `;
 
   private cancelButton = () => {
     if (this.hasCancel()) {
-      return html`<button id=cancel @click=${this.cancel}>Cancel</button>`;
+      return html`<button id="cancel" @click=${this.cancel}>Cancel</button>`;
     }
     return html``;
   };
@@ -186,35 +226,45 @@ export class SkottieConfigSk extends ElementSk {
     this.removeEventListener('input', this.inputEvent);
   }
 
-  get height(): number { return this._height; }
+  get height(): number {
+    return this._height;
+  }
 
   set height(val: number) {
     this._height = val;
     this._render();
   }
 
-  get state(): SkottieConfigState { return this._state; }
+  get state(): SkottieConfigState {
+    return this._state;
+  }
 
   set state(val: SkottieConfigState) {
     this._state = Object.assign({}, val); // make a copy of passed in state.
     this._render();
   }
 
-  get fps(): number { return this._fps; }
+  get fps(): number {
+    return this._fps;
+  }
 
   set fps(val: number) {
     this._fps = +val;
     this._render();
   }
 
-  get width(): number { return this._width; }
+  get width(): number {
+    return this._width;
+  }
 
   set width(val: number) {
     this._width = +val;
     this._render();
   }
 
-  get backgroundColor(): string { return this._backgroundColor; }
+  get backgroundColor(): string {
+    return this._backgroundColor;
+  }
 
   set backgroundColor(val: string) {
     this._backgroundColor = val;
@@ -226,7 +276,9 @@ export class SkottieConfigSk extends ElementSk {
   }
 
   private readyToGo(): boolean {
-    return !this._state.filename && (!!this._state.lottie || !!this._state.assetsZip);
+    return (
+      !this._state.filename && (!!this._state.lottie || !!this._state.assetsZip)
+    );
   }
 
   private onFileChange(e: Event): void {
@@ -297,7 +349,7 @@ export class SkottieConfigSk extends ElementSk {
   private toggleRatioLock(e: Event): void {
     e.preventDefault();
     this._isRatioLocked = !this._isRatioLocked;
-    this._ratio = this._isRatioLocked ? (this._width / this._height) : 0;
+    this._ratio = this._isRatioLocked ? this._width / this._height : 0;
     this._render();
   }
 
@@ -333,22 +385,27 @@ export class SkottieConfigSk extends ElementSk {
     this._width = +$$<HTMLInputElement>('#width', this)!.value;
     this._height = +$$<HTMLInputElement>('#height', this)!.value;
     this._fps = +$$<HTMLInputElement>('#fps', this)!.value;
-    this._backgroundColor = $$<HTMLInputElement>('#backgroundColor', this)!.value;
+    this._backgroundColor = $$<HTMLInputElement>(
+      '#backgroundColor',
+      this
+    )!.value;
   }
 
   private go(): void {
     this.updateState();
-    this.dispatchEvent(new CustomEvent<SkottieConfigEventDetail>('skottie-selected', {
-      detail: {
-        state: this._state,
-        fileChanged: this._fileChanged,
-        width: this._width,
-        height: this._height,
-        fps: this._fps,
-        backgroundColor: this._backgroundColor,
-      },
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<SkottieConfigEventDetail>('skottie-selected', {
+        detail: {
+          state: this._state,
+          fileChanged: this._fileChanged,
+          width: this._width,
+          height: this._height,
+          fps: this._fps,
+          backgroundColor: this._backgroundColor,
+        },
+        bubbles: true,
+      })
+    );
   }
 
   private cancel(): void {

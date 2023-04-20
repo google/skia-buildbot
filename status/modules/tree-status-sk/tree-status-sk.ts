@@ -8,9 +8,9 @@
  *
  * @property baseURL: string - The base URL for getting tree status of specific repos.
  * @property repo: string - The repository we are currently looking at.
-*/
-import { define } from '../../../elements-sk/modules/define';
+ */
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
@@ -38,7 +38,8 @@ declare global {
   }
 }
 
-const chopsRotationProxyUrl = 'https://chrome-ops-rotation-proxy.appspot.com/current/';
+const chopsRotationProxyUrl =
+  'https://chrome-ops-rotation-proxy.appspot.com/current/';
 
 // This response structure comes from chrome-ops-rotation-proxy.appspot.com.
 // We do not have access to the structure to generate TS.
@@ -96,13 +97,21 @@ export class TreeStatusSk extends ElementSk {
   private static template = (el: TreeStatusSk) => html`
     <div>
       <span>
-        <a href="${el.baseURL}/${el.repo}" target="_blank" rel="noopener noreferrer"
-          >${el.treeStatus.status.message ? el.treeStatus.status.message : '(loading)'}</a
+        <a
+          href="${el.baseURL}/${el.repo}"
+          target="_blank"
+          rel="noopener noreferrer"
+          >${el.treeStatus.status.message
+            ? el.treeStatus.status.message
+            : '(loading)'}</a
         >
       </span>
       <span class="nowrap">
         [${shortName(el.treeStatus.status.username)}
-        ${el.treeStatus.status.date ? diffDate(`${el.treeStatus.status.date}UTC`) : 'eons'} ago]
+        ${el.treeStatus.status.date
+          ? diffDate(`${el.treeStatus.status.date}UTC`)
+          : 'eons'}
+        ago]
       </span>
     </div>
   `;
@@ -133,7 +142,9 @@ export class TreeStatusSk extends ElementSk {
       return;
     }
 
-    const msg = `${treeStatus.message} [${shortName(treeStatus.username)} ${treeStatus.date ? diffDate(`${treeStatus.date}UTC`) : 'eons'} ago]`;
+    const msg = `${treeStatus.message} [${shortName(treeStatus.username)} ${
+      treeStatus.date ? diffDate(`${treeStatus.date}UTC`) : 'eons'
+    } ago]`;
     const notification = new Notification('Skia Tree Status Notification', {
       body: msg,
       // 'tag' handles multi-tab scenarios. When multiple tabs are open then
@@ -154,23 +165,33 @@ export class TreeStatusSk extends ElementSk {
       // Cannot refresh with baseURL or repo missing.
       return;
     }
-    const fetches = (this.treeStatus.rotations.map((role) => fetch(role.currentUrl, { method: 'GET' })
-      .then(jsonOrThrow)
-      .then((json: RoleResp) => {
-        // Skia gardener rotations only have one entry.
-        role.name = shortName(json.emails[0]);
+    const fetches = (
+      this.treeStatus.rotations.map((role) =>
+        fetch(role.currentUrl, { method: 'GET' })
+          .then(jsonOrThrow)
+          .then((json: RoleResp) => {
+            // Skia gardener rotations only have one entry.
+            role.name = shortName(json.emails[0]);
+          })
+          .catch(errorMessage)
+      ) as Array<Promise<any>>
+    ).concat(
+      fetch(`${this.baseURL}/${this.repo}/current`, {
+        method: 'GET',
+        credentials: 'include',
       })
-      .catch(errorMessage)) as Array<Promise<any>>).concat(
-      fetch(`${this.baseURL}/${this.repo}/current`, { method: 'GET', credentials: 'include' })
         .then(jsonOrThrow)
         .then((json: TreeStatusResp) => {
-          if (Notification.permission === 'granted' && json.message !== this.treeStatus.status.message) {
+          if (
+            Notification.permission === 'granted' &&
+            json.message !== this.treeStatus.status.message
+          ) {
             // If the received message is different send a chrome notification.
             this.sendDesktopNotification(json);
           }
           this.treeStatus.status = json;
         })
-        .catch(errorMessage),
+        .catch(errorMessage)
     );
 
     Promise.all(fetches).finally(() => {
@@ -179,7 +200,7 @@ export class TreeStatusSk extends ElementSk {
         new CustomEvent<TreeStatus>('tree-status-update', {
           bubbles: true,
           detail: this.treeStatus,
-        }),
+        })
       );
       window.setTimeout(() => this.refresh(), 60 * 1000);
     });

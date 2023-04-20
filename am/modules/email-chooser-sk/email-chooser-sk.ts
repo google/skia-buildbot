@@ -9,15 +9,14 @@
  * </p>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, render, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
-
 
 export class EmailChooserSk extends HTMLElement {
   private dialog: HTMLDialogElement | null = null;
 
-  private resolve: ((value: string | undefined)=> void) | null = null;
+  private resolve: ((value: string | undefined) => void) | null = null;
 
   private emails: string[] = [];
 
@@ -26,16 +25,16 @@ export class EmailChooserSk extends HTMLElement {
   private selected: string = '';
 
   private static template = (ele: EmailChooserSk) => html`<dialog>
-  <h2>Assign</h2>
-  <select size=10 @input=${ele.input} @keyup=${ele.keyup}>
-    <option value='' ?selected=${!ele.owner}>(un-assign)</option>
-    ${ele.emails.map((email: string) => ele.displayEmail(email))}
-  </select>
-  <div class=buttons>
-    <button @click=${ele.dismiss}>Cancel</button>
-    <button @click=${ele.confirm}>OK</button>
-  </div>
-</dialog>`;
+    <h2>Assign</h2>
+    <select size="10" @input=${ele.input} @keyup=${ele.keyup}>
+      <option value="" ?selected=${!ele.owner}>(un-assign)</option>
+      ${ele.emails.map((email: string) => ele.displayEmail(email))}
+    </select>
+    <div class="buttons">
+      <button @click=${ele.dismiss}>Cancel</button>
+      <button @click=${ele.confirm}>OK</button>
+    </div>
+  </dialog>`;
 
   connectedCallback(): void {
     this._render();

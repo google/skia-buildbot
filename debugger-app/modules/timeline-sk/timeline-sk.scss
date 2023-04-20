@@ -1,6 +1,6 @@
 timeline-sk {
   * {
-    font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-family: Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
     font-size: 12px;
   }
 
@@ -15,7 +15,7 @@ timeline-sk {
 
   play-sk:hover {
     margin: 8px;
-    fill: #B44;
+    fill: #b44;
   }
 
   div.outer {
@@ -31,7 +31,7 @@ timeline-sk {
     padding: 1px;
     height: 20px;
     width: 100%;
-    border:none;
+    border: none;
   }
 
   div.room {
@@ -43,7 +43,7 @@ timeline-sk {
   }
 
   div.room:hover {
-    background-color: #B44;
+    background-color: #b44;
   }
 
   div.not-selected {
@@ -51,19 +51,18 @@ timeline-sk {
   }
 
   div.selected {
-    background-color: #DDD;
+    background-color: #ddd;
   }
 
-
   div.room.selected:hover {
-    background-color: #FDD;
+    background-color: #fdd;
   }
 
   div.basement {
-    background-color: #AAA;
+    background-color: #aaa;
     height: 14px;
     width: 100%;
-    margin:0px;
+    margin: 0px;
     padding: 0px;
     border: 1px solid #445;
     border-top: none;
@@ -75,7 +74,7 @@ timeline-sk {
   div.rel-point {
     position: relative;
     width: 0;
-    height: 0
+    height: 0;
   }
 
   span.label {

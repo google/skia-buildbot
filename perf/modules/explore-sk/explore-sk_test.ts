@@ -3,7 +3,12 @@ import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { ColumnHeader, progress } from '../json';
 import {
-  calculateRangeChange, defaultPointSelected, ExploreSk, isValidSelection, PointSelected, selectionToEvent,
+  calculateRangeChange,
+  defaultPointSelected,
+  ExploreSk,
+  isValidSelection,
+  PointSelected,
+  selectionToEvent,
 } from './explore-sk';
 
 fetchMock.config.overwriteRoutes = true;
@@ -110,7 +115,9 @@ describe('applyFuncToTraces', () => {
     assert.isTrue(fetchMock.done());
 
     // Confirm the formula is werapped in iqrr().
-    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
+    const body = JSON.parse(
+      fetchMock.lastOptions(startURL)?.body as unknown as string
+    ) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
   });

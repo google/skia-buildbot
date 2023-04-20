@@ -4,9 +4,9 @@
  *
  *  Custom element for displaying branches.
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
-import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import { Commit } from '../util';
@@ -114,7 +114,7 @@ class DisplayCommit {
   drawConnection(
     ctx: CanvasRenderingContext2D,
     parent: DisplayCommit,
-    allCommits: Map<string, DisplayCommit>,
+    allCommits: Map<string, DisplayCommit>
   ) {
     const center = this.dotCenter();
     const to = parent.dotCenter();
@@ -197,11 +197,14 @@ class DisplayCommit {
       }
 
       // Distance between the two arc centers.
-      const dist = Math.sqrt(Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2));
+      const dist = Math.sqrt(
+        Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2)
+      );
       // Length of the arc to draw.
-      const arcLength = Math.PI
-        - Math.acos((2 * arcRadius) / dist)
-        - Math.acos((Math.abs(to.x - center.x) - 2 * arcRadius) / dist);
+      const arcLength =
+        Math.PI -
+        Math.acos((2 * arcRadius) / dist) -
+        Math.acos((Math.abs(to.x - center.x) - 2 * arcRadius) / dist);
       const a1_start = halfPI - d * halfPI;
       const a2_start = oneAndHalfPI - d * (halfPI - arcLength);
 
@@ -228,12 +231,20 @@ class DisplayCommit {
     const paddingY = 3;
     const paddingX = 3;
     ctx.fillStyle = this.color();
-    ctx.fillRect(labelCoords.x - paddingX, labelCoords.y - h, w + 2 * paddingX, h + paddingY);
+    ctx.fillRect(
+      labelCoords.x - paddingX,
+      labelCoords.y - h,
+      w + 2 * paddingX,
+      h + paddingY
+    );
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(this.labelText(), labelCoords.x, labelCoords.y);
   }
 
-  draw(ctx: CanvasRenderingContext2D, displayCommits: Map<string, DisplayCommit>) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    displayCommits: Map<string, DisplayCommit>
+  ) {
     const color = this.color();
     const center = this.dotCenter();
 
@@ -282,14 +293,14 @@ export class BranchesSk extends ElementSk {
   private canvas?: HTMLCanvasElement;
 
   private static template = (el: BranchesSk) => html`
-      <!-- The tap event (which was originally used) does not always produce offsetY.
+    <!-- The tap event (which was originally used) does not always produce offsetY.
       on-click works for the Pixels (even when touching), so we use that.-->
-      <canvas
-        id="commitCanvas"
-        @click=${(e: MouseEvent) => el.handleClick(e)}
-        @mousemove=${(e: MouseEvent) => el.handleMousemove(e)}
-      ></canvas>
-    `;
+    <canvas
+      id="commitCanvas"
+      @click=${(e: MouseEvent) => el.handleClick(e)}
+      @mousemove=${(e: MouseEvent) => el.handleMousemove(e)}
+    ></canvas>
+  `;
 
   constructor() {
     super(BranchesSk.template);
@@ -332,8 +343,14 @@ export class BranchesSk extends ElementSk {
   set rolls(value) {
     this._rolls = value;
     this.rollLabels = [
-      ...this.rolls.map((roll) => ({ name: `${roll.name} rolled`, head: roll.lastRollRev })),
-      ...this.rolls.map((roll) => ({ name: `${roll.name} rolling`, head: roll.currentRollRev })),
+      ...this.rolls.map((roll) => ({
+        name: `${roll.name} rolled`,
+        head: roll.lastRollRev,
+      })),
+      ...this.rolls.map((roll) => ({
+        name: `${roll.name} rolling`,
+        head: roll.currentRollRev,
+      })),
     ];
   }
 
@@ -418,7 +435,11 @@ export class BranchesSk extends ElementSk {
   private draw = () => {
     console.time('draw');
     // Initialize all commits.
-    this.displayCommits = prepareCommitsForDisplay(this.commits, this.branchHeads, this.rollLabels);
+    this.displayCommits = prepareCommitsForDisplay(
+      this.commits,
+      this.branchHeads,
+      this.rollLabels
+    );
 
     // Calculate the required canvas width based on the commit columns and
     // labels.
@@ -476,7 +497,7 @@ export class BranchesSk extends ElementSk {
 function prepareCommitsForDisplay(
   commits: Array<Commit>,
   branch_heads: Array<Branch>,
-  rolls: Array<Branch>,
+  rolls: Array<Branch>
 ): Map<string, DisplayCommit> {
   // Create a Commit object for each commit.
   const displayCommits: Map<string, DisplayCommit> = new Map(); // Commit objects by hash.
@@ -548,7 +569,7 @@ function traceCommits(
   commits: Array<CommitInfo>,
   remaining: Map<string, DisplayCommit>,
   hash: string,
-  column: number,
+  column: number
 ) {
   let usedColumn = false;
   while (remaining.has(hash)) {
@@ -563,7 +584,7 @@ function traceCommits(
         {
           hash: hash,
         },
-        commits.length,
+        commits.length
       );
       offscreenParent.column = c.column;
       displayCommits.set(hash, offscreenParent);
@@ -573,7 +594,12 @@ function traceCommits(
 }
 
 // Draws a filled-in dot at the given center with the given radius and color.
-function drawDot(ctx: CanvasRenderingContext2D, center: Point, radius: number, color: string) {
+function drawDot(
+  ctx: CanvasRenderingContext2D,
+  center: Point,
+  radius: number,
+  color: string
+) {
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);

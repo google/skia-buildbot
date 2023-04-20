@@ -12,8 +12,8 @@
  * @attr value - The text to display.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 
 export const targetAriaAttribute = 'aria-describedby';
@@ -28,7 +28,8 @@ export class TooltipSk extends ElementSk {
   /** The element this tooltip is for. */
   private targetElement: HTMLElement | null = null;
 
-  private static template = (ele: TooltipSk) => html`<div class=content>${ele.value}</div>`;
+  private static template = (ele: TooltipSk) =>
+    html`<div class="content">${ele.value}</div>`;
 
   constructor() {
     super(TooltipSk.template);
@@ -93,14 +94,22 @@ export class TooltipSk extends ElementSk {
   }
 
   /** @prop target {string} The target this tooltip is for. */
-  get target(): string { return this.getAttribute('target') || ''; }
+  get target(): string {
+    return this.getAttribute('target') || '';
+  }
 
-  set target(val: string) { this.setAttribute('target', val); }
+  set target(val: string) {
+    this.setAttribute('target', val);
+  }
 
   /** @prop value {string} The value to display in the tooltip. */
-  get value(): string { return this.getAttribute('value') || ''; }
+  get value(): string {
+    return this.getAttribute('value') || '';
+  }
 
-  set value(val: string) { this.setAttribute('value', val); }
+  set value(val: string) {
+    this.setAttribute('value', val);
+  }
 
   attributeChangedCallback(name: string): void {
     switch (name) {

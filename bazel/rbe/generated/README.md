@@ -23,6 +23,7 @@ toolchain, e.g. rebuilding to include updated tools.
 ### Step 1 - Making changes
 
 #### Updating Bazel Version
+
 If necessary, update the `//.bazelversion` file with the new Bazel version. This file is read by
 [Bazelisk](https://github.com/bazelbuild/bazelisk) (for those engineers who use `bazelisk`
 as a replacement for `bazel`).
@@ -103,6 +104,7 @@ If updating the image version, the generated changes should have properly update
 `//bazel/rbe/generated/config/BUILD` to refer to the new image, so there is nothing else to do.
 
 ### Step 5 - Test out the changes
+
 Try running various bazel commands with `--config remote` to make use of the new image.
 
 When uploading the change as a CL, any tasks with the `-RBE` suffix will automatically use the

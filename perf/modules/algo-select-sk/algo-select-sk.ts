@@ -10,8 +10,8 @@
  * @attr {string} algo - The algorithm name.
  */
 import '../../../elements-sk/modules/select-sk';
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $ } from '../../../infra-sk/modules/dom';
 import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -42,14 +42,16 @@ export class AlgoSelectSk extends ElementSk {
         value="kmeans"
         ?selected=${ele.algo === 'kmeans'}
         title="Use k-means clustering on the trace shapes and look for a step on the cluster centroid."
-        >K-Means</div
       >
+        K-Means
+      </div>
       <div
         value="stepfit"
         ?selected=${ele.algo === 'stepfit'}
         title="Look for a step in each individual trace."
-        >Individual</div
       >
+        Individual
+      </div>
     </select-sk>
   `;
 
@@ -67,13 +69,15 @@ export class AlgoSelectSk extends ElementSk {
     return ['algo'];
   }
 
-  private _selectionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+  private _selectionChanged(
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>
+  ) {
     let index = e.detail.selection;
     if (index < 0) {
       index = 0;
     }
     this.algo = toClusterAlgo(
-      $('div', this)[index].getAttribute('value') || '',
+      $('div', this)[index].getAttribute('value') || ''
     );
     const detail = {
       algo: this.algo,
@@ -82,7 +86,7 @@ export class AlgoSelectSk extends ElementSk {
       new CustomEvent<AlgoSelectAlgoChangeEventDetail>('algo-change', {
         detail,
         bubbles: true,
-      }),
+      })
     );
   }
 

@@ -4,11 +4,14 @@ import { byParams } from './calcs';
 describe('trybot', () => {
   describe('byParams', () => {
     it('returns empty list on empty input', () => {
-      assert.deepEqual([], byParams({
-        header: [],
-        results: [],
-        paramset: {},
-      }));
+      assert.deepEqual(
+        [],
+        byParams({
+          header: [],
+          results: [],
+          paramset: {},
+        })
+      );
     });
 
     it('returns returns correct average for two traces', () => {
@@ -45,25 +48,29 @@ describe('trybot', () => {
       });
 
       // We expect that along the test=1 axes to average the two stddevRatio values.
-      assert.deepEqual(res, [{
-        keyValue: 'model=GCE',
-        aveStdDevRatio: 2.0,
-        n: 1,
-        high: 1,
-        low: 0,
-      }, {
-        keyValue: 'test=1',
-        aveStdDevRatio: 1.5,
-        n: 2,
-        high: 2,
-        low: 0,
-      }, {
-        keyValue: 'model=Nexus5x',
-        aveStdDevRatio: 1.0,
-        n: 1,
-        high: 1,
-        low: 0,
-      }]);
+      assert.deepEqual(res, [
+        {
+          keyValue: 'model=GCE',
+          aveStdDevRatio: 2.0,
+          n: 1,
+          high: 1,
+          low: 0,
+        },
+        {
+          keyValue: 'test=1',
+          aveStdDevRatio: 1.5,
+          n: 2,
+          high: 2,
+          low: 0,
+        },
+        {
+          keyValue: 'model=Nexus5x',
+          aveStdDevRatio: 1.0,
+          n: 1,
+          high: 1,
+          low: 0,
+        },
+      ]);
     });
 
     it('sorts the results by descending aveStdDevRatio', () => {
@@ -100,7 +107,6 @@ describe('trybot', () => {
             stddevRatio: 3.0,
             values: [],
           },
-
         ],
         paramset: {
           test: ['1', '2', '3'],
@@ -109,12 +115,12 @@ describe('trybot', () => {
 
       assert.deepEqual(
         res.map((r) => r.aveStdDevRatio),
-        [3.0, 2.0, 1.0],
+        [3.0, 2.0, 1.0]
       );
 
       assert.deepEqual(
         res.map((r) => r.keyValue),
-        ['test=3', 'test=2', 'test=1'],
+        ['test=3', 'test=2', 'test=1']
       );
     });
   });

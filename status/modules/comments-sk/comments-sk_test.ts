@@ -3,7 +3,10 @@ import { expect } from 'chai';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { CommentsSk } from './comments-sk';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { taskspecComments } from './test_data';
 import { MockStatusService, SetupMocks } from '../rpc-mock';
 

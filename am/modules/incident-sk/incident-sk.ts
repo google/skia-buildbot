@@ -67,7 +67,11 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { abbr, linkify, displayNotes } from '../am';
 import * as paramset from '../paramset';
 import {
-  Silence, Incident, Params, RecentIncidentsResponse, Note,
+  Silence,
+  Incident,
+  Params,
+  RecentIncidentsResponse,
+  Note,
 } from '../json';
 
 const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
@@ -110,39 +114,53 @@ export class IncidentSk extends HTMLElement {
   };
 
   private static template = (ele: IncidentSk) => html`
-  <h2 class=${ele.classOfH2()}>${ele.state.params.alertname} ${abbr(ele.state.params.abbr)} ${ele.displayRecentlyExpired(ele.recently_expired_silence)} ${ele.displayFlakiness(ele.flaky)}</h2>
-  <section class=detail>
-    ${ele.actionButtons()}
-    <table class=timing>
-      <tr><th>Started</th><td title=${new Date(ele.state.start * 1000).toLocaleString()}>${diffDate(ele.state.start * 1000)}</td></tr>
-      ${ele.lastSeen()}
-      ${ele.duration()}
-    </table>
-    <table class=params>
-      ${ele.table()}
-    </table>
-    ${displayNotes(ele.state.notes, ele.state.key, 'del-note')}
-    <section class=addNote>
-      <textarea rows=2 cols=80></textarea>
-      <button @click=${ele.addNote}>Submit</button>
+    <h2 class=${ele.classOfH2()}>
+      ${ele.state.params.alertname} ${abbr(ele.state.params.abbr)}
+      ${ele.displayRecentlyExpired(ele.recently_expired_silence)}
+      ${ele.displayFlakiness(ele.flaky)}
+    </h2>
+    <section class="detail">
+      ${ele.actionButtons()}
+      <table class="timing">
+        <tr>
+          <th>Started</th>
+          <td title=${new Date(ele.state.start * 1000).toLocaleString()}>
+            ${diffDate(ele.state.start * 1000)}
+          </td>
+        </tr>
+        ${ele.lastSeen()} ${ele.duration()}
+      </table>
+      <table class="params">
+        ${ele.table()}
+      </table>
+      ${displayNotes(ele.state.notes, ele.state.key, 'del-note')}
+      <section class="addNote">
+        <textarea rows="2" cols="80"></textarea>
+        <button @click=${ele.addNote}>Submit</button>
+      </section>
+      <section class="matchingSilences">
+        <span class="matchingSilencesHeaders">
+          <h3>Matching Silences</h3>
+          <checkbox-sk
+            ?checked=${ele.displaySilencesWithComments}
+            @click=${ele.toggleSilencesWithComments}
+            label="Show only silences with comments"
+          >
+          </checkbox-sk>
+        </span>
+        ${ele.matchingSilences()}
+      </section>
+      <section class="history">
+        <h3>History</h3>
+        ${until(ele.history(), html`<div class="loading">Loading...</div>`)}
+      </section>
     </section>
-    <section class=matchingSilences>
-      <span class=matchingSilencesHeaders>
-        <h3>Matching Silences</h3>
-        <checkbox-sk ?checked=${ele.displaySilencesWithComments} @click=${ele.toggleSilencesWithComments} label="Show only silences with comments">
-        </checkbox-sk>
-      </span>
-      ${ele.matchingSilences()}
-    </section>
-    <section class=history>
-      <h3>History</h3>
-      ${until(ele.history(), html`<div class=loading>Loading...</div>`)}
-    </section>
-  </section>
-`;
+  `;
 
   /** @prop incident_state An Incident. */
-  get incident_state(): State { return this.state; }
+  get incident_state(): State {
+    return this.state;
+  }
 
   set incident_state(val: State) {
     this.state = val;
@@ -150,7 +168,9 @@ export class IncidentSk extends HTMLElement {
   }
 
   /** @prop incident_silences The list of active silences. */
-  get incident_silences(): Silence[] { return this.silences; }
+  get incident_silences(): Silence[] {
+    return this.silences;
+  }
 
   set incident_silences(val: Silence[]) {
     this._render();
@@ -158,7 +178,9 @@ export class IncidentSk extends HTMLElement {
   }
 
   /** @prop recently_expired_silence Whether silence recently expired. */
-  get incident_has_recently_expired_silence(): boolean { return this.recently_expired_silence; }
+  get incident_has_recently_expired_silence(): boolean {
+    return this.recently_expired_silence;
+  }
 
   set incident_has_recently_expired_silence(val: boolean) {
     // No need to render again if value is same as old value.
@@ -169,7 +191,9 @@ export class IncidentSk extends HTMLElement {
   }
 
   /** @prop flaky Whether this incident has been flaky. */
-  get incident_flaky(): boolean { return this.flaky; }
+  get incident_flaky(): boolean {
+    return this.flaky;
+  }
 
   set incident_flaky(val: boolean) {
     // No need to render again if value is same as old value.
@@ -193,15 +217,19 @@ export class IncidentSk extends HTMLElement {
     const params = this.state.params;
     const keys = Object.keys(params);
     keys.sort();
-    return keys.filter((k) => !k.startsWith('__')).map((k) => html`
-      <tr>
-        <th>${k}</th>
-        <td>
-          <span class="respect-newlines">${linkify(params[k])}</span>
-          ${this.maybeDisplayCopyIcon(k)}
-        </td>
-      </tr>
-    `);
+    return keys
+      .filter((k) => !k.startsWith('__'))
+      .map(
+        (k) => html`
+          <tr>
+            <th>${k}</th>
+            <td>
+              <span class="respect-newlines">${linkify(params[k])}</span>
+              ${this.maybeDisplayCopyIcon(k)}
+            </td>
+          </tr>
+        `
+      );
   }
 
   private maybeDisplayCopyIcon(k: string): TemplateResult {
@@ -215,9 +243,11 @@ export class IncidentSk extends HTMLElement {
     if (this.state.active) {
       let assignToOwnerButton = html``;
       if (this.state.params.owner) {
-        assignToOwnerButton = html`<button @click=${this.assignToOwner}>Assign to Owner</button>`;
+        assignToOwnerButton = html`<button @click=${this.assignToOwner}>
+          Assign to Owner
+        </button>`;
       }
-      return html`<section class=assign>
+      return html`<section class="assign">
         <button @click=${this.take}>Take</button>
         ${assignToOwnerButton}
         <button @click=${this.assign}>Assign</button>
@@ -232,49 +262,89 @@ export class IncidentSk extends HTMLElement {
     }
     // Filter out silences whose paramsets do not match and
     // which have no notes if displaySilencesWithComments is true.
-    const filteredSilences = this.silences.filter((silence: Silence) => paramset.match(silence.param_set, this.state.params)
-                                               && !(this.displaySilencesWithComments && this.doesSilenceHaveNoNotes(silence)));
-    const ret = filteredSilences.slice(0, MAX_MATCHING_SILENCES_TO_DISPLAY).map((silence: Silence) => html`<silence-sk .silence_state=${silence} collapsable collapsed></silence-sk>`);
+    const filteredSilences = this.silences.filter(
+      (silence: Silence) =>
+        paramset.match(silence.param_set, this.state.params) &&
+        !(
+          this.displaySilencesWithComments &&
+          this.doesSilenceHaveNoNotes(silence)
+        )
+    );
+    const ret = filteredSilences
+      .slice(0, MAX_MATCHING_SILENCES_TO_DISPLAY)
+      .map(
+        (silence: Silence) =>
+          html`<silence-sk
+            .silence_state=${silence}
+            collapsable
+            collapsed
+          ></silence-sk>`
+      );
     if (!ret.length) {
-      ret.push(html`<div class=nosilences>None</div>`);
+      ret.push(html`<div class="nosilences">None</div>`);
     }
     return ret;
   }
 
   private doesSilenceHaveNoNotes(silence: Silence): boolean {
-    return !silence.notes || (silence.notes.length === 1 && silence.notes[0].text === '');
+    return (
+      !silence.notes ||
+      (silence.notes.length === 1 && silence.notes[0].text === '')
+    );
   }
 
   private lastSeen(): TemplateResult {
     if (this.state.active) {
       return html``;
     }
-    return html`<tr><th>Last Seen</th><td title=${new Date(this.state.last_seen * 1000).toLocaleString()}>${diffDate(this.state.last_seen * 1000)}</td></tr>`;
+    return html`<tr>
+      <th>Last Seen</th>
+      <td title=${new Date(this.state.last_seen * 1000).toLocaleString()}>
+        ${diffDate(this.state.last_seen * 1000)}
+      </td>
+    </tr>`;
   }
 
   private duration(): TemplateResult {
     if (this.state.active) {
       return html``;
     }
-    return html`<tr><th>Duration</th><td>${strDuration(this.state.last_seen - this.state.start)}</td></tr>`;
+    return html`<tr>
+      <th>Duration</th>
+      <td>${strDuration(this.state.last_seen - this.state.start)}</td>
+    </tr>`;
   }
 
   private history(): Promise<any> {
-    if (this.hasAttribute('minimized') || this.state.id === '' || this.state.key === '') {
+    if (
+      this.hasAttribute('minimized') ||
+      this.state.id === '' ||
+      this.state.key === ''
+    ) {
       return Promise.resolve();
     }
-    return fetch(`/_/recent_incidents?id=${this.state.id}&key=${this.state.key}`, {
-      headers: {
-        'content-type': 'application/json',
-      },
-      credentials: 'include',
-      method: 'GET',
-    }).then(jsonOrThrow).then((json: RecentIncidentsResponse) => {
-      const incidents = json.incidents || [];
-      this.incident_flaky = json.flaky;
-      this.incident_has_recently_expired_silence = json.recently_expired_silence;
-      return incidents.map((i: Incident) => html`<incident-sk .incident_state=${i} minimized></incident-sk>`);
-    }).catch(errorMessage);
+    return fetch(
+      `/_/recent_incidents?id=${this.state.id}&key=${this.state.key}`,
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        credentials: 'include',
+        method: 'GET',
+      }
+    )
+      .then(jsonOrThrow)
+      .then((json: RecentIncidentsResponse) => {
+        const incidents = json.incidents || [];
+        this.incident_flaky = json.flaky;
+        this.incident_has_recently_expired_silence =
+          json.recently_expired_silence;
+        return incidents.map(
+          (i: Incident) =>
+            html`<incident-sk .incident_state=${i} minimized></incident-sk>`
+        );
+      })
+      .catch(errorMessage);
   }
 
   private toggleSilencesWithComments(e: Event): void {
@@ -284,16 +354,22 @@ export class IncidentSk extends HTMLElement {
     this._render();
   }
 
-  private displayRecentlyExpired(recentlyExpiredSilence: boolean): TemplateResult {
+  private displayRecentlyExpired(
+    recentlyExpiredSilence: boolean
+  ): TemplateResult {
     if (recentlyExpiredSilence) {
-      return html`<alarm-off-icon-sk title='This alert has a recently expired silence'></alarm-off-icon-sk>`;
+      return html`<alarm-off-icon-sk
+        title="This alert has a recently expired silence"
+      ></alarm-off-icon-sk>`;
     }
     return html``;
   }
 
   private displayFlakiness(flaky: boolean): TemplateResult {
     if (flaky) {
-      return html`<thumbs-up-down-icon-sk title='This alert is possibly flaky'></thumbs-up-down-icon-sk>`;
+      return html`<thumbs-up-down-icon-sk
+        title="This alert is possibly flaky"
+      ></thumbs-up-down-icon-sk>`;
     }
     return html``;
   }
@@ -302,21 +378,27 @@ export class IncidentSk extends HTMLElement {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(new CustomEvent('take', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('take', { detail: detail, bubbles: true })
+    );
   }
 
   private assignToOwner(): void {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(new CustomEvent('assign-to-owner', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('assign-to-owner', { detail: detail, bubbles: true })
+    );
   }
 
   private assign(): void {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(new CustomEvent('assign', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('assign', { detail: detail, bubbles: true })
+    );
   }
 
   private addNote(): void {
@@ -325,7 +407,9 @@ export class IncidentSk extends HTMLElement {
       key: this.state.key,
       text: textarea.value,
     };
-    this.dispatchEvent(new CustomEvent('add-note', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('add-note', { detail: detail, bubbles: true })
+    );
     textarea.value = '';
   }
 

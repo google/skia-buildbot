@@ -17,21 +17,18 @@
  *              Supported values are default and presentation
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ShaderData } from './shader-replace';
-import {
-  LottieAnimation, LottieAsset, LottieLayer, ViewMode,
-} from '../types';
+import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export interface ShaderEditApplyEventDetail {
   shaders: ShaderData[];
 }
 
-//TODO(jmbetancourt): find a way to parse through layers and find sksl effects
-//constants go here
-
+// TODO(jmbetancourt): find a way to parse through layers and find sksl effects
+// constants go here
 
 export class ShaderEditorSk extends ElementSk {
   private static template = (ele: ShaderEditorSk) => html`
@@ -50,37 +47,33 @@ export class ShaderEditorSk extends ElementSk {
 `;
 
   private shaderElement = (item: ShaderData) => html`
-  <li class="shader-element">
-    <div class="shader-element-wrapper">
-      ${this.shaderElementTitle(item.name)}
-      <div class="shader-element-item">
-        <div class="shader-element-label">
-          Shader:
+    <li class="shader-element">
+      <div class="shader-element-wrapper">
+        ${this.shaderElementTitle(item.name)}
+        <div class="shader-element-item">
+          <div class="shader-element-label">Shader:</div>
+          <textarea
+            class="shader-element-input"
+            @change=${(ev: Event) => this.onChange(ev, item)}
+            @input=${(ev: Event) => this.onChange(ev, item)}
+            .value=${item.shader}
+          ></textarea>
         </div>
-        <textarea class="shader-element-input"
-          @change=${(ev: Event) => this.onChange(ev, item)}
-          @input=${(ev: Event) => this.onChange(ev, item)}
-          .value=${item.shader}
-        ></textarea>
       </div>
-    </div>
-  </li>
-`;
-  //TODO(jmbetancourt): replace textarea with CodeMirror
+    </li>
+  `;
+
+  // TODO(jmbetancourt): replace textarea with CodeMirror
   private shaderElementTitle = (name: string) => {
     if (this.mode === 'presentation') {
       return null;
     }
     return html`
-  <div class="shader-element-item">
-    <div class="shader-element-label">
-      Layer name:
-    </div>
-    <div>
-      ${name}
-    </div>
-  </div>
-  `;
+      <div class="shader-element-item">
+        <div class="shader-element-label">Layer name:</div>
+        <div>${name}</div>
+      </div>
+    `;
   };
 
   private _animation: LottieAnimation | null = null;
@@ -97,7 +90,9 @@ export class ShaderEditorSk extends ElementSk {
 
   findPrecompName(animation: LottieAnimation, precompId: string): string {
     const animationLayers = animation.layers;
-    let comp = animationLayers.find((layer: LottieLayer) => layer.refId === precompId);
+    let comp = animationLayers.find(
+      (layer: LottieLayer) => layer.refId === precompId
+    );
     if (comp) {
       return comp.nm;
     }
@@ -122,28 +117,30 @@ export class ShaderEditorSk extends ElementSk {
     // This is a sample "shader" that can be force the shader layout by flipping
     // the conditional to true while debugging
     if (false) {
-      let mockShader : ShaderData;
+      let mockShader: ShaderData;
       mockShader = {
         id: 'demo id',
         name: 'demo name',
         shader: 'mainShaderFunction() {}',
         precompName: 'demo precomp',
-        items: []
-      }
+        items: [],
+      };
       this.shaders = [mockShader];
     }
   }
 
   private save() {
-    this.dispatchEvent(new CustomEvent<ShaderEditApplyEventDetail>('apply', {
-      detail: {
-        shaders: this.shaders,
-      },
-    }));
+    this.dispatchEvent(
+      new CustomEvent<ShaderEditApplyEventDetail>('apply', {
+        detail: {
+          shaders: this.shaders,
+        },
+      })
+    );
   }
 
   private onChange(e: Event, shaderData: ShaderData): void {
-    const target = (e.target as HTMLTextAreaElement);
+    const target = e.target as HTMLTextAreaElement;
     const shaderText = target.value;
     shaderData.shader = shaderText;
     // TODO(jmbetancourt): on textbox change, place it in the right place in the Lottie file
@@ -151,7 +148,9 @@ export class ShaderEditorSk extends ElementSk {
 
   private updateAnimation(animation: LottieAnimation): void {
     if (animation && this.originalAnimation !== animation) {
-      const clonedAnimation = JSON.parse(JSON.stringify(animation)) as LottieAnimation;
+      const clonedAnimation = JSON.parse(
+        JSON.stringify(animation)
+      ) as LottieAnimation;
       this.buildShaders(clonedAnimation);
       this._animation = clonedAnimation;
       this.originalAnimation = animation;

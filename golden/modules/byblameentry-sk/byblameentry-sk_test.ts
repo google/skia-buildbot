@@ -1,8 +1,8 @@
 import './index';
-import { $, $$ } from '../../../infra-sk/modules/dom';
-import { deepCopy } from '../../../infra-sk/modules/object';
 import sinon from 'sinon';
 import { expect } from 'chai';
+import { $, $$ } from '../../../infra-sk/modules/dom';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { entry } from './test_data';
 import { testOnlySetSettings } from '../settings';
@@ -12,7 +12,10 @@ import { ByBlameEntry } from '../rpc_types';
 describe('byblameentry-sk', () => {
   const newInstance = setUpElementUnderTest<ByBlameEntrySk>('byblameentry-sk');
 
-  const newByBlameEntrySk = (byBlameEntry: ByBlameEntry, opts: {baseRepoUrl?: string, corpus?: string} = {}) => {
+  const newByBlameEntrySk = (
+    byBlameEntry: ByBlameEntry,
+    opts: { baseRepoUrl?: string; corpus?: string } = {}
+  ) => {
     testOnlySetSettings({
       baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
     });
@@ -47,78 +50,92 @@ describe('byblameentry-sk', () => {
         '112 untriaged digests',
         // This server-generated blame ID is a colon-separated list of the
         // commit hashes blamed for these untriaged digests.
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm'
       );
-      expectBlamesListEquals(
-        byBlameEntrySk,
-        [{
+      expectBlamesListEquals(byBlameEntrySk, [
+        {
           linkText: 'bbbbbbb',
-          linkHref: 'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          linkHref:
+            'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           commitMessage: 'One glyph() to rule them all!!!',
           author: 'Elisa (elisa@example.com)',
           age: '6h',
-        }, {
+        },
+        {
           linkText: 'aaaaaaa',
-          linkHref: 'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          linkHref:
+            'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           commitMessage: 'flesh out blendmodes through Screen',
           author: 'Joe (joe@example.com)',
           age: '5m',
-        }],
-      );
+        },
+      ]);
       expectNumTestsAffectedEquals(byBlameEntrySk, '7 tests affected.');
-      expectAffectedTestsTableEquals(
-        byBlameEntrySk,
-        [{
+      expectAffectedTestsTableEquals(byBlameEntrySk, [
+        {
           test: 'aarectmodes',
           corpus: 'infra',
           numDigests: 50,
           exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
-          exampleLinkHref: '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra'
-            + '&digest=c6476baec94eb6a5071606575318e4df',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra' +
+            '&digest=c6476baec94eb6a5071606575318e4df',
+        },
+        {
           test: 'aaxfermodes',
           corpus: 'infra',
           numDigests: 32,
           exampleLinkText: '4acfd6b3a3943cc5d75cd22e966ae6f1',
-          exampleLinkHref: '/detail?grouping=name%3Daaxfermodes%26source_type%3Dinfra'
-            + '&digest=4acfd6b3a3943cc5d75cd22e966ae6f1',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Daaxfermodes%26source_type%3Dinfra' +
+            '&digest=4acfd6b3a3943cc5d75cd22e966ae6f1',
+        },
+        {
           test: 'hairmodes',
           corpus: 'infra',
           numDigests: 21,
           exampleLinkText: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
-          exampleLinkHref: '/detail?grouping=name%3Dhairmodes%26source_type%3Dinfra'
-            + '&digest=f9e20c63b5ce3b58d9b6a90fa3e7224c',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Dhairmodes%26source_type%3Dinfra' +
+            '&digest=f9e20c63b5ce3b58d9b6a90fa3e7224c',
+        },
+        {
           test: 'imagefilters_xfermodes',
           corpus: 'infra',
           numDigests: 5,
           exampleLinkText: '47644613317040264fea6fa815af32e8',
-          exampleLinkHref: '/detail?grouping=name%3Dimagefilters_xfermodes%26source_type%3Dinfra'
-            + '&digest=47644613317040264fea6fa815af32e8',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Dimagefilters_xfermodes%26source_type%3Dinfra' +
+            '&digest=47644613317040264fea6fa815af32e8',
+        },
+        {
           test: 'lattice2',
           corpus: 'infra',
           numDigests: 2,
           exampleLinkText: '16e41798ecd59b1523322a57b49cc17f',
-          exampleLinkHref: '/detail?grouping=name%3Dlattice2%26source_type%3Dinfra'
-            + '&digest=16e41798ecd59b1523322a57b49cc17f',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Dlattice2%26source_type%3Dinfra' +
+            '&digest=16e41798ecd59b1523322a57b49cc17f',
+        },
+        {
           test: 'xfermodes',
           corpus: 'infra',
           numDigests: 1,
           exampleLinkText: '8fbee03f794c455c4e4842ec2736b744',
-          exampleLinkHref: '/detail?grouping=name%3Dxfermodes%26source_type%3Dinfra'
-            + '&digest=8fbee03f794c455c4e4842ec2736b744',
-        }, {
+          exampleLinkHref:
+            '/detail?grouping=name%3Dxfermodes%26source_type%3Dinfra' +
+            '&digest=8fbee03f794c455c4e4842ec2736b744',
+        },
+        {
           test: 'xfermodes3',
           corpus: 'infra',
           numDigests: 1,
           exampleLinkText: 'fed2ff29abe371fc0ec1b2c65dfb3949',
-          exampleLinkHref: '/detail?grouping=name%3Dxfermodes3%26source_type%3Dinfra'
-            + '&digest=fed2ff29abe371fc0ec1b2c65dfb3949',
-        }],
-      );
+          exampleLinkHref:
+            '/detail?grouping=name%3Dxfermodes3%26source_type%3Dinfra' +
+            '&digest=fed2ff29abe371fc0ec1b2c65dfb3949',
+        },
+      ]);
     });
   });
 
@@ -130,7 +147,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '1 untriaged digest',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm'
       );
     });
 
@@ -139,7 +156,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '112 untriaged digests',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=svg',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=svg'
       );
     });
   });
@@ -153,46 +170,49 @@ describe('byblameentry-sk', () => {
     });
 
     it('points commit links to GitHub if repo is hosted there', async () => {
-      const byBlameEntrySk = newByBlameEntrySk(
-        entry,
-        { baseRepoUrl: 'https://github.com/google/skia' },
-      );
-      expectBlamesListEquals(
-        byBlameEntrySk,
-        [{
+      const byBlameEntrySk = newByBlameEntrySk(entry, {
+        baseRepoUrl: 'https://github.com/google/skia',
+      });
+      expectBlamesListEquals(byBlameEntrySk, [
+        {
           linkText: 'bbbbbbb',
-          linkHref: 'https://github.com/google/skia/commit/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          linkHref:
+            'https://github.com/google/skia/commit/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           commitMessage: 'One glyph() to rule them all!!!',
           author: 'Elisa (elisa@example.com)',
           age: '6h',
-        }, {
+        },
+        {
           linkText: 'aaaaaaa',
-          linkHref: 'https://github.com/google/skia/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          linkHref:
+            'https://github.com/google/skia/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           commitMessage: 'flesh out blendmodes through Screen',
           author: 'Joe (joe@example.com)',
           age: '5m',
-        }],
-      );
+        },
+      ]);
     });
 
     it('shows empty commit messages if Git log is empty/missing', async () => {
       const byBlameEntrySk = newByBlameEntrySk(entry);
-      expectBlamesListEquals(
-        byBlameEntrySk,
-        [{
+      expectBlamesListEquals(byBlameEntrySk, [
+        {
           linkText: 'bbbbbbb',
-          linkHref: 'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          linkHref:
+            'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           commitMessage: '',
           author: 'Elisa (elisa@example.com)',
           age: '6h',
-        }, {
+        },
+        {
           linkText: 'aaaaaaa',
-          linkHref: 'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          linkHref:
+            'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           commitMessage: '',
           author: 'Joe (joe@example.com)',
           age: '5m',
-        }],
-      );
+        },
+      ]);
     });
   });
 
@@ -227,32 +247,38 @@ describe('byblameentry-sk', () => {
     it('renders correctly with nTests = 2 and one affected test', async () => {
       const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 2;
-      testByBlameEntry.affectedTests = [{
-        grouping: {
-          source_type: 'infra',
-          name: 'aarectmodes',
+      testByBlameEntry.affectedTests = [
+        {
+          grouping: {
+            source_type: 'infra',
+            name: 'aarectmodes',
+          },
+          num: 5,
+          sample_digest: 'c6476baec94eb6a5071606575318e4df',
         },
-        num: 5,
-        sample_digest: 'c6476baec94eb6a5071606575318e4df',
-      }];
+      ];
       const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk, '2 tests affected.');
-      expectAffectedTestsTableEquals(
-        byBlameEntrySk,
-        [{
+      expectAffectedTestsTableEquals(byBlameEntrySk, [
+        {
           test: 'aarectmodes',
           corpus: 'infra',
           numDigests: 5,
           exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
-          exampleLinkHref: '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra'
-            + '&digest=c6476baec94eb6a5071606575318e4df',
-        }],
-      );
+          exampleLinkHref:
+            '/detail?grouping=name%3Daarectmodes%26source_type%3Dinfra' +
+            '&digest=c6476baec94eb6a5071606575318e4df',
+        },
+      ]);
     });
   });
 });
 
-const expectTriageLinkEquals = (byBlameEntrySk: ByBlameEntrySk, text: string, href: string) => {
+const expectTriageLinkEquals = (
+  byBlameEntrySk: ByBlameEntrySk,
+  text: string,
+  href: string
+) => {
   const triageLink = $$<HTMLAnchorElement>('a.triage', byBlameEntrySk)!;
   expect(triageLink.innerText).to.contain(text);
   expect(triageLink.href).to.have.string(href);
@@ -266,8 +292,14 @@ interface ExpectedBlame {
   age: string;
 }
 
-const expectBlamesListEquals = (byBlameEntrySk: ByBlameEntrySk, expectedBlames: ExpectedBlame[]) => {
-  const noBlameList = $$<HTMLParagraphElement>('p.no-blamelist', byBlameEntrySk)!;
+const expectBlamesListEquals = (
+  byBlameEntrySk: ByBlameEntrySk,
+  expectedBlames: ExpectedBlame[]
+) => {
+  const noBlameList = $$<HTMLParagraphElement>(
+    'p.no-blamelist',
+    byBlameEntrySk
+  )!;
   const blames = $<HTMLLIElement>('ul.blames li', byBlameEntrySk);
 
   if (!expectedBlames.length) {
@@ -280,7 +312,10 @@ const expectBlamesListEquals = (byBlameEntrySk: ByBlameEntrySk, expectedBlames: 
     for (let i = 0; i < expectedBlames.length; i++) {
       const linkText = $$<HTMLAnchorElement>('a', blames[i])!.innerText;
       const linkHref = $$<HTMLAnchorElement>('a', blames[i])!.href;
-      const commitMessage = $$<HTMLElement>('.commit-message', blames[i])!.innerText;
+      const commitMessage = $$<HTMLElement>(
+        '.commit-message',
+        blames[i]
+      )!.innerText;
       const author = $$<HTMLElement>('.author', blames[i])!.innerText;
       const age = $$<HTMLElement>('.age', blames[i])!.innerText;
 
@@ -293,8 +328,13 @@ const expectBlamesListEquals = (byBlameEntrySk: ByBlameEntrySk, expectedBlames: 
   }
 };
 
-const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAffected: string) => expect($$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText)
-  .to.contain(numTestsAffected);
+const expectNumTestsAffectedEquals = (
+  byBlameEntrySk: ByBlameEntrySk,
+  numTestsAffected: string
+) =>
+  expect(
+    $$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText
+  ).to.contain(numTestsAffected);
 
 interface ExpectedRow {
   test: string;
@@ -304,16 +344,26 @@ interface ExpectedRow {
   exampleLinkHref: string;
 }
 
-const expectAffectedTestsTableEquals = (byBlameEntrySk: ByBlameEntrySk, expectedRows: ExpectedRow[]) => {
+const expectAffectedTestsTableEquals = (
+  byBlameEntrySk: ByBlameEntrySk,
+  expectedRows: ExpectedRow[]
+) => {
   const actualRows = $('.affected-tests tbody tr');
   expect(actualRows.length).to.equal(expectedRows.length);
 
   for (let i = 0; i < expectedRows.length; i++) {
     const test = $$<HTMLElement>('.test', actualRows[i])!.innerText;
     const corpus = $$<HTMLElement>('.corpus', actualRows[i])!.innerText;
-    const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!.innerText;
-    const exampleLinkText = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.innerText;
-    const exampleLinkHref = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.href;
+    const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!
+      .innerText;
+    const exampleLinkText = $$<HTMLAnchorElement>(
+      'a.example-link',
+      actualRows[i]
+    )!.innerText;
+    const exampleLinkHref = $$<HTMLAnchorElement>(
+      'a.example-link',
+      actualRows[i]
+    )!.href;
 
     expect(test).to.contain(expectedRows[i].test);
     expect(corpus).to.contain(expectedRows[i].corpus);

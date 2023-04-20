@@ -9,8 +9,8 @@
  * </p>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, render, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 
 import { Incident } from '../json';
@@ -18,13 +18,14 @@ import { Incident } from '../json';
 export class BotChooserSk extends HTMLElement {
   private dialog: HTMLDialogElement | null = null;
 
-  private resolve: ((value: string | undefined)=> void) | null = null;
+  private resolve: ((value: string | undefined) => void) | null = null;
 
   private bots_to_incidents: Record<string, Incident[]> = {};
 
   private selected: string = '';
 
-  private static template = (ele: BotChooserSk) => html`<dialog>${ele.displayDialogContents()}</dialog>`;
+  private static template = (ele: BotChooserSk) =>
+    html`<dialog>${ele.displayDialogContents()}</dialog>`;
 
   connectedCallback(): void {
     this._render();
@@ -39,7 +40,10 @@ export class BotChooserSk extends HTMLElement {
    * @returns Returns a Promise that resolves on OK, and rejects on Cancel.
    *
    */
-  public open(bots_to_incidents: Record<string, Incident[]>, bots_to_ignore: string[]): Promise<string | undefined> {
+  public open(
+    bots_to_incidents: Record<string, Incident[]>,
+    bots_to_ignore: string[]
+  ): Promise<string | undefined> {
     this.bots_to_incidents = {};
     Object.keys(bots_to_incidents).forEach((bot) => {
       if (bots_to_ignore.includes(bot)) {
@@ -68,7 +72,12 @@ export class BotChooserSk extends HTMLElement {
     const botsHTML: TemplateResult[] = [];
     Object.keys(this.bots_to_incidents).forEach((bot) => {
       botsHTML.push(html`
-        <option value=${bot}>${bot} [${this.bots_to_incidents[bot].map((i) => i.params.alertname).join(',')}]</option>
+        <option value=${bot}>
+          ${bot}
+          [${this.bots_to_incidents[bot]
+            .map((i) => i.params.alertname)
+            .join(',')}]
+        </option>
       `);
     });
     return botsHTML;
@@ -78,22 +87,22 @@ export class BotChooserSk extends HTMLElement {
     if (Object.keys(this.bots_to_incidents).length === 0) {
       return html`
         <h2>No active bot alerts found</h2>
-        <br/>
-        <div class=buttons>
+        <br />
+        <div class="buttons">
           <button @click=${this.dismiss}>OK</button>
         </div>
       `;
     }
     return html`
-        <h2>Bots with active alerts</h2>
-        <select size=10 @input=${this.input} @keyup=${this.keyup}>
-          ${this.displayBotOptions()}
-        </select>
-        <div class=buttons>
-          <button @click=${this.dismiss}>Cancel</button>
-          <button @click=${this.confirm}>OK</button>
-        </div>
-      `;
+      <h2>Bots with active alerts</h2>
+      <select size="10" @input=${this.input} @keyup=${this.keyup}>
+        ${this.displayBotOptions()}
+      </select>
+      <div class="buttons">
+        <button @click=${this.dismiss}>Cancel</button>
+        <button @click=${this.confirm}>OK</button>
+      </div>
+    `;
   }
 
   private input(e: Event): void {

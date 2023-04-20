@@ -1,5 +1,5 @@
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 
@@ -20,9 +20,9 @@ export class ChangelistControlsSk extends ElementSk {
     const cl = ele._summary.cl;
     const ps = ele.getSelectedPatchset();
     return html`
-      <div class=info>
-        <span class=title>${cl.system} changelist:</span>
-        <a href=${cl.url} target=_blank rel=noopener>
+      <div class="info">
+        <span class="title">${cl.system} changelist:</span>
+        <a href=${cl.url} target="_blank" rel="noopener">
           ${truncate(cl.subject, 48)}
         </a>
 
@@ -33,38 +33,45 @@ export class ChangelistControlsSk extends ElementSk {
         </a>
       </div>
 
-      <div class=inputs>
+      <div class="inputs">
         <select @input=${ele.onSelectPS}>
           ${ele._summary.patch_sets.map(
-      (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`,
-    )}
+            (ps) =>
+              html`<option ?selected=${ele.ps_order === ps.order}>
+                PS ${ps.order}
+              </option>`
+          )}
         </select>
-        <span class=spacer></span>
-        <div class=radiogroup>
-          <radio-sk label="exclude results from primary branch"
-                    class="exclude-master"
-                    name=include_master
-                    ?checked=${!ele.include_master}
-                    @change=${() => ele.onIncludeDigestsFromPrimaryChange(false)}>
+        <span class="spacer"></span>
+        <div class="radiogroup">
+          <radio-sk
+            label="exclude results from primary branch"
+            class="exclude-master"
+            name="include_master"
+            ?checked=${!ele.include_master}
+            @change=${() => ele.onIncludeDigestsFromPrimaryChange(false)}
+          >
           </radio-sk>
-          <radio-sk label="show all results"
-                    class="include-master"
-                    name=include_master
-                    ?checked=${ele.include_master}
-                    @change=${() => ele.onIncludeDigestsFromPrimaryChange(true)}>
+          <radio-sk
+            label="show all results"
+            class="include-master"
+            name="include_master"
+            ?checked=${ele.include_master}
+            @change=${() => ele.onIncludeDigestsFromPrimaryChange(true)}
+          >
           </radio-sk>
         </div>
       </div>
 
-      <div class=tryjob-container>
+      <div class="tryjob-container">
         ${ps?.try_jobs.map((tj) => ChangelistControlsSk.tryJobTemplate(tj))}
       </div>
     `;
   };
 
   private static tryJobTemplate = (tj: TryJob) => html`
-    <div class=tryjob title=${tj.name}>
-      <a href=${tj.url} target=_blank rel=noopener>
+    <div class="tryjob" title=${tj.name}>
+      <a href=${tj.url} target="_blank" rel="noopener">
         ${truncate(tj.name, 60)}
       </a>
     </div>
@@ -86,7 +93,9 @@ export class ChangelistControlsSk extends ElementSk {
   }
 
   /** Changelist summary for this element to display. */
-  get summary() { return this._summary; }
+  get summary() {
+    return this._summary;
+  }
 
   set summary(summary: ChangelistSummaryResponse | null) {
     this._summary = summary;
@@ -96,7 +105,9 @@ export class ChangelistControlsSk extends ElementSk {
   /**
    * The order of the patchset currently being shown. If set to 0, the latest patchset will be used.
    */
-  get ps_order() { return this.psOrder; }
+  get ps_order() {
+    return this.psOrder;
+  }
 
   set ps_order(val) {
     this.psOrder = +val;
@@ -107,10 +118,13 @@ export class ChangelistControlsSk extends ElementSk {
    * Whether to show results that are also on the primary branch, as opposed to those that are
    * exclusive.
    */
-  get include_master() { return this.includeDigestsFromPrimary; }
+  get include_master() {
+    return this.includeDigestsFromPrimary;
+  }
 
   set include_master(val) {
-    this.includeDigestsFromPrimary = (val as unknown as string) !== 'false' && !!val;
+    this.includeDigestsFromPrimary =
+      (val as unknown as string) !== 'false' && !!val;
     this._render();
   }
 
@@ -151,13 +165,18 @@ export class ChangelistControlsSk extends ElementSk {
   }
 
   private sendUpdateEvent() {
-    this.dispatchEvent(new CustomEvent<ChangelistControlsSkChangeEventDetail>('cl-control-change', {
-      detail: {
-        include_master: this.include_master,
-        ps_order: this.ps_order,
-      },
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<ChangelistControlsSkChangeEventDetail>(
+        'cl-control-change',
+        {
+          detail: {
+            include_master: this.include_master,
+            ps_order: this.ps_order,
+          },
+          bubbles: true,
+        }
+      )
+    );
   }
 }
 

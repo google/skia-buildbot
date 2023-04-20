@@ -1,7 +1,7 @@
 import './index';
 import { html, render } from 'lit-html';
-import { $$ } from '../../../infra-sk/modules/dom';
 import { repeat } from 'lit-html/directives/repeat';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { SortToggleSk } from './sort-toggle-sk';
 
 interface DemoSortable {
@@ -34,23 +34,25 @@ const data: DemoSortable[] = [
 ];
 
 const rowTemplate = (row: DemoSortable) => html`
-<tr>
-  <td>${row.name}</td>
-  <td>${row.cost}</td>
-  <td>${row.weight}</td>
-</tr>
+  <tr>
+    <td>${row.name}</td>
+    <td>${row.cost}</td>
+    <td>${row.weight}</td>
+  </tr>
 `;
 
 // lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.
-const usingMap = html`
-<sort-toggle-sk .data=${data} @sort-changed=${renderTemplates}>
+const usingMap = html` <sort-toggle-sk
+  .data=${data}
+  @sort-changed=${renderTemplates}
+>
   <table>
-     <thead>
-         <tr>
-          <th data-key=name data-sort-toggle-sk=up>Item</th>
-          <th data-key=cost>Cost</th>
-          <th data-key=weight>Weight</th>
-        </tr>
+    <thead>
+      <tr>
+        <th data-key="name" data-sort-toggle-sk="up">Item</th>
+        <th data-key="cost">Cost</th>
+        <th data-key="weight">Weight</th>
+      </tr>
     </thead>
     <tbody>
       <!-- map is generally faster than repeat when the rowTemplate is small, but

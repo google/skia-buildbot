@@ -12,7 +12,9 @@ describe('gold-status-sk', () => {
 
   let element: GoldStatusSk;
   beforeEach(async () => {
-    fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
+    fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <
+      StatusResponse
+    >{
       corpStatus: [
         { name: 'canvaskit', untriagedCount: 0 },
         { name: 'colorImage', untriagedCount: 0 },

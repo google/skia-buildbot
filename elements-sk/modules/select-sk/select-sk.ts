@@ -96,7 +96,9 @@ export class SelectSk extends HTMLElement {
   }
 
   /** This mirrors the disabled attribute. */
-  get disabled(): boolean { return this.hasAttribute('disabled'); }
+  get disabled(): boolean {
+    return this.hasAttribute('disabled');
+  }
 
   set disabled(val: boolean) {
     if (val) {
@@ -111,7 +113,9 @@ export class SelectSk extends HTMLElement {
   }
 
   /** The index of the item selected. Has a value of -1 if nothing is selected. */
-  get selection(): number | string | null | undefined { return this._selection; }
+  get selection(): number | string | null | undefined {
+    return this._selection;
+  }
 
   set selection(val: number | string | null | undefined) {
     if (this.disabled) {
@@ -135,7 +139,7 @@ export class SelectSk extends HTMLElement {
     const oldIndex = this._selection;
     // Look up the DOM path until we find an element that is a child of
     // 'this', and set _selection based on that.
-    let target: Element | null = (e.target as Element);
+    let target: Element | null = e.target as Element;
     while (target && target.parentElement !== this) {
       target = target.parentElement;
     }
@@ -154,12 +158,17 @@ export class SelectSk extends HTMLElement {
   }
 
   private _emitEvent(): void {
-    this.dispatchEvent(new CustomEvent<SelectSkSelectionChangedEventDetail>('selection-changed', {
-      detail: {
-        selection: this._selection,
-      },
-      bubbles: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent<SelectSkSelectionChangedEventDetail>(
+        'selection-changed',
+        {
+          detail: {
+            selection: this._selection,
+          },
+          bubbles: true,
+        }
+      )
+    );
   }
 
   // Loop over all immediate child elements and make sure at most only one is selected.

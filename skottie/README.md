@@ -1,13 +1,11 @@
-skottie
-=======
+# skottie
 
 A web application for viewing lottie files as rendered by Skia, and going
 forward, other renderers. It uses [CanvasKit](https://www.npmjs.com/package/canvaskit-wasm)
 to display these.
 
+## Which version of CanvasKit is being used?
 
-Which version of CanvasKit is being used?
------------------------------------------
 When running tests (`bazel test ...`) or a local instance (`make run-local-instance`), the rules
 are set up to get the latest built version of CanvasKit by looking at
 `gcr.io/skia-public/skia-wasm-release:prod`. See ./wasm_libs/BUILD.bazel for more.
@@ -17,7 +15,9 @@ empty placeholders. The real ones will be provided through our build pipeline.
 
 To run skottie locally with a custom build of CanvasKit, copy the files to
 //skottie/wasm_libs/local_build and run:
+
 ```
 make run-with-custom
 ```
+
 Do not check in those files you copied.

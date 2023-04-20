@@ -4,7 +4,10 @@ export const resp: GetBotUsageResponse = {
   botSets: [
     {
       dimensions: {
-        gpu: '1002:6613', os: 'foster', pool: 'Skia', purple: 'elephant',
+        gpu: '1002:6613',
+        os: 'foster',
+        pool: 'Skia',
+        purple: 'elephant',
       },
       botCount: 5,
       totalTasks: 10,
@@ -22,7 +25,10 @@ export const resp: GetBotUsageResponse = {
     },
     {
       dimensions: {
-        gpu: 'widget5', os: 'Android', pool: 'Skia', device: 'marlin',
+        gpu: 'widget5',
+        os: 'Android',
+        pool: 'Skia',
+        device: 'marlin',
       },
       botCount: 25,
       totalTasks: 8,

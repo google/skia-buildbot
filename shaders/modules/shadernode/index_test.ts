@@ -4,14 +4,17 @@ import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
 import type {
   CanvasKit,
-  CanvasKitInit as CKInit
-}
-// @ts-ignore
-from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+  CanvasKitInit as CKInit,
+  // @ts-ignore
+} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,
-  defaultChildShaderScrapHashOrName, defaultImageURL, defaultScrapBody, numPredefinedUniforms, ShaderNode,
+  defaultChildShaderScrapHashOrName,
+  defaultImageURL,
+  defaultScrapBody,
+  numPredefinedUniforms,
+  ShaderNode,
 } from './index';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 
@@ -24,7 +27,9 @@ const getCanvasKit = async (): Promise<CanvasKit> => {
   if (canvasKit) {
     return canvasKit;
   }
-  canvasKit = await CanvasKitInit({ locateFile: (file: string) => `/canvaskit_assets/${file}` });
+  canvasKit = await CanvasKitInit({
+    locateFile: (file: string) => `/canvaskit_assets/${file}`,
+  });
   if (!canvasKit) {
     throw new Error('Could not load CanvasKit');
   }
@@ -61,10 +66,11 @@ const createShaderNodeWithChildShader = async (): Promise<ShaderNode> => {
     }`,
     Type: 'sksl',
     SKSLMetaData: {
-      Children: [{
-        UniformName: 'childShader',
-        ScrapHashOrName: defaultChildShaderScrapHashOrName,
-      },
+      Children: [
+        {
+          UniformName: 'childShader',
+          ScrapHashOrName: defaultChildShaderScrapHashOrName,
+        },
       ],
       ImageURL: '',
       Uniforms: [],
@@ -83,11 +89,27 @@ describe('ShaderNode', async () => {
     node.compile();
 
     // Confirm that all the post-compile pre-calculations are done correctly.
-    assert.equal(node.getUniformCount(), numPredefinedUniforms, 'The default shader doesn\'t have any user uniforms.');
-    assert.equal(node.getUniform(0).name, 'iResolution', 'Confirm the predefined shaders show up in the uniforms.');
-    assert.equal(node.getUniformFloatCount(), node.numPredefinedUniformValues, 'These are equal because the default shader has 0 user uniforms.');
+    assert.equal(
+      node.getUniformCount(),
+      numPredefinedUniforms,
+      "The default shader doesn't have any user uniforms."
+    );
+    assert.equal(
+      node.getUniform(0).name,
+      'iResolution',
+      'Confirm the predefined shaders show up in the uniforms.'
+    );
+    assert.equal(
+      node.getUniformFloatCount(),
+      node.numPredefinedUniformValues,
+      'These are equal because the default shader has 0 user uniforms.'
+    );
     assert.isNotNull(node['uniformsMallocObj'], "We Malloc'd");
-    assert.equal(node.numPredefinedUniformValues, 11, 'The number of predefined uniform values is calculated after compile() is called. This value will change if predefinedUniforms is changed.');
+    assert.equal(
+      node.numPredefinedUniformValues,
+      11,
+      'The number of predefined uniform values is calculated after compile() is called. This value will change if predefinedUniforms is changed.'
+    );
     assert.deepEqual(node.compileErrorLineNumbers, []);
     assert.equal(node.compileErrorMessage, '');
   });
@@ -98,9 +120,21 @@ describe('ShaderNode', async () => {
     assert.isNotNull(node.getShader([]));
 
     // Check our starting values.
-    assert.equal(node.getUniformCount(), numPredefinedUniforms, 'The default shader doesn\'t have any user uniforms.');
-    assert.equal(node.getUniform(0).name, 'iResolution', 'Confirm the predefined shaders show up in the uniforms.');
-    assert.equal(node.getUniformFloatCount(), node.numPredefinedUniformValues, 'These are equal because the default shader has 0 user uniforms.');
+    assert.equal(
+      node.getUniformCount(),
+      numPredefinedUniforms,
+      "The default shader doesn't have any user uniforms."
+    );
+    assert.equal(
+      node.getUniform(0).name,
+      'iResolution',
+      'Confirm the predefined shaders show up in the uniforms.'
+    );
+    assert.equal(
+      node.getUniformFloatCount(),
+      node.numPredefinedUniformValues,
+      'These are equal because the default shader has 0 user uniforms.'
+    );
 
     // Set code that has a user uniform, in this case with 4 floats.
     await node.setScrap({
@@ -121,22 +155,40 @@ describe('ShaderNode', async () => {
     assert.isNotNull(node.getShader([0, 0, 0, 0]));
 
     // Confirm that all the post-compile pre-calculations are done correctly for the new shader.
-    assert.equal(node.getUniformCount(), numPredefinedUniforms + 1, 'The new shader has 1 user uniform.');
-    assert.equal(node.getUniform(0).name, 'iResolution', 'Confirm the predefined shaders show up in the uniforms.');
-    assert.equal(node.getUniformFloatCount(), node.numPredefinedUniformValues + 4, 'The user uniform contributes 4 floats to the total.');
+    assert.equal(
+      node.getUniformCount(),
+      numPredefinedUniforms + 1,
+      'The new shader has 1 user uniform.'
+    );
+    assert.equal(
+      node.getUniform(0).name,
+      'iResolution',
+      'Confirm the predefined shaders show up in the uniforms.'
+    );
+    assert.equal(
+      node.getUniformFloatCount(),
+      node.numPredefinedUniformValues + 4,
+      'The user uniform contributes 4 floats to the total.'
+    );
   });
 
   it('correctly indicates when run() needs to be called.', async () => {
     const node = await createShaderNode();
     node.compile();
 
-    assert.isFalse(node.needsCompile(), 'Should not need a run immediately after a call to compile().');
+    assert.isFalse(
+      node.needsCompile(),
+      'Should not need a run immediately after a call to compile().'
+    );
 
     const originalCode = node.shaderCode;
     node.shaderCode += '\n';
     assert.isTrue(node.needsCompile(), 'Needs compile when code has changed.');
     node.shaderCode = originalCode;
-    assert.isFalse(node.needsCompile(), 'No longer needs a compile when change is undone.');
+    assert.isFalse(
+      node.needsCompile(),
+      'No longer needs a compile when change is undone.'
+    );
   });
 
   it('correctly indicates when save() needs to be called.', async () => {
@@ -178,7 +230,10 @@ describe('ShaderNode', async () => {
     node.currentUserUniformValues = modifiedUniformValues;
     assert.isTrue(node.needsSave(), 'Needs save if uniform values changed.');
     node.currentUserUniformValues = startingUniformValues;
-    assert.isFalse(node.needsSave(), "Doesn't need save if uniform values restored.");
+    assert.isFalse(
+      node.needsSave(),
+      "Doesn't need save if uniform values restored."
+    );
   });
 
   it('reports compiler errors', async () => {
@@ -201,7 +256,9 @@ describe('ShaderNode', async () => {
     node.compile();
 
     assert.deepEqual(node.compileErrorLineNumbers, [5]);
-    node.compileErrorMessage.startsWith("error: 5: expected ';', but found '}'");
+    node.compileErrorMessage.startsWith(
+      "error: 5: expected ';', but found '}'"
+    );
   });
 
   it('makes a copy of the ScrapBody', async () => {
@@ -235,7 +292,10 @@ describe('ShaderNode', async () => {
     it('is created on loadScrap', async () => {
       const node = await createShaderNodeWithChildShader();
       assert.equal(1, node.children.length);
-      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
+      assert.equal(
+        defaultChildShaderScrapHashOrName,
+        node.children[0]['scrapID']
+      );
       assert.equal(node.getChildShader(0).UniformName, 'childShader');
     });
 
@@ -273,11 +333,17 @@ describe('ShaderNode', async () => {
           Uniforms: [],
         },
       };
-      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
+      fetchMock.get(
+        `/_/load/${defaultChildShaderScrapHashOrName}`,
+        childScrapBody
+      );
 
       await node.appendNewChildShader();
       assert.equal(1, node.children.length);
-      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
+      assert.equal(
+        defaultChildShaderScrapHashOrName,
+        node.children[0]['scrapID']
+      );
       await fetchMock.flush();
       assert.isTrue(fetchMock.done());
       fetchMock.restore();
@@ -290,7 +356,10 @@ describe('ShaderNode', async () => {
 
     it('has uniform declarations', async () => {
       const node = await createShaderNodeWithChildShader();
-      assert.equal(node.getChildShaderUniforms(), 'uniform shader childShader;');
+      assert.equal(
+        node.getChildShaderUniforms(),
+        'uniform shader childShader;'
+      );
     });
 
     it('has a name that can be changed', async () => {
@@ -308,7 +377,10 @@ describe('ShaderNode', async () => {
           Uniforms: [],
         },
       };
-      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
+      fetchMock.get(
+        `/_/load/${defaultChildShaderScrapHashOrName}`,
+        childScrapBody
+      );
 
       await node.setChildShaderUniformName(0, newUniformName);
       assert.equal(node.getChildShaderUniformName(0), newUniformName);
@@ -320,14 +392,21 @@ describe('ShaderNode', async () => {
 
     it('raises on invalid child shader names', async () => {
       const node = await createShaderNodeWithChildShader();
-      await node.setChildShaderUniformName(0, 'this is an invalid uniform name because it contains spaces')
+      await node
+        .setChildShaderUniformName(
+          0,
+          'this is an invalid uniform name because it contains spaces'
+        )
         .then(() => assert.fail())
-        .catch((err: Error) => assert.match(err.message, /Invalid uniform name/));
+        .catch((err: Error) =>
+          assert.match(err.message, /Invalid uniform name/)
+        );
     });
 
     it('raises on out of bounds', async () => {
       const node = await createShaderNodeWithChildShader();
-      await node.setChildShaderUniformName(1, 'aNewName')
+      await node
+        .setChildShaderUniformName(1, 'aNewName')
         .then(() => assert.fail())
         .catch((err: Error) => assert.match(err.message, /does not exist/));
     });
@@ -345,17 +424,21 @@ describe('ShaderNode', async () => {
         '{"Body":"half4 main(vec2 fragcoord) {\\n      return half4(0, 1, 0, 1);\\n    }","Type":"sksl","SKSLMetaData":{"Uniforms":[],"ImageURL":"","Children":[{"UniformName":"childShader","ScrapHashOrName":"childNodeSavedID"}]}}',
       ];
       let call = 0;
-      fetchMock.post('/_/save/', (url: string, opts: MockRequest): MockResponse => {
-        const { body } = opts;
-        assert.equal(body, bodiesSent[call]);
-        const resp: ScrapID = {
-          Hash: callOrder[call],
-        };
-        call++;
-        return resp;
-      }, {
-        sendAsJson: true,
-      });
+      fetchMock.post(
+        '/_/save/',
+        (url: string, opts: MockRequest): MockResponse => {
+          const { body } = opts;
+          assert.equal(body, bodiesSent[call]);
+          const resp: ScrapID = {
+            Hash: callOrder[call],
+          };
+          call++;
+          return resp;
+        },
+        {
+          sendAsJson: true,
+        }
+      );
 
       const newID = await node.saveScrap();
 

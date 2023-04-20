@@ -39,7 +39,9 @@ export class ARBTableSk extends ElementSk {
   <div>
     Filter: <input type="text"
         value="${ele.filter}"
-        @input="${(e: InputEvent) => { ele.filter = (e.target as HTMLInputElement).value }}"
+        @input="${(e: InputEvent) => {
+          ele.filter = (e.target as HTMLInputElement).value;
+        }}"
         ></input>
   </div>
   <table>
@@ -51,7 +53,7 @@ export class ARBTableSk extends ElementSk {
       <th></th>
     </tr>
     ${ele.filtered.map(
-    (st) => html`
+      (st) => html`
         <tr>
           <td>
             <a href="/r/${st.rollerId}"
@@ -59,24 +61,37 @@ export class ARBTableSk extends ElementSk {
             >
           </td>
           <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
-          <td>${st.numBehind}${st.numBehind == 0 ? html`` : html`
-              (last rolled <human-date-sk .date="${st.lastSuccessfulRollTimestamp!}" .diff="${true}"></human-date-sk>)
-          `}</td>
+          <td>
+            ${st.numBehind}${st.numBehind == 0
+              ? html``
+              : html`
+                  (last rolled
+                  <human-date-sk
+                    .date="${st.lastSuccessfulRollTimestamp!}"
+                    .diff="${true}"
+                  ></human-date-sk
+                  >)
+                `}
+          </td>
           <td>${st.numFailed}</td>
           <td>${LastCheckInSpan(st)}</td>
         </tr>
-      `,
-  )}
+      `
+    )}
   </table>
 `;
 
   private rollers: AutoRollMiniStatus[] = [];
+
   private filtered: AutoRollMiniStatus[] = [];
+
   private rpc: AutoRollService;
+
   private state: State = {
     filter: '',
   };
-  private stateHasChanged = () => { };
+
+  private stateHasChanged = () => {};
 
   constructor() {
     super(ARBTableSk.template);
@@ -86,6 +101,7 @@ export class ARBTableSk extends ElementSk {
   get filter(): string {
     return this.state.filter;
   }
+
   set filter(filter: string) {
     this.state.filter = filter;
     this.stateHasChanged();
@@ -95,11 +111,11 @@ export class ARBTableSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this.stateHasChanged = stateReflector(
-      /* getState */() => (this.state as unknown) as HintableObject,
-      /* setState */(newState) => {
-        this.state = (newState as unknown) as State;
+      /* getState */ () => this.state as unknown as HintableObject,
+      /* setState */ (newState) => {
+        this.state = newState as unknown as State;
         this.updateFiltered();
-      },
+      }
     );
     this.reload();
   }
@@ -107,13 +123,13 @@ export class ARBTableSk extends ElementSk {
   private modeClass(mode: Mode) {
     switch (mode) {
       case Mode.RUNNING:
-        return "fg-running";
+        return 'fg-running';
       case Mode.DRY_RUN:
-        return "fg-dry-run";
+        return 'fg-dry-run';
       case Mode.STOPPED:
-        return "fg-stopped";
+        return 'fg-stopped';
       case Mode.OFFLINE:
-        return "fg-offline";
+        return 'fg-offline';
     }
   }
 
@@ -129,17 +145,18 @@ export class ARBTableSk extends ElementSk {
     if (this.filter) {
       // If a filter was provided in the text box, use that.
       const regex = new RegExp(this.filter);
-      this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => (
-        st.rollerId.match(regex)
-        || st.childName.match(regex)
-        || st.parentName.match(regex)
-      ));
+      this.filtered = this.rollers.filter(
+        (st: AutoRollMiniStatus) =>
+          st.rollerId.match(regex) ||
+          st.childName.match(regex) ||
+          st.parentName.match(regex)
+      );
     } else {
       // If no filter was provided, filter out any rollers which have not
       // checked in for longer than hideOutdatedRollersThreshold.
       this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => {
         const lastCheckedIn = GetLastCheckInTime(st).getTime();
-        const now = new Date().getTime()
+        const now = new Date().getTime();
         if (now - lastCheckedIn > hideOutdatedRollersThreshold) {
           return false;
         }

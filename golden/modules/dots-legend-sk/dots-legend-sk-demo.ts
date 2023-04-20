@@ -20,7 +20,11 @@ const tooManyDigests: DigestStatus[] = [
 ];
 
 function newDotsLegendSk(
-  parentSelector: string, id: string, digests: DigestStatus[], clID: string, test: string,
+  parentSelector: string,
+  id: string,
+  digests: DigestStatus[],
+  clID: string,
+  test: string
 ) {
   const dotsLegendSk = new DotsLegendSk();
   dotsLegendSk.id = id;
@@ -36,7 +40,7 @@ newDotsLegendSk(
   'some-digests',
   someDigests,
   '123456',
-  'My-Test',
+  'My-Test'
 );
 
 newDotsLegendSk(
@@ -44,5 +48,5 @@ newDotsLegendSk(
   'too-many-digests',
   tooManyDigests,
   '123456',
-  'My-Test',
+  'My-Test'
 );

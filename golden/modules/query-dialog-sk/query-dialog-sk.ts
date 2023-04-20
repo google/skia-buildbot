@@ -15,37 +15,43 @@
  *         the url-encoded selections.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
-import { QuerySk, QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
+import {
+  QuerySk,
+  QuerySkQueryChangeEventDetail,
+} from '../../../infra-sk/modules/query-sk/query-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
 export class QueryDialogSk extends ElementSk {
-  private static _template = (el: QueryDialogSk) => html`
-    <dialog>
-      <div class=content>
-        <query-sk @query-change=${el.queryChange}
-                  hide_invert
-                  hide_regex></query-sk>
-        <div class=selection-summary>
-          ${el.isSelectionEmpty()
-    ? html`<p class=empty-selection>No items selected.</p>`
-    : html`<paramset-sk .paramsets=${[el.currentSelection]}></paramset-sk>`}
-        </div>
+  private static _template = (el: QueryDialogSk) => html` <dialog>
+    <div class="content">
+      <query-sk
+        @query-change=${el.queryChange}
+        hide_invert
+        hide_regex
+      ></query-sk>
+      <div class="selection-summary">
+        ${el.isSelectionEmpty()
+          ? html`<p class="empty-selection">No items selected.</p>`
+          : html`<paramset-sk
+              .paramsets=${[el.currentSelection]}
+            ></paramset-sk>`}
       </div>
+    </div>
 
-      <div class=buttons>
-        <button class="show-matches action" @click=${el.showMatches}>
-          ${el._submitButtonLabel}
-        </button>
-        <button class=cancel @click=${el.close}>Cancel</button>
-      </div>
-    </dialog>`;
+    <div class="buttons">
+      <button class="show-matches action" @click=${el.showMatches}>
+        ${el._submitButtonLabel}
+      </button>
+      <button class="cancel" @click=${el.close}>Cancel</button>
+    </div>
+  </dialog>`;
 
   private dialog: HTMLDialogElement | null = null;
 
@@ -74,7 +80,9 @@ export class QueryDialogSk extends ElementSk {
   }
 
   /** Can be used to customize the label of the submit button. */
-  get submitButtonLabel() { return this._submitButtonLabel; }
+  get submitButtonLabel() {
+    return this._submitButtonLabel;
+  }
 
   set submitButtonLabel(label: string) {
     // This is used by filter-dialog-sk to change the button label to "Submit".
@@ -89,16 +97,22 @@ export class QueryDialogSk extends ElementSk {
 
   private showMatches() {
     this.dialog!.close();
-    this.dispatchEvent(new CustomEvent<string>('edit', {
-      bubbles: true,
-      detail: this.querySk!.current_query,
-    }));
-    this.dispatchEvent(new CustomEvent('query-dialog-close', { bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent<string>('edit', {
+        bubbles: true,
+        detail: this.querySk!.current_query,
+      })
+    );
+    this.dispatchEvent(
+      new CustomEvent('query-dialog-close', { bubbles: true })
+    );
   }
 
   private close() {
     this.dialog!.close();
-    this.dispatchEvent(new CustomEvent('query-dialog-close', { bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('query-dialog-close', { bubbles: true })
+    );
   }
 
   private get currentSelection() {

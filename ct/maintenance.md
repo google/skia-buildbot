@@ -81,6 +81,7 @@ make poller && poller --local=true \
 
 To run master scripts locally, you may want to modify the code to skip steps or
 exit early, e.g.:
+
 ```
 diff --git a/ct/go/master_scripts/build_chromium/main.go b/ct/go/master_scripts/build_chromium/main.go
 index 1c5c273..34ceb3a 100644
@@ -99,6 +100,7 @@ index 1c5c273..34ceb3a 100644
         defer util.CleanTmpDir()
         // Finish with glog flush and how long the task took.
 ```
+
 - Master scripts include `capture_archives_on_workers`,
   `create_pagesets_on_workers`,
   `run_chromium_perf_on_workers`.

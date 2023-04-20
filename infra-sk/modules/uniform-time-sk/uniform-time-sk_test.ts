@@ -1,6 +1,6 @@
 import './index';
 import { assert } from 'chai';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import { UniformTimeSk } from './uniform-time-sk';
 
 import { setUpElementUnderTest } from '../test_util';

@@ -1,6 +1,9 @@
 import './index';
 import fetchMock from 'fetch-mock';
-import { BinarySizeDiffRPCRequest, BinarySizeDiffRPCResponse } from '../rpc_types';
+import {
+  BinarySizeDiffRPCRequest,
+  BinarySizeDiffRPCResponse,
+} from '../rpc_types';
 import { BinaryDiffPageSk } from './binary-diff-page-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 
@@ -27,7 +30,8 @@ const fakeRPCResponse: BinarySizeDiffRPCResponse = {
     revision: '34e3b35eb460e8668bb063adeefdc1fed857d075',
     commit_timestamp: '2022-02-15T23:42:43Z',
     author: 'Alice (alice@google.com)',
-    subject: '[codesize] Define more CodeSize tasks for testing purposes (both for CQ and waterfall).',
+    subject:
+      '[codesize] Define more CodeSize tasks for testing purposes (both for CQ and waterfall).',
   },
   // Example taken from
   // gs://skia-codesize/2022/07/27/04/tryjob/556358/56/lnwGGlkpXd2obFWx9xrA/Build-Debian10-Clang-x86_64-OptimizeForSize/dm.diff.txt.
@@ -47,27 +51,33 @@ const fakeRPCResponse: BinarySizeDiffRPCResponse = {
 
 fetchMock.post(
   (url, opts) => {
-    const request = JSON.parse(opts.body?.toString() || '') as BinarySizeDiffRPCRequest;
-    return url === '/rpc/binary_size_diff/v1'
-      && request.commit === fakeRPCResponse.metadata.revision
-      && request.patch_issue === fakeRPCResponse.metadata.patch_issue
-      && request.patch_set === fakeRPCResponse.metadata.patch_set
-      && request.binary_name === fakeRPCResponse.metadata.binary_name
-      && request.compile_task_name === fakeRPCResponse.metadata.compile_task_name;
+    const request = JSON.parse(
+      opts.body?.toString() || ''
+    ) as BinarySizeDiffRPCRequest;
+    return (
+      url === '/rpc/binary_size_diff/v1' &&
+      request.commit === fakeRPCResponse.metadata.revision &&
+      request.patch_issue === fakeRPCResponse.metadata.patch_issue &&
+      request.patch_set === fakeRPCResponse.metadata.patch_set &&
+      request.binary_name === fakeRPCResponse.metadata.binary_name &&
+      request.compile_task_name === fakeRPCResponse.metadata.compile_task_name
+    );
   },
-  () => new Promise(
-    (resolve) => setTimeout(
-      () => resolve(JSON.stringify(fakeRPCResponse)),
-      fakeRpcDelayMillis,
-    ),
-  ),
+  () =>
+    new Promise((resolve) =>
+      setTimeout(
+        () => resolve(JSON.stringify(fakeRPCResponse)),
+        fakeRpcDelayMillis
+      )
+    )
 );
 
-const queryString = `?commit=${fakeRPCResponse.metadata.revision}&`
-  + `patch_issue=${fakeRPCResponse.metadata.patch_issue}&`
-  + `patch_set=${fakeRPCResponse.metadata.patch_set}&`
-  + `binary_name=${fakeRPCResponse.metadata.binary_name}&`
-  + `compile_task_name=${fakeRPCResponse.metadata.compile_task_name}`;
+const queryString =
+  `?commit=${fakeRPCResponse.metadata.revision}&` +
+  `patch_issue=${fakeRPCResponse.metadata.patch_issue}&` +
+  `patch_set=${fakeRPCResponse.metadata.patch_set}&` +
+  `binary_name=${fakeRPCResponse.metadata.binary_name}&` +
+  `compile_task_name=${fakeRPCResponse.metadata.compile_task_name}`;
 window.history.pushState(null, '', queryString);
 
 // Add the page under test only after all RPCs are mocked out.

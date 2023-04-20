@@ -1,9 +1,10 @@
 import { Commit } from '../util';
 import { Branch } from '../rpc/status';
-import { } from '../rpc-mock/test_data';
+import {} from '../rpc-mock/test_data';
 
 const fixedDate = Date.now();
-const timestampSinceFixed = (seconds: number = 0) => new Date(fixedDate - 1000 * seconds).toISOString();
+const timestampSinceFixed = (seconds: number = 0) =>
+  new Date(fixedDate - 1000 * seconds).toISOString();
 const numCommits = 0;
 function nextTimestamp() {
   return timestampSinceFixed(10 * numCommits);

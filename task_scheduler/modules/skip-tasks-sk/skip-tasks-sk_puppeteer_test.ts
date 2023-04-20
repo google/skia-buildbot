@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -29,7 +31,7 @@ describe('skip-tasks-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_start',
+        'skip-tasks-sk_start'
       );
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
@@ -40,7 +42,7 @@ describe('skip-tasks-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_start-dark',
+        'skip-tasks-sk_start-dark'
       );
     });
     it('adds a rule', async () => {
@@ -53,18 +55,18 @@ describe('skip-tasks-sk', () => {
       await testBed.page.type('#input-range-start', 'abc123');
       await testBed.page.type(
         '#input-description',
-        'This is a detailed description of the rule.',
+        'This is a detailed description of the rule.'
       );
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_adding-rule',
+        'skip-tasks-sk_adding-rule'
       );
       await testBed.page.click('#add-button');
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_added-rule',
+        'skip-tasks-sk_added-rule'
       );
     });
   });

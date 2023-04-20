@@ -23,40 +23,60 @@ import {
 
 export class ARBModeHistorySk extends ElementSk {
   private static template = (ele: ARBModeHistorySk) => html`
-  <a href="/r/${ele.roller}" class="small">back to roller status</a>
-  <br/>
-  <table>
-    <tr>
-      <th>Time</th>
-      <th>Mode</th>
-      <th>User</th>
-      <th>Message</th>
-    </tr>
-    ${ele.history.map((entry: ModeChange) => html`
-        <tr>
-          <td><human-date-sk .date="${entry.time!}" .diff="${true}"></human-date-sk></td>
-          <td class="${ele.modeClass(entry.mode!)}">${entry.mode?.toString()}</td>
-          <td>${entry.user?.toString()}</td>
-          <td>${entry.message}</td>
-        </tr>
-      `,
-  )}
-  </table>
-  <br/>
-  <button
-    @click="${() => { ele.load(ele.prevOffset); }}"
-    ?disabled="${ele.currentOffset == 0}"
-    >Previous</button>
-  <button
-    @click="${() => { ele.load(ele.nextOffset); }}"
-    ?disabled="${ele.nextOffset == 0}"
-    >Next</button>
-`;
+    <a href="/r/${ele.roller}" class="small">back to roller status</a>
+    <br />
+    <table>
+      <tr>
+        <th>Time</th>
+        <th>Mode</th>
+        <th>User</th>
+        <th>Message</th>
+      </tr>
+      ${ele.history.map(
+        (entry: ModeChange) => html`
+          <tr>
+            <td>
+              <human-date-sk
+                .date="${entry.time!}"
+                .diff="${true}"
+              ></human-date-sk>
+            </td>
+            <td class="${ele.modeClass(entry.mode!)}">
+              ${entry.mode?.toString()}
+            </td>
+            <td>${entry.user?.toString()}</td>
+            <td>${entry.message}</td>
+          </tr>
+        `
+      )}
+    </table>
+    <br />
+    <button
+      @click="${() => {
+        ele.load(ele.prevOffset);
+      }}"
+      ?disabled="${ele.currentOffset == 0}"
+    >
+      Previous
+    </button>
+    <button
+      @click="${() => {
+        ele.load(ele.nextOffset);
+      }}"
+      ?disabled="${ele.nextOffset == 0}"
+    >
+      Next
+    </button>
+  `;
 
   private history: ModeChange[] = [];
+
   private prevOffset: number = -1;
+
   private currentOffset: number = 0;
+
   private nextOffset: number = 0;
+
   private rpc: AutoRollService;
 
   constructor() {
@@ -84,13 +104,13 @@ export class ARBModeHistorySk extends ElementSk {
   private modeClass(mode: Mode) {
     switch (mode) {
       case Mode.RUNNING:
-        return "fg-running";
+        return 'fg-running';
       case Mode.DRY_RUN:
-        return "fg-dry-run";
+        return 'fg-dry-run';
       case Mode.STOPPED:
-        return "fg-stopped";
+        return 'fg-stopped';
       case Mode.OFFLINE:
-        return "fg-offline";
+        return 'fg-offline';
     }
   }
 

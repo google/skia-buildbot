@@ -1,5 +1,7 @@
 import {
-  loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -25,7 +27,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_simple',
+        'gantt-chart-sk_simple'
       );
     });
 
@@ -34,7 +36,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_simple-start-end',
+        'gantt-chart-sk_simple-start-end'
       );
     });
 
@@ -43,7 +45,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_simple-epochs',
+        'gantt-chart-sk_simple-epochs'
       );
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
@@ -54,7 +56,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_simple-epochs-dark',
+        'gantt-chart-sk_simple-epochs-dark'
       );
     });
 
@@ -68,7 +70,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_mouse-cursor',
+        'gantt-chart-sk_mouse-cursor'
       );
 
       // Move the mouse over a bit. It should snap to the edge of one of the
@@ -77,7 +79,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_mouse-cursor-snap',
+        'gantt-chart-sk_mouse-cursor-snap'
       );
 
       // Click and drag. The timestamp on the vertical cursor should disappear,
@@ -88,7 +90,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_mouse-selecting',
+        'gantt-chart-sk_mouse-selecting'
       );
 
       // Release the mouse button and move the pointer away. The selection
@@ -99,7 +101,7 @@ describe('gantt-chart-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'gantt-chart-sk_mouse-selected',
+        'gantt-chart-sk_mouse-selected'
       );
     });
   });

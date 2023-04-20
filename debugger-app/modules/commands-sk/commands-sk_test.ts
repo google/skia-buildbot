@@ -1,11 +1,11 @@
 import './index';
 import { expect } from 'chai';
+import { CommandsSk } from './commands-sk';
+
 import {
-  CommandsSk,
-
-} from './commands-sk';
-
-import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
+  setUpElementUnderTest,
+  eventPromise,
+} from '../../../infra-sk/modules/test_util';
 import { SkpJsonCommandList } from '../debugger';
 import { testData } from './test-data';
 import {
@@ -68,12 +68,15 @@ describe('commands-sk', () => {
     expect(commandsSk.countFiltered).to.equal(3);
     expect(commandsSk.position).to.equal(2);
     // confirm filters gone
-    expect(commandsSk.querySelector<HTMLInputElement>('#rangelo')!.value)
-      .to.equal('0');
-    expect(commandsSk.querySelector<HTMLInputElement>('#rangehi')!.value)
-      .to.equal('2'); // the highest index
-    expect(commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value)
-      .to.equal('!DrawAnnotation'); // We don't intend to clear this.
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#rangelo')!.value
+    ).to.equal('0');
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#rangehi')!.value
+    ).to.equal('2'); // the highest index
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value
+    ).to.equal('!DrawAnnotation'); // We don't intend to clear this.
   });
 
   it('can apply a range filter by setting range attribute', () => {
@@ -184,15 +187,20 @@ describe('commands-sk', () => {
     commandsSk.textFilter = 'trees'; // there's matches at ops 0 and 9
     commandsSk.range = [0, 2];
 
-    commandsSk.querySelector<HTMLButtonElement>('#clear-filter-button')!.click();
+    commandsSk
+      .querySelector<HTMLButtonElement>('#clear-filter-button')!
+      .click();
 
     // confirm filters gone
-    expect(commandsSk.querySelector<HTMLInputElement>('#rangelo')!.value)
-      .to.equal('0');
-    expect(commandsSk.querySelector<HTMLInputElement>('#rangehi')!.value)
-      .to.equal('9'); // the highest index
-    expect(commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value)
-      .to.equal('');
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#rangelo')!.value
+    ).to.equal('0');
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#rangehi')!.value
+    ).to.equal('9'); // the highest index
+    expect(
+      commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value
+    ).to.equal('');
     // And applied
     expect(commandsSk.countFiltered).to.equal(10);
     // Does not change, also tested below in different circumstances
@@ -247,7 +255,8 @@ describe('commands-sk', () => {
 
     // set up event promise
     const ep = eventPromise<CustomEvent<MoveCommandPositionEventDetail>>(
-      MoveCommandPositionEvent, 200,
+      MoveCommandPositionEvent,
+      200
     );
 
     // click the play button
@@ -258,7 +267,8 @@ describe('commands-sk', () => {
 
   it('full op representatoin contains image buttons for image shaders', async () => {
     commandsSk.clearFilter();
-    commandsSk.processCommands(JSON.parse(`
+    commandsSk.processCommands(
+      JSON.parse(`
 {
   "version": 1,
   "commands": [
@@ -326,17 +336,19 @@ describe('commands-sk', () => {
     }
   ]
 }
-      `) as SkpJsonCommandList);
+      `) as SkpJsonCommandList
+    );
     // Expand the command in this test data, by clicking it two times.
     const opDiv = commandsSk.querySelector<HTMLElement>('#op-0')!;
-    const summary = (opDiv.querySelector('summary') as HTMLElement);
+    const summary = opDiv.querySelector('summary') as HTMLElement;
     summary.click();
     summary.click();
     // Click the image button. confirm event generated
     const ep = eventPromise<CustomEvent<SelectImageEventDetail>>(
-      SelectImageEvent, 200,
+      SelectImageEvent,
+      200
     );
-      opDiv.querySelector<HTMLButtonElement>('button')!.click();
-      expect((await ep).detail.id).to.equal(1000);
+    opDiv.querySelector<HTMLButtonElement>('button')!.click();
+    expect((await ep).detail.id).to.equal(1000);
   });
 });

@@ -10,15 +10,15 @@
  *                    selected corpus.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 /**
  * Takes a corpus object and returns a string used to represent the corpus on the CorpusSelectorSk
  * element's UI.
  */
-export type CorpusRendererFn<T extends Object> = (corpus: T)=> string;
+export type CorpusRendererFn<T extends Object> = (corpus: T) => string;
 
 /**
  * An element that allows the user to select a corpus from a list of available corpora.
@@ -28,24 +28,31 @@ export type CorpusRendererFn<T extends Object> = (corpus: T)=> string;
  * via the customRendererFn property.
  */
 export class CorpusSelectorSk<T extends Object> extends ElementSk {
-  private static template =
-    <T extends Object>(el: CorpusSelectorSk<T>) => (el._corpora.length
-      ? html`
-            <ul>${el._corpora.map((corpus) => CorpusSelectorSk.corpusTemplate(el, corpus))}</ul>`
-      : html`<p>Loading corpora details...</p>`);
+  private static template = <T extends Object>(el: CorpusSelectorSk<T>) =>
+    el._corpora.length
+      ? html` <ul>
+          ${el._corpora.map((corpus) =>
+            CorpusSelectorSk.corpusTemplate(el, corpus)
+          )}
+        </ul>`
+      : html`<p>Loading corpora details...</p>`;
 
-  private static corpusTemplate =
-    <T extends Object>(el: CorpusSelectorSk<T>, corpus: T) => html`
-        <li class=${el._selectedCorpus === corpus ? 'selected' : ''}
-            title="${el._corpusRendererFn(corpus)}"
-            @click=${() => el._handleCorpusClick(corpus)}>
-          ${el._corpusRendererFn(corpus)}
-        </li>`;
+  private static corpusTemplate = <T extends Object>(
+    el: CorpusSelectorSk<T>,
+    corpus: T
+  ) => html` <li
+    class=${el._selectedCorpus === corpus ? 'selected' : ''}
+    title="${el._corpusRendererFn(corpus)}"
+    @click=${() => el._handleCorpusClick(corpus)}
+  >
+    ${el._corpusRendererFn(corpus)}
+  </li>`;
 
   private _corpora: T[] = [];
 
   // Default to the corpus object's toString() method.
-  private _corpusRendererFn: CorpusRendererFn<T> = (corpus) => corpus.toString();
+  private _corpusRendererFn: CorpusRendererFn<T> = (corpus) =>
+    corpus.toString();
 
   private _selectedCorpus: T | null = null;
 
@@ -59,7 +66,9 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   }
 
   /** The corpora available for the user to select from. */
-  get corpora() { return this._corpora; }
+  get corpora() {
+    return this._corpora;
+  }
 
   set corpora(value) {
     this._corpora = value;
@@ -67,7 +76,9 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   }
 
   /** A function that takes a corpus and returns the text to display on the UI. */
-  get corpusRendererFn() { return this._corpusRendererFn; }
+  get corpusRendererFn() {
+    return this._corpusRendererFn;
+  }
 
   set corpusRendererFn(fn) {
     this._corpusRendererFn = fn;
@@ -75,7 +86,9 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   }
 
   /** The currently selected corpus. */
-  get selectedCorpus() { return this._selectedCorpus; }
+  get selectedCorpus() {
+    return this._selectedCorpus;
+  }
 
   set selectedCorpus(corpus) {
     this._selectedCorpus = corpus;
@@ -94,7 +107,7 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
       new CustomEvent<T>('corpus-selected', {
         detail: this._selectedCorpus!,
         bubbles: true,
-      }),
+      })
     );
   }
 }

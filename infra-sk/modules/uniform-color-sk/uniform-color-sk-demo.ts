@@ -1,8 +1,8 @@
 import './index';
 
-import { $$ } from '../../../infra-sk/modules/dom';
+import { $$ } from '../dom';
 import './index';
-import { $ } from '../../../infra-sk/modules/dom';
+import { $ } from '../dom';
 import { UniformColorSk } from './uniform-color-sk';
 
 $$('#apply')!.addEventListener('click', () => {

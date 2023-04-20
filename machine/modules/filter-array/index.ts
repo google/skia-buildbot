@@ -63,6 +63,9 @@ export class FilterArray<T> {
 
   /** Inform me that the string I'm filtering for has changed. */
   filterChanged(value: string): void {
-    this.filterWords = value.toLowerCase().split(' ').filter((s: string) => s.length > 0);
+    this.filterWords = value
+      .toLowerCase()
+      .split(' ')
+      .filter((s: string) => s.length > 0);
   }
 }

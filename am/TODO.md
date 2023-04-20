@@ -1,3 +1,3 @@
-  * WebPush
-  * Backups
-  * Use Healthz
+- WebPush
+- Backups
+- Use Healthz

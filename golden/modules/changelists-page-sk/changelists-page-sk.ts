@@ -6,10 +6,10 @@
  * data uploaded via TryJobs.
  *
  */
+import { html } from 'lit-html';
 import * as human from '../../../infra-sk/modules/human';
 
 import { define } from '../../../elements-sk/modules/define';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -26,41 +26,55 @@ import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-
 
 export class ChangelistsPageSk extends ElementSk {
   private static template = (ele: ChangelistsPageSk) => html`
-    <div class=controls>
-      <pagination-sk page_size=${ele.pageSize} offset=${ele.offset}
-                     total=${ele.total} @page-changed=${ele.pageChanged}>
+    <div class="controls">
+      <pagination-sk
+        page_size=${ele.pageSize}
+        offset=${ele.offset}
+        total=${ele.total}
+        @page-changed=${ele.pageChanged}
+      >
       </pagination-sk>
 
-      <checkbox-sk label="show all" ?checked=${ele.showAll}
-                   @click=${ele.toggleShowAll}></checkbox-sk>
+      <checkbox-sk
+        label="show all"
+        ?checked=${ele.showAll}
+        @click=${ele.toggleShowAll}
+      ></checkbox-sk>
     </div>
 
     <table>
       <thead>
         <tr>
-          <th colspan=2>ChangeList</th>
+          <th colspan="2">ChangeList</th>
           <th>Owner</th>
           <th>Updated</th>
           <th>Subject</th>
         </tr>
       </thead>
       <tbody>
-      ${ele.cls.map(ChangelistsPageSk.changelist)}
-    </tbody>
+        ${ele.cls.map(ChangelistsPageSk.changelist)}
+      </tbody>
+    </table>
   `;
 
   private static changelist = (cl: Changelist) => html`
     <tr>
-      <td class=id>
-        <a title="See codereview in a new window" target=_blank rel=noopener href=${cl.url}
-          >${cl.id}</a>
+      <td class="id">
+        <a
+          title="See codereview in a new window"
+          target="_blank"
+          rel="noopener"
+          href=${cl.url}
+          >${cl.id}</a
+        >
         ${ChangelistsPageSk.statusIcon(cl)}
       </td>
       <td>
-        <a href="/cl/${cl.system}/${cl.id}"
-           target="_blank" rel="noopener">Triage</a>
+        <a href="/cl/${cl.system}/${cl.id}" target="_blank" rel="noopener"
+          >Triage</a
+        >
       </td>
-      <td class=owner>${cl.owner}</td>
+      <td class="owner">${cl.owner}</td>
       <td title=${cl.updated}>${human.diffDate(cl.updated)} ago</td>
       <td>${cl.subject}</td>
     </tr>
@@ -70,10 +84,13 @@ export class ChangelistsPageSk extends ElementSk {
     const st = cl.status.toLowerCase();
     if (st === 'open') {
       return html`<cached-icon-sk title="ChangeList is open"></cached-icon-sk>`;
-    } if (st === 'landed') {
+    }
+    if (st === 'landed') {
       return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
     }
-    return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
+    return html`<block-icon-sk
+      title="ChangeList was abandoned"
+    ></block-icon-sk>`;
   };
 
   // Set empty values to allow empty rendering while we wait for
@@ -89,7 +106,7 @@ export class ChangelistsPageSk extends ElementSk {
 
   private showAll = false;
 
-  private readonly stateChanged: ()=> void;
+  private readonly stateChanged: () => void;
 
   // Allows us to abort fetches if a user pages.
   private fetchController?: AbortController;
@@ -97,23 +114,27 @@ export class ChangelistsPageSk extends ElementSk {
   constructor() {
     super(ChangelistsPageSk.template);
     this.stateChanged = stateReflector(
-      /* getState */() => ({
+      /* getState */ () => ({
         // provide empty values
         offset: this.offset,
         page_size: this.pageSize,
         show_all: this.showAll,
-      }), /* setState */(newState) => {
+      }),
+      /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
 
         // default values if not specified.
-        this.offset = newState.offset as number || 0;
-        this.pageSize = newState.page_size as number || +this.getAttribute('page_size')! || 50;
-        this.showAll = newState.show_all as boolean || false;
+        this.offset = (newState.offset as number) || 0;
+        this.pageSize =
+          (newState.page_size as number) ||
+          +this.getAttribute('page_size')! ||
+          50;
+        this.showAll = (newState.show_all as boolean) || false;
         this.fetch();
         this._render();
-      },
+      }
     );
   }
 

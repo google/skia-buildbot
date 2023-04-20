@@ -8,8 +8,8 @@
  * @attr {number} minRows - Minimum (and initial) rows in the textarea.
  */
 
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 
 import { ElementSk } from '../ElementSk';
 
@@ -21,7 +21,10 @@ const defaultRows = 5;
 
 export class AutogrowTextareaSk extends ElementSk {
   private static template = (ele: AutogrowTextareaSk) => html`
-    <textarea placeholder=${ele.placeholder} @input=${ele.computeResize}></textarea>
+    <textarea
+      placeholder=${ele.placeholder}
+      @input=${ele.computeResize}
+    ></textarea>
   `;
 
   private textarea: HTMLTextAreaElement | null = null;
@@ -72,7 +75,7 @@ export class AutogrowTextareaSk extends ElementSk {
 
   /** Minimum (and initial) number of rows in the textarea, mirrors the attribute. */
   get minRows(): number {
-    return (+this.getAttribute('minRows')! || defaultRows);
+    return +this.getAttribute('minRows')! || defaultRows;
   }
 
   set minRows(val: number) {
@@ -100,7 +103,7 @@ export class AutogrowTextareaSk extends ElementSk {
       // We floor the rowHeight as a lazy way to counteract rounded results
       // returned from clientHeight and scrollHeight causing too few rows added.
       const rowHeight = Math.floor(
-        this.textarea.clientHeight / this.textarea.rows,
+        this.textarea.clientHeight / this.textarea.rows
       );
       this.textarea.rows += Math.ceil(heightDiff / rowHeight);
     }

@@ -10,14 +10,15 @@
  * @property seconds - Indicates that the given date is expressed in seconds, not milliseconds.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html } from 'lit-html';
-import { diffDate } from '../../../infra-sk/modules/human';
+import { define } from '../../../elements-sk/modules/define';
+import { diffDate } from '../human';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { ElementSk } from '../ElementSk';
 
 export class HumanDateSk extends ElementSk {
-  private static template = (el: HumanDateSk) => html`<span title="${el.humanDate(false)}">${el.humanDate(el.diff)}</span>`;
+  private static template = (el: HumanDateSk) =>
+    html`<span title="${el.humanDate(false)}">${el.humanDate(el.diff)}</span>`;
 
   private _date: string | number = 0;
 
@@ -50,7 +51,7 @@ export class HumanDateSk extends ElementSk {
     }
 
     if (diff) {
-      return diffDate(millis) + " ago";
+      return `${diffDate(millis)} ago`;
     }
     const d = new Date(millis);
     return `${d.toLocaleDateString()}, ${d.toLocaleTimeString()}`;

@@ -2,9 +2,10 @@
 @import '../../../elements-sk/modules/colors';
 
 pagination-sk {
-  button, div {
-    display:inline-block;
-    font-size: 1.0em;
+  button,
+  div {
+    display: inline-block;
+    font-size: 1em;
   }
 
   button {
