@@ -9,9 +9,9 @@ import (
 )
 
 func TestCopyRevision(t *testing.T) {
-
 	v := &Revision{
 		Id:               "abc123",
+		Checksum:         "def456",
 		ExternalChangeId: "xyz123",
 		Author:           "me@google.com",
 		Bugs: map[string][]string{
@@ -32,7 +32,6 @@ func TestCopyRevision(t *testing.T) {
 }
 
 func TestParseTests(t *testing.T) {
-
 	bodyWithThreeTestLines := `testing
 Test: tested with 0
 testing

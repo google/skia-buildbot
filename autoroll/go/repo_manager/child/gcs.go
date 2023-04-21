@@ -2,6 +2,7 @@ package child
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -222,6 +223,7 @@ func (c *gcsChild) objectAttrsToRevision(item *storage.ObjectAttrs) (*revision.R
 	}
 	return &revision.Revision{
 		Id:        id,
+		Checksum:  hex.EncodeToString(item.MD5),
 		Display:   c.shortRev(id),
 		Author:    item.Owner,
 		Timestamp: item.Updated,

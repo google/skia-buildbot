@@ -28,6 +28,12 @@ type Revision struct {
 	// the only required field.
 	Id string `json:"id"`
 
+	// Checksum is used to verify the contents of a Revision. Not all use cases
+	// will need this, and its exact definition is implementation-dependent.
+	// Child should set this whenever possible, and Parent should make it clear
+	// when it is required.
+	Checksum string `json:"checksum"`
+
 	// Author is a string indicating the author of this Revision.
 	Author string `json:"author"`
 
@@ -84,6 +90,7 @@ func (r *Revision) Copy() *Revision {
 	}
 	return &Revision{
 		Id:               r.Id,
+		Checksum:         r.Checksum,
 		ExternalChangeId: r.ExternalChangeId,
 		Author:           r.Author,
 		Bugs:             bugs,
@@ -120,6 +127,7 @@ func FromLongCommit(revLinkTmpl, defaultBugProject string, c *vcsinfo.LongCommit
 	}
 	return &Revision{
 		Id:          c.Hash,
+		Checksum:    c.Hash, // Git commit hashes are checksums.
 		Author:      author,
 		Bugs:        bugsFromCommitMsg(c.Body, defaultBugProject),
 		Description: c.Subject,

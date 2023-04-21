@@ -22,13 +22,12 @@ import (
 )
 
 func TestCIPDInstanceToRevision(t *testing.T) {
-
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: "some/package",
-				InstanceID:  "instanceID12345678901234567890",
+				InstanceID:  "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 			},
 			RegisteredBy: "me@google.com",
 			RegisteredTs: cipd.UnixTime(ts),
@@ -46,28 +45,29 @@ func TestCIPDInstanceToRevision(t *testing.T) {
 		},
 	}
 	expect := &revision.Revision{
-		Id:     "instanceID12345678901234567890",
-		Author: "me@google.com",
+		Id:       "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
-		Display:     "instanceID1234567...",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Display:     "8ECbL8K2HVu1GGLRM...",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}
-	rev := CIPDInstanceToRevision("some/package", pkg, "", false)
+	rev, err := CIPDInstanceToRevision("some/package", pkg, "", false)
+	require.NoError(t, err)
 	require.Equal(t, expect, rev)
 }
 
 func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
-
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: "some/package",
-				InstanceID:  "instanceID12345678901234567890",
+				InstanceID:  "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 			},
 			RegisteredBy: "me@google.com",
 			RegisteredTs: cipd.UnixTime(ts),
@@ -85,29 +85,30 @@ func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
 		},
 	}
 	expect := &revision.Revision{
-		Id:     "instanceID12345678901234567890",
-		Author: "me@google.com",
+		Id:       "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description:   "some/package:instanceID12345678901234567890",
-		Display:       "instanceID1234567...",
+		Description:   "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Display:       "8ECbL8K2HVu1GGLRM...",
 		Timestamp:     ts,
-		URL:           "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:           "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 		InvalidReason: "Package instance has no tag \"missing\"",
 	}
-	rev := CIPDInstanceToRevision("some/package", pkg, "missing", false)
+	rev, err := CIPDInstanceToRevision("some/package", pkg, "missing", false)
+	require.NoError(t, err)
 	require.Equal(t, expect, rev)
 }
 
 func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
-
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: "some/package",
-				InstanceID:  "instanceID12345678901234567890",
+				InstanceID:  "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 			},
 			RegisteredBy: "me@google.com",
 			RegisteredTs: cipd.UnixTime(ts),
@@ -125,28 +126,29 @@ func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
 		},
 	}
 	expect := &revision.Revision{
-		Id:     "version:5",
-		Author: "me@google.com",
+		Id:       "version:5",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 		Display:     "5",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}
-	rev := CIPDInstanceToRevision("some/package", pkg, "version", false)
+	rev, err := CIPDInstanceToRevision("some/package", pkg, "version", false)
+	require.NoError(t, err)
 	require.Equal(t, expect, rev)
 }
 
 func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
-
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: "some/package",
-				InstanceID:  "instanceID12345678901234567890",
+				InstanceID:  "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 			},
 			RegisteredBy: "me@google.com",
 			RegisteredTs: cipd.UnixTime(ts),
@@ -164,22 +166,23 @@ func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
 		},
 	}
 	expect := &revision.Revision{
-		Id:     "5",
-		Author: "me@google.com",
+		Id:       "5",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 		Display:     "5",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}
-	rev := CIPDInstanceToRevision("some/package", pkg, "version", true)
+	rev, err := CIPDInstanceToRevision("some/package", pkg, "version", true)
+	require.NoError(t, err)
 	require.Equal(t, expect, rev)
 }
 
 func TestCIPDChild_GetRevision(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	c := &CIPDChild{
 		client: mockCipdClient,
@@ -188,7 +191,7 @@ func TestCIPDChild_GetRevision(t *testing.T) {
 	}
 	ctx := context.Background()
 	ts := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
@@ -213,20 +216,20 @@ func TestCIPDChild_GetRevision(t *testing.T) {
 	rev, err := c.GetRevision(ctx, instanceID)
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
-		Id:     instanceID,
-		Author: "me@google.com",
+		Id:       instanceID,
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
-		Display:     "instanceID1234567...",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Display:     "8ECbL8K2HVu1GGLRM...",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}, rev)
 }
 
 func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
 	ctx := context.Background()
@@ -252,7 +255,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	gitRevision := "abcde12345abcde12345abcde12345abcde12345"
 	gitTs := time.Unix(1615384887, 0)
 	cipdTs := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := gitRevTag(gitRevision)
 	gitRev := &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
@@ -297,6 +300,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:          instanceTag,
+		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
 		Description: gitRev.Subject,
@@ -307,7 +311,6 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 }
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	ctx := context.Background()
 
@@ -319,7 +322,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 	}
 
 	ts := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := "version:5"
 
 	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag).Return(nil, errors.New("No such instance"))
@@ -354,20 +357,20 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 	rev, err := c.GetRevision(ctx, instanceID)
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
-		Id:     "version:5",
-		Author: "me@google.com",
+		Id:       "version:5",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 		Display:     "5",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}, rev)
 }
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	ctx := context.Background()
 
@@ -380,7 +383,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 	}
 
 	ts := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := "version:5"
 
 	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag).Return(nil, errors.New("No such instance"))
@@ -415,20 +418,20 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 	rev, err := c.GetRevision(ctx, instanceID)
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
-		Id:     "5",
-		Author: "me@google.com",
+		Id:       "5",
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 		Display:     "5",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}, rev)
 }
 
 func TestCIPDChild_Update(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	c := &CIPDChild{
 		client: mockCipdClient,
@@ -437,7 +440,7 @@ func TestCIPDChild_Update(t *testing.T) {
 	}
 	ctx := context.Background()
 	ts := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag).Return(common.Pin{
 		PackageName: c.name,
 		InstanceID:  instanceID,
@@ -470,29 +473,29 @@ func TestCIPDChild_Update(t *testing.T) {
 			"skia": {"12345"},
 		},
 		Description: "some/package:instanceID_lastRollRev",
-		Display:     "instanceID1234567...",
+		Display:     "8ECbL8K2HVu1GGLRM...",
 		Timestamp:   ts,
 		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID_lastRollRev",
 	}
 	nextRollRev, notRolledRevs, err := c.Update(ctx, lastRollRev)
 	require.NoError(t, err)
 	expectRev := &revision.Revision{
-		Id:     instanceID,
-		Author: "me@google.com",
+		Id:       instanceID,
+		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
 		},
-		Description: "some/package:instanceID12345678901234567890",
-		Display:     "instanceID1234567...",
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Display:     "8ECbL8K2HVu1GGLRM...",
 		Timestamp:   ts,
-		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID12345678901234567890",
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
 	}
 	require.Equal(t, expectRev, nextRollRev)
 	require.Equal(t, []*revision.Revision{expectRev}, notRolledRevs)
 }
 
 func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
-
 	mockCipdClient := &mocks.CIPDClient{}
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
 	ctx := context.Background()
@@ -518,7 +521,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	gitRevision := "abcde12345abcde12345abcde12345abcde12345"
 	gitTs := time.Unix(1615384887, 0)
 	cipdTs := time.Unix(1615384545, 0)
-	instanceID := "instanceID12345678901234567890"
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := gitRevTag(gitRevision)
 	tipCommit := &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
@@ -600,6 +603,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	require.NoError(t, err)
 	expectNextRollRev := &revision.Revision{
 		Id:          instanceTag,
+		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
 		Description: tipCommit.Subject,
@@ -609,6 +613,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	}
 	expectMiddleRevA := &revision.Revision{
 		Id:            gitRevTag(middleCommitA.Hash),
+		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
 		Description:   middleCommitA.Subject,
@@ -619,6 +624,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	}
 	expectMiddleRevB := &revision.Revision{
 		Id:            gitRevTag(middleCommitB.Hash),
+		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
 		Description:   middleCommitB.Subject,

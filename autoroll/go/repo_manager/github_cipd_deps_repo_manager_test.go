@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/bazel/go/bazel"
+	skia_cipd "go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/depot_tools"
@@ -42,9 +43,9 @@ const (
 	githubCIPDAssetTag      = "latest"
 	githubCIPDUser          = "aquaman@ocean.com"
 
-	githubCIPDLastRolled = "xyz12345678901234567890"
-	githubCipdNotRolled1 = "abc12345678901234567890"
-	githubCipdNotRolled2 = "def12345678901234567890"
+	githubCIPDLastRolled = "JjDIbkEZazDjPWqx9FqSWk35c9JgwgnZhhlJKPrZEKUC"
+	githubCipdNotRolled1 = "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
+	githubCipdNotRolled2 = "gb2y-TistwfVcJ1cqOWQpdHpN23OWVTBcJwAr8ziI04C"
 )
 
 var (
@@ -331,8 +332,11 @@ func TestGithubCipdDEPSRepoManagerGetRevision(t *testing.T) {
 	}
 
 	getExpect := func(id string) *revision.Revision {
+		sha256, err := skia_cipd.InstanceIDToSha256(id)
+		require.NoError(t, err)
 		return &revision.Revision{
 			Id:          id,
+			Checksum:    sha256,
 			Author:      githubCIPDUser,
 			Description: fmt.Sprintf("%s:%s", githubCIPDAssetName, id),
 			Display:     id[:17] + "...",

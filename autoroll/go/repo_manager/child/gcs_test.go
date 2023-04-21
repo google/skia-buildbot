@@ -2,6 +2,7 @@ package child
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"path"
 	"regexp"
@@ -32,9 +33,11 @@ var (
 	revisionIDRegex = regexp.MustCompile(`path/to/([0-9a-z_-]+)/.*`)
 	shortRevRegex   = regexp.MustCompile(`(\d+-\d+)-.*`)
 	updatedTs       = time.Unix(1650378340, 0)
+	fakeMD5         = "abc123"
 
 	expectRevision_regex = &revision.Revision{
 		Id:        revisionID_regex,
+		Checksum:  fakeMD5,
 		Author:    owner,
 		Display:   shortRev,
 		Timestamp: updatedTs,
@@ -42,6 +45,7 @@ var (
 	}
 	expectRevision_basename = &revision.Revision{
 		Id:        revisionID_basename,
+		Checksum:  fakeMD5,
 		Author:    owner,
 		Display:   shortRev,
 		Timestamp: updatedTs,
@@ -52,15 +56,25 @@ var (
 		Name:      gcsPath_regex,
 		Owner:     owner,
 		Updated:   updatedTs,
+		MD5:       mustDecodeHex(fakeMD5),
 		MediaLink: url_regex,
 	}
 	objectAttrs_basename = &storage.ObjectAttrs{
 		Name:      gcsPath_basename,
 		Owner:     owner,
 		Updated:   updatedTs,
+		MD5:       mustDecodeHex(fakeMD5),
 		MediaLink: url_basename,
 	}
 )
+
+func mustDecodeHex(str string) []byte {
+	rv, err := hex.DecodeString(str)
+	if err != nil {
+		panic(err)
+	}
+	return rv
+}
 
 func getShortRev(revID string) string {
 	matches := shortRevRegex.FindStringSubmatch(revID)
@@ -71,7 +85,6 @@ func getShortRev(revID string) string {
 }
 
 func TestGCSChild_ObjectAttrsToRevision_Regex(t *testing.T) {
-
 	c := &gcsChild{
 		revisionIDRegex: revisionIDRegex,
 		shortRev:        getShortRev,
@@ -82,7 +95,6 @@ func TestGCSChild_ObjectAttrsToRevision_Regex(t *testing.T) {
 }
 
 func TestGCSChild_ObjectAttrsToRevision_Basename(t *testing.T) {
-
 	c := &gcsChild{
 		revisionIDRegex: nil, // No revision ID regex; just use the basename.
 		shortRev:        getShortRev,
@@ -93,7 +105,6 @@ func TestGCSChild_ObjectAttrsToRevision_Basename(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Regex(t *testing.T) {
-
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
 		gcs:             mockGCS,
@@ -119,7 +130,6 @@ func TestGCSChild_GetRevision_Regex(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Basename(t *testing.T) {
-
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
 		gcs:      mockGCS,
@@ -156,7 +166,6 @@ func (v *testGcsVersion) Id() string {
 }
 
 func TestGCSChild_Update_Regex(t *testing.T) {
-
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
 		gcs:             mockGCS,
@@ -190,7 +199,6 @@ func TestGCSChild_Update_Regex(t *testing.T) {
 }
 
 func TestGCSChild_Update_Basename(t *testing.T) {
-
 	mockGCS := &test_gcsclient.GCSClient{}
 	c := &gcsChild{
 		gcs:           mockGCS,

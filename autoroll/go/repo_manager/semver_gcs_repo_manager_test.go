@@ -373,9 +373,10 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	expect := &revision.Revision{
-		Id:      "BOGUS_REV",
-		Display: "BOGUS_REV",
-		URL:     "https://storage.googleapis.com/storage/v1/b/chromeos-prebuilt/o/afdo-job%2Fllvm%2FBOGUS_REV?alt=json&prettyPrint=false&projection=full",
+		Id:       "BOGUS_REV",
+		Checksum: "76c69f92576495db1a",
+		Display:  "BOGUS_REV",
+		URL:      "https://storage.googleapis.com/storage/v1/b/chromeos-prebuilt/o/afdo-job%2Fllvm%2FBOGUS_REV?alt=json&prettyPrint=false&projection=full",
 	}
 	expect.Timestamp = lastRollRev.Timestamp
 	assertdeep.Equal(t, expect, lastRollRev)

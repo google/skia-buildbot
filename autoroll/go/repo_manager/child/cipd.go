@@ -105,17 +105,22 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			return nil, skerr.Wrap(err)
 		}
 	}
-	rev := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag, c.revisionIdTagStripKey)
+	rev, err := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag, c.revisionIdTagStripKey)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	if c.gitRepo != nil {
 		gitRevision := getGitRevisionFromCIPDInstance(instance)
 		if gitRevision == "" {
 			rev.InvalidReason = "No git_revision tag"
 		} else {
-			rev, err = c.gitRepo.GetRevision(ctx, gitRevision)
+			gitRev, err := c.gitRepo.GetRevision(ctx, gitRevision)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, gitRevision)
+			gitRev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, gitRevision)
+			gitRev.Checksum = rev.Checksum
+			return gitRev, nil
 		}
 	}
 	return rev, nil
@@ -160,7 +165,12 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 
 			// Make in-between revisions invalid, since we only have CIPD
 			// package instances associated with lastRollRev and tipRev.
-			if rev.Id != lastRollRev.Id && rev.Id != tipRev.Id {
+			if rev.Id == lastRollRev.Id {
+				rev.Checksum = lastRollRev.Checksum
+			} else if rev.Id == tipRev.Id {
+				rev.Checksum = tipRev.Checksum
+			} else {
+				rev.Checksum = ""
 				rev.InvalidReason = "No associated CIPD package."
 			}
 		}
@@ -179,6 +189,9 @@ func (c *CIPDChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, er
 		InstanceID:  rev.Id,
 	}
 	dest, err := filepath.Rel(c.root, fs.Dir())
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	if err := c.client.FetchAndDeployInstance(ctx, dest, pin, 0); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -198,9 +211,14 @@ type cipdDetailsLine struct {
 
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription, revisionIdTag string, revisionIdTagStripKey bool) *revision.Revision {
+func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription, revisionIdTag string, revisionIdTagStripKey bool) (*revision.Revision, error) {
+	sha256, err := cipd.InstanceIDToSha256(instance.Pin.InstanceID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
+		Checksum:    sha256,
 		Author:      instance.RegisteredBy,
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
@@ -278,7 +296,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription,
 			}
 		}
 	}
-	return rev
+	return rev, nil
 }
 
 // getGitRevisionFromCIPDInstance retrieves the git_revision tag from the given

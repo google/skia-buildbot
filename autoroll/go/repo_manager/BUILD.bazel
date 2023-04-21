@@ -67,6 +67,7 @@ go_test(
         "//bazel/external/cipd/git",
         "//bazel/go/bazel",
         "//go/chrome_branch/mocks",
+        "//go/cipd",
         "//go/cipd/mocks",
         "//go/common",
         "//go/deepequal/assertdeep",
