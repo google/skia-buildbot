@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "bazel",
+    srcs = ["parse.go"],
+    importpath = "go.skia.org/infra/go/bazel",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_go_python_gpython//ast",
+        "@com_github_go_python_gpython//parser",
+    ],
+)
+
+go_test(
+    name = "bazel_test",
+    srcs = ["parse_test.go"],
+    embed = [":bazel"],
+    deps = [
+        "@com_github_go_python_gpython//ast",
+        "@com_github_stretchr_testify//require",
+    ],
+)
