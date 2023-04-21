@@ -292,13 +292,9 @@ rbe_exec_properties(
 # Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
 container_pull(
     name = "container_pull_skia_wasm",
+    digest = "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
     registry = "gcr.io",
     repository = "skia-public/skia-wasm-release",
-    # The container_pull documentation[1] recommends specifying a digest (via the "digest" argument)
-    # for reproducible builds. Specifying "head" ends up not working well because of Bazel caching.
-    # We should only need to update this if CanvasKit adds new APIs that are depended on by
-    # our webapps, and that is not too often.
-    tag = "2508d582b5b68029f03b61b7103b3140f95bd071",
 )
 
 # This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
