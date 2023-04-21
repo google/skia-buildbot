@@ -60,6 +60,7 @@ type MockDialogue struct {
 	requestMethod  string
 	requestType    string
 	requestPayload []byte
+	requestHeaders map[string][]string
 
 	responseStatus  string
 	responseCode    int
@@ -75,9 +76,24 @@ func (md *MockDialogue) ResponseHeader(key, value string) {
 	md.responseHeaders[key] = append(md.responseHeaders[key], value)
 }
 
+// RequestHeader adds the given header to the request.
+func (md *MockDialogue) RequestHeader(key, value string) {
+	if md.requestHeaders == nil {
+		md.requestHeaders = map[string][]string{}
+	}
+	md.requestHeaders[key] = append(md.requestHeaders[key], value)
+}
+
 func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 	if md.requestMethod != r.Method {
 		return nil, fmt.Errorf("Wrong Method, expected %q, but was %q", md.requestMethod, r.Method)
+	}
+	for key, vals := range md.requestHeaders {
+		for _, val := range vals {
+			if !util.In(val, r.Header[key]) {
+				return nil, fmt.Errorf("Request does not include header \"%s: %s\"", key, val)
+			}
+		}
 	}
 	if md.requestPayload == nil {
 		if r.Body != nil {

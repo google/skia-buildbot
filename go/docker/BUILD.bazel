@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "docker",
+    srcs = ["docker.go"],
+    importpath = "go.skia.org/infra/go/docker",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "docker_test",
+    srcs = ["docker_test.go"],
+    embed = [":docker"],
+    deps = [
+        "//go/mockhttpclient",
+        "@com_github_stretchr_testify//require",
+    ],
+)
