@@ -1,6 +1,6 @@
 # auth-proxy Production Manual
 
-First make sure you are familiar with the design of alert-manager by reading the
+First make sure you are familiar with the design of auth-proxy by reading the
 [DESIGN](http://go/auth-proxy) doc.
 
 # Alerts
