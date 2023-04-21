@@ -9,6 +9,13 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+// IsBazelFile returns true if the filename looks like a Bazel file.
+func IsBazelFile(file string) bool {
+	return strings.HasSuffix(file, "WORKSPACE") ||
+		strings.HasSuffix(file, ".bazel") ||
+		strings.HasSuffix(file, ".bzl")
+}
+
 // DependencyID represents the unique identifier for a dependency.
 type DependencyID string
 
@@ -62,6 +69,10 @@ func GetDep(content string, dep DependencyID) (Dependency, error) {
 // SetDep parses the file contents, updates the version of the given
 // dependency, and returns the new file contents or any error that occurred.
 func SetDep(content string, id DependencyID, version, sha256 string) (string, error) {
+	if version == "" || sha256 == "" {
+		return "", skerr.Fmt("version and sha256 are required")
+	}
+
 	// Parse the file content.
 	entries, err := ParseDeps(content)
 	if err != nil {

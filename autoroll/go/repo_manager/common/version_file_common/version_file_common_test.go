@@ -85,7 +85,7 @@ func TestSetPinnedRev(t *testing.T) {
 		depId               string
 		versionFilePath     string
 		versionFileContents string
-		newRev              string
+		newRev              *revision.Revision
 		expectNewContents   string
 	}
 	for _, c := range []tc{
@@ -96,7 +96,9 @@ func TestSetPinnedRev(t *testing.T) {
 			versionFileContents: `deps = {
 				"my-dep-path": "my-dep@old-rev",
 			}`,
-			newRev: "new-rev",
+			newRev: &revision.Revision{
+				Id: "new-rev",
+			},
 			expectNewContents: `deps = {
 				"my-dep-path": "my-dep@new-rev",
 			}`,
@@ -108,8 +110,37 @@ func TestSetPinnedRev(t *testing.T) {
 			versionFileContents: `  old-rev
 
 			`,
-			newRev: "new-rev",
+			newRev: &revision.Revision{
+				Id: "new-rev",
+			},
 			expectNewContents: `new-rev
+`,
+		},
+		{
+			name:            "BazelFile",
+			depId:           "infra/3pp/tools/git/linux-amd64",
+			versionFilePath: "WORKSPACE",
+			versionFileContents: `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    tag = "version:2.29.2.chromium.6",
+)
+`,
+			newRev: &revision.Revision{
+				Id:       "version:2.30.1.chromium.7",
+				Checksum: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			},
+			expectNewContents: `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    sha256 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    tag = "version:2.30.1.chromium.7",
+)
 `,
 		},
 	} {
@@ -131,7 +162,7 @@ func TestUpdateSingleDep(t *testing.T) {
 		depId               string
 		versionFilePath     string
 		versionFileContents string
-		newRev              string
+		newRev              *revision.Revision
 		expectOldRev        string
 		expectNewContents   string
 	}
@@ -143,7 +174,9 @@ func TestUpdateSingleDep(t *testing.T) {
 			versionFileContents: `deps = {
 				"my-dep-path": "my-dep@old-rev",
 			}`,
-			newRev:       "new-rev",
+			newRev: &revision.Revision{
+				Id: "new-rev",
+			},
 			expectOldRev: "old-rev",
 			expectNewContents: `deps = {
 				"my-dep-path": "my-dep@new-rev",
@@ -155,7 +188,9 @@ func TestUpdateSingleDep(t *testing.T) {
 			versionFilePath: "some/other/file",
 			versionFileContents: `old-rev
 `,
-			newRev:       "new-rev",
+			newRev: &revision.Revision{
+				Id: "new-rev",
+			},
 			expectOldRev: "old-rev",
 			expectNewContents: `new-rev
 `,

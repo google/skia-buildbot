@@ -10,6 +10,7 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/repo_manager/common/pyl",
         "//autoroll/go/revision",
+        "//go/bazel",
         "//go/depot_tools/deps_parser",
         "//go/skerr",
     ],

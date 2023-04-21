@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/pyl"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/bazel"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/skerr"
 )
@@ -48,6 +49,12 @@ func GetPinnedRev(dep *config.VersionFileConfig, contents string) (string, error
 		return depsEntry.Version, nil
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
 		return pyl.Get(contents, dep.Id)
+	} else if bazel.IsBazelFile(dep.Path) {
+		entry, err := bazel.GetDep(contents, bazel.DependencyID(dep.Id))
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return entry.Version, nil
 	} else {
 		return strings.TrimSpace(contents), nil
 	}
@@ -81,7 +88,7 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 
 // SetPinnedRev updates the given dependency pin in the given file, returning
 // the new contents.
-func SetPinnedRev(dep *config.VersionFileConfig, newVersion, oldContents string) (string, error) {
+func SetPinnedRev(dep *config.VersionFileConfig, newRev *revision.Revision, oldContents string) (string, error) {
 	if dep.Regex != "" {
 		fullMatch, oldVersion, err := getUsingRegex(dep, oldContents)
 		if err != nil {
@@ -90,18 +97,24 @@ func SetPinnedRev(dep *config.VersionFileConfig, newVersion, oldContents string)
 		// Replace the full string matched by the regex instead of just the
 		// revision ID itself, in case the same string appears more than once in
 		// the file.
-		repl := strings.Replace(fullMatch, oldVersion, newVersion, 1)
+		repl := strings.Replace(fullMatch, oldVersion, newRev.Id, 1)
 		newContents := strings.Replace(oldContents, fullMatch, repl, 1)
 		return newContents, nil
 	} else if dep.Path == deps_parser.DepsFileName {
-		newContents, err := deps_parser.SetDep(oldContents, dep.Id, newVersion)
+		newContents, err := deps_parser.SetDep(oldContents, dep.Id, newRev.Id)
 		return newContents, skerr.Wrap(err)
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
-		return pyl.Set(oldContents, dep.Id, newVersion)
+		return pyl.Set(oldContents, dep.Id, newRev.Id)
+	} else if bazel.IsBazelFile(dep.Path) {
+		newContents, err := bazel.SetDep(oldContents, bazel.DependencyID(dep.Id), newRev.Id, newRev.Checksum)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return newContents, nil
 	} else {
 		// Various tools expect a newline at the end of the file.
 		// TODO(borenet): This should probably be configurable.
-		return newVersion + "\n", nil
+		return newRev.Id + "\n", nil
 	}
 }
 
@@ -110,7 +123,7 @@ type GetFileFunc func(ctx context.Context, path string) (string, error)
 
 // updateSingleDep updates the dependency in the given file, writing the new
 // contents into the changes map and returning the previous version.
-func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVersion string, changes map[string]string, getFile GetFileFunc) (string, error) {
+func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newRev *revision.Revision, changes map[string]string, getFile GetFileFunc) (string, error) {
 	// Look up the path in our changes map to prevent overwriting
 	// modifications we've already made.
 	oldContents, ok := changes[dep.Path]
@@ -129,13 +142,13 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVers
 	}
 
 	// Create the new file content.
-	if newVersion != oldVersion {
-		newContents, err := SetPinnedRev(dep, newVersion, oldContents)
+	if newRev.Id != oldVersion {
+		newContents, err := SetPinnedRev(dep, newRev, oldContents)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		if newContents == oldContents {
-			return "", skerr.Fmt("Failed to update dependency %s from %s to %s in %s; new contents identical to old contents:\n%s", dep.Id, oldVersion, newVersion, dep.Path, oldContents)
+			return "", skerr.Fmt("Failed to update dependency %s from %s to %s in %s; new contents identical to old contents:\n%s", dep.Id, oldVersion, newRev.Id, dep.Path, oldContents)
 		}
 		changes[dep.Path] = newContents
 	}
@@ -149,7 +162,7 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVers
 func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *revision.Revision, getFile GetFileFunc) (map[string]string, error) {
 	// Update the primary dependency.
 	changes := make(map[string]string, 1+len(primaryDep.Transitive))
-	oldRev, err := updateSingleDep(ctx, primaryDep.Primary, rev.Id, changes, getFile)
+	oldRev, err := updateSingleDep(ctx, primaryDep.Primary, rev, changes, getFile)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -166,7 +179,7 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 				return nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.Child.Id, rev)
 			}
 			// Update.
-			oldRev, err := updateSingleDep(ctx, dep.Parent, newRev, changes, getFile)
+			oldRev, err := updateSingleDep(ctx, dep.Parent, &revision.Revision{Id: newRev}, changes, getFile)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
