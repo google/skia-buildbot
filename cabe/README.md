@@ -13,11 +13,35 @@ See the [Design Doc](http://go/cabe-rpc).
 
 ## Running locally
 
+To start the server, in one terminal run:
+
 ```
 bazelisk run //cabe/go/cabeserver
 ```
 
+This should start the gRPC service and print out some log messages
+including the port that server is listening on. Currently, the
+default is `50051` though you can specify it (and other flags) like
+so:
+
+```
+bazelisk run //cabe/go/cabeserver -- -grpc_port <some other port>
+```
+
+Once the server process has started, you should be able to use
+[grpcurl](https://github.com/fullstorydev/grpcurl) to make calls to it
+on your workstation. For example:
+
+```
+grpcurl -vv -plaintext 127.0.0.1:50051 cabe.proto.Analysis/GetAnalysis
+```
+
 ## Running locally with local auth-proxy
+
+Hopefully you will never need to do this, but just in case you need
+to debug problems with authentication or authorization here's how
+to run skia's `auth-proxy` in front of `cabe`, both running on your
+workstation.
 
 In one terminal, run auth-proxy:
 
