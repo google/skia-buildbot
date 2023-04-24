@@ -87,5 +87,6 @@
         "None",
       ],
     },
+    "chrome-gpu-gtest": {}, // Everything public for this corpus
   },
 }
