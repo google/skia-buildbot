@@ -161,7 +161,7 @@ func parseCall(call *ast.Call) (Dependency, bool, error) {
 	if parseFn != nil {
 		dep, err := parseFn(call)
 		if err != nil {
-			return Dependency{}, false, skerr.Wrap(err)
+			return Dependency{}, false, skerr.Wrapf(err, "parsing %q call at line %d", funcName, call.Func.(*ast.Name).Lineno)
 		}
 		return dep, true, nil
 	}
