@@ -241,9 +241,11 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Sync only the child path and the repohooks directory (needed to upload changes).
-	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"}
+	const repoHooksDir = "tools/repohooks"
+	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, repoHooksDir, "-j32"}
 	if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
 		sklog.Warningf("repo sync error: %s", err)
+
 		// Try deleting childDir and re-syncing (skbug.com/12955).
 		if err := os.RemoveAll(r.childDir); err != nil {
 			return skerr.Wrapf(err, "Could not delete %s before attempting a resync", r.childDir)
@@ -251,17 +253,26 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 		sklog.Info("Retrying sync after deleting %s", r.childDir)
 		if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
 			sklog.Warningf("repo sync error after deleting %s: %s", r.childDir, err)
-			// Try deleting .repo in the workdir and re-initing and re-syncing (skbug.com/12146).
-			repoDirPath := path.Join(r.workdir, ".repo")
-			if err := os.RemoveAll(repoDirPath); err != nil {
-				return skerr.Wrapf(err, "Could not delete %s before attempting a resync", repoDirPath)
+
+			// Try deleting tools/repohooks and re-syncing (skbug.com/12955).
+			if err := os.RemoveAll(path.Join(r.workdir, repoHooksDir)); err != nil {
+				return skerr.Wrapf(err, "Could not delete %s before attempting a resync", repoHooksDir)
 			}
-			if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
-				return err
-			}
-			sklog.Info("Retrying sync after deleting %s", repoDirPath)
 			if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
-				return err
+				sklog.Warningf("repo sync error after deleting %s: %s", repoHooksDir, err)
+
+				// Try deleting .repo in the workdir and re-initing and re-syncing (skbug.com/12146).
+				repoDirPath := path.Join(r.workdir, ".repo")
+				if err := os.RemoveAll(repoDirPath); err != nil {
+					return skerr.Wrapf(err, "Could not delete %s before attempting a resync", repoDirPath)
+				}
+				if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
+					return err
+				}
+				sklog.Info("Retrying sync after deleting %s", repoDirPath)
+				if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
+					return err
+				}
 			}
 		}
 	}
