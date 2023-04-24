@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Gold Help</title>
+    <title>{{.Title}} Help</title>
     <link rel="shortcut icon" href="/dist/favicon.ico" />
+    <script>
+      window.GoldSettings = {{.GoldSettings}};
+    </script>
   </head>
   <body class="body-sk">
     <gold-scaffold-sk>

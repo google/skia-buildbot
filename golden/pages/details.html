@@ -4,11 +4,7 @@
     <title>{{.Title}} Details Page</title>
     <link rel="shortcut icon" href="/dist/favicon.ico" />
     <script>
-      window.GoldSettings = {
-        title: '{{.Title}}',
-        defaultCorpus: '{{.DefaultCorpus}}',
-        baseRepoURL: '{{.BaseRepoURL}}',
-      };
+      window.GoldSettings = {{.GoldSettings}};
     </script>
   </head>
   <body class="body-sk">

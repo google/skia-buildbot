@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -468,6 +469,11 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 	fsc.FrontendConfig.BaseRepoURL = fsc.GitRepoURL
 	fsc.FrontendConfig.IsPublic = fsc.IsPublicView
 
+	frontendConfigBytes, err := json.Marshal(fsc.FrontendConfig)
+	if err != nil {
+		sklog.Error("Failed to marshal frontend config to JSON: %s", err)
+	}
+
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
@@ -476,7 +482,15 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 			if fsc.Local {
 				loadTemplates()
 			}
-			if err := templates.ExecuteTemplate(w, name, fsc.FrontendConfig); err != nil {
+
+			templateData := struct {
+				Title        string
+				GoldSettings template.JS
+			}{
+				Title:        fsc.FrontendConfig.Title,
+				GoldSettings: template.JS(frontendConfigBytes),
+			}
+			if err := templates.ExecuteTemplate(w, name, templateData); err != nil {
 				sklog.Errorf("Failed to expand template %s : %s", name, err)
 				return
 			}
