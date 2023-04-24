@@ -18,6 +18,7 @@ go_library(
         "//go/util",
         "@com_github_gorilla_securecookie//:securecookie",
         "@org_golang_google_api//oauth2/v2:oauth2",
+        "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
     ],

@@ -102,7 +102,9 @@ func main() {
 
 	router := mux.NewRouter()
 	if !*local && *dologin {
-		err := login.Init(login.DefaultRedirectURL,
+		ctx := context.Background()
+		err := login.Init(ctx,
+			login.DefaultRedirectURL,
 			"", /* Empty means accept all signed in domain. */
 			"", /* Get secrets from Secret Manager*/
 		)
