@@ -47,7 +47,7 @@ const (
 	jobsJSONFile                 = "infra/bots/jobs.json"
 	tasksJSONFile                = "infra/bots/tasks.json"
 	cqJSONFile                   = "infra/skcq.json"
-	releaseNotesFile             = "RELEASE_NOTES.txt"
+	releaseNotesFile             = "RELEASE_NOTES.md"
 	releaseNotesDir              = "relnotes"
 )
 
@@ -173,13 +173,13 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 		}
 	}
 	if currentChromeMilestone != -1 {
-		fmt.Println("Merging release notes into RELEASE_NOTES.txt")
+		fmt.Printf("Merging release notes into %s\n", releaseNotesFile)
 		ci, err := mergeReleaseNotes(ctx, g, repo, updateTryjobCI.ChangeId, currentChromeMilestone, newBranch, reviewers)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		fmt.Printf("Creating CL to cherry-pick RELEASE_NOTES.txt change in %s back to %s\n",
-			newBranch, git_common.MainBranch)
+		fmt.Printf("Creating CL to cherry-pick %s change in %s back to %s\n",
+			releaseNotesFile, newBranch, git_common.MainBranch)
 		if err := cherryPickChangeToBranch(ctx, g, ci, git_common.MainBranch, reviewers); err != nil {
 			return skerr.Wrapf(err, "Error cherry-picking back to main")
 		}
@@ -276,7 +276,7 @@ func cherryPickChangeToBranch(ctx context.Context, g gerrit.GerritInterface, ci 
 }
 
 // mergeReleaseNotes merges all individual release notes, which are in
-// individual files, into RELEASE_NOTES.txt. The merged notes are then removed.
+// individual files, into RELEASE_NOTES.md. The merged notes are then removed.
 // This will create a dependent CL that is based upon another which is identified
 // by |baseChangeID|.
 func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitiles.GitilesRepo,

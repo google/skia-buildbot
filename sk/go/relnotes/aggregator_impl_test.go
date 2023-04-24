@@ -361,7 +361,7 @@ Milestone 113
   * Third item
 `
 	f3 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f3, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f3, nil)
 	f3.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, currentReleaseNotes)
@@ -369,7 +369,7 @@ Milestone 113
 	f3.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.txt", "relnotes")
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.md", "relnotes")
 	assert.NoError(t, err)
 
 	const expectedReleaseNotes = `Skia Graphics Release Notes
@@ -463,7 +463,7 @@ Milestone 112
   * Three
 `
 	f3 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f3, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f3, nil)
 	f3.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, currentReleaseNotes)
@@ -471,7 +471,7 @@ Milestone 112
 	f3.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	newNotes, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.txt", "relnotes")
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.md", "relnotes")
 	assert.NoError(t, err)
 
 	const expectedReleaseNotes = `Skia Graphics Release Notes
@@ -518,7 +518,7 @@ Milestone 109
 `
 	fs := vfs_mocks.NewFS(t)
 	f1 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f1, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
 	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, currentReleaseNotes)
@@ -528,7 +528,7 @@ Milestone 109
 	aggregator := NewAggregator()
 	// Aggregate can handle existing milestones 111 or 112, but no others and
 	// should fail
-	_, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.txt", "relnotes")
+	_, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.md", "relnotes")
 	assert.Error(t, err)
 }
 
@@ -549,7 +549,7 @@ Milestone 114
 	dir.On("Close", testutils.AnyContext).Return(nil)
 
 	f1 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f1, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
 	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, relNotes)
@@ -557,7 +557,7 @@ Milestone 114
 	f1.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	notes, err := aggregator.Aggregate(context.Background(), fs, 114, "RELEASE_NOTES.txt", "relnotes")
+	notes, err := aggregator.Aggregate(context.Background(), fs, 114, "RELEASE_NOTES.md", "relnotes")
 	require.Error(t, err)
 	require.Nil(t, notes)
 }
@@ -566,7 +566,7 @@ func TestAggregate_NoMilestone_ReturnsError(t *testing.T) {
 	const relNotes = "File with no existing milestone section."
 	fs := vfs_mocks.NewFS(t)
 	f1 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f1, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
 	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, relNotes)
@@ -574,7 +574,7 @@ func TestAggregate_NoMilestone_ReturnsError(t *testing.T) {
 	f1.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	notes, err := aggregator.Aggregate(context.Background(), fs, 1, "RELEASE_NOTES.txt", "relnotes")
+	notes, err := aggregator.Aggregate(context.Background(), fs, 1, "RELEASE_NOTES.md", "relnotes")
 	require.Error(t, err)
 	require.Nil(t, notes)
 }
@@ -582,12 +582,12 @@ func TestAggregate_NoMilestone_ReturnsError(t *testing.T) {
 func TestAggregate_ReadFileFails_ReturnsError(t *testing.T) {
 	fs := vfs_mocks.NewFS(t)
 	f1 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f1, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
 	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Return(0, skerr.Fmt("Read failure"))
 	f1.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	notes, err := aggregator.Aggregate(context.Background(), fs, 1, "RELEASE_NOTES.txt", "relnotes")
+	notes, err := aggregator.Aggregate(context.Background(), fs, 1, "RELEASE_NOTES.md", "relnotes")
 	require.Error(t, err)
 	require.Nil(t, notes)
 }

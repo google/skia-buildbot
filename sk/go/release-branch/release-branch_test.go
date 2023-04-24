@@ -54,7 +54,7 @@ Milestone 113
   * Second item
   * Third item
 `
-		commitMessage = "Merge 2 release notes into RELEASE_NOTES.txt"
+		commitMessage = "Merge 2 release notes into RELEASE_NOTES.md"
 	)
 
 	firstNote := []byte("The first change.")
@@ -131,7 +131,7 @@ Milestone 113
 	f2.On("Close", testutils.AnyContext).Return(nil)
 
 	f3 := vfs_mocks.NewFile(t)
-	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.txt").Once().Return(f3, nil)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f3, nil)
 	f3.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, currentMilestoneReleaseNotes)
@@ -146,7 +146,7 @@ Milestone 113
 	g := gerrit_mocks.NewGerritInterface(t)
 	g.On("CreateChange", ctx, "skia", "refs/heads/chrome/m114", commitMessage,
 		"", "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c").Once().Return(&ci, nil)
-	g.On("EditFile", ctx, mock.Anything, "RELEASE_NOTES.txt",
+	g.On("EditFile", ctx, mock.Anything, "RELEASE_NOTES.md",
 		newMilestoneReleaseNotes).Once().Return(nil)
 	g.On("DeleteFile", ctx, mock.Anything, "relnotes/first.md").Once().Return(nil)
 	g.On("DeleteFile", ctx, mock.Anything, "relnotes/second.md").Once().Return(nil)
@@ -164,7 +164,7 @@ func TestCreateCherryPickMessage(t *testing.T) {
 		ChangeId: "I1234567890123456789012345678901234567890",
 		Project:  "skia",
 		Branch:   "chrome/m114",
-		Subject: `Merge 2 release notes into RELEASE_NOTES.txt
+		Subject: `Merge 2 release notes into RELEASE_NOTES.md
 
 Change-Id: I1234567890123456789012345678901234567890`,
 		Id:    "myProject~chrome/m114~I1234567890123456789012345678901234567890",
@@ -182,7 +182,7 @@ Change-Id: I1234567890123456789012345678901234567890`,
 		WorkInProgress: true,
 	}
 
-	const expectedMsg = `Merge 2 release notes into RELEASE_NOTES.txt
+	const expectedMsg = `Merge 2 release notes into RELEASE_NOTES.md
 
 Change-Id: I1234567890123456789012345678901234567890
 

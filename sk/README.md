@@ -26,8 +26,8 @@ makes no permanent changes. It does the following:
 4. Creates a CL to remove the M-4 branch from the CQ in the **M-4** branch.
    Example: http://review.skia.org/661361
 5. Creates a CL to merge individual release notes into the top level
-   RELEASE_NOTES.txt file in the **new milestone** branch.
-6. Creates a CL to cherry-pick the RELEASE_NOTES.txt merge into the **main
+   RELEASE_NOTES.md file in the **new milestone** branch.
+6. Creates a CL to cherry-pick the RELEASE_NOTES.md merge into the **main
    branch**.
 
 ### Running `release-branch`
