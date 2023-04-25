@@ -3600,6 +3600,10 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		}
 	}
 
+	if s.isPublicView {
+		stageOneResults = s.applyPublicFilterToStageOneResults(stageOneResults)
+	}
+
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
 	stageTwoResults, _, err := s.getClosestDiffs(ctx, stageOneResults)
@@ -3636,6 +3640,22 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		Commits: commits,
 		Result:  result,
 	}, nil
+}
+
+// applyPublicFilterToStageOneResults filters out any stageOneResults for traces that are not
+// publicly visible.
+func (s *Impl) applyPublicFilterToStageOneResults(results []stageOneResult) []stageOneResult {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	filteredResults := make([]stageOneResult, 0, len(results))
+	var traceKey schema.MD5Hash
+	for _, result := range results {
+		copy(traceKey[:], result.traceID)
+		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+			filteredResults = append(filteredResults, result)
+		}
+	}
+	return filteredResults
 }
 
 // getTracesForGroupingAndDigest finds the traces on the primary branch which produced the given
