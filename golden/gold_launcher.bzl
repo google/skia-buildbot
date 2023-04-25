@@ -36,6 +36,8 @@ cat > config.json5 <<EOF
   prom_port: ":20000",
   ready_port: ":8000",
   resources_path: "$$web_assets_dir",
+  is_public_view: {is_public_view},
+  publicly_allowed_params: {publicly_allowed_params},
 }}
 EOF
 
@@ -101,6 +103,8 @@ def gold_launcher(
         sql_database,
         known_hashes_gcs_path,
         window_size,
+        is_public_view = False,
+        publicly_allowed_params = None,
         grouping_param_keys_by_corpus = None,
         materialized_view_corpora = None):
     """Launches a local gold_frontend instance that talks to a production database.
@@ -122,6 +126,9 @@ def gold_launcher(
         known_hashes_gcs_path: Path to the known hashes GCS file, e.g.
             "skia-infra-gm/hash_files/gold-prod-hashes.txt".
         window_size: Window size, e.g. 256.
+        is_public_view: Whether this is a public mirror of a private instance.
+        publicly_allowed_params: A dictionary from corpora to a dictionary from key names to an
+            array of allowed values.
         materialized_view_corpora: Array with the materialized view corpora, e.g.
             ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"]. Optional.
         grouping_param_keys_by_corpus: A dictionary where the keys are corpus names and the values
@@ -143,6 +150,8 @@ def gold_launcher(
         sql_database = sql_database,
         known_hashes_gcs_path = known_hashes_gcs_path,
         window_size = window_size,
+        is_public_view = "true" if is_public_view else "false",
+        publicly_allowed_params = publicly_allowed_params if publicly_allowed_params else "null",
     )
 
     deps = [

@@ -230,6 +230,105 @@ gold_launcher(
     window_size = 1024,
 )
 
+# Runs a local Gold instance that mirrors http://chrome-public-gold.skia.org. It might have write
+# access to the production CockroachDB database, so please exercise caution.
+#
+# Usage: bazel run //golden:chrome_public_local -- path/to/client_secret.json
+gold_launcher(
+    name = "chrome_public_local",
+    code_review_systems = [
+        {
+            "id": "gerrit",
+            "flavor": "gerrit",
+            "gerrit_url": "https://chromium-review.googlesource.com",
+            "url_template": "https://chromium-review.googlesource.com/%s",
+        },
+        {
+            "id": "gerrit-internal",
+            "flavor": "gerrit",
+            "gerrit_url": "https://chrome-internal-review.googlesource.com",
+            "url_template": "https://chrome-internal-review.googlesource.com/%s",
+        },
+    ],
+    default_corpus = "android-render-tests",
+    gcs_bucket = "skia-gold-chrome",
+    git_repo_url = "https://chromium.googlesource.com/chromium/src",
+    is_public_view = True,
+    known_hashes_gcs_path = "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
+    publicly_allowed_params = {
+        "android-render-tests": {
+            "model": [
+                "Android SDK built for x86",
+                "AOSP on IA Emulator",
+                "Nexus 5",
+                "Nexus 5X",
+                "Nexus 7",
+                "Pixel 2",
+            ],
+            "sdk_version": [
+                "22",
+                "23",
+                "24",
+                "28",
+            ],
+        },
+        "android-vr-render-tests": {},  # Everything public for this corpus
+        "gtest-pixeltests": {},  # Everything public for this corpus
+        "chrome-gpu": {
+            "device_id": [
+                # Set by desktop machines
+                "0x1050",
+                "0x1cb3",
+                "0x2184",
+                "0x3e92",
+                "0x3e9b",
+                "0x5912",
+                "0x6613",
+                "0x679e",
+                "0x6821",
+                "0x699f",
+                "0xa2e",
+                "0xd26",
+                "0xfe9",
+                "0xffff",
+                "None",
+            ],
+            "device_string": [
+                # Set by mobile devices
+                "ANGLE (ARM, Mali-G78, OpenGL ES 3.2 v1.r32p1-00pxl0.b7e5868a59a273f4a9f58d1657ef99de)",
+                "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
+                "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)))",
+                "ANGLE (Google, Vulkan 1.1.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), Google-5.0.0)",
+                "Adreno (TM) 330",
+                "Adreno (TM) 418",
+                "Adreno (TM) 420",
+                "Adreno (TM) 430",
+                "Adreno (TM) 540",
+                "Adreno (TM) 610",
+                "Adreno (TM) 640",
+                "Mali-G52",
+                "Mali-G78",
+                "Mali-T860",
+                "NVIDIA Tegra",
+                "None",
+            ],
+            "vendor_id": [
+                "0x1002",
+                "0x10de",
+                "0x1af4",
+                "0x8086",
+                "0xffff",
+                "None",
+            ],
+        },
+        "chrome-gpu-gtest": {},  # Everything public for this corpus
+    },
+    site_url = "https://chrome-gold.skia.org",
+    sql_database = "chrome",
+    title = "Chrome Public Gold",
+    window_size = 1024,
+)
+
 # Runs a local Gold instance that mirrors http://flutter-gold.skia.org. It might have write access
 # to the production CockroachDB database, so please exercise caution.
 #
