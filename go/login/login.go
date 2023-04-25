@@ -40,9 +40,7 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
-	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -85,20 +83,7 @@ const (
 	// loginSecretProject is the GCP project containing the login secrets.
 	loginSecretProject = "skia-infra-public"
 
-	// idTokenKeyName is the key of the JWT stored in oauth2.Token.Extra that
-	// contains the authenticated users email address.
 	idTokenKeyName = "id_token"
-
-	// validBearerTokenCacheLifetime is how long are valid bearer tokens cached
-	// before requiring they be validated again.
-	//
-	// OAuth2 access tokens expire after an hour, so we'll cache them for the
-	// same duration.
-	validBearerTokenCacheLifetime = time.Hour
-
-	// validBearerTokenCacheCleanup is how often the cache is cleared of expired
-	// bearer tokens.
-	validBearerTokenCacheCleanup = 5 * time.Minute
 )
 
 var (
@@ -209,11 +194,6 @@ var (
 	// activeOAuth2ConfigConstructor can be replaced with a func that returns a
 	// mock OAuthConfig for testing.
 	activeOAuth2ConfigConstructor OAuthConfigConstructor = configConstructor
-
-	// validBearerTokenCache is a TTL cache for bearer tokens that have been
-	// validated, which saves an HTTP round trip for validation for every
-	// request.
-	validBearerTokenCache *ttlcache.Cache
 )
 
 // Session is encrypted and serialized and stored in a user's cookie.
@@ -257,18 +237,6 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 	if err != nil {
 		return skerr.Wrapf(err, "create oauth2 service client")
 	}
-
-	// Create the valid bearer token cache.
-	validBearerTokenCache = ttlcache.New(validBearerTokenCacheLifetime, validBearerTokenCacheCleanup)
-
-	// Report metrics on the cache size.
-	validBearerTokens := metrics2.GetInt64Metric("login_valid_bearer_tokens_in_cache")
-	go func() {
-		for range time.Tick(time.Minute) {
-			validBearerTokens.Update(int64(validBearerTokenCache.ItemCount()))
-		}
-	}()
-
 	for _, opt := range opts {
 		if err := opt.Apply(); err != nil {
 			return skerr.Wrapf(err, "applying option")
@@ -746,6 +714,14 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ForceAuthMiddleware does ForceAuth by returning a func that can be used as
+// middleware.
+func ForceAuthMiddleware(oauthCallbackPath string) func(http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return ForceAuth(h, oauthCallbackPath)
+	}
+}
+
 // ForceAuth is middleware that enforces authentication
 // before the wrapped handler is called. oauthCallbackPath is the
 // URL path that the user is redirected to at the end of the auth flow.
@@ -892,13 +868,10 @@ func ViaBearerToken(r *http.Request) (string, error) {
 
 // validateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
 // `Authorization: Bearer <value>“) and polls a Google HTTP endpoint to see if
-// is valid. Valid tokens are cached for one hour.
+// is valid. This is fine in low-volumne situations, but another solution may be
+// needed if this goes higher than a few QPS.
 func validateBearerToken(ctx context.Context, token string) (*oauth2_api.Tokeninfo, error) {
-	iTokenInfo, ok := validBearerTokenCache.Get(token)
-	if ok {
-		return iTokenInfo.(*oauth2_api.Tokeninfo), nil
-	}
-
+	// TODO(jcgregorio) Add in-memory time-limited cache of all validated tokens.
 	ti, err := tokenValidatorService.Tokeninfo().AccessToken(token).Context(ctx).Do()
 	if err != nil {
 		return nil, err
@@ -909,8 +882,6 @@ func validateBearerToken(ctx context.Context, token string) (*oauth2_api.Tokenin
 	if !ti.VerifiedEmail {
 		return nil, fmt.Errorf("email not verified")
 	}
-	validBearerTokenCache.Set(token, ti, ttlcache.DefaultExpiration)
-
 	return ti, nil
 }
 
