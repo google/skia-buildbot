@@ -3,6 +3,7 @@ package login
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/securecookie"
+	ttlcache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -18,6 +20,9 @@ import (
 	"go.skia.org/infra/go/secret/mocks"
 	"go.skia.org/infra/go/testutils"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/googleapi"
+	oauth2_api "google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -26,6 +31,8 @@ const (
 	sessionIDForTesting = "abcdef0123456"
 
 	codeForTesting = "oauth2 code for testing"
+
+	bearerToken = "fake-bearer-token"
 )
 
 var (
@@ -446,4 +453,129 @@ func TestSetDomain_ValidDomainName_Success(t *testing.T) {
 
 func TestSetDomain_UnknonwDomainName_ReturnsError(t *testing.T) {
 	require.Error(t, setDomain(DomainName("this-in-not-a-known-domain.example.com")))
+}
+
+func setupForValidateBearerToken(t *testing.T, tokenInfo *oauth2_api.Tokeninfo) {
+	// Create an HTTP server that emulates the Token Validation endpoint, that
+	// takes in an access token and returns a Tokeninfo.
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, r.ParseForm())
+		require.Equal(t, bearerToken, r.FormValue("access_token"))
+		require.NoError(t, json.NewEncoder(w).Encode(tokenInfo))
+	}))
+
+	// Replace the default tokenValidatorService with one that points to the
+	// emulation service built above.
+	var err error
+	tokenValidatorService, err = oauth2_api.NewService(context.Background(), option.WithHTTPClient(testServer.Client()),
+		option.WithEndpoint(testServer.URL))
+
+	// Create a fresh cache.
+	validBearerTokenCache = ttlcache.New(validBearerTokenCacheLifetime, validBearerTokenCacheCleanup)
+	require.NoError(t, err)
+}
+
+func TestValidateBearerToken_HappyPath(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+
+	// The TokenInfo should be identical modulo the ServerResponse.
+	actual.ServerResponse = googleapi.ServerResponse{}
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_ValidatedTokenExistsInCache_Success(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	// Add token to cache.
+	validBearerTokenCache.Set(bearerToken, expectedTokenInfo, ttlcache.DefaultExpiration)
+
+	// Nil out the tokenValidatorService, to prove we don't call it.
+	tokenValidatorService = nil
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_FirstRequestAddsTokenToCache_SecondCallReturnsTokenFromCache(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+
+	// The TokenInfo should be identical modulo the ServerResponse.
+	actual.ServerResponse = googleapi.ServerResponse{}
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+
+	// Nil out the tokenValidatorService, to prove we don't call it.
+	tokenValidatorService = nil
+
+	// Call validateBearerToken again with the same bearer token.
+	actual, err = validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_EmailNotValidated_ReturnsError(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: false,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	_, err := validateBearerToken(context.Background(), bearerToken)
+	require.Contains(t, err.Error(), "email not verified")
+}
+
+func TestValidateBearerToken_TokenExpired_ReturnsError(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     0, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	_, err := validateBearerToken(context.Background(), bearerToken)
+	require.Contains(t, err.Error(), "token is expired")
+}
+
+func TestViaBearerToken_HappyPath(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
+
+	email, err := ViaBearerToken(r)
+	require.NoError(t, err)
+	require.Equal(t, "user@example.org", email)
 }
