@@ -20,6 +20,7 @@
     "android-render-tests": ["name", "source_type"],
     "android-render-tests-internal": ["name", "source_type"],
     "chrome-gpu": ["name", "source_type"],
+    "chrome-gpu-gtest": ["name", "source_type"],
     "finch-smoke-tests": ["name", "source_type"],
     "gtest-pixeltests": ["name", "source_type"],
   },
