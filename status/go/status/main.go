@@ -363,7 +363,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllowed, editAllowed, nil)
+	login.InitWithAllow(serverURL+login.DefaultOAuth2Callback, adminAllowed, editAllowed, nil)
 
 	// Check out source code.
 	if *repoUrls == nil {

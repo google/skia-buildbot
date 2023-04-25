@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gorilla/securecookie"
@@ -32,19 +33,20 @@ var (
 	errMockError = fmt.Errorf("error returned from mocks")
 )
 
-func initLoginForTests(t *testing.T) {
-	ctx := context.Background()
-	err := initLogin(ctx, "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, SkiaOrg)
-	require.NoError(t, err)
+var once sync.Once
+
+func loginInit() {
+	initLogin("id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains)
 }
 
 func TestLoginURL(t *testing.T) {
-	initLoginForTests(t)
+	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
-	require.NoError(t, err)
 	r.Header.Set("Referer", "https://foo.org")
-
+	if err != nil {
+		t.Fatal(err)
+	}
 	url := LoginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "SameSite=None", "SameSite should be set.")
@@ -64,21 +66,13 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestLoggedInAs(t *testing.T) {
-	initLoginForTests(t)
-	for _, d := range AllDomainNames {
-		t.Run(string(d), func(t *testing.T) {
-			testLoggedInAs(t, d)
-		})
-	}
-}
-
-func testLoggedInAs(t *testing.T, domain DomainName) {
-	err := setDomain(domain)
-	require.NoError(t, err)
+	once.Do(loginInit)
 	setActiveAllowLists(defaultAllowedDomains)
 
-	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
-	require.NoError(t, err)
+	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	assert.Equal(t, LoggedInAs(r), "", "No skid cookie means not logged in.")
 
@@ -90,7 +84,7 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	}
 	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
-	assert.Equal(t, string(domain), cookie.Domain)
+	assert.Equal(t, "skia.org", cookie.Domain)
 	r.AddCookie(cookie)
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
@@ -106,31 +100,23 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email allow list.")
 }
 
-func TestLoggedInAsFromContext(t *testing.T) {
-	initLoginForTests(t)
-	for _, d := range AllDomainNames {
-		t.Run(string(d), func(t *testing.T) {
-			testLoggedInAsFromContext(t, d)
-		})
-	}
-}
-
-func testLoggedInAsFromContext(t *testing.T, domain DomainName) {
-	err := setDomain(domain)
-	require.NoError(t, err)
+func TestAuthorizedEmail(t *testing.T) {
+	once.Do(loginInit)
 	setActiveAllowLists(defaultAllowedDomains)
-	// attachSessionToContext is what the SessionMiddleware does.
-	attachSessionToContext := func(r *http.Request) *http.Request {
+	// In place of SessionMiddleware function.
+	middleware := func(r *http.Request) *http.Request {
 		session, _ := getSession(r)
 		ctx := context.WithValue(r.Context(), loginCtxKey, session)
 		return r.WithContext(ctx)
 	}
 
-	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
-	require.NoError(t, err)
-	r = attachSessionToContext(r)
+	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r = middleware(r)
 
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "No skid cookie means not logged in.")
+	assert.Equal(t, AuthorizedEmail(r.Context()), "", "No skid cookie means not logged in.")
 
 	s := Session{
 		Email:     "fred@chromium.org",
@@ -140,25 +126,24 @@ func testLoggedInAsFromContext(t *testing.T, domain DomainName) {
 	}
 	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
-	assert.Equal(t, string(domain), cookie.Domain)
+	assert.Equal(t, "skia.org", cookie.Domain)
 	r.AddCookie(cookie)
-	r = attachSessionToContext(r)
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
+	r = middleware(r)
+	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
 	url := LoginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 
 	delete(activeUserDomainAllowList, "chromium.org")
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "Not in the domain allow list.")
+	assert.Equal(t, AuthorizedEmail(r.Context()), "", "Not in the domain allow list.")
 	url = LoginURL(w, r)
 	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
 
 	activeUserEmailAllowList["fred@chromium.org"] = true
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Found in the email allow list.")
+	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Found in the email allow list.")
 }
 
 func TestDomainFromHost(t *testing.T) {
-	initLoginForTests(t)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
 	assert.Equal(t, "skia.org", domainFromHost("skia.org"))
@@ -167,19 +152,8 @@ func TestDomainFromHost(t *testing.T) {
 	assert.Equal(t, "skia.org", domainFromHost("example.com:443"))
 }
 
-func TestDomainFromHost_LuciApp(t *testing.T) {
-	err := initLogin(context.Background(), "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, LuciApp)
-	require.NoError(t, err)
-	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
-	assert.Equal(t, "localhost", domainFromHost("localhost"))
-	assert.Equal(t, "luci.app", domainFromHost("luci.app"))
-	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app"))
-	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app:443"))
-	assert.Equal(t, "luci.app", domainFromHost("example.com:443"))
-}
-
 func TestIsAuthorized(t *testing.T) {
-	initLoginForTests(t)
+	once.Do(loginInit)
 	setActiveAllowLists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 
 	assert.True(t, isAuthorized("fred@chromium.org"))
@@ -190,7 +164,7 @@ func TestIsAuthorized(t *testing.T) {
 }
 
 func TestIsAuthorized_Gmail(t *testing.T) {
-	initLoginForTests(t)
+	once.Do(loginInit)
 	setActiveAllowLists("google.com example@gmail.com")
 
 	assert.True(t, isAuthorized("example@gmail.com"))
@@ -211,8 +185,9 @@ func TestNormalizeGmailAddress(t *testing.T) {
 }
 
 func TestSessionMiddleware(t *testing.T) {
+
 	// Setup.
-	initLoginForTests(t)
+	once.Do(loginInit)
 	setActiveAllowLists(defaultAllowedDomains)
 
 	// Helper function to set up a request with the given Session and test the
@@ -230,7 +205,7 @@ func TestSessionMiddleware(t *testing.T) {
 		// Create an http.Handler which uses LoginMiddleware and checks the
 		// return value of GetSession against the expectation.
 		handler := SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			actual := getSessionFromContext(r.Context())
+			actual := GetSession(r.Context())
 			assertdeep.Equal(t, expect, actual)
 		}))
 
@@ -253,6 +228,7 @@ func TestSessionMiddleware(t *testing.T) {
 }
 
 func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
+
 	ctx := context.Background()
 	client := &mocks.Client{}
 	secretValue := `{
@@ -434,16 +410,4 @@ func TestExtractEmailAndAccountIDFromToken_HappyPath(t *testing.T) {
 	require.Empty(t, msg)
 	require.Equal(t, "somebody@example.org", email)
 	require.Equal(t, "123", id)
-}
-
-func TestSetDomain_ValidDomainName_Success(t *testing.T) {
-	for _, d := range AllDomainNames {
-		t.Run(string(d), func(t *testing.T) {
-			require.NoError(t, setDomain(d))
-		})
-	}
-}
-
-func TestSetDomain_UnknonwDomainName_ReturnsError(t *testing.T) {
-	require.Error(t, setDomain(DomainName("this-in-not-a-known-domain.example.com")))
 }

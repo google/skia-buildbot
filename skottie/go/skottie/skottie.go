@@ -116,8 +116,7 @@ func main() {
 		if sc.ForceAuth {
 			sklog.Infof("The allowed list of users is: %q", sc.AuthorizedUsers)
 			redirectURL := sc.SiteURL + callbackPath
-			ctx := context.Background()
-			if err := login.Init(ctx, redirectURL, strings.Join(sc.AuthorizedUsers, " "), sc.ClientSecretFile); err != nil {
+			if err := login.Init(redirectURL, strings.Join(sc.AuthorizedUsers, " "), sc.ClientSecretFile); err != nil {
 				sklog.Fatalf("Failed to initialize login: %s", err)
 			}
 			h = login.ForceAuth(h, callbackPath)

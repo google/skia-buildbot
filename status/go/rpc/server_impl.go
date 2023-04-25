@@ -73,7 +73,7 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 
 func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentRequest) (*AddCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	userEmail := login.LoggedInAsFromContext(ctx)
+	userEmail := login.AuthorizedEmail(ctx)
 	if !login.IsEditorEmail(userEmail) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}
@@ -138,7 +138,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 
 func (s *statusServerImpl) DeleteComment(ctx context.Context, req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	userEmail := login.LoggedInAsFromContext(ctx)
+	userEmail := login.AuthorizedEmail(ctx)
 	if !login.IsEditorEmail(userEmail) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}

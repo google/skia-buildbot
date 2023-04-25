@@ -31,7 +31,13 @@ func NewAuthHelper(viewers, editors, admins allowed.Allow) *AuthHelper {
 		viewers: viewers,
 		editors: editors,
 		admins:  admins,
-		getUser: login.LoggedInAsFromContext,
+		getUser: func(ctx context.Context) string {
+			session := login.GetSession(ctx)
+			if session == nil {
+				return ""
+			}
+			return session.Email
+		},
 	}
 }
 

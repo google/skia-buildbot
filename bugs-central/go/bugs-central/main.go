@@ -63,8 +63,6 @@ type ClientSecretJSON struct {
 
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
-	ctx := context.Background()
-
 	// Create workdir if it does not exist.
 	if err := os.MkdirAll(*workdir, 0755); err != nil {
 		sklog.Fatalf("Could not create %s: %s", *workdir, err)
@@ -76,8 +74,9 @@ func New() (baseapp.App, error) {
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
-	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil, nil, allow)
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
+	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeFullControl, datastore.ScopeDatastore)
 	dbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID)
 	if err != nil {

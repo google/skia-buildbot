@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -26,15 +25,13 @@ func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
 	return login.LoginURL(w, r)
 }
 
-func (l authImpl) Init(ctx context.Context, port string, local bool) error {
+func (l authImpl) Init(port string, local bool) error {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
 		redirectURL = login.DefaultRedirectURL
 	}
 
-	return login.Init(
-		ctx,
-		redirectURL,
+	return login.Init(redirectURL,
 		"", /* Empty means accept all signed in domain. */
 		"", /* Get secrets from Secret Manager*/
 	)

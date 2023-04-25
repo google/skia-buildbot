@@ -51,7 +51,7 @@ func New(ctx context.Context, secretClient secret.Client) (ProtoHeader, error) {
 }
 
 // Init implements auth.Auth.
-func (p ProtoHeader) Init(ctx context.Context, port string, local bool) error {
+func (p ProtoHeader) Init(port string, local bool) error {
 	return nil
 }
 

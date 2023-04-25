@@ -1,7 +1,6 @@
 package login
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -41,12 +40,12 @@ var (
 // may be nil, in which case we fall back on the default settings. For editors
 // we default to denying access to everyone, and for viewers we default to
 // allowing access to everyone.
-func SimpleInitWithAllow(ctx context.Context, port string, local bool, admin, edit, view allowed.Allow) {
+func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
 		redirectURL = DefaultRedirectURL
 	}
-	InitWithAllow(ctx, redirectURL, admin, edit, view)
+	InitWithAllow(redirectURL, admin, edit, view)
 }
 
 // InitWithAllow initializes the login system with the given redirect URL. Sets
@@ -54,11 +53,11 @@ func SimpleInitWithAllow(ctx context.Context, port string, local bool, admin, ed
 // case we fall back on the default settings. For editors we default to denying
 // access to everyone, and for viewers we default to allowing access to
 // everyone.
-func InitWithAllow(ctx context.Context, redirectURL string, admin, edit, view allowed.Allow) {
+func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 	adminAllow = admin
 	editAllow = edit
 	viewAllow = view
-	if err := Init(ctx, redirectURL, defaultAllowedDomains, ""); err != nil {
+	if err := Init(redirectURL, defaultAllowedDomains, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	RestrictAdmin = RestrictWithMessage(adminAllow, "User is not an admin")

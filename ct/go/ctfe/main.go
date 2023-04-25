@@ -339,11 +339,11 @@ func main() {
 	}
 
 	if *local {
-		login.SimpleInitWithAllow(ctx, *port, *local, nil, nil, nil)
+		login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
 	} else {
 		admins := allowed.NewAllowedFromList(ctutil.CtAdmins)
 		allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
-		login.SimpleInitWithAllow(ctx, *port, *local, admins, nil, allow)
+		login.SimpleInitWithAllow(*port, *local, admins, nil, allow)
 	}
 
 	// Initialize the datastore.
