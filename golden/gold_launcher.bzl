@@ -28,6 +28,7 @@ cat > config.json5 <<EOF
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "{default_corpus}",
     title: "{title}",
+    customTriagingDisallowedMsg: "{custom_triaging_disallowed_msg}",
   }},
   grouping_param_keys_by_corpus: {grouping_param_keys_by_corpus},
   materialized_view_corpora: {materialized_view_corpora},
@@ -106,7 +107,8 @@ def gold_launcher(
         is_public_view = False,
         publicly_allowed_params = None,
         grouping_param_keys_by_corpus = None,
-        materialized_view_corpora = None):
+        materialized_view_corpora = None,
+        custom_triaging_disallowed_msg = ""):
     """Launches a local gold_frontend instance that talks to a production database.
 
     This rule is meant for local development and debugging. It reuses the credentials given to the
@@ -133,12 +135,13 @@ def gold_launcher(
             ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"]. Optional.
         grouping_param_keys_by_corpus: A dictionary where the keys are corpus names and the values
             are a list of param keys, e.g. {"foo": ["a", "b"], "bar": ["c", "d"]}. Optional.
-
+        custom_triaging_disallowed_msg: Custom triaging disallowed message. Optional.
     """
     formatted_runner_script = _RUNNER_SCRIPT.format(
         bazel_target_name = "//%s:%s" % (native.package_name(), name),
         default_corpus = default_corpus,
         title = title,
+        custom_triaging_disallowed_msg = custom_triaging_disallowed_msg.replace("\n", r"\n").replace('"', r'\"'),
         grouping_param_keys_by_corpus =
             grouping_param_keys_by_corpus if grouping_param_keys_by_corpus else "null",
         materialized_view_corpora =

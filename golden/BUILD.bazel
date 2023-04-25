@@ -220,6 +220,21 @@ gold_launcher(
             "url_template": "https://chrome-internal-review.googlesource.com/%s",
         },
     ],
+    custom_triaging_disallowed_msg = """
+    <p>
+        Triaging is disallowed as per the <strong>disallow_triaging</strong> optional key.
+    </p>
+
+    <p>
+        If this change is expected, find the line of code that produces the test name and increment
+        the revision number by one.
+    </p>
+
+    <p>
+        For more information, see the instructions
+        <a href="https://source.chromium.org/chromium/chromium/src/+/main:ash/test/pixel/test_failure_triage.md">here</a>.
+    </p>
+    """,
     default_corpus = "android-render-tests",
     gcs_bucket = "skia-gold-chrome",
     git_repo_url = "https://chromium.googlesource.com/chromium/src",
@@ -250,6 +265,21 @@ gold_launcher(
             "url_template": "https://chrome-internal-review.googlesource.com/%s",
         },
     ],
+    custom_triaging_disallowed_msg = """
+    <p>
+        Triaging is disallowed as per the <strong>disallow_triaging</strong> optional key.
+    </p>
+
+    <p>
+        If this change is expected, find the line of code that produces the test name and increment
+        the revision number by one.
+    </p>
+
+    <p>
+        For more information, see the instructions
+        <a href="https://source.chromium.org/chromium/chromium/src/+/main:ash/test/pixel/test_failure_triage.md">here</a>.
+    </p>
+    """,
     default_corpus = "android-render-tests",
     gcs_bucket = "skia-gold-chrome",
     git_repo_url = "https://chromium.googlesource.com/chromium/src",

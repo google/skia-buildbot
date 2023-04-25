@@ -33,6 +33,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:human_ts_lib",
+        "//golden/modules:settings_ts_lib",
     ],
     ts_srcs = [
         "digest-details-sk.ts",

@@ -10,6 +10,7 @@ export interface GoldSettings {
   title?: string;
   defaultCorpus?: string;
   baseRepoURL?: string;
+  customTriagingDisallowedMsg?: string;
 }
 
 function getSettings(): GoldSettings | undefined {
@@ -26,6 +27,10 @@ export function defaultCorpus(): string {
 
 export function baseRepoURL(): string {
   return getSettings()?.baseRepoURL || '';
+}
+
+export function customTriagingDisallowedMsg(): string {
+  return getSettings()?.customTriagingDisallowedMsg || '';
 }
 
 export function testOnlySetSettings(newSettings: GoldSettings) {

@@ -103,10 +103,11 @@ func (fsc *frontendServerConfig) IsAuthoritative() bool {
 }
 
 type frontendConfig struct {
-	BaseRepoURL   string `json:"baseRepoURL"`
-	DefaultCorpus string `json:"defaultCorpus"`
-	Title         string `json:"title"`
-	IsPublic      bool   `json:"isPublic"`
+	BaseRepoURL                 string `json:"baseRepoURL"`
+	DefaultCorpus               string `json:"defaultCorpus"`
+	Title                       string `json:"title"`
+	CustomTriagingDisallowedMsg string `json:"customTriagingDisallowedMsg,omitempty" optional:"true"`
+	IsPublic                    bool   `json:"isPublic"`
 }
 
 func main() {

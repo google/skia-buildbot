@@ -17,6 +17,7 @@
  *
  */
 import { html } from 'lit-html';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { diffDate } from '../../../infra-sk/modules/human';
@@ -30,6 +31,7 @@ import {
   sendEndTask,
   sendFetchError,
 } from '../common';
+import { customTriagingDisallowedMsg } from '../settings';
 
 import '../../../elements-sk/modules/icons/group-work-icon-sk';
 import '../dots-sk';
@@ -142,20 +144,26 @@ export class DigestDetailsSk extends ElementSk {
         DISALLOW_TRIAGING_OPTIONAL_KEY_VALUE
       );
 
+    const defaultDisallowTraigingMessage = html`
+      <p>
+        Triaging is disallowed as per the
+        <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
+        optional key.
+      </p>
+      <p>
+        If this change is expected, either update the test name to create a new
+        grouping, or update the test to remove the
+        <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
+        optional key.
+      </p>
+    `;
+
     const disallowTriagingMessage = disallowTriaging
       ? html`
           <div class="triaging_disallowed">
-            <p>
-              Triaging is disallowed as per the
-              <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
-              optional key.
-            </p>
-            <p>
-              If this change is expected, either update the test name to create
-              a new grouping, or update the test to remove the
-              <strong>${DISALLOW_TRIAGING_OPTIONAL_KEY}</strong>
-              optional key.
-            </p>
+            ${customTriagingDisallowedMsg()
+              ? html`${unsafeHTML(customTriagingDisallowedMsg())}`
+              : defaultDisallowTraigingMessage}
           </div>
         `
       : '';
