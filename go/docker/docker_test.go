@@ -202,7 +202,7 @@ const (
 func TestGetManifest(t *testing.T) {
 	ctx := context.Background()
 	md := mockhttpclient.MockGetDialogue([]byte(getManifestResponse))
-	md.RequestHeader(acceptHeader, acceptContentType)
+	md.RequestHeader(acceptHeader, manifestContentType)
 	md.ResponseHeader(digestHeader, fakeDigest)
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
@@ -212,7 +212,9 @@ func TestGetManifest(t *testing.T) {
 	manifest, err := client.GetManifest(ctx, fakeRepository, fakeTag)
 	require.NoError(t, err)
 	require.Equal(t, &Manifest{
-		Digest: "000ba24df84b6490d68069cdee599d6599f3891f6420a37cdaa65852c9f1ecbc",
+		SchemaVersion: 2,
+		MediaType:     "application/vnd.docker.distribution.manifest.v2+json",
+		Digest:        "000ba24df84b6490d68069cdee599d6599f3891f6420a37cdaa65852c9f1ecbc",
 		Config: MediaConfig{
 			MediaType: "application/vnd.docker.container.image.v1+json",
 			Size:      3316,
@@ -256,7 +258,7 @@ func TestGetManifest(t *testing.T) {
 func TestGetDigest(t *testing.T) {
 	ctx := context.Background()
 	md := mockhttpclient.MockGetDialogue([]byte(getManifestResponse))
-	md.RequestHeader(acceptHeader, acceptContentType)
+	md.RequestHeader(acceptHeader, manifestContentType)
 	md.ResponseHeader(digestHeader, fakeDigest)
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
@@ -398,4 +400,24 @@ func TestListRepositories(t *testing.T) {
 		"other/img5",
 		"other/img6",
 	}, repos)
+}
+
+func TestSetTag(t *testing.T) {
+	ctx := context.Background()
+	const newTag = "new-tag"
+	urlmock := mockhttpclient.NewURLMock()
+
+	url1 := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
+	md1 := mockhttpclient.MockGetDialogue([]byte(getManifestResponse))
+	md1.RequestHeader(acceptHeader, manifestContentType)
+	md1.ResponseHeader(digestHeader, fakeDigest)
+	urlmock.MockOnce(url1, md1)
+
+	url2 := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, newTag)
+	md2 := mockhttpclient.MockPutDialogue(manifestContentType, []byte(getManifestResponse), nil)
+	urlmock.MockOnce(url2, md2)
+
+	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	require.NoError(t, client.SetTag(ctx, fakeRepository, fakeTag, newTag))
+	require.True(t, urlmock.Empty())
 }

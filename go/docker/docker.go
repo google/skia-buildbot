@@ -1,9 +1,12 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,7 +21,8 @@ const (
 	listTagsURLTemplate = "https://%s/v2/%s/tags/list?n=%d"
 	manifestURLTemplate = "https://%s/v2/%s/manifests/%s"
 	acceptHeader        = "Accept"
-	acceptContentType   = "application/vnd.docker.distribution.manifest.v2+json"
+	contentTypeHeader   = "Content-Type"
+	manifestContentType = "application/vnd.docker.distribution.manifest.v2+json"
 	digestHeader        = "Docker-Content-Digest"
 	pageSize            = 100
 )
@@ -40,6 +44,8 @@ type Client interface {
 	// ListTags lists all known tags for the given repository. Because there may be
 	// many results, this can be quite slow.
 	ListTags(ctx context.Context, repository string) ([]string, error)
+	// SetTag sets the given tag on the image.
+	SetTag(ctx context.Context, repository, reference, newTag string) error
 }
 
 // ClientImpl implements Client.
@@ -49,6 +55,7 @@ type ClientImpl struct {
 }
 
 // NewClient returns a Client instance which interacts with the given registry.
+// The passed-in http.Client should handle redirects.
 func NewClient(ctx context.Context, client *http.Client, registry string) *ClientImpl {
 	return &ClientImpl{
 		client:   client,
@@ -64,19 +71,21 @@ type MediaConfig struct {
 
 // Manifest represents a Docker image manifest.
 type Manifest struct {
-	Digest string        `json:"-"`
-	Config MediaConfig   `json:"config"`
-	Layers []MediaConfig `json:"layers"`
+	SchemaVersion int           `json:"schemaVersion"`
+	MediaType     string        `json:"mediaType"`
+	Digest        string        `json:"-"`
+	Config        MediaConfig   `json:"config"`
+	Layers        []MediaConfig `json:"layers"`
 }
 
 // GetManifest implements Client.
-func (c *ClientImpl) GetManifest(ctx context.Context, repository, tag string) (*Manifest, error) {
-	url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, tag)
+func (c *ClientImpl) GetManifest(ctx context.Context, repository, reference string) (*Manifest, error) {
+	url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	req.Header.Set(acceptHeader, acceptContentType)
+	req.Header.Set(acceptHeader, manifestContentType)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -311,6 +320,49 @@ func (c *ClientImpl) GetConfig(ctx context.Context, repository, configDigest str
 		return nil, skerr.Wrap(err)
 	}
 	return rv, nil
+}
+
+// SetTag implements Client.
+func (c *ClientImpl) SetTag(ctx context.Context, repository, reference, newTag string) error {
+	// Retrieve the existing manifest. This duplicates code from GetManifest,
+	// but the server seems to directly take the SHA256 sum of the provided
+	// content, without removing whitespace. Returning the manifest exactly as
+	// we received it (rather than decoding it and re-encoding it) ensures that
+	// we end up with the same SHA256.
+	var manifestBytes []byte
+	{
+		url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, reference)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		req.Header.Set(acceptHeader, manifestContentType)
+		resp, err := c.client.Do(req)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		defer util.Close(resp.Body)
+		manifestBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+
+	// PUT the manifest using the new tag.
+	{
+		url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, newTag)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, nil)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		req.Header.Set(contentTypeHeader, manifestContentType)
+		req.Body = io.NopCloser(bytes.NewReader(manifestBytes))
+		req.Header.Set(acceptHeader, manifestContentType)
+		if _, err := c.client.Do(req); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
 }
 
 // Assert that ClientImpl implements Client.

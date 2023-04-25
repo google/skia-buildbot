@@ -131,6 +131,20 @@ func (_m *Client) ListTags(ctx context.Context, repository string) ([]string, er
 	return r0, r1
 }
 
+// SetTag provides a mock function with given fields: ctx, repository, reference, newTag
+func (_m *Client) SetTag(ctx context.Context, repository string, reference string, newTag string) error {
+	ret := _m.Called(ctx, repository, reference, newTag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, repository, reference, newTag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewClient creates a new instance of Client. It also registers a cleanup function to assert the mocks expectations.
 func NewClient(t testing.TB) *Client {
 	mock := &Client{}
