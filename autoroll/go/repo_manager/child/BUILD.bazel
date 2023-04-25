@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "child.go",
         "cipd.go",
+        "docker.go",
         "fuchsia_sdk.go",
         "gcs.go",
         "git_checkout.go",
@@ -23,6 +24,7 @@ go_library(
         "//autoroll/go/repo_manager/common/gitiles_common",
         "//autoroll/go/revision",
         "//go/cipd",
+        "//go/docker",
         "//go/gcs",
         "//go/gcs/gcsclient",
         "//go/git",
@@ -44,6 +46,7 @@ go_test(
     srcs = [
         "cipd_manual_test.go",
         "cipd_test.go",
+        "docker_test.go",
         "gcs_test.go",
         "gitiles_test.go",
         "semver_gcs_test.go",
@@ -60,6 +63,8 @@ go_test(
         "//go/auth",
         "//go/chrome_branch/mocks",
         "//go/cipd/mocks",
+        "//go/docker",
+        "//go/docker/mocks",
         "//go/gcs/test_gcsclient",
         "//go/git",
         "//go/git/testutils",

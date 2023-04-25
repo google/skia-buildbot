@@ -1133,3 +1133,17 @@ func (c *CIPDRevisionFilterConfig) Validate() error {
 	}
 	return nil
 }
+
+// Validate implements util.Validator.
+func (c *DockerChildConfig) Validate() error {
+	if c.Registry == "" {
+		return skerr.Fmt("Registry is required.")
+	}
+	if c.Repository == "" {
+		return skerr.Fmt("Repository is required.")
+	}
+	if c.Tag == "" {
+		return skerr.Fmt("Tag is required.")
+	}
+	return nil
+}
