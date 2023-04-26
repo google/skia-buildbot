@@ -34,7 +34,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -46,7 +45,6 @@ import (
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	oauth2_api "google.golang.org/api/oauth2/v2"
@@ -709,61 +707,29 @@ type loginInfo struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-// TryLoadingFromAllSources tries to load the cookie salt, client id, anc client
-// secret from Kuberenetes secrets, GCP secrets, and a local file.  Returns an
-// error if all of the above fail.
+// TryLoadingFromAllSources tries to load the cookie salt, client id, and client
+// secret from GCP secrets, and a local file.  Returns an error if all of the
+// above fail.
 //
 // Returns salt, clientID, clientSecret.
 func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (string, string, string, error) {
-	// Kubernetes secret.
-	cookieSalt, clientID, clientSecret, err1 := TryLoadingFromK8sSecret()
-	if err1 == nil {
-		return cookieSalt, clientID, clientSecret, nil
-	}
-
 	// GCP secret.
-	secretClient, err2 := secret.NewClient(ctx)
-	if err2 == nil {
+	secretClient, err1 := secret.NewClient(ctx)
+	if err1 == nil {
 		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
 		if err2 == nil {
 			return cookieSalt, clientID, clientSecret, nil
 		}
 	} else {
-		err2 = skerr.Wrapf(err2, "failed loading login secrets from GCP secret manager; failed to create client")
+		err1 = skerr.Wrapf(err1, "failed loading login secrets from GCP secret manager; failed to create client")
 	}
 
 	// Local file, this is only used for testing.
-	cookieSalt, clientID, clientSecret, err3 := TryLoadingFromFile(clientSecretFile)
-	if err3 == nil {
+	cookieSalt, clientID, clientSecret, err2 := TryLoadingFromFile(clientSecretFile)
+	if err2 == nil {
 		return cookieSalt, clientID, clientSecret, nil
 	}
-	return "", "", "", skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s | %s", clientSecretFile, err1, err2, err3)
-}
-
-// TryLoadingFromK8sSecret tries to load the cookie salt, client id, and client
-// secret from a file in a known location which is created from a Kubernetes
-// secret.
-//
-// Returns salt, clientID, clientSecret.
-func TryLoadingFromK8sSecret() (string, string, string, error) {
-	cookieSalt := ""
-	clientID := ""
-	clientSecret := ""
-	var info loginInfo
-	err := util.WithReadFile(loginConfigFile, func(f io.Reader) error {
-		if err := json.NewDecoder(f).Decode(&info); err != nil {
-			return err
-		}
-		cookieSalt = info.Salt
-		clientID = info.ClientID
-		clientSecret = info.ClientSecret
-		return nil
-	})
-	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", loginConfigFile)
-	}
-	sklog.Infof("Successfully loaded login secrets from file %s.", loginConfigFile)
-	return cookieSalt, clientID, clientSecret, nil
+	return "", "", "", skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s", clientSecretFile, err1, err2)
 }
 
 // TryLoadingFromFile tries to load the client id and client secret from the
