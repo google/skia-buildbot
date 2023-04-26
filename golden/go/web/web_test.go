@@ -1202,11 +1202,12 @@ func TestStatusHandler_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestGroupingsHandler_NonEmptyStatusCache_ReturnsGroupingsFromStatusCache(t *testing.T) {
+func TestGroupingsHandler_NonEmptyStatusCache_ReturnsUnionBetweenJSON5ConfigAndStatusCache_JSON5ConfigTakesPrecedence(t *testing.T) {
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			GroupingParamKeysByCorpus: map[string][]string{
-				dks.TextCorpus: {types.PrimaryKeyField, types.CorpusField, dks.DeviceKey},
+				dks.TextCorpus:  {types.PrimaryKeyField, types.CorpusField, dks.DeviceKey},
+				dks.RoundCorpus: {types.PrimaryKeyField, types.CorpusField, dks.OSKey},
 			},
 		},
 		statusCache: frontend.GUIStatus{
@@ -1217,11 +1218,11 @@ func TestGroupingsHandler_NonEmptyStatusCache_ReturnsGroupingsFromStatusCache(t 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	wh.GroupingsHandler(w, r)
-	const expectedJSON = `{"grouping_param_keys_by_corpus":{"corners":["name","source_type"],"round":["name","source_type"]}}`
+	const expectedJSON = `{"grouping_param_keys_by_corpus":{"corners":["name","source_type"],"round":["name","source_type","os"],"text":["name","source_type","device"]}}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestGroupingsHandler_EmptyStatusCache_ReturnsGroupingsFromHandlersConfig(t *testing.T) {
+func TestGroupingsHandler_EmptyStatusCache_Success(t *testing.T) {
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			GroupingParamKeysByCorpus: map[string][]string{

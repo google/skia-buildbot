@@ -1362,9 +1362,15 @@ func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 // GroupingsHandler returns a map from corpus name to the list of keys that comprise the corpus
 // grouping.
 //
-// If this Gold instance's JSON5 config includes a dictionary of grouping param keys by corpus,
-// this method returns it. Otherwise, this method reads the grouping param keys by corpus from the
-// status cache.
+// This method returns the union between the following two sets of corpus/grouping pairs:
+//
+//   - Those defined in the Gold instance's JSON5 configuration.
+//   - A set constructed by getting a list of corpora from the status cache, and by assigning them
+//     the default (source_type, name) grouping (that is, corpus name and test name).
+//
+// If a corpus appears on both sets, the grouping from the JSON5 configuration takes precedence.
+// This gives us flexibility in case we want to support groupings other than (source_type, name) in
+// the future.
 //
 // For large Gold instances (e.g. Skia, Chrome) it is important to provide a dictionary of grouping
 // param keys by corpus in its JSON5 config because:
@@ -1395,26 +1401,19 @@ func (wh *Handlers) GroupingsHandler(w http.ResponseWriter, r *http.Request) {
 	wh.statusCacheMutex.RLock()
 	defer wh.statusCacheMutex.RUnlock()
 
-	// If the status cache's corpora status list is empty, and if this Gold instance's JSON5 config
-	// includes a dictionary of grouping param keys by corpus, return it.
-	if len(wh.statusCache.CorpStatus) == 0 && len(wh.GroupingParamKeysByCorpus) != 0 {
-		res := frontend.GroupingsResponse{
-			GroupingParamKeysByCorpus: wh.GroupingParamKeysByCorpus,
-		}
-		sendJSONResponse(w, res)
-		return
-	}
-
 	res := frontend.GroupingsResponse{
 		GroupingParamKeysByCorpus: map[string][]string{},
 	}
+	if len(wh.GroupingParamKeysByCorpus) != 0 {
+		res.GroupingParamKeysByCorpus = wh.GroupingParamKeysByCorpus
+	}
 	for _, cs := range wh.statusCache.CorpStatus {
-		// For now, all corpora are grouped by corpus ("source_type") and test name ("name"), so
-		// the groupings are hardcoded.
-		//
-		// If we ever want to support different groupings, these keys could be read in from the
-		// Gold instance's JSON5 config file.
-		res.GroupingParamKeysByCorpus[cs.Name] = []string{
+		corpus := cs.Name
+		if _, ok := res.GroupingParamKeysByCorpus[corpus]; ok {
+			// JSON5 config file takes precedence.
+			continue
+		}
+		res.GroupingParamKeysByCorpus[corpus] = []string{
 			// Sorted lexicographically.
 			types.PrimaryKeyField,
 			types.CorpusField,
