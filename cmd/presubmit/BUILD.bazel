@@ -6,7 +6,10 @@ go_library(
     srcs = ["presubmit.go"],
     importpath = "go.skia.org/infra/cmd/presubmit",
     visibility = ["//visibility:private"],
-    deps = ["//bazel/external/buildifier"],
+    deps = [
+        "//bazel/external/buildifier",
+        "//go/deepequal",
+    ],
 )
 
 go_binary(

@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/bazel/external/buildifier"
+	"go.skia.org/infra/go/deepequal"
 )
 
 func main() {
@@ -57,11 +58,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	filesWithDiffs, untrackedFiles := findUncommittedChanges(ctx)
+	filesWithDiffs := findUncommittedChanges(ctx)
 	if len(filesWithDiffs) > 0 {
 		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n", len(filesWithDiffs))
 		os.Exit(1)
 	}
+	untrackedFiles := findUntrackedFiles(ctx)
 	for _, uf := range untrackedFiles {
 		if filepath.Base(uf) == "BUILD.bazel" {
 			logf(ctx, "Found uncommitted BUILD.bazel files. Please delete these or check them in. Aborting.\n")
@@ -87,43 +89,48 @@ func main() {
 		logf(ctx, "Changed files:\n%v\n", changedFiles)
 		logf(ctx, "Deleted files:\n%s\n", deletedFiles)
 	}
-	ok := true
-	ok = ok && checkTODOHasOwner(ctx, changedFiles)
-	ok = ok && checkForStrayWhitespace(ctx, changedFiles)
-	ok = ok && checkPythonFilesHaveNoTabs(ctx, changedFiles)
-	ok = ok && checkBannedGoAPIs(ctx, changedFiles)
-	ok = ok && checkJSDebugging(ctx, changedFiles)
+
+	// Run checks and keep track of errors.
+	//
+	// We run the code-mutating checks first (gofmt, gazelle, etc.), followed by those that do not
+	// mutate code (line length, stray whitespace, etc.). This prevents us from reporting errors that
+	// might go away after running a code-mutating check, e.g. a line length error that goes away
+	// after running Prettier.
+	//
+	// We compute a new Git diff after each code-mutating check so that subsequent code-mutating
+	// checks can compare against the last check, rather than against the whole CL. This allows
+	// code-mutating checks to only fail due to their own diffs, rather than due to diffs from
+	// a previous check.
+	anyErrors := false
+	trackErrors := func(ok bool) { anyErrors = anyErrors || !ok }
+	trackErrors(runBuildifier(ctx, buildifierPath, changedFiles, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runGofmt(ctx, changedFiles, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runPrettier(ctx, changedFiles, *repoDir, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(checkTODOHasOwner(ctx, changedFiles))
+	trackErrors(checkForStrayWhitespace(ctx, changedFiles))
+	trackErrors(checkPythonFilesHaveNoTabs(ctx, changedFiles))
+	trackErrors(checkBannedGoAPIs(ctx, changedFiles))
+	trackErrors(checkJSDebugging(ctx, changedFiles))
 	if !*commit {
 		// Long lines are sometimes inevitable. Ideally we would add these long line files to
 		// the excluded list, but sometimes that is hard to do precisely.
-		ok = ok && checkLongLines(ctx, changedFiles)
+		trackErrors(checkLongLines(ctx, changedFiles))
 		// Give warnings for non-ASCII characters on upload but not commit, since they may
 		// be intentional.
-		ok = ok && checkNonASCII(ctx, changedFiles)
+		trackErrors(checkNonASCII(ctx, changedFiles))
 	}
 
-	// Only mutate the repo if we are good so far.
-	if !ok {
+	if anyErrors {
 		logf(ctx, "Presubmit errors detected!\n")
 		os.Exit(1)
 	}
-
-	if !runBuildifier(ctx, buildifierPath, changedFiles) {
-		os.Exit(1)
-	}
-	if !runGoimports(ctx, changedFiles, *repoDir) {
-		os.Exit(1)
-	}
-	if !runGofmt(ctx, changedFiles) {
-		os.Exit(1)
-	}
-	if !runPrettier(ctx, changedFiles, *repoDir) {
-		os.Exit(1)
-	}
-	if !runGazelle(ctx, changedFiles, deletedFiles) {
-		os.Exit(1)
-	}
-
 	os.Exit(0)
 }
 
@@ -136,9 +143,8 @@ bazel run //cmd/presubmit --run_under="cd $PWD &&"
 	refSeperator = "$|" // Some string we hope that no users start their branch names with
 )
 
-// findUncommittedChanges returns a list of files that git says have changed (compared to HEAD)
-// as well as a list of untracked, unignored files.
-func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untrackedFiles []string) {
+// findUncommittedChanges returns a list of files that git says have changed (compared to HEAD).
+func findUncommittedChanges(ctx context.Context) []string {
 	// diff-index is one of the git "plumbing" commands and the output should be relatively stable.
 	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
 	cmd := exec.CommandContext(ctx, "git", "diff-index", "HEAD")
@@ -148,18 +154,7 @@ func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untra
 		logf(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
-	filesWithDiffs = extractFilesWithDiffs(string(output))
-
-	// https://stackoverflow.com/a/2659808/1447621
-	// This will list all untracked, unignored files on their own lines
-	cmd = exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
-		panic(gitErrorMessage)
-	}
-	return filesWithDiffs, strings.Split(string(output), "\n")
+	return extractFilesWithDiffs(string(output))
 }
 
 var fileDiff = regexp.MustCompile(`^:.+\t(?P<file>[^\t]+)$`)
@@ -177,6 +172,20 @@ func extractFilesWithDiffs(output string) []string {
 		}
 	}
 	return files
+}
+
+// findUntrackedFiles returns a list of files untracked and unignored by Git.
+func findUntrackedFiles(ctx context.Context) []string {
+	// https://stackoverflow.com/a/2659808/1447621
+	// This will list all untracked, unignored files on their own lines
+	cmd := exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output)+"\n")
+		logf(ctx, err.Error()+"\n")
+		panic(gitErrorMessage)
+	}
+	return strings.Split(string(output), "\n")
 }
 
 // findBranchBase returns the git commit of the parent branch. If there is a chain of CLs
@@ -605,7 +614,7 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 // well as check them for linting errors. If buildifier has no output and a non-zero exit code,
 // that is interpreted as "all good" and we return true. If there are issues, we print the
 // buildifier output (which has files and line numbers) and return false.
-func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges) bool {
+func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges, branchBaseCommit string) bool {
 	args := []string{"-lint=warn", "-mode=fix"}
 	foundAny := false
 	for _, f := range files {
@@ -625,7 +634,7 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 		return false
 	}
 
-	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
+	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
 		logf(ctx, "Buildifier caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
@@ -634,7 +643,7 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 
 // runGoimports runs goimports on any changed golang files. It returns false if goimports fails or
 // produces any diffs.
-func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot string) bool {
+func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
 	// -w means "write", as in, modify the files that need formatting.
 	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=cd " + workspaceRoot + " &&", "--", "-w"}
 	foundAny := false
@@ -655,17 +664,17 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot st
 		return false
 	}
 
-	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
+	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
 		logf(ctx, "goimports caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
 	return true
 }
 
-// runPrettier runs prettier --check on any changed files. It returns false if
+// runPrettier runs prettier --write on any changed files. It returns false if
 // prettier returns a non-zero error code..
-func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot string) bool {
-	args := []string{"run", "--config=mayberemote", "@npm//prettier/bin:prettier", "--run_under=cd " + workspaceRoot + " &&", "--", "--check", "--ignore-unknown"}
+func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
+	args := []string{"run", "--config=mayberemote", "@npm//prettier/bin:prettier", "--run_under=cd " + workspaceRoot + " &&", "--", "--write", "--ignore-unknown"}
 	for _, f := range files {
 		args = append(args, f.fileName)
 	}
@@ -677,12 +686,17 @@ func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot str
 		logf(ctx, "prettier failed!\n")
 		return false
 	}
+
+	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
+		logf(ctx, "Prettier caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
 	return true
 }
 
 // runGofmt runs gofmt on any changed golang files. It returns false if gofmt fails or
 // produces any diffs.
-func runGofmt(ctx context.Context, files []fileWithChanges) bool {
+func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit string) bool {
 	// -s means "simplify"
 	// -w means "write", as in, modify the files that need formatting.
 	args := []string{"run", "--config=mayberemote", "//:gofmt", "--", "-s", "-w"}
@@ -703,7 +717,7 @@ func runGofmt(ctx context.Context, files []fileWithChanges) bool {
 		return false
 	}
 
-	if xf, _ := findUncommittedChanges(ctx); len(xf) > 0 {
+	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
 		logf(ctx, "gofmt caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
@@ -715,7 +729,7 @@ func runGofmt(ctx context.Context, files []fileWithChanges) bool {
 // already generated BUILD.bazel files, there should be no diffs. If the user forgot to do so,
 // there could be diffs or new files added. This function returns false if that is the case or true
 // if Gazelle made no modifications.
-func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFiles []string) bool {
+func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFiles []string, branchBaseCommit string) bool {
 	// If these change, we should regenerate everything (slower, but more sound)
 	globalFilesToCheck := []string{"WORKSPACE", "WORKSPACE.bazel", "go.mod", "go.sum"}
 	globalExtensionsToCheck := []string{".bzl"}
@@ -770,13 +784,12 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 		return false
 	}
 
-	newDiffs, untrackedFiles := findUncommittedChanges(ctx)
-	if len(newDiffs) > 0 {
+	if newChangedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(changedFiles, newChangedFiles) {
 		logf(ctx, "Gazelle caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
-	for _, uf := range untrackedFiles {
-		if filepath.Base(uf) == "BUILD.bazel" {
+	for _, f := range findUntrackedFiles(ctx) {
+		if filepath.Base(f) == "BUILD.bazel" {
 			logf(ctx, "Gazelle created new BUILD.bazel files. Please inspect these and check them in.\n")
 			return false
 		}
