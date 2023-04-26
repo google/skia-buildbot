@@ -239,3 +239,25 @@ alias(
     actual = "//bazel/tools/protoc",
     visibility = ["//visibility:public"],
 )
+
+#######
+# npm #
+#######
+
+# Sample usage: "bazel run //:npm -- install some-package"
+alias(
+    name = "npm",
+    actual = "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
+    visibility = ["//visibility:public"],
+)
+
+#######
+# npx #
+#######
+
+# Sample usage: "bazel run //:npx -- eslint --fix ."
+alias(
+    name = "npx",
+    actual = "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
+    visibility = ["//visibility:public"],
+)
