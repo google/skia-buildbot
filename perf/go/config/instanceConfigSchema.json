@@ -4,21 +4,13 @@
   "definitions": {
     "AuthConfig": {
       "required": [
-        "header_name",
-        "login_url",
-        "logout_url"
+        "header_name"
       ],
       "properties": {
         "header_name": {
           "type": "string"
         },
         "email_regex": {
-          "type": "string"
-        },
-        "login_url": {
-          "type": "string"
-        },
-        "logout_url": {
           "type": "string"
         }
       },

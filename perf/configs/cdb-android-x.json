@@ -2,9 +2,7 @@
   "URL": "https://androidx-perf.skia.org/",
   "contact": "http://go/androidx-discuss",
   "auth_config": {
-    "header_name": "X-WEBAUTH-USER",
-    "login_url": "https://skia.org/login/",
-    "logout_url": "https://skia.org/logout/"
+    "header_name": "X-WEBAUTH-USER"
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",

@@ -47,11 +47,6 @@ func (_m *Login) LoggedInAs(r *http.Request) alogin.EMail {
 	return r0
 }
 
-// NeedsAuthentication provides a mock function with given fields: w, r
-func (_m *Login) NeedsAuthentication(w http.ResponseWriter, r *http.Request) {
-	_m.Called(w, r)
-}
-
 // Roles provides a mock function with given fields: r
 func (_m *Login) Roles(r *http.Request) roles.Roles {
 	ret := _m.Called(r)

@@ -1,5 +1,7 @@
 /** @module infra-sk/modules/login */
 
+import { LoginStatus } from './json';
+
 /**
  * A Promise that will be resolved with the users current login status.
  *
@@ -13,7 +15,7 @@
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export const Login = fetch('https://skia.org/loginstatus/', {
+export const Login: Promise<LoginStatus> = fetch('/loginstatus/', {
   credentials: 'include',
 }).then((res) => {
   if (res.ok) {
@@ -36,7 +38,7 @@ export const Login = fetch('https://skia.org/loginstatus/', {
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export const LoginTo = function (loginStatusURL: string) {
+export const LoginTo = function (loginStatusURL: string): Promise<LoginStatus> {
   return fetch(loginStatusURL, {
     credentials: 'include',
   }).then((res) => {
@@ -50,4 +52,19 @@ export const LoginTo = function (loginStatusURL: string) {
 // Add to the global sk namespace while we migrate away from Polymer.
 if ((window as any).sk !== undefined) {
   (window as any).sk.Login = Login;
+}
+
+/**
+ * Function that returns the base domain of a sub-domain.
+ *
+ * I.e. it will return "skia.org" if the current location is "perf.skia.org".
+ *
+ * In addition it will fallback to "skia.org" is case we are on corp.goog.
+ */
+export function baseDomain(): string {
+  let ret = window.location.host.split('.').slice(-2).join('.');
+  if (ret === 'corp.goog') {
+    ret = 'skia.org';
+  }
+  return ret;
 }

@@ -1,4 +1,3 @@
-import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { Alert } from '../json';
@@ -94,6 +93,13 @@ customElements.whenDefined('cluster-lastn-page-sk').then(() => {
     );
 });
 
+fetchMock.get('/loginstatus/', {
+  Email: 'user@google.com',
+});
+
 window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.demo = true;
+
+// eslint-disable-next-line import/first
+import './index';

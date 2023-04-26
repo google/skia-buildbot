@@ -17,7 +17,7 @@
  */
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { LoginTo } from '../login';
+import { baseDomain, LoginTo } from '../login';
 
 define(
   'login-sk',
@@ -25,7 +25,12 @@ define(
     connectedCallback() {
       this.innerHTML =
         '<span class=email>Loading...</span><a class=logInOut></a>';
-      const host = this.loginHost ? this.loginHost : 'skia.org';
+
+      const host = baseDomain();
+
+      const login = `https://${host}/login/`;
+      const logout = `https://${host}/logout/`;
+
       if (this.testingOffline) {
         this.querySelector<HTMLSpanElement>('.email')!.textContent =
           'test@example.com';
@@ -35,17 +40,17 @@ define(
         )}`;
         logInOut.textContent = 'Logout';
       } else {
-        LoginTo(`https://${host}/loginstatus/`)
+        LoginTo(`/loginstatus/`)
           .then((status) => {
             this.querySelector<HTMLSpanElement>('.email')!.textContent =
               status.Email;
             const logInOut =
               this.querySelector<HTMLAnchorElement>('.logInOut')!;
             if (!status.Email) {
-              logInOut.href = status.LoginURL;
+              logInOut.href = login;
               logInOut.textContent = 'Login';
             } else {
-              logInOut.href = `https://${host}/logout/?redirect=${encodeURIComponent(
+              logInOut.href = `${logout}?redirect=${encodeURIComponent(
                 document.location.toString()
               )}`;
               logInOut.textContent = 'Logout';

@@ -55,12 +55,6 @@ type AuthConfig struct {
 	// If supplied, the Regex must have a single subexpression that matches the
 	// email address.
 	EmailRegex string `json:"email_regex,omitempty"`
-
-	// LoginURL is the URL to redirect users to when they need to log in.
-	LoginURL string `json:"login_url"`
-
-	// LogoutURL is the URL to redirect users to when they need to log out.
-	LogoutURL string `json:"logout_url"`
 }
 
 // DataStoreType determines what type of datastore to build. Applies to

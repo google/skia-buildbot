@@ -100,7 +100,7 @@ export class DetailsDialogSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    Login.then((res: any) => {
+    Login.then((res) => {
       this.canEditComments = res.Email !== '';
       this._render();
     });

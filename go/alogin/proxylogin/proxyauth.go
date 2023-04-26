@@ -41,12 +41,6 @@ type ProxyLogin struct {
 
 	// emailRegex is an optional regex to extract the email address from the header value.
 	emailRegex *regexp.Regexp
-
-	// loginURL is the URL to visit to log in.
-	loginURL string
-
-	// logoutURL is the URL to visit to log out.
-	logoutURL string
 }
 
 // New returns a new instance of proxyLogin.
@@ -61,7 +55,7 @@ type ProxyLogin struct {
 //
 // If supplied, the Regex must have a single subexpression that matches the email
 // address.
-func New(headerName, emailRegex, loginURL, logoutURL string) (*ProxyLogin, error) {
+func New(headerName, emailRegex string) (*ProxyLogin, error) {
 	var compiledRegex *regexp.Regexp = nil
 	var err error
 	if emailRegex != "" {
@@ -74,8 +68,6 @@ func New(headerName, emailRegex, loginURL, logoutURL string) (*ProxyLogin, error
 	return &ProxyLogin{
 		headerName: headerName,
 		emailRegex: compiledRegex,
-		loginURL:   loginURL,
-		logoutURL:  logoutURL,
 	}, nil
 }
 
@@ -84,8 +76,13 @@ func NewWithDefaults() *ProxyLogin {
 	return &ProxyLogin{
 		headerName: authproxy.WebAuthHeaderName,
 		emailRegex: nil,
-		loginURL:   DefaultLoginURL,
-		logoutURL:  DefaultLogoutURL,
+	}
+}
+
+func NewWithDomain() *ProxyLogin {
+	return &ProxyLogin{
+		headerName: authproxy.WebAuthHeaderName,
+		emailRegex: nil,
 	}
 }
 
@@ -112,9 +109,7 @@ func (p *ProxyLogin) NeedsAuthentication(w http.ResponseWriter, r *http.Request)
 // Status implements alogin.Login.
 func (p *ProxyLogin) Status(r *http.Request) alogin.Status {
 	return alogin.Status{
-		EMail:     p.LoggedInAs(r),
-		LoginURL:  p.loginURL,
-		LogoutURL: p.logoutURL,
+		EMail: p.LoggedInAs(r),
 	}
 }
 

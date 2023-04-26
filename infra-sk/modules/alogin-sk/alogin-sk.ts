@@ -14,6 +14,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../ElementSk';
 import { Status } from '../json';
+import { baseDomain } from '../login';
 
 const defaultStatusURL = '/_/login/status';
 
@@ -32,15 +33,11 @@ const loggedIn = async (url: string = defaultStatusURL): Promise<Status> => {
 
 const defaultStatus: Status = {
   email: '',
-  login: '',
-  logout: '',
   roles: [],
 };
 
 const fakeStatus: Status = {
   email: 'test@example.com',
-  login: '/login/',
-  logout: '/logout/',
   roles: ['viewer'],
 };
 
@@ -52,6 +49,10 @@ export class AloginSk extends ElementSk {
    */
   statusPromise: Promise<Status> = Promise.resolve(defaultStatus);
 
+  private login: string = '';
+
+  private logout: string = '';
+
   private status: Status = defaultStatus;
 
   constructor() {
@@ -60,10 +61,7 @@ export class AloginSk extends ElementSk {
 
   private static template = (ele: AloginSk) => html`
     <span class="email"> ${ele.status.email} </span>
-    <a
-      class="logInOut"
-      href="${ele.status.email ? ele.status.logout : ele.status.login}"
-    >
+    <a class="logInOut" href="${ele.status.email ? ele.logout : ele.login}">
       ${ele.status.email ? 'Logout' : 'Login'}
     </a>
   `;
@@ -71,14 +69,19 @@ export class AloginSk extends ElementSk {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
 
+    const domain = baseDomain();
+
+    this.login = `https://${domain}/login/`;
+    this.logout = `https://${domain}/logout/`;
+
     if (this.hasAttribute('testing_offline')) {
       this.statusPromise = Promise.resolve(fakeStatus);
       this.status = fakeStatus;
-      this._render();
-      return;
+    } else {
+      this.statusPromise = loggedIn(this.getAttribute('url') || undefined);
+      this.status = await this.statusPromise;
     }
-    this.statusPromise = loggedIn(this.getAttribute('url') || undefined);
-    this.status = await this.statusPromise;
+
     this._render();
   }
 }

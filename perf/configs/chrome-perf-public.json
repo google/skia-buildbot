@@ -4,9 +4,7 @@
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "auth_config": {
-        "header_name": "X-WEBAUTH-USER",
-        "login_url": "https://skia.org/login/",
-        "logout_url": "https://skia.org/logout/"
+        "header_name": "X-WEBAUTH-USER"
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",

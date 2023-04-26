@@ -42,6 +42,7 @@ sk_page(
     ts_deps = [
         "//status/modules/rpc-mock:index_ts_lib",
         ":test-data_ts_lib",
+        "@npm//fetch-mock",
     ],
     ts_entry_point = "capacity-sk-demo.ts",
 )

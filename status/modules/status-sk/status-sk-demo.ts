@@ -1,4 +1,3 @@
-import './index';
 import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import {
@@ -39,7 +38,11 @@ SetTestSettings({
     ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
   ]),
 });
-fetchMock.getOnce('path:/loginstatus/', {});
+
+fetchMock.get('/loginstatus/', {
+  Email: 'user@google.com',
+});
+
 fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{
   alerts: 5,
 });
@@ -92,6 +95,10 @@ fetchMock.getOnce(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
   infraRoleResp
 );
+
+// eslint-disable-next-line import/first
+import './index';
+
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 

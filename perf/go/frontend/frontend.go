@@ -306,9 +306,7 @@ func (f *Frontend) initialize() {
 	// Configure login.
 	f.loginProvider, err = proxylogin.New(
 		cfg.AuthConfig.HeaderName,
-		cfg.AuthConfig.EmailRegex,
-		cfg.AuthConfig.LoginURL,
-		cfg.AuthConfig.LogoutURL)
+		cfg.AuthConfig.EmailRegex)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize login: %s", err)
 	}
