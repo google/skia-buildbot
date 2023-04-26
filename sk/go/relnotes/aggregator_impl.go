@@ -171,7 +171,7 @@ func (a *AggregatorImpl) writeNewMilestoneSection(ctx context.Context, fs vfs.FS
 //
 // This function does not modify any files on disk. The caller is responsible
 // for writing these modified release notes to disk if desired.
-func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, currentMilestone int, aggregateFilePath, relnotesDir string) ([]byte, error) {
+func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, newMilestone int, aggregateFilePath, relnotesDir string) ([]byte, error) {
 	b, err := vfs.ReadFile(ctx, fs, aggregateFilePath)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Unable to open current release notes")
@@ -180,7 +180,7 @@ func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, currentMilest
 	var newContents bytes.Buffer
 	scanner := bufio.NewScanner(r)
 	gotFirstMilestoneHeading := false
-	newMilestone := currentMilestone + 1
+	prevMilestone := newMilestone - 1
 	insertNotesAfterNextHeadingUnderlines := false
 	for scanner.Scan() {
 		t := scanner.Text()
@@ -194,7 +194,7 @@ func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, currentMilest
 					// Insert all new notes just after the milestone heading, but don't
 					// create a new one.
 					insertNotesAfterNextHeadingUnderlines = true
-				} else if m == currentMilestone {
+				} else if m == prevMilestone {
 					if err = a.writeNewMilestoneSection(ctx, fs, &newContents,
 						newMilestone, relnotesDir); err != nil {
 						return nil, skerr.Wrap(err)

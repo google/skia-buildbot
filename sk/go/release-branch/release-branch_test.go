@@ -154,7 +154,7 @@ Milestone 113
 	g.On("GetIssueProperties", ctx, int64(123)).Once().Return(&ci, nil)
 	g.On("Url", int64(123)).Once().Return("https://skia-review.googlesource.com/c/skia/+/123")
 
-	mci, err := mergeReleaseNotes(ctx, g, repo, "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c", 113, "chrome/m114", nil)
+	mci, err := mergeReleaseNotes(ctx, g, repo, "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c", 114, "chrome/m114", nil)
 	require.NoError(t, err)
 	require.NotNil(t, mci)
 }

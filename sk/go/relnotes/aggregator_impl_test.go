@@ -369,7 +369,7 @@ Milestone 113
 	f3.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.md", "relnotes")
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 114, "RELEASE_NOTES.md", "relnotes")
 	assert.NoError(t, err)
 
 	const expectedReleaseNotes = `Skia Graphics Release Notes
@@ -471,7 +471,7 @@ Milestone 112
 	f3.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	newNotes, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.md", "relnotes")
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.md", "relnotes")
 	assert.NoError(t, err)
 
 	const expectedReleaseNotes = `Skia Graphics Release Notes
