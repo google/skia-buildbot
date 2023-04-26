@@ -85,6 +85,10 @@ type ClientConfig struct {
 	// Response2xxOnly, if true, transforms non-2xx HTTP responses to an error return value.
 	Response2xxOnly bool
 
+	// Response2xxAnd3xx, if true, transforms non-2xx and 3xx HTTP responses to
+	// an error return value.
+	Response2xxAnd3xx bool
+
 	// Metrics, if true, logs each request to metrics.
 	Metrics bool
 }
@@ -96,11 +100,12 @@ type ClientConfig struct {
 //   - Metrics are enabled.
 func DefaultClientConfig() ClientConfig {
 	return ClientConfig{
-		DialTimeout:     DIAL_TIMEOUT,
-		RequestTimeout:  REQUEST_TIMEOUT,
-		Retries:         DefaultBackOffConfig(),
-		Response2xxOnly: false,
-		Metrics:         true,
+		DialTimeout:       DIAL_TIMEOUT,
+		RequestTimeout:    REQUEST_TIMEOUT,
+		Retries:           DefaultBackOffConfig(),
+		Response2xxOnly:   false,
+		Response2xxAnd3xx: false,
+		Metrics:           true,
 	}
 }
 
@@ -112,7 +117,20 @@ func (c ClientConfig) WithDialTimeout(dialTimeout time.Duration) ClientConfig {
 
 // With2xxOnly returns a new ClientConfig where non-2xx responses cause an error.
 func (c ClientConfig) With2xxOnly() ClientConfig {
+	if c.Response2xxAnd3xx {
+		sklog.Fatal("With2xxOnly is mutually exclusive with With2xxAnd3xx")
+	}
 	c.Response2xxOnly = true
+	return c
+}
+
+// With2xxAnd3xx returns a new ClientConfig where non-2xx and 3xx responses
+// cause an error.
+func (c ClientConfig) With2xxAnd3xx() ClientConfig {
+	if c.Response2xxOnly {
+		sklog.Fatal("With2xxAnd3xx is mutually exclusive with With2xxOnly")
+	}
+	c.Response2xxAnd3xx = true
 	return c
 }
 
@@ -162,6 +180,9 @@ func (c ClientConfig) Client() *http.Client {
 	}
 	if c.Response2xxOnly {
 		t = Response2xxOnlyTransport{t}
+	}
+	if c.Response2xxAnd3xx {
+		t = Response2xxAnd3xxTransport{t}
 	}
 	if c.Metrics {
 		t = NewMetricsTransport(t)
@@ -236,6 +257,34 @@ func Response2xxOnly(client *http.Client) *http.Client {
 		wrap = http.DefaultTransport
 	}
 	client.Transport = Response2xxOnlyTransport{wrap}
+	return client
+}
+
+// Response2xxAnd3xxTransport is a RoundTripper that transforms non-2xx and 3xx
+// HTTP responses to an error return value. Delegates all requests to the
+// wrapped RoundTripper, which must be non-nil. Add this behavior to an existing
+// client with Response2xxAnd3xx below.
+type Response2xxAnd3xxTransport struct {
+	http.RoundTripper
+}
+
+// RoundTrip implements the RoundTripper interface.
+func (t Response2xxAnd3xxTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := t.RoundTripper.RoundTrip(req)
+	if err == nil && resp != nil && (resp.StatusCode < 200 || resp.StatusCode > 399) {
+		return nil, fmt.Errorf("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+	}
+	return resp, err
+}
+
+// Response2xxAnd3xx modifies client so that non-2xx HTTP responses cause a non-
+// nil error return value.
+func Response2xxAnd3xx(client *http.Client) *http.Client {
+	wrap := client.Transport
+	if wrap == nil {
+		wrap = http.DefaultTransport
+	}
+	client.Transport = Response2xxAnd3xxTransport{wrap}
 	return client
 }
 
