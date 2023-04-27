@@ -53,6 +53,22 @@ build_and_upload_powercycle_server_ansible: build_powercycle_server_ansible
 release_powercycle_server_ansible: build_and_upload_powercycle_server_ansible
 	../bash/ansible-release.sh powercycle_server_ansible ${VERSION}
 
+build_environment_monitor_ansible:
+	rm -rf ./build
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/environment_monitor_ansible \
+	 -ldflags="-X 'main.Version=${VERSION}' " \
+	 ./go/environment_monitor_ansible
+
+build_and_upload_environment_monitor_ansible: build_environment_monitor_ansible
+	cipd create -pkg-def=environment_monitor_ansible_cipd.yml --tag version:${VERSION}
+
+release_environment_monitor_ansible: build_and_upload_environment_monitor_ansible
+	../bash/ansible-release.sh environment_monitor_ansible ${VERSION}
+
 build_router_backup_ansible:
 	rm -rf ./build
 	CGO_ENABLED=0 \

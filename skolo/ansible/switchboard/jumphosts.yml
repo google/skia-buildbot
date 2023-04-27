@@ -8,6 +8,7 @@
     metadata_server_ansible_version_override: ''
     alert_to_pubsub_ansible_version_override: ''
     managed_prometheus_ansible_version_override: ''
+    environment_monitor_ansible_version_override: ''
 
   roles:
     - stop_sleeping
@@ -31,3 +32,6 @@
     - role: install_managed_prometheus
       managed_prometheus_ansible_version:
         '{{ managed_prometheus_ansible_version_override }}'
+    - role: install_environment_monitor
+      environment_monitor_ansible_version:
+        '{{ environment_monitor_ansible_version_override }}'

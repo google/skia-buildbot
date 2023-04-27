@@ -1,0 +1,16 @@
+# Installs environment_monitor_ansible.
+#
+# To push a test/debug version of environment_monitor_ansible to a
+# machine you can provide a value for the
+# environment_monitor_ansible_version_override via the
+# --extra-vars command line parameter.
+- hosts: environment_monitor_linux
+  user: chrome-bot
+  gather_facts: true
+  vars:
+    environment_monitor_ansible_version_override: ''
+
+  roles:
+    - role: install_environment_monitor
+      environment_monitor_ansible_version:
+        '{{ environment_monitor_ansible_version_override }}'

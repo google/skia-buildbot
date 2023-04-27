@@ -38,6 +38,10 @@ scrape_configs:
         labels:
           job: 'alert_to_pubsub_ansible'
           hostname: 'jumphost'
+      - targets: ['localhost:{{ all.prometheus.monitoring.ports.environment_monitor_ansible  }}']
+        labels:
+          job: 'environment_monitor_ansible'
+          hostname: 'environment_monitor_linux'
   - job_name: 'test_machines'
     static_configs:
 {% for hostname in hostvars['rack4']['groups'][inventory_hostname + '_machines'] %}

@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "environment_monitor",
+    embed = [":environment_monitor_ansible_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "environment_monitor_ansible_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skolo/go/environment_monitor_ansible",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//skolo/go/sensors",
+    ],
+)

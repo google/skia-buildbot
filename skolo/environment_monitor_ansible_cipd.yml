@@ -1,0 +1,5 @@
+package: skia/internal/environment_monitor_ansible
+description: Builds of environment_monitor_ansible for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/
