@@ -6,9 +6,11 @@
 package alogin
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/go/sklog"
 )
 
 // EMail is an email address.
@@ -48,4 +50,16 @@ type Login interface {
 
 	// Returns true if the currently logged in user has the given Role.
 	HasRole(r *http.Request, role roles.Role) bool
+}
+
+// LoginStatusHandler returns an http.HandlerFunc that should be used to handle
+// requests to "/_/login/status", which is the default location of the status
+// handler in the alogin-sk element.
+func LoginStatusHandler(login Login) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(login.Status(r)); err != nil {
+			sklog.Errorf("Failed to send response: %s", err)
+		}
+	}
 }

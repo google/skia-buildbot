@@ -22,7 +22,9 @@ const defaultStatusURL = '/_/login/status';
  * Returns a Promise that resolves when we have received the login status, and
  * rejects if there was an error retrieving the login status.
  */
-const loggedIn = async (url: string = defaultStatusURL): Promise<Status> => {
+export const LoggedIn = async (
+  url: string = defaultStatusURL
+): Promise<Status> => {
   const resp = await fetch(url);
   if (!resp.ok) {
     await errorMessage(`Failed to load login status: ${resp.statusText}`);
@@ -78,7 +80,7 @@ export class AloginSk extends ElementSk {
       this.statusPromise = Promise.resolve(fakeStatus);
       this.status = fakeStatus;
     } else {
-      this.statusPromise = loggedIn(this.getAttribute('url') || undefined);
+      this.statusPromise = LoggedIn(this.getAttribute('url') || undefined);
       this.status = await this.statusPromise;
     }
 

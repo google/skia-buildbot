@@ -5,5 +5,8 @@ go_library(
     srcs = ["login.go"],
     importpath = "go.skia.org/infra/go/alogin",
     visibility = ["//visibility:public"],
-    deps = ["//go/roles"],
+    deps = [
+        "//go/roles",
+        "//go/sklog",
+    ],
 )

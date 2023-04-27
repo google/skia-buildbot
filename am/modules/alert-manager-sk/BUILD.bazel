@@ -24,12 +24,12 @@ sk_element(
         "//elements-sk/modules/tabs-sk",
         "//elements-sk/modules/toast-sk",
         "//am/modules/auto-assign-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
         "//am/modules/paramset:index_ts_lib",
         "//am/modules:am_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",

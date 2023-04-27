@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
@@ -638,6 +639,7 @@ func (srv *server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.mainHandler)
+	r.HandleFunc(("/_/login/status"), alogin.LoginStatusHandler(srv.alogin))
 
 	// GETs
 	r.HandleFunc("/_/emails", srv.emailsHandler).Methods("GET")

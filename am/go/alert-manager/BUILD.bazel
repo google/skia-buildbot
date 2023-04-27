@@ -15,6 +15,7 @@ go_library(
         "//email/go/emailclient",
         "//go/alerts",
         "//go/allowed",
+        "//go/alogin",
         "//go/alogin/proxylogin",
         "//go/auth",
         "//go/baseapp",

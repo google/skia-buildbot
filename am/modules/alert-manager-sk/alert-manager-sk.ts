@@ -28,14 +28,10 @@ import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html, render, Template, TemplateResult } from 'lit-html';
-import {
-  jsonOrThrow,
-  JsonOrThrowError,
-} from '../../../infra-sk/modules/jsonOrThrow';
+import { html, render, TemplateResult } from 'lit-html';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-import { Login } from '../../../infra-sk/modules/login';
 import { AutoAssignSk } from '../auto-assign-sk/auto-assign-sk';
 import { BotChooserSk } from '../bot-chooser-sk/bot-chooser-sk';
 import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';
@@ -55,6 +51,7 @@ import {
   IncidentsInRangeRequest,
   AuditLog,
 } from '../json';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 
 // Legal states.
 const START = 'start';
@@ -160,8 +157,8 @@ export class AlertManagerSk extends HTMLElement {
         this.infra_gardener = json.emails[0];
         this._render();
       });
-    Login.then((loginstatus) => {
-      this.user = loginstatus.Email;
+    LoggedIn().then((loginstatus) => {
+      this.user = loginstatus.email;
       this._render();
     });
   }
