@@ -23,8 +23,6 @@ package login
 //
 // Once we get the users email address we put it in a cookie for later
 // retrieval. The cookie value is validated using HMAC to stop spoofing.
-//
-// N.B. The cookiesaltkey metadata value must be set on the GCE instance.
 
 import (
 	"context"
@@ -41,20 +39,19 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	oauth2_api "google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 )
 
 const (
-
-	// DefaultRedirectURL is the redirect URL to use if Init is called with
-	// DEFAULT_ALLOWED_DOMAINS.
-	DefaultRedirectURL = "https://skia.org/oauth2callback/"
 
 	// DefaultOAuth2Callback is the default relative OAuth2 redirect URL.
 	DefaultOAuth2Callback = "/oauth2callback/"
@@ -74,9 +71,6 @@ const (
 	// defaultAllowedDomains is a list of domains we use frequently.
 	defaultAllowedDomains = "google.com chromium.org skia.org"
 
-	// cookieDomainSkiaOrg is the cookie domain for skia.org.
-	cookieDomainSkiaOrg = "skia.org"
-
 	// cookieDomainSkiaCorp is the cookie domain for skia*.corp.goog.
 	cookieDomainSkiaCorp = "corp.goog"
 
@@ -89,15 +83,89 @@ const (
 	// loginSecretProject is the GCP project containing the login secrets.
 	loginSecretProject = "skia-infra-public"
 
-	// loginSecretName is the name of the GCP secret for login.
-	loginSecretName = "login-oauth2-secrets"
-
+	// idTokenKeyName is the key of the JWT stored in oauth2.Token.Extra that
+	// contains the authenticated users email address.
 	idTokenKeyName = "id_token"
+
+	// validBearerTokenCacheLifetime is how long are valid bearer tokens cached
+	// before requiring they be validated again.
+	//
+	// OAuth2 access tokens expire after an hour, so we'll cache them for the
+	// same duration.
+	validBearerTokenCacheLifetime = time.Hour
+
+	// validBearerTokenCacheCleanup is how often the cache is cleared of expired
+	// bearer tokens.
+	validBearerTokenCacheCleanup = 5 * time.Minute
 )
 
 var (
+	// DefaultRedirectURL is the redirect URL to use if Init is called with
+	// DEFAULT_ALLOWED_DOMAINS.
+	DefaultRedirectURL = "https://skia.org/oauth2callback/"
+
+	// cookieDomain is the domain to use when setting Cookies.
+	cookieDomain = "skia.org"
+
+	// loginSecretName is the name of the GCP secret for login.
+	loginSecretName = "login-oauth2-secrets"
+
 	errMalformedState = errors.New("malformed state value")
 )
+
+// InitOption are options passed to Init. Note that DomainName implements
+// InitOption allowing the selection of the login domain.
+type InitOption interface {
+	Apply() error
+}
+
+// DomainName represents a domain name that can be used for login.
+type DomainName string
+
+// Apply implements InitOption for DomainName selection.
+func (d DomainName) Apply() error {
+	return setDomain(d)
+}
+
+const (
+	// SkiaOrg selects the configuration for the skia.org domain.
+	SkiaOrg DomainName = "skia.org"
+
+	// LuciApp selects the configuration for the luci.app domain.
+	LuciApp DomainName = "luci.app"
+)
+
+// AllDomainNames contains all the allowed domain names.
+var AllDomainNames = []DomainName{SkiaOrg, LuciApp}
+
+// domainConfig contains the configuration to process logins for a domain.
+type domainConfig struct {
+	CookieDomain    string
+	LoginSecretName string
+}
+
+var domainConfigurations = map[DomainName]domainConfig{
+	SkiaOrg: {
+		CookieDomain:    "skia.org",
+		LoginSecretName: "login-oauth2-secrets",
+	},
+	LuciApp: {
+		CookieDomain:    "luci.app",
+		LoginSecretName: "luci-app-login-oauth2-secrets",
+	},
+}
+
+// setDomain sets the domain used for authentication.
+func setDomain(d DomainName) error {
+	cfg, ok := domainConfigurations[d]
+	if !ok {
+		return skerr.Fmt("unknown domain: %q", d)
+	}
+	DefaultRedirectURL = fmt.Sprintf("https://%s%s", cfg.CookieDomain, DefaultOAuth2Callback)
+	cookieDomain = cfg.CookieDomain
+	loginSecretName = cfg.LoginSecretName
+	return nil
+}
 
 // OAuthConfigConstructor allows choosing OAuthConfig implementations.
 type OAuthConfigConstructor func(clientID, clientSecret, redirectURL string) OAuthConfig
@@ -128,6 +196,8 @@ var (
 
 	secureCookie *securecookie.SecureCookie = nil
 
+	tokenValidatorService *oauth2_api.Service = nil
+
 	// oauthConfig is the OAuth 2.0 client configuration.
 	oauthConfig = configConstructor("not-a-valid-client-id", "not-a-valid-client-secret", "http://localhost:8000/oauth2callback/")
 
@@ -137,6 +207,11 @@ var (
 	// activeOAuth2ConfigConstructor can be replaced with a func that returns a
 	// mock OAuthConfig for testing.
 	activeOAuth2ConfigConstructor OAuthConfigConstructor = configConstructor
+
+	// validBearerTokenCache is a TTL cache for bearer tokens that have been
+	// validated, which saves an HTTP round trip for validation for every
+	// request.
+	validBearerTokenCache *ttlcache.Cache
 )
 
 // Session is encrypted and serialized and stored in a user's cookie.
@@ -145,21 +220,6 @@ type Session struct {
 	ID        string
 	AuthScope string
 	Token     *oauth2.Token
-}
-
-// SimpleInitMust initializes the login system for the default case, which uses
-// DEFAULT_REDIRECT_URL in prod along with the DEFAULT_ALLOWED_DOMAINS and uses
-// a localhost'port' redirect URL if 'local' is true.
-//
-// If an error occurs then the function fails fatally.
-func SimpleInitMust(port string, local bool) {
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
-	if !local {
-		redirectURL = DefaultRedirectURL
-	}
-	if err := Init(redirectURL, defaultAllowedDomains, ""); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
 }
 
 // Init must be called before any other login methods.
@@ -172,22 +232,47 @@ func SimpleInitMust(port string, local bool) {
 //
 // The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
-func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
-	cookieSalt, clientID, clientSecret, err := TryLoadingFromAllSources(context.TODO(), clientSecretFile)
+//
+// InitOptions include setting the DomainName to be used for authentication.
+func Init(ctx context.Context, redirectURL string, authAllowList string, clientSecretFile string, opts ...InitOption) error {
+	cookieSalt, clientID, clientSecret, err := TryLoadingFromAllSources(ctx, clientSecretFile)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, authAllowList)
-	return nil
+	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, authAllowList, opts...)
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
-func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, authAllowList string) {
+func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, authAllowList string, opts ...InitOption) error {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
+	cookieSalt = salt
 
 	setActiveAllowLists(authAllowList)
+	var err error
+	tokenValidatorService, err = oauth2_api.NewService(ctx, option.WithHTTPClient(httputils.NewTimeoutClient()))
+	if err != nil {
+		return skerr.Wrapf(err, "create oauth2 service client")
+	}
+
+	// Create the valid bearer token cache.
+	validBearerTokenCache = ttlcache.New(validBearerTokenCacheLifetime, validBearerTokenCacheCleanup)
+
+	// Report metrics on the cache size.
+	validBearerTokens := metrics2.GetInt64Metric("login_valid_bearer_tokens_in_cache")
+	go func() {
+		for range time.Tick(time.Minute) {
+			validBearerTokens.Update(int64(validBearerTokenCache.ItemCount()))
+		}
+	}()
+
+	for _, opt := range opts {
+		if err := opt.Apply(); err != nil {
+			return skerr.Wrapf(err, "applying option")
+		}
+	}
+	return nil
 }
 
 func writeNewSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -313,13 +398,6 @@ func getSession(r *http.Request) (*Session, error) {
 		return nil, skerr.Wrap(err)
 	}
 	var s Session
-	if cookie != nil && len(cookie.String()) > 20 {
-		sklog.Infof("Cookie is: %s", cookie.String()[:20])
-	} else {
-		// This is likely nil or invalid, so no need to elide.
-		sklog.Infof("Cookie is: %v", cookie)
-	}
-
 	if err := secureCookie.Decode(cookieName, cookie.Value, &s); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -329,8 +407,8 @@ func getSession(r *http.Request) (*Session, error) {
 	return &s, nil
 }
 
-// LoggedInAs returns the user's ID, i.e. their email address, if they are
-// logged in, and "" if they are not logged in.
+// LoggedInAs returns the user's email address, if they are logged in, and "" if
+// they are not logged in.
 func LoggedInAs(r *http.Request) string {
 	var email string
 	if s, err := getSession(r); err == nil {
@@ -347,9 +425,24 @@ func LoggedInAs(r *http.Request) string {
 	return ""
 }
 
-// UserIdentifiers returns both the email and opaque user id of the logged in
+// LoggedInAsFromContext returns the email from the session cookie if it is
+// present and matches either the domain or the user allow list. The passed-in
+// Context must be from a request whose http.Handler was wrapped using
+// SessionMiddleware. This differs from LoggedInAs in that it doesn't fall back
+// to checking the OAuth 2 Bearer token.
+func LoggedInAsFromContext(ctx context.Context) string {
+	if session := getSessionFromContext(ctx); session != nil {
+		email := session.Email
+		if isAuthorized(email) {
+			return email
+		}
+	}
+	return ""
+}
+
+// userIdentifiers returns both the email and opaque user id of the logged in
 // user, and will return two empty strings if they are not logged in.
-func UserIdentifiers(r *http.Request) (string, string) {
+func userIdentifiers(r *http.Request) (string, string) {
 	s, err := getSession(r)
 	if err != nil {
 		return "", ""
@@ -381,11 +474,11 @@ func domainFromHost(fullhost string) string {
 		return host
 	} else if strings.HasSuffix(fullhost, "."+cookieDomainSkiaCorp) {
 		return cookieDomainSkiaCorp
-	} else if strings.HasSuffix(fullhost, "."+cookieDomainSkiaOrg) || fullhost == cookieDomainSkiaOrg {
-		return cookieDomainSkiaOrg
+	} else if strings.HasSuffix(fullhost, "."+cookieDomain) || fullhost == cookieDomain {
+		return cookieDomain
 	} else {
-		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, cookieDomainSkiaOrg)
-		return cookieDomainSkiaOrg
+		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, cookieDomain)
+		return cookieDomain
 	}
 }
 
@@ -542,20 +635,6 @@ func extractEmailAndAccountIDFromToken(token *oauth2.Token) (string, string, str
 	return email, decoded.ID, ""
 }
 
-// AuthorizedEmail returns the email from the session cookie if it is present and matches either
-// the domain or the user allow list. The passed-in Context must be from a request whose
-// http.Handler was wrapped using SessionMiddleware. This differs from LoggedInAs in that it
-// doesn't fall back to checking the OAuth 2 Bearer token.
-func AuthorizedEmail(ctx context.Context) string {
-	if session := GetSession(ctx); session != nil {
-		email := session.Email
-		if isAuthorized(email) {
-			return email
-		}
-	}
-	return ""
-}
-
 // isAuthorized returns true if the given email address matches either the
 // domain or the user allow list.
 func isAuthorized(email string) bool {
@@ -624,7 +703,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("StatusHandler")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	email, id := UserIdentifiers(r)
+	email, id := userIdentifiers(r)
 	body := LoginStatus{
 		Email:      email,
 		ID:         id,
@@ -642,7 +721,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, err, "Invalid Origin", http.StatusInternalServerError)
 			return
 		}
-		if strings.HasSuffix(u.Host, "."+cookieDomainSkiaOrg) ||
+		if strings.HasSuffix(u.Host, "."+cookieDomain) ||
 			strings.HasSuffix(u.Host, "."+cookieDomainSkiaCorp) ||
 			strings.HasPrefix(u.Host, "localhost:") {
 			prefix := "https://"
@@ -665,34 +744,26 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ForceAuthMiddleware does ForceAuth by returning a func that can be used as
-// middleware.
-func ForceAuthMiddleware(oauthCallbackPath string) func(http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
-		return ForceAuth(h, oauthCallbackPath)
-	}
-}
-
 // ForceAuth is middleware that enforces authentication
 // before the wrapped handler is called. oauthCallbackPath is the
 // URL path that the user is redirected to at the end of the auth flow.
 func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := LoggedInAs(r)
-		if userId == "" {
+		userID := LoggedInAs(r)
+		if userID == "" {
 			if strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
 				// If this is the oauth2 callback, run that handler.
 				OAuth2CallbackHandler(w, r)
 				return
 			} else {
 				// If this is not the oauth callback then redirect.
-				redirectUrl := LoginURL(w, r)
-				sklog.Infof("Redirect URL: %s", redirectUrl)
-				if redirectUrl == "" {
-					httputils.ReportError(w, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:", http.StatusInternalServerError)
+				redirectURL := LoginURL(w, r)
+				sklog.Infof("Redirect URL: %s", redirectURL)
+				if redirectURL == "" {
+					httputils.ReportError(w, fmt.Errorf("unable to get redirect URL"), "Redirect to login failed:", http.StatusInternalServerError)
 					return
 				}
-				http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 				return
 			}
 		}
@@ -770,40 +841,42 @@ func TryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (s
 	return info.Salt, info.ClientID, info.ClientSecret, nil
 }
 
-// ViaBearerToken tries to load an OAuth 2.0 Bearer token from from the request
-// and derives the login email address from it.
+// ViaBearerToken tries to load an OAuth 2.0 Bearer token from the request and
+// derives the login email address from it.
 func ViaBearerToken(r *http.Request) (string, error) {
 	tok := r.Header.Get("Authorization")
 	if tok == "" {
 		return "", skerr.Fmt("User is not authenticated. No Authorization header.")
 	}
 	tok = strings.TrimPrefix(tok, "Bearer ")
-	tokenInfo, err := ValidateBearerToken(tok)
+	tokenInfo, err := validateBearerToken(r.Context(), tok)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return tokenInfo.Email, nil
 }
 
-// ValidateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
-// Authorization: Bearer <value>
-// and polls a Google HTTP endpoint to see if is valid. This is fine in low-volumne
-// situations, but another solution may be needed if this goes higher than a few QPS.
-func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
-	c, err := oauth2_api.New(httputils.NewTimeoutClient())
-	if err != nil {
-		return nil, fmt.Errorf("could not make oauth2 api client: %s", err)
+// validateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
+// `Authorization: Bearer <value>“) and polls a Google HTTP endpoint to see if
+// is valid. Valid tokens are cached for one hour.
+func validateBearerToken(ctx context.Context, token string) (*oauth2_api.Tokeninfo, error) {
+	iTokenInfo, ok := validBearerTokenCache.Get(token)
+	if ok {
+		return iTokenInfo.(*oauth2_api.Tokeninfo), nil
 	}
-	ti, err := c.Tokeninfo().AccessToken(token).Do()
+
+	ti, err := tokenValidatorService.Tokeninfo().AccessToken(token).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}
 	if ti.ExpiresIn <= 0 {
-		return nil, fmt.Errorf("Token is expired.")
+		return nil, fmt.Errorf("token is expired")
 	}
 	if !ti.VerifiedEmail {
-		return nil, fmt.Errorf("Email not verified.")
+		return nil, fmt.Errorf("email not verified")
 	}
+	validBearerTokenCache.Set(token, ti, ttlcache.DefaultExpiration)
+
 	return ti, nil
 }
 
@@ -819,10 +892,10 @@ func SessionMiddleware(sub http.Handler) http.Handler {
 	})
 }
 
-// GetSession returns the current user's Session, or nil if the user is not
+// getSessionFromContext returns the current user's Session, or nil if the user is not
 // logged in. The passed-in Context must be from a request whose http.Handler
 // was wrapped using SessionMiddleware.
-func GetSession(ctx context.Context) *Session {
+func getSessionFromContext(ctx context.Context) *Session {
 	session := ctx.Value(loginCtxKey)
 	if session != nil {
 		return session.(*Session)

@@ -155,7 +155,7 @@ func main() {
 
 	mustStartDebugServer(fsc)
 
-	mustSetUpOAuth2Login(fsc)
+	mustSetUpOAuth2Login(ctx, fsc)
 
 	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
 
@@ -240,14 +240,14 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 }
 
 // mustSetUpOAuth2Login initializes the OAuth 2.0 login system.
-func mustSetUpOAuth2Login(fsc *frontendServerConfig) {
+func mustSetUpOAuth2Login(ctx context.Context, fsc *frontendServerConfig) {
 	// Set up login
 	redirectURL := fsc.SiteURL + "/oauth2callback/"
 	if fsc.Local {
 		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", fsc.ReadyPort)
 	}
 	sklog.Infof("The allowed list of users is: %q", fsc.AuthorizedUsers)
-	if err := login.Init(redirectURL, strings.Join(fsc.AuthorizedUsers, " "), fsc.ClientSecretFile); err != nil {
+	if err := login.Init(ctx, redirectURL, strings.Join(fsc.AuthorizedUsers, " "), fsc.ClientSecretFile); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 }

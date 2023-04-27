@@ -116,7 +116,7 @@ func New() (baseapp.App, error) {
 		modify = allowed.NewAllowedFromList([]string{"barney@example.org"})
 	}
 
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil /* Admins not needed */, modify, nil /* Everyone is allowed to access */)
+	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil /* Admins not needed */, modify, nil /* Everyone is allowed to access */)
 
 	srv := &Server{
 		modify:            modify,

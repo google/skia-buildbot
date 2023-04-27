@@ -3,14 +3,15 @@ package login
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/gorilla/securecookie"
+	ttlcache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -19,6 +20,9 @@ import (
 	"go.skia.org/infra/go/secret/mocks"
 	"go.skia.org/infra/go/testutils"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/googleapi"
+	oauth2_api "google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -27,26 +31,27 @@ const (
 	sessionIDForTesting = "abcdef0123456"
 
 	codeForTesting = "oauth2 code for testing"
+
+	bearerToken = "fake-bearer-token"
 )
 
 var (
 	errMockError = fmt.Errorf("error returned from mocks")
 )
 
-var once sync.Once
-
-func loginInit() {
-	initLogin("id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains)
+func initLoginForTests(t *testing.T) {
+	ctx := context.Background()
+	err := initLogin(ctx, "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, SkiaOrg)
+	require.NoError(t, err)
 }
 
 func TestLoginURL(t *testing.T) {
-	once.Do(loginInit)
+	initLoginForTests(t)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
+	require.NoError(t, err)
 	r.Header.Set("Referer", "https://foo.org")
-	if err != nil {
-		t.Fatal(err)
-	}
+
 	url := LoginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "SameSite=None", "SameSite should be set.")
@@ -66,13 +71,21 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestLoggedInAs(t *testing.T) {
-	once.Do(loginInit)
+	initLoginForTests(t)
+	for _, d := range AllDomainNames {
+		t.Run(string(d), func(t *testing.T) {
+			testLoggedInAs(t, d)
+		})
+	}
+}
+
+func testLoggedInAs(t *testing.T, domain DomainName) {
+	err := setDomain(domain)
+	require.NoError(t, err)
 	setActiveAllowLists(defaultAllowedDomains)
 
-	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
+	require.NoError(t, err)
 
 	assert.Equal(t, LoggedInAs(r), "", "No skid cookie means not logged in.")
 
@@ -84,7 +97,7 @@ func TestLoggedInAs(t *testing.T) {
 	}
 	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
-	assert.Equal(t, "skia.org", cookie.Domain)
+	assert.Equal(t, string(domain), cookie.Domain)
 	r.AddCookie(cookie)
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
@@ -100,23 +113,31 @@ func TestLoggedInAs(t *testing.T) {
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email allow list.")
 }
 
-func TestAuthorizedEmail(t *testing.T) {
-	once.Do(loginInit)
+func TestLoggedInAsFromContext(t *testing.T) {
+	initLoginForTests(t)
+	for _, d := range AllDomainNames {
+		t.Run(string(d), func(t *testing.T) {
+			testLoggedInAsFromContext(t, d)
+		})
+	}
+}
+
+func testLoggedInAsFromContext(t *testing.T, domain DomainName) {
+	err := setDomain(domain)
+	require.NoError(t, err)
 	setActiveAllowLists(defaultAllowedDomains)
-	// In place of SessionMiddleware function.
-	middleware := func(r *http.Request) *http.Request {
+	// attachSessionToContext is what the SessionMiddleware does.
+	attachSessionToContext := func(r *http.Request) *http.Request {
 		session, _ := getSession(r)
 		ctx := context.WithValue(r.Context(), loginCtxKey, session)
 		return r.WithContext(ctx)
 	}
 
-	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r = middleware(r)
+	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
+	require.NoError(t, err)
+	r = attachSessionToContext(r)
 
-	assert.Equal(t, AuthorizedEmail(r.Context()), "", "No skid cookie means not logged in.")
+	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "No skid cookie means not logged in.")
 
 	s := Session{
 		Email:     "fred@chromium.org",
@@ -126,24 +147,25 @@ func TestAuthorizedEmail(t *testing.T) {
 	}
 	cookie, err := cookieFor(&s, r)
 	assert.NoError(t, err)
-	assert.Equal(t, "skia.org", cookie.Domain)
+	assert.Equal(t, string(domain), cookie.Domain)
 	r.AddCookie(cookie)
-	r = middleware(r)
-	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
+	r = attachSessionToContext(r)
+	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
 	url := LoginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 
 	delete(activeUserDomainAllowList, "chromium.org")
-	assert.Equal(t, AuthorizedEmail(r.Context()), "", "Not in the domain allow list.")
+	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "Not in the domain allow list.")
 	url = LoginURL(w, r)
 	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
 
 	activeUserEmailAllowList["fred@chromium.org"] = true
-	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Found in the email allow list.")
+	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Found in the email allow list.")
 }
 
 func TestDomainFromHost(t *testing.T) {
+	initLoginForTests(t)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
 	assert.Equal(t, "skia.org", domainFromHost("skia.org"))
@@ -152,8 +174,19 @@ func TestDomainFromHost(t *testing.T) {
 	assert.Equal(t, "skia.org", domainFromHost("example.com:443"))
 }
 
+func TestDomainFromHost_LuciApp(t *testing.T) {
+	err := initLogin(context.Background(), "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, LuciApp)
+	require.NoError(t, err)
+	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
+	assert.Equal(t, "localhost", domainFromHost("localhost"))
+	assert.Equal(t, "luci.app", domainFromHost("luci.app"))
+	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app"))
+	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app:443"))
+	assert.Equal(t, "luci.app", domainFromHost("example.com:443"))
+}
+
 func TestIsAuthorized(t *testing.T) {
-	once.Do(loginInit)
+	initLoginForTests(t)
 	setActiveAllowLists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 
 	assert.True(t, isAuthorized("fred@chromium.org"))
@@ -164,7 +197,7 @@ func TestIsAuthorized(t *testing.T) {
 }
 
 func TestIsAuthorized_Gmail(t *testing.T) {
-	once.Do(loginInit)
+	initLoginForTests(t)
 	setActiveAllowLists("google.com example@gmail.com")
 
 	assert.True(t, isAuthorized("example@gmail.com"))
@@ -185,9 +218,8 @@ func TestNormalizeGmailAddress(t *testing.T) {
 }
 
 func TestSessionMiddleware(t *testing.T) {
-
 	// Setup.
-	once.Do(loginInit)
+	initLoginForTests(t)
 	setActiveAllowLists(defaultAllowedDomains)
 
 	// Helper function to set up a request with the given Session and test the
@@ -205,7 +237,7 @@ func TestSessionMiddleware(t *testing.T) {
 		// Create an http.Handler which uses LoginMiddleware and checks the
 		// return value of GetSession against the expectation.
 		handler := SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			actual := GetSession(r.Context())
+			actual := getSessionFromContext(r.Context())
 			assertdeep.Equal(t, expect, actual)
 		}))
 
@@ -228,7 +260,6 @@ func TestSessionMiddleware(t *testing.T) {
 }
 
 func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
-
 	ctx := context.Background()
 	client := &mocks.Client{}
 	secretValue := `{
@@ -410,4 +441,141 @@ func TestExtractEmailAndAccountIDFromToken_HappyPath(t *testing.T) {
 	require.Empty(t, msg)
 	require.Equal(t, "somebody@example.org", email)
 	require.Equal(t, "123", id)
+}
+
+func TestSetDomain_ValidDomainName_Success(t *testing.T) {
+	for _, d := range AllDomainNames {
+		t.Run(string(d), func(t *testing.T) {
+			require.NoError(t, setDomain(d))
+		})
+	}
+}
+
+func TestSetDomain_UnknonwDomainName_ReturnsError(t *testing.T) {
+	require.Error(t, setDomain(DomainName("this-in-not-a-known-domain.example.com")))
+}
+
+func setupForValidateBearerToken(t *testing.T, tokenInfo *oauth2_api.Tokeninfo) {
+	// Create an HTTP server that emulates the Token Validation endpoint, that
+	// takes in an access token and returns a Tokeninfo.
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, r.ParseForm())
+		require.Equal(t, bearerToken, r.FormValue("access_token"))
+		require.NoError(t, json.NewEncoder(w).Encode(tokenInfo))
+	}))
+
+	// Replace the default tokenValidatorService with one that points to the
+	// emulation service built above.
+	var err error
+	tokenValidatorService, err = oauth2_api.NewService(context.Background(), option.WithHTTPClient(testServer.Client()),
+		option.WithEndpoint(testServer.URL))
+
+	// Create a fresh cache.
+	validBearerTokenCache = ttlcache.New(validBearerTokenCacheLifetime, validBearerTokenCacheCleanup)
+	require.NoError(t, err)
+}
+
+func TestValidateBearerToken_HappyPath(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+
+	// The TokenInfo should be identical modulo the ServerResponse.
+	actual.ServerResponse = googleapi.ServerResponse{}
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_ValidatedTokenExistsInCache_Success(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	// Add token to cache.
+	validBearerTokenCache.Set(bearerToken, expectedTokenInfo, ttlcache.DefaultExpiration)
+
+	// Nil out the tokenValidatorService, to prove we don't call it.
+	tokenValidatorService = nil
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_FirstRequestAddsTokenToCache_SecondCallReturnsTokenFromCache(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	actual, err := validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+
+	// The TokenInfo should be identical modulo the ServerResponse.
+	actual.ServerResponse = googleapi.ServerResponse{}
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+
+	// Nil out the tokenValidatorService, to prove we don't call it.
+	tokenValidatorService = nil
+
+	// Call validateBearerToken again with the same bearer token.
+	actual, err = validateBearerToken(context.Background(), bearerToken)
+	require.NoError(t, err)
+	assertdeep.Equal(t, expectedTokenInfo, actual)
+}
+
+func TestValidateBearerToken_EmailNotValidated_ReturnsError(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: false,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	_, err := validateBearerToken(context.Background(), bearerToken)
+	require.Contains(t, err.Error(), "email not verified")
+}
+
+func TestValidateBearerToken_TokenExpired_ReturnsError(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     0, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	_, err := validateBearerToken(context.Background(), bearerToken)
+	require.Contains(t, err.Error(), "token is expired")
+}
+
+func TestViaBearerToken_HappyPath(t *testing.T) {
+	expectedTokenInfo := &oauth2_api.Tokeninfo{
+		Email:         "user@example.org",
+		ExpiresIn:     3600, // seconds
+		VerifiedEmail: true,
+	}
+
+	setupForValidateBearerToken(t, expectedTokenInfo)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
+
+	email, err := ViaBearerToken(r)
+	require.NoError(t, err)
+	require.Equal(t, "user@example.org", email)
 }

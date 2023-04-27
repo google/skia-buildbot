@@ -55,6 +55,7 @@ var (
 
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
+	ctx := context.Background()
 	if *hang {
 		return &Server{}, nil
 	}
@@ -70,9 +71,8 @@ func New() (baseapp.App, error) {
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
+	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil, nil, allow)
 
-	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeFullControl, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 

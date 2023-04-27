@@ -467,7 +467,7 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	login.InitWithAllow(serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
+	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
 	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")

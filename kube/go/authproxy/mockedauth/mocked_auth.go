@@ -4,6 +4,7 @@
 package mockedauth
 
 import (
+	"context"
 	"net/http"
 
 	"go.skia.org/infra/kube/go/authproxy/auth"
@@ -19,9 +20,9 @@ func New(loggedInAs string) mockedAuth {
 	return mockedAuth{loggedInAs: loggedInAs}
 }
 
-func (m mockedAuth) Init(port string, local bool) error                     { return nil }
-func (m mockedAuth) LoggedInAs(r *http.Request) string                      { return m.loggedInAs }
-func (m mockedAuth) LoginURL(w http.ResponseWriter, r *http.Request) string { return "" }
+func (m mockedAuth) Init(ctx context.Context, port string, local bool) error { return nil }
+func (m mockedAuth) LoggedInAs(r *http.Request) string                       { return m.loggedInAs }
+func (m mockedAuth) LoginURL(w http.ResponseWriter, r *http.Request) string  { return "" }
 
 // Confirm mockedAuth implements [auth.Auth].
 var _ auth.Auth = mockedAuth{}
