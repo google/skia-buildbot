@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/common"
@@ -14,8 +15,9 @@ import (
 )
 
 var (
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	serialDevice = flag.String("serial_device", "", "Serial device (e.g., '/dev/ttyACM0' or 'COM1')")
+	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	serialDevice  = flag.String("serial_device", "", "Serial device (e.g., '/dev/ttyACM0' or 'COM1')")
+	metricsPrefix = flag.String("metric_prefix", "", "String to prefix metric names (e.g., 'skolo_')")
 )
 
 func openDevice(portName string) (*sensors.DLPTH1C, error) {
@@ -40,15 +42,18 @@ func main() {
 	if *serialDevice == "" {
 		sklog.Fatal(`"serial_device" is a required parameter.`)
 	}
+	if *metricsPrefix == "" {
+		sklog.Fatal(`"metric_prefix" is a required parameter.`)
+	}
 
 	d, err := openDevice(*serialDevice)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	tempMetric := metrics2.GetFloat64Metric("temp_c")
-	humidityMetric := metrics2.GetFloat64Metric("humidity")
-	lightMetric := metrics2.GetFloat64Metric("light")
-	soundMetric := metrics2.GetFloat64Metric("sound_db")
+	tempMetric := metrics2.GetFloat64Metric(fmt.Sprintf("%stemp_c", *metricsPrefix))
+	humidityMetric := metrics2.GetFloat64Metric(fmt.Sprintf("%shumidity", *metricsPrefix))
+	lightMetric := metrics2.GetFloat64Metric(fmt.Sprintf("%slight", *metricsPrefix))
+	soundMetric := metrics2.GetFloat64Metric(fmt.Sprintf("%ssound_db", *metricsPrefix))
 	for range time.Tick(time.Minute) {
 		t, err := d.GetTemperature()
 		if err != nil {

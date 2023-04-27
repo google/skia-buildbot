@@ -21,6 +21,7 @@ Type=simple
 User=chrome-bot
 ExecStart=/usr/local/bin/environment_monitor_ansible \
    --serial_device=/dev/ttyACM0 \
+   --metric_prefix=chap_skolo_ \
    --prom_port=:{{ all.prometheus.monitoring.ports.environment_monitor_ansible }} \
 Restart=always
 RestartSec=10
