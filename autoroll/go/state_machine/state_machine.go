@@ -401,6 +401,10 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	})
 	f(F_RETRY_FAILED_NORMAL, func(ctx context.Context, roll RollCLImpl) error {
 		sklog.Infof("CQ failed but no new commits; retrying CQ.")
+		if !roll.IsFinished() {
+			// No need to retry; someone has already retried for us.
+			return nil
+		}
 		if err := roll.RetryCQ(ctx); err != nil {
 			return err
 		}
@@ -701,6 +705,10 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_STOPPED, nil
 		} else if desiredMode == modes.ModeOffline {
 			return S_OFFLINE, nil
+		} else if !currentRoll.IsFinished() {
+			// Someone probably manually restarted the CQ. Switch back to active
+			// state.
+			return S_NORMAL_ACTIVE, nil
 		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_NORMAL_IDLE, nil
 		} else if desiredMode == modes.ModeDryRun {

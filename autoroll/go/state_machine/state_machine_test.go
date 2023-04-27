@@ -127,6 +127,12 @@ func (r *TestRollCLImpl) SetDryRunFailed() {
 	r.dryRunResult = "FAILED"
 }
 
+// Clear the mocked roll results.
+func (r *TestRollCLImpl) ClearResult() {
+	r.normalResult = ""
+	r.dryRunResult = ""
+}
+
 // Mark the roll as committed.
 func (r *TestRollCLImpl) SetCommitted() {
 	r.isCommitted = true
@@ -1195,4 +1201,27 @@ func TestOffline(t *testing.T) {
 	r.SetMode(ctx, modes.ModeOffline)
 	checkNextState(t, sm, S_OFFLINE)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
+}
+
+func TestNormal_FailureThrottled_CLRetried(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+
+	failureThrottle, err := NewThrottler(ctx, gcsClient, "fail_counter", time.Hour, 1)
+	require.NoError(t, err)
+	r.failureThrottle = failureThrottle
+
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	r.SetNextRollRev("HEAD+1")
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll := r.GetActiveRoll().(*TestRollCLImpl)
+	require.Equal(t, "HEAD+1", roll.rollingTo.Id)
+	roll.SetFailed()
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	roll.ClearResult()
+	require.False(t, roll.IsFinished())
+	require.False(t, roll.IsSuccess())
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
 }
