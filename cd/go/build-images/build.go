@@ -48,19 +48,21 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	timestamp := time.Now().UTC().Format("2006-01-02T15_04_05Z")
 	imageTag := fmt.Sprintf("%s-%s-%s-%s", timestamp, username, commit[:7], "clean")
 
-	// Perform the builds concurrently.
+	// Perform the builds.
 	imageInfo := &buildImagesJSON{
 		Images: make([]*SingleImageInfo, 0, len(bazelTargetToImagePath)),
 	}
 	for bazelTarget, imagePath := range bazelTargetToImagePath {
-		// https://golang.org/doc/faq#closures_and_goroutines
-		bazelTarget := bazelTarget
-		louhiImageTag := fmt.Sprintf("louhi_ws/%s:%s", imagePath, imageTag)
+		tags := []string{
+			fmt.Sprintf("louhi_ws/%s:%s", imagePath, imageTag),
+			fmt.Sprintf("louhi_ws/%s:git-%s", imagePath, commit),
+			fmt.Sprintf("louhi_ws/%s:latest", imagePath),
+		}
 		imageInfo.Images = append(imageInfo.Images, &SingleImageInfo{
 			Image: imagePath,
 			Tag:   imageTag,
 		})
-		if err := bazelRun(ctx, checkoutDir, bazelTarget, louhiImageTag, rbe); err != nil {
+		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, rbe); err != nil {
 			return td.FailStep(ctx, err)
 		}
 	}
@@ -75,7 +77,7 @@ func bazelTargetToDockerTag(target string) string {
 
 // bazelRun executes `bazel run` for the given target and applies the given tag
 // to the resulting image.
-func bazelRun(ctx context.Context, cwd, target, louhiImageTag string, rbe bool) error {
+func bazelRun(ctx context.Context, cwd, target string, tags []string, rbe bool) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Build %s", target)))
 	defer td.EndStep(ctx)
 
@@ -87,8 +89,11 @@ func bazelRun(ctx context.Context, cwd, target, louhiImageTag string, rbe bool) 
 	if _, err := exec.RunCwd(ctx, cwd, cmd...); err != nil {
 		return td.FailStep(ctx, err)
 	}
-	if _, err := exec.RunCwd(ctx, cwd, "docker", "tag", bazelTargetToDockerTag(target), louhiImageTag); err != nil {
-		return td.FailStep(ctx, err)
+	srcTag := bazelTargetToDockerTag(target)
+	for _, tag := range tags {
+		if _, err := exec.RunCwd(ctx, cwd, "docker", "tag", srcTag, tag); err != nil {
+			return td.FailStep(ctx, err)
+		}
 	}
 	return nil
 }
