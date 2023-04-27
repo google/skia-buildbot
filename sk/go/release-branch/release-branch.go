@@ -307,7 +307,11 @@ func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitil
 		changes[p] = ""
 	}
 	// Create the Gerrit CL.
-	commitMsg := fmt.Sprintf("Merge %d release notes into %s", len(noteFiles), releaseNotesFile)
+	pluralSfx := "s"
+	if len(noteFiles) == 1 {
+		pluralSfx = ""
+	}
+	commitMsg := fmt.Sprintf("Merge %d release note%s into %s", len(noteFiles), pluralSfx, releaseNotesFile)
 	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, newRef, commitMsg, "", baseChangeID, changes, reviewers)
 	if err != nil {
 		return nil, skerr.Wrap(err)

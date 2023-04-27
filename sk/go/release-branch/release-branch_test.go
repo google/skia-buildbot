@@ -159,6 +159,122 @@ Milestone 113
 	require.NotNil(t, mci)
 }
 
+func TestMergeReleaseNotes_WithOneNote_SimgularMessageLanguage(t *testing.T) {
+
+	const (
+		currentMilestoneReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 113
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+		newMilestoneReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 114
+-------------
+  * The first change.
+
+* * *
+
+Milestone 113
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+		commitMessage = "Merge 1 release note into RELEASE_NOTES.md"
+	)
+
+	firstNote := []byte("The first change.")
+	relnotesDirContents := []os.FileInfo{
+		vfs.FileInfo{
+			Name:    "README.md",
+			Size:    128,
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+		vfs.FileInfo{
+			Name:    "first.md",
+			Size:    int64(len(firstNote)),
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+	}
+
+	mockCmd := exec.CommandCollector{}
+	ctx := exec.NewContext(context.Background(), mockCmd.Run)
+
+	ci := gerrit.ChangeInfo{
+		ChangeId: "123",
+		Project:  "skia",
+		Branch:   "chrome/m114",
+		Id:       "I1234567890123456789012345678901234567890",
+		Issue:    123,
+		Revisions: map[string]*gerrit.Revision{
+			"ps1": {
+				ID:     "ps1",
+				Number: 1,
+			},
+			"ps2": {
+				ID:     "ps2",
+				Number: 2,
+			},
+		},
+		WorkInProgress: true,
+	}
+
+	fs := vfs_mocks.NewFS(t)
+	dir := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes").Return(dir, nil)
+	dir.On("ReadDir", testutils.AnyContext, -1).Return(relnotesDirContents, nil)
+	dir.On("Close", testutils.AnyContext).Return(nil)
+
+	f1 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes/first.md").Once().Return(f1, nil)
+	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, firstNote)
+	}).Return(len(firstNote), io.EOF)
+	f1.On("Close", testutils.AnyContext).Return(nil)
+
+	f2 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f2, nil)
+	f2.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, currentMilestoneReleaseNotes)
+	}).Return(len(currentMilestoneReleaseNotes), io.EOF)
+	f2.On("Close", testutils.AnyContext).Return(nil)
+
+	repo := mocks.NewGitilesRepo(t)
+	repo.On("ResolveRef", testutils.AnyContext, "chrome/m114").
+		Once().Return("7ecb228be2abc108caf2096b518fa36ef418be11", nil)
+	repo.On("VFS", testutils.AnyContext, "7ecb228be2abc108caf2096b518fa36ef418be11").Once().Return(fs, nil)
+
+	g := gerrit_mocks.NewGerritInterface(t)
+	g.On("CreateChange", ctx, "skia", "refs/heads/chrome/m114", commitMessage,
+		"", "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c").Once().Return(&ci, nil)
+	g.On("EditFile", ctx, mock.Anything, "RELEASE_NOTES.md",
+		newMilestoneReleaseNotes).Once().Return(nil)
+	g.On("DeleteFile", ctx, mock.Anything, "relnotes/first.md").Once().Return(nil)
+	g.On("PublishChangeEdit", ctx, mock.Anything).Once().Return(nil)
+	g.On("GetIssueProperties", ctx, int64(123)).Once().Return(&ci, nil)
+	g.On("Url", int64(123)).Once().Return("https://skia-review.googlesource.com/c/skia/+/123")
+
+	mci, err := mergeReleaseNotes(ctx, g, repo, "Icc898ef6bb4eeb8e93fa8c5d1195364d55ca2a4c", 114, "chrome/m114", nil)
+	require.NoError(t, err)
+	require.NotNil(t, mci)
+}
+
 func TestCreateCherryPickMessage(t *testing.T) {
 	ci := gerrit.ChangeInfo{
 		ChangeId: "I1234567890123456789012345678901234567890",
