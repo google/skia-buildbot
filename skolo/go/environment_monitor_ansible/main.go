@@ -52,27 +52,23 @@ func main() {
 	for range time.Tick(time.Minute) {
 		t, err := d.GetTemperature()
 		if err != nil {
-			tempMetric.Update(float64(t))
-		} else {
-			sklog.Fatal("Error reading temperature: %s", err)
+			sklog.Fatalf("Error reading temperature: %s", err)
 		}
+		tempMetric.Update(float64(t))
 		h, err := d.GetHumidity()
 		if err != nil {
-			humidityMetric.Update(float64(h))
-		} else {
-			sklog.Fatal("Error reading humidity: %s", err)
+			sklog.Fatalf("Error reading humidity: %s", err)
 		}
+		humidityMetric.Update(float64(h))
 		light, err := d.GetLight()
 		if err != nil {
-			lightMetric.Update(float64(light))
-		} else {
-			sklog.Fatal("Error reading light level: %s", err)
+			sklog.Fatalf("Error reading light level: %s", err)
 		}
+		lightMetric.Update(float64(light))
 		s, err := d.GetBroadbandSound()
 		if err != nil {
-			soundMetric.Update(float64(s))
-		} else {
-			sklog.Fatal("Error reading sound level: %s", err)
+			sklog.Fatalf("Error reading sound level: %s", err)
 		}
+		soundMetric.Update(float64(s))
 	}
 }

@@ -29,6 +29,17 @@
     shell: /bin/bash
     password: "{{ secrets.skolo_password | password_hash('sha256') }}"
 
+# The environment monitor's sensor is a serial device, so add dialout group
+# membership.
+- name: Add serial port users to dialout group
+  become: true
+  when: install_environment_monitor__needs_environment_monitor
+  user:
+    name: chrome-bot
+    group: chrome-bot
+    groups: dialout
+    append: true
+
 # For some reason, if we don't reboot GCE Linux machines after running the above task, subsequent
 # SSH connections fail with "chrome-bot@<IP address>: Permission denied (publickey)".
 #
