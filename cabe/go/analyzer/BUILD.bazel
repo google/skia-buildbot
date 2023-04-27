@@ -1,0 +1,29 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "analyzer",
+    srcs = [
+        "analyzer.go",
+        "perf_results_parser.go",
+    ],
+    importpath = "go.skia.org/infra/cabe/go/analyzer",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "analyzer_test",
+    srcs = ["analyzer_test.go"],
+    embed = [":analyzer"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "@com_github_google_go_cmp//cmp",
+        "@com_github_google_go_cmp//cmp/cmpopts",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_google_protobuf//testing/protocmp",
+    ],
+)
