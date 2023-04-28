@@ -56,6 +56,12 @@ const (
 	// DefaultOAuth2Callback is the default relative OAuth2 redirect URL.
 	DefaultOAuth2Callback = "/oauth2callback/"
 
+	// LoginPath is the path to use for login on the root domain.
+	LoginPath = "/login/"
+
+	// LogoutPath is the path to use for logout on the root domain.
+	LogoutPath = "/logout/"
+
 	// emailScope is the scope we request when logging in.
 	emailScope = "email"
 
@@ -117,6 +123,15 @@ var (
 // InitOption allowing the selection of the login domain.
 type InitOption interface {
 	Apply() error
+}
+
+// SkipLoadingSecrets should only be used when calling Init during tests. It
+// skips trying to load secrets.
+type SkipLoadingSecrets struct{}
+
+// Apply implements InitOption.
+func (s SkipLoadingSecrets) Apply() error {
+	return nil
 }
 
 // DomainName represents a domain name that can be used for login.
@@ -235,11 +250,27 @@ type Session struct {
 //
 // InitOptions include setting the DomainName to be used for authentication.
 func Init(ctx context.Context, redirectURL string, authAllowList string, clientSecretFile string, opts ...InitOption) error {
-	cookieSalt, clientID, clientSecret, err := TryLoadingFromAllSources(ctx, clientSecretFile)
-	if err != nil {
-		return skerr.Wrap(err)
+	cookieSalt := defaultCookieSalt
+	var clientID string
+	var clientSecret string
+	var err error
+	if !skipLoadingSecrets(opts...) {
+		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx, clientSecretFile)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, authAllowList, opts...)
+}
+
+// Returns true if SkipLoadingSecrets has been passed in as an option.
+func skipLoadingSecrets(opts ...InitOption) bool {
+	for _, opt := range opts {
+		if _, ok := opt.(SkipLoadingSecrets); ok {
+			return true
+		}
+	}
+	return false
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.

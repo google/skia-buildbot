@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "oauth2redirect",
+    srcs = ["oauth2redirect.go"],
+    importpath = "go.skia.org/infra/kube/go/oauth2redirect",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cleanup",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "oauth2redirect_test",
+    srcs = ["oauth2redirect_test.go"],
+    embed = [":oauth2redirect"],
+    deps = [
+        "//go/login",
+        "@com_github_stretchr_testify//require",
+    ],
+)
