@@ -45,7 +45,9 @@ and the following assumes you do too.
 7.  Create a k8s deployment of diffcalculator. This will compute the differences between images
     and output things like the diff metrics and images visualizing the differences. This will
     need a PubSub topic/subscription created (see cmd/pubsubtool).
-8.  Create a k8s deployment of frontend.
+8.  Create a k8s deployment of frontend. Note that the frontend JSON5 config requires an explicit
+    list of corpora, specified via the `grouping_param_keys_by_corpus` field (example
+    [here](https://skia.googlesource.com/buildbot/+/c5ee68d7af3fbad01dc5675f1c6b1e98c17c4d3a/golden/k8s-instances/chrome/chrome-frontend.json5#19)).
 9.  Create a k8s deployment of baselineserver. This is a lighter-weight and more highly-available
     subset of the frontend, which will be queried by goldctl.
 
