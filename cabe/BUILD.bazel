@@ -5,7 +5,7 @@ skia_app_container(
     dirs = {
         "/usr/local/bin/cabeserver": [
             [
-                "//cabe/go/cabeserver:cabeserver",
+                "//cabe/go/cmd/cabeserver:cabeserver",
                 "0755",
             ],
         ],

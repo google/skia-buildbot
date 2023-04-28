@@ -1,0 +1,27 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "analysisserver",
+    srcs = ["analysisserver_impl.go"],
+    importpath = "go.skia.org/infra/cabe/go/analysisserver",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "analysisserver_test",
+    srcs = ["analysisserver_impl_test.go"],
+    embed = [":analysisserver"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "@com_github_google_go_cmp//cmp",
+        "@com_github_google_go_cmp//cmp/cmpopts",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)

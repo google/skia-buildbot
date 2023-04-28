@@ -1,4 +1,4 @@
-package main
+package analysisserver
 
 import (
 	"context"
@@ -12,8 +12,8 @@ type analysisServerImpl struct {
 	cpb.UnimplementedAnalysisServer
 }
 
-// NewServer returns a new instance of AnalysisServer.
-func NewServer() *analysisServerImpl {
+// New returns a new instance of AnalysisServer.
+func New() *analysisServerImpl {
 	return &analysisServerImpl{}
 }
 

@@ -4,19 +4,27 @@ CABE is a performance benchmark A/B experiment analysis service.
 
 See the [Design Doc](http://go/cabe-rpc).
 
-## Code structure
+## Code structure, bazel targets of interest
 
-    go/cabeserver
-        cabe rpc server process main package
-    go/proto
-        protobuf message and service definitions
+- `//cabe:cabeserver`
+  - main app container for deploying the cabe service to GKE
+- `//cabe/go/analysisserver`
+  - library that implements cabe's gRPC Analysis service proto interface
+- `//cabe/go/cmd/...`
+  - location of subpackages for executable entry points (ie `go_binary` targets)
+- `//cabe/go/cmd/cabeserver`
+  - main entry point for the cabe server binary
+  - handles CLI flags, non-functional details like auth settings etc
+  - depends on `//cabe/go/analysisserver` for the actual request handler implementations
+- `//cabe/go/proto`
+  - protobuf message and service definitions
 
 ## Running locally
 
 To start the server, in one terminal run:
 
 ```
-bazelisk run //cabe/go/cabeserver
+bazelisk run //cabe/go/cmd/cabeserver
 ```
 
 This should start the gRPC service and print out some log messages
@@ -25,7 +33,7 @@ default is `50051` though you can specify it (and other flags) like
 so:
 
 ```
-bazelisk run //cabe/go/cabeserver -- -grpc_port <some other port>
+bazelisk run //cabe/go/cmd/cabeserver -- -grpc_port <some other port>
 ```
 
 Once the server process has started, you should be able to use
@@ -46,7 +54,7 @@ workstation.
 In one terminal, run auth-proxy:
 
 ```
-bazelisk run kube/cmd/auth-proxy -- \
+bazelisk run //kube/cmd/auth-proxy -- \
     --prom-port=:20001 \
     --role=viewer=google.com \
     --authtype=mocked \
@@ -60,7 +68,7 @@ bazelisk run kube/cmd/auth-proxy -- \
 In another terminal, start cabserver:
 
 ```
-bazelisk run //cabe/go/cabeserver
+bazelisk run //cabe/go/cmd/cabeserver
 ```
 
 Then in a third terminal, use grpcurl to send a request through the auth-proxy

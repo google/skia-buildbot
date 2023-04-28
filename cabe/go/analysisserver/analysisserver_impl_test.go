@@ -1,4 +1,4 @@
-package main
+package analysisserver
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func startTestServer(t *testing.T) (cpb.AnalysisClient, func()) {
 	require.NoError(t, err)
 
 	server := grpc.NewServer()
-	cpb.RegisterAnalysisServer(server, NewServer())
+	cpb.RegisterAnalysisServer(server, New())
 
 	go func() {
 		require.NoError(t, server.Serve(serverListener))

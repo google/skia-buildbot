@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 
+	"go.skia.org/infra/cabe/go/analysisserver"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
 
@@ -83,7 +84,7 @@ func main() {
 	reflection.Register(s)
 
 	sklog.Infof("registering cabe grpc server")
-	cabeServer := NewServer()
+	cabeServer := analysisserver.New()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpcPort))
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
