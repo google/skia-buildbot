@@ -14,7 +14,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../ElementSk';
 import { Status } from '../json';
-import { baseDomain } from '../login';
+import { rootDomain } from '../login';
 
 const defaultStatusURL = '/_/login/status';
 
@@ -71,7 +71,7 @@ export class AloginSk extends ElementSk {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
 
-    const domain = baseDomain();
+    const domain = rootDomain();
 
     this.login = `https://${domain}/login/`;
     this.logout = `https://${domain}/logout/`;

@@ -17,7 +17,7 @@
  */
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { baseDomain, LoginTo } from '../login';
+import { rootDomain, LoginTo } from '../login';
 
 define(
   'login-sk',
@@ -26,16 +26,16 @@ define(
       this.innerHTML =
         '<span class=email>Loading...</span><a class=logInOut></a>';
 
-      const host = baseDomain();
+      const root = rootDomain();
 
-      const login = `https://${host}/login/`;
-      const logout = `https://${host}/logout/`;
+      const login = `https://${root}/login/`;
+      const logout = `https://${root}/logout/`;
 
       if (this.testingOffline) {
         this.querySelector<HTMLSpanElement>('.email')!.textContent =
           'test@example.com';
         const logInOut = this.querySelector<HTMLAnchorElement>('.logInOut')!;
-        logInOut.href = `https://${host}/logout/?redirect=${encodeURIComponent(
+        logInOut.href = `https://${root}/logout/?redirect=${encodeURIComponent(
           document.location.toString()
         )}`;
         logInOut.textContent = 'Logout';
