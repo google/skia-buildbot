@@ -6,10 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/puppeteer-tests/bazel/puppeteer_screenshot_server/rpc_types/generate_typescript_rpc_types",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
         "//puppeteer-tests/bazel/puppeteer_screenshot_server/rpc_types",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

@@ -6,10 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/shaders/go/ts",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
         "//scrap/go/scrap",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

@@ -10,10 +10,10 @@ go_library(
         "//am/go/note",
         "//am/go/silence",
         "//am/go/types",
+        "//go/go2ts",
         "//go/paramtools",
         "//go/sklog",
         "//go/util",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

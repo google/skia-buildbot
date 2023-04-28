@@ -6,10 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/skcq/go/types/ts",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
         "//skcq/go/types",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

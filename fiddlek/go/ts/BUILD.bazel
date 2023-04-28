@@ -7,9 +7,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//fiddlek/go/types",
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

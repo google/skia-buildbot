@@ -2322,13 +2322,6 @@ def go_repositories():
     )
 
     go_repository(
-        name = "com_github_skia_dev_go2ts",
-        importpath = "github.com/skia-dev/go2ts",
-        sum = "h1:cTflp+oiI0TKby7RON1gpS9zo2dandTalrztiePTPFk=",
-        version = "v1.5.1-0.20230417182405-5516e12180e9",
-    )
-
-    go_repository(
         name = "com_github_skia_dev_google_api_go_client",
         importpath = "github.com/skia-dev/google-api-go-client",
         sum = "h1:Id5JdSD66PKQQiiVFG1VXDVCT5U3DcDzJSReXRxKRLk=",

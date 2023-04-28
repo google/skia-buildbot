@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/ts",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/paramtools",
         "//go/sklog",
         "//go/util",
@@ -23,7 +24,6 @@ go_library(
         "//perf/go/trybot/results",
         "//perf/go/types",
         "//perf/go/ui/frame",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

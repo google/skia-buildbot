@@ -856,10 +856,6 @@ github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPx
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
-github.com/skia-dev/go2ts v1.5.0 h1:AHQe+t5W18HFoTuApMeShiVMu2nBMHdHgLWo2b2y7/U=
-github.com/skia-dev/go2ts v1.5.0/go.mod h1:pE59J8wf5IHSMtPhH8PmWq5ZTLt6p1Ih+4ODd9fkGXk=
-github.com/skia-dev/go2ts v1.5.1-0.20230417182405-5516e12180e9 h1:cTflp+oiI0TKby7RON1gpS9zo2dandTalrztiePTPFk=
-github.com/skia-dev/go2ts v1.5.1-0.20230417182405-5516e12180e9/go.mod h1:pE59J8wf5IHSMtPhH8PmWq5ZTLt6p1Ih+4ODd9fkGXk=
 github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2 h1:Id5JdSD66PKQQiiVFG1VXDVCT5U3DcDzJSReXRxKRLk=
 github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2/go.mod h1:N0iTzjbw95ZVfOL7wVngmVXE2kG0NP+LYlq3QMwf9Qo=
 github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220429132620-ad26708b7787 h1:NDEFg8RXMMmc3j5fE+M7fJ2vqoCRRBu1excmvrhmA6Y=
@@ -914,7 +910,6 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.3.1-0.20190311161405-34c6fa2dc709/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
-github.com/stretchr/testify v1.6.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=

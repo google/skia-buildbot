@@ -6,10 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/task_driver/go/ts",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
         "//task_driver/go/display",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

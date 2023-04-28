@@ -6,11 +6,11 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machine/ts",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/sklog",
         "//go/util",
         "//machine/go/machine",
         "//machine/go/machineserver/rpc",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

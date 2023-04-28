@@ -8,8 +8,8 @@ import (
 	"flag"
 	"io"
 
-	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/bugs-central/go/types"
+	"go.skia.org/infra/go/go2ts"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )

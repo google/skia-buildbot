@@ -12,10 +12,10 @@ go_library(
         "//ct/go/ctfe/metrics_analysis",
         "//ct/go/ctfe/pending_tasks",
         "//ct/go/ctfe/task_common",
+        "//go/go2ts",
         "//go/httputils",
         "//go/sklog",
         "//go/util",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

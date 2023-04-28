@@ -6,12 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/web/frontend/generate_typescript_rpc_types",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/go2ts",
         "//go/paramtools",
         "//go/sklog",
         "//go/util",
         "//golden/go/expectations",
         "//golden/go/web/frontend",
-        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 

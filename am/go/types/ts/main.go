@@ -8,12 +8,11 @@ import (
 	"flag"
 	"io"
 
-	"github.com/skia-dev/go2ts"
-
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/am/go/types"
+	"go.skia.org/infra/go/go2ts"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"

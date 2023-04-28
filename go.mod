@@ -2,7 +2,6 @@ module go.skia.org/infra
 
 require (
 	cloud.google.com/go/bigtable v1.6.0
-	cloud.google.com/go/compute v1.5.0
 	cloud.google.com/go/datastore v1.3.0
 	cloud.google.com/go/firestore v1.6.1
 	cloud.google.com/go/iam v0.3.0
@@ -35,6 +34,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
+	github.com/google/go-cmp v0.5.7
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
 	github.com/google/uuid v1.1.2
@@ -60,7 +60,6 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
-	github.com/skia-dev/go2ts v1.5.1-0.20230417182405-5516e12180e9
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220429132620-ad26708b7787
 	github.com/spf13/cobra v1.3.0
@@ -102,6 +101,7 @@ require (
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
+	cloud.google.com/go/compute v1.5.0 // indirect
 	cloud.google.com/go/container v1.2.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
@@ -119,7 +119,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/snappy v0.0.3 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/licenseclassifier v0.0.0-20210722185704-3043a050f148 // indirect

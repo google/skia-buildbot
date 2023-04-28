@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "go2ts",
+    srcs = ["go2ts.go"],
+    importpath = "go.skia.org/infra/go/go2ts",
+    visibility = ["//visibility:public"],
+    deps = ["//go/go2ts/typescript"],
+)
+
+go_test(
+    name = "go2ts_test",
+    srcs = ["go2ts_test.go"],
+    embed = [":go2ts"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
