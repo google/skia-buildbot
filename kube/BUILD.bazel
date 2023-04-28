@@ -1,1 +1,17 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
 exports_files(["attach.sh"])
+
+skia_app_container(
+    name = "oauth2redirect",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//kube/cmd/oauth2redirect:oauth2redirect",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/oauth2redirect",
+    repository = "skia-public/oauth2redirect",
+)
