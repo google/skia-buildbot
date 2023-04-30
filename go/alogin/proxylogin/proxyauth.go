@@ -3,15 +3,11 @@
 package proxylogin
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/alogin"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -24,10 +20,6 @@ const (
 
 	// DefaultLogoutURL is the default URL to use for logging out.
 	DefaultLogoutURL = "https://skia.org/logout/"
-)
-
-var (
-	errNotLoggedIn = errors.New("not logged in")
 )
 
 // ProxyLogin implements alogin.Login by relying on a reverse proxy doing the
@@ -130,30 +122,3 @@ func (p *ProxyLogin) HasRole(r *http.Request, wantedRole roles.Role) bool {
 
 // Assert proxyLogin implements alogin.Login.
 var _ alogin.Login = (*ProxyLogin)(nil)
-
-// ForceRole is middleware that enforces the logged in user has the specified
-// role before the wrapped handler is called.
-func ForceRole(h http.Handler, login alogin.Login, role roles.Role) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if login.HasRole(r, role) {
-			httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
-			return
-		}
-
-		h.ServeHTTP(w, r)
-	})
-}
-
-// ForceRoleMiddleware returns a mux.MiddlewareFunc that restricts access to
-// only those users that have the given role.
-func ForceRoleMiddleware(login alogin.Login, role roles.Role) mux.MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !login.HasRole(r, role) {
-				httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
-}

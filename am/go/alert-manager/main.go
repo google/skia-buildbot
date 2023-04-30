@@ -669,7 +669,7 @@ func (srv *server) AddHandlers(r *mux.Router) {
 func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 	ret := []mux.MiddlewareFunc{}
 	if !*baseapp.Local {
-		ret = append(ret, proxylogin.ForceRoleMiddleware(srv.alogin, roles.Viewer))
+		ret = append(ret, alogin.ForceRoleMiddleware(srv.alogin, roles.Viewer))
 	}
 	return ret
 }

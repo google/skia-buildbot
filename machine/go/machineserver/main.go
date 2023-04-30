@@ -623,7 +623,7 @@ func gzip(h http.Handler) http.Handler {
 
 func (s *server) editor(h http.Handler) http.Handler {
 	if !s.flags.local {
-		return proxylogin.ForceRoleMiddleware(s.login, roles.Editor)(h)
+		return alogin.ForceRoleMiddleware(s.login, roles.Editor)(h)
 	}
 	return h
 }

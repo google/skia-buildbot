@@ -17,6 +17,7 @@ import (
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
@@ -175,7 +176,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	if *baseapp.Local {
 		return []mux.MiddlewareFunc{}
 	}
-	return []mux.MiddlewareFunc{proxylogin.ForceRoleMiddleware(srv.alogin, roles.Viewer)}
+	return []mux.MiddlewareFunc{alogin.ForceRoleMiddleware(srv.alogin, roles.Viewer)}
 }
 
 func main() {

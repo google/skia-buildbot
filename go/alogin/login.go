@@ -6,11 +6,23 @@
 package alogin
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
+)
+
+var (
+	// loginCtxKey is used to store login information in the request context.
+	loginCtxKey = &struct{}{}
+
+	errNotLoggedIn = errors.New("not logged in")
 )
 
 // EMail is an email address.
@@ -61,5 +73,60 @@ func LoginStatusHandler(login Login) http.HandlerFunc {
 		if err := json.NewEncoder(w).Encode(login.Status(r)); err != nil {
 			sklog.Errorf("Failed to send response: %s", err)
 		}
+	}
+}
+
+// SessionMiddleware is middleware which attaches login info to the request
+// context. This allows handler to use GetSession() to retrieve the Session
+// information even if the don't have access to the original http.Request
+// object, like in a twirp handler.
+func SessionMiddleware(login Login) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			session := &Status{
+				EMail: login.LoggedInAs(r),
+				Roles: login.Roles(r),
+			}
+			ctx := context.WithValue(r.Context(), loginCtxKey, session)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// GetSession returns the loggined in users email and roles from the context. If
+// the user is not logged in then the empty session is returned, with an empty
+// EMail address and empty Roles.
+func GetSession(ctx context.Context) *Status {
+	session := ctx.Value(loginCtxKey)
+	if session != nil {
+		return session.(*Status)
+	}
+	return &Status{}
+}
+
+// ForceRole is middleware that enforces the logged in user has the specified
+// role before the wrapped handler is called.
+func ForceRole(h http.Handler, login Login, role roles.Role) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !login.HasRole(r, role) {
+			httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+// ForceRoleMiddleware returns a mux.MiddlewareFunc that restricts access to
+// only those users that have the given role.
+func ForceRoleMiddleware(login Login, role roles.Role) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !login.HasRole(r, role) {
+				httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
 }

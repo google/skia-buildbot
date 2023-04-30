@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -6,7 +7,20 @@ go_library(
     importpath = "go.skia.org/infra/go/alogin",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/httputils",
         "//go/roles",
         "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_test(
+    name = "alogin_test",
+    srcs = ["login_test.go"],
+    deps = [
+        ":alogin",
+        "//go/alogin/mocks",
+        "//go/roles",
+        "@com_github_stretchr_testify//require",
     ],
 )

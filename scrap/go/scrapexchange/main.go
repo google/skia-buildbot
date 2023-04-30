@@ -161,7 +161,7 @@ func main() {
 	var h http.Handler = r
 	if !s.flags.local {
 		h = baseapp.SecurityMiddleware([]string{"scrap.skia.org"}, s.flags.local, nil)(h)
-		h = proxylogin.ForceRoleMiddleware(s.login, roles.Viewer)(h)
+		h = alogin.ForceRoleMiddleware(s.login, roles.Viewer)(h)
 	}
 
 	sklog.Infof("Ready to serve at: %q", s.flags.port)

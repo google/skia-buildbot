@@ -24,6 +24,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"google.golang.org/api/iterator"
 
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
@@ -68,7 +69,7 @@ var (
 	poolToDetails      map[string]*types.PoolDetails
 	poolToDetailsMutex sync.Mutex
 
-	alogin *proxylogin.ProxyLogin
+	plogin *proxylogin.ProxyLogin
 )
 
 // New implements baseapp.Constructor.
@@ -83,7 +84,7 @@ func New() (baseapp.App, error) {
 	// Initialize mailing library.
 	MailInit()
 
-	alogin = proxylogin.NewWithDefaults()
+	plogin = proxylogin.NewWithDefaults()
 
 	// Initialize swarming.
 	if err := SwarmingInit(ctx); err != nil {
@@ -143,7 +144,7 @@ func (srv *Server) loadTemplates() {
 func (srv *Server) user(r *http.Request) string {
 	user := "barney@example.org"
 	if !*baseapp.Local {
-		user = string(alogin.LoggedInAs(r))
+		user = string(plogin.LoggedInAs(r))
 	}
 	return user
 }
@@ -168,7 +169,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
-		appHandler = proxylogin.ForceRoleMiddleware(alogin, roles.Viewer)(appHandler)
+		appHandler = alogin.ForceRoleMiddleware(plogin, roles.Viewer)(appHandler)
 	}
 
 	r.PathPrefix("/").Handler(appHandler)
@@ -319,7 +320,7 @@ func (srv *Server) leasesHandlerHelper(w http.ResponseWriter, r *http.Request, f
 }
 
 func (srv *Server) myLeasesHandler(w http.ResponseWriter, r *http.Request) {
-	srv.leasesHandlerHelper(w, r, string(alogin.LoggedInAs(r)))
+	srv.leasesHandlerHelper(w, r, string(plogin.LoggedInAs(r)))
 }
 
 func (srv *Server) allLeasesHandler(w http.ResponseWriter, r *http.Request) {
@@ -434,7 +435,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		task.DeviceType = ""
 	}
 	// Add the username of the requester.
-	task.Requester = string(alogin.LoggedInAs(r))
+	task.Requester = string(plogin.LoggedInAs(r))
 	// Add the created time.
 	task.Created = time.Now()
 	// Set to pending.
