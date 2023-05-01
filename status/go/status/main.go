@@ -284,7 +284,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
-	r.HandleFunc("/loginstatus/", alogin.LoginStatusHandler(plogin))
+	r.HandleFunc("/_/login/status/", alogin.LoginStatusHandler(plogin))
 	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	var h http.Handler = topLevelRouter
