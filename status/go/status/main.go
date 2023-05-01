@@ -27,7 +27,8 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/status"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -35,8 +36,8 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -59,11 +60,6 @@ import (
 const (
 	appName = "status"
 
-	// The chrome infra auth group to use for restricting admin rights.
-	adminAuthGroup = "google/skia-root@google.com"
-	// The chrome infra auth group to use for restricting edit rights.
-	editAuthGroup = "google/skia-staff@google.com"
-
 	defaultCommitsToLoad = 35
 	maxCommitsToLoad     = 100
 )
@@ -81,6 +77,7 @@ var (
 	taskDriverLogs      *logs.LogsManager                  = nil
 	tasksPerCommit      *tasksPerCommitCache               = nil
 	tCache              cache.TaskCache                    = nil
+	plogin              alogin.Login
 
 	// autorollerIDsToNames maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -278,8 +275,8 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 // Note: srv already has the twirp handlers on it when passed into this function.
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
-	topLevelRouter.Use(login.RestrictViewer)
-	topLevelRouter.Use(login.SessionMiddleware)
+	topLevelRouter.Use(alogin.ForceRoleMiddleware(plogin, roles.Viewer))
+	topLevelRouter.Use(alogin.StatusMiddleware(plogin))
 	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
 	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
 	r := topLevelRouter.NewRoute().Subrouter()
@@ -287,9 +284,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
+	r.HandleFunc("/loginstatus/", alogin.LoginStatusHandler(plogin))
 	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	var h http.Handler = topLevelRouter
@@ -350,20 +345,7 @@ func main() {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
 
-	criaTs, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, *secretProject, *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	criaClient := httputils.DefaultClientConfig().WithTokenSource(criaTs).With2xxOnly().Client()
-	adminAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, adminAuthGroup)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	editAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, editAuthGroup)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllowed, editAllowed, nil)
+	plogin = proxylogin.NewWithDefaults()
 
 	// Check out source code.
 	if *repoUrls == nil {

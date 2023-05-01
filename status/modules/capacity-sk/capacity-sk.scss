@@ -16,8 +16,8 @@ capacity-sk {
     position: relative;
   }
 
-  login-sk * {
-    // login-sk has a very specific color set, override it.
+  alogin-sk * {
+    // alogin-sk has a very specific color set, override it.
     color: var(--header-font-color) !important;
   }
   a {

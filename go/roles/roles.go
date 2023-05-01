@@ -65,6 +65,16 @@ func (r Roles) ToHeader() string {
 	return b.String()
 }
 
+// Has returns true if the give Role appears in Roles.
+func (r Roles) Has(role Role) bool {
+	for _, x := range r {
+		if x == role {
+			return true
+		}
+	}
+	return false
+}
+
 // FromHeader parses a Roles header value and returns Roles found.
 func FromHeader(s string) Roles {
 	var ret Roles

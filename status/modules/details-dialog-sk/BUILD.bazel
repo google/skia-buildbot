@@ -18,11 +18,11 @@ sk_element(
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/icons/content-copy-icon-sk",
         "//elements-sk/modules/icons/launch-icon-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules:linkify_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
         "//status/modules/rpc:index_ts_lib",
         "//status/modules:settings_ts_lib",
         "@npm//lit-html",
@@ -31,6 +31,7 @@ sk_element(
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "details-dialog-sk.ts",

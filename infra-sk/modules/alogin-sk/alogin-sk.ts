@@ -14,9 +14,9 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../ElementSk';
 import { Status } from '../json';
-import { rootDomain } from '../login';
+import { rootDomain } from '../url';
 
-const defaultStatusURL = '/_/login/status';
+export const defaultStatusURL = '/_/login/status';
 
 /**
  * Returns a Promise that resolves when we have received the login status, and

@@ -17,7 +17,8 @@
  */
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { rootDomain, LoginTo } from '../login';
+import { LoginTo } from '../login';
+import { rootDomain } from '../url';
 
 define(
   'login-sk',

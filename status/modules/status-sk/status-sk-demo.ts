@@ -1,5 +1,7 @@
 import fetchMock from 'fetch-mock';
+import { defaultStatusURL } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
+import { Status } from '../../../infra-sk/modules/json';
 import {
   getAutorollerStatusesResponse,
   incrementalResponse0,
@@ -39,9 +41,13 @@ SetTestSettings({
   ]),
 });
 
-fetchMock.get('/loginstatus/', {
-  Email: 'user@google.com',
-});
+const loginStatus: Status = {
+  // eslint-disable-next-line no-use-before-define
+  email: 'user@google.com' as EMail,
+  roles: ['admin'],
+};
+
+fetchMock.get(defaultStatusURL, loginStatus);
 
 fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{
   alerts: 5,
@@ -98,6 +104,8 @@ fetchMock.getOnce(
 
 // eslint-disable-next-line import/first
 import './index';
+// eslint-disable-next-line import/first
+import { EMail } from '../../../infra-sk/modules/json';
 
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);

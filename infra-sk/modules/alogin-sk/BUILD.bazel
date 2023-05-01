@@ -18,7 +18,7 @@ sk_element(
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
+        "//infra-sk/modules:url_ts_lib",
     ],
     ts_srcs = [
         "alogin-sk.ts",

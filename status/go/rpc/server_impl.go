@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -73,8 +74,8 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 
 func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentRequest) (*AddCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	userEmail := login.LoggedInAsFromContext(ctx)
-	if !login.IsEditorEmail(userEmail) {
+	session := alogin.GetStatus(ctx)
+	if !session.Roles.Has(roles.Editor) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}
 
@@ -96,7 +97,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Name:      task.Name,
 			Timestamp: now,
 			TaskId:    task.Id,
-			User:      userEmail,
+			User:      session.EMail.String(),
 			Message:   message,
 		}
 		if err := s.taskDb.PutTaskComment(ctx, &c); err != nil {
@@ -107,7 +108,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Repo:          repoURL,
 			Name:          req.GetTaskSpec(),
 			Timestamp:     now,
-			User:          userEmail,
+			User:          session.EMail.String(),
 			Flaky:         req.Flaky,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
@@ -120,7 +121,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Repo:          repoURL,
 			Revision:      req.GetCommit(),
 			Timestamp:     now,
-			User:          userEmail,
+			User:          session.EMail.String(),
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
 		}
@@ -138,8 +139,8 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 
 func (s *statusServerImpl) DeleteComment(ctx context.Context, req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	userEmail := login.LoggedInAsFromContext(ctx)
-	if !login.IsEditorEmail(userEmail) {
+	session := alogin.GetStatus(ctx)
+	if !session.Roles.Has(roles.Editor) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}
 

@@ -76,11 +76,11 @@ func LoginStatusHandler(login Login) http.HandlerFunc {
 	}
 }
 
-// SessionMiddleware is middleware which attaches login info to the request
+// StatusMiddleware is middleware which attaches login info to the request
 // context. This allows handler to use GetSession() to retrieve the Session
 // information even if the don't have access to the original http.Request
 // object, like in a twirp handler.
-func SessionMiddleware(login Login) mux.MiddlewareFunc {
+func StatusMiddleware(login Login) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			session := &Status{
@@ -93,15 +93,20 @@ func SessionMiddleware(login Login) mux.MiddlewareFunc {
 	}
 }
 
-// GetSession returns the loggined in users email and roles from the context. If
+// GetStatus returns the loggined in users email and roles from the context. If
 // the user is not logged in then the empty session is returned, with an empty
 // EMail address and empty Roles.
-func GetSession(ctx context.Context) *Status {
+func GetStatus(ctx context.Context) *Status {
 	session := ctx.Value(loginCtxKey)
 	if session != nil {
 		return session.(*Status)
 	}
 	return &Status{}
+}
+
+// FakeStatus is to be used by unit tests which want to fake that a user is logged in.
+func FakeStatus(ctx context.Context, s *Status) context.Context {
+	return context.WithValue(ctx, loginCtxKey, s)
 }
 
 // ForceRole is middleware that enforces the logged in user has the specified

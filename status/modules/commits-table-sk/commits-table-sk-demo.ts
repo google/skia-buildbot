@@ -6,15 +6,6 @@ import { mockIncrementalResponse, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
 import { sameTimestamp } from './test_data';
 
-declare global {
-  interface Window {
-    Login: any;
-  }
-}
-window.Login = Promise.resolve({
-  Email: 'user@google.com',
-  LoginURL: 'https://accounts.google.com/',
-});
 const resp = mockIncrementalResponse;
 resp.update!.commits = sameTimestamp;
 SetupMocks().expectGetIncrementalCommits(resp);

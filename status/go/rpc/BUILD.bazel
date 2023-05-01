@@ -11,8 +11,9 @@ go_library(
     importpath = "go.skia.org/infra/status/go/rpc",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/login",
+        "//go/alogin",
         "//go/metrics2",
+        "//go/roles",
         "//status/go/capacity",
         "//status/go/incremental",
         "//task_scheduler/go/db",
@@ -32,9 +33,9 @@ go_test(
     srcs = ["server_impl_test.go"],
     embed = [":rpc"],
     deps = [
-        "//go/allowed",
+        "//go/alogin",
         "//go/git",
-        "//go/login",
+        "//go/roles",
         "//go/testutils",
         "//go/vcsinfo",
         "//status/go/capacity",

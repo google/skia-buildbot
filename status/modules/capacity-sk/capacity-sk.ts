@@ -13,7 +13,7 @@ import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../ct/modules/input-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/battery-charging-80-icon-sk';
@@ -22,7 +22,7 @@ import '../../../elements-sk/modules/icons/devices-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { $$, DomReady } from '../../../infra-sk/modules/dom';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import {
@@ -93,7 +93,7 @@ export class CapacitySk extends ElementSk {
     <header>
       <h1>Capacity Statistics for Skia Bots</h1>
       <div class="spacer"></div>
-      <login-sk></login-sk>
+      <alogin-sk></alogin-sk>
       <theme-chooser-sk></theme-chooser-sk>
     </header>
     <aside>

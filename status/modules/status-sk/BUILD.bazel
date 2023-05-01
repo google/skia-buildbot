@@ -13,7 +13,6 @@ sk_element(
     sass_srcs = ["status-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/app-sk",
-        "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//status/modules/autoroller-status-sk",
         "//status/modules/branches-sk",
@@ -28,6 +27,7 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/expand-less-icon-sk",
         "//elements-sk/modules/icons/expand-more-icon-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -47,7 +47,10 @@ sk_element(
 sk_page(
     name = "status-sk-demo",
     html_file = "status-sk-demo.html",
-    sk_element_deps = [":status-sk"],
+    sk_element_deps = [
+        ":status-sk",
+        "//infra-sk/modules/alogin-sk",
+    ],
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
@@ -57,6 +60,7 @@ sk_page(
         "//status/modules:settings_ts_lib",
         "@npm//fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "status-sk-demo.ts",
 )

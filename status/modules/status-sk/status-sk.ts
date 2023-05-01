@@ -11,7 +11,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../autoroller-status-sk';
 import '../bugs-status-sk';
 import '../commits-table-sk';
@@ -61,7 +61,7 @@ export class StatusSk extends ElementSk {
               el.updateTreeStatus(e.detail)}
           ></tree-status-sk>
         </div>
-        <login-sk></login-sk>
+        <alogin-sk></alogin-sk>
         <theme-chooser-sk></theme-chooser-sk>
       </header>
       <aside>

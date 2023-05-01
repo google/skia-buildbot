@@ -30,8 +30,8 @@ func TestSessionMiddleware_UserIsLoggedIn_SessionIsReturedWithEmailAndRoles(t *t
 	login.On("LoggedInAs", r).Return(email)
 
 	called := false
-	m := alogin.SessionMiddleware(login)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s := alogin.GetSession(r.Context())
+	m := alogin.StatusMiddleware(login)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s := alogin.GetStatus(r.Context())
 		require.Equal(t, &alogin.Status{
 			EMail: email,
 			Roles: roles.Roles{roles.Editor},
@@ -45,7 +45,7 @@ func TestSessionMiddleware_UserIsLoggedIn_SessionIsReturedWithEmailAndRoles(t *t
 
 func TestSessionMiddleware_UserIsNotLoggedIn_EmptySessionIsRetured(t *testing.T) {
 	r := httptest.NewRequest("GET", "/", nil)
-	s := alogin.GetSession(r.Context())
+	s := alogin.GetStatus(r.Context())
 	require.Equal(t, &alogin.Status{}, s)
 }
 

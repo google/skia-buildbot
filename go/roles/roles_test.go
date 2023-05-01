@@ -17,3 +17,15 @@ func TestFromHeader_RoundTripToFromHeader_InvalidRolesAreRemoved(t *testing.T) {
 func TestRoleFromString_NotValidRole_ReturnsInvalidRole(t *testing.T) {
 	require.Equal(t, InvalidRole, RoleFromString("this-is-not-a-valid-role"))
 }
+
+func TestRolesHas_DoesContainRole_ReturnsTrue(t *testing.T) {
+	require.True(t, Roles{Viewer}.Has(Viewer))
+}
+
+func TestRolesHas_DoesNotContainRole_ReturnsFalse(t *testing.T) {
+	require.False(t, Roles{Viewer}.Has(Editor))
+}
+
+func TestRolesHas_RolesIsEmpty_ReturnsFalse(t *testing.T) {
+	require.False(t, Roles{}.Has(Editor))
+}

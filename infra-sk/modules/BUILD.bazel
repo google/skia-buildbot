@@ -178,3 +178,9 @@ ts_library(
         ":query_ts_lib",
     ],
 )
+
+ts_library(
+    name = "url_ts_lib",
+    srcs = ["url.ts"],
+    visibility = ["//visibility:public"],
+)

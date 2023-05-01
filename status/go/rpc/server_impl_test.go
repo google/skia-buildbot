@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/capacity"
@@ -38,9 +38,10 @@ func (m mocks) AssertExpectations(t *testing.T) {
 
 func setupServerWithMockCapacityClient() (context.Context, mocks, *statusServerImpl) {
 	mocks := mocks{capacityClient: &status_mocks.CapacityClient{}, incrementalCache: &status_mocks.IncrementalCache{}, remoteDB: &ts_mocks.RemoteDB{}}
-	ctx := login.FakeLoggedInAs(context.Background(), testUser)
-	allow := allowed.NewAllowedFromList([]string{testUser})
-	login.FakeAllows(allow, allow, allow)
+	ctx := alogin.FakeStatus(context.Background(), &alogin.Status{
+		EMail: testUser,
+		Roles: roles.Roles{roles.Editor},
+	})
 	return ctx, mocks, newStatusServerImpl(
 		mocks.incrementalCache,
 		mocks.remoteDB,
@@ -74,7 +75,6 @@ func setupServerWithMockCapacityClient() (context.Context, mocks, *statusServerI
 		35,
 		"mypod",
 	)
-
 }
 
 // incrementalUpdate returns a filled incremental.Update. The update contains a single commit
@@ -382,7 +382,7 @@ func TestAddComment_TaskSpecComment_Added(t *testing.T) {
 func TestAddComment_NotLoggedIn_ErrorReturned(t *testing.T) {
 	_, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
-	ctx := login.FakeLoggedInAs(context.Background(), "not_on_the_list@example.com")
+	ctx := alogin.FakeStatus(context.Background(), &alogin.Status{})
 	req := &AddCommentRequest{
 		Repo:          "skia",
 		Message:       "Adding a comment",

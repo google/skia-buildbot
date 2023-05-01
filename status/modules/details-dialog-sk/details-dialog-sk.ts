@@ -12,7 +12,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Login } from '../../../infra-sk/modules/login';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import { Commit } from '../util';
 import { Task, Comment } from '../rpc';
@@ -29,6 +29,7 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
+import { Status } from '../../../infra-sk/modules/json';
 
 // Type defining the text and action of the upper-right button of the dialog.
 // For reverts of commits and re-running of tasks.
@@ -100,8 +101,8 @@ export class DetailsDialogSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    Login.then((res) => {
-      this.canEditComments = res.Email !== '';
+    LoggedIn().then((res: Status) => {
+      this.canEditComments = res.email !== '';
       this._render();
     });
     this._render();
