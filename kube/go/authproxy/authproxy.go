@@ -91,9 +91,9 @@ type proxy struct {
 	allowedRoles map[roles.Role]allowed.Allow
 }
 
-func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive bool, local bool) *proxy {
+func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive bool, local bool, useHTTP2 bool) *proxy {
 	reverseProxy := httputil.NewSingleHostReverseProxy(target)
-	if local {
+	if useHTTP2 {
 		// [httputil.ReverseProxy] doesn't appear work out of the box for local gRPC requests. Either the
 		// proxy or the grpc server will prematurely close the upstream connection before processing the
 		// round trip between proxy to grpc upstream, causing an unexpected EOF at the proxy. The proxy
@@ -349,7 +349,6 @@ func (a *App) registerCleanup() {
 			cancel()
 		}
 	})
-
 }
 
 func genLocalhostCert() (tls.Certificate, error) {
@@ -367,6 +366,8 @@ func genLocalhostCert() (tls.Certificate, error) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		KeyUsage: x509.KeyUsageKeyEncipherment |
 			x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		DNSNames:    []string{"localhost"},
+		IPAddresses: []net.IP{{127, 0, 0, 1}},
 	}
 
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -416,7 +417,7 @@ func (a *App) startAllowedRefresh(ctx context.Context, criaRefreshDuration time.
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
-	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local)
+	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local, a.selfSignLocalhostTLS)
 	err := a.populateAllowedRoles()
 	if err != nil {
 		return skerr.Wrap(err)
@@ -436,7 +437,7 @@ func (a *App) Run(ctx context.Context) error {
 	a.server = server
 
 	sklog.Infof("Ready to serve on port %s", a.port)
-	if a.local && a.selfSignLocalhostTLS {
+	if a.selfSignLocalhostTLS {
 		cert, err := genLocalhostCert()
 		if err != nil {
 			return err
@@ -464,9 +465,6 @@ func (a *App) validateFlags() error {
 	}
 	if a.authType != string(Mocked) && a.mockLoggedInAs != "" {
 		return fmt.Errorf("--mock_user is not allowed if --authtype is not %q", Mocked)
-	}
-	if !a.local && a.selfSignLocalhostTLS {
-		return fmt.Errorf("--self_sign_localhost_tls is not allowed if --local is not true")
 	}
 	return nil
 }
