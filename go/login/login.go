@@ -689,7 +689,6 @@ func isAuthorized(email string) bool {
 		return viewAllow.Member(normalizedEmail)
 	}
 
-	sklog.Infof("len(activeUserDomainAllowList) = %d", len(activeUserDomainAllowList))
 	if len(activeUserDomainAllowList) == 0 {
 		return true // if the list is empty, everybody is allowed
 	}
