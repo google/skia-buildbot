@@ -261,3 +261,14 @@ alias(
     actual = "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
     visibility = ["//visibility:public"],
 )
+
+######
+# sk #
+######
+
+# Sample usage: "bazel run //:sk -- asset download <asset name> <target directory>"
+alias(
+    name = "sk",
+    actual = "//sk/go/sk",
+    visibility = ["//visibility:public"],
+)
