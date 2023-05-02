@@ -218,7 +218,7 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 	case machine.AttachedDeviceAdb:
 		var ae machine.Android
 		if ae, err = m.tryInterrogatingAndroidDevice(ctx); err == nil {
-			sklog.Infof("Successful communication with abd device: %#v", ae)
+			sklog.Infof("Successful communication with adb device: %#v", ae)
 			ret.Android = ae
 		}
 	case machine.AttachedDeviceIOS:
@@ -522,6 +522,13 @@ func (m *Machine) tryInterrogatingStandaloneHost(ctx context.Context) (ret machi
 	ret.GPUs, err = standalone.GPUs(ctx)
 	if err != nil {
 		sklog.Warningf("Failed to get GPU type of host: %s", err)
+	}
+
+	ret.IsGCEMachine = standalone.IsGCEMachine()
+
+	ret.GCEMachineType, err = standalone.GCEMachineType()
+	if err != nil {
+		sklog.Warningf("Failed to get GCE machine type of host: %s", err)
 	}
 
 	return ret

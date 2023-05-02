@@ -60,6 +60,8 @@ const (
 	DimCores                  = "cores"
 	DimCPU                    = "cpu"
 	DimGPU                    = "gpu"
+	DimGCE                    = "gce"
+	DimMachineType            = "machine_type"
 	DimTaskType               = "task_type"
 	DimPool                   = "pool"
 
@@ -400,6 +402,12 @@ type Standalone struct {
 
 	// OS version in various previsions, e.g. ["Mac-10", "Mac-10.15", "Mac-10.15.7"]:
 	OSVersions []string `json:"os_versions"`
+
+	// IsGCEMachine is true if the machine is running on GCE.
+	IsGCEMachine bool `json:"gce"`
+
+	// GCEMachineType is the type of GCE machine, e.g. "n1-highmem-2".
+	GCEMachineType string `json:"machine_type"`
 }
 
 // IsPopulated returns whether the Standalone subevent record is filled out, which is the case iff a

@@ -83,3 +83,13 @@ func GPUs(ctx context.Context) ([]string, error) {
 	}
 	return linux.GPUs(ctx, lspciOutput, versionGetters)
 }
+
+// IsGCEMachine returns true if running on GCE.
+func IsGCEMachine() bool {
+	return crossplatform.IsGCEMachine()
+}
+
+// GCEMachineType returns the GCE machine type.
+func GCEMachineType() (string, error) {
+	return crossplatform.GCEMachineType()
+}

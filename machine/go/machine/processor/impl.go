@@ -325,6 +325,10 @@ func processStandaloneEvent(ctx context.Context, previous machine.Description, e
 	ret.Dimensions[machine.DimOS] = event.Standalone.OSVersions
 	ret.Dimensions[machine.DimCPU] = event.Standalone.CPUs
 	ret.Dimensions[machine.DimGPU] = event.Standalone.GPUs
+	if event.Standalone.IsGCEMachine {
+		ret.Dimensions[machine.DimGCE] = []string{"1"}
+		ret.Dimensions[machine.DimMachineType] = []string{event.Standalone.GCEMachineType}
+	}
 	ret = handleGeneralFields(ctx, ret, event)
 	return ret
 }

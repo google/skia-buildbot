@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/shirou/gopsutil/host"
 	"go.skia.org/infra/go/skerr"
 )
@@ -108,4 +109,32 @@ func VersionsOfAllPrecisions(prefix, version string) []string {
 		ret = append(ret, ret[i+1]+"."+subversion)
 	}
 	return ret
+}
+
+// IsGCEMachine returns true if running on GCE.
+func IsGCEMachine() bool {
+	return metadata.OnGCE() // Cached internally by the metadata module.
+}
+
+var cachedMachineType = ""
+
+// GCEMachineType returns the machine type reported by the metadata server. Returns the empty
+// string if not running on GCE.
+//
+// Inspired by
+// https://chromium.googlesource.com/infra/luci/luci-py/+/84efecd73da77529df8a3fb6e37d232a068e6312/appengine/swarming/swarming_bot/api/platforms/gce.py#90.
+func GCEMachineType() (string, error) {
+	if !IsGCEMachine() {
+		return "", nil
+	}
+
+	if cachedMachineType == "" {
+		machineType, err := metadata.Get("instance/machine-type")
+		if err != nil {
+			return "", skerr.Wrapf(err, "failed to get the machine type from the metadata server")
+		}
+		cachedMachineType = machineType[strings.LastIndex(machineType, "/")+1:]
+	}
+
+	return cachedMachineType, nil
 }

@@ -1273,3 +1273,83 @@ func Test_handleGeneralFields(t *testing.T) {
 	got := m.Get()
 	require.True(t, got)
 }
+
+func TestProcess_StandaloneNonGCE_Sucecss(t *testing.T) {
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{}
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-e-linux-100",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		Standalone: machine.Standalone{
+			Cores:      4,
+			CPUs:       []string{"x86-64"},
+			OSVersions: []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, machine.Description{
+		LastUpdated:        serverTime,
+		LaunchedSwarming:   true,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:    []string{"skia-e-linux-100"},
+			machine.DimCores: []string{"4"},
+			machine.DimOS:    []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			machine.DimCPU:   []string{"x86-64"},
+			machine.DimGPU:   nil,
+		},
+	}, next)
+}
+
+func TestProcess_StandaloneGCE_Sucecss(t *testing.T) {
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{}
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-e-gce-100",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		Standalone: machine.Standalone{
+			Cores:          4,
+			CPUs:           []string{"x86-64"},
+			OSVersions:     []string{"Debian", "Debian-10", "Debian-10.3", "Linux"},
+			IsGCEMachine:   true,
+			GCEMachineType: "n1-highmem-2",
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, machine.Description{
+		LastUpdated:        serverTime,
+		LaunchedSwarming:   true,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:          []string{"skia-e-gce-100"},
+			machine.DimCores:       []string{"4"},
+			machine.DimOS:          []string{"Debian", "Debian-10", "Debian-10.3", "Linux"},
+			machine.DimCPU:         []string{"x86-64"},
+			machine.DimGPU:         nil,
+			machine.DimGCE:         []string{"1"},
+			machine.DimMachineType: []string{"n1-highmem-2"},
+		},
+	}, next)
+}

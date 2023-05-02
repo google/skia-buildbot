@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "@com_github_shirou_gopsutil//host",
+        "@com_google_cloud_go_compute//metadata",
     ],
 )
 
