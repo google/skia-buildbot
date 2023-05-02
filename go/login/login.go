@@ -276,6 +276,18 @@ func skipLoadingSecrets(opts ...InitOption) bool {
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
 func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, authAllowList string, opts ...InitOption) error {
+	for _, opt := range opts {
+		if err := opt.Apply(); err != nil {
+			return skerr.Wrapf(err, "applying option")
+		}
+	}
+
+	// Must be done after applying opts, since an opt may change
+	// DefaultRedirectURL.
+	if redirectURL == "" {
+		redirectURL = DefaultRedirectURL
+	}
+
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 	cookieSalt = salt
@@ -298,11 +310,6 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 		}
 	}()
 
-	for _, opt := range opts {
-		if err := opt.Apply(); err != nil {
-			return skerr.Wrapf(err, "applying option")
-		}
-	}
 	return nil
 }
 

@@ -175,7 +175,7 @@ func TestDomainFromHost(t *testing.T) {
 }
 
 func TestDomainFromHost_LuciApp(t *testing.T) {
-	err := initLogin(context.Background(), "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, LuciApp)
+	err := initLogin(context.Background(), "id", "secret", "", saltForTesting, defaultAllowedDomains, LuciApp)
 	require.NoError(t, err)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
@@ -183,6 +183,9 @@ func TestDomainFromHost_LuciApp(t *testing.T) {
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app"))
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app:443"))
 	assert.Equal(t, "luci.app", domainFromHost("example.com:443"))
+	assert.Equal(t, "https://luci.app/oauth2callback/", DefaultRedirectURL)
+	assert.Equal(t, "https://luci.app/oauth2callback/",
+		oauthConfig.(*oauth2.Config).RedirectURL)
 }
 
 func TestIsAuthorized(t *testing.T) {

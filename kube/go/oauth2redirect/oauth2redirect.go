@@ -102,7 +102,7 @@ func New(ctx context.Context, opts ...login.InitOption) (*App, error) {
 		return nil, skerr.Wrap(err)
 	}
 	opts = append(opts, login.DomainName(ret.domain))
-	err = login.Init(ctx, login.DefaultOAuth2Callback, "", "", opts...)
+	err = login.Init(ctx, "", "", "", opts...)
 	if err != nil {
 		sklog.Fatal(err)
 	}
