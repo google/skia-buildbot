@@ -237,6 +237,16 @@ type Session struct {
 	Token     *oauth2.Token
 }
 
+// Returns true if SkipLoadingSecrets has been passed in as an option.
+func skipLoadingSecrets(opts ...InitOption) bool {
+	for _, opt := range opts {
+		if _, ok := opt.(SkipLoadingSecrets); ok {
+			return true
+		}
+	}
+	return false
+}
+
 // Init must be called before any other login methods.
 //
 // The function first tries to load the cookie salt, client id, and client
@@ -249,33 +259,7 @@ type Session struct {
 // that are allowed to log in.
 //
 // InitOptions include setting the DomainName to be used for authentication.
-func Init(ctx context.Context, redirectURL string, authAllowList string, clientSecretFile string, opts ...InitOption) error {
-	cookieSalt := defaultCookieSalt
-	var clientID string
-	var clientSecret string
-	var err error
-	if !skipLoadingSecrets(opts...) {
-		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx, clientSecretFile)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-	}
-	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, authAllowList, opts...)
-}
-
-// Returns true if SkipLoadingSecrets has been passed in as an option.
-func skipLoadingSecrets(opts ...InitOption) bool {
-	for _, opt := range opts {
-		if _, ok := opt.(SkipLoadingSecrets); ok {
-			return true
-		}
-	}
-	return false
-}
-
-// initLogin sets the params.  It should only be called directly for testing purposes.
-// Clients should use Init().
-func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, authAllowList string, opts ...InitOption) error {
+func Init(ctx context.Context, redirectURL, authAllowList string, clientSecretFile string, opts ...InitOption) error {
 	for _, opt := range opts {
 		if err := opt.Apply(); err != nil {
 			return skerr.Wrapf(err, "applying option")
@@ -288,12 +272,21 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 		redirectURL = DefaultRedirectURL
 	}
 
+	cookieSalt = defaultCookieSalt
+	var clientID string
+	var clientSecret string
+	var err error
+	if !skipLoadingSecrets(opts...) {
+		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx, clientSecretFile)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
-	cookieSalt = salt
 
 	setActiveAllowLists(authAllowList)
-	var err error
 	tokenValidatorService, err = oauth2_api.NewService(ctx, option.WithHTTPClient(httputils.NewTimeoutClient()))
 	if err != nil {
 		return skerr.Wrapf(err, "create oauth2 service client")

@@ -41,7 +41,7 @@ var (
 
 func initLoginForTests(t *testing.T) {
 	ctx := context.Background()
-	err := initLogin(ctx, "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, SkiaOrg)
+	err := Init(ctx, "http://localhost", defaultAllowedDomains, "", SkiaOrg, SkipLoadingSecrets{})
 	require.NoError(t, err)
 }
 
@@ -175,7 +175,7 @@ func TestDomainFromHost(t *testing.T) {
 }
 
 func TestDomainFromHost_LuciApp(t *testing.T) {
-	err := initLogin(context.Background(), "id", "secret", "", saltForTesting, defaultAllowedDomains, LuciApp)
+	err := Init(context.Background(), "", defaultAllowedDomains, "", LuciApp, SkipLoadingSecrets{})
 	require.NoError(t, err)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
@@ -186,6 +186,7 @@ func TestDomainFromHost_LuciApp(t *testing.T) {
 	assert.Equal(t, "https://luci.app/oauth2callback/", DefaultRedirectURL)
 	assert.Equal(t, "https://luci.app/oauth2callback/",
 		oauthConfig.(*oauth2.Config).RedirectURL)
+	assert.Equal(t, "luci-app-login-oauth2-secrets", loginSecretName)
 }
 
 func TestIsAuthorized(t *testing.T) {
