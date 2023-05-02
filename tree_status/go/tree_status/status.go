@@ -204,8 +204,7 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := srv.user(r)
-	if !srv.modify.Member(user) {
+	if !srv.IsEditor(r) {
 		httputils.ReportError(w, nil, "You do not have access to set the tree status.", http.StatusInternalServerError)
 		return
 	}
@@ -255,7 +254,8 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	// Stop watching any previously defined autorollers.
 	StopWatchingAutorollers()
 	// Add status to datastore.
-	if err := AddStatus(repo, message, user, generalState, rollers); err != nil {
+	user := srv.plogin.LoggedInAs(r)
+	if err := AddStatus(repo, message, string(user), generalState, rollers); err != nil {
 		httputils.ReportError(w, err, "Failed to add message to the datastore", http.StatusInternalServerError)
 		return
 	}

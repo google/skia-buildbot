@@ -14,13 +14,13 @@ import (
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/autoroll/go/status"
-	"go.skia.org/infra/go/allowed"
-	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -54,7 +54,6 @@ var (
 // Server is the state of the server.
 type Server struct {
 	templates  *template.Template
-	modify     allowed.Allow // Who is allowed to modify tree status.
 	autorollDB status.DB
 
 	// skiaRepoSpecified is set to true when the main skia has been specified.
@@ -62,9 +61,11 @@ type Server struct {
 	// non-repo specified URLs (for backwards compatibility) and for watching
 	// autorollers.
 	skiaRepoSpecified bool
+
+	plogin alogin.Login
 }
 
-// See baseapp.Constructor.
+// New implements baseapp.Constructor.
 func New() (baseapp.App, error) {
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")
@@ -101,27 +102,12 @@ func New() (baseapp.App, error) {
 		}
 	}
 
-	var modify allowed.Allow
-	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, *secretProject, *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
-		if err != nil {
-			return nil, err
-		}
-		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-		modify, err = allowed.NewAllowedFromChromeInfraAuth(client, *modifyGroup)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		modify = allowed.NewAllowedFromList([]string{"barney@example.org"})
-	}
-
-	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil /* Admins not needed */, modify, nil /* Everyone is allowed to access */)
+	plogin := proxylogin.NewWithDefaults()
 
 	srv := &Server{
-		modify:            modify,
 		autorollDB:        autorollDB,
 		skiaRepoSpecified: skiaRepoSpecified,
+		plogin:            plogin,
 	}
 	srv.loadTemplates()
 	liveness := metrics2.NewLiveness("alive", map[string]string{})
@@ -137,21 +123,18 @@ func (srv *Server) loadTemplates() {
 	))
 }
 
-// user returns the currently logged in user, or a placeholder if running locally.
-func (srv *Server) user(r *http.Request) string {
-	user := "barney@example.org"
+// IsEditor returns true if the currently logged in user is an editor.
+func (srv *Server) IsEditor(r *http.Request) bool {
+	ret := true
 	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
+		ret = srv.plogin.Roles(r).Has(roles.Editor)
 	}
-	return user
+	return ret
 }
 
-// See baseapp.App.
+// AddHandlers implements baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
-	// For login/logout.
-	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(srv.plogin))
 
 	// All endpoints that require authentication should be added to this router. The
 	// rest of endpoints are left unauthenticated because they are accessed from various
@@ -185,14 +168,11 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
-	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.DefaultOAuth2Callback)
-	}
 
 	r.PathPrefix("/").Handler(appHandler)
 }
 
-// See baseapp.App.
+// AddMiddleware implements baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	return []mux.MiddlewareFunc{}
 }

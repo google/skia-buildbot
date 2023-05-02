@@ -74,8 +74,8 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 
 func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentRequest) (*AddCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	session := alogin.GetStatus(ctx)
-	if !session.Roles.Has(roles.Editor) {
+	status := alogin.GetStatus(ctx)
+	if !status.Roles.Has(roles.Editor) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}
 
@@ -97,7 +97,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Name:      task.Name,
 			Timestamp: now,
 			TaskId:    task.Id,
-			User:      session.EMail.String(),
+			User:      status.EMail.String(),
 			Message:   message,
 		}
 		if err := s.taskDb.PutTaskComment(ctx, &c); err != nil {
@@ -108,7 +108,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Repo:          repoURL,
 			Name:          req.GetTaskSpec(),
 			Timestamp:     now,
-			User:          session.EMail.String(),
+			User:          status.EMail.String(),
 			Flaky:         req.Flaky,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
@@ -121,7 +121,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 			Repo:          repoURL,
 			Revision:      req.GetCommit(),
 			Timestamp:     now,
-			User:          session.EMail.String(),
+			User:          status.EMail.String(),
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
 		}
@@ -139,8 +139,8 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 
 func (s *statusServerImpl) DeleteComment(ctx context.Context, req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	session := alogin.GetStatus(ctx)
-	if !session.Roles.Has(roles.Editor) {
+	status := alogin.GetStatus(ctx)
+	if !status.Roles.Has(roles.Editor) {
 		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
 	}
 

@@ -19,7 +19,7 @@ import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/icons/home-icon-sk';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 /**
@@ -44,7 +44,7 @@ export class TreeScaffoldSk extends ElementSk {
       <header>
         <h1 class="name">${ele.appTitle}</h1>
         <div class="spacer"></div>
-        <login-sk></login-sk>
+        <alogin-sk></alogin-sk>
         <theme-chooser-sk></theme-chooser-sk>
       </header>
 
