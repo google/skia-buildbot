@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -275,7 +274,6 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 // Note: srv already has the twirp handlers on it when passed into this function.
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
-	topLevelRouter.Use(alogin.ForceRoleMiddleware(plogin, roles.Viewer))
 	topLevelRouter.Use(alogin.StatusMiddleware(plogin))
 	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
 	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
