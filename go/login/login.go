@@ -278,7 +278,6 @@ func Init(ctx context.Context, redirectURL, authAllowList string, clientSecretFi
 	var err error
 	if !skipLoadingSecrets(opts...) {
 		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx, clientSecretFile)
-		sklog.Infof("login ClientID: %s", clientID)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -427,11 +426,11 @@ func generateID() (string, error) {
 func getSession(r *http.Request) (*Session, error) {
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "cookie is missing")
+		return nil, skerr.Wrap(err)
 	}
 	var s Session
 	if err := secureCookie.Decode(cookieName, cookie.Value, &s); err != nil {
-		return nil, skerr.Wrapf(err, "decoding cookie")
+		return nil, skerr.Wrap(err)
 	}
 	if s.AuthScope != emailScope {
 		return nil, skerr.Fmt("Stored auth scope differs from expected (%q vs %q)", emailScope, s.AuthScope)
@@ -446,7 +445,6 @@ func LoggedInAs(r *http.Request) string {
 	if s, err := getSession(r); err == nil {
 		email = s.Email
 	} else {
-		sklog.Warningf("Failed to getSession: %s", err)
 		if e, err := ViaBearerToken(r); err == nil {
 			email = e
 		}
@@ -820,7 +818,6 @@ func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (str
 	secretClient, err1 := secret.NewClient(ctx)
 	if err1 == nil {
 		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
-		sklog.Info("Loaded secrets from Secret Manager.")
 		if err2 == nil {
 			return cookieSalt, clientID, clientSecret, nil
 		}
@@ -831,7 +828,6 @@ func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (str
 	// Local file, this is only used for testing.
 	cookieSalt, clientID, clientSecret, err2 := TryLoadingFromFile(clientSecretFile)
 	if err2 == nil {
-		sklog.Info("Loaded secrets from a local client_secrets.json file.")
 		return cookieSalt, clientID, clientSecret, nil
 	}
 	return "", "", "", skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s", clientSecretFile, err1, err2)
