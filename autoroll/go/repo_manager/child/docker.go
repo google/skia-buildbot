@@ -2,7 +2,6 @@ package child
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -14,11 +13,14 @@ import (
 )
 
 // NewDocker returns an implementation of Child which deals with Docker images.
-func NewDocker(ctx context.Context, c *config.DockerChildConfig, client *http.Client) (*DockerChild, error) {
+func NewDocker(ctx context.Context, c *config.DockerChildConfig) (*DockerChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	dockerClient := docker.NewClient(ctx, client, c.Registry)
+	dockerClient, err := docker.NewClient(ctx, c.Registry)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &DockerChild{
 		client: dockerClient,
 		repo:   c.Repository,

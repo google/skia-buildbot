@@ -8,11 +8,15 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -26,6 +30,27 @@ const (
 	digestHeader        = "Docker-Content-Digest"
 	pageSize            = 100
 )
+
+var (
+	dockerImageRegex = regexp.MustCompile(`^([0-9a-zA-Z_\.-]+)/([0-9a-zA-Z_\.\/-]+)(:([0-9a-zA-Z_\.-]+)|@(sha256:[0-9a-f]{64})|)$`)
+)
+
+// SplitImage splits a full Docker image path into registry, repository, and
+// tag or digest components. It is not an error for the tag or digest to be
+// missing.
+func SplitImage(image string) (registry, repository, tagOrDigest string, err error) {
+	m := dockerImageRegex.FindStringSubmatch(image)
+	if len(m) != 6 {
+		return "", "", "", skerr.Fmt("invalid Docker image format; matched: %v", m)
+	}
+	registry = m[1]
+	repository = m[2]
+	tagOrDigest = m[4]
+	if tagOrDigest == "" {
+		tagOrDigest = m[5]
+	}
+	return
+}
 
 // Client is used for interacting with a Docker registry.
 type Client interface {
@@ -56,11 +81,16 @@ type ClientImpl struct {
 
 // NewClient returns a Client instance which interacts with the given registry.
 // The passed-in http.Client should handle redirects.
-func NewClient(ctx context.Context, client *http.Client, registry string) *ClientImpl {
-	return &ClientImpl{
-		client:   client,
-		registry: registry,
+func NewClient(ctx context.Context, registry string) (*ClientImpl, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxAnd3xx().Client()
+	return &ClientImpl{
+		client:   httpClient,
+		registry: registry,
+	}, nil
 }
 
 type MediaConfig struct {

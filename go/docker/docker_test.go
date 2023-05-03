@@ -207,7 +207,10 @@ func TestGetManifest(t *testing.T) {
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
 	urlmock.MockOnce(fakeURL, md)
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 
 	manifest, err := client.GetManifest(ctx, fakeRepository, fakeTag)
 	require.NoError(t, err)
@@ -263,7 +266,10 @@ func TestGetDigest(t *testing.T) {
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
 	urlmock.MockOnce(fakeURL, md)
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 
 	digest, err := GetDigest(ctx, client, fakeRepository, fakeTag)
 	require.NoError(t, err)
@@ -279,7 +285,10 @@ func TestGetConfig(t *testing.T) {
 	configDigest := fakeDigest
 	fakeURL := fmt.Sprintf(blobURLTemplate, fakeRegistry, fakeRepository, configDigest)
 	urlmock.MockOnce(fakeURL, md)
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 
 	config, err := client.GetConfig(ctx, fakeRepository, configDigest)
 	require.NoError(t, err)
@@ -335,7 +344,10 @@ func TestListInstances(t *testing.T) {
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(listTagsURLTemplate, fakeRegistry, fakeRepository, pageSize)
 	urlmock.MockOnce(fakeURL, md)
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 
 	instances, err := client.ListInstances(ctx, fakeRepository)
 	require.NoError(t, err)
@@ -367,7 +379,10 @@ func TestListTags(t *testing.T) {
 	urlmock := mockhttpclient.NewURLMock()
 	fakeURL := fmt.Sprintf(listTagsURLTemplate, fakeRegistry, fakeRepository, pageSize)
 	urlmock.MockOnce(fakeURL, md)
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 
 	repos, err := client.ListTags(ctx, fakeRepository)
 	require.NoError(t, err)
@@ -388,8 +403,10 @@ func TestListRepositories(t *testing.T) {
 	md2 := mockhttpclient.MockGetDialogue([]byte(listRepositoriesResponse2))
 	urlmock.MockOnce(url2, md2)
 
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
-
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 	repos, err := client.ListRepositories(ctx)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -417,7 +434,42 @@ func TestSetTag(t *testing.T) {
 	md2 := mockhttpclient.MockPutDialogue(manifestContentType, []byte(getManifestResponse), nil)
 	urlmock.MockOnce(url2, md2)
 
-	client := NewClient(ctx, urlmock.Client(), fakeRegistry)
+	client := &ClientImpl{
+		client:   urlmock.Client(),
+		registry: fakeRegistry,
+	}
 	require.NoError(t, client.SetTag(ctx, fakeRepository, fakeTag, newTag))
 	require.True(t, urlmock.Empty())
+}
+
+func TestSplitImage(t *testing.T) {
+	test := func(inp, expectRegistry, expectRepository, expectRef, expectErr string) {
+		actualRegistry, actualRepository, actualRef, actualErr := SplitImage(inp)
+		if expectErr == "" {
+			require.NoError(t, actualErr)
+		} else {
+			require.Error(t, actualErr)
+			require.Contains(t, actualErr.Error(), expectErr)
+		}
+		require.Equal(t, expectRegistry, actualRegistry)
+		require.Equal(t, expectRepository, actualRepository)
+		require.Equal(t, expectRef, actualRef)
+	}
+	// Success cases.
+	test("gcr.io/skia-public/autoroll-be", "gcr.io", "skia-public/autoroll-be", "", "")
+	test("gcr.io/skia-public/autoroll-be:latest", "gcr.io", "skia-public/autoroll-be", "latest", "")
+	test("gcr.io/skia-public/autoroll-be@sha256:6f90b59938db7b10e2225aa151714578361481562f8b0192778aaf78ca9f0e4a", "gcr.io", "skia-public/autoroll-be", "sha256:6f90b59938db7b10e2225aa151714578361481562f8b0192778aaf78ca9f0e4a", "")
+	test("gcr.io/blahblah", "gcr.io", "blahblah", "", "")
+	test("gcr.io/blahblah:myTag.with-interesting_chars", "gcr.io", "blahblah", "myTag.with-interesting_chars", "")
+	test("gcr.io/image_With.interesting-chars/path", "gcr.io", "image_With.interesting-chars/path", "", "")
+
+	// Failure cases.
+	test("", "", "", "", "invalid Docker image format")
+	test("gcr.io", "", "", "", "invalid Docker image format")
+	test("my-image", "", "", "", "invalid Docker image format")
+	test(":tag", "", "", "", "invalid Docker image format")
+	test("@sha256:6f90b59938db7b10e2225aa151714578361481562f8b0192778aaf78ca9f0e4a", "", "", "", "invalid Docker image format")
+	test("my-image:tag", "", "", "", "invalid Docker image format")
+	test("my-image@sha256:6f90b59938db7b10e2225aa151714578361481562f8b0192778aaf78ca9f0e4a", "", "", "", "invalid Docker image format")
+	test("gcr.io/my-image@sha256:6f90b59938db7b10e2225aa151714578361481562f8b0192778aaf78ca9f0e4", "", "", "", "invalid Docker image format")
 }
