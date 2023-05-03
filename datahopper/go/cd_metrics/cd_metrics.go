@@ -316,6 +316,7 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 	var mtx sync.Mutex
 	newCache := map[string][]*key{}
 	for _, commit := range k8sConfigCommits {
+		commit := commit // https://golang.org/doc/faq#closures_and_goroutines
 		commitsMap[commit.Hash] = true
 
 		// If we already have cached data for this commit, use that.
@@ -351,7 +352,7 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				if err != nil {
 					return skerr.Wrapf(err, "failed to read %s at %s", file, commit.Hash)
 				}
-				k8sConfigs, err := k8s_config.ParseK8sConfigFile(contents)
+				k8sConfigs, _, err := k8s_config.ParseK8sConfigFile(contents)
 				if err != nil {
 					return skerr.Wrapf(err, "failed to parse %s", file)
 				}

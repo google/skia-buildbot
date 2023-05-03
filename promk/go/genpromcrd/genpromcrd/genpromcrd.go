@@ -60,7 +60,7 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 		if err != nil {
 			return err
 		}
-		k8sConfigs, err := k8s_config.ParseK8sConfigFile(b)
+		k8sConfigs, _, err := k8s_config.ParseK8sConfigFile(b)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to parse")
 		}

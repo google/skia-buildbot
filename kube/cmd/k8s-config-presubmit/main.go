@@ -227,14 +227,14 @@ func ValidateAlertFile(ctx context.Context, path string) error {
 	tmplString := header + string(contents)
 	tmpl, err := template.New("").Parse(tmplString)
 	if err != nil {
-		return fmt.Errorf("Failed to parse %q: %s", path, err)
+		return fmt.Errorf("failed to parse %q: %s", path, err)
 	}
 	var w bytes.Buffer
 	data := map[string]interface{}{
 		"Labels": map[string]string{},
 	}
 	if err := tmpl.Execute(&w, data); err != nil {
-		return fmt.Errorf("Failed to execute %q: %s", path, err)
+		return fmt.Errorf("failed to execute %q: %s", path, err)
 	}
 	return nil
 }
@@ -264,7 +264,7 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 		logf(ctx, "%s\n", err)
 		return false
 	}
-	k8sConfigs, err := k8s_config.ParseK8sConfigFile(contents)
+	k8sConfigs, _, err := k8s_config.ParseK8sConfigFile(contents)
 	if err != nil {
 		logf(ctx, "%s\n", err)
 		return false
@@ -325,8 +325,6 @@ func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untra
 	}
 	return filesWithDiffs, strings.Split(string(output), "\n")
 }
-
-var fileDiff = regexp.MustCompile(`^:.+\t(?P<file>[^\t]+)$`)
 
 func extractFilesWithDiffs(output string) []string {
 	output = strings.TrimSpace(output)

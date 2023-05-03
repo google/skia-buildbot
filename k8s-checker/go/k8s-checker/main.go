@@ -365,7 +365,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		k8sConfigs, err := k8s_config.ParseK8sConfigFile(yamlContents)
+		k8sConfigs, _, err := k8s_config.ParseK8sConfigFile(yamlContents)
 		if err != nil {
 			sklog.Errorf("Error when parsing %s: %s", filepath.Join(cluster, f), err)
 			continue
