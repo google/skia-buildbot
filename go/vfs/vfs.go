@@ -3,8 +3,8 @@ package vfs
 /*
 Package vfs provides interfaces for dealing with virtual file systems.
 
-The interfaces here are taken io/fs, except they include a Context, which may be
-used for things like HTTP requests.
+The interfaces here are taken from io/fs, except they include a Context, which
+may be used for things like HTTP requests.
 */
 
 import (
@@ -21,9 +21,16 @@ import (
 
 // FS represents a virtual filesystem.
 type FS interface {
-	// Open the given path. If the path is a directory, implementations should
-	// return a ReadDirFile.
+	// Open the given path for reading only. If the path is a directory,
+	// implementations should return a ReadDirFile.
 	Open(ctx context.Context, name string) (File, error)
+
+	// Create creates or truncates the named file. If the file already exists,
+	// it is truncated. If the file does not exist, it is created with mode 0666
+	// (before umask). If successful, methods on the returned File can be used
+	// for I/O; the associated file descriptor has mode O_RDWR. If there is an
+	// error, it will be of type *PathError.
+	Create(ctx context.Context, name string) (File, error)
 
 	// Close causes any resources associated with the FS to be cleaned up.
 	Close(ctx context.Context) error
@@ -40,8 +47,14 @@ type File interface {
 	Stat(ctx context.Context) (fs.FileInfo, error)
 
 	// ReadDir returns the contents of the File if it is a directory, and
-	// returns an error otherwise. Shouold behave the same as os.File.Readdir.
+	// returns an error otherwise. Should behave the same as os.File.Readdir.
 	ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error)
+
+	// Write is analogous to os.File.Write(). It writes the contents of b to the
+	// File and returns the number of bytes written and an error, if any. Write
+	// returns a non-nil error when n != len(b). Only valid if the File was
+	// created using FS.Create.
+	Write(ctx context.Context, b []byte) (n int, err error)
 }
 
 // ReuseContextFile is a File which reuses the same Context for all calls. This
@@ -180,6 +193,19 @@ func walk(ctx context.Context, fs FS, fp string, info fs.FileInfo, walkFn filepa
 		}
 	}
 	return nil
+}
+
+// WriteFile is analogous to os.WriteFile.
+func WriteFile(ctx context.Context, fs FS, path string, data []byte) error {
+	f, err := fs.Create(ctx, path)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	_, writeErr := f.Write(ctx, data)
+	if closeErr := f.Close(ctx); closeErr != nil && writeErr == nil {
+		return closeErr
+	}
+	return skerr.Wrap(writeErr)
 }
 
 // FileInfo implements fs.FileInfo by simply filling out the return values for

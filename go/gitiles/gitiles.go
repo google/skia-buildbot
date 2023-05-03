@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vfs"
 	"golang.org/x/time/rate"
 )
 
@@ -124,8 +123,6 @@ type GitilesRepo interface {
 	Tags(ctx context.Context) (map[string]string, error)
 	// URL returns the repo URL.
 	URL() string
-	// VFS returns a vfs.FS using Gitiles at the given revision.
-	VFS(ctx context.Context, ref string) (vfs.FS, error)
 }
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.

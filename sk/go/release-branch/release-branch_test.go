@@ -18,11 +18,18 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vfs"
 	vfs_mocks "go.skia.org/infra/go/vfs/mocks"
 )
+
+func mockGitilesVFS(fs vfs.FS) func(ctx context.Context, repo gitiles.GitilesRepo, ref string) (vfs.FS, error) {
+	return func(ctx context.Context, repo gitiles.GitilesRepo, ref string) (vfs.FS, error) {
+		return fs, nil
+	}
+}
 
 func TestMergeReleaseNotes_WithValidNotes_MergesNotes(t *testing.T) {
 
@@ -141,7 +148,7 @@ Milestone 113
 	repo := mocks.NewGitilesRepo(t)
 	repo.On("ResolveRef", testutils.AnyContext, "chrome/m114").
 		Once().Return("7ecb228be2abc108caf2096b518fa36ef418be11", nil)
-	repo.On("VFS", testutils.AnyContext, "7ecb228be2abc108caf2096b518fa36ef418be11").Once().Return(fs, nil)
+	newGitilesVFS = mockGitilesVFS(fs)
 
 	g := gerrit_mocks.NewGerritInterface(t)
 	g.On("CreateChange", ctx, "skia", "refs/heads/chrome/m114", commitMessage,
@@ -258,7 +265,7 @@ Milestone 113
 	repo := mocks.NewGitilesRepo(t)
 	repo.On("ResolveRef", testutils.AnyContext, "chrome/m114").
 		Once().Return("7ecb228be2abc108caf2096b518fa36ef418be11", nil)
-	repo.On("VFS", testutils.AnyContext, "7ecb228be2abc108caf2096b518fa36ef418be11").Once().Return(fs, nil)
+	newGitilesVFS = mockGitilesVFS(fs)
 
 	g := gerrit_mocks.NewGerritInterface(t)
 	g.On("CreateChange", ctx, "skia", "refs/heads/chrome/m114", commitMessage,

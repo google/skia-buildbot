@@ -28,6 +28,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/supported_branches"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vfs"
+	gitiles_vfs "go.skia.org/infra/go/vfs/gitiles"
 	"go.skia.org/infra/sk/go/relnotes"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -63,6 +65,11 @@ var (
 
 	jobsJSONReplaceRegex    = regexp.MustCompile(`(?m)\{\n    "name": "(\S+)",\n    "cq_config": null\n  }`)
 	jobsJSONReplaceContents = []byte(`{"name": "$1"}`)
+
+	// newGitilesVFS can be overridden for testing.
+	newGitilesVFS = func(ctx context.Context, repo gitiles.GitilesRepo, ref string) (vfs.FS, error) {
+		return gitiles_vfs.New(ctx, repo, ref)
+	}
 )
 
 // Command returns a cli.Command instance which represents the "release-branch"
@@ -285,7 +292,7 @@ func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitil
 	if err != nil {
 		return nil, skerr.Wrapf(err, "cannot resolve %q", newBranch)
 	}
-	fs, err := repo.VFS(ctx, baseCommit)
+	fs, err := newGitilesVFS(ctx, repo, baseCommit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

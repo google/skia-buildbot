@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -16,6 +17,18 @@ import (
 // given root. Relative paths must not contain ".."
 func Local(root string) FS {
 	return &localFS{root: root}
+}
+
+// InRepoRoot returns a FS which uses the local filesystem with the root being
+// the root of the Git repository where the current working directory resides.
+// Absolute paths may only be passed to Open() if they are subdirectories of the
+// given root. Relative paths must not contain ".."
+func InRepoRoot() (FS, error) {
+	root, err := repo_root.GetLocal()
+	if err != nil {
+		return nil, err
+	}
+	return Local(root), nil
 }
 
 // localFS is an implementation of FS which uses the local filesystem.
@@ -36,6 +49,25 @@ func (fs *localFS) Open(_ context.Context, name string) (File, error) {
 		return nil, skerr.Fmt("path %s is not rooted within %s", name, fs.root)
 	}
 	f, err := os.Open(name)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &localFile{file: f}, nil
+}
+
+// Create implements FS.
+func (fs *localFS) Create(_ context.Context, name string) (File, error) {
+	if !filepath.IsAbs(name) {
+		name = filepath.Join(fs.root, name)
+	}
+	name, err := filepath.Abs(name)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if !strings.HasPrefix(name, fs.root) {
+		return nil, skerr.Fmt("path %s is not rooted within %s", name, fs.root)
+	}
+	f, err := os.Create(name)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -70,6 +102,11 @@ func (f *localFile) ReadDir(_ context.Context, n int) ([]fs.FileInfo, error) {
 // Close implements File.
 func (f *localFile) Close(_ context.Context) error {
 	return f.file.Close()
+}
+
+// Write implements File.
+func (f *localFile) Write(_ context.Context, b []byte) (int, error) {
+	return f.file.Write(b)
 }
 
 // Ensure that localFile implements File.

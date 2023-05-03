@@ -97,6 +97,27 @@ func (_m *File) Stat(ctx context.Context) (fs.FileInfo, error) {
 	return r0, r1
 }
 
+// Write provides a mock function with given fields: ctx, b
+func (_m *File) Write(ctx context.Context, b []byte) (int, error) {
+	ret := _m.Called(ctx, b)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(context.Context, []byte) int); ok {
+		r0 = rf(ctx, b)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []byte) error); ok {
+		r1 = rf(ctx, b)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewFile creates a new instance of File. It also registers a cleanup function to assert the mocks expectations.
 func NewFile(t testing.TB) *File {
 	mock := &File{}

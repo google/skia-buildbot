@@ -1,18 +1,16 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "gitiles",
     srcs = ["gitiles.go"],
-    importpath = "go.skia.org/infra/go/gitiles",
+    importpath = "go.skia.org/infra/go/vfs/gitiles",
     visibility = ["//visibility:public"],
     deps = [
         "//go/git",
-        "//go/httputils",
+        "//go/gitiles",
         "//go/skerr",
-        "//go/util",
-        "//go/vcsinfo",
-        "@org_golang_x_time//rate",
+        "//go/vfs",
     ],
 )
 
@@ -22,15 +20,13 @@ go_test(
     embed = [":gitiles"],
     deps = [
         "//bazel/external/cipd/git",
-        "//go/deepequal/assertdeep",
         "//go/git",
-        "//go/git/testutils",
-        "//go/git/testutils/mem_git",
-        "//go/gitstore/mem_gitstore",
+        "//go/gitiles",
+        "//go/gitiles/mocks",
+        "//go/gitiles/testutils",
         "//go/mockhttpclient",
         "//go/testutils",
-        "//go/vcsinfo",
+        "//go/vfs/shared_tests",
         "@com_github_stretchr_testify//require",
-        "@org_golang_x_time//rate",
     ],
 )

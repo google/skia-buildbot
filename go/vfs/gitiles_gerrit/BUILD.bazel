@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "gitiles_gerrit",
+    srcs = ["gitiles_gerrit.go"],
+    importpath = "go.skia.org/infra/go/vfs/gitiles_gerrit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/skerr",
+        "//go/vfs",
+        "//go/vfs/gitiles",
+    ],
+)

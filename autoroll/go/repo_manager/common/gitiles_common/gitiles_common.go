@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vfs"
+	gitiles_vfs "go.skia.org/infra/go/vfs/gitiles"
 )
 
 // GitilesRepo provides helpers for dealing with repos which use Gitiles.
@@ -103,5 +104,5 @@ func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, er
 
 // VFS implements the child.Child interface.
 func (r *GitilesRepo) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
-	return r.GitilesRepo.VFS(ctx, rev.Id)
+	return gitiles_vfs.New(ctx, r.GitilesRepo, rev.Id)
 }

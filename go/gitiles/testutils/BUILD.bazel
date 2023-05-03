@@ -1,4 +1,3 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -12,20 +11,6 @@ go_library(
         "//go/mockhttpclient",
         "//go/sktest",
         "//go/vfs",
-        "@com_github_stretchr_testify//require",
-    ],
-)
-
-go_test(
-    name = "testutils_test",
-    srcs = ["vfs_test.go"],
-    embed = [":testutils"],
-    deps = [
-        "//bazel/external/cipd/git",
-        "//go/git",
-        "//go/gitiles",
-        "//go/mockhttpclient",
-        "//go/vfs/shared_tests",
         "@com_github_stretchr_testify//require",
     ],
 )

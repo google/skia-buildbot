@@ -50,6 +50,11 @@ func (fs *FS) Open(_ context.Context, name string) (vfs.File, error) {
 	}, nil
 }
 
+// Create implements vfs.FS.
+func (fs *FS) Create(_ context.Context, name string) (vfs.File, error) {
+	return nil, skerr.Fmt("Create not implemented for git.FS. Did you mean to use go/vfs.Local?")
+}
+
 // Close implements vfs.FS.
 func (fs *FS) Close(_ context.Context) error {
 	return nil
@@ -154,6 +159,11 @@ func (f *File) ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error) {
 		rv = rv[:n]
 	}
 	return rv, nil
+}
+
+// Write implements vfs.File.
+func (f *File) Write(_ context.Context, _ []byte) (int, error) {
+	return 0, skerr.Fmt("Write not implemented for git.File. Did you mean to use go/vfs.Local?")
 }
 
 // Ensure that File implements vfs.File.
