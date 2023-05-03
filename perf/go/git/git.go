@@ -195,6 +195,7 @@ type Git struct {
 	commitNumbersWhenFileChangesInCommitNumberRangeCalled metrics2.Counter
 	previousGitHashFromCommitNumberCalled                 metrics2.Counter
 	previousCommitNumberFromCommitNumberCalled            metrics2.Counter
+	commitNumberMissingFromGitLog                         metrics2.Counter
 }
 
 // New creates a new *Git from the given instance configuration.
@@ -238,6 +239,7 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 		commitNumbersWhenFileChangesInCommitNumberRangeCalled: metrics2.GetCounter("perf_git_commit_numbers_when_file_changes_in_commit_number_range_called"),
 		previousGitHashFromCommitNumberCalled:                 metrics2.GetCounter("perf_git_previous_githash_from_commit_number_called"),
 		previousCommitNumberFromCommitNumberCalled:            metrics2.GetCounter("perf_git_previous_commit_number_from_commit_number_called"),
+		commitNumberMissingFromGitLog:                         metrics2.GetCounter("perf_git_commit_number_missing_from_git_log"),
 	}
 
 	if err := ret.Update(ctx); err != nil {
@@ -296,7 +298,13 @@ func (g *Git) Update(ctx context.Context) error {
 		if g.repoSuppliedCommitNumber {
 			nextCommitNumber, err = g.getCommitNumberFromCommit(p.Body)
 			if err != nil {
-				return skerr.Wrapf(err, "Failed to insert commit %q into database, because cannot find commit number.", p.GitHash)
+				// Because of an old bug https://bugs.chromium.org/p/chromium/issues/detail?id=1108466
+				// A few chromium commits don't have associated commit position in early 2020.
+				// For example: https://chromium.googlesource.com/chromium/src/+/0584c1805c005f1aac35c28c6738d9a2455a876c
+				// The issue has already been fixed, skips those bad commits to make the system more robust.
+				g.commitNumberMissingFromGitLog.Inc(1)
+				sklog.Errorf("Failed to insert commit %q into database, because cannot find commit number with the error: %s", p.GitHash, err)
+				return nil
 			}
 		}
 

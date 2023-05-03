@@ -40,6 +40,7 @@ var subTests = map[string]subTestFunction{
 	"testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success":                       testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success,
 	"testCommitSliceFromCommitNumberSlice_Success":                                       testCommitSliceFromCommitNumberSlice_Success,
 	"testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate":                                testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate,
+	"testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB":                     testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB,
 	"testCommitNumberFromGitHash_Success":                                                testCommitNumberFromGitHash_Success,
 	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                                  testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
 	"testCommitNumberFromTime_Success":                                                   testCommitNumberFromTime_Success,
@@ -80,6 +81,19 @@ func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx conte
 	require.NoError(t, err)
 	commitNumber, err := g.CommitNumberFromGitHash(ctx, newHash)
 	assert.Equal(t, types.CommitNumber(len(hashes)), commitNumber)
+}
+
+func testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+	newHash := gb.CommitGenAt(ctx, "foo.txt", gittest.StartTime.Add(4*time.Minute))
+	_, err := g.CommitNumberFromGitHash(ctx, newHash)
+	require.Error(t, err)
+
+	g.repoSuppliedCommitNumber = true
+	g.commitNumberRegex = regexp.MustCompile("Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}")
+	err = g.Update(ctx)
+	require.NoError(t, err)
+	commitNumber, err := g.CommitNumberFromGitHash(ctx, newHash)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
 func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
