@@ -390,7 +390,7 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--bazel_cache_dir",
-        "/dev/shm/bazel_cache",
+        "/mnt/pd0/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
       ],
@@ -411,6 +411,8 @@
           "bazelisk"
         ]
       },
+      "execution_timeout_ns": 7200000000000,
+      "io_timeout_ns": 7200000000000,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Build-Bazel-RBE": {
