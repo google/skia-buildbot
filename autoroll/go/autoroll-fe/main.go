@@ -463,11 +463,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	serverURL := "https://" + *host
+	serverURL := ""
 	if *local {
-		serverURL = "http://" + *host + *port
+		serverURL = "http://" + *host + *port + login.DefaultOAuth2Callback
 	}
-	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
+	login.InitWithAllow(ctx, serverURL, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
 	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")
