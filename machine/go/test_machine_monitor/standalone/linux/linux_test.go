@@ -85,7 +85,7 @@ func TestGPUs_MultipleGPUsDetectedAndNonGPUDevicesSkipped(t *testing.T) {
 		versionGetters,
 	)
 	require.NoError(t, err)
-	assert.Equal(t, []string{"8086", "8086:22b1", "8086:22b1-4.5.6", "10de", "10de:2489", "10de:2489-1.2.3"}, gpus)
+	assert.Equal(t, []string{"10de", "10de:2489", "10de:2489-1.2.3", "8086", "8086:22b1", "8086:22b1-4.5.6"}, gpus)
 }
 
 func TestGPUs_GPUHasBadVendorFormat_GetsSkipped(t *testing.T) {
@@ -97,7 +97,7 @@ func TestGPUs_GPUHasBadVendorFormat_GetsSkipped(t *testing.T) {
 		versionGetters,
 	)
 	require.NoError(t, err)
-	assert.Equal(t, []string(nil), gpus)
+	assert.Equal(t, []string{"none"}, gpus)
 }
 
 func TestGPUs_NonIntelOrNvidiaVendor_OmitsVersion(t *testing.T) {

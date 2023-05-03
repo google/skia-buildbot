@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 
 	shell "github.com/kballard/go-shellquote"
@@ -138,5 +139,11 @@ func GPUs(ctx context.Context, lspciOutput string, versionGetters VendorsToVersi
 			ret = append(ret, vendorID+":"+deviceID+"-"+version)
 		}
 	}
+
+	if len(ret) == 0 {
+		ret = []string{"none"}
+	}
+	sort.Strings(ret)
+
 	return ret, nil
 }
