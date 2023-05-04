@@ -462,6 +462,30 @@ var getCommitNumberSubTests = map[string]struct {
 		Commit-Queue: Michael van Ouwerkerk \u003cmvanouwerkerk@chromium.org\u003e
 		Cr-Commit-Position: refs/heads/master@{#727a989}
 		`},
+	"testGetCommitNumberFromCommit_MultipleCommitNumbers_GetTheLastCommitNumber": {testGetCommitNumberFromCommit_MultipleCommitNumbers_GetTheLastCommitNumber, `> Bug: 1411197
+		> Bug: 1375174
+		> Change-Id: I113036c11d2c29b902577220243001b818bc940f
+		> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4173488
+		> Reviewed-by: Yoshisato Yanagisawa <yyanagisawa@chromium.org>
+		> Reviewed-by: Hiroki Nakagawa <nhiroki@chromium.org>
+		> Reviewed-by: Shunya Shishido <sisidovski@chromium.org>
+		> Reviewed-by: Takashi Toyoshima <toyoshim@chromium.org>
+		> Commit-Queue: Minoru Chikamune <chikamune@chromium.org>
+		> Reviewed-by: Kenichi Ishibashi <bashi@chromium.org>
+		> Cr-Commit-Position: refs/heads/main@{#1100878}
+
+		Bug: 1412756
+		Bug: 1411197
+		Bug: 1375174
+		Change-Id: Ib03e7ceb51858576956dc713017adbe7b133be05
+		Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4222534
+		Reviewed-by: Kenichi Ishibashi <bashi@chromium.org>
+		Commit-Queue: Minoru Chikamune <chikamune@chromium.org>
+		Reviewed-by: Hiroki Nakagawa <nhiroki@chromium.org>
+		Reviewed-by: Shunya Shishido <sisidovski@chromium.org>
+		Reviewed-by: Takashi Toyoshima <toyoshim@chromium.org>
+		Cr-Commit-Position: refs/heads/main@{#1101482}
+		`},
 }
 
 func testGetCommitNumberFromCommit_Master_Success(t *testing.T, body string, g *Git) {
@@ -492,4 +516,10 @@ func testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError(t *testing.T
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
+}
+
+func testGetCommitNumberFromCommit_MultipleCommitNumbers_GetTheLastCommitNumber(t *testing.T, body string, g *Git) {
+	commitNumber, err := g.getCommitNumberFromCommit(body)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(1101482), commitNumber)
 }
