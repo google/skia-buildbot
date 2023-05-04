@@ -273,6 +273,13 @@ func skipLoadingSecrets(opts ...InitOption) bool {
 	return false
 }
 
+func abbrev(s string) string {
+	if len(s) < 4 {
+		return s
+	}
+	return s[:4]
+}
+
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
 func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, authAllowList string, opts ...InitOption) error {
@@ -288,6 +295,7 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 		redirectURL = DefaultRedirectURL
 	}
 
+	sklog.Infof("cookieSalt: %q salt: %q clientID: %q", abbrev(cookieSalt), abbrev(salt), abbrev(clientID))
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 	cookieSalt = salt
