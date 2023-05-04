@@ -183,7 +183,7 @@ func TestDomainFromHost_LuciApp(t *testing.T) {
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app"))
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app:443"))
 	assert.Equal(t, "luci.app", domainFromHost("example.com:443"))
-	assert.Equal(t, "https://luci.app/oauth2callback/", DefaultRedirectURL)
+	assert.Equal(t, "https://luci.app/oauth2callback/", GetDefaultRedirectURL())
 	assert.Equal(t, "https://luci.app/oauth2callback/",
 		oauthConfig.(*oauth2.Config).RedirectURL)
 }

@@ -44,7 +44,7 @@ var (
 func SimpleInitWithAllow(ctx context.Context, port string, local bool, admin, edit, view allowed.Allow) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
 	if !local {
-		redirectURL = DefaultRedirectURL
+		redirectURL = GetDefaultRedirectURL()
 	}
 	InitWithAllow(ctx, redirectURL, admin, edit, view)
 }

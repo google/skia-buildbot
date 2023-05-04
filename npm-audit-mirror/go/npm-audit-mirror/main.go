@@ -270,7 +270,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.DefaultRedirectURL)
+		appHandler = login.ForceAuth(appRouter, login.GetDefaultRedirectURL())
 	}
 
 	r.PathPrefix("/").Handler(appHandler)

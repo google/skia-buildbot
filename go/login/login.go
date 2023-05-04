@@ -106,9 +106,9 @@ const (
 )
 
 var (
-	// DefaultRedirectURL is the redirect URL to use if Init is called with
+	// defaultRedirectURL is the redirect URL to use if Init is called with
 	// DEFAULT_ALLOWED_DOMAINS.
-	DefaultRedirectURL = "https://skia.org/oauth2callback/"
+	defaultRedirectURL = "https://skia.org/oauth2callback/"
 
 	// cookieDomain is the domain to use when setting Cookies.
 	cookieDomain = "skia.org"
@@ -118,6 +118,12 @@ var (
 
 	errMalformedState = errors.New("malformed state value")
 )
+
+// GetDefaultRedirectURL returns an absolute URL that starts the 3-legged login
+// flow.
+func GetDefaultRedirectURL() string {
+	return defaultRedirectURL
+}
 
 // InitOption are options passed to Init. Note that DomainName implements
 // InitOption allowing the selection of the login domain.
@@ -176,7 +182,7 @@ func setDomain(d DomainName) error {
 	if !ok {
 		return skerr.Fmt("unknown domain: %q", d)
 	}
-	DefaultRedirectURL = fmt.Sprintf("https://%s%s", cfg.CookieDomain, DefaultOAuth2Callback)
+	defaultRedirectURL = fmt.Sprintf("https://%s%s", cfg.CookieDomain, DefaultOAuth2Callback)
 	cookieDomain = cfg.CookieDomain
 	loginSecretName = cfg.LoginSecretName
 	return nil
@@ -292,7 +298,7 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 	// Must be done after applying opts, since an opt may change
 	// DefaultRedirectURL.
 	if redirectURL == "" {
-		redirectURL = DefaultRedirectURL
+		redirectURL = defaultRedirectURL
 	}
 
 	sklog.Infof("cookieSalt: %q salt: %q clientID: %q", abbrev(cookieSalt), abbrev(salt), abbrev(clientID))

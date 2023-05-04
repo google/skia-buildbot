@@ -104,7 +104,7 @@ func main() {
 	if !*local && *dologin {
 		ctx := context.Background()
 		err := login.Init(ctx,
-			login.DefaultRedirectURL,
+			login.GetDefaultRedirectURL(),
 			"", /* Empty means accept all signed in domain. */
 			"", /* Get secrets from Secret Manager*/
 		)

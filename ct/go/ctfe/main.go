@@ -119,7 +119,7 @@ func runServer(serverURL string) {
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
 	h = login.RestrictViewer(h)
 	if !*local {
-		h = login.ForceAuth(h, login.DefaultRedirectURL)
+		h = login.ForceAuth(h, login.GetDefaultRedirectURL())
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
