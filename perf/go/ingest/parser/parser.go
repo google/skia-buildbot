@@ -227,6 +227,7 @@ func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtoo
 func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, error) {
 	f, err := format.Parse(r)
 	if err != nil {
+		sklog.Warningf("Failed to parse the version one file: %s, got error: %s", filename, err)
 		return nil, nil, "", nil, err
 	}
 	params, values := getParamsAndValuesFromVersion1Format(f, p.invalidParamCharRegex)
