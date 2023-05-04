@@ -20,7 +20,7 @@ func startTestServer(t *testing.T) (cpb.AnalysisClient, func()) {
 	require.NoError(t, err)
 
 	server := grpc.NewServer()
-	cpb.RegisterAnalysisServer(server, New())
+	cpb.RegisterAnalysisServer(server, New(nil))
 
 	go func() {
 		require.NoError(t, server.Serve(serverListener))

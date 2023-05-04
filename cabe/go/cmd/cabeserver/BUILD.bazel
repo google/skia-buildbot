@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cabe/go/analysisserver",
+        "//cabe/go/backends",
         "//cabe/go/proto:go_proto_lib",
         "//go/common",
         "//go/httputils",

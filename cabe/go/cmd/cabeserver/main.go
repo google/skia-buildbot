@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/cabe/go/analysisserver"
+	"go.skia.org/infra/cabe/go/backends"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
 
@@ -53,6 +54,7 @@ func authorize(ctx context.Context) error {
 }
 
 func main() {
+	ctx := context.Background()
 	flag.Parse()
 
 	// Setup flags.
@@ -83,8 +85,16 @@ func main() {
 	sklog.Infof("registering grpc reflection server")
 	reflection.Register(s)
 
+	sklog.Infof("dialing RBE-CAS backends")
+	rbeClients, err := backends.DialRBECAS(ctx)
+	if err != nil {
+		sklog.Fatalf("dialing RBE-CAS backends: %v", err)
+	}
+	sklog.Infof("successfully dialed %d RBE-CAS instances", len(rbeClients))
+
 	sklog.Infof("registering cabe grpc server")
-	cabeServer := analysisserver.New()
+	cabeServer := analysisserver.New(rbeClients)
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpcPort))
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)

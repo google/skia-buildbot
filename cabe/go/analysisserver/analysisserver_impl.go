@@ -3,6 +3,7 @@ package analysisserver
 import (
 	"context"
 
+	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"go.skia.org/infra/go/sklog"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
@@ -10,11 +11,14 @@ import (
 
 type analysisServerImpl struct {
 	cpb.UnimplementedAnalysisServer
+	rbeClients map[string]*rbeclient.Client
 }
 
 // New returns a new instance of AnalysisServer.
-func New() *analysisServerImpl {
-	return &analysisServerImpl{}
+func New(rbeClients map[string]*rbeclient.Client) *analysisServerImpl {
+	return &analysisServerImpl{
+		rbeClients: rbeClients,
+	}
 }
 
 // GetAnalysis returns the results of a performance experiment analysis.
