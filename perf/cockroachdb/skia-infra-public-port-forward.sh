@@ -4,7 +4,7 @@
 
 set -e
 
-printf "After this command launches run the following in another terminal:\n\n\tcockroach sql --insecure --host=127.0.0.1:26257\n\n"
+printf "After this command launches run the following in another terminal:\n\n\tcockroach sql --insecure --host=127.0.0.1:25000\n\n"
 
 set -x
 
