@@ -10,6 +10,7 @@ go_library(
         "//cabe/go/proto:go_proto_lib",
         "//go/sklog",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client:go_default_library",
+        "@org_golang_google_api//bigquery/v2:bigquery",
     ],
 )
 

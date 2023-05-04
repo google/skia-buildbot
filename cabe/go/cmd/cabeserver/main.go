@@ -92,8 +92,15 @@ func main() {
 	}
 	sklog.Infof("successfully dialed %d RBE-CAS instances", len(rbeClients))
 
+	sklog.Infof("dialing BigQuery")
+	bqClient, err := backends.DialBigQuery(ctx)
+	if err != nil {
+		sklog.Fatalf("dialing bigquery: %v", err)
+	}
+	sklog.Infof("successfully dialed bigquery")
+
 	sklog.Infof("registering cabe grpc server")
-	cabeServer := analysisserver.New(rbeClients)
+	cabeServer := analysisserver.New(rbeClients, bqClient)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpcPort))
 	if err != nil {
