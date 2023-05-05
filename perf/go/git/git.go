@@ -518,6 +518,7 @@ func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.Co
 	g.gitHashFromCommitNumberCalled.Inc(1)
 	var ret string
 	if err := g.db.QueryRow(ctx, statements[getHashFromCommitNumber], commitNumber).Scan(&ret); err != nil {
+		sklog.Warningf("Failed to find git hash for commit number: %v", commitNumber)
 		return "", skerr.Wrapf(err, "Failed to find git hash for commit number: %v", commitNumber)
 	}
 	return ret, nil

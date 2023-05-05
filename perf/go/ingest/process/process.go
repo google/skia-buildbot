@@ -107,9 +107,9 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 			continue
 		}
 
-		commitNumber := types.CommitNumber(0)
+		commitNumberFromFile := types.CommitNumber(0)
 		if g.RepoSuppliedCommitNumber() {
-			commitNumber, err = p.ParseCommitNumberFromGitHash(gitHash)
+			commitNumberFromFile, err = p.ParseCommitNumberFromGitHash(gitHash)
 			if err != nil {
 				sklog.Errorf("Unable to convert githash to integer commit number %q.", gitHash, err)
 				continue
@@ -117,13 +117,13 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		}
 
 		// Convert gitHash or check the existance of a commitNumber.
-		commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumber)
+		commitNumber, err := g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
 		if err != nil {
 			if err := g.Update(ctx); err != nil {
 				sklog.Errorf("Failed to Update: ", err)
 
 			}
-			commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumber)
+			commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
 			if err != nil {
 				badGitHash.Inc(1)
 				sklog.Error("Failed to find commit number %v: %s", f, err)
