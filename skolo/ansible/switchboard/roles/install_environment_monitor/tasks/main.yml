@@ -35,4 +35,4 @@
         state: restarted
         name: environment_monitor_ansible
         daemon_reload: true
-  when: install_environment_monitor__needs_environment_monitor
+  when: install_environment_monitor__needs_environment_monitor is defined and install_environment_monitor__needs_environment_monitor == true

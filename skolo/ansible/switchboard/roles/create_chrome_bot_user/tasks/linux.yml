@@ -33,7 +33,7 @@
 # membership.
 - name: Add serial port users to dialout group
   become: true
-  when: install_environment_monitor__needs_environment_monitor
+  when: install_environment_monitor__needs_environment_monitor is defined and install_environment_monitor__needs_environment_monitor == true
   user:
     name: chrome-bot
     group: chrome-bot
