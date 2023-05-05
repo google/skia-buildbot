@@ -24,7 +24,7 @@ type Source struct {
 type TraceStore interface {
 	// CommitNumberOfTileStart returns the types.CommitNumber at the beginning of the
 	// given tile.
-	CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber
+	CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error)
 
 	// GetLatestTile returns the latest, i.e. the newest tile.
 	GetLatestTile(context.Context) (types.TileNumber, error)

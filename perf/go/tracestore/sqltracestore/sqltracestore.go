@@ -275,6 +275,8 @@ const (
 	countMatchingTraces
 	restrictClause
 	countCommitInCommitNumberRange
+	findTheSmallestCeilingOfCommitNumber
+	findTheLargestFloorOfCommitNumber
 )
 
 var templates = map[statement]string{
@@ -594,6 +596,30 @@ var statements = map[statement]string{
 		WHERE
 			commit_number >= $1
 			AND commit_number <= $2`,
+	findTheSmallestCeilingOfCommitNumber: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number >= $1
+		ORDER BY
+			commit_number ASC
+		LIMIT
+			1
+		`,
+	findTheLargestFloorOfCommitNumber: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number <= $1
+		ORDER BY
+			commit_number DESC
+		LIMIT
+			1
+		`,
 }
 
 type timeProvider func() time.Time
@@ -717,10 +743,14 @@ func (s *SQLTraceStore) updateParamSetMetricsForTile(ctx context.Context, tileNu
 }
 
 // CommitNumberOfTileStart implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
+func (s *SQLTraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, s.tileSize)
-	beginCommit, _ := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
-	return beginCommit
+	beginCommit, _, err := s.tileCommitRangeForTileNumber(ctx, tileNumber, s.tileSize)
+	if err != nil {
+		return types.BadCommitNumber, skerr.Wrap(err)
+	}
+
+	return beginCommit, nil
 }
 
 // GetLatestTile implements the tracestore.TraceStore interface.
@@ -930,18 +960,6 @@ func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename 
 	return ret, nil
 }
 
-// countCommitInCommitNumberRange counts the number of commits in a given commit number range.
-func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) (int, error) {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.countCommitInCommitNumberRange")
-	defer span.End()
-
-	var count int
-	if err := s.db.QueryRow(ctx, statements[countCommitInCommitNumberRange], begin, end).Scan(&count); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	return count, nil
-}
-
 // OffsetFromCommitNumber implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	return int32(commitNumber) % s.tileSize
@@ -973,7 +991,11 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 		close(traceNames)
 	}()
 
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
+	beginCommit, endCommit, err := s.tileCommitRangeForTileNumber(ctx, tileNumber, s.tileSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return s.readTracesByChannelForCommitRange(ctx, traceNames, beginCommit, endCommit)
 }
 
@@ -1419,7 +1441,11 @@ func (s *SQLTraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNum
 
 	defer timer.New("ReadTraces").Stop()
 
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
+	beginCommit, endCommit, err := s.tileCommitRangeForTileNumber(ctx, tileNumber, s.tileSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return s.ReadTracesForCommitRange(ctx, traceNames, beginCommit, endCommit)
 }
 
@@ -1793,3 +1819,65 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 // Confirm that *SQLTraceStore fulfills the tracestore.TraceStore interface.
 var _ tracestore.TraceStore = (*SQLTraceStore)(nil)
+
+// countCommitInCommitNumberRange counts the number of commits in a given commit number range.
+func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.countCommitInCommitNumberRange")
+	defer span.End()
+
+	var count int
+	if err := s.db.QueryRow(ctx, statements[countCommitInCommitNumberRange], begin, end).Scan(&count); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return count, nil
+}
+
+// TileCommitRangeForTileNumber returns the first and last CommitNumbers that
+// would appear in a tile of size tileSize.
+func (s *SQLTraceStore) tileCommitRangeForTileNumber(ctx context.Context, tileNumber types.TileNumber, tileSize int32) (types.CommitNumber, types.CommitNumber, error) {
+	fistCommitNumber := types.CommitNumber(int32(tileNumber) * tileSize)
+	begin, err := s.findTheSmallestCeilingOfCommitNumber(ctx, fistCommitNumber)
+	if err != nil {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Wrap(err)
+	}
+
+	lastCommitNumber := types.CommitNumber((int32(tileNumber)+1)*tileSize - 1)
+	end, err := s.findTheLargestFloorOfCommitNumber(ctx, lastCommitNumber)
+	if err != nil {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Wrap(err)
+	}
+
+	if begin > end {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Fmt("Cannot find Tile commit range for tile number %v with tile size %d. Got invalid commit range, [%d, %d]", tileNumber, tileSize, begin, end)
+	}
+
+	return begin, end, nil
+}
+
+// findTheSmallestCeilingOfCommitNumber find the smallest ceiling of a given commit number
+// if the given commit number existed, will return the given commit number,
+// otherwise will return the smallest larger commit number.
+func (s *SQLTraceStore) findTheSmallestCeilingOfCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.findTheSmallestCeilingOfCommitNumber")
+	defer span.End()
+
+	ret := types.BadCommitNumber
+	if err := s.db.QueryRow(ctx, statements[findTheSmallestCeilingOfCommitNumber], commitNumber).Scan(&ret); err != nil {
+		return ret, skerr.Wrapf(err, "Failed to find the smallest ceiling for commit number: %v", commitNumber)
+	}
+	return ret, nil
+}
+
+// findTheLargestFloorOfCommitNumber find the largest floor of a given commit number
+// if the given commit number existed, will return the given commit number,
+// otherwise will return the largest smaller commit number.
+func (s *SQLTraceStore) findTheLargestFloorOfCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.findTheLargestFloorOfCommitNumber")
+	defer span.End()
+
+	ret := types.BadCommitNumber
+	if err := s.db.QueryRow(ctx, statements[findTheLargestFloorOfCommitNumber], commitNumber).Scan(&ret); err != nil {
+		return ret, skerr.Wrapf(err, "Failed to find the largest floor for commit number: %v", commitNumber)
+	}
+	return ret, nil
+}

@@ -567,14 +567,27 @@ func TestSQLTraceStore_TileSize(t *testing.T) {
 }
 
 func TestCommitNumberOfTileStart(t *testing.T) {
-	s := &SQLTraceStore{
-		tileSize: 8,
-	}
-	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(0))
-	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(1))
-	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(7))
-	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(8))
-	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(9))
+	ctx, s := commonTestSetupWithCommits(t, false)
+
+	begin, err := s.CommitNumberOfTileStart(ctx, 0)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(0), begin)
+
+	begin, err = s.CommitNumberOfTileStart(ctx, 1)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(0), begin)
+
+	begin, err = s.CommitNumberOfTileStart(ctx, 7)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(0), begin)
+
+	begin, err = s.CommitNumberOfTileStart(ctx, 8)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(8), begin)
+
+	begin, err = s.CommitNumberOfTileStart(ctx, 9)
+	require.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(8), begin)
 }
 
 func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {

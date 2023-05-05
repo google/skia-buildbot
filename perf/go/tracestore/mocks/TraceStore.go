@@ -24,18 +24,25 @@ type TraceStore struct {
 	mock.Mock
 }
 
-// CommitNumberOfTileStart provides a mock function with given fields: commitNumber
-func (_m *TraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
-	ret := _m.Called(commitNumber)
+// CommitNumberOfTileStart provides a mock function with given fields: ctx, commitNumber
+func (_m *TraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ret := _m.Called(ctx, commitNumber)
 
 	var r0 types.CommitNumber
-	if rf, ok := ret.Get(0).(func(types.CommitNumber) types.CommitNumber); ok {
-		r0 = rf(commitNumber)
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber) types.CommitNumber); ok {
+		r0 = rf(ctx, commitNumber)
 	} else {
 		r0 = ret.Get(0).(types.CommitNumber)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber) error); ok {
+		r1 = rf(ctx, commitNumber)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetLastNSources provides a mock function with given fields: ctx, traceID, n
