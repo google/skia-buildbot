@@ -22,12 +22,13 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/netutils"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	allowlist "go.skia.org/infra/npm-audit-mirror/go/allowlists"
 	audit "go.skia.org/infra/npm-audit-mirror/go/audits"
@@ -47,7 +48,6 @@ var (
 	fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'npm-audit-mirror-staging'")
 	fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
-	authAllowList      = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 	hang               = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 	auditsInterval     = flag.Duration("audits_interval", 2*time.Hour, "How often the server checks for audit issues.")
 	examineInterval    = flag.Duration("examine_interval", 20*time.Hour, "How often the server examines downloaded packages on each mirror.")
@@ -65,15 +65,10 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Could not create %s: %s", *workdir, err)
 	}
 
-	var allow allowed.Allow
-	if !*baseapp.Local {
-		allow = allowed.NewAllowedFromList([]string{*authAllowList})
-	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
-	}
-	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil, nil, allow)
-
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeFullControl, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Get the NPM audit mirror config.
@@ -179,15 +174,6 @@ type ProjectInfo struct {
 	checksManager types.ChecksManager
 }
 
-// user returns the currently logged in user, or a placeholder if running locally.
-func (srv *Server) user(r *http.Request) string {
-	user := "barney@example.org"
-	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
-	}
-	return user
-}
-
 // rejectionsLogHandler displays the rejection logs for the specified project.
 func (srv *Server) rejectionsLogHandler(h http.Handler, projectInfo *ProjectInfo) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -248,10 +234,6 @@ func (srv *Server) verdaccioReverseProxyHandler(h http.Handler, projectName stri
 
 // See baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
-	// For login/logout.
-	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	// All endpoints that require authentication should be added to this router.
 	appRouter := mux.NewRouter()
@@ -267,13 +249,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 		r.PathPrefix(projectEndpoint + "/").Handler(http.StripPrefix(projectEndpoint, srv.verdaccioReverseProxyHandler(r, project)))
 	}
 
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
-	appHandler := http.Handler(appRouter)
-	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.GetDefaultRedirectURL())
-	}
-
-	r.PathPrefix("/").Handler(appHandler)
+	plogin := proxylogin.NewWithDefaults()
+	r.PathPrefix("/").Handler(alogin.ForceRole(appRouter, plogin, roles.Viewer))
 }
 
 // See baseapp.App.
