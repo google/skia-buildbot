@@ -26,14 +26,15 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
@@ -63,6 +64,8 @@ var (
 	client *http.Client
 	// Swarming API client.
 	swarm swarming.ApiClient
+
+	plogin alogin.Login
 )
 
 func reloadTemplates() {
@@ -111,15 +114,11 @@ func runServer(serverURL string) {
 	// Handler for displaying results stored in Google Storage.
 	externalRouter.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
 
-	// Common handlers used by different pages.
-	externalRouter.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
-	externalRouter.HandleFunc("/logout/", login.LogoutHandler)
-	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
+	externalRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
-	h = login.RestrictViewer(h)
 	if !*local {
-		h = login.ForceAuth(h, login.GetDefaultRedirectURL())
+		h = alogin.ForceRole(h, plogin, roles.Viewer)
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
@@ -286,15 +285,6 @@ func repeatedTasksScheduler(ctx context.Context) {
 
 func resultsHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Requesting: %s", r.RequestURI)
-	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
-		return
-	}
-	if !login.IsGoogler(r) {
-		sklog.Info("User is not a Googler.")
-		http.Error(w, "Only Google accounts are allowed.", http.StatusUnauthorized)
-		return
-	}
 
 	storageURL := fmt.Sprintf("https://storage.googleapis.com/%s", strings.TrimLeft(r.URL.Path, ctfeutil.RESULTS_URI))
 	resp, err := client.Get(storageURL)
@@ -338,13 +328,8 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	if *local {
-		login.SimpleInitWithAllow(ctx, *port, *local, nil, nil, nil)
-	} else {
-		admins := allowed.NewAllowedFromList(ctutil.CtAdmins)
-		allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
-		login.SimpleInitWithAllow(ctx, *port, *local, admins, nil, allow)
-	}
+	plogin = proxylogin.NewWithDefaults()
+	task_common.SetLogin(plogin)
 
 	// Initialize the datastore.
 	dsTokenSource, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")

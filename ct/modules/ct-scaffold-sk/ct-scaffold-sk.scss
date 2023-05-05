@@ -57,14 +57,14 @@ ct-scaffold-sk {
     }
     --content-horiz-padding: 2em;
   }
-  login-sk {
+  alogin-sk {
     margin-left: auto;
     margin-right: 1em;
     display: block;
     color: var(--on-primary);
   }
-  login-sk .email,
-  login-sk .logInOut {
+  alogin-sk .email,
+  alogin-sk .logInOut {
     font-size: 15px;
     color: var(--on-primary);
   }

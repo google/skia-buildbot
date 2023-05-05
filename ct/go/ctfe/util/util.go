@@ -16,7 +16,6 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 )
 
 // URIs for frontend handlers.
@@ -77,18 +76,8 @@ const (
 	MAX_GROUPNAME_LEN = 30
 )
 
-var DomainsWithViewAccess = []string{"google.com"}
-
 // Function to run before executing a template.
 var PreExecuteTemplateHook = func() {}
-
-func UserHasEditRights(r *http.Request) bool {
-	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
-}
-
-func UserHasAdminRights(r *http.Request) bool {
-	return UserHasEditRights(r) && login.IsAdmin(r)
-}
 
 func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")

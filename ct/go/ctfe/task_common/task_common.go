@@ -23,12 +23,13 @@ import (
 	"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
@@ -61,7 +62,18 @@ var (
 
 	swarm     swarming.ApiClient
 	casClient cas.CAS
+
+	plogin alogin.Login
 )
+
+// SetLogin should be called before any HTTP traffic is served.
+func SetLogin(p alogin.Login) {
+	plogin = p
+}
+
+func isAdmin(r *http.Request) bool {
+	return plogin.HasRole(r, roles.Admin)
+}
 
 type CommonCols struct {
 	DatastoreKey    *datastore.Key `json:"-" datastore:"__key__"`
@@ -175,11 +187,7 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 }
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
-		return
-	}
-	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
+	if task.IsAdminTask() && !isAdmin(r) {
 		httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
 		return
 	}
@@ -190,7 +198,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 	defer skutil.Close(r.Body)
 
-	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	task.GetAddTaskCommonVars().Username = string(plogin.LoggedInAs(r))
 	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
 	if len(task.GetAddTaskCommonVars().Username) > 255 {
 		httputils.ReportError(w, nil, "Username is too long, limit 255 bytes", http.StatusInternalServerError)
@@ -370,7 +378,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 	params := QueryParams{}
 	if ctfeutil.ParseBoolFormValue(r.FormValue("filter_by_logged_in_user")) {
-		params.Username = login.LoggedInAs(r)
+		params.Username = string(plogin.LoggedInAs(r))
 	}
 	params.SuccessfulOnly = ctfeutil.ParseBoolFormValue(r.FormValue("successful"))
 	params.PendingOnly = ctfeutil.ParseBoolFormValue(r.FormValue("not_completed"))
@@ -440,8 +448,8 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 // Returns true if the given task can be deleted by the logged-in user; otherwise false and an error
 // describing the problem.
 func canDeleteTask(task Task, r *http.Request) (bool, error) {
-	if !ctfeutil.UserHasAdminRights(r) {
-		username := login.LoggedInAs(r)
+	if !isAdmin(r) {
+		username := string(plogin.LoggedInAs(r))
 		taskUser := task.GetCommonCols().Username
 		if taskUser != username {
 			return false, fmt.Errorf("Task is owned by %s but you are logged in as %s", taskUser, username)
@@ -476,10 +484,6 @@ type DeleteTaskRequest struct {
 }
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to delete tasks", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	var req DeleteTaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -537,7 +541,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), req.Id, login.LoggedInAs(r))
+	sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), req.Id, string(plogin.LoggedInAs(r)))
 }
 
 type RedoTaskRequest struct {
@@ -545,10 +549,6 @@ type RedoTaskRequest struct {
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to redo tasks", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	var req RedoTaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -570,7 +570,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not GetPopulatedAddTaskVars", http.StatusInternalServerError)
 	}
 	// Replace the username with the new requester.
-	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	addTaskVars.GetAddTaskCommonVars().Username = string(plogin.LoggedInAs(r))
 	// Do not preserve repeat_after_days for retried tasks. Carrying over
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
@@ -585,10 +585,6 @@ type EditTaskRequest struct {
 }
 
 func EditTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to edit tasks", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	var req EditTaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -832,7 +828,7 @@ func GetEmailRecipients(runOwner string, ccList []string) []string {
 func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data := map[string]interface{}{
-		"isAdmin": ctfeutil.UserHasAdminRights(r),
+		"isAdmin": isAdmin(r),
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
