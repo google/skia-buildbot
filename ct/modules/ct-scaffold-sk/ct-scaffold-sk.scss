@@ -61,12 +61,10 @@ ct-scaffold-sk {
     margin-left: auto;
     margin-right: 1em;
     display: block;
-    color: var(--on-primary);
   }
   alogin-sk .email,
   alogin-sk .logInOut {
     font-size: 15px;
-    color: var(--on-primary);
   }
   error-toast-sk toast-sk {
     background-color: var(--error);
