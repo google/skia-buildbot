@@ -35,6 +35,13 @@ var cfg = config.DataStoreConfig{
 	TileSize: testTileSize,
 }
 
+var (
+	file1 = "gs://perf-bucket/2020/02/08/11/testdata.json"
+	file2 = "gs://perf-bucket/2020/02/08/12/testdata.json"
+	file3 = "gs://perf-bucket/2020/02/08/13/testdata.json"
+	file4 = "gs://perf-bucket/2020/02/08/11/new_testdata.json"
+)
+
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
@@ -505,7 +512,7 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 			"config": {"565", "8888"},
 			"arch":   {"risc-v"},
 		}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
-		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		file1,
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 
@@ -541,7 +548,7 @@ func TestGetSource(t *testing.T) {
 
 	filename, err := s.GetSource(ctx, types.CommitNumber(2), ",arch=x86,config=8888,")
 	require.NoError(t, err)
-	assert.Equal(t, "gs://perf-bucket/2020/02/08/12/testdata.json", filename)
+	assert.Equal(t, file2, filename)
 }
 
 func TestGetSource_Empty(t *testing.T) {
@@ -603,19 +610,19 @@ func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {
 	err := store.WriteTraces(ctx, types.CommitNumber(1), traceNames,
 		[]float32{1.5, 2.3},
 		ps,
-		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		file1,
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 	err = store.WriteTraces(ctx, types.CommitNumber(2), traceNames,
 		[]float32{2.5, 3.3},
 		ps,
-		"gs://perf-bucket/2020/02/08/12/testdata.json",
+		file2,
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 	err = store.WriteTraces(ctx, types.CommitNumber(8), traceNames,
 		[]float32{3.5, 4.3},
 		ps,
-		"gs://perf-bucket/2020/02/08/13/testdata.json",
+		file3,
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 }
@@ -672,11 +679,11 @@ func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 	require.NoError(t, err)
 	expected := []tracestore.Source{
 		{
-			Filename:     "gs://perf-bucket/2020/02/08/13/testdata.json",
+			Filename:     file3,
 			CommitNumber: 8,
 		},
 		{
-			Filename:     "gs://perf-bucket/2020/02/08/12/testdata.json",
+			Filename:     file2,
 			CommitNumber: 2,
 		},
 	}
@@ -690,15 +697,15 @@ func TestGetLsatNSources_LessCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 	require.NoError(t, err)
 	expected := []tracestore.Source{
 		{
-			Filename:     "gs://perf-bucket/2020/02/08/13/testdata.json",
+			Filename:     file3,
 			CommitNumber: 8,
 		},
 		{
-			Filename:     "gs://perf-bucket/2020/02/08/12/testdata.json",
+			Filename:     file2,
 			CommitNumber: 2,
 		},
 		{
-			Filename:     "gs://perf-bucket/2020/02/08/11/testdata.json",
+			Filename:     file1,
 			CommitNumber: 1,
 		},
 	}
@@ -718,7 +725,7 @@ func TestGetTraceIDsBySource_SourceInSecondTile_Success(t *testing.T) {
 	ctx, s := commonTestSetup(t, true)
 
 	secondTile := types.TileNumber(1)
-	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/2020/02/08/13/testdata.json", secondTile)
+	traceIDs, err := s.GetTraceIDsBySource(ctx, file3, secondTile)
 	require.NoError(t, err)
 	expected := []string{",arch=x86,config=565,", ",arch=x86,config=8888,"}
 	require.ElementsMatch(t, expected, traceIDs)
@@ -731,4 +738,57 @@ func TestGetTraceIDsBySource_LookForSourceThatDoesNotExist_ReturnsEmptySlice(t *
 	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/this-file-does-not-exist.json", secondTile)
 	require.NoError(t, err)
 	require.Empty(t, traceIDs)
+}
+
+func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t, true)
+	traceName1 := ",arch=x86,config=8888,"
+	sourceFile, err := s.GetSource(ctx, types.CommitNumber(1), traceName1)
+	assert.NoError(t, err)
+	assert.Equal(t, file1, sourceFile)
+
+	traceNameStrings := []string{traceName1}
+	traceSet, err := s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
+	assert.NoError(t, err)
+	trace, ok := traceSet[traceName1]
+	assert.True(t, ok)
+	assert.Equal(t, float32(1.5), trace[1])
+
+	// Write traces with new and conflict value and file.
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "x86"},
+		{"config": "565", "arch": "risc-v"},
+	}
+	err = s.WriteTraces(ctx, types.CommitNumber(1), traceNames,
+		[]float32{1.6, 2.4},
+		paramtools.ParamSet{
+			"config": {"565", "8888"},
+			"arch":   {"x86", "risc-v"},
+		},
+		file4,
+		time.Time{}) // time is unused in this impl of TraceStore.
+	require.NoError(t, err)
+
+	// Verify traceName1 is updated
+	sourceFile, err = s.GetSource(ctx, types.CommitNumber(1), traceName1)
+	assert.NoError(t, err)
+	assert.Equal(t, file4, sourceFile)
+
+	traceSet, err = s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
+	assert.NoError(t, err)
+	trace, ok = traceSet[traceName1]
+	assert.True(t, ok)
+	assert.Equal(t, float32(1.6), trace[1])
+
+	// Verify traceName2 is inserted
+	traceName2 := ",arch=risc-v,config=565,"
+	sourceFile, err = s.GetSource(ctx, types.CommitNumber(1), traceName2)
+	assert.NoError(t, err)
+	assert.Equal(t, file4, sourceFile)
+
+	traceSet, err = s.ReadTraces(ctx, types.TileNumber(0), []string{traceName2})
+	assert.NoError(t, err)
+	trace, ok = traceSet[traceName2]
+	assert.True(t, ok)
+	assert.Equal(t, float32(2.4), trace[1])
 }
