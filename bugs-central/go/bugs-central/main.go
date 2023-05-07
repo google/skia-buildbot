@@ -26,12 +26,13 @@ import (
 	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/poller"
 	"go.skia.org/infra/bugs-central/go/types"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -43,7 +44,6 @@ var (
 	fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'bugs-central'")
 	fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
-	authAllowList      = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 	pollInterval       = flag.Duration("poll_interval", 2*time.Hour, "How often the server will poll the different issue frameworks for open issues.")
 
 	// Cache of clients to charts data. Used for displaying charts in the UI.
@@ -51,15 +51,6 @@ var (
 	// mtx to control access to the above charts data cache.
 	mtxChartsData sync.RWMutex
 )
-
-type ClientConfig struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-
-type ClientSecretJSON struct {
-	Installed ClientConfig `json:"installed"`
-}
 
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
@@ -69,14 +60,6 @@ func New() (baseapp.App, error) {
 	if err := os.MkdirAll(*workdir, 0755); err != nil {
 		sklog.Fatalf("Could not create %s: %s", *workdir, err)
 	}
-
-	var allow allowed.Allow
-	if !*baseapp.Local {
-		allow = allowed.NewAllowedFromList([]string{*authAllowList})
-	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
-	}
-	login.SimpleInitWithAllow(ctx, *baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeFullControl, datastore.ScopeDatastore)
 	dbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID)
@@ -123,23 +106,12 @@ func (srv *Server) loadTemplates() {
 	))
 }
 
-// user returns the currently logged in user, or a placeholder if running locally.
-func (srv *Server) user(r *http.Request) string {
-	user := "barney@example.org"
-	if !*baseapp.Local {
-		user = login.LoggedInAs(r)
-	}
-	return user
-}
-
 // See baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
-	// For login/logout.
-	r.HandleFunc(login.DefaultOAuth2Callback, login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	// Endpoint that status will use to get client counts.
+	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
 
-	// All endpoints that require authentication should be added to this router.
+	// All other endpoints must be logged in.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/", srv.indexHandler)
 	appRouter.HandleFunc("/_/get_issue_counts", srv.getIssueCountsHandler).Methods("POST")
@@ -147,13 +119,11 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
 	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
 
-	// Endpoints that status will use to get client counts.
-	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
-
+	plogin := proxylogin.NewWithDefaults()
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
-		appHandler = login.ForceAuth(appRouter, login.GetDefaultRedirectURL())
+		appHandler = alogin.ForceRole(appRouter, plogin, roles.Viewer)
 	}
 
 	r.PathPrefix("/").Handler(appHandler)
@@ -169,7 +139,6 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 func (srv *Server) getClients(w http.ResponseWriter, r *http.Request) {
