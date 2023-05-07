@@ -24,7 +24,7 @@ import '../../../elements-sk/modules/icons/insert-chart-icon-sk';
 import '../../../elements-sk/modules/icons/person-pin-icon-sk';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 /**
@@ -49,7 +49,7 @@ export class BugsCentralScaffoldSk extends ElementSk {
       <header>
         <h1 class="name">${el.appTitle}</h1>
         <div class="spacer"></div>
-        <login-sk ?testing_offline=${el.testingOffline}></login-sk>
+        <alogin-sk ?testing_offline=${el.testingOffline}></alogin-sk>
         <theme-chooser-sk></theme-chooser-sk>
       </header>
 

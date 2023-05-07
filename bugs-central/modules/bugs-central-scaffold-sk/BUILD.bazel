@@ -9,7 +9,6 @@ sk_element(
     sass_srcs = ["bugs-central-scaffold-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/app-sk",
-        "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/folder-icon-sk",
@@ -17,6 +16,7 @@ sk_element(
         "//elements-sk/modules/icons/home-icon-sk",
         "//elements-sk/modules/icons/insert-chart-icon-sk",
         "//elements-sk/modules/icons/person-pin-icon-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

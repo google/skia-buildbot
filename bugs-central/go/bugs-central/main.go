@@ -111,6 +111,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// Endpoint that status will use to get client counts.
 	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
 
+	plogin := proxylogin.NewWithDefaults()
+
 	// All other endpoints must be logged in.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/", srv.indexHandler)
@@ -119,7 +121,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
 	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
 
-	plogin := proxylogin.NewWithDefaults()
+	appRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin)).Methods("GET")
+
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
