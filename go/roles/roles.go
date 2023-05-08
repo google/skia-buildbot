@@ -75,13 +75,30 @@ func (r Roles) Has(role Role) bool {
 	return false
 }
 
-// FromHeader parses a Roles header value and returns Roles found.
-func FromHeader(s string) Roles {
+// IsAuthorized returns true if r and in contain any of the same roles.
+// Note that if either r or in is empty, this will return false.
+func (r Roles) IsAuthorized(in Roles) bool {
+	for _, role := range in {
+		if r.Has(role) {
+			return true
+		}
+	}
+	return false
+}
+
+// RolesFromStrings parses multiple string values and returns Roles found.
+func RolesFromStrings(s ...string) Roles {
 	var ret Roles
-	for _, part := range strings.Split(s, ",") {
-		if role := RoleFromString(strings.TrimSpace(part)); role != InvalidRole {
+	for _, r := range s {
+		if role := RoleFromString(strings.TrimSpace(r)); role != InvalidRole {
 			ret = append(ret, role)
 		}
 	}
 	return ret
+
+}
+
+// FromHeader parses a Roles header value and returns Roles found.
+func FromHeader(s string) Roles {
+	return RolesFromStrings(strings.Split(s, ",")...)
 }

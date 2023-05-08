@@ -29,3 +29,22 @@ func TestRolesHas_DoesNotContainRole_ReturnsFalse(t *testing.T) {
 func TestRolesHas_RolesIsEmpty_ReturnsFalse(t *testing.T) {
 	require.False(t, Roles{}.Has(Editor))
 }
+
+func TestRolesFromStrings_NotValidRole_ReturnsEmpty(t *testing.T) {
+	require.Equal(t, Roles(nil), RolesFromStrings("this-is-not-a-valid-role"))
+}
+
+func TestRolesFromStrings_ValidRole(t *testing.T) {
+	require.Equal(t, Roles{Viewer}, RolesFromStrings(string(Viewer)))
+}
+
+func TestRoles_IsAuthorized(t *testing.T) {
+	require.False(t, Roles(nil).IsAuthorized(Roles{Editor}))
+	require.False(t, Roles{Viewer}.IsAuthorized(Roles(nil)))
+	require.False(t, Roles{Viewer}.IsAuthorized(Roles{Editor}))
+	require.False(t, Roles{Admin}.IsAuthorized(Roles{Editor, Viewer}))
+
+	require.True(t, Roles{Editor}.IsAuthorized(Roles{Editor, Viewer}))
+	require.True(t, Roles{Viewer, Editor}.IsAuthorized(Roles{Editor, Viewer}))
+	require.True(t, Roles{Admin, Editor}.IsAuthorized(Roles{Editor, Viewer}))
+}
