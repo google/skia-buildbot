@@ -12,7 +12,6 @@ go_library(
         "//docsyserver/go/docsy",
         "//go/common",
         "//go/httputils",
-        "//go/login",
         "//go/skerr",
         "//go/sklog",
         "@com_github_fiorix_go_web//autogzip",

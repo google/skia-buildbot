@@ -34,5 +34,4 @@ run-local-instance:
         --doc_path=site \
         --doc_repo=https://skia.googlesource.com/skia \
         --docsy_dir=/home/skia/docsy \
-        --hugo=/home/skia/go/bin/hugo \
-        --do_login=false
+        --hugo=/home/skia/go/bin/hugo

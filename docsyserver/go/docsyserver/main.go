@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/docsyserver/go/docsy"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -27,7 +26,6 @@ var (
 	gerritURL = flag.String("gerrit_url", "https://skia-review.googlesource.com", "The gerrit URL.")
 	hugoExe   = flag.String("hugo", "hugo", "The absolute path to the hugo executable.")
 	local     = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	dologin   = flag.Bool("do_login", true, "Also handle login requests for other sites.")
 	port      = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort  = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	workDir   = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
@@ -101,21 +99,6 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	if !*local && *dologin {
-		ctx := context.Background()
-		err := login.Init(ctx,
-			login.GetDefaultRedirectURL(),
-			"", /* Empty means accept all signed in domain. */
-			"", /* Get secrets from Secret Manager*/
-		)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		router.HandleFunc("/login/", login.LoginHandler)
-		router.HandleFunc("/logout/", login.LogoutHandler)
-		router.HandleFunc("/loginstatus/", login.StatusHandler)
-		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	}
 	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(server.mainHandler))
 
 	var h http.Handler = router
