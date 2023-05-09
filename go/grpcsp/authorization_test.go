@@ -17,6 +17,7 @@ import (
 const (
 	MethodOneName = "Foo"
 	MethodTwoName = "Bar"
+	ServiceName   = "foo.service.Example"
 )
 
 type mockServer struct {
@@ -28,23 +29,34 @@ func (ts *mockServer) handle(ctx context.Context, req interface{}) (interface{},
 	return nil, nil
 }
 
-func testSetupOneMethod(t *testing.T) (grpc.ServiceDesc, *policy) {
+func testSetupEmpty(t *testing.T) *ServicePolicy {
+	desc := grpc.ServiceDesc{}
+	serverPolicy := Server()
+	servicePolicy, err := serverPolicy.Service(desc)
+	require.NoError(t, err)
+	require.NotNil(t, servicePolicy)
+	return servicePolicy
+}
+
+func testSetupOneMethod(t *testing.T) (grpc.ServiceDesc, *ServerPolicy, *ServicePolicy) {
 	desc := grpc.ServiceDesc{
-		ServiceName: "foo.service.Example",
+		ServiceName: ServiceName,
 		Methods: []grpc.MethodDesc{
 			{
 				MethodName: MethodOneName,
 			},
 		},
 	}
-	policy := Authorization(desc)
-	require.NotNil(t, policy)
-	return desc, policy
+	serverPolicy := Server()
+	servicePolicy, err := serverPolicy.Service(desc)
+	require.NoError(t, err)
+	require.NotNil(t, servicePolicy)
+	return desc, serverPolicy, servicePolicy
 }
 
-func testSetupTwoMethods(t *testing.T) (grpc.ServiceDesc, *policy) {
+func testSetupTwoMethods(t *testing.T) (grpc.ServiceDesc, *ServerPolicy, *ServicePolicy) {
 	desc := grpc.ServiceDesc{
-		ServiceName: "foo.service.Example",
+		ServiceName: ServiceName,
 		Methods: []grpc.MethodDesc{
 			{
 				MethodName: MethodOneName,
@@ -54,12 +66,14 @@ func testSetupTwoMethods(t *testing.T) (grpc.ServiceDesc, *policy) {
 			},
 		},
 	}
-	policy := Authorization(desc)
-	require.NotNil(t, policy)
-	return desc, policy
+	serverPolicy := Server()
+	servicePolicy, err := serverPolicy.Service(desc)
+	require.NoError(t, err)
+	require.NotNil(t, servicePolicy)
+	return desc, serverPolicy, servicePolicy
 }
 
-func testSetupUnaryInterceptor(t *testing.T, desc grpc.ServiceDesc, policy *policy, callerRoles roles.Roles) (context.Context, grpc.UnaryServerInterceptor) {
+func testSetupUnaryInterceptorWithCallerRoles(t *testing.T, desc grpc.ServiceDesc, policy *ServerPolicy, callerRoles roles.Roles) (context.Context, grpc.UnaryServerInterceptor) {
 	ctx := context.Background()
 	md := metadata.New(map[string]string{
 		authproxy.WebAuthHeaderName:     "user@domain.com",
@@ -68,119 +82,87 @@ func testSetupUnaryInterceptor(t *testing.T, desc grpc.ServiceDesc, policy *poli
 	ctx = metadata.NewIncomingContext(ctx, md)
 
 	interceptor := policy.UnaryInterceptor()
-	assert.NotNil(t, interceptor)
+	require.NotNil(t, interceptor)
 	return ctx, interceptor
 }
 
+func testMockServerCall(t *testing.T, ctx context.Context, serviceName, methodName string, interceptor grpc.UnaryServerInterceptor) (bool, error) {
+	info := &grpc.UnaryServerInfo{FullMethod: "/" + serviceName + "/" + methodName}
+	srv := &mockServer{}
+	_, err := interceptor(ctx, nil, info, srv.handle)
+	return srv.handleCalled, err
+}
+
 func TestAuthorizeRoles(t *testing.T) {
-	desc := grpc.ServiceDesc{}
-	policy := Authorization(desc)
-	require.NotNil(t, policy)
+	policy := testSetupEmpty(t)
 
-	err := policy.AuthorizeRoles(roles.Roles{roles.Viewer})
-	assert.NoError(t, err)
-
-	err = policy.AuthorizeRoles(roles.Roles{roles.Viewer})
-	assert.Error(t, err, "calling AuthorizeRoles more than once returns an error")
+	assert.NoError(t, policy.AuthorizeRoles(roles.Roles{roles.Viewer}))
+	assert.Error(t, policy.AuthorizeRoles(roles.Roles{roles.Viewer}), "calling AuthorizeRoles more than once returns an error")
 }
 
 func TestAuthorizeMethodForRoles_UnknownMethod_ReturnsError(t *testing.T) {
-	desc := grpc.ServiceDesc{}
-	policy := Authorization(desc)
-	require.NotNil(t, policy)
-	err := policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer})
-	assert.Error(t, err, "cannot authorize an unrecognized method")
+	policy := testSetupEmpty(t)
+
+	assert.Error(t, policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer}), "cannot authorize an unrecognized method")
 }
 
 func TestAuthorizeMethodForRoles_DuplicateMethod_ReturnsError(t *testing.T) {
-	_, policy := testSetupOneMethod(t)
-	err := policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer})
-	assert.NoError(t, err)
-	err = policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Editor})
-	assert.Error(t, err, "calling AuthorizeMethodForRoles more than once for the same method returns an error")
+	_, _, servicePolicy := testSetupOneMethod(t)
+	assert.NoError(t, servicePolicy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer}))
+	assert.Error(t, servicePolicy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Editor}),
+		"calling AuthorizeMethodForRoles more than once for the same method returns an error")
 }
 
 func TestUnaryInterceptor_UserHasSufficientServiceWideRoles_Succeed(t *testing.T) {
-	desc, policy := testSetupTwoMethods(t)
-	err := policy.AuthorizeRoles(roles.Roles{roles.Admin})
-	assert.NoError(t, err)
+	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
+	require.NoError(t, servicePolicy.AuthorizeRoles(roles.Roles{roles.Admin}))
 
-	ctx, interceptor := testSetupUnaryInterceptor(t, desc, policy, roles.Roles{roles.Admin})
+	ctx, interceptor := testSetupUnaryInterceptorWithCallerRoles(t, desc, serverPolicy, roles.Roles{roles.Admin})
 
-	var info *grpc.UnaryServerInfo
-	var srv *mockServer
+	handleCalled, err := testMockServerCall(t, ctx, desc.ServiceName, MethodOneName, interceptor)
+	assert.NoError(t, err, "users with service-wide authorized roles may call any method")
+	assert.True(t, handleCalled, "control passed on to server handler")
 
-	srv = &mockServer{}
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodOneName}
-	_, err = interceptor(ctx, nil, info, srv.handle)
+	handleCalled, err = testMockServerCall(t, ctx, desc.ServiceName, MethodTwoName, interceptor)
 	require.NoError(t, err, "users with service-wide authorized roles may call any method")
-	assert.True(t, srv.handleCalled, "control passed on to server handler")
-
-	srv = &mockServer{}
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodTwoName}
-	_, err = interceptor(ctx, nil, info, srv.handle)
-	require.NoError(t, err, "users with service-wide authorized roles may call any method")
-	assert.True(t, srv.handleCalled, "control passed on to server handler")
+	assert.True(t, handleCalled, "control passed on to server handler")
 }
 
 func TestUnaryInterceptor_ServiceHasServiceWideRolesUserHasInsufficientRoles_Fail(t *testing.T) {
-	desc, policy := testSetupTwoMethods(t)
-	err := policy.AuthorizeRoles(roles.Roles{roles.Admin})
-	assert.NoError(t, err)
+	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
+	require.NoError(t, servicePolicy.AuthorizeRoles(roles.Roles{roles.Admin}))
 
-	ctx, interceptor := testSetupUnaryInterceptor(t, desc, policy, roles.Roles{roles.Viewer})
+	ctx, interceptor := testSetupUnaryInterceptorWithCallerRoles(t, desc, serverPolicy, roles.Roles{roles.Viewer})
 
-	var info *grpc.UnaryServerInfo
-	var srv *mockServer
-
-	srv = &mockServer{}
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodOneName}
-	_, err = interceptor(ctx, nil, info, srv.handle)
+	handleCalled, err := testMockServerCall(t, ctx, desc.ServiceName, MethodOneName, interceptor)
 	require.Error(t, err, "users with insufficient service-wide roles may not call methods when the policy has no method-specific roles")
-	assert.False(t, srv.handleCalled, "control is not passed on to server handler")
+	assert.False(t, handleCalled, "control is not passed on to server handler")
 
-	srv = &mockServer{}
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodTwoName}
-	_, err = interceptor(ctx, nil, info, srv.handle)
+	handleCalled, err = testMockServerCall(t, ctx, desc.ServiceName, MethodTwoName, interceptor)
 	require.Error(t, err, "users with insufficient service-wide roles may not call methods when the policy has no method-specific roles")
-	assert.False(t, srv.handleCalled, "control is not passed on to server handler")
+	assert.False(t, handleCalled, "control is not passed on to server handler")
 }
 
 func TestUnaryInterceptor_UserHasSufficientMethodRoles_Succeed(t *testing.T) {
-	desc, policy := testSetupTwoMethods(t)
+	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
+	require.NoError(t, servicePolicy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer}))
+	require.NoError(t, servicePolicy.AuthorizeMethodForRoles(MethodTwoName, roles.Roles{roles.Editor}))
 
-	err := policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer})
-	require.NoError(t, err)
-	err = policy.AuthorizeMethodForRoles(MethodTwoName, roles.Roles{roles.Editor})
-	require.NoError(t, err)
+	ctx, interceptor := testSetupUnaryInterceptorWithCallerRoles(t, desc, serverPolicy, roles.Roles{roles.Viewer})
 
-	ctx, interceptor := testSetupUnaryInterceptor(t, desc, policy, roles.Roles{roles.Viewer})
-
-	var info *grpc.UnaryServerInfo
-	var srv *mockServer
-
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodOneName}
-	srv = &mockServer{}
-	_, err = interceptor(ctx, nil, info, srv.handle)
-	assert.NoError(t, err, "viewer is authorized to /"+MethodOneName)
-	assert.True(t, srv.handleCalled, "control passed on to server handler")
+	handleCalled, err := testMockServerCall(t, ctx, desc.ServiceName, MethodOneName, interceptor)
+	assert.NoError(t, err, "viewer is authorized to call /"+MethodOneName)
+	assert.True(t, handleCalled, "control passed on to server handler")
 }
 
 func TestUnaryInterceptor_UserHasInsufficientMethodRoles_Fail(t *testing.T) {
-	desc, policy := testSetupTwoMethods(t)
+	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
+	require.NoError(t, servicePolicy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer}))
+	require.NoError(t, servicePolicy.AuthorizeMethodForRoles(MethodTwoName, roles.Roles{roles.Editor}))
 
-	err := policy.AuthorizeMethodForRoles(MethodOneName, roles.Roles{roles.Viewer})
-	require.NoError(t, err)
-	err = policy.AuthorizeMethodForRoles(MethodTwoName, roles.Roles{roles.Editor})
-	require.NoError(t, err)
+	ctx, interceptor := testSetupUnaryInterceptorWithCallerRoles(t, desc, serverPolicy, roles.Roles{roles.Viewer})
 
-	ctx, interceptor := testSetupUnaryInterceptor(t, desc, policy, roles.Roles{roles.Viewer})
-
-	var info *grpc.UnaryServerInfo
-	var srv *mockServer
-	info = &grpc.UnaryServerInfo{FullMethod: "/" + desc.ServiceName + "/" + MethodTwoName}
-	srv = &mockServer{}
-	_, err = interceptor(ctx, nil, info, srv.handle)
+	handleCalled, err := testMockServerCall(t, ctx, desc.ServiceName, MethodTwoName, interceptor)
 	assert.Error(t, err, "viewer isn't authorized to /"+MethodTwoName)
-	assert.False(t, srv.handleCalled, "control is not passed on to server handler")
+	assert.False(t, handleCalled, "control is not passed on to server handler")
 }
