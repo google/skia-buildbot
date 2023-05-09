@@ -1,14 +1,11 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 exports_files([
-    "infra-sk",
-    "elements-sk",
-    "docs",
+    "page/index.html",
 ])
 
 skia_app_container(
     name = "jsdoc_container",
-    base_image = "@node_alpine//image",
     dirs = {
         "/usr/local/bin": [
             [
@@ -16,26 +13,25 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/jsdoc/": [
+        "/usr/local/share/jsdoc/icons": [
             [
-                "//jsdoc:docs",
+                "//elements-sk/modules/icons-demo-sk:icons-demo-sk-demo",
                 "0755",
             ],
+        ],
+        "/usr/local/share/jsdoc/theme": [
             [
-                "//jsdoc:infra-sk",
+                "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk-demo",
                 "0755",
             ],
+        ],
+        "/usr/local/share/jsdoc": [
             [
-                "//jsdoc:elements-sk",
+                "//jsdoc:page/index.html",
                 "0755",
             ],
         ],
     },
     entrypoint = "/usr/local/bin/jsdoc",
     repository = "skia-public/jsdoc",
-    run_commands_root = [
-        # Create the skia user.
-        "addgroup -g 2000 -S skia",
-        "adduser -u 2000 -S skia -G skia",
-    ],
 )

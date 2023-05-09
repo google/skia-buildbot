@@ -4,7 +4,6 @@ package main
 import (
 	"flag"
 	"net/http"
-	"path/filepath"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
@@ -25,15 +24,8 @@ func main() {
 		"jsdocserver",
 		common.PrometheusOpt(promPort),
 	)
-	docsDir := filepath.Join(*resourcesDir, "docs")
-	elementsDemoDir := filepath.Join(*resourcesDir, "elements-sk")
-	commonDemoDir := filepath.Join(*resourcesDir, "common-sk")
-	infraDemoDir := filepath.Join(*resourcesDir, "infra-sk")
 	r := mux.NewRouter()
-	r.PathPrefix("/common-sk/").Handler(http.StripPrefix("/common-sk/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
-	r.PathPrefix("/elements-sk/").Handler(http.StripPrefix("/elements-sk/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
-	r.PathPrefix("/infra-sk/").Handler(http.StripPrefix("/infra-sk/", http.HandlerFunc(httputils.MakeResourceHandler(infraDemoDir))))
-	r.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(docsDir)))
+	r.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir)))
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
