@@ -62,6 +62,8 @@
         "None",
       ],
       device_string: [ // Set by mobile devices
+        "ANGLE (Apple, Apple M1, OpenGL 4.1 Metal - 76.3)",
+        "ANGLE (Apple, Apple M2, OpenGL 4.1 Metal - 83.1)",
         "ANGLE (ARM, Mali-G78, OpenGL ES 3.2 v1.r32p1-00pxl0.b7e5868a59a273f4a9f58d1657ef99de)",
         "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
         "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)))",
