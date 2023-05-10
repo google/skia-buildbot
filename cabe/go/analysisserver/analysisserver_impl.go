@@ -18,7 +18,7 @@ type analysisServerImpl struct {
 }
 
 // New returns a new instance of AnalysisServer.
-func New(rbeClients map[string]*rbeclient.Client, bqClient *bigquery.Service) *analysisServerImpl {
+func New(rbeClients map[string]*rbeclient.Client, bqClient *bigquery.Service) cpb.AnalysisServer {
 	return &analysisServerImpl{
 		rbeClients: rbeClients,
 		bqClient:   bqClient,
