@@ -62,9 +62,19 @@ func TestCPUModel(t *testing.T) {
 }
 
 func TestCPUs(t *testing.T) {
-	test := func(name, vendor, brandString string, expected []string) {
+	test := func(name, vendor, brandString, gceCPUPlatform string, expected []string) {
 		t.Run(name, func(t *testing.T) {
+			// Set up mocks.
 			mockHostKernelArch(t, func() (string, error) { return "x86_64", nil })
+			if gceCPUPlatform == "" {
+				mockMetadataOnGCE(t, false)
+			} else {
+				mockMetadataOnGCE(t, true)
+				mockMetadataGet(t, func(suffix string) (string, error) {
+					require.Equal(t, suffix, "instance/cpu-platform")
+					return gceCPUPlatform, nil
+				})
+			}
 
 			actual, err := CPUs(vendor, brandString)
 			require.NoError(t, err)
@@ -76,13 +86,36 @@ func TestCPUs(t *testing.T) {
 		"If a model can be extracted, there should be a third slice element containing it",
 		"GenuineIntel",
 		"Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz",
+		/* gceCPUPlatform= */ "",
 		[]string{"x86", "x86-64", "x86-64-i7-9750H_v2"})
 
 	test(
 		"Empty vendor and brand string should result in no third slice element",
 		/* vendor= */ "",
 		/* brandString= */ "",
+		/* gceCPUPlatform= */ "",
 		[]string{"x86", "x86-64"})
+
+	test(
+		"Intel Haswell GCE example based on skia-e-gce-300 on 2023-05-09",
+		"GenuineIntel",
+		"Intel(R) Xeon(R) CPU @ 2.30GHz",
+		"Intel Haswell",
+		[]string{"x86", "x86-64", "x86-64-Haswell_GCE"})
+
+	test(
+		"Intel Skylake GCE example based on skia-e-gce-400 on 2023-05-09",
+		"GenuineIntel",
+		"Intel(R) Xeon(R) CPU @ 2.00GHz",
+		"Intel Skylake",
+		[]string{"x86", "x86-64", "x86-64-Skylake_GCE"})
+
+	test(
+		"AMD GCE example based on skia-e-gce-405 on 2023-05-09",
+		"AuthenticAMD",
+		"AMD EPYC 7B12",
+		"AMD Rome",
+		[]string{"x86", "x86-64", "x86-64-AMD_Rome_GCE"})
 }
 
 func TestVersionsOfAllPrecisions(t *testing.T) {

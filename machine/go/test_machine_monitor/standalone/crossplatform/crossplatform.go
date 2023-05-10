@@ -98,6 +98,24 @@ func CPUs(vendor, brandString string) ([]string, error) {
 
 	ret := []string{isa, fmt.Sprintf("%s-%s", isa, bitness)}
 
+	// Normalize the CPU name reported by GCE using the same algorithm as Swarming for backwards
+	// compatibility. See
+	// https://chromium.googlesource.com/infra/luci/luci-py/+/c3bea95091caef1800d102bae28dfc715a4043bc/appengine/swarming/swarming_bot/api/platforms/gce.py#327.
+	if IsGCEMachine() {
+		gceCPUPlatform, err := metadataGet("instance/cpu-platform")
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		if strings.HasPrefix(gceCPUPlatform, "Intel ") { // Example: "Intel Haswell".
+			vendor = "GenuineIntel"
+			brandString = fmt.Sprintf("Intel(R) Xeon(R) CPU %s GCE", strings.TrimPrefix(gceCPUPlatform, "Intel "))
+		} else if strings.HasPrefix(gceCPUPlatform, "AMD ") { // Example: "AMD Rome".
+			vendor = "AuthenticAMD"
+			brandString = gceCPUPlatform + " GCE"
+		}
+	}
+
 	model := cpuModel(vendor, brandString)
 	if model != "" {
 		ret = append(ret, fmt.Sprintf("%s-%s-%s", isa, bitness, strings.ReplaceAll(model, " ", "_")))
