@@ -280,7 +280,7 @@ const (
 )
 
 var templates = map[statement]string{
-	insertIntoTraceValues: `INSERT INTO
+	insertIntoTraceValues: `UPSERT INTO
             TraceValues (trace_id, commit_number, val, source_file_id)
         VALUES
         {{ range $index, $element :=  . -}}
@@ -289,8 +289,6 @@ var templates = map[statement]string{
                 '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }}
             )
         {{ end }}
-        ON CONFLICT (trace_id, commit_number)
-        DO UPDATE SET (val, source_file_id) = (EXCLUDED.val, EXCLUDED.source_file_id)
         `,
 	convertTraceIDs: `
         {{ $tileNumber := .TileNumber }}

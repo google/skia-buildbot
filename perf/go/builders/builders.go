@@ -46,7 +46,7 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 	case pgx.LogLevelWarn:
 		sklog.Warningf("pgx - %s %v", msg, data)
 	case pgx.LogLevelError:
-		sklog.Errorf("pgx - %s %v", msg, data)
+		sklog.Warningf("pgx - %s %v", msg, data)
 	case pgx.LogLevelNone:
 	}
 }
