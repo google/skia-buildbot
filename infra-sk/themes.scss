@@ -226,6 +226,18 @@ to see how these styles apply to title bars and sidebars.
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
   }
 
+  .button-like.fab,
+  button.fab {
+    border-radius: 50%;
+    border: none;
+    padding: 10px;
+    width: 48px;
+    height: 48px;
+    min-width: 0px;
+    font-weight: bold;
+    font-size: 22px;
+  }
+
   .button-like:hover,
   button:hover {
     background: var(--secondary);
