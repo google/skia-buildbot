@@ -168,6 +168,7 @@ import (
 	"go.skia.org/infra/perf/go/cache/local"
 	"go.skia.org/infra/perf/go/cache/memcached"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/sync/errgroup"
@@ -275,6 +276,8 @@ const (
 	countMatchingTraces
 	restrictClause
 	countCommitInCommitNumberRange
+	getCommitsFromCommitNumberRange
+	deleteCommit
 	findTheSmallestCeilingOfCommitNumber
 	findTheLargestFloorOfCommitNumber
 )
@@ -594,6 +597,23 @@ var statements = map[statement]string{
 		WHERE
 			commit_number >= $1
 			AND commit_number <= $2`,
+	getCommitsFromCommitNumberRange: `
+		SELECT
+			commit_number, git_hash, commit_time, author, subject
+		FROM
+			Commits
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2
+		ORDER BY
+			commit_number ASC
+		`,
+	deleteCommit: `
+		DELETE FROM
+			Commits
+		WHERE
+			commit_number = $1
+		`,
 	findTheSmallestCeilingOfCommitNumber: `
 		SELECT
 			commit_number
@@ -656,14 +676,15 @@ type SQLTraceStore struct {
 	enableFollowerReads bool
 
 	// metrics
-	writeTracesMetric               metrics2.Float64SummaryMetric
-	writeTracesMetricSQL            metrics2.Float64SummaryMetric
-	buildTracesContextsMetric       metrics2.Float64SummaryMetric
-	cacheMissMetric                 metrics2.Counter
-	orderedParamSetsCacheMissMetric metrics2.Counter
-	queryUsesRestrictClause         metrics2.Counter
-	queryRestrictionMinKeyInPlan    metrics2.Float64SummaryMetric
-	orderedParamSetCacheLen         metrics2.Int64Metric
+	writeTracesMetric                      metrics2.Float64SummaryMetric
+	writeTracesMetricSQL                   metrics2.Float64SummaryMetric
+	buildTracesContextsMetric              metrics2.Float64SummaryMetric
+	cacheMissMetric                        metrics2.Counter
+	orderedParamSetsCacheMissMetric        metrics2.Counter
+	queryUsesRestrictClause                metrics2.Counter
+	queryRestrictionMinKeyInPlan           metrics2.Float64SummaryMetric
+	orderedParamSetCacheLen                metrics2.Int64Metric
+	commitSliceFromCommitNumberRangeCalled metrics2.Counter
 }
 
 // New returns a new *SQLTraceStore.
@@ -697,20 +718,21 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 	}
 
 	ret := &SQLTraceStore{
-		db:                              db,
-		unpreparedStatements:            unpreparedStatements,
-		tileSize:                        datastoreConfig.TileSize,
-		cache:                           cache,
-		orderedParamSetCache:            paramSetCache,
-		enableFollowerReads:             datastoreConfig.EnableFollowerReads,
-		writeTracesMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
-		writeTracesMetricSQL:            metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
-		buildTracesContextsMetric:       metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
-		cacheMissMetric:                 metrics2.GetCounter("perfserver_sqltracestore_cache_miss"),
-		queryUsesRestrictClause:         metrics2.GetCounter("perfserver_sqltracestore_restrict_clause_used"),
-		orderedParamSetsCacheMissMetric: metrics2.GetCounter("perfserver_sqltracestore_ordered_paramsets_cache_miss"),
-		queryRestrictionMinKeyInPlan:    metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_min_key_in_plan"),
-		orderedParamSetCacheLen:         metrics2.GetInt64Metric("perfserver_sqltracestore_ordered_paramset_cache_len"),
+		db:                                     db,
+		unpreparedStatements:                   unpreparedStatements,
+		tileSize:                               datastoreConfig.TileSize,
+		cache:                                  cache,
+		orderedParamSetCache:                   paramSetCache,
+		enableFollowerReads:                    datastoreConfig.EnableFollowerReads,
+		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
+		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
+		buildTracesContextsMetric:              metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
+		cacheMissMetric:                        metrics2.GetCounter("perfserver_sqltracestore_cache_miss"),
+		queryUsesRestrictClause:                metrics2.GetCounter("perfserver_sqltracestore_restrict_clause_used"),
+		orderedParamSetsCacheMissMetric:        metrics2.GetCounter("perfserver_sqltracestore_ordered_paramsets_cache_miss"),
+		queryRestrictionMinKeyInPlan:           metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_min_key_in_plan"),
+		orderedParamSetCacheLen:                metrics2.GetInt64Metric("perfserver_sqltracestore_ordered_paramset_cache_len"),
+		commitSliceFromCommitNumberRangeCalled: metrics2.GetCounter("perfserver_sqltracestore_commit_slice_from_commit_number_range_called"),
 	}
 
 	// Update metrics periodically.
@@ -1485,8 +1507,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 		return nil, skerr.Fmt("Invalid commit range, [%d, %d] should be [%d, %d]", beginCommit, endCommit, endCommit, beginCommit)
 	}
 
-	// How long should the traces be in the response?
-	traceLength, err := s.countCommitInCommitNumberRange(ctx, beginCommit, endCommit)
+	commits, err := s.commitSliceFromCommitNumberRange(ctx, beginCommit, endCommit)
 	if err != nil {
 		return nil, skerr.Fmt("Cannot count commit within the commit range, [%d, %d]", beginCommit, endCommit)
 	}
@@ -1510,7 +1531,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 			defer span.End()
 
 			for chunk := range chunkChannel {
-				if err := s.readTracesChunk(ctx, beginCommit, endCommit, chunk, &mutex, traceNameMap, &ret); err != nil {
+				if err := s.readTracesChunk(ctx, beginCommit, endCommit, commits, chunk, &mutex, traceNameMap, &ret); err != nil {
 					return skerr.Wrap(err)
 				}
 			}
@@ -1528,7 +1549,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 		mutex.Lock()
 		// Make space in ret for the values.
-		ret[key] = vec32.New(traceLength)
+		ret[key] = vec32.New(len(commits))
 
 		// Update the map from the full name of the trace and id in traceIDForSQLInBytes form.
 		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key
@@ -1565,7 +1586,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 // the given slice of trace ids.
 //
 // The mutex protects 'ret' and 'traceNameMap'.
-func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, chunk []traceIDForSQL, mutex *sync.Mutex, traceNameMap map[traceIDForSQLInBytes]string, ret *types.TraceSet) error {
+func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, chunk []traceIDForSQL, mutex *sync.Mutex, traceNameMap map[traceIDForSQLInBytes]string, ret *types.TraceSet) error {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Chunk")
 	span.AddAttributes(trace.Int64Attribute("chunk_length", int64(len(chunk))))
 	defer span.End()
@@ -1594,6 +1615,11 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 	}
 
 	var traceIDArray traceIDForSQLInBytes
+	commitToIndexMap := map[types.CommitNumber]int{}
+	for i, commit := range commits {
+		commitToIndexMap[commit.CommitNumber] = i
+	}
+
 	for rows.Next() {
 		var traceIDInBytes []byte
 		var commitNumber types.CommitNumber
@@ -1611,12 +1637,13 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 		// as the index into the map.
 		copy(traceIDArray[:], traceIDInBytes)
 		mutex.Lock()
-		(*ret)[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
+		(*ret)[traceNameMap[traceIDArray]][commitToIndexMap[commitNumber]] = float32(val)
 		mutex.Unlock()
 	}
 	if err := rows.Err(); err != nil {
 		return skerr.Wrap(err)
 	}
+
 	return nil
 }
 
@@ -1828,6 +1855,42 @@ func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begi
 		return 0, skerr.Wrap(err)
 	}
 	return count, nil
+}
+
+// commitSliceFromCommitNumberRange returns a slice of Commits that fall in the range
+// [begin, end], i.e  inclusive of both begin and end.
+func (s *SQLTraceStore) commitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]provider.Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.commitSliceFromCommitNumberRange")
+	defer span.End()
+
+	s.commitSliceFromCommitNumberRangeCalled.Inc(1)
+	rows, err := s.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
+	}
+	defer rows.Close()
+	ret := []provider.Commit{}
+	for rows.Next() {
+		var c provider.Commit
+		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
+		}
+		ret = append(ret, c)
+	}
+	return ret, nil
+}
+
+// deleteCommit delete a commit from Commits table.
+// this method is for testing only.
+func (s *SQLTraceStore) deleteCommit(ctx context.Context, commitNumber types.CommitNumber) error {
+	commandTag, err := s.db.Exec(ctx, statements[deleteCommit], commitNumber)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to delete the commit %v", commitNumber)
+	}
+	if commandTag.RowsAffected() != 1 {
+		return skerr.Fmt("Failed to delete the commit %v", commitNumber)
+	}
+	return nil
 }
 
 // TileCommitRangeForTileNumber returns the first and last CommitNumbers that

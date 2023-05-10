@@ -23,6 +23,7 @@ go_library(
         "//perf/go/cache/local",
         "//perf/go/cache/memcached",
         "//perf/go/config",
+        "//perf/go/git/provider",
         "//perf/go/tracestore",
         "//perf/go/types",
         "@com_github_hashicorp_golang_lru//:golang-lru",

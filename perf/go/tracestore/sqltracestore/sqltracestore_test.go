@@ -99,8 +99,8 @@ func TestReadTraces(t *testing.T) {
 	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
-		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
-		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 
 	ts, err = s.ReadTraces(ctx, 1, keys)
@@ -122,7 +122,7 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
-		",arch=x86,config=565,": {e, 2.3, 3.3, e, e, e, e, e},
+		",arch=x86,config=565,": {e, 2.3, e, 3.3, e, e, e, e},
 	}, ts)
 }
 
@@ -184,8 +184,8 @@ func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
 	ts, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(2))
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
-		",arch=x86,config=565,":  {2.3, 3.3},
-		",arch=x86,config=8888,": {1.5, 2.5},
+		",arch=x86,config=565,":  {2.3, e},
+		",arch=x86,config=8888,": {1.5, e},
 	}, ts)
 }
 
@@ -339,7 +339,7 @@ func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
-		",arch=x86,config=565,": {e, 2.3, 3.3, e, e, e, e, e},
+		",arch=x86,config=565,": {e, 2.3, e, 3.3, e, e, e, e},
 	})
 }
 
@@ -352,7 +352,7 @@ func TestQueryTraces_NegativeQuery(t *testing.T) {
 	ts, err := s.QueryTraces(ctx, 0, q)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
-		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 }
 
@@ -378,8 +378,8 @@ func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
-		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
-		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	})
 }
 
@@ -546,7 +546,7 @@ func TestGetParamSet_Empty(t *testing.T) {
 func TestGetSource(t *testing.T) {
 	ctx, s := commonTestSetup(t, true)
 
-	filename, err := s.GetSource(ctx, types.CommitNumber(2), ",arch=x86,config=8888,")
+	filename, err := s.GetSource(ctx, types.CommitNumber(3), ",arch=x86,config=8888,")
 	require.NoError(t, err)
 	assert.Equal(t, file2, filename)
 }
@@ -613,7 +613,7 @@ func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {
 		file1,
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
-	err = store.WriteTraces(ctx, types.CommitNumber(2), traceNames,
+	err = store.WriteTraces(ctx, types.CommitNumber(3), traceNames,
 		[]float32{2.5, 3.3},
 		ps,
 		file2,
@@ -684,7 +684,7 @@ func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 		},
 		{
 			Filename:     file2,
-			CommitNumber: 2,
+			CommitNumber: 3,
 		},
 	}
 	require.Equal(t, expected, sources)
@@ -702,7 +702,7 @@ func TestGetLsatNSources_LessCommitsMatchThanAreAskedFor_Success(t *testing.T) {
 		},
 		{
 			Filename:     file2,
-			CommitNumber: 2,
+			CommitNumber: 3,
 		},
 		{
 			Filename:     file1,
@@ -791,4 +791,61 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 	trace, ok = traceSet[traceName2]
 	assert.True(t, ok)
 	assert.Equal(t, float32(2.4), trace[1])
+}
+
+func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t, true)
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ts, err := s.ReadTraces(ctx, 0, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
+	}, ts)
+
+	ts, err = s.ReadTraces(ctx, 1, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
+		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
+	}, ts)
+
+	err = s.deleteCommit(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+
+	ts, err = s.ReadTraces(ctx, 0, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e},
+	}, ts)
+
+	ts, err = s.ReadTraces(ctx, 1, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
+		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
+	}, ts)
+
+	err = s.deleteCommit(ctx, types.CommitNumber(0))
+	require.NoError(t, err)
+
+	ts, err = s.ReadTraces(ctx, 0, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {2.3, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {1.5, 2.5, e, e, e, e},
+	}, ts)
+
+	ts, err = s.ReadTraces(ctx, 1, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
+		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
+	}, ts)
 }
