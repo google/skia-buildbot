@@ -42,10 +42,10 @@ func TestCPUModel(t *testing.T) {
 		"i7-9750H v2")
 
 	test(
-		"Non-Intel vendors result in the snake_case brand string",
+		"Non-Intel vendors result in the brand string",
 		"Wackadoo Inc.",
 		"Wackadoo ALU i5-9600",
-		"Wackadoo_ALU_i5-9600")
+		"Wackadoo ALU i5-9600")
 
 	test(
 		"An unrecognizable Intel brand string results in no extracted model",
@@ -54,10 +54,10 @@ func TestCPUModel(t *testing.T) {
 		"")
 
 	test(
-		"An empty vendor results in the snake_case brand string",
+		"An empty vendor results in the brand string",
 		/* vendor= */ "",
 		"Wackadoo ALU",
-		"Wackadoo_ALU",
+		"Wackadoo ALU",
 	)
 }
 
@@ -76,7 +76,7 @@ func TestCPUs(t *testing.T) {
 		"If a model can be extracted, there should be a third slice element containing it",
 		"GenuineIntel",
 		"Intel(R) Core(TM) i7-9750H v2 CPU @ 2.60GHz",
-		[]string{"x86", "x86-64", "x86-64-i7-9750H v2"})
+		[]string{"x86", "x86-64", "x86-64-i7-9750H_v2"})
 
 	test(
 		"Empty vendor and brand string should result in no third slice element",

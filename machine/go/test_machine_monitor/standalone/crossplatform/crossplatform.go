@@ -71,9 +71,8 @@ func intelModel(brandString string) string {
 func cpuModel(vendor, brandString string) string {
 	if vendor == "GenuineIntel" {
 		return intelModel(brandString)
-	} else {
-		return strings.ReplaceAll(brandString, " ", "_")
 	}
+	return brandString
 }
 
 // CPUs is the brains behind various platform-specific CPUs() functions, broken off for testing. It
@@ -101,7 +100,7 @@ func CPUs(vendor, brandString string) ([]string, error) {
 
 	model := cpuModel(vendor, brandString)
 	if model != "" {
-		ret = append(ret, fmt.Sprintf("%s-%s-%s", isa, bitness, model))
+		ret = append(ret, fmt.Sprintf("%s-%s-%s", isa, bitness, strings.ReplaceAll(model, " ", "_")))
 	}
 
 	return ret, nil
