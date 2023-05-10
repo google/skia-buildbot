@@ -62,6 +62,7 @@ const (
 	DimGPU                    = "gpu"
 	DimGCE                    = "gce"
 	DimMachineType            = "machine_type"
+	DimDockerInstalled        = "docker_installed"
 	DimTaskType               = "task_type"
 	DimPool                   = "pool"
 
@@ -408,6 +409,9 @@ type Standalone struct {
 
 	// GCEMachineType is the type of GCE machine, e.g. "n1-highmem-2".
 	GCEMachineType string `json:"machine_type"`
+
+	// IsDockerInstalled indicates where the "docker" binary is available on the machine.
+	IsDockerInstalled bool `json:"docker_installed"`
 }
 
 // IsPopulated returns whether the Standalone subevent record is filled out, which is the case iff a

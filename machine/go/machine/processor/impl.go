@@ -329,6 +329,9 @@ func processStandaloneEvent(ctx context.Context, previous machine.Description, e
 		ret.Dimensions[machine.DimGCE] = []string{"1"}
 		ret.Dimensions[machine.DimMachineType] = []string{event.Standalone.GCEMachineType}
 	}
+	if event.Standalone.IsDockerInstalled {
+		ret.Dimensions[machine.DimDockerInstalled] = []string{"true"}
+	}
 	ret = handleGeneralFields(ctx, ret, event)
 	return ret
 }

@@ -531,6 +531,8 @@ func (m *Machine) tryInterrogatingStandaloneHost(ctx context.Context) (ret machi
 		sklog.Warningf("Failed to get GCE machine type of host: %s", err)
 	}
 
+	ret.IsDockerInstalled = standalone.IsDockerInstalled(ctx)
+
 	return ret
 }
 

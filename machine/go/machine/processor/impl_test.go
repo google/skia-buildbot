@@ -1274,7 +1274,7 @@ func Test_handleGeneralFields(t *testing.T) {
 	require.True(t, got)
 }
 
-func TestProcess_StandaloneNonGCE_Sucecss(t *testing.T) {
+func TestProcess_Standalone_NotOnGCE_Sucecss(t *testing.T) {
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
@@ -1312,7 +1312,7 @@ func TestProcess_StandaloneNonGCE_Sucecss(t *testing.T) {
 	}, next)
 }
 
-func TestProcess_StandaloneGCE_Sucecss(t *testing.T) {
+func TestProcess_Standalone_OnGCE_Sucecss(t *testing.T) {
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
@@ -1350,6 +1350,46 @@ func TestProcess_StandaloneGCE_Sucecss(t *testing.T) {
 			machine.DimGPU:         nil,
 			machine.DimGCE:         []string{"1"},
 			machine.DimMachineType: []string{"n1-highmem-2"},
+		},
+	}, next)
+}
+
+func TestProcess_Standalone_DockerInstalled_Sucecss(t *testing.T) {
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{}
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-e-linux-100",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		Standalone: machine.Standalone{
+			Cores:             4,
+			CPUs:              []string{"x86-64"},
+			OSVersions:        []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			IsDockerInstalled: true,
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, machine.Description{
+		LastUpdated:        serverTime,
+		LaunchedSwarming:   true,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:              []string{"skia-e-linux-100"},
+			machine.DimCores:           []string{"4"},
+			machine.DimOS:              []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			machine.DimCPU:             []string{"x86-64"},
+			machine.DimGPU:             nil,
+			machine.DimDockerInstalled: []string{"true"},
 		},
 	}, next)
 }

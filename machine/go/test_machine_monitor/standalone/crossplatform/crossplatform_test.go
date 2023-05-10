@@ -1,10 +1,14 @@
 package crossplatform
 
 import (
+	"bytes"
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/exec"
 )
 
 func TestISAAndBitness(t *testing.T) {
@@ -155,6 +159,27 @@ func TestGCEMachineType_NotOnGCE_ReturnsEmptyString(t *testing.T) {
 	machineType, err := GCEMachineType()
 	require.NoError(t, err)
 	assert.Empty(t, machineType)
+}
+
+func TestIsDockerInstalled_Installed_ReturnsTrue(t *testing.T) {
+	ctx := exec.NewContext(context.Background(), func(ctx context.Context, cmd *exec.Command) error {
+		require.Equal(t, "docker", cmd.Name)
+		require.Equal(t, []string{"version"}, cmd.Args)
+		cmd.CombinedOutput = bytes.NewBufferString("non-empty output ignored by the function under test")
+		return nil
+	})
+
+	assert.True(t, IsDockerInstalled(ctx))
+}
+
+func TestIsDockerInstalled_NotInstalled_ReturnsFalse(t *testing.T) {
+	ctx := exec.NewContext(context.Background(), func(ctx context.Context, cmd *exec.Command) error {
+		require.Equal(t, "docker", cmd.Name)
+		require.Equal(t, []string{"version"}, cmd.Args)
+		return fmt.Errorf("the specific error does not matter for this test")
+	})
+
+	assert.False(t, IsDockerInstalled(ctx))
 }
 
 func mockHostKernelArch(t *testing.T, fn func() (string, error)) {

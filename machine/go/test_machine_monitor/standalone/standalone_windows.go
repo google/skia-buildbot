@@ -47,3 +47,8 @@ func IsGCEMachine() bool {
 func GCEMachineType() (string, error) {
 	return crossplatform.GCEMachineType()
 }
+
+// IsDockerInstalled returns true if Docker is installed.
+func IsDockerInstalled(ctx context.Context) bool {
+	return crossplatform.IsDockerInstalled(ctx)
+}

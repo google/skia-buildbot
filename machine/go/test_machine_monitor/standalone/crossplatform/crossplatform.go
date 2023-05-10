@@ -2,6 +2,7 @@
 package crossplatform
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/shirou/gopsutil/host"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -165,6 +167,12 @@ func GCEMachineType() (string, error) {
 	}
 
 	return cachedMachineType, nil
+}
+
+// IsDockerInstalled returns true if Docker is installed.
+func IsDockerInstalled(ctx context.Context) bool {
+	_, err := exec.RunSimple(ctx, "docker version")
+	return err == nil
 }
 
 // We overwrite these aliases from tests.
