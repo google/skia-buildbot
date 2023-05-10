@@ -48,8 +48,7 @@ body.body-sk.font-sk {
     }
 
     main .threecol {
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
+      display: flex;
       flex-flow: row;
       background-color: var(--surface);
 
@@ -66,6 +65,8 @@ body.body-sk.font-sk {
       .right {
         background: var(--surface-1dp);
         padding: 0;
+        width: 250px;
+        flex: 0 0 auto;
 
         details {
           display: block;
@@ -171,9 +172,14 @@ body.body-sk.font-sk {
       .main {
         background: var(--background);
         margin: 16px;
+        flex: 1 1 auto;
 
         .players {
           display: flex;
+
+          .players-container {
+            width: 100%;
+          }
         }
       }
 

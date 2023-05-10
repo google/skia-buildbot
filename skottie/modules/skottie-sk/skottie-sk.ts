@@ -193,7 +193,7 @@ export class SkottieSk extends ElementSk {
 
   private mainContent = () => html`
     <div class="players">
-      <figure>${this.skottiePlayerTemplate()}</figure>
+      <figure class="players-container">${this.skottiePlayerTemplate()}</figure>
       ${this.lottiePlayerTemplate()} ${this.livePreview()}
     </div>
     <div class="playback">

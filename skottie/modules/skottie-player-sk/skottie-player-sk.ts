@@ -109,8 +109,8 @@ export class SkottiePlayerSk extends ElementSk {
         id="skottie"
         width=${this.width * window.devicePixelRatio}
         height=${this.height * window.devicePixelRatio}
-        style="width: ${this.width}px; height: ${this
-          .height}px; background-color: ${this.bgColor}"
+        style="width: ${this.width}px; aspect-ratio: ${this.width /
+        this.height}; background-color: ${this.bgColor}"
       >
         Your browser does not support the canvas tag.
       </canvas>
@@ -200,7 +200,7 @@ export class SkottiePlayerSk extends ElementSk {
   private loadingTemplate = () => html` <div
     class="player-loading"
     title="Loading animation and engine."
-    style="width: ${this.width}px; height: ${this.height}px;"
+    style="aspect-ratio: ${this.width / this.height};"
   >
     <div>Loading</div>
     <spinner-sk active></spinner-sk>
