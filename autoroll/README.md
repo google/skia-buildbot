@@ -3,6 +3,13 @@
 AutoRoll is a program which creates and manages DEPS rolls of a child project,
 eg. Skia, into a parent project, eg. Chrome.
 
+## Requests and Bug Reports
+
+To request a new roller, visit
+https://bugs.chromium.org/p/skia/issues/entry?template=New+Autoroller. For all
+other autoroll-related bugs and requests, please use
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug.
+
 ## For Gardeners of Parent Projects
 
 If a roll has caused a breakage, feel free to revert first and ask questions
