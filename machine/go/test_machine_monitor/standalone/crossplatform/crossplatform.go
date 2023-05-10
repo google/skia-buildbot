@@ -14,6 +14,10 @@ import (
 
 // isaAndBitness, given an architecture like "x86_64", extracts both an instruction set architecture
 // and bit width, e.g. "x86" and "64".
+//
+// Swarming counterparts:
+// - https://chromium.googlesource.com/infra/luci/luci-py/+/c3bea95091caef1800d102bae28dfc715a4043bc/appengine/swarming/swarming_bot/api/os_utilities.py#228
+// - https://chromium.googlesource.com/infra/luci/luci-py/+/c3bea95091caef1800d102bae28dfc715a4043bc/appengine/swarming/swarming_bot/api/os_utilities.py#250
 func isaAndBitness(arch string) (isa, bitness string, err error) {
 	// gopsutil can spit out i386, i686, arm, aarch64, ia64, or x86_64 under Windows; "" as a
 	// fallback; whatever uname's utsname.machine struct member (a string) has on POSIX. On our lab
@@ -44,6 +48,9 @@ func isaAndBitness(arch string) (isa, bitness string, err error) {
 // intelModel extracts the CPU model name from its display name and returns it. For example, it
 // pulls "i7-9750H" out of "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz". Returns "" if extraction
 // fails.
+//
+// Swarming counterpart:
+// https://chromium.googlesource.com/infra/luci/luci-py/+/c3bea95091caef1800d102bae28dfc715a4043bc/appengine/swarming/swarming_bot/api/os_utilities.py#301
 func intelModel(brandString string) string {
 	regexes := []*regexp.Regexp{
 		regexp.MustCompile(` ([a-zA-Z]\d-\d{4}[A-Z]{0,2} [vV]\d) `),
@@ -70,13 +77,17 @@ func cpuModel(vendor, brandString string) string {
 }
 
 // CPUs is the brains behind various platform-specific CPUs() functions, broken off for testing. It
-// takes the architecture, vendor name and a "brand string", which is a model signifier whose format
-// is vendor-specific, and returns a Swarming-style description of the host's CPU, in various
-// precisions, e.g. ["x86", "x86-64", "x86-64-i5-5350U"]. The first (ISA) and second (bit width)
-// will always be returned (if returned error is nil). The third (model number) will be added if we
-// succeed in extracting it.
+// takes the vendor name (e.g. "GenuineIntel", "AuthenticAMD") and a "brand string", which is a
+// model signifier whose format is vendor-specific (e.g. "Intel(R) Xeon(R) CPU @ 2.00GHz", "AMD
+// EPYC 7B12"), and returns a Swarming-style description of the host's CPU, in various precisions,
+// e.g. ["x86", "x86-64", "x86-64-i5-5350U"]. The first (ISA) and second (bit width) will always be
+// returned (if returned error is nil). The third (model number) will be added if we succeed in
+// extracting it.
+//
+// Swarming counterpart:
+// https://chromium.googlesource.com/infra/luci/luci-py/+/c3bea95091caef1800d102bae28dfc715a4043bc/appengine/swarming/swarming_bot/api/os_utilities.py#323
 func CPUs(vendor, brandString string) ([]string, error) {
-	arch, err := host.KernelArch()
+	arch, err := hostKernelArch() // Example: "x86_64".
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get CPU architecture")
 	}
@@ -113,7 +124,7 @@ func VersionsOfAllPrecisions(prefix, version string) []string {
 
 // IsGCEMachine returns true if running on GCE.
 func IsGCEMachine() bool {
-	return metadata.OnGCE() // Cached internally by the metadata module.
+	return metadataOnGCE() // Cached internally by the metadata module.
 }
 
 var cachedMachineType = ""
@@ -129,7 +140,7 @@ func GCEMachineType() (string, error) {
 	}
 
 	if cachedMachineType == "" {
-		machineType, err := metadata.Get("instance/machine-type")
+		machineType, err := metadataGet("instance/machine-type")
 		if err != nil {
 			return "", skerr.Wrapf(err, "failed to get the machine type from the metadata server")
 		}
@@ -138,3 +149,10 @@ func GCEMachineType() (string, error) {
 
 	return cachedMachineType, nil
 }
+
+// We overwrite these aliases from tests.
+var (
+	hostKernelArch = host.KernelArch
+	metadataOnGCE  = metadata.OnGCE
+	metadataGet    = metadata.Get
+)
