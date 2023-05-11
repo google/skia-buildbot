@@ -121,12 +121,12 @@ func (a *App) Start(ctx context.Context) error {
 	analysisServer := analysisserver.New(a.rbeClients, a.bqClient)
 
 	lis, err := net.Listen("tcp", a.grpcPort)
-	// If the port was specified as ":0" and the OS picked a port for us,
-	// set the app's grpc port to the actual port it's listening on.
-	a.grpcPort = lis.Addr().String()
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
 	}
+	// If the port was specified as ":0" and the OS picked a port for us,
+	// set the app's grpc port to the actual port it's listening on.
+	a.grpcPort = lis.Addr().String()
 	cpb.RegisterAnalysisServer(a.grpcServer, analysisServer)
 
 	sklog.Infof("server listening at %v", lis.Addr())
