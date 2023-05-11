@@ -96,14 +96,14 @@ func TestReadTraces(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, 0, keys)
+	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, 1, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
@@ -119,7 +119,7 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, 0, keys)
+	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,": {e, 2.3, e, 3.3, e, e, e, e},
@@ -133,7 +133,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 		",arch=unknown,",
 	}
 
-	ts, err := s.ReadTraces(ctx, 0, keys)
+	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=unknown,": {e, e, e, e, e, e, e, e},
@@ -149,7 +149,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	}
 
 	// Reading from a tile we haven't written to should succeed and return no data.
-	ts, err := s.ReadTraces(ctx, 2, keys)
+	ts, err := s.ReadTraces(ctx, types.TileNumber(2), keys)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
@@ -801,14 +801,14 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, 0, keys)
+	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, 1, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
@@ -818,14 +818,14 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 	err = s.deleteCommit(ctx, types.CommitNumber(2))
 	require.NoError(t, err)
 
-	ts, err = s.ReadTraces(ctx, 0, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, 1, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
@@ -835,14 +835,14 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 	err = s.deleteCommit(ctx, types.CommitNumber(0))
 	require.NoError(t, err)
 
-	ts, err = s.ReadTraces(ctx, 0, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {2.3, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {1.5, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, 1, keys)
+	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
