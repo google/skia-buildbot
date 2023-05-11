@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	fakeDockerRegistry     = "gcr.io"
 	fakeDockerRepo         = "skia-public/autoroll-be"
 	fakeDockerTag          = "latest"
 	fakeDockerDigest       = "sha256:000ba24df84b6490d68069cdee599d6599f3891f6420a37cdaa65852c9f1ecbc"
@@ -40,12 +41,13 @@ var (
 func TestDockerChild_GetRevision(t *testing.T) {
 	ctx := context.Background()
 	client := &mocks.Client{}
-	client.On("GetManifest", testutils.AnyContext, fakeDockerRepo, fakeDockerTag).Return(fakeDockerManifest, nil)
-	client.On("GetConfig", testutils.AnyContext, fakeDockerRepo, fakeDockerConfigDigest).Return(fakeDockerConfig, nil)
+	client.On("GetManifest", testutils.AnyContext, fakeDockerRegistry, fakeDockerRepo, fakeDockerTag).Return(fakeDockerManifest, nil)
+	client.On("GetConfig", testutils.AnyContext, fakeDockerRegistry, fakeDockerRepo, fakeDockerConfigDigest).Return(fakeDockerConfig, nil)
 	c := &DockerChild{
-		client: client,
-		repo:   fakeDockerRepo,
-		tag:    fakeDockerTag,
+		client:   client,
+		registry: fakeDockerRegistry,
+		repo:     fakeDockerRepo,
+		tag:      fakeDockerTag,
 	}
 	rev, err := c.GetRevision(ctx, fakeDockerTag)
 	require.NoError(t, err)
@@ -61,12 +63,13 @@ func TestDockerChild_GetRevision(t *testing.T) {
 func TestDockerChild_Update(t *testing.T) {
 	ctx := context.Background()
 	client := &mocks.Client{}
-	client.On("GetManifest", testutils.AnyContext, fakeDockerRepo, fakeDockerTag).Return(fakeDockerManifest, nil)
-	client.On("GetConfig", testutils.AnyContext, fakeDockerRepo, fakeDockerConfigDigest).Return(fakeDockerConfig, nil)
+	client.On("GetManifest", testutils.AnyContext, fakeDockerRegistry, fakeDockerRepo, fakeDockerTag).Return(fakeDockerManifest, nil)
+	client.On("GetConfig", testutils.AnyContext, fakeDockerRegistry, fakeDockerRepo, fakeDockerConfigDigest).Return(fakeDockerConfig, nil)
 	c := &DockerChild{
-		client: client,
-		repo:   fakeDockerRepo,
-		tag:    fakeDockerTag,
+		client:   client,
+		registry: fakeDockerRegistry,
+		repo:     fakeDockerRepo,
+		tag:      fakeDockerTag,
 	}
 	tipRev, notRolledRevs, err := c.Update(ctx, &revision.Revision{Id: "sha256:bbad"})
 	require.NoError(t, err)

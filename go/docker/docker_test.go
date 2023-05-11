@@ -208,11 +208,10 @@ func TestGetManifest(t *testing.T) {
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
 	urlmock.MockOnce(fakeURL, md)
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
 
-	manifest, err := client.GetManifest(ctx, fakeRepository, fakeTag)
+	manifest, err := client.GetManifest(ctx, fakeRegistry, fakeRepository, fakeTag)
 	require.NoError(t, err)
 	require.Equal(t, &Manifest{
 		SchemaVersion: 2,
@@ -267,11 +266,10 @@ func TestGetDigest(t *testing.T) {
 	fakeURL := fmt.Sprintf(manifestURLTemplate, fakeRegistry, fakeRepository, fakeTag)
 	urlmock.MockOnce(fakeURL, md)
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
 
-	digest, err := GetDigest(ctx, client, fakeRepository, fakeTag)
+	digest, err := GetDigest(ctx, client, fakeRegistry, fakeRepository, fakeTag)
 	require.NoError(t, err)
 	require.Equal(t, fakeDigest, digest)
 }
@@ -286,11 +284,10 @@ func TestGetConfig(t *testing.T) {
 	fakeURL := fmt.Sprintf(blobURLTemplate, fakeRegistry, fakeRepository, configDigest)
 	urlmock.MockOnce(fakeURL, md)
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
 
-	config, err := client.GetConfig(ctx, fakeRepository, configDigest)
+	config, err := client.GetConfig(ctx, fakeRegistry, fakeRepository, configDigest)
 	require.NoError(t, err)
 	require.Equal(t, &ImageConfig{
 		Architecture: "amd64",
@@ -345,11 +342,10 @@ func TestListInstances(t *testing.T) {
 	fakeURL := fmt.Sprintf(listTagsURLTemplate, fakeRegistry, fakeRepository, pageSize)
 	urlmock.MockOnce(fakeURL, md)
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
 
-	instances, err := client.ListInstances(ctx, fakeRepository)
+	instances, err := client.ListInstances(ctx, fakeRegistry, fakeRepository)
 	require.NoError(t, err)
 	require.Equal(t, map[string]*ImageInstance{
 		"sha256:000ba24df84b6490d68069cdee599d6599f3891f6420a37cdaa65852c9f1ecbc": {
@@ -380,11 +376,10 @@ func TestListTags(t *testing.T) {
 	fakeURL := fmt.Sprintf(listTagsURLTemplate, fakeRegistry, fakeRepository, pageSize)
 	urlmock.MockOnce(fakeURL, md)
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
 
-	repos, err := client.ListTags(ctx, fakeRepository)
+	repos, err := client.ListTags(ctx, fakeRegistry, fakeRepository)
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"2022-06-22T19_11_03Z-louhi-7d6a680-clean",
@@ -404,10 +399,9 @@ func TestListRepositories(t *testing.T) {
 	urlmock.MockOnce(url2, md2)
 
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
-	repos, err := client.ListRepositories(ctx)
+	repos, err := client.ListRepositories(ctx, fakeRegistry)
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"skia-public/img1",
@@ -435,10 +429,9 @@ func TestSetTag(t *testing.T) {
 	urlmock.MockOnce(url2, md2)
 
 	client := &ClientImpl{
-		client:   urlmock.Client(),
-		registry: fakeRegistry,
+		client: urlmock.Client(),
 	}
-	require.NoError(t, client.SetTag(ctx, fakeRepository, fakeTag, newTag))
+	require.NoError(t, client.SetTag(ctx, fakeRegistry, fakeRepository, fakeTag, newTag))
 	require.True(t, urlmock.Empty())
 }
 

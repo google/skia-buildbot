@@ -16,13 +16,13 @@ type Client struct {
 	mock.Mock
 }
 
-// GetConfig provides a mock function with given fields: ctx, repository, configDigest
-func (_m *Client) GetConfig(ctx context.Context, repository string, configDigest string) (*docker.ImageConfig, error) {
-	ret := _m.Called(ctx, repository, configDigest)
+// GetConfig provides a mock function with given fields: ctx, registry, repository, configDigest
+func (_m *Client) GetConfig(ctx context.Context, registry string, repository string, configDigest string) (*docker.ImageConfig, error) {
+	ret := _m.Called(ctx, registry, repository, configDigest)
 
 	var r0 *docker.ImageConfig
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *docker.ImageConfig); ok {
-		r0 = rf(ctx, repository, configDigest)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *docker.ImageConfig); ok {
+		r0 = rf(ctx, registry, repository, configDigest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*docker.ImageConfig)
@@ -30,8 +30,8 @@ func (_m *Client) GetConfig(ctx context.Context, repository string, configDigest
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, repository, configDigest)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, registry, repository, configDigest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -39,13 +39,13 @@ func (_m *Client) GetConfig(ctx context.Context, repository string, configDigest
 	return r0, r1
 }
 
-// GetManifest provides a mock function with given fields: ctx, repository, reference
-func (_m *Client) GetManifest(ctx context.Context, repository string, reference string) (*docker.Manifest, error) {
-	ret := _m.Called(ctx, repository, reference)
+// GetManifest provides a mock function with given fields: ctx, registry, repository, reference
+func (_m *Client) GetManifest(ctx context.Context, registry string, repository string, reference string) (*docker.Manifest, error) {
+	ret := _m.Called(ctx, registry, repository, reference)
 
 	var r0 *docker.Manifest
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *docker.Manifest); ok {
-		r0 = rf(ctx, repository, reference)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *docker.Manifest); ok {
+		r0 = rf(ctx, registry, repository, reference)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*docker.Manifest)
@@ -53,8 +53,8 @@ func (_m *Client) GetManifest(ctx context.Context, repository string, reference 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, repository, reference)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, registry, repository, reference)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -62,13 +62,13 @@ func (_m *Client) GetManifest(ctx context.Context, repository string, reference 
 	return r0, r1
 }
 
-// ListInstances provides a mock function with given fields: ctx, repository
-func (_m *Client) ListInstances(ctx context.Context, repository string) (map[string]*docker.ImageInstance, error) {
-	ret := _m.Called(ctx, repository)
+// ListInstances provides a mock function with given fields: ctx, registry, repository
+func (_m *Client) ListInstances(ctx context.Context, registry string, repository string) (map[string]*docker.ImageInstance, error) {
+	ret := _m.Called(ctx, registry, repository)
 
 	var r0 map[string]*docker.ImageInstance
-	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]*docker.ImageInstance); ok {
-		r0 = rf(ctx, repository)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) map[string]*docker.ImageInstance); ok {
+		r0 = rf(ctx, registry, repository)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*docker.ImageInstance)
@@ -76,8 +76,8 @@ func (_m *Client) ListInstances(ctx context.Context, repository string) (map[str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, repository)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, registry, repository)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -85,36 +85,13 @@ func (_m *Client) ListInstances(ctx context.Context, repository string) (map[str
 	return r0, r1
 }
 
-// ListRepositories provides a mock function with given fields: ctx
-func (_m *Client) ListRepositories(ctx context.Context) ([]string, error) {
-	ret := _m.Called(ctx)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ListTags provides a mock function with given fields: ctx, repository
-func (_m *Client) ListTags(ctx context.Context, repository string) ([]string, error) {
-	ret := _m.Called(ctx, repository)
+// ListRepositories provides a mock function with given fields: ctx, registry
+func (_m *Client) ListRepositories(ctx context.Context, registry string) ([]string, error) {
+	ret := _m.Called(ctx, registry)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, repository)
+		r0 = rf(ctx, registry)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -123,7 +100,7 @@ func (_m *Client) ListTags(ctx context.Context, repository string) ([]string, er
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, repository)
+		r1 = rf(ctx, registry)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -131,13 +108,36 @@ func (_m *Client) ListTags(ctx context.Context, repository string) ([]string, er
 	return r0, r1
 }
 
-// SetTag provides a mock function with given fields: ctx, repository, reference, newTag
-func (_m *Client) SetTag(ctx context.Context, repository string, reference string, newTag string) error {
-	ret := _m.Called(ctx, repository, reference, newTag)
+// ListTags provides a mock function with given fields: ctx, registry, repository
+func (_m *Client) ListTags(ctx context.Context, registry string, repository string) ([]string, error) {
+	ret := _m.Called(ctx, registry, repository)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []string); ok {
+		r0 = rf(ctx, registry, repository)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, registry, repository)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SetTag provides a mock function with given fields: ctx, registry, repository, reference, newTag
+func (_m *Client) SetTag(ctx context.Context, registry string, repository string, reference string, newTag string) error {
+	ret := _m.Called(ctx, registry, repository, reference, newTag)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, repository, reference, newTag)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, registry, repository, reference, newTag)
 	} else {
 		r0 = ret.Error(0)
 	}

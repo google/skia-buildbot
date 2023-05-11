@@ -56,40 +56,38 @@ func SplitImage(image string) (registry, repository, tagOrDigest string, err err
 type Client interface {
 	// GetManifest retrieves the manifest for the given image. The reference may
 	// be a tag or a digest.
-	GetManifest(ctx context.Context, repository, reference string) (*Manifest, error)
+	GetManifest(ctx context.Context, registry, repository, reference string) (*Manifest, error)
 	// GetConfig retrieves an image config based on the config.digest from its
 	// Manifest.
-	GetConfig(ctx context.Context, repository, configDigest string) (*ImageConfig, error)
+	GetConfig(ctx context.Context, registry, repository, configDigest string) (*ImageConfig, error)
 	// ListRepositories lists all repositories in the given registry. Because there
 	// may be many results, this can be quite slow.
-	ListRepositories(ctx context.Context) ([]string, error)
+	ListRepositories(ctx context.Context, registry string) ([]string, error)
 	// ListInstances lists all image instances for the given repository, keyed by
 	// their digests. Because there may be many results, this can be quite slow.
-	ListInstances(ctx context.Context, repository string) (map[string]*ImageInstance, error)
+	ListInstances(ctx context.Context, registry, repository string) (map[string]*ImageInstance, error)
 	// ListTags lists all known tags for the given repository. Because there may be
 	// many results, this can be quite slow.
-	ListTags(ctx context.Context, repository string) ([]string, error)
+	ListTags(ctx context.Context, registry, repository string) ([]string, error)
 	// SetTag sets the given tag on the image.
-	SetTag(ctx context.Context, repository, reference, newTag string) error
+	SetTag(ctx context.Context, registry, repository, reference, newTag string) error
 }
 
 // ClientImpl implements Client.
 type ClientImpl struct {
-	client   *http.Client
-	registry string
+	client *http.Client
 }
 
 // NewClient returns a Client instance which interacts with the given registry.
 // The passed-in http.Client should handle redirects.
-func NewClient(ctx context.Context, registry string) (*ClientImpl, error) {
+func NewClient(ctx context.Context) (*ClientImpl, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxAnd3xx().Client()
 	return &ClientImpl{
-		client:   httpClient,
-		registry: registry,
+		client: httpClient,
 	}, nil
 }
 
@@ -109,8 +107,8 @@ type Manifest struct {
 }
 
 // GetManifest implements Client.
-func (c *ClientImpl) GetManifest(ctx context.Context, repository, reference string) (*Manifest, error) {
-	url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, reference)
+func (c *ClientImpl) GetManifest(ctx context.Context, registry, repository, reference string) (*Manifest, error) {
+	url := fmt.Sprintf(manifestURLTemplate, registry, repository, reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -176,8 +174,8 @@ func (c *ClientImpl) paginate(ctx context.Context, url string, cb func(paginated
 }
 
 // ListRepositories implements Client.
-func (c *ClientImpl) ListRepositories(ctx context.Context) ([]string, error) {
-	url := fmt.Sprintf(catalogURLTemplate, c.registry, pageSize)
+func (c *ClientImpl) ListRepositories(ctx context.Context, registry string) ([]string, error) {
+	url := fmt.Sprintf(catalogURLTemplate, registry, pageSize)
 	var rv []string
 	if err := c.paginate(ctx, url, func(results paginatedResults) error {
 		rv = append(rv, results.Repositories...)
@@ -266,8 +264,8 @@ func (s ImageInstanceSlice) Swap(i, j int) {
 }
 
 // ListInstances implements Client.
-func (c *ClientImpl) ListInstances(ctx context.Context, repository string) (map[string]*ImageInstance, error) {
-	url := fmt.Sprintf(listTagsURLTemplate, c.registry, repository, pageSize)
+func (c *ClientImpl) ListInstances(ctx context.Context, registry, repository string) (map[string]*ImageInstance, error) {
+	url := fmt.Sprintf(listTagsURLTemplate, registry, repository, pageSize)
 	rv := map[string]*ImageInstance{}
 	if err := c.paginate(ctx, url, func(results paginatedResults) error {
 		for digest, instance := range results.Manifest {
@@ -285,8 +283,8 @@ func (c *ClientImpl) ListInstances(ctx context.Context, repository string) (map[
 }
 
 // ListTags implements Client.
-func (c *ClientImpl) ListTags(ctx context.Context, repository string) ([]string, error) {
-	url := fmt.Sprintf(listTagsURLTemplate, c.registry, repository, pageSize)
+func (c *ClientImpl) ListTags(ctx context.Context, registry, repository string) ([]string, error) {
+	url := fmt.Sprintf(listTagsURLTemplate, registry, repository, pageSize)
 	var rv []string
 	if err := c.paginate(ctx, url, func(results paginatedResults) error {
 		rv = append(rv, results.Tags...)
@@ -334,8 +332,8 @@ type ImageConfig_RootFS struct {
 }
 
 // GetConfig implements Client.
-func (c *ClientImpl) GetConfig(ctx context.Context, repository, configDigest string) (*ImageConfig, error) {
-	url := fmt.Sprintf(blobURLTemplate, c.registry, repository, configDigest)
+func (c *ClientImpl) GetConfig(ctx context.Context, registry, repository, configDigest string) (*ImageConfig, error) {
+	url := fmt.Sprintf(blobURLTemplate, registry, repository, configDigest)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -353,7 +351,7 @@ func (c *ClientImpl) GetConfig(ctx context.Context, repository, configDigest str
 }
 
 // SetTag implements Client.
-func (c *ClientImpl) SetTag(ctx context.Context, repository, reference, newTag string) error {
+func (c *ClientImpl) SetTag(ctx context.Context, registry, repository, reference, newTag string) error {
 	// Retrieve the existing manifest. This duplicates code from GetManifest,
 	// but the server seems to directly take the SHA256 sum of the provided
 	// content, without removing whitespace. Returning the manifest exactly as
@@ -361,7 +359,7 @@ func (c *ClientImpl) SetTag(ctx context.Context, repository, reference, newTag s
 	// we end up with the same SHA256.
 	var manifestBytes []byte
 	{
-		url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, reference)
+		url := fmt.Sprintf(manifestURLTemplate, registry, repository, reference)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -380,7 +378,7 @@ func (c *ClientImpl) SetTag(ctx context.Context, repository, reference, newTag s
 
 	// PUT the manifest using the new tag.
 	{
-		url := fmt.Sprintf(manifestURLTemplate, c.registry, repository, newTag)
+		url := fmt.Sprintf(manifestURLTemplate, registry, repository, newTag)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, nil)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -400,12 +398,12 @@ var _ Client = &ClientImpl{}
 
 // GetConfig retrieves an image config. It is a shortcut for Client.GetManifest
 // and Client.GetConfig.
-func GetConfig(ctx context.Context, c *ClientImpl, repository, reference string) (*ImageConfig, error) {
-	manifest, err := c.GetManifest(ctx, repository, reference)
+func GetConfig(ctx context.Context, c *ClientImpl, registry, repository, reference string) (*ImageConfig, error) {
+	manifest, err := c.GetManifest(ctx, registry, repository, reference)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return c.GetConfig(ctx, repository, manifest.Config.Digest)
+	return c.GetConfig(ctx, registry, repository, manifest.Config.Digest)
 }
 
 // GetDigest retrieves the digest for the given image from the registry. It is a
@@ -414,8 +412,8 @@ func GetConfig(ctx context.Context, c *ClientImpl, repository, reference string)
 // Note: This could instead be part of Client, and we could send a HEAD request
 // to the manifests URL. This would be a little more efficient in that it would
 // send less data over the network.
-func GetDigest(ctx context.Context, c Client, repository, tag string) (string, error) {
-	manifest, err := c.GetManifest(ctx, repository, tag)
+func GetDigest(ctx context.Context, c Client, registry, repository, tag string) (string, error) {
+	manifest, err := c.GetManifest(ctx, registry, repository, tag)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}

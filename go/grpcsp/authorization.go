@@ -96,7 +96,7 @@ func (p *ServicePolicy) AuthorizeMethodForRoles(method string, r roles.Roles) er
 	fullPath := "/" + p.desc.ServiceName + "/" + method
 	rfm, ok := p.rolesForMethod[fullPath]
 	if !ok {
-		return fmt.Errorf("unknown grpc method: %q for service", method, p.desc.ServiceName)
+		return fmt.Errorf("unknown grpc method: %q for service %q", method, p.desc.ServiceName)
 	}
 	if rfm != nil {
 		return fmt.Errorf("already have roles set for method: %q", method)

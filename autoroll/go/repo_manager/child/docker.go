@@ -17,31 +17,33 @@ func NewDocker(ctx context.Context, c *config.DockerChildConfig) (*DockerChild, 
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	dockerClient, err := docker.NewClient(ctx, c.Registry)
+	dockerClient, err := docker.NewClient(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &DockerChild{
-		client: dockerClient,
-		repo:   c.Repository,
-		tag:    c.Tag,
+		client:   dockerClient,
+		registry: c.Registry,
+		repo:     c.Repository,
+		tag:      c.Tag,
 	}, nil
 }
 
 // DockerChild is an implementation of Child which deals with Docker images.
 type DockerChild struct {
-	client docker.Client
-	repo   string
-	tag    string
+	client   docker.Client
+	registry string
+	repo     string
+	tag      string
 }
 
 // GetRevision implements Child.
 func (c *DockerChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	manifest, err := c.client.GetManifest(ctx, c.repo, id)
+	manifest, err := c.client.GetManifest(ctx, c.registry, c.repo, id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	config, err := c.client.GetConfig(ctx, c.repo, manifest.Config.Digest)
+	config, err := c.client.GetConfig(ctx, c.registry, c.repo, manifest.Config.Digest)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
