@@ -609,6 +609,15 @@ func Truncate(s string, length int) string {
 	return s
 }
 
+// TruncateNoEllipses truncates the given string to the given length, without
+// the use of ellipses.
+func TruncateNoEllipses(s string, length int) string {
+	if len(s) > length {
+		return s[:length]
+	}
+	return s
+}
+
 // WithWriteFile provides an interface for writing to a backing file using a
 // temporary intermediate file for more atomicity in case a long-running write
 // gets interrupted.

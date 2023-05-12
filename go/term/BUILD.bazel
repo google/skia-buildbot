@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "term",
+    srcs = ["term.go"],
+    importpath = "go.skia.org/infra/go/term",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/human",
+        "//go/now",
+        "//go/skerr",
+        "//go/util",
+        "@org_golang_x_term//:term",
+    ],
+)
+
+go_test(
+    name = "term_test",
+    srcs = ["term_test.go"],
+    embed = [":term"],
+    deps = [
+        "//go/now",
+        "@com_github_stretchr_testify//require",
+    ],
+)
