@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/bigquery"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
-	"google.golang.org/api/bigquery/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -30,7 +30,7 @@ func testSetupAppWithBackends(t *testing.T) (context.Context, *App, func()) {
 		port:       ":0",
 		grpcPort:   ":0",
 		promPort:   ":0",
-		bqClient:   &bigquery.Service{},
+		bqClient:   &bigquery.Client{},
 		rbeClients: map[string]*rbeclient.Client{},
 	}
 	var w sync.WaitGroup

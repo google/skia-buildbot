@@ -3,8 +3,8 @@ package analysisserver
 import (
 	"context"
 
+	"cloud.google.com/go/bigquery"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
-	"google.golang.org/api/bigquery/v2"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -14,11 +14,11 @@ import (
 type analysisServerImpl struct {
 	cpb.UnimplementedAnalysisServer
 	rbeClients map[string]*rbeclient.Client
-	bqClient   *bigquery.Service
+	bqClient   *bigquery.Client
 }
 
 // New returns a new instance of AnalysisServer.
-func New(rbeClients map[string]*rbeclient.Client, bqClient *bigquery.Service) cpb.AnalysisServer {
+func New(rbeClients map[string]*rbeclient.Client, bqClient *bigquery.Client) cpb.AnalysisServer {
 	return &analysisServerImpl{
 		rbeClients: rbeClients,
 		bqClient:   bqClient,

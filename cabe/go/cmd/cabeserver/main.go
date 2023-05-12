@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 
+	"cloud.google.com/go/bigquery"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/gorilla/mux"
-	"google.golang.org/api/bigquery/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -41,18 +40,11 @@ type App struct {
 	grpcPort   string
 	promPort   string
 	authPolicy *grpcsp.ServerPolicy
-	bqClient   *bigquery.Service
 
-	// muRBE protects rbeClients during cleanup/shutdown.
-	muRBE      sync.Mutex
+	bqClient   *bigquery.Client
 	rbeClients map[string]*rbeclient.Client
 
-	// muHTTP protects httpServer during cleanup/shutdown.
-	muHTTP     sync.Mutex
 	httpServer *http.Server
-
-	// muGRPC protects grpcServer during cleanup/shutdown.
-	muGRPC     sync.Mutex
 	grpcServer *grpc.Server
 }
 
@@ -133,6 +125,7 @@ func (a *App) Start(ctx context.Context) error {
 	if err := a.grpcServer.Serve(lis); err != nil {
 		sklog.Fatalf("failed to serve grpc: %v", err)
 	}
+
 	return nil
 }
 
@@ -192,29 +185,25 @@ func (a *App) ConfigureAuthorization() error {
 // any open backend connections.
 func (a *App) Cleanup() {
 	sklog.Info("Shutdown server gracefully.")
-	a.muGRPC.Lock()
 	if a.grpcServer != nil {
 		a.grpcServer.GracefulStop()
 	}
-	a.muGRPC.Unlock()
 
-	a.muHTTP.Lock()
 	if err := a.httpServer.Shutdown(context.Background()); err != nil {
 		sklog.Errorf("shutting down http server: %v", err)
 	}
-	a.muHTTP.Unlock()
 
-	// Now shut down client connections to backends. Note that
-	// bigquery.Client isn't based on gRPC, so there are no
-	// persistent backend connections to close for it.
+	// Now shut down client connections to backends.
 
-	a.muRBE.Lock()
+	if err := a.bqClient.Close(); err != nil {
+		sklog.Errorf("closing BigQuery connection: %v", err)
+	}
+
 	for instance, rbeClient := range a.rbeClients {
 		if err := rbeClient.Close(); err != nil {
 			sklog.Errorf("closing RBE client connection for instance %q: %v", instance, err)
 		}
 	}
-	a.muRBE.Unlock()
 }
 
 func main() {
