@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/storage"
 	lru "github.com/hashicorp/golang-lru"
@@ -233,7 +234,7 @@ func New(ctx context.Context, local bool) (*store, error) {
 //	media - The type of the file to write.
 //	fiddleHash - The hash of the fiddle.
 //	b64 - The contents of the media file base64 encoded.
-func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
+func (s *store) writeMediaFile(media Media, fiddleHash, b64 string, wg *sync.WaitGroup) error {
 	if b64 == "" && media != TXT {
 		return fmt.Errorf("An empty file is not a valid %s file.", string(media))
 	}
@@ -263,11 +264,9 @@ func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 		}
 	}
 
-	// Don't stall the http response while we write the image to Google Storage.
-	// Instead, do the work in a Go routine. We know that by the time we reach
-	// here we've successfully written the code to Google Storage, so even if
-	// this fails the user can always 'rerun' the fiddle to generate an image
-	// that failed to write.
+	// Do this work in a Go routine, but also use the WaitGroup so that we don't
+	// respond until all the images have been written to GCS.
+	wg.Add(1)
 	go func() {
 		path := strings.Join([]string{"fiddle", fiddleHash, p.filename}, "/")
 		w := s.bucket.Object(path).NewWriter(context.Background())
@@ -279,6 +278,7 @@ func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 		if err := w.Close(); err != nil {
 			sklog.Errorf("Error closing write for %s: %s", string(media), err)
 		}
+		wg.Done()
 	}()
 	return nil
 }
@@ -330,46 +330,48 @@ func (s *store) Put(code string, options types.Options, results *types.Result) (
 // PutMedia implements Store.
 func (s *store) PutMedia(options types.Options, fiddleHash string, results *types.Result) error {
 	// Write each of the media files.
+	var wg sync.WaitGroup
 	if options.TextOnly {
-		err := s.writeMediaFile(TXT, fiddleHash, results.Execute.Output.Text)
+		err := s.writeMediaFile(TXT, fiddleHash, results.Execute.Output.Text, &wg)
 		if err != nil {
 			return err
 		}
 	} else {
 		if options.Animated {
-			err := s.writeMediaFile(ANIM_CPU, fiddleHash, results.Execute.Output.AnimatedRaster)
+			err := s.writeMediaFile(ANIM_CPU, fiddleHash, results.Execute.Output.AnimatedRaster, &wg)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(ANIM_GPU, fiddleHash, results.Execute.Output.AnimatedGpu)
+			err = s.writeMediaFile(ANIM_GPU, fiddleHash, results.Execute.Output.AnimatedGpu, &wg)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := s.writeMediaFile(CPU, fiddleHash, results.Execute.Output.Raster)
+			err := s.writeMediaFile(CPU, fiddleHash, results.Execute.Output.Raster, &wg)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(GPU, fiddleHash, results.Execute.Output.Gpu)
+			err = s.writeMediaFile(GPU, fiddleHash, results.Execute.Output.Gpu, &wg)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(PDF, fiddleHash, results.Execute.Output.Pdf)
+			err = s.writeMediaFile(PDF, fiddleHash, results.Execute.Output.Pdf, &wg)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(SKP, fiddleHash, results.Execute.Output.Skp)
+			err = s.writeMediaFile(SKP, fiddleHash, results.Execute.Output.Skp, &wg)
 			if err != nil {
 				return err
 			}
 		}
 	}
 	if results.Execute.Output.GLInfo != "" {
-		err := s.writeMediaFile(GLINFO, fiddleHash, results.Execute.Output.GLInfo)
+		err := s.writeMediaFile(GLINFO, fiddleHash, results.Execute.Output.GLInfo, &wg)
 		if err != nil {
 			sklog.Warningf("Failed to save GLInfo: %s", err)
 		}
 	}
+	wg.Wait()
 	return nil
 }
 
