@@ -180,6 +180,7 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (*WilcoxonSignedRa
 
 	// Get the statistic.
 	statistic := getStatistic(xNonZero, r)
+	sort.Float64s(xNonZero)
 	alpha := 1 - confLevel
 	var pVal, lowerCi, upperCi, estimate float64
 
