@@ -112,6 +112,8 @@ func main() {
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.CrossOriginResourcePolicy(h)
+	h = httputils.CrossOriginOpenerPolicy(h)
+	h = httputils.CrossOriginEmbedderPolicy(h)
 	if !sc.Local {
 		if sc.ForceAuth {
 			sklog.Infof("The allowed list of users is: %q", sc.AuthorizedUsers)

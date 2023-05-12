@@ -740,6 +740,40 @@ func CrossOriginResourcePolicy(h http.Handler) http.Handler {
 	return http.HandlerFunc(s)
 }
 
+// CrossOriginOpenerPolicy adds a Cross-Origin-Opener-Policy: same-origin
+// to every response.
+//
+// Example:
+//
+//	if !*local {
+//	  h := httputils.CrossOriginOpenerPolicy(h)
+//	}
+//	http.Handle("/", h)
+func CrossOriginOpenerPolicy(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(s)
+}
+
+// CrossOriginEmbedderPolicy adds a Cross-Origin-Embedder-Policy: require-corp
+// to every response.
+//
+// Example:
+//
+//	if !*local {
+//	  h := httputils.CrossOriginEmbedderPolicy(h)
+//	}
+//	http.Handle("/", h)
+func CrossOriginEmbedderPolicy(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(s)
+}
+
 // XFrameOptionsDeny adds "X-Frame-Options: DENY" to every response.
 func XFrameOptionsDeny(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
