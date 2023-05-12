@@ -109,7 +109,7 @@ export class SkottiePlayerSk extends ElementSk {
         id="skottie"
         width=${this.width * window.devicePixelRatio}
         height=${this.height * window.devicePixelRatio}
-        style="width: ${this.width}px; aspect-ratio: ${this.width /
+        style="width: 100%; aspect-ratio: ${this.width /
         this.height}; background-color: ${this.bgColor}"
       >
         Your browser does not support the canvas tag.

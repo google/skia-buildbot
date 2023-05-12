@@ -1,0 +1,17 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "skottie-button-sk",
+    sass_deps = ["//elements-sk/modules:colors_sass_lib"],
+    sass_srcs = ["skottie-button-sk.scss"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-button-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

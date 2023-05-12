@@ -58,6 +58,12 @@ import '../../../infra-sk/modules/app-sk';
 import { replaceShaders } from '../skottie-shader-editor-sk/shader-replace';
 import '../../../elements-sk/modules/icons/expand-less-icon-sk';
 import '../../../elements-sk/modules/icons/expand-more-icon-sk';
+import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
+import '../../../elements-sk/modules/icons/pause-icon-sk';
+import '../../../elements-sk/modules/icons/replay-icon-sk';
+import '../skottie-button-sk';
+import '../skottie-dropdown-sk';
+import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -135,17 +141,45 @@ export class SkottieSk extends ElementSk {
             ${SKIA_VERSION.slice(0, 7)}
           </a>
 
-          <button id="view-gif-exporter" @click=${ele.toggleGifExporter}>
-            Export
-          </button>
+          <skottie-dropdown-sk
+            id="view-exporter"
+            .name="dropdown-exporter"
+            .options=${[
+              { id: '', value: 'Export' },
+              { id: '1', value: 'GIF' },
+              { id: '2', value: 'WebM' },
+              { id: '3', value: 'PNG sequence' },
+            ]}
+            reset
+            @select=${ele.exportSelectHandler}
+            border
+          >
+          </skottie-dropdown-sk>
 
-          <button id="view-perf-chart" @click=${ele.togglePerformanceChart}>
-            Performance chart
-          </button>
-
-          <button id="view-json-layers" @click=${ele.toggleEditor}>
-            View JSON Layers
-          </button>
+          <skottie-button-sk
+            id="view-gif-exporter"
+            @select=${ele.toggleGifExporter}
+            type="outline"
+            .content=${'Export'}
+            .classes=${['header__button']}
+          >
+          </skottie-button-sk>
+          <skottie-button-sk
+            id="view-perf-chart"
+            @select=${ele.togglePerformanceChart}
+            type="outline"
+            .content=${'Performance chart'}
+            .classes=${['header__button']}
+          >
+          </skottie-button-sk>
+          <skottie-button-sk
+            id="view-json-layers"
+            @select=${ele.toggleEditor}
+            type="outline"
+            .content=${'View JSON code'}
+            .classes=${['header__button']}
+          >
+          </skottie-button-sk>
 
           <theme-chooser-sk></theme-chooser-sk>
         </span>
@@ -193,31 +227,40 @@ export class SkottieSk extends ElementSk {
 
   private mainContent = () => html`
     <div class="players">
-      <figure class="players-container">${this.skottiePlayerTemplate()}</figure>
-      ${this.lottiePlayerTemplate()} ${this.livePreview()}
+      <figure class="players-container">
+        ${this.skottiePlayerTemplate()} ${this.lottiePlayerTemplate()}
+      </figure>
+      ${this.livePreview()}
     </div>
     <div class="playback">
-      <div class="scrub">
-        <button id="rewind" @click=${this.rewind}>Rewind</button>
-        <button id="playpause" @click=${this.playpause}>Pause</button>
-        <input
-          id="scrub"
-          type="range"
-          min="0"
-          max=${SCRUBBER_RANGE}
-          step="0.1"
-          @input=${this.onScrub}
-          @change=${this.onScrubEnd}
-        />
-        <label class="number">
-          Go to frame:
+      <div class="playback-content">
+        <button id="playpause" @click=${this.playpause} class="fab">
+          <play-arrow-icon-sk id="playpause-play"></play-arrow-icon-sk>
+          <pause-icon-sk id="playpause-pause"></pause-icon-sk>
+        </button>
+        <div class="scrub">
           <input
-            type="number"
-            id="frameInput"
-            @focus=${this.onFrameFocus}
-            @change=${this.onFrameChange}
+            id="scrub"
+            type="range"
+            min="0"
+            max=${SCRUBBER_RANGE}
+            step="0.1"
+            @input=${this.onScrub}
+            @change=${this.onScrubEnd}
           />
-        </label>
+          <label class="number">
+            Go to frame:
+            <input
+              type="number"
+              id="frameInput"
+              @focus=${this.onFrameFocus}
+              @change=${this.onFrameChange}
+            />
+          </label>
+        </div>
+        <button id="rewind" @click=${this.rewind} class="fab">
+          <replay-icon-sk></replay-icon-sk>
+        </button>
       </div>
     </div>
 
@@ -356,24 +399,24 @@ export class SkottieSk extends ElementSk {
   private inlineDirections = () =>
     `<skottie-inline-sk width="${this.width}" height="${this.height}" src="${window.location.origin}/_/j/${this.hash}"></skottie-inline-sk>`;
 
-  private skottiePlayerTemplate = () => html` <skottie-player-sk
-      paused
-      width=${this.width}
-      height=${this.height}
-    >
+  private skottiePlayerTemplate = () => html` <figure
+    class="players-container-player"
+  >
+    <skottie-player-sk paused width=${this.width} height=${this.height}>
     </skottie-player-sk>
-    ${this.wasmCaption()}`;
+    ${this.wasmCaption()}
+  </figure>`;
 
   private lottiePlayerTemplate = () => {
     if (!this.showLottie) {
       return '';
     }
-    return html` <figure>
+    return html` <figure class="players-container-player">
       <div
         id="container"
         title="lottie-web"
-        style="width: ${this.width}px; height: ${this
-          .height}px; background-color: ${this.backgroundColor}"
+        style="width: 100%; aspect-ratio: ${this.width /
+        this.height}; background-color: ${this.backgroundColor}"
       ></div>
       ${caption('lottie-web', this.viewMode)}
     </figure>`;
@@ -783,6 +826,14 @@ export class SkottieSk extends ElementSk {
           );
         }
       }
+      const frameTotal = $$<HTMLInputElement>('#frameTotal', this);
+      if (frameTotal) {
+        if (this.state.lottie!.fr) {
+          frameTotal.textContent =
+            'of ' +
+            String(Math.round(this.duration * (this.state.lottie!.fr / 1000)));
+        }
+      }
     });
   }
 
@@ -936,7 +987,8 @@ export class SkottieSk extends ElementSk {
       this.lottiePlayer?.pause();
       this.live?.pause();
       this.state.soundMap?.pause();
-      $$('#playpause')!.textContent = 'Play';
+      $$<HTMLElement>('#playpause-pause')!.style.display = 'none';
+      $$<HTMLElement>('#playpause-play')!.style.display = 'inherit';
       audioManager?.pause();
     } else {
       this.lottiePlayer?.play();
@@ -944,7 +996,8 @@ export class SkottieSk extends ElementSk {
       this.previousFrameTime = Date.now();
       // There is no need call a soundMap.play() function here.
       // Skottie invokes the play by calling seek on the needed audio track.
-      $$('#playpause')!.textContent = 'Pause';
+      $$<HTMLElement>('#playpause-pause')!.style.display = 'inherit';
+      $$<HTMLElement>('#playpause-play')!.style.display = 'none';
       audioManager?.resume();
     }
     this.playing = !this.playing;
@@ -1302,6 +1355,10 @@ export class SkottieSk extends ElementSk {
     this.showGifExporter = !this.showGifExporter;
     this.stateChanged();
     this.render();
+  }
+
+  private exportSelectHandler(e: CustomEvent<DropdownSelectEvent>): void {
+    // TODO(hernan torrisi): implement exporters
   }
 
   private togglePerformanceChart(e: Event): void {

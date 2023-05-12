@@ -45,6 +45,11 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/expand-less-icon-sk",
         "//elements-sk/modules/icons/expand-more-icon-sk",
+        "//elements-sk/modules/icons/pause-icon-sk",
+        "//elements-sk/modules/icons/play-arrow-icon-sk",
+        "//elements-sk/modules/icons/replay-icon-sk",
+        "//skottie/modules/skottie-button-sk",
+        "//skottie/modules/skottie-dropdown-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

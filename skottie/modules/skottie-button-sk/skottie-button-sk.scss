@@ -1,0 +1,50 @@
+@import '../../../elements-sk/modules/colors';
+
+skottie-button-sk {
+  button.base {
+    box-shadow: none;
+    border-radius: 4px;
+    font-size: 14px;
+    margin: 0;
+    padding: 8px 6px;
+    cursor: pointer;
+
+    &__outline {
+      background: transparent;
+      border: 1px solid var(--skottie-on-surface-white);
+      color: var(--skottie-on-surface-white);
+
+      &:hover,
+      &:focus {
+        background-color: var(--skottie-secondary-main);
+      }
+    }
+
+    &__filled {
+      background: var(--skottie-surface);
+      border: none;
+      color: var(--skottie-on-surface-white);
+
+      &:hover,
+      &:focus {
+        background-color: var(--skottie-primary-dark);
+      }
+
+      &:disabled {
+        background-color: var(--skottie-surface-light);
+        color: var(--skottie-surface-main);
+      }
+    }
+
+    &__plain {
+      color: var(--skottie-primary-light);
+      border: none;
+      background-color: transparent;
+
+      &:hover,
+      &:focus {
+        background-color: var(--skottie-secondary-main);
+      }
+    }
+  }
+}
