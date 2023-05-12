@@ -13,12 +13,6 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 )
 
-const (
-	myTestVersion = "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"
-
-	hostName = "skia-rpi2-rack4-shelf2-001"
-)
-
 func TestParseAndroidProperties_HappyPath(t *testing.T) {
 
 	const adbResponseHappyPath = `
@@ -186,7 +180,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		},
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
-			Version:   myTestVersion,
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 	}
@@ -202,17 +196,18 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		AttachedDevice: machine.AttachedDeviceAdb,
 		LastUpdated:    serverTime,
 		Dimensions: machine.SwarmingDimensions{
-			"android_devices":     []string{"1"},
-			"device_os":           []string{"Q", "QQ2A.200305.002"},
-			"device_os_flavor":    []string{"google", "android"},
-			"device_os_type":      []string{"user"},
-			machine.DimDeviceType: []string{"sargo"},
-			machine.DimOS:         []string{"Android"},
-			machine.DimID:         []string{"skia-rpi2-0001"},
+			"android_devices":                    []string{"1"},
+			"device_os":                          []string{"Q", "QQ2A.200305.002"},
+			"device_os_flavor":                   []string{"google", "android"},
+			"device_os_type":                     []string{"user"},
+			machine.DimDeviceType:                []string{"sargo"},
+			machine.DimOS:                        []string{"Android"},
+			machine.DimID:                        []string{"skia-rpi2-0001"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            machine.BadBatteryLevel,
-		Version:            myTestVersion,
+		Version:            "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		DeviceUptime:       5,
 	}, next)
 }
@@ -229,13 +224,14 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	previous := machine.NewDescription(ctx)
 	previous.AttachedDevice = machine.AttachedDeviceAdb
 	previous.Dimensions = machine.SwarmingDimensions{
-		"android_devices":     []string{"1"},
-		"device_os":           []string{"Q", "QQ2A.200305.002"},
-		"device_os_flavor":    []string{"google", "android"},
-		"device_os_type":      []string{"user"},
-		machine.DimDeviceType: []string{"sargo"},
-		machine.DimOS:         []string{"Android"},
-		machine.DimID:         []string{"skia-rpi2-0001"},
+		"android_devices":                    []string{"1"},
+		"device_os":                          []string{"Q", "QQ2A.200305.002"},
+		"device_os_flavor":                   []string{"google", "android"},
+		"device_os_type":                     []string{"user"},
+		machine.DimDeviceType:                []string{"sargo"},
+		machine.DimOS:                        []string{"Android"},
+		machine.DimID:                        []string{"skia-rpi2-0001"},
+		machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 	}
 
 	// An event arrives without any device info.
@@ -243,6 +239,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 	}
@@ -259,6 +256,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	assert.Equal(t, machine.Description{
 		Recovering:         "Device [\"sargo\"] has gone missing",
 		AttachedDevice:     machine.AttachedDeviceAdb,
+		Version:            "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
@@ -333,14 +331,15 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	previous.AttachedDevice = machine.AttachedDeviceAdb
 	previous.Recovering = "Device is missing."
 	previous.Dimensions = machine.SwarmingDimensions{
-		"android_devices":      []string{"1"},
-		"device_os":            []string{"Q", "QQ2A.200305.002"},
-		"device_os_flavor":     []string{"google", "android"},
-		"device_os_type":       []string{"user"},
-		machine.DimDeviceType:  []string{"sargo"},
-		machine.DimOS:          []string{"Android"},
-		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
-		machine.DimID:          []string{"skia-rpi2-0001"},
+		"android_devices":                    []string{"1"},
+		"device_os":                          []string{"Q", "QQ2A.200305.002"},
+		"device_os_flavor":                   []string{"google", "android"},
+		"device_os_type":                     []string{"user"},
+		machine.DimDeviceType:                []string{"sargo"},
+		machine.DimOS:                        []string{"Android"},
+		machine.DimQuarantined:               []string{"Device [\"sargo\"] has gone missing"},
+		machine.DimID:                        []string{"skia-rpi2-0001"},
+		machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 	}
 
 	// An event arrives with the device restored.
@@ -360,6 +359,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		Host: machine.Host{
 			StartTime: bootUpTime,
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		},
 	}
 
@@ -378,6 +378,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 			Message:   "Leaving recovery mode.",
 		},
 		AttachedDevice:     machine.AttachedDeviceAdb,
+		Version:            "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		MaintenanceMode:    "",
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
@@ -400,6 +401,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -425,6 +427,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
 		AttachedDevice:  machine.AttachedDeviceAdb,
+		Version:         "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		MaintenanceMode: "",
 		Recovering:      "Battery low.",
 		Annotation: machine.Annotation{
@@ -433,7 +436,8 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 			Timestamp: serverTime,
 		},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID: []string{"skia-rpi2-0001"},
+			machine.DimID:                        []string{"skia-rpi2-0001"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            9,
@@ -462,6 +466,7 @@ func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testin
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -501,6 +506,7 @@ func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -678,6 +684,7 @@ Current cooling devices from HAL:`
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -710,6 +717,7 @@ func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -801,6 +809,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -845,6 +854,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
@@ -892,16 +902,18 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":  []string{"skia-rpi2-0001"},
-			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu": []string{"x86", "x86_64"},
-			"gpu": []string{"none"},
+			"id":                                 []string{"skia-rpi2-0001"},
+			"os":                                 []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":                                []string{"x86", "x86_64"},
+			"gpu":                                []string{"none"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 	}
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 		LaunchedSwarming: true,
@@ -927,19 +939,21 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                 []string{"skia-rpi2-0001"},
-			machine.DimOS:        []string{"ChromeOS"},       // overwritten
-			"cpu":                []string{"arm"},            // overwritten
-			"gpu":                []string{"MaliT654"},       // overwritten
-			"chromeos_channel":   []string{"stable-channel"}, // added
-			"chromeos_milestone": []string{"89"},             // added
-			"release_version":    []string{"13729.56.0"},     // added
+			"id":                                 []string{"skia-rpi2-0001"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
+			machine.DimOS:                        []string{"ChromeOS"},       // overwritten
+			"cpu":                                []string{"arm"},            // overwritten
+			"gpu":                                []string{"MaliT654"},       // overwritten
+			"chromeos_channel":                   []string{"stable-channel"}, // added
+			"chromeos_milestone":                 []string{"89"},             // added
+			"release_version":                    []string{"13729.56.0"},     // added
 		},
 		Annotation: machine.Annotation{
 			User:      machineUserName,
 			Timestamp: serverTime,
 			Message:   "Leaving recovery mode.",
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
 
@@ -957,16 +971,18 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":  []string{"skia-rpi2-0001"},
-			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu": []string{"x86", "x86_64"},
-			"gpu": []string{"none"},
+			"id":                                 []string{"skia-rpi2-0001"},
+			"os":                                 []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":                                []string{"x86", "x86_64"},
+			"gpu":                                []string{"none"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 	}
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 	}
@@ -983,10 +999,11 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":  []string{"skia-rpi2-0001"},
-			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			"cpu": []string{"x86", "x86_64"},
-			"gpu": []string{"none"},
+			"id":                                 []string{"skia-rpi2-0001"},
+			"os":                                 []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":                                []string{"x86", "x86_64"},
+			"gpu":                                []string{"none"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{
@@ -994,6 +1011,7 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 			User:      machineUserName,
 			Message:   "Device \"root@my-chromebook\" has gone missing",
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
 
@@ -1011,19 +1029,21 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                 []string{"skia-rpi2-0001"},
-			machine.DimOS:        []string{"ChromeOS"},
-			"cpu":                []string{"arm"},
-			"gpu":                []string{"MaliT654"},
-			"chromeos_channel":   []string{"stable-channel"},
-			"chromeos_milestone": []string{"89"},
-			"release_version":    []string{"13729.56.0"},
+			"id":                                 []string{"skia-rpi2-0001"},
+			machine.DimOS:                        []string{"ChromeOS"},
+			"cpu":                                []string{"arm"},
+			"gpu":                                []string{"MaliT654"},
+			"chromeos_channel":                   []string{"stable-channel"},
+			"chromeos_milestone":                 []string{"89"},
+			"release_version":                    []string{"13729.56.0"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 	}
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 	}
@@ -1040,13 +1060,14 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			"gpu": []string{"MaliT654"},
 		},
 		Dimensions: machine.SwarmingDimensions{
-			"id":                 []string{"skia-rpi2-0001"},
-			machine.DimOS:        []string{"ChromeOS"},
-			"cpu":                []string{"arm"},
-			"gpu":                []string{"MaliT654"},
-			"chromeos_channel":   []string{"stable-channel"},
-			"chromeos_milestone": []string{"89"},
-			"release_version":    []string{"13729.56.0"},
+			"id":                                 []string{"skia-rpi2-0001"},
+			machine.DimOS:                        []string{"ChromeOS"},
+			"cpu":                                []string{"arm"},
+			"gpu":                                []string{"MaliT654"},
+			"chromeos_channel":                   []string{"stable-channel"},
+			"chromeos_milestone":                 []string{"89"},
+			"release_version":                    []string{"13729.56.0"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
 		RecoveryStart: serverTime,
 		Annotation: machine.Annotation{
@@ -1054,6 +1075,7 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 			User:      machineUserName,
 			Message:   "Device \"root@my-chromebook\" has gone missing",
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
 
@@ -1205,38 +1227,14 @@ func androidEvent(runningSwarmingTask bool) machine.Event {
 		EventType:           machine.EventTypeRawState,
 		RunningSwarmingTask: runningSwarmingTask,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:    "skia-rpi2-0001",
+			Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 		},
 		Android: machine.Android{
 			Uptime: 10,
 		},
 	}
 }
-
-func androidEventRunningSwarmingTask() machine.Event {
-	return androidEvent(true)
-}
-
-func androidEventNotRunningSwarmingTask() machine.Event {
-	return androidEvent(false)
-}
-
-const (
-	prevPowerCycleFalse = false
-	prevPowerCycleTrue  = true
-
-	prevRunningSwarmingFalse = false
-	prevRunningSwarmingTrue  = true
-
-	eventRunningSwarmingFalse = false
-	eventRunnignSwarmingTrue  = true
-
-	expectedNextRunningSwarmingFalse = false
-	expectedNextRunningSwarmingTrue  = true
-
-	expectedNextPowerCycleFalse = false
-	expectedNextPowerCycleTrue  = true
-)
 
 func TestProcessAndroidEvent_PowerCycled_PowerCycleRetained(t *testing.T) {
 	ctx := context.Background()
@@ -1258,7 +1256,7 @@ func TestProcessAndroidEvent_NotPowerCycled_NotPowerCycleRetained(t *testing.T) 
 
 func Test_handleGeneralFields(t *testing.T) {
 	dims := machine.SwarmingDimensions{
-		machine.DimID:         []string{hostName},
+		machine.DimID:         []string{"skia-rpi2-rack4-shelf2-001"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimDeviceType: []string{"Pixel6"},
 	}
@@ -1267,14 +1265,14 @@ func Test_handleGeneralFields(t *testing.T) {
 	current := machine.NewDescription(ctx)
 	current.Dimensions = dims
 	event := machine.NewEvent()
-	event.Host.Name = hostName
+	event.Host.Name = "skia-rpi2-rack4-shelf2-001"
 	event.RunningSwarmingTask = true
 	_ = handleGeneralFields(ctx, current, event)
 	got := m.Get()
 	require.True(t, got)
 }
 
-func TestProcess_Standalone_NotOnGCE_Sucecss(t *testing.T) {
+func TestProcess_Standalone_NotOnGCE_Success(t *testing.T) {
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
@@ -1284,6 +1282,7 @@ func TestProcess_Standalone_NotOnGCE_Sucecss(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-e-linux-100",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 		LaunchedSwarming: true,
@@ -1303,16 +1302,18 @@ func TestProcess_Standalone_NotOnGCE_Sucecss(t *testing.T) {
 		LaunchedSwarming:   true,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:    []string{"skia-e-linux-100"},
-			machine.DimCores: []string{"4"},
-			machine.DimOS:    []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			machine.DimCPU:   []string{"x86-64"},
-			machine.DimGPU:   nil,
+			machine.DimID:                        []string{"skia-e-linux-100"},
+			machine.DimCores:                     []string{"4"},
+			machine.DimOS:                        []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			machine.DimCPU:                       []string{"x86-64"},
+			machine.DimGPU:                       nil,
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
 
-func TestProcess_Standalone_OnGCE_Sucecss(t *testing.T) {
+func TestProcess_Standalone_OnGCE_Success(t *testing.T) {
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
@@ -1322,6 +1323,7 @@ func TestProcess_Standalone_OnGCE_Sucecss(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-e-gce-100",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 		LaunchedSwarming: true,
@@ -1343,18 +1345,20 @@ func TestProcess_Standalone_OnGCE_Sucecss(t *testing.T) {
 		LaunchedSwarming:   true,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:          []string{"skia-e-gce-100"},
-			machine.DimCores:       []string{"4"},
-			machine.DimOS:          []string{"Debian", "Debian-10", "Debian-10.3", "Linux"},
-			machine.DimCPU:         []string{"x86-64"},
-			machine.DimGPU:         nil,
-			machine.DimGCE:         []string{"1"},
-			machine.DimMachineType: []string{"n1-highmem-2"},
+			machine.DimID:                        []string{"skia-e-gce-100"},
+			machine.DimCores:                     []string{"4"},
+			machine.DimOS:                        []string{"Debian", "Debian-10", "Debian-10.3", "Linux"},
+			machine.DimCPU:                       []string{"x86-64"},
+			machine.DimGPU:                       nil,
+			machine.DimGCE:                       []string{"1"},
+			machine.DimMachineType:               []string{"n1-highmem-2"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
 
-func TestProcess_Standalone_DockerInstalled_Sucecss(t *testing.T) {
+func TestProcess_Standalone_DockerInstalled_Success(t *testing.T) {
 	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
@@ -1364,6 +1368,7 @@ func TestProcess_Standalone_DockerInstalled_Sucecss(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-e-linux-100",
+			Version:   "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 			StartTime: eventTime,
 		},
 		LaunchedSwarming: true,
@@ -1384,12 +1389,14 @@ func TestProcess_Standalone_DockerInstalled_Sucecss(t *testing.T) {
 		LaunchedSwarming:   true,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:              []string{"skia-e-linux-100"},
-			machine.DimCores:           []string{"4"},
-			machine.DimOS:              []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
-			machine.DimCPU:             []string{"x86-64"},
-			machine.DimGPU:             nil,
-			machine.DimDockerInstalled: []string{"true"},
+			machine.DimID:                        []string{"skia-e-linux-100"},
+			machine.DimCores:                     []string{"4"},
+			machine.DimOS:                        []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			machine.DimCPU:                       []string{"x86-64"},
+			machine.DimGPU:                       nil,
+			machine.DimDockerInstalled:           []string{"true"},
+			machine.DimTestMachineMonitorVersion: []string{"2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"},
 		},
+		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }

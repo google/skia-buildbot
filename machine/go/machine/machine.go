@@ -49,22 +49,23 @@ func (s SwarmingDimensions) AsMetricsTags() map[string]string {
 
 // Well-known swarming dimensions:
 const (
-	DimID                     = "id"
-	DimOS                     = "os"
-	DimQuarantined            = "quarantined"
-	DimDeviceType             = "device_type"
-	DimAndroidDevices         = "android_devices"
-	DimChromeOSChannel        = "chromeos_channel"
-	DimChromeOSMilestone      = "chromeos_milestone"
-	DimChromeOSReleaseVersion = "release_version"
-	DimCores                  = "cores"
-	DimCPU                    = "cpu"
-	DimGPU                    = "gpu"
-	DimGCE                    = "gce"
-	DimMachineType            = "machine_type"
-	DimDockerInstalled        = "docker_installed"
-	DimTaskType               = "task_type"
-	DimPool                   = "pool"
+	DimID                        = "id"
+	DimOS                        = "os"
+	DimQuarantined               = "quarantined"
+	DimDeviceType                = "device_type"
+	DimAndroidDevices            = "android_devices"
+	DimChromeOSChannel           = "chromeos_channel"
+	DimChromeOSMilestone         = "chromeos_milestone"
+	DimChromeOSReleaseVersion    = "release_version"
+	DimCores                     = "cores"
+	DimCPU                       = "cpu"
+	DimGPU                       = "gpu"
+	DimGCE                       = "gce"
+	DimMachineType               = "machine_type"
+	DimDockerInstalled           = "docker_installed"
+	DimTestMachineMonitorVersion = "tmm_version"
+	DimTaskType                  = "task_type"
+	DimPool                      = "pool"
 
 	BadBatteryLevel = -99
 )
@@ -423,13 +424,14 @@ func (s *Standalone) IsPopulated() bool {
 
 // Event is the information a machine should send via Source when its local state has changed.
 type Event struct {
-	EventType           EventType  `json:"type"`
-	Android             Android    `json:"android"`
-	ChromeOS            ChromeOS   `json:"chromeos"`
-	IOS                 IOS        `json:"ios"`
-	Standalone          Standalone `json:"standalone"`
-	Host                Host       `json:"host"`
-	RunningSwarmingTask bool       `json:"running_swarming_task"`
+	EventType                 EventType  `json:"type"`
+	Android                   Android    `json:"android"`
+	ChromeOS                  ChromeOS   `json:"chromeos"`
+	IOS                       IOS        `json:"ios"`
+	Standalone                Standalone `json:"standalone"`
+	Host                      Host       `json:"host"`
+	TestMachineMonitorVersion string     `json:"tmm_version"`
+	RunningSwarmingTask       bool       `json:"running_swarming_task"`
 
 	// ForcedQuarantine is true if a TaskDriver or Recipe wrote a file $HOME/${MACHINE_ID}.force_quarantine.
 	ForcedQuarantine bool `json:"forced_quarantine"`

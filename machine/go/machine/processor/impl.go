@@ -184,6 +184,7 @@ func handleGeneralFields(ctx context.Context, current machine.Description, event
 	metrics2.GetBoolMetric("machine_processor_running_swarming_task", current.Dimensions.AsMetricsTags()).Update(current.RunningSwarmingTask)
 	current.LaunchedSwarming = event.LaunchedSwarming
 	current.Version = event.Host.Version
+	current.Dimensions[machine.DimTestMachineMonitorVersion] = []string{event.Host.Version}
 	return current
 }
 
