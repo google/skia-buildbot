@@ -359,8 +359,6 @@ export class ExploreSk extends ElementSk {
 
   private pivotDisplayButton: HTMLButtonElement | null = null;
 
-  private bisectDialog: HTMLDialogElement | null = null;
-
   private queryDialog: HTMLDialogElement | null = null;
 
   private fromParamsQueryDialog: HTMLDialogElement | null = null;
@@ -458,7 +456,6 @@ export class ExploreSk extends ElementSk {
             CSV
           </button>
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
-          <button @click=${ele.openBisect}>Bisect</button>
         </div>
       </div>
     </div>
@@ -685,7 +682,6 @@ export class ExploreSk extends ElementSk {
     this.fromParamsQueryDialog = this.querySelector(
       '#from-params-query-dialog'
     );
-    this.bisectDialog = this.querySelector('#bisect-dialog');
     this.helpDialog = this.querySelector('#help');
     this.commitRangeSk = this.querySelector('commit-range-sk');
 
@@ -729,10 +725,6 @@ export class ExploreSk extends ElementSk {
 
   private closeQueryDialog(): void {
     this.queryDialog!.close();
-  }
-
-  private closeBisectDialog(): void {
-    this.bisectDialog!.close();
   }
 
   private keyDown(e: KeyboardEvent) {
@@ -927,12 +919,6 @@ export class ExploreSk extends ElementSk {
   private openQuery() {
     this._render();
     this.queryDialog!.showModal();
-  }
-
-  /** Open the bisect dialog box. */
-  private openBisect() {
-    this._render();
-    this.bisectDialog!.showModal();
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
