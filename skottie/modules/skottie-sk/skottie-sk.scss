@@ -71,57 +71,6 @@ body.body-sk.font-sk {
         width: 250px;
         flex: 0 0 auto;
 
-        details {
-          display: block;
-          border: none;
-          padding: 0;
-          background: var(--surface-1dp);
-          border-bottom: solid var(--surface) 1px;
-          margin: 0;
-          padding: 0;
-
-          summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--surface-1dp);
-            display: flex;
-            color: var(--on-surface);
-            border-radius: 6px;
-            font-weight: bold;
-            box-shadow: none;
-            margin: 8px;
-
-            expand-more-icon-sk {
-              display: inline-block;
-              fill: var(--on-surface);
-            }
-
-            expand-less-icon-sk {
-              display: inline-block;
-              fill: var(--on-surface);
-              display: none;
-            }
-          }
-
-          summary:focus {
-            outline: dashed 1px var(--on-surface);
-            outline-offset: 4px;
-          }
-        }
-
-        details[open] {
-          summary {
-            expand-more-icon-sk {
-              display: none;
-            }
-
-            expand-less-icon-sk {
-              display: inline-block;
-            }
-          }
-        }
-
         .json-chooser {
           padding: 8px;
           border-bottom: solid var(--surface) 1px;

@@ -1,6 +1,14 @@
 @import '../themes/themes.scss';
 
 calendar-input-sk {
+  display: inline-flex;
+  align-items: center;
+
+  #cal-button {
+    margin-left: 4px;
+    padding: 4px;
+  }
+
   .invalid {
     display: none;
     color: var(--error);
@@ -8,13 +16,6 @@ calendar-input-sk {
 
   input:invalid + .invalid {
     display: inline-block;
-  }
-
-  button.calendar {
-    margin: 0;
-    min-width: 0;
-    padding: 0;
-    height: initial;
   }
 
   label input {

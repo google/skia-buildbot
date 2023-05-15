@@ -168,6 +168,7 @@ export class CalendarSk extends ElementSk {
     }
     return html`
       <button
+        class="action"
         @click=${ele.dateClick}
         data-date=${date}
         tabindex=${selected ? 0 : -1}

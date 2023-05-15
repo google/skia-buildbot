@@ -51,12 +51,10 @@ export class JobSk extends ElementSk {
   private static template = (ele: JobSk) => html`
     <div>
       <h2>Job ${ele.job!.name}</h2>
-      <button id="timeline">
-        <a href="/job/${ele.job!.id}/timeline">
-          <timeline-icon-sk></timeline-icon-sk>
-          View Timeline
-        </a>
-      </button>
+      <a class="button-like" href="/job/${ele.job!.id}/timeline">
+        <timeline-icon-sk></timeline-icon-sk>
+        View Timeline
+      </a>
       ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
         ? html`
             <button id="cancelButton" @click="${() => ele.cancel()}">

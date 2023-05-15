@@ -77,7 +77,7 @@ to see how these styles apply to title bars and sidebars.
     --mono-font: Roboto Mono, monospace;
 
     * {
-      font-size: 12px;
+      font-size: 14px;
       font-family: var(--font);
       box-sizing: border-box;
     }
@@ -94,16 +94,19 @@ to see how these styles apply to title bars and sidebars.
 
     h3 {
       font-size: 16px;
+      font-weight: 800;
       margin: 12px 0;
     }
 
     h4 {
       font-size: 14px;
+      font-weight: 800;
       margin: 10px 0;
     }
 
     h5 {
       font-size: 12px;
+      font-weight: 600;
       margin: 8px 0;
     }
 
@@ -167,16 +170,16 @@ to see how these styles apply to title bars and sidebars.
     --on-secondary: var(--background);
     --on-surface: #dddddd;
     --primary-variant: var(--light-blue-100);
-    --primary: #86b8e0; // #98b3f500
-    --secondary: var(--green-200);
+    --primary: #adc6ff; // #98b3f500
+    --secondary: #88d6bb;
     --surface-1dp: var(--grey-800);
     --surface-2dp: var(--grey-700);
     --surface: var(--grey-900);
     --transparent-overlay: rgba(255, 255, 255, 0.5);
 
     /* Additional semantic colors. */
-    --primary-highlight: var(--light-blue-900);
-    --secondary-highlight: var(--green-900);
+    --primary-highlight: #2b4678;
+    --secondary-highlight: #00513f;
     --on-hightlight: var(--grey-100);
 
     --failure-alpha: rgba(217, 95, 2, 0.5);
@@ -211,67 +214,118 @@ to see how these styles apply to title bars and sidebars.
 
   .button-like,
   button {
-    min-width: auto;
-    text-align: center;
+    align-items: center;
+    background: transparent;
     border-radius: 4px;
-    text-transform: none;
-    background: var(--primary);
-    color: var(--on-primary);
-    fill: var(--on-primary);
-    padding: 4px;
-    height: fit-content;
+    border: solid 1px var(--on-surface);
+    box-shadow: none;
+    color: var(--primary);
+    display: inline-flex;
+    fill: var(--primary);
+    font-size: 14px;
+    height: 24px;
+    justify-content: center;
     margin: 8px 2px;
-    outline: none;
-    border: none;
-    box-shadow: 2px 2px 0px 0px var(--surface-2dp);
+    min-width: auto;
+    padding: 0 12px;
+    text-align: center;
+    text-transform: none;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 
-  .button-like.fab,
-  button.fab {
-    border-radius: 50%;
-    border: none;
-    padding: 10px;
-    width: 48px;
-    height: 48px;
-    min-width: 0px;
-    font-weight: bold;
-    font-size: 22px;
+  .button-like.large,
+  button.large {
+    height: 36px;
+    padding: 0 18px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 
   .button-like:hover,
-  button:hover {
-    background: var(--secondary);
-  }
-
-  .button-like.icon,
-  button.icon {
-    border: none;
-    box-shadow: none;
-  }
-
-  .button-like.action,
-  button.action {
-    box-shadow: 2px 2px 0px 0px var(--surface-2dp);
-    border: solid 1px var(--on-surface);
-  }
-
-  .button-like:active,
-  button:active {
-    box-shadow: none;
-    transition: box-shadow 0.2s ease-in;
+  button.hover,
+  button:hover,
+  .button-like:focus,
+  button.focus,
+  button:focus {
+    opacity: 0.85;
+    outline: none;
+    background-color: var(--surface-1dp);
   }
 
   .button-like:disabled,
   button:disabled {
-    opacity: 0.5;
+    opacity: 0.85;
+    background: var(--on-disabled);
+    color: var(--disabled);
+    fill: var(--disabled);
+  }
+
+  .button-like-action,
+  .button-like.action,
+  button.action {
+    color: var(--on-primary);
+    fill: var(--on-primary);
+    border: none;
+    background-color: var(--primary);
+  }
+
+  .button-like.action:hover,
+  button.action.hover,
+  button.action:hover {
+    @extend .button-like-action;
+    opacity: 0.85;
+  }
+
+  .button-like.action:disabled,
+  button.action.disabled,
+  button.action:disabled {
+    @extend .button-like-action;
+    opacity: 0.85;
+    background: var(--on-disabled);
+    color: var(--disabled);
+    fill: var(--disabled);
+  }
+
+  .button-like-fab,
+  .button-like.fab,
+  button.fab {
+    @extend .button-like;
+    background-color: var(--primary-highlight);
+    border-radius: 24px;
+    border: none;
+    color: var(--on-hightlight);
+    fill: var(--on-hightlight);
+    font-size: 22px;
+    height: 48px;
+    min-width: 48px;
+    padding: 10px;
+    width: auto;
+  }
+
+  .button-like.fab:hover,
+  button.fab:hover {
+    @extend .button-like-fab;
+    opacity: 0.85;
+  }
+
+  .button-like.fab:disabled,
+  button.fab:disabled {
+    @extend .button-like-fab;
+    opacity: 0.85;
     background: var(--on-disabled);
     color: var(--disabled);
     fill: var(--disabled);
   }
 
   multi-select-sk:focus,
-  select-sk:focus,
-  button:focus {
+  select-sk:focus {
     outline: dashed 1px var(--on-surface);
     outline-offset: -4px;
   }
@@ -331,23 +385,31 @@ to see how these styles apply to title bars and sidebars.
     padding: 4px;
   }
 
-  button:focus {
-    outline: dashed 1px var(--on-surface);
-    outline-offset: -4px;
-  }
-
   tabs-sk {
+    display: inline-flex;
+
     > button,
     > .button-like {
       border: none;
-      border-bottom: solid 4px var(--on-surface);
+      border-bottom: solid 4px transparent;
       box-shadow: none;
       border-radius: 0;
+      opacity: 0.85;
+      margin-bottom: 0px;
+      fill: var(--on-background);
+      color: var(--on-background);
     }
     > button.selected,
     > .button-like.selected {
       border-bottom: solid 4px var(--primary);
+      fill: var(--primary);
+      color: var(--primary);
     }
+  }
+
+  tabs-panel-sk {
+    margin-top: 0;
+    border-top: solid 1px var(--on-background);
   }
 
   /*
@@ -358,15 +420,9 @@ to see how these styles apply to title bars and sidebars.
   details {
     summary {
       @extend .button-like;
-      display: inline-block;
       cursor: pointer;
       list-style: none;
       margin: 8px 4px 8px 0;
-    }
-
-    summary:focus {
-      outline: dashed 1px var(--on-surface);
-      outline-offset: -4px;
     }
 
     summary::-webkit-details-marker {
@@ -388,6 +444,46 @@ to see how these styles apply to title bars and sidebars.
     summary {
       margin-top: 8px;
       margin-bottom: 8px;
+    }
+  }
+
+  details.expando {
+    display: block;
+    border: none;
+    margin: 0 8px;
+    padding: 8px;
+    background-color: var(--surface-1dp);
+    border-radius: 8px;
+
+    summary {
+      align-items: center;
+      border: none;
+      display: flex;
+      font-weight: 500;
+      justify-content: space-between;
+      margin: 8px 0;
+      padding: 0;
+      border-radius: 0;
+
+      expand-more-icon-sk {
+        display: inline-block;
+      }
+
+      expand-less-icon-sk {
+        display: none;
+      }
+    }
+  }
+
+  details.expando[open] {
+    summary {
+      expand-more-icon-sk {
+        display: none;
+      }
+
+      expand-less-icon-sk {
+        display: inline-block;
+      }
     }
   }
 

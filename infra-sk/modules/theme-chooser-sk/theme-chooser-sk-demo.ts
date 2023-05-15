@@ -22,6 +22,9 @@ import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../elements-sk/modules/icons/link-icon-sk';
 import '../../../elements-sk/modules/icons/menu-icon-sk';
 import '../../../elements-sk/modules/icons/warning-icon-sk';
+import '../../../elements-sk/modules/icons/expand-less-icon-sk';
+import '../../../elements-sk/modules/icons/expand-more-icon-sk';
+import '../../../perf/modules/calendar-input-sk';
 import '../app-sk';
 
 // Force the element to use the default mode set in the elements attribute.
@@ -205,4 +208,14 @@ document.querySelector('#hide-toast')?.addEventListener('click', () => {
 
 document.querySelector('#show-error-toast')?.addEventListener('click', () => {
   errorMessage('Oh no, there was a problem!', 0);
+});
+
+document.querySelectorAll("[data-show='1']").forEach((ele) => {
+  const pre = document.createElement('pre');
+
+  const dup = ele.cloneNode(true) as Element;
+  dup.removeAttribute('data-show');
+
+  pre.innerText = dup.outerHTML.replace('=""', '');
+  ele.parentElement?.insertBefore(pre, ele);
 });

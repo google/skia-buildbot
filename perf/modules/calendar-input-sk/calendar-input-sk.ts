@@ -50,7 +50,8 @@ export class CalendarInputSk extends ElementSk {
       </span>
     </label>
     <button
-      class="calendar"
+      id="cal-button"
+      class="action"
       @click=${ele.openHandler}
       title="Open calendar dialog to choose the date."
     >

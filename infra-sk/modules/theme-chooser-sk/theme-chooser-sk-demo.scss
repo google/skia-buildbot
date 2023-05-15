@@ -21,4 +21,16 @@
   section {
     margin: 0 8px;
   }
+
+  pre {
+    color: green;
+    margin-left: 24px;
+  }
+
+  section.group {
+    background-color: var(--surface);
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
 }

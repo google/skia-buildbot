@@ -42,11 +42,11 @@ triage2-sk {
   button {
     background: var(--surface);
     margin-right: 8px;
+    padding: 4px;
   }
 
   .positive {
     fill: var(--green-700);
-    padding: 4px;
   }
 
   .negative {

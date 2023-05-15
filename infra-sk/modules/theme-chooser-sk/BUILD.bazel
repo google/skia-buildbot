@@ -53,6 +53,9 @@ sk_page(
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
         "//elements-sk/modules/toast-sk",
+        "//elements-sk/modules/icons/expand-less-icon-sk",
+        "//elements-sk/modules/icons/expand-more-icon-sk",
+        "//perf/modules/calendar-input-sk",
     ],
     ts_deps = [
         "@npm//lit-html",

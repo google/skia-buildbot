@@ -283,7 +283,7 @@ export class SkottieSk extends ElementSk {
 
   private embedDialog() {
     return html`
-      <details class="embed">
+      <details class="embed expando">
         <summary id="embed-open">
           <span>Embed</span><expand-less-icon-sk></expand-less-icon-sk
           ><expand-more-icon-sk></expand-more-icon-sk>
@@ -321,7 +321,7 @@ export class SkottieSk extends ElementSk {
       <div class="json-chooser">
         <div class="title">JSON File</div>
         <div class="upload-download">
-          <button class="edit-config" @click=${this.startEdit}>
+          <button class="edit-config large" @click=${this.startEdit}>
             ${this.state.filename} ${this.width}x${this.height} ...
           </button>
           <div class="download">
@@ -354,7 +354,7 @@ export class SkottieSk extends ElementSk {
   `;
 
   private optionsDialog = () => html`
-    <details>
+    <details class="expando">
       <summary id="options-open">
         <span>Options</span><expand-less-icon-sk></expand-less-icon-sk
         ><expand-more-icon-sk></expand-more-icon-sk>
@@ -374,6 +374,7 @@ export class SkottieSk extends ElementSk {
     renderByDomain(
       html`
         <details
+          class="expando"
           ?open=${this.showAudio}
           @toggle=${(e: Event) =>
             this.toggleAudio((e.target! as HTMLDetailsElement).open)}
@@ -423,6 +424,7 @@ export class SkottieSk extends ElementSk {
   };
 
   private library = () => html` <details
+    class="expando"
     ?open=${this.showLibrary}
     @toggle=${(e: Event) =>
       this.toggleLibrary((e.target! as HTMLDetailsElement).open)}
@@ -477,6 +479,7 @@ export class SkottieSk extends ElementSk {
 
   private jsonTextEditor = () => html`
     <details
+      class="expando"
       ?open=${this.showTextEditor}
       @toggle=${(e: Event) =>
         this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}
@@ -497,6 +500,7 @@ export class SkottieSk extends ElementSk {
 
   private shaderEditor = () => html`
     <details
+      class="expando"
       ?open=${this.showShaderEditor}
       @toggle=${(e: Event) =>
         this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}
