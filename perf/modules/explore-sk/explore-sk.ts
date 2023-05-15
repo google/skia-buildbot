@@ -456,6 +456,9 @@ export class ExploreSk extends ElementSk {
             CSV
           </button>
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
+          <button .hide=${
+            window.perf.fetch_chrome_perf_anomalies ? false : true
+          }>Bisect</button>
         </div>
       </div>
     </div>

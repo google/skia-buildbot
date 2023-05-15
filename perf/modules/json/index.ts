@@ -220,6 +220,7 @@ export interface SkPerfConfig {
 	display_group_by: boolean;
 	hide_list_of_commits_on_explore: boolean;
 	no_email: boolean;
+	fetch_chrome_perf_anomalies: boolean;
 }
 
 export interface TriageRequest {

@@ -16,6 +16,7 @@ window.perf = {
   display_group_by: true,
   hide_list_of_commits_on_explore: false,
   no_email: false,
+  fetch_chrome_perf_anomalies: false,
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

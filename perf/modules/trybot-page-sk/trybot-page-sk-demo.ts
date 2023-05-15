@@ -17,6 +17,7 @@ window.perf = {
   display_group_by: true,
   hide_list_of_commits_on_explore: false,
   no_email: false,
+  fetch_chrome_perf_anomalies: false,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

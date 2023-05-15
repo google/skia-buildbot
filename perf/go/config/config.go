@@ -293,6 +293,7 @@ type FrontendFlags struct {
 	StepUpOnly                     bool
 	DisplayGroupBy                 bool
 	HideListOfCommitsOnExplore     bool
+	FetchChromePerfAnomalies       bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -431,6 +432,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "hide_list_of_commits_on_explore",
 			Value:       false,
 			Usage:       "Hide the commit-detail-panel-sk element on the Explore details tab.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.FetchChromePerfAnomalies,
+			Name:        "fetch_chrome_perf_anomalies",
+			Value:       false,
+			Usage:       "Fetch anomalies and show the bisect button",
 		},
 	}
 }

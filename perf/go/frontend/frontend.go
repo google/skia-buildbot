@@ -211,6 +211,7 @@ type SkPerfConfig struct {
 	DisplayGroupBy             bool     `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
 	HideListOfCommitsOnExplore bool     `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
 	NoEmail                    bool     `json:"no_email"`                        // If true then hide all controls for setting and sending emails.
+	FetchChromePerfAnomalies   bool     `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
