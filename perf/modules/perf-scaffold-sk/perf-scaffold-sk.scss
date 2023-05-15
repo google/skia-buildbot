@@ -1,7 +1,7 @@
 @import '../themes/themes.scss';
 
 perf-scaffold-sk app-sk {
-  --sidebar-width: 110px;
+  --sidebar-width: 130px;
 
   main {
     width: calc(100vw - var(--sidebar-width));
