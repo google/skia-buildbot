@@ -13,6 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/vec32",
+        "//perf/go/anomalies",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/git",
@@ -31,6 +32,9 @@ go_test(
     embed = [":frame"],
     deps = [
         "//go/testutils",
+        "//perf/go/anomalies",
+        "//perf/go/anomalies/cache",
+        "//perf/go/anomalies/chrome/mock",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/dataframe/mocks",

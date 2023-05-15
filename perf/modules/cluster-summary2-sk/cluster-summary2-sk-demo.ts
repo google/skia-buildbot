@@ -117,6 +117,7 @@ const frame: FrameResponse = {
   skps: [],
   msg: '',
   display_mode: 'display_plot',
+  anomalymap: {},
 };
 
 const triage: TriageStatus = {

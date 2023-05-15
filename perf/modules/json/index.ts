@@ -87,11 +87,33 @@ export interface DataFrame {
 	skip: number;
 }
 
+export interface Anomaly {
+	Id: string;
+	TestPath: string;
+	BugId: string;
+	StartRevision: number;
+	EndRevision: number;
+	IsImprovement: boolean;
+	Recovered: boolean;
+	State: string;
+	Statistics: string;
+	Unit: string;
+	DegreeOfFreedom: number;
+	MedianBeforeAnomaly: number;
+	MedianAfterAnomaly: number;
+	PValue: number;
+	SegmentSizeAfter: number;
+	SegmentSizeBefore: number;
+	StdDevBeforeAnomaly: number;
+	TStatistics: number;
+}
+
 export interface FrameResponse {
 	dataframe: DataFrame | null;
 	skps: number[] | null;
 	msg: string;
 	display_mode: FrameResponseDisplayMode;
+	anomalymap: AnomalyMap;
 }
 
 export interface TriageStatus {
@@ -340,6 +362,10 @@ export type StepFitStatus = 'Low' | 'High' | 'Uninteresting';
 export type CommitNumber = number;
 
 export type FrameResponseDisplayMode = 'display_query_only' | 'display_plot' | 'display_pivot_table' | 'display_pivot_plot' | 'display_spinner';
+
+export type CommitNumberAnomalyMap = { [key: number]: Anomaly } | null;
+
+export type AnomalyMap = { [key: string]: CommitNumberAnomalyMap } | null;
 
 export type Status = '' | 'positive' | 'negative' | 'untriaged';
 

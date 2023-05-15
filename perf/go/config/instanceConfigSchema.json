@@ -149,6 +149,9 @@
         "invalid_param_char_regex": {
           "type": "string"
         },
+        "fetch_chrome_perf_anomalies": {
+          "type": "boolean"
+        },
         "auth_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/AuthConfig"

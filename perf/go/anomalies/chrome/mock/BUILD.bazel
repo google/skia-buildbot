@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mock",
+    srcs = [
+        "Store.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/anomalies/chrome/mock",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/anomalies",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

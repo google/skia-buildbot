@@ -1,0 +1,30 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cache",
+    srcs = ["cache.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalies/cache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/anomalies",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+    ],
+)
+
+go_test(
+    name = "cache_test",
+    srcs = ["cache_test.go"],
+    embed = [":cache"],
+    deps = [
+        "//perf/go/anomalies",
+        "//perf/go/anomalies/chrome/mock",
+        "//perf/go/dataframe",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

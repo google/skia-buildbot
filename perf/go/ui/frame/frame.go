@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -102,6 +103,7 @@ type FrameResponse struct {
 	Skps        []int                `json:"skps"`
 	Msg         string               `json:"msg"`
 	DisplayMode ResponseDisplayMode  `json:"display_mode"`
+	AnomalyMap  anomalies.AnomalyMap `json:"anomalymap"`
 }
 
 // frameRequestProcess keeps track of a running Go routine that's
@@ -127,7 +129,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -150,6 +152,8 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgi
 	if err != nil {
 		return ret.reportError(err, "Failed to get skps.")
 	}
+
+	addAnomaliesToResponse(resp, anomalyStore)
 
 	ret.request.Progress.Results(resp)
 	return nil
@@ -225,6 +229,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 			return nil, p.reportError(err, "Pivot failed.")
 		}
 	}
+
 	return df, nil
 }
 
@@ -300,6 +305,29 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 		Skps:        skps,
 		DisplayMode: displayMode,
 	}, nil
+}
+
+// addAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
+func addAnomaliesToResponse(response *FrameResponse, anomalyStore anomalies.Store) {
+	df := response.DataFrame
+	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
+		startCommitPosition := df.Header[0].Offset
+		endCommitPosition := df.Header[len(df.Header)-1].Offset
+		traceNames := make([]string, 0)
+		for traceName := range df.TraceSet {
+			traceNames = append(traceNames, traceName)
+		}
+
+		// Fetch Chrome Perf anomalies.
+		anomalyMap, err := anomalyStore.GetAnomalies(traceNames, int(startCommitPosition), int(endCommitPosition))
+		if err != nil {
+			// Won't fail the frame request if there was error while fetching the Chrome Perf anomaly,
+			sklog.Errorf("Failed to fetch anomalies from anomaly store. %s", err)
+		}
+
+		// Attach anomaly map to DataFrame
+		response.AnomalyMap = anomalyMap
+	}
 }
 
 // doSearch applies the given query and returns a dataframe that matches the

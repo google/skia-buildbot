@@ -1,0 +1,24 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "chrome",
+    srcs = ["chrome.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalies/chrome",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/sklog",
+        "//perf/go/anomalies",
+    ],
+)
+
+go_test(
+    name = "chrome_test",
+    srcs = ["chrome_test.go"],
+    embed = [":chrome"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

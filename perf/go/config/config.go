@@ -496,6 +496,9 @@ type InstanceConfig struct {
 	// they can never be allowed.
 	InvalidParamCharRegex string `json:"invalid_param_char_regex,omitempty"`
 
+	// FetchChromePerfAnomalies if true means fetch anomalies from Chrome Perf
+	FetchChromePerfAnomalies bool `json:"fetch_chrome_perf_anomalies,omitempty"`
+
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`

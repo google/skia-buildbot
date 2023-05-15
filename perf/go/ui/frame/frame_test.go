@@ -13,6 +13,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/anomalies"
+	"go.skia.org/infra/perf/go/anomalies/cache"
+	anomaliesStockMock "go.skia.org/infra/perf/go/anomalies/chrome/mock"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
@@ -34,6 +37,58 @@ var (
 	testTimeEnd   = time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC)
 	errTestError  = errors.New("my test error")
 )
+
+const (
+	traceName1 = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+	traceName2 = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test2,"
+
+	testPath1 = "ChromiumPerf/MacM1/Blazor/test1"
+	testPath2 = "ChromiumPerf/MacM1/Blazor/test2"
+
+	startCommitPosition = 11
+	endCommitPosition   = 21
+)
+
+var anomaly1 = anomalies.Anomaly{
+	Id:            "anomalyId1",
+	TestPath:      testPath1,
+	StartRevision: startCommitPosition,
+	EndRevision:   endCommitPosition,
+	IsImprovement: false,
+	Recovered:     false,
+	State:         "unknown",
+	Statistics:    "avg",
+	Unit:          "ms",
+	PValue:        1.1,
+}
+var anomaly2 = anomalies.Anomaly{
+	Id:            "anomalyId2",
+	TestPath:      testPath2,
+	StartRevision: startCommitPosition,
+	EndRevision:   endCommitPosition,
+	IsImprovement: false,
+	Recovered:     false,
+	State:         "unknown",
+	Statistics:    "avg",
+	Unit:          "ms",
+	PValue:        2.2,
+}
+
+var chromePerfAnomalyMap = anomalies.AnomalyMap{
+	traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
+	traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
+}
+
+var traceSet = types.TraceSet{
+	traceName1: types.Trace([]float32{1.2, 2.1}),
+	traceName2: types.Trace([]float32{1.3, 3.1}),
+}
+
+var traceNames = []string{traceName1, traceName2}
+
+var testPathes = []string{testPath1, testPath2}
+
+var errMock = errors.New("this is my mock test error")
 
 func TestGetSkps_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
@@ -100,7 +155,7 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
 		Progress: progress.New(),
 	}
-	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil)
+	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil)
 	require.Error(t, err)
 	var b bytes.Buffer
 	err = fr.Progress.JSON(&b)
@@ -424,4 +479,49 @@ func TestResponseFromDataFrame_ValidPivotRequestForPivotTable_ReturnsDisplayMode
 	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
 	require.NoError(t, err)
 	require.Equal(t, DisplayPivotTable, resp.DisplayMode)
+}
+
+func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
+	resp := buildResponse(t)
+
+	mockChromePerf := anomaliesStockMock.NewStore(t)
+	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+
+	anomayStore, err := cache.New(mockChromePerf)
+	require.NoError(t, err)
+
+	addAnomaliesToResponse(resp, anomayStore)
+
+	expectedAnomalyMap := anomalies.AnomalyMap{
+		traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
+		traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
+	}
+	assert.Equal(t, expectedAnomalyMap, resp.AnomalyMap)
+}
+
+func TestAddAnomaliesToResponse_ErrorGetAnomalies_GotEmptyAnomalyMap(t *testing.T) {
+	resp := buildResponse(t)
+
+	mockChromePerf := anomaliesStockMock.NewStore(t)
+	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
+
+	anomayStore, err := cache.New(mockChromePerf)
+	require.NoError(t, err)
+
+	addAnomaliesToResponse(resp, anomayStore)
+	assert.Equal(t, anomalies.AnomalyMap{}, resp.AnomalyMap)
+}
+
+func buildResponse(t *testing.T) *FrameResponse {
+	_, df, _ := frameRequestForTest(t)
+	df.TraceSet = traceSet
+	df.Header[0].Offset = types.CommitNumber(startCommitPosition)
+	df.Header[len(df.Header)-1].Offset = types.CommitNumber(endCommitPosition)
+	pivotRequest := &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Sum,
+	}
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
+	require.NoError(t, err)
+	return resp
 }

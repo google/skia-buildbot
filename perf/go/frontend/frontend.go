@@ -40,6 +40,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/anomalies"
+	"go.skia.org/infra/perf/go/anomalies/cache"
+	"go.skia.org/infra/perf/go/anomalies/chrome"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -133,6 +136,8 @@ type Frontend struct {
 
 	// The HOST parsed out of Config.URL.
 	host string
+
+	anomalyStore anomalies.Store
 }
 
 // New returns a new Frontend instance.
@@ -366,6 +371,13 @@ func (f *Frontend) initialize() {
 	sklog.Info("About to build dfbuilder.")
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore, f.flags.NumParamSetsForQueries)
 
+	if config.Config.FetchChromePerfAnomalies {
+		f.anomalyStore, err = cache.New(chrome.New())
+		if err != nil {
+			sklog.Fatal("Failed to build anomalies.Store: %s", err)
+		}
+	}
+
 	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
 	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
 
@@ -573,7 +585,7 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(fr.Progress)
 
 	go func() {
-		err := frame.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+		err := frame.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore)
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {

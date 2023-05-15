@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "anomalies",
+    srcs = ["anomalies.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalies",
+    visibility = ["//visibility:public"],
+    deps = ["//perf/go/types"],
+)
