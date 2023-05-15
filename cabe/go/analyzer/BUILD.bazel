@@ -5,22 +5,31 @@ go_library(
     name = "analyzer",
     srcs = [
         "analyzer.go",
+        "checker.go",
+        "internal_types.go",
         "perf_results_parser.go",
     ],
     importpath = "go.skia.org/infra/cabe/go/analyzer",
     visibility = ["//visibility:private"],
     deps = [
         "//cabe/go/proto:go_proto_lib",
+        "//go/sklog",
+        "//go/util",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
 
 go_test(
     name = "analyzer_test",
-    srcs = ["analyzer_test.go"],
+    srcs = [
+        "analyzer_test.go",
+        "checker_test.go",
+        "internal_types_test.go",
+    ],
     embed = [":analyzer"],
     deps = [
         "//cabe/go/proto:go_proto_lib",
+        "//go/util",
         "@com_github_google_go_cmp//cmp",
         "@com_github_google_go_cmp//cmp/cmpopts",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
