@@ -122,6 +122,9 @@ func main() {
 	if !checkGenerateProber(ctx) {
 		os.Exit(1)
 	}
+	if !checkStagesSync(ctx) {
+		os.Exit(1)
+	}
 
 	os.Exit(0)
 }
@@ -200,6 +203,10 @@ func checkGenerateClustersFromTemplates(ctx context.Context) bool {
 		ok = ok && checkDiffs(ctx, "./templates/generate.sh", []string{clusterJson}, []string{".yaml", ".yml"})
 	}
 	return ok
+}
+
+func checkStagesSync(ctx context.Context) bool {
+	return checkDiffs(ctx, "./pipeline/generate.sh", nil, []string{".yaml", ".yml"})
 }
 
 func checkAlertRules(ctx context.Context, changedFiles []fileWithChanges) bool {
