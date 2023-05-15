@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "stagemanager_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cd/cmd/stagemanager",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//cd/go/stages",
+        "//go/docker",
+        "//go/skerr",
+        "//go/vfs",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_binary(
+    name = "stagemanager",
+    embed = [":stagemanager_lib"],
+    visibility = ["//visibility:public"],
+)

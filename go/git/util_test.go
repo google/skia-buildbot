@@ -272,3 +272,34 @@ func TestGetStringFooterVal(t *testing.T) {
 		require.Equal(t, test.expectedOutput, GetStringFooterVal(test.footersMap, test.footer))
 	}
 }
+
+func TestIsCommitHash(t *testing.T) {
+	test := func(s string, expect bool, name string) {
+		require.Equal(t, expect, IsCommitHash(s))
+	}
+	test("", false, "empty")
+	test("abc123", false, "too short")
+	test(".*", false, "invalid characters")
+	test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, "slightly too short")
+	test("gggggggggggggggggggggggggggggggggggggggg", false, "g is not valid")
+	test("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", false, "capitals not valid")
+	test("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", false, "too long")
+
+	test("0000000000000000000000000000000000000000", true, "valid 0")
+	test("1111111111111111111111111111111111111111", true, "valid 1")
+	test("2222222222222222222222222222222222222222", true, "valid 2")
+	test("3333333333333333333333333333333333333333", true, "valid 3")
+	test("4444444444444444444444444444444444444444", true, "valid 4")
+	test("5555555555555555555555555555555555555555", true, "valid 5")
+	test("6666666666666666666666666666666666666666", true, "valid 6")
+	test("7777777777777777777777777777777777777777", true, "valid 7")
+	test("8888888888888888888888888888888888888888", true, "valid 8")
+	test("9999999999999999999999999999999999999999", true, "valid 9")
+	test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true, "valid a")
+	test("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", true, "valid b")
+	test("cccccccccccccccccccccccccccccccccccccccc", true, "valid c")
+	test("dddddddddddddddddddddddddddddddddddddddd", true, "valid d")
+	test("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", true, "valid e")
+	test("ffffffffffffffffffffffffffffffffffffffff", true, "valid f")
+	test("e2e44d8f6febe328c7da13feaec3fc4710b41bae", true, "real hash")
+}
