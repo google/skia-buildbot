@@ -157,6 +157,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// All endpoints that require authentication should be added to this router.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/", srv.indexHandler)
+	appRouter.HandleFunc("/_/loging/status", alogin.LoginStatusHandler(plogin))
 	appRouter.HandleFunc(myLeasesURI, srv.myLeasesHandler)
 	appRouter.HandleFunc(allLeasesURI, srv.allLeasesHandler)
 	appRouter.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
