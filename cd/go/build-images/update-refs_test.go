@@ -42,11 +42,10 @@ container_pull(
     repository = "skia-public/cd-base",
 )`
 	image := &SingleImageInfo{
-		Image:  "gcr.io/skia-public/cd-base",
-		Tag:    "unused",
-		Sha256: "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71",
+		Image: "gcr.io/skia-public/cd-base",
+		Tag:   "unused",
 	}
-	regex, replace := bazelRegexAndReplaceForImage(image)
+	regex, replace := bazelRegexAndReplaceForImage(image, "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71")
 	updatedContents := regex.ReplaceAllString(fileContents, replace)
 	require.Equal(t, expectedContents, updatedContents)
 }

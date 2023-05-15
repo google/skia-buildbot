@@ -182,9 +182,8 @@ type buildImagesJSON struct {
 }
 
 type SingleImageInfo struct {
-	Image  string `json:"image"`
-	Tag    string `json:"tag"`
-	Sha256 string `json:"sha256"`
+	Image string `json:"image"`
+	Tag   string `json:"tag"`
 }
 
 // readBuildImagesJSON reads the buildImagesJSONFile.

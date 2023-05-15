@@ -5,16 +5,20 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"go.skia.org/infra/cd/go/cd"
+	"go.skia.org/infra/cd/go/stages"
+	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vfs"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -32,28 +36,6 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		return td.FailStep(ctx, err)
 	}
 
-	imageInfo, err := readBuildImagesJSON(ctx, workspace)
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-
-	// First, obtain the sha256 sums for the images.
-	for _, image := range imageInfo.Images {
-		imageAndTag := fmt.Sprintf("%s:%s", image.Image, image.Tag)
-		if _, err := exec.RunCwd(ctx, ".", "docker", "pull", imageAndTag); err != nil {
-			return td.FailStep(ctx, err)
-		}
-		output, err := exec.RunCwd(ctx, ".", "docker", "inspect", "--format='{{index .RepoDigests 0}}'", imageAndTag)
-		if err != nil {
-			return td.FailStep(ctx, err)
-		}
-		split := strings.Split(strings.TrimSpace(output), "@")
-		if len(split) != 2 {
-			return td.FailStep(ctx, skerr.Fmt("Failed to obtain sha256 sum for %s; expected <image>@<sha256> but got %q", image.Image, output))
-		}
-		image.Sha256 = strings.TrimSuffix(strings.TrimPrefix(split[1], "sha256:"), "'")
-	}
-
 	// Create a shallow clone of the repo.
 	checkoutDir, err := shallowClone(ctx, repo, git.DefaultRef)
 	if err != nil {
@@ -69,19 +51,58 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 		return td.FailStep(ctx, err)
 	}
 
+	// Read the stage file from the repo.
+	stageFile, err := stages.DecodeFile(filepath.Join(checkoutDir, stages.StageFilePath))
+	if err != nil {
+		if os.IsNotExist(skerr.Unwrap(err)) {
+			stageFile = &stages.StageFile{
+				Images: map[string]*stages.Image{},
+			}
+		} else {
+			return td.FailStep(ctx, err)
+		}
+	}
+
+	// Read the information about the images we built.
+	imageInfo, err := readBuildImagesJSON(ctx, workspace)
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+
 	// Find-and-replace each of the image references.
 	if err := td.Do(ctx, td.Props("Update Image References"), func(ctx context.Context) error {
 		imageRegexes := make([]*regexp.Regexp, 0, len(imageInfo.Images))
 		imageReplace := make([]string, 0, len(imageInfo.Images))
 		for _, image := range imageInfo.Images {
-			// Update instances of "image/path@sha256:digest"
-			imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
-			imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, image.Sha256))
+			registry, repository, _, err := docker.SplitImage(image.Image)
+			if err != nil {
+				return err
+			}
+			dockerClient, err := docker.NewClient(ctx)
+			if err != nil {
+				return err
+			}
+			if _, ok := stageFile.Images[image.Image]; ok {
+				// Use the stagemanager to update the image references.
+				sm := stages.NewStageManager(ctx, vfs.Local(checkoutDir), dockerClient)
+				if err := sm.SetStage(ctx, image.Image, "latest", image.Tag); err != nil {
+					return err
+				}
+			} else {
+				// Retrieve the digest and perform a simple find-and-replace.
+				manifest, err := dockerClient.GetManifest(ctx, registry, repository, image.Tag)
+				if err != nil {
+					return err
+				}
+				// Update instances of "image/path@sha256:digest"
+				imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
+				imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, manifest.Digest))
 
-			// Replace Bazel container_pull specifications.
-			bazelRegex, bazelReplace := bazelRegexAndReplaceForImage(image)
-			imageRegexes = append(imageRegexes, bazelRegex)
-			imageReplace = append(imageReplace, bazelReplace)
+				// Replace Bazel container_pull specifications.
+				bazelRegex, bazelReplace := bazelRegexAndReplaceForImage(image, manifest.Digest)
+				imageRegexes = append(imageRegexes, bazelRegex)
+				imageReplace = append(imageReplace, bazelReplace)
+			}
 		}
 		return filepath.WalkDir(checkoutDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
@@ -125,11 +146,11 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
 }
 
-func bazelRegexAndReplaceForImage(image *SingleImageInfo) (*regexp.Regexp, string) {
+func bazelRegexAndReplaceForImage(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {
 	const regexTmpl = `(container_pull\(\s*name\s*=\s*"%s",\s*digest\s*=\s*)"sha256:[a-f0-9]+",`
 	regex := regexp.MustCompile(fmt.Sprintf(regexTmpl, path.Base(image.Image)))
 
 	const replTmpl = `$1"%s",`
-	replace := fmt.Sprintf(replTmpl, image.Sha256)
+	replace := fmt.Sprintf(replTmpl, digest)
 	return regex, replace
 }
