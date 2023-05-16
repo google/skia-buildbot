@@ -1,0 +1,18 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "replaybackends",
+    srcs = ["replaybackends.go"],
+    importpath = "go.skia.org/infra/cabe/go/replaybackends",
+    visibility = ["//visibility:public"],
+    deps = ["//cabe/go/analyzer"],
+)
+
+go_test(
+    name = "replaybackends_test",
+    srcs = ["replaybackends_test.go"],
+    data = ["@cabe_replay_data//:all_files"],
+    embed = [":replaybackends"],
+    deps = ["//bazel/go/bazel"],
+)

@@ -11,7 +11,7 @@ go_library(
         "perf_results_parser.go",
     ],
     importpath = "go.skia.org/infra/cabe/go/analyzer",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "//go/sklog",
