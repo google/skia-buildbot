@@ -8,7 +8,8 @@
     // no pluses.
     "ianhickson@gmail.com",
     "lavidalovett@gmail.com",
-    "taha@nevercode.io"
+    "taha@nevercode.io",
+    "coldpalelight@gmail.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
   frontend: {
