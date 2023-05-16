@@ -11,6 +11,17 @@ type PerfResults struct {
 	RelatedNameMaps []RelatedNameMap
 }
 
+// NonEmptyHistogramNames returns a list of names of histograms whose SampleValues arrays are non-empty.
+func (pr *PerfResults) NonEmptyHistogramNames() []string {
+	ret := []string{}
+	for _, h := range pr.Histograms {
+		if len(h.SampleValues) > 0 {
+			ret = append(ret, h.Name)
+		}
+	}
+	return ret
+}
+
 // Histogram is an individual benchmark measurement.
 type Histogram struct {
 	Name string `json:"name"`

@@ -34,6 +34,19 @@ type swarmingTaskInfo struct {
 	result  *swarming.SwarmingRpcsTaskResult
 }
 
+// Pinpoint will set a "change:..." tag on the swarming tasks it runs for each arm.
+// The contents are formatted here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/change/change.py;l=52
+// however we only care about the presence of the "change:" prefix in this function. The rest
+// (if anything) is handled by the caller.
+func pinpointChangeTagForTask(t swarmingTaskInfo) string {
+	for _, tag := range t.result.Tags {
+		if strings.HasPrefix(tag, "change:") {
+			return tag[len("change:"):]
+		}
+	}
+	return ""
+}
+
 // Request dimensions are key value pairs, and keys can appear more that once.  This function
 // groups values by key.
 func (s *swarmingTaskInfo) requestDimensions() map[string][]string {

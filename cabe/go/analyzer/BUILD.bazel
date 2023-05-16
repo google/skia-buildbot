@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "analyzer.go",
         "checker.go",
+        "infer_specs.go",
         "internal_types.go",
         "perf_results_parser.go",
     ],
@@ -24,6 +25,7 @@ go_test(
     srcs = [
         "analyzer_test.go",
         "checker_test.go",
+        "infer_specs_test.go",
         "internal_types_test.go",
     ],
     embed = [":analyzer"],
