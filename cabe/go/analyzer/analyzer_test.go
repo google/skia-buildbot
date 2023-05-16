@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	cpb "go.skia.org/infra/cabe/go/proto"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	apb "go.skia.org/infra/cabe/go/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-
-	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 func TestRun(t *testing.T) {
@@ -21,10 +21,8 @@ func TestRun(t *testing.T) {
 		pinpointID                       []string
 		resultsForDigests                map[string]map[string]PerfResults
 		controlDigests, treatmentDigests []*swarming.SwarmingRpcsCASReference
-		taskRequestsForPinpoint          map[string][]*swarming.SwarmingRpcsTaskRequest
-		taskResultsForPinpoint           map[string][]*swarming.SwarmingRpcsTaskResult
 		expected                         []RResult
-		expectedProtos                   []*apb.AnalysisResult
+		expectedProtos                   []*cpb.AnalysisResult
 		expectError                      bool
 	}
 
@@ -45,24 +43,7 @@ func TestRun(t *testing.T) {
 					return ret, nil
 				},
 			),
-			WithTaskRequestsReader(
-				func(context.Context) ([]*swarming.SwarmingRpcsTaskRequest, error) {
-					ret, ok := test.taskRequestsForPinpoint[test.pinpointID[0]]
-					if !ok {
-						return nil, fmt.Errorf("missing task request id %s", test.pinpointID[0])
-					}
-					return ret, nil
-				},
-			),
-			WithTaskResultsReader(
-				func(context.Context) ([]*swarming.SwarmingRpcsTaskResult, error) {
-					ret, ok := test.taskResultsForPinpoint[test.pinpointID[0]]
-					if !ok {
-						return nil, fmt.Errorf("missing task result id %s", test.pinpointID[0])
-					}
-					return ret, nil
-				},
-			),
+			WithSwarmingTaskReader(func(context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) { return nil, nil }),
 		)
 
 		err := e.Run(ctx)

@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/swarming"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -41,8 +41,8 @@ type App struct {
 	promPort   string
 	authPolicy *grpcsp.ServerPolicy
 
-	bqClient   *bigquery.Client
-	rbeClients map[string]*rbeclient.Client
+	swarmingClient swarming.ApiClient
+	rbeClients     map[string]*rbeclient.Client
 
 	httpServer *http.Server
 	grpcServer *grpc.Server
@@ -63,8 +63,8 @@ func (a *App) FlagSet() *flag.FlagSet {
 // returns the error, or if a call to [Cleanup()] causes a graceful shutdown, in which
 // case it returns either nil if the graceful shutdown succeeds, or an error if it does not.
 func (a *App) Start(ctx context.Context) error {
-	if a.bqClient == nil {
-		return fmt.Errorf("missing bigquery service client")
+	if a.swarmingClient == nil {
+		return fmt.Errorf("missing swarming service client")
 	}
 	if a.rbeClients == nil {
 		return fmt.Errorf("missing rbe service clients")
@@ -110,7 +110,7 @@ func (a *App) Start(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	sklog.Infof("registering cabe grpc server")
-	analysisServer := analysisserver.New(a.rbeClients, a.bqClient)
+	analysisServer := analysisserver.New(a.rbeClients, a.swarmingClient)
 
 	lis, err := net.Listen("tcp", a.grpcPort)
 	if err != nil {
@@ -141,14 +141,14 @@ func (a *App) DialBackends(ctx context.Context) error {
 	sklog.Infof("successfully dialed %d RBE-CAS instances", len(rbeClients))
 	a.rbeClients = rbeClients
 
-	sklog.Infof("dialing BigQuery")
-	bqClient, err := backends.DialBigQuery(ctx)
+	sklog.Infof("dialing Swarming")
+	swarmingClient, err := backends.DialSwarming(ctx)
 	if err != nil {
-		sklog.Fatalf("dialing bigquery: %v", err)
+		sklog.Fatalf("dialing swarming: %v", err)
 		return err
 	}
-	sklog.Infof("successfully dialed bigquery")
-	a.bqClient = bqClient
+	sklog.Infof("successfully dialed swarming")
+	a.swarmingClient = swarmingClient
 	return nil
 }
 
@@ -193,17 +193,14 @@ func (a *App) Cleanup() {
 		sklog.Errorf("shutting down http server: %v", err)
 	}
 
-	// Now shut down client connections to backends.
-
-	if err := a.bqClient.Close(); err != nil {
-		sklog.Errorf("closing BigQuery connection: %v", err)
-	}
-
+	// Now shut down client connections to backends that have clean shutdown methods.
 	for instance, rbeClient := range a.rbeClients {
 		if err := rbeClient.Close(); err != nil {
 			sklog.Errorf("closing RBE client connection for instance %q: %v", instance, err)
 		}
 	}
+
+	// The [swarming.ApiClient] interface does not offer a clean shutdown method.
 }
 
 func main() {

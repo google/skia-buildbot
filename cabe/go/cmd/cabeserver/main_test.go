@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,6 +16,7 @@ import (
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/kube/go/authproxy"
 
 	"github.com/stretchr/testify/assert"
@@ -25,13 +25,14 @@ import (
 
 func testSetupAppWithBackends(t *testing.T) (context.Context, *App, func()) {
 	ctx := context.Background()
+	swarmingClient := mocks.NewApiClient(t)
 
 	a := &App{
-		port:       ":0",
-		grpcPort:   ":0",
-		promPort:   ":0",
-		bqClient:   &bigquery.Client{},
-		rbeClients: map[string]*rbeclient.Client{},
+		port:           ":0",
+		grpcPort:       ":0",
+		promPort:       ":0",
+		rbeClients:     map[string]*rbeclient.Client{},
+		swarmingClient: swarmingClient,
 	}
 	var w sync.WaitGroup
 	w.Add(1)
@@ -82,7 +83,6 @@ func TestApp_StartNoBackends_Fails(t *testing.T) {
 func TestApp_StartWithBackendsAndHTTPHealthCheck_Succeeds(t *testing.T) {
 	_, a, cleanup := testSetupAppWithBackends(t)
 	defer cleanup()
-
 	// Make a health check http request.
 	client := httputils.NewFastTimeoutClient()
 	healthz := fmt.Sprintf("http://%s/healthz", a.port)

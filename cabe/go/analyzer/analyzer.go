@@ -5,17 +5,14 @@ import (
 	"fmt"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
-	apb "go.skia.org/infra/cabe/go/proto"
+	cpb "go.skia.org/infra/cabe/go/proto"
 )
 
 // CASResultReader is an interface for getting PerfResults for CAS instance and root digest values.
 type CASResultReader func(context.Context, string, string) (map[string]PerfResults, error)
 
-// TaskResultsReader is an interface for getting SwarmingRpcsTaskResults to process.
-type TaskResultsReader func(context.Context) ([]*swarming.SwarmingRpcsTaskResult, error)
-
-// TaskRequestsReader is an interface for getting SwarmingRpcsTaskRequests to process.
-type TaskRequestsReader func(context.Context) ([]*swarming.SwarmingRpcsTaskRequest, error)
+// SwarmingTaskReader is an interface for getting Swarming task metadata associated with a pinpoint job.
+type SwarmingTaskReader func(context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 // Options configure one or more fields of an Analyzer instance.
 type Options func(*Analyzer)
@@ -28,16 +25,9 @@ func WithCASResultReader(r CASResultReader) Options {
 }
 
 // WithTaskResultsReader configures an Analyzer instance to use the given TaskResultsReader.
-func WithTaskResultsReader(r TaskResultsReader) Options {
+func WithSwarmingTaskReader(r SwarmingTaskReader) Options {
 	return func(e *Analyzer) {
-		e.readTaskResults = r
-	}
-}
-
-// WithTaskRequestsReader configures an Analyzer instance to use the given TaskRequestsReader.
-func WithTaskRequestsReader(r TaskRequestsReader) Options {
-	return func(e *Analyzer) {
-		e.readTaskRequests = r
+		e.readSwarmingTasks = r
 	}
 }
 
@@ -50,15 +40,13 @@ func New(opts ...Options) *Analyzer {
 	return ret
 }
 
-// Analyzer encapsulates the state of an Analyzer process exectution. Its lifecycle follows a request
+// Analyzer encapsulates the state of an Analyzer process execution. Its lifecycle follows a request
 // to process all of the output of an A/B benchmark experiment run.
 // Users of Analyzer must instantiate and attach the necessary service dependencies.
-
 type Analyzer struct {
-	readCAS          CASResultReader
-	readTaskRequests TaskRequestsReader
-	readTaskResults  TaskResultsReader
-	results          []RResult
+	readCAS           CASResultReader
+	readSwarmingTasks SwarmingTaskReader
+	results           []RResult
 }
 
 // RResult encapsulates a response from the R lamprey after it has been
@@ -79,21 +67,19 @@ type RResult struct {
 }
 
 // Results returns the results of the Analyzer process.
-func (e *Analyzer) Results() []RResult {
-	return e.results
+func (a *Analyzer) Results() []RResult {
+	return a.results
 }
 
 // AnalysisResults returns a slice of AnalysisResult protos populated with data from the
 // experiment.
-func (e *Analyzer) AnalysisResults() []*apb.AnalysisResult {
-	ret := []*apb.AnalysisResult{}
+func (a *Analyzer) AnalysisResults() []*cpb.AnalysisResult {
+	ret := []*cpb.AnalysisResult{}
 
 	return ret
 }
 
 // Run executes the whole Analyzer process for a single, complete experiment.
-// TODO(seanmccullough): break this up into distinct, testable stages with one function per stage.
-// TODO(seanmccullough): add rest of Run function in etl.go
-func (e *Analyzer) Run(ctx context.Context) error {
+func (a *Analyzer) Run(ctx context.Context) error {
 	return fmt.Errorf("Not implemented yet")
 }
