@@ -143,10 +143,10 @@ func reloadTemplates() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 	commitsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "status.html"),
+		filepath.Join(*resourcesDir, "dist", "status.html"),
 	))
 	capacityTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "capacity.html"),
+		filepath.Join(*resourcesDir, "dist", "capacity.html"),
 	))
 }
 
@@ -275,14 +275,15 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
 	topLevelRouter.Use(alogin.StatusMiddleware(plogin))
-	topLevelRouter.Use(httputils.LoggingGzipRequestResponse)
+	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
 	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
 	r := topLevelRouter.NewRoute().Subrouter()
+	r.Use(httputils.LoggingGzipRequestResponse)
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
-	r.PathPrefix("/dist/").HandlerFunc(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))).ServeHTTP)
+	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	var h http.Handler = topLevelRouter
 	if !*testing {
