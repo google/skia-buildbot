@@ -28,6 +28,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
+	"go.skia.org/infra/go/docker"
 	git_pkg "go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/k8s-checker/go/k8s_config"
@@ -298,6 +299,45 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 			checkLabel(ns, fmt.Sprintf(podSecurityLevelLabelTmpl, action), podSecurityLevels)
 			checkLabel(ns, fmt.Sprintf(podSecurityVersionLabelTmpl, action), podSecurityVersions)
 		}
+	}
+
+	// Validate containers.
+	containers := []corev1.Container{}
+	for _, deployment := range k8sConfigs.Deployment {
+		containers = append(containers, deployment.Spec.Template.Spec.InitContainers...)
+		containers = append(containers, deployment.Spec.Template.Spec.Containers...)
+	}
+	for _, statefulSet := range k8sConfigs.StatefulSet {
+		containers = append(containers, statefulSet.Spec.Template.Spec.InitContainers...)
+		containers = append(containers, statefulSet.Spec.Template.Spec.Containers...)
+	}
+	for _, daemonSet := range k8sConfigs.DaemonSet {
+		containers = append(containers, daemonSet.Spec.Template.Spec.InitContainers...)
+		containers = append(containers, daemonSet.Spec.Template.Spec.Containers...)
+	}
+	for _, cronJob := range k8sConfigs.CronJob {
+		containers = append(containers, cronJob.Spec.JobTemplate.Spec.Template.Spec.InitContainers...)
+		containers = append(containers, cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers...)
+	}
+	for _, container := range containers {
+		ok = ok && validateContainer(ctx, container)
+	}
+
+	return ok
+}
+
+func validateContainer(ctx context.Context, container corev1.Container) bool {
+	ok := true
+
+	// Validate the Docker image.
+	registry, repository, tagOrDigest, err := docker.SplitImage(container.Image)
+	if err != nil || registry == "" || repository == "" || tagOrDigest == "" {
+		errStr := fmt.Sprintf("container %q has invalid image %q", container.Name, container.Image)
+		if err != nil {
+			errStr += ": " + err.Error()
+		}
+		logf(ctx, errStr+"\n")
+		ok = false
 	}
 	return ok
 }

@@ -96,7 +96,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 				}
 				// Update instances of "image/path@sha256:digest"
 				imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
-				imageReplace = append(imageReplace, fmt.Sprintf("%s@sha256:%s", image.Image, manifest.Digest))
+				imageReplace = append(imageReplace, fmt.Sprintf("%s@%s", image.Image, manifest.Digest))
 
 				// Replace Bazel container_pull specifications.
 				bazelRegex, bazelReplace := bazelRegexAndReplaceForImage(image, manifest.Digest)
