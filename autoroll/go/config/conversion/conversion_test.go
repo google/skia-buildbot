@@ -139,8 +139,7 @@ config {
         readiness_failure_threshold:  10
         readiness_initial_delay_seconds:  30
         readiness_period_seconds:  30
-        image:  "gcr.io/skia-public/autoroll-be"
-		stage:  "latest"
+        image:  "gcr.io/skia-public/autoroll-be@sha256:e5b65806a089505d7b8e8351c01e50c10c2f941d4cd966cdc022a072391e4f0b"
     }
     parent_child_repo_manager:  {
         gitiles_parent:  {

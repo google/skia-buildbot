@@ -21,7 +21,6 @@ spec:
         owner-secondary: {{.ownerSecondary}}
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-        skia.org/stage: "autoroll-be-{{.rollerName}}:{{.kubernetes.stage}}{{ if .kubernetes.disk }}, init-autoroll-be-{{.rollerName}}:{{.kubernetes.stage}}{{ end }}"
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -30,7 +29,7 @@ spec:
 {{- if .kubernetes.disk }}
       initContainers:
         - name: init-autoroll-be-{{.rollerName}}
-          image: {{.kubernetes.image}}@{{.imageDigest}}
+          image: {{.kubernetes.image}}
           command: ['mkdir', '-p', '$(TMPDIR)']
           env:
             - name: TMPDIR
@@ -49,7 +48,7 @@ spec:
 {{- end}}
       containers:
         - name: autoroll-be-{{.rollerName}}
-          image: {{.kubernetes.image}}@{{.imageDigest}}
+          image: {{.kubernetes.image}}
           command: ["luci-auth"]
           args:
             - "context"

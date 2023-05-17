@@ -222,8 +222,6 @@ message KubernetesConfig {
     string disk = 6;
     // image used for the autoroll backend container.
     string image = 8;
-    // release stage of the autoroll backend image to use.
-    string stage = 10;
     // extra_flags to pass to the autoroll-be binary.
     repeated string extra_flags = 9;
 }

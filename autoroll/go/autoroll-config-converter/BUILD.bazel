@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//autoroll/go/config/conversion",
         "//cd/go/cd",
-        "//cd/go/stages",
         "//go/exec",
         "//go/git",
         "//go/gitauth",

@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/cd/go/cd"
-	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
@@ -89,12 +88,6 @@ func main() {
 	}
 	sklog.Infof("Using variables: %s", string(b))
 
-	// Read the stage file.
-	stageFile, err := stages.DecodeFile(filepath.Join(*src, stages.StageFilePath))
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
-
 	// Walk through the autoroller config directory. Create roller configs from
 	// templates and convert roller configs to k8s configs.
 	fsys := os.DirFS(*src)
@@ -113,7 +106,7 @@ func main() {
 				return skerr.Wrapf(err, "failed to read roller config %s", srcPath)
 			}
 
-			if err := conversion.ConvertConfig(ctx, cfgBytes, path, *dst, stageFile); err != nil {
+			if err := conversion.ConvertConfig(ctx, cfgBytes, path, *dst); err != nil {
 				return skerr.Wrapf(err, "failed to convert config %s", path)
 			}
 		} else if strings.HasSuffix(d.Name(), ".tmpl") {
@@ -128,7 +121,7 @@ func main() {
 				return skerr.Wrapf(err, "failed to process template file %s", path)
 			}
 			for path, cfgBytes := range generatedConfigs {
-				if err := conversion.ConvertConfig(ctx, cfgBytes, path, *dst, stageFile); err != nil {
+				if err := conversion.ConvertConfig(ctx, cfgBytes, path, *dst); err != nil {
 					return skerr.Wrapf(err, "failed to convert config %s", path)
 				}
 			}

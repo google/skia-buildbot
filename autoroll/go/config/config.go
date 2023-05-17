@@ -314,9 +314,6 @@ func (c *KubernetesConfig) Validate() error {
 	if c.Image == "" {
 		return skerr.Fmt("Image is required.")
 	}
-	if c.Stage == "" {
-		return skerr.Fmt("Stage is required.")
-	}
 	return nil
 }
 

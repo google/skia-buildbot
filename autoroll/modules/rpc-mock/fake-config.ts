@@ -53,7 +53,6 @@ export function GetFakeConfig(): Config {
       readinessPeriodSeconds: 30,
       disk: '',
       image: 'gcr.io/fake-image',
-      stage: 'latest',
     },
     parentChildRepoManager: {
       gitilesParent: {
