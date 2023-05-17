@@ -210,6 +210,7 @@ export interface KubernetesConfig {
   readinessPeriodSeconds: number;
   disk: string;
   image: string;
+  stage: string;
   extraFlags?: string[];
 }
 
@@ -221,6 +222,7 @@ interface KubernetesConfigJSON {
   readiness_period_seconds?: number;
   disk?: string;
   image?: string;
+  stage?: string;
   extra_flags?: string[];
 }
 

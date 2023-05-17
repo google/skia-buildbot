@@ -19,6 +19,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gitiles"
@@ -61,7 +62,7 @@ var (
 )
 
 // ConvertConfig converts the given roller config file to a Kubernetes config.
-func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string) error {
+func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string, stageFile *stages.StageFile) error {
 	if backendTemplate == "" {
 		return skerr.Fmt("internal error; embedded template is empty")
 	}
@@ -116,6 +117,17 @@ func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 	}
 	cfgFileBase64 := base64.StdEncoding.EncodeToString(b)
 	cfgMap["configBase64"] = cfgFileBase64
+
+	// Resolve the image digest to use.
+	img, ok := stageFile.Images[cfg.Kubernetes.Image]
+	if !ok {
+		return skerr.Fmt("failed to find image %q in stage file", cfg.Kubernetes.Image)
+	}
+	stg, ok := img.Stages[cfg.Kubernetes.Stage]
+	if !ok {
+		return skerr.Fmt("failed to find stage %q of image %q in stage file", cfg.Kubernetes.Stage, cfg.Kubernetes.Image)
+	}
+	cfgMap["imageDigest"] = stg.Digest
 
 	// Run kube-conf-gen to generate the backend config file.
 	relDir, baseName := filepath.Split(relPath)

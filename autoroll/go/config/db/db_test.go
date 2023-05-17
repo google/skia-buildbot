@@ -99,7 +99,8 @@ kubernetes:  {
 	readiness_failure_threshold:  10
 	readiness_initial_delay_seconds:  30
 	readiness_period_seconds:  30
-	image:  "gcr.io/skia-public/autoroll-be:2022-02-14T15_10_50Z-borenet-0056074-clean"
+	image:  "gcr.io/skia-public/autoroll-be"
+	stage:  "latest"
 }
 parent_child_repo_manager:  {
 	gitiles_parent:  {
