@@ -15,7 +15,6 @@ import '../../../elements-sk/modules/icons/home-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import '../processing-table-sk';
