@@ -1,6 +1,8 @@
 // Package replaybackends provides in-memory implementations of backend dependencies
 // for testing. These implementations re-play backend responses recorded during calls
 // to live production services.
+// To update the files containing replay data for cabe unit tests, see the
+// instructions here: go/cabe-skia-assets
 package replaybackends
 
 import (
@@ -13,21 +15,25 @@ import (
 	"reflect"
 	"strings"
 
+	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/cabe/go/analyzer"
 )
 
 // ReplayBackends implements the backend interfaces required for testing package etl and rpcservice.
 type ReplayBackends struct {
-	parsedPerfResults map[string]analyzer.PerfResults
-	CASResultReader   analyzer.CASResultReader
+	ParsedPerfResults   map[string]analyzer.PerfResults
+	ParsedSwarmingTasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata
+
+	CASResultReader    analyzer.CASResultReader
+	SwarmingTaskReader analyzer.SwarmingTaskReader
 }
 
 // FromZipFile opens a zip archive of pre-recorded backend responses and populates a
 // ReplayBackends instance with it suitable for testing purposes.
 //
 // Replay zip files have the following internal directory structure:
-// ./task_requests.textproto - text proto bigquery responses for swarming task requests
-// ./task_results.textproto - test proto bigquery responses for swarming task results
+// ./swarming-tasks.json - json serialized array of [swarmingapi.SwarmingRpcsTaskRequestMetadata]
 // ./cas/<digest hash> - (multiple) the individual swarming task measurement output files
 //
 // benchmarkName is typically something determined by the thing *executing* the benchmarks, not
@@ -35,7 +41,6 @@ type ReplayBackends struct {
 // need to have that name provided a priori since it can't be determined automatically from task
 // output files alone.
 func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
-
 	archive, err := zip.OpenReader(replayZipfile)
 	if err != nil {
 		panic(err)
@@ -43,10 +48,27 @@ func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
 	defer archive.Close()
 
 	ret := &ReplayBackends{}
-	ret.parsedPerfResults = make(map[string]analyzer.PerfResults)
+	ret.ParsedPerfResults = make(map[string]analyzer.PerfResults)
 
 	for _, file := range archive.File {
 		dirName, fileName := path.Split(file.Name)
+		if fileName == "swarming-tasks.json" {
+			fileReader, err := file.Open()
+			if err != nil {
+				panic(err)
+			}
+			defer fileReader.Close()
+
+			tasksBytes := make([]byte, file.UncompressedSize64)
+			if _, err = io.ReadFull(fileReader, tasksBytes); err != nil {
+				panic(err)
+			}
+
+			if err = json.Unmarshal([]byte(tasksBytes), &ret.ParsedSwarmingTasks); err != nil {
+				panic(err)
+			}
+		}
+
 		if dirName == "cas/" {
 			fileReader, err := file.Open()
 			if err != nil {
@@ -72,15 +94,18 @@ func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
 				}
 			}
 
-			ret.parsedPerfResults[fileName] = res
+			ret.ParsedPerfResults[fileName] = res
 		}
+	}
 
+	ret.SwarmingTaskReader = func(ctx context.Context) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
+		return ret.ParsedSwarmingTasks, nil
 	}
 
 	// returns a map of benchmark name to parsed PerfResults.
 	ret.CASResultReader = func(c context.Context, instance, digest string) (map[string]analyzer.PerfResults, error) {
 		df := strings.Split(digest, "/")[0]
-		res, ok := ret.parsedPerfResults[df]
+		res, ok := ret.ParsedPerfResults[df]
 		if !ok {
 			return nil, fmt.Errorf("couldn't find a CAS blob for %q (%q)", digest, df)
 		}

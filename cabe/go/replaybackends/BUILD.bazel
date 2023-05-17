@@ -6,7 +6,10 @@ go_library(
     srcs = ["replaybackends.go"],
     importpath = "go.skia.org/infra/cabe/go/replaybackends",
     visibility = ["//visibility:public"],
-    deps = ["//cabe/go/analyzer"],
+    deps = [
+        "//cabe/go/analyzer",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
 )
 
 go_test(
@@ -14,5 +17,9 @@ go_test(
     srcs = ["replaybackends_test.go"],
     data = ["@cabe_replay_data//:all_files"],
     embed = [":replaybackends"],
-    deps = ["//bazel/go/bazel"],
+    deps = [
+        "//bazel/go/bazel",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )
