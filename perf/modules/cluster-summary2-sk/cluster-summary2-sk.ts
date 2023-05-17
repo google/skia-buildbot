@@ -44,7 +44,7 @@ import '../commit-range-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Login } from '../../../infra-sk/modules/login';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import {
   FullSummary,
   FrameResponse,
@@ -63,6 +63,7 @@ import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-pan
 import '../window/window';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { lookupCids } from '../cid/cid';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 
 /** Defines a func that takes a number and formats it as a string. */
 type Formatter = (n: number) => string;
@@ -303,9 +304,14 @@ export class ClusterSummary2Sk extends ElementSk {
     this.status = this.querySelector('#status');
     this.graph = this.querySelector('plot-simple-sk');
     this.commits = this.querySelector('#commits');
-    Login.then((status) => {
-      this.status!.classList.toggle('disabled', status.Email === '');
-    }).catch(errorMessage);
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this.status!.classList.toggle(
+          'disabled',
+          !status.roles!.includes('editor')
+        );
+      })
+      .catch(errorMessage);
 
     // eslint-disable-next-line no-self-assign
     this.full_summary = this.full_summary;

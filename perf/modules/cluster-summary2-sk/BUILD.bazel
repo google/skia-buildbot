@@ -14,10 +14,10 @@ sk_element(
         "//perf/modules/word-cloud-sk",
         "//perf/modules/commit-range-sk",
         "//elements-sk/modules/collapse-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
@@ -25,6 +25,7 @@ sk_element(
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
         "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",
