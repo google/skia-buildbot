@@ -1,6 +1,16 @@
-import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
+import { Alert } from '../json';
+
+window.perf = window.perf || {};
+window.perf.key_order = [];
+window.perf.display_group_by = true;
+window.perf.no_email = false;
+
+fetchMock.get('/_/login/status', {
+  email: 'someone@example.org',
+  roles: ['editor'],
+});
 
 fetchMock.post(
   '/_/count/',
@@ -13,12 +23,14 @@ fetchMock.post(
 
 fetchMock.post('/_/alert/update', 200);
 
-fetchMock.get('/_/alert/list/false', () => [
+// eslint-disable-next-line no-use-before-define
+fetchMock.get('/_/alert/list/false', (): Alert[] => [
   {
-    id: 5646874153320448,
+    id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
     alert: '',
+    step: 'cohen',
     interesting: 50,
     bug_uri_template: '',
     algo: 'stepfit',
@@ -35,9 +47,10 @@ fetchMock.get('/_/alert/list/false', () => [
   },
 ]);
 
-fetchMock.get('/_/alert/list/true', () => [
+// eslint-disable-next-line no-use-before-define
+fetchMock.get('/_/alert/list/true', (): Alert[] => [
   {
-    id: 5646874153320448,
+    id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
     alert: '',
@@ -45,6 +58,7 @@ fetchMock.get('/_/alert/list/true', () => [
     bug_uri_template: '',
     algo: 'stepfit',
     state: 'ACTIVE',
+    step: 'cohen',
     owner: 'jcgregorio@google.com',
     step_up_only: false,
     direction: 'BOTH',
@@ -56,7 +70,7 @@ fetchMock.get('/_/alert/list/true', () => [
     category: ' ',
   },
   {
-    id: 2,
+    id_as_string: '2',
     display_name: 'Foo',
     query: 'source_type=image\u0026sub_result=min_ms',
     alert: '',
@@ -66,6 +80,7 @@ fetchMock.get('/_/alert/list/true', () => [
     state: 'DELETED',
     owner: 'jcgregorio@google.com',
     step_up_only: false,
+    step: 'mannwhitneyu',
     direction: 'BOTH',
     radius: 7,
     k: 0,
@@ -127,35 +142,30 @@ fetchMock.get('/_/initpage/', () => ({
   msg: '',
 }));
 
-fetchMock.get('https://skia.org/loginstatus/', () => ({
-  Email: 'jcgregorio@google.com',
-  ID: '110642259984599645813',
-  LoginURL: 'https://accounts.google.com/...',
-  IsAGoogler: true,
-  IsAdmin: true,
-  IsEditor: false,
-  IsViewer: true,
-}));
-
-fetchMock.get('/_/alert/new', () => ({
-  id: -1,
-  display_name: 'Name',
-  query: '',
-  alert: '',
-  interesting: 0,
-  bug_uri_template: '',
-  algo: 'kmeans',
-  state: 'DELETED',
-  owner: '',
-  step_up_only: false,
-  direction: 'BOTH',
-  radius: 10,
-  k: 50,
-  group_by: '',
-  sparse: false,
-  minimum_num: 0,
-  category: 'Experimental',
-}));
+fetchMock.get(
+  '/_/alert/new',
+  // eslint-disable-next-line no-use-before-define
+  (): Alert => ({
+    id_as_string: '-1',
+    display_name: 'Name',
+    query: '',
+    alert: '',
+    step: 'cohen',
+    interesting: 0,
+    bug_uri_template: '',
+    algo: 'kmeans',
+    state: 'DELETED',
+    owner: '',
+    step_up_only: false,
+    direction: 'BOTH',
+    radius: 10,
+    k: 50,
+    group_by: '',
+    sparse: false,
+    minimum_num: 0,
+    category: 'Experimental',
+  })
+);
 
 // Insert the element later, which should given enough time for fetchMock to be in place.
 customElements.whenDefined('alerts-page-sk').then(() => {
@@ -166,3 +176,6 @@ customElements.whenDefined('alerts-page-sk').then(() => {
     );
   });
 });
+
+// eslint-disable-next-line import/first
+import './index';

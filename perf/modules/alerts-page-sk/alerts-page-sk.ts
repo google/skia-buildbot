@@ -15,11 +15,12 @@ import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
-import { Login } from '../../../infra-sk/modules/login';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { FrameResponse, ParamSet, Alert, ConfigState } from '../json';
 import { validate } from '../alert';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status } from '../../../infra-sk/modules/json';
 
 const okOrThrow = async (resp: Response) => {
   if (!resp.ok) {
@@ -37,6 +38,8 @@ class AlertsPageSk extends ElementSk {
 
   private showDeleted: boolean = false;
 
+  private isEditor: boolean = false;
+
   private email: string = '';
 
   private origCfg: Alert | null = null;
@@ -47,8 +50,12 @@ class AlertsPageSk extends ElementSk {
 
   constructor() {
     super(AlertsPageSk.template);
-    Login.then((status) => {
-      this.email = status.Email;
+    LoggedIn().then((value: Status) => {
+      if (!value.roles) {
+        return;
+      }
+      this.isEditor = value.roles.includes('editor');
+      this.email = value.email;
       this._render();
     });
   }
@@ -82,7 +89,7 @@ class AlertsPageSk extends ElementSk {
     <div class="warning" ?hidden=${!!ele.alerts.length}>
       No alerts have been configured.
     </div>
-    <button class="fab" @click=${ele.add} ?disabled=${!ele.email}>+</button>
+    <button class="fab" @click=${ele.add} ?disabled=${!ele.isEditor}>+</button>
     <checkbox-sk
       ?checked=${ele.showDeleted}
       @change=${ele.showChanged}
@@ -108,7 +115,7 @@ class AlertsPageSk extends ElementSk {
               title="Edit"
               @click=${ele.edit}
               .__config=${item}
-              ?disabled=${!ele.email}
+              ?disabled=${!ele.isEditor}
             ></create-icon-sk>
           </td>
           <td>${item.display_name}</td>
@@ -123,7 +130,7 @@ class AlertsPageSk extends ElementSk {
               title="Delete"
               @click=${ele.delete}
               .__config=${item}
-              ?disabled=${!ele.email}
+              ?disabled=${!ele.isEditor}
             ></delete-icon-sk>
           </td>
           <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
@@ -214,7 +221,7 @@ class AlertsPageSk extends ElementSk {
   }
 
   private edit(e: MouseEvent) {
-    if (!this.email) {
+    if (!this.isEditor) {
       errorMessage('You must be logged in to edit alerts.');
       return;
     }

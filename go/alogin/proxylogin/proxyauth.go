@@ -102,6 +102,7 @@ func (p *ProxyLogin) NeedsAuthentication(w http.ResponseWriter, r *http.Request)
 func (p *ProxyLogin) Status(r *http.Request) alogin.Status {
 	return alogin.Status{
 		EMail: p.LoggedInAs(r),
+		Roles: roles.FromHeader(r.Header.Get(authproxy.WebAuthRoleHeaderName)),
 	}
 }
 

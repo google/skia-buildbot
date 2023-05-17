@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	goodHeaderName                 = "X-AUTH-USER"
+	goodHeaderName                 = authproxy.WebAuthHeaderName
 	unknownHeaderName              = "X-SOME-UNKNOWN-HEADER"
 	email             alogin.EMail = "someone@example.org"
 	emailAsString     string       = string(email)
@@ -60,9 +60,11 @@ func TestNeedsAuthentication_EmitsStatusForbidden(t *testing.T) {
 
 func TestStatus_HeaderPresent_ReturnsUserEmail(t *testing.T) {
 	r := httptest.NewRequest("GET", "/", nil)
-	r.Header.Set(goodHeaderName, emailAsString)
+	r.Header.Set(authproxy.WebAuthHeaderName, emailAsString)
+	r.Header.Set(authproxy.WebAuthRoleHeaderName, roles.Roles{roles.Admin}.ToHeader())
 	expected := alogin.Status{
 		EMail: email,
+		Roles: roles.Roles{roles.Admin},
 	}
 	login, err := New(goodHeaderName, "")
 	require.NoError(t, err)
