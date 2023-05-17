@@ -8,7 +8,6 @@ sk_element(
     ],
     sass_srcs = ["leasing-selections-sk.scss"],
     sk_element_deps = [
-        "//infra-sk/modules/login-sk",
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/folder-icon-sk",
         "//elements-sk/modules/icons/gesture-icon-sk",

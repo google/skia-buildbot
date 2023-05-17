@@ -24,9 +24,6 @@ import '../../../elements-sk/modules/icons/star-icon-sk';
 import '../../../elements-sk/modules/nav-button-sk';
 import '../../../elements-sk/modules/nav-links-sk';
 import { doImpl } from '../leasing';
-
-import '../../../infra-sk/modules/login-sk';
-
 import { Task } from '../json';
 
 export class LeasingListSk extends ElementSk {

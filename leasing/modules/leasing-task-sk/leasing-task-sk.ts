@@ -22,9 +22,6 @@ import '../../../elements-sk/modules/icons/star-icon-sk';
 import '../../../elements-sk/modules/nav-button-sk';
 import '../../../elements-sk/modules/nav-links-sk';
 import { device, getAKAStr, doImpl } from '../leasing';
-
-import '../../../infra-sk/modules/login-sk';
-
 import { Task, ExpireTaskRequest, ExtendTaskRequest } from '../json';
 
 function displayTaskStatus(task: Task): string {

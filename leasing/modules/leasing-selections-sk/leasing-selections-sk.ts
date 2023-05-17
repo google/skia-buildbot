@@ -25,9 +25,6 @@ import '../../../elements-sk/modules/select-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { device, getAKAStr, doImpl } from '../leasing';
-
-import '../../../infra-sk/modules/login-sk';
-
 import { Task, PoolDetails } from '../json';
 
 export class LeasingSelectionsSk extends ElementSk {
