@@ -88,24 +88,24 @@ export interface DataFrame {
 }
 
 export interface Anomaly {
-	Id: string;
-	TestPath: string;
-	BugId: string;
-	StartRevision: number;
-	EndRevision: number;
-	IsImprovement: boolean;
-	Recovered: boolean;
-	State: string;
-	Statistics: string;
-	Unit: string;
-	DegreeOfFreedom: number;
-	MedianBeforeAnomaly: number;
-	MedianAfterAnomaly: number;
-	PValue: number;
-	SegmentSizeAfter: number;
-	SegmentSizeBefore: number;
-	StdDevBeforeAnomaly: number;
-	TStatistics: number;
+	id: string;
+	test_path: string;
+	bug_id: string;
+	start_revision: number;
+	end_revision: number;
+	is_improvement: boolean;
+	recovered: boolean;
+	state: string;
+	statistic: string;
+	units: string;
+	degrees_of_freedom: number;
+	median_before_anomaly: number;
+	median_after_anomaly: number;
+	p_value: number;
+	segment_size_after: number;
+	segment_size_before: number;
+	std_dev_before_anomaly: number;
+	t_statistic: number;
 }
 
 export interface FrameResponse {

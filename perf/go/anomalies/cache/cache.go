@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"time"
@@ -84,7 +85,7 @@ func cleanupCache(cache *lru.Cache) {
 
 // GetAnomalies implements anomalies.Store
 // It fetches anomalies from cache at first, then calls chrome perf API to fetch the anomlies missing from cache.
-func (as *store) GetAnomalies(traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
+func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
 	// Get anomalies from cache
 	traceNamesMissingFromCache := make([]string, 0)
 	result := anomalies.AnomalyMap{}
@@ -107,7 +108,7 @@ func (as *store) GetAnomalies(traceNames []string, startCommitPosition int, endC
 
 	// Get anomalies from Chrome Perf
 	sort.Strings(traceNamesMissingFromCache)
-	chromePerfAnomalies, err := as.ChromePerf.GetAnomalies(traceNamesMissingFromCache, startCommitPosition, endCommitPosition)
+	chromePerfAnomalies, err := as.ChromePerf.GetAnomalies(ctx, traceNamesMissingFromCache, startCommitPosition, endCommitPosition)
 	if err != nil {
 		sklog.Errorf("Failed to get chrome perf anomalies: %s", err)
 	} else {

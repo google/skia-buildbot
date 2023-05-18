@@ -153,7 +153,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgi
 		return ret.reportError(err, "Failed to get skps.")
 	}
 
-	addAnomaliesToResponse(resp, anomalyStore)
+	addAnomaliesToResponse(ctx, resp, anomalyStore)
 
 	ret.request.Progress.Results(resp)
 	return nil
@@ -308,7 +308,7 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 }
 
 // addAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
-func addAnomaliesToResponse(response *FrameResponse, anomalyStore anomalies.Store) {
+func addAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store) {
 	df := response.DataFrame
 	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
 		startCommitPosition := df.Header[0].Offset
@@ -319,7 +319,7 @@ func addAnomaliesToResponse(response *FrameResponse, anomalyStore anomalies.Stor
 		}
 
 		// Fetch Chrome Perf anomalies.
-		anomalyMap, err := anomalyStore.GetAnomalies(traceNames, int(startCommitPosition), int(endCommitPosition))
+		anomalyMap, err := anomalyStore.GetAnomalies(ctx, traceNames, int(startCommitPosition), int(endCommitPosition))
 		if err != nil {
 			// Won't fail the frame request if there was error while fetching the Chrome Perf anomaly,
 			sklog.Errorf("Failed to fetch anomalies from anomaly store. %s", err)

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -103,16 +104,18 @@ var dataFrame = &dataframe.DataFrame{
 	Header:   header,
 }
 
+var ctx = context.Background()
+
 func TestGetAnomalies_FromChromePerf_Success(t *testing.T) {
 	mockChromePerf := AnoamliesChromeMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := anomalies.AnomalyMap{
 		traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
 		traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
 	}
-	am, err := anomayStore.GetAnomalies(traceNames, startCommitPosition, endCommitPosition)
+	am, err := anomayStore.GetAnomalies(ctx, traceNames, startCommitPosition, endCommitPosition)
 	require.NoError(t, err)
 	assert.Equal(t, expectedAnomalyMap, am)
 
@@ -122,7 +125,7 @@ func TestGetAnomalies_FromChromePerf_Success(t *testing.T) {
 
 func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 	mockChromePerf := AnoamliesChromeMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap1 := anomalies.AnomalyMap{
@@ -130,7 +133,7 @@ func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 		traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
 	}
 
-	am, err := anomayStore.GetAnomalies(traceNames, startCommitPosition, endCommitPosition)
+	am, err := anomayStore.GetAnomalies(ctx, traceNames, startCommitPosition, endCommitPosition)
 	require.NoError(t, err)
 	assert.Equal(t, expectedAnomalyMap1, am)
 
@@ -151,10 +154,10 @@ func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 		traceName3: map[types.CommitNumber]anomalies.Anomaly{17: anomaly3},
 		traceName4: map[types.CommitNumber]anomalies.Anomaly{20: anomaly4},
 	}
-	mockChromePerf.On("GetAnomalies", traceNames2, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap2, nil)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames2, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap2, nil)
 
 	traceNames3 := []string{traceName1, traceName2, traceName3, traceName4}
-	am, err = anomayStore.GetAnomalies(traceNames3, startCommitPosition, endCommitPosition)
+	am, err = anomayStore.GetAnomalies(ctx, traceNames3, startCommitPosition, endCommitPosition)
 	require.NoError(t, err)
 	assert.Equal(t, expectedAnomalyMap2, am)
 
@@ -166,11 +169,11 @@ func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 
 func TestGetAnomalies_GetErrorFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 	mockChromePerf := AnoamliesChromeMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := anomalies.AnomalyMap{}
-	am, err := anomayStore.GetAnomalies(traceNames, startCommitPosition, endCommitPosition)
+	am, err := anomayStore.GetAnomalies(ctx, traceNames, startCommitPosition, endCommitPosition)
 	require.NoError(t, err)
 	assert.Equal(t, expectedAnomalyMap, am)
 
@@ -180,11 +183,11 @@ func TestGetAnomalies_GetErrorFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 
 func TestGetAnomalies_GetEmptyResultFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 	mockChromePerf := AnoamliesChromeMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(nil, nil)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := anomalies.AnomalyMap{}
-	am, err := anomayStore.GetAnomalies(traceNames, startCommitPosition, endCommitPosition)
+	am, err := anomayStore.GetAnomalies(ctx, traceNames, startCommitPosition, endCommitPosition)
 	require.NoError(t, err)
 	assert.Equal(t, expectedAnomalyMap, am)
 

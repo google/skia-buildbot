@@ -90,6 +90,8 @@ var testPathes = []string{testPath1, testPath2}
 
 var errMock = errors.New("this is my mock test error")
 
+var ctx = context.Background()
+
 func TestGetSkps_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
@@ -485,12 +487,12 @@ func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 	resp := buildResponse(t)
 
 	mockChromePerf := anomaliesStockMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
 
-	addAnomaliesToResponse(resp, anomayStore)
+	addAnomaliesToResponse(ctx, resp, anomayStore)
 
 	expectedAnomalyMap := anomalies.AnomalyMap{
 		traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
@@ -503,12 +505,12 @@ func TestAddAnomaliesToResponse_ErrorGetAnomalies_GotEmptyAnomalyMap(t *testing.
 	resp := buildResponse(t)
 
 	mockChromePerf := anomaliesStockMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
+	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
 
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
 
-	addAnomaliesToResponse(resp, anomayStore)
+	addAnomaliesToResponse(ctx, resp, anomayStore)
 	assert.Equal(t, anomalies.AnomalyMap{}, resp.AnomalyMap)
 }
 

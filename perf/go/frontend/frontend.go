@@ -373,7 +373,12 @@ func (f *Frontend) initialize() {
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore, f.flags.NumParamSetsForQueries)
 
 	if config.Config.FetchChromePerfAnomalies {
-		f.anomalyStore, err = cache.New(chrome.New())
+		chromeClient, err := chrome.New(ctx)
+		if err != nil {
+			sklog.Fatal("Failed to build chrome client: %s", err)
+		}
+
+		f.anomalyStore, err = cache.New(chromeClient)
 		if err != nil {
 			sklog.Fatal("Failed to build anomalies.Store: %s", err)
 		}

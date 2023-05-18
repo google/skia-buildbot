@@ -3,8 +3,11 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
+	context "context"
+
 	anomalies "go.skia.org/infra/perf/go/anomalies"
+
+	mock "github.com/stretchr/testify/mock"
 
 	testing "testing"
 )
@@ -14,13 +17,13 @@ type Store struct {
 	mock.Mock
 }
 
-// GetAnomalies provides a mock function with given fields: traceNames, startCommitPosition, endCommitPosition
-func (_m *Store) GetAnomalies(traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
-	ret := _m.Called(traceNames, startCommitPosition, endCommitPosition)
+// GetAnomalies provides a mock function with given fields: ctx, traceNames, startCommitPosition, endCommitPosition
+func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
+	ret := _m.Called(ctx, traceNames, startCommitPosition, endCommitPosition)
 
 	var r0 anomalies.AnomalyMap
-	if rf, ok := ret.Get(0).(func([]string, int, int) anomalies.AnomalyMap); ok {
-		r0 = rf(traceNames, startCommitPosition, endCommitPosition)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) anomalies.AnomalyMap); ok {
+		r0 = rf(ctx, traceNames, startCommitPosition, endCommitPosition)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(anomalies.AnomalyMap)
@@ -28,8 +31,8 @@ func (_m *Store) GetAnomalies(traceNames []string, startCommitPosition int, endC
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func([]string, int, int) error); ok {
-		r1 = rf(traceNames, startCommitPosition, endCommitPosition)
+	if rf, ok := ret.Get(1).(func(context.Context, []string, int, int) error); ok {
+		r1 = rf(ctx, traceNames, startCommitPosition, endCommitPosition)
 	} else {
 		r1 = ret.Error(1)
 	}
