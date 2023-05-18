@@ -4,7 +4,7 @@
     "issue": "327697",
     "patchset": "1",
     "key": {
-      "arch": "x!~@#$%^&*()86",
+      "arch": "x!~@#$%^&*():86",
       "branch": "some-branch-name",
       "config": "meta",
       "gpu": "GTX660",
@@ -22,22 +22,22 @@
       },
       {
         "key": {
-          "test": "DeferredSurfaceCopy_discardable_640_480",
+          "test": "DeferredSurfaceCopy_x!~@#$%^&*():discardable_640_480",
           "source_type": "bench",
           "sub_result": "min+ms"
         },
         "measurements": {
-          "config": [
+          "stat": [
             {
-              "value": "8888",
+              "value": "max",
               "measurement": 2.223606
             },
             {
-              "value": "565",
+              "value": "value",
               "measurement": 2.215988
             },
             {
-              "value": "gpu",
+              "value": "err",
               "measurement": 0.115713274509804
             }
           ]

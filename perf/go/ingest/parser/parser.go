@@ -190,7 +190,7 @@ func getParamsAndValuesFromVersion1Format(f format.Format, invalidParamCharRegex
 				for _, measurement := range measurements {
 					singleParam := p.Copy()
 					singleParam[key] = measurement.Value
-					paramSlice = append(paramSlice, query.ForceValid(singleParam))
+					paramSlice = append(paramSlice, query.ForceValidWithRegex(singleParam, invalidParamCharRegex))
 					measurementSlice = append(measurementSlice, measurement.Measurement)
 				}
 			}

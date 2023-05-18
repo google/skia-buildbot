@@ -363,7 +363,7 @@ func TestParseWithInvalidCharRegex_Success(t *testing.T) {
 		IngestionConfig: config.IngestionConfig{
 			Branches: []string{goodBranchName},
 		},
-		InvalidParamCharRegex: "([^a-zA-Z0-9!~@#$%^&*()+ \\._\\-])",
+		InvalidParamCharRegex: "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
 	}
 	p, err := New(instanceConfig)
 	require.NoError(t, err)
@@ -382,18 +382,32 @@ func TestParseWithInvalidCharRegex_Success(t *testing.T) {
 	assert.Len(t, values, 4)
 	assert.Len(t, params, 4)
 	assert.Contains(t, values, float32(858))
-	expectedParams := paramtools.Params{
-		"arch":       "x!~@#$%^&*()86",
+	expectedParams1 := paramtools.Params{
+		"arch":        "x!~@#$%^&*():86",
+		"branch":      "some-branch-name",
+		"config":      "meta",
+		"gpu":         "GTX660",
+		"model":       "ShuttleA",
+		"os":          "Ubuntu 12",
+		"system":      "UNIX",
+		"test":        "DeferredSurfaceCopy_x!~@#$%^&*():discardable_640_480",
+		"source_type": "bench",
+		"stat":        "value",
+		"sub_result":  "min+ms",
+	}
+	expectedParams2 := paramtools.Params{
+		"arch":       "x!~@#$%^&*():86",
 		"branch":     "some-branch-name",
 		"config":     "meta",
 		"gpu":        "GTX660",
 		"model":      "ShuttleA",
 		"os":         "Ubuntu 12",
-		"sub_result": "max+rss+mb",
 		"system":     "UNIX",
 		"test":       "memory+usage_0_0",
+		"sub_result": "max+rss+mb",
 	}
-	assert.Contains(t, params, expectedParams)
+	assert.Contains(t, params, expectedParams1)
+	assert.Contains(t, params, expectedParams2)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
 }
