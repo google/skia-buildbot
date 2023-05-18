@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 
+	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/util"
 )
@@ -186,15 +187,15 @@ func TestIntersectBuildSpecs(t *testing.T) {
 
 func TestCommonBenchmarkWorkloads(t *testing.T) {
 	for name, test := range map[string]struct {
-		a, b []map[string]PerfResults
+		a, b []map[string]perfresults.PerfResults
 		want map[string]util.StringSet
 	}{
 		"empty": {},
 		"identical, but empty sample values": {
-			a: []map[string]PerfResults{
+			a: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{},
@@ -203,10 +204,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 					},
 				},
 			},
-			b: []map[string]PerfResults{
+			b: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{},
@@ -218,10 +219,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 			want: nil,
 		},
 		"identical, non-empty sample values": {
-			a: []map[string]PerfResults{
+			a: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{42},
@@ -230,10 +231,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 					},
 				},
 			},
-			b: []map[string]PerfResults{
+			b: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{42},
@@ -247,10 +248,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 			},
 		},
 		"disjoint, non-empty sample values": {
-			a: []map[string]PerfResults{
+			a: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{42},
@@ -263,10 +264,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 					},
 				},
 			},
-			b: []map[string]PerfResults{
+			b: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{42},
@@ -288,10 +289,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 			},
 		},
 		"disjoint, partially-empty sample values": {
-			a: []map[string]PerfResults{
+			a: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{},
@@ -304,10 +305,10 @@ func TestCommonBenchmarkWorkloads(t *testing.T) {
 					},
 				},
 			},
-			b: []map[string]PerfResults{
+			b: []map[string]perfresults.PerfResults{
 				{
 					"benchmark 0": {
-						Histograms: []Histogram{
+						Histograms: []perfresults.Histogram{
 							{
 								Name:         "workload 0",
 								SampleValues: []float64{42},
@@ -511,7 +512,7 @@ func TestIntersectArmSpecs(t *testing.T) {
 func TestInferExperimentSpec(t *testing.T) {
 	for name, test := range map[string]struct {
 		controlArmSpecs, treatmentArmSpecs []*cpb.ArmSpec
-		controlResults, treatmentResults   []map[string]PerfResults
+		controlResults, treatmentResults   []map[string]perfresults.PerfResults
 		want                               *cpb.ExperimentSpec
 		wantError                          bool
 	}{
@@ -544,20 +545,20 @@ func TestInferExperimentSpec(t *testing.T) {
 					},
 				},
 			},
-			controlResults: []map[string]PerfResults{
+			controlResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{1, 2, 3}},
 							{Name: "workload 1", SampleValues: []float64{1, 2, 3}},
 						},
 					},
 				},
 			},
-			treatmentResults: []map[string]PerfResults{
+			treatmentResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{4, 5, 6}},
 							{Name: "workload 1", SampleValues: []float64{4, 5, 6}},
 						},
@@ -613,20 +614,20 @@ func TestInferExperimentSpec(t *testing.T) {
 					},
 				},
 			},
-			controlResults: []map[string]PerfResults{
+			controlResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{1, 2, 3}},
 							{Name: "workload 1", SampleValues: []float64{1, 2, 3}},
 						},
 					},
 				},
 			},
-			treatmentResults: []map[string]PerfResults{
+			treatmentResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{4, 5, 6}},
 							{Name: "workload 1", SampleValues: []float64{4, 5, 6}},
 						},
@@ -696,20 +697,20 @@ func TestInferExperimentSpec(t *testing.T) {
 					},
 				},
 			},
-			controlResults: []map[string]PerfResults{
+			controlResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{1, 2, 3}},
 							{Name: "workload 1", SampleValues: []float64{1, 2, 3}},
 						},
 					},
 				},
 			},
-			treatmentResults: []map[string]PerfResults{
+			treatmentResults: []map[string]perfresults.PerfResults{
 				{
-					"benchmark 0": PerfResults{
-						Histograms: []Histogram{
+					"benchmark 0": perfresults.PerfResults{
+						Histograms: []perfresults.Histogram{
 							{Name: "workload 0", SampleValues: []float64{4, 5, 6}},
 							{Name: "workload 1", SampleValues: []float64{4, 5, 6}},
 						},

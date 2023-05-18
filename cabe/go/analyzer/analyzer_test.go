@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 
 	"github.com/google/go-cmp/cmp"
@@ -19,7 +20,7 @@ func TestRun(t *testing.T) {
 	type runTest struct {
 		name                             string
 		pinpointID                       []string
-		resultsForDigests                map[string]map[string]PerfResults
+		resultsForDigests                map[string]map[string]perfresults.PerfResults
 		controlDigests, treatmentDigests []*swarming.SwarmingRpcsCASReference
 		expected                         []RResult
 		expectedProtos                   []*cpb.AnalysisResult
@@ -35,7 +36,7 @@ func TestRun(t *testing.T) {
 	} {
 		e := New(
 			WithCASResultReader(
-				func(ctx context.Context, instance, digest string) (map[string]PerfResults, error) {
+				func(ctx context.Context, instance, digest string) (map[string]perfresults.PerfResults, error) {
 					ret, ok := test.resultsForDigests[instance+"/"+digest]
 					if !ok {
 						return nil, fmt.Errorf("missing instance %q digest %q", instance, digest)

@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -214,7 +215,7 @@ func diffRunSpecs(a, b []*cpb.RunSpec) []*cpb.RunSpec {
 	return ret
 }
 
-func fromKeys(in map[string]PerfResults) util.StringSet {
+func fromKeys(in map[string]perfresults.PerfResults) util.StringSet {
 	ret := util.StringSet{}
 	for key := range in {
 		ret[key] = true
@@ -224,7 +225,7 @@ func fromKeys(in map[string]PerfResults) util.StringSet {
 
 // returns a map of benchmark names to sets of histogram names.  A histogram name is only included
 // if *every* task in controlTaskResults and treatmentTaskResults reported a non-empty set of sample values under that histogram name.
-func commonBenchmarkWorkloads(controlTaskResults, treatmentTaskResults []map[string]PerfResults) (map[string]util.StringSet, error) {
+func commonBenchmarkWorkloads(controlTaskResults, treatmentTaskResults []map[string]perfresults.PerfResults) (map[string]util.StringSet, error) {
 	// Only try to analyze benchmarks and histograms that appear in data from all tasks.
 	commonBenchmarks := util.StringSet{}
 	commonHistograms := map[string]util.StringSet{}
@@ -345,7 +346,7 @@ func (s *swarmingTaskInfo) inferArmSpec() (*cpb.ArmSpec, error) {
 // (they just give us a pinpoint job ID, rather than telling us the actual build/run details),
 // we do a bit of inference here to reconstruct that information from what we have in the
 // available swarming task metadata.
-func inferExperimentSpec(controlSpecs, treatmentSpecs []*cpb.ArmSpec, controlResults, treatmentResults []map[string]PerfResults) (*cpb.ExperimentSpec, error) {
+func inferExperimentSpec(controlSpecs, treatmentSpecs []*cpb.ArmSpec, controlResults, treatmentResults []map[string]perfresults.PerfResults) (*cpb.ExperimentSpec, error) {
 	if len(controlSpecs) != len(treatmentSpecs) || len(controlSpecs) == 0 || len(treatmentSpecs) == 0 {
 		return nil, fmt.Errorf("control and treatment spec length must be equal and non-zero: %d vs %d", len(controlSpecs), len(treatmentSpecs))
 	}

@@ -7,7 +7,8 @@ go_library(
     importpath = "go.skia.org/infra/cabe/go/replaybackends",
     visibility = ["//visibility:public"],
     deps = [
-        "//cabe/go/analyzer",
+        "//cabe/go/backends",
+        "//cabe/go/perfresults",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )

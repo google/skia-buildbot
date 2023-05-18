@@ -10,11 +10,13 @@ go_library(
     importpath = "go.skia.org/infra/cabe/go/backends",
     visibility = ["//visibility:public"],
     deps = [
+        "//cabe/go/perfresults",
         "//go/auth",
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_api//compute/v0.beta:v0_beta",
         "@org_golang_google_grpc//credentials/oauth",
         "@org_golang_x_oauth2//:oauth2",

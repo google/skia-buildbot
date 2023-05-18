@@ -1,4 +1,4 @@
-package analyzer
+package perfresults
 
 import "encoding/json"
 

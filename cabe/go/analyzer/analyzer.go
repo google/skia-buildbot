@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
 
-// CASResultReader is an interface for getting PerfResults for CAS instance and root digest values.
-type CASResultReader func(context.Context, string, string) (map[string]PerfResults, error)
+// CASResultReader is an interface for getting perfresults.PerfResult for CAS instance and root digest values.
+type CASResultReader func(context.Context, string, string) (map[string]perfresults.PerfResults, error)
 
 // SwarmingTaskReader is an interface for getting Swarming task metadata associated with a pinpoint job.
 type SwarmingTaskReader func(context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)

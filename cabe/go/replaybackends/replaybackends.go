@@ -17,16 +17,17 @@ import (
 
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
-	"go.skia.org/infra/cabe/go/analyzer"
+	"go.skia.org/infra/cabe/go/backends"
+	"go.skia.org/infra/cabe/go/perfresults"
 )
 
 // ReplayBackends implements the backend interfaces required for testing package etl and rpcservice.
 type ReplayBackends struct {
-	ParsedPerfResults   map[string]analyzer.PerfResults
+	ParsedPerfResults   map[string]perfresults.PerfResults
 	ParsedSwarmingTasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata
 
-	CASResultReader    analyzer.CASResultReader
-	SwarmingTaskReader analyzer.SwarmingTaskReader
+	CASResultReader    backends.CASResultReader
+	SwarmingTaskReader backends.SwarmingTaskReader
 }
 
 // FromZipFile opens a zip archive of pre-recorded backend responses and populates a
@@ -48,7 +49,7 @@ func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
 	defer archive.Close()
 
 	ret := &ReplayBackends{}
-	ret.ParsedPerfResults = make(map[string]analyzer.PerfResults)
+	ret.ParsedPerfResults = make(map[string]perfresults.PerfResults)
 
 	for _, file := range archive.File {
 		dirName, fileName := path.Split(file.Name)
@@ -80,7 +81,7 @@ func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
 			if _, err = io.ReadFull(fileReader, fileBytes); err != nil {
 				panic(err)
 			}
-			res := analyzer.PerfResults{}
+			res := perfresults.PerfResults{}
 
 			// if a task had no CAS output (e.g. task failed entirely) then the json can be zero length.
 			if len(fileBytes) > 0 {
@@ -103,13 +104,13 @@ func FromZipFile(replayZipfile string, benchmarkName string) *ReplayBackends {
 	}
 
 	// returns a map of benchmark name to parsed PerfResults.
-	ret.CASResultReader = func(c context.Context, instance, digest string) (map[string]analyzer.PerfResults, error) {
+	ret.CASResultReader = func(c context.Context, instance, digest string) (map[string]perfresults.PerfResults, error) {
 		df := strings.Split(digest, "/")[0]
 		res, ok := ret.ParsedPerfResults[df]
 		if !ok {
 			return nil, fmt.Errorf("couldn't find a CAS blob for %q (%q)", digest, df)
 		}
-		return map[string]analyzer.PerfResults{benchmarkName: res}, nil
+		return map[string]perfresults.PerfResults{benchmarkName: res}, nil
 	}
 
 	return ret

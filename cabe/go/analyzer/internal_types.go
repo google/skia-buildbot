@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
-
+	"go.skia.org/infra/cabe/go/perfresults"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -199,6 +199,6 @@ type armTask struct {
 	botID                  string
 	buildInfo              *buildInfo
 	runInfo                *runInfo
-	parsedResults          map[string]PerfResults
+	parsedResults          map[string]perfresults.PerfResults
 	taskInfo               swarmingTaskInfo
 }
