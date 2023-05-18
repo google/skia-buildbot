@@ -34,6 +34,15 @@ const (
 	drainTime = time.Second * 5
 )
 
+func init() {
+	// Workaround for "ERROR: logging before flag.Parse" messages that show
+	// up due to some transitive dependency on glog (we don't use it directly).
+	// See: https://github.com/kubernetes/kubernetes/issues/17162
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	_ = fs.Parse([]string{})
+	flag.CommandLine = fs
+}
+
 // App is the cabe server application.
 type App struct {
 	port       string
