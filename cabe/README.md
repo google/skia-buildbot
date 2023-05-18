@@ -24,7 +24,7 @@ See the [Design Doc](http://go/cabe-rpc).
 To start the server, in one terminal run:
 
 ```
-bazelisk run //cabe/go/cmd/cabeserver
+bazelisk run //cabe/go/cmd/cabeserver -- -disable_grpcsp
 ```
 
 This should start the gRPC service and print out some log messages
@@ -33,7 +33,7 @@ default is `50051` though you can specify it (and other flags) like
 so:
 
 ```
-bazelisk run //cabe/go/cmd/cabeserver -- -grpc_port <some other port>
+bazelisk run //cabe/go/cmd/cabeserver -- -disable_grpcsp -grpc_port <some other port>
 ```
 
 Once the server process has started, you should be able to use
@@ -65,7 +65,7 @@ bazelisk run //kube/cmd/auth-proxy -- \
     --local
 ```
 
-In another terminal, start cabserver:
+In another terminal, start cabserver (no not use `-disable_grpcsp` with this method):
 
 ```
 bazelisk run //cabe/go/cmd/cabeserver

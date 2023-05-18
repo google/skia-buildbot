@@ -45,10 +45,11 @@ func init() {
 
 // App is the cabe server application.
 type App struct {
-	port       string
-	grpcPort   string
-	promPort   string
-	authPolicy *grpcsp.ServerPolicy
+	port          string
+	grpcPort      string
+	promPort      string
+	disableGRPCSP bool
+	authPolicy    *grpcsp.ServerPolicy
 
 	swarmingClient swarming.ApiClient
 	rbeClients     map[string]*rbeclient.Client
@@ -63,6 +64,7 @@ func (a *App) FlagSet() *flag.FlagSet {
 	fs.StringVar(&a.port, "port", ":8002", "HTTP service address (e.g., ':8002')")
 	fs.StringVar(&a.promPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	fs.StringVar(&a.grpcPort, "grpc_port", ":50051", "gRPC service port (e.g., ':50051')")
+	fs.BoolVar(&a.disableGRPCSP, "disable_grpcsp", false, "disable authorization checks for incoming grpc calls")
 
 	return fs
 }
@@ -78,8 +80,8 @@ func (a *App) Start(ctx context.Context) error {
 	if a.rbeClients == nil {
 		return fmt.Errorf("missing rbe service clients")
 	}
-	if a.authPolicy == nil {
-		return fmt.Errorf("missing grpc authorization policy")
+	if a.authPolicy == nil && !a.disableGRPCSP {
+		return fmt.Errorf("missing required grpc authorization policy")
 	}
 
 	go func() {
@@ -109,7 +111,11 @@ func (a *App) Start(ctx context.Context) error {
 		}
 	}()
 
-	a.grpcServer = grpc.NewServer(grpc.UnaryInterceptor(a.authPolicy.UnaryInterceptor()))
+	opts := []grpc.ServerOption{}
+	if !a.disableGRPCSP {
+		opts = append(opts, grpc.UnaryInterceptor(a.authPolicy.UnaryInterceptor()))
+	}
+	a.grpcServer = grpc.NewServer(opts...)
 
 	sklog.Infof("registering grpc health server")
 	healthServer := health.NewServer()
@@ -177,11 +183,14 @@ func (a *App) ConfigureAuthorization() error {
 	}
 
 	analysisPolicy, err := a.authPolicy.Service(cpb.Analysis_ServiceDesc)
+	if err != nil {
+		sklog.Errorf("creating auth policy for service: %v", err)
+		return err
+	}
 	if err := analysisPolicy.AuthorizeRoles(roles.Roles{roles.Admin}); err != nil {
 		sklog.Errorf("configuring roles for service: %v", err)
 		return err
 	}
-
 	if err := analysisPolicy.AuthorizeMethodForRoles("GetAnalysis", roles.Roles{roles.Viewer}); err != nil {
 		sklog.Errorf("configuring roles for method: %v", err)
 		return err
