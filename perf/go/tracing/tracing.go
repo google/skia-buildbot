@@ -15,7 +15,7 @@ func Init(local bool) error {
 	}
 	// TODO(jcgregorio) Add a Tracing section to Config, for now hard-code the ProjectID.
 	//  https://skbug.com/12686
-	return tracing.Initialize(f, "skia-public", map[string]interface{}{
+	return tracing.Initialize(f, "skia-monitoring", map[string]interface{}{
 		// This environment variable should be set in the k8s templates.
 		"podName": os.Getenv("MY_POD_NAME"),
 	})
