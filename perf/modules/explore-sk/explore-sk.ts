@@ -361,6 +361,8 @@ export class ExploreSk extends ElementSk {
 
   private queryDialog: HTMLDialogElement | null = null;
 
+  private bisectDialog: HTMLDialogElement | null = null;
+
   private fromParamsQueryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
@@ -458,7 +460,8 @@ export class ExploreSk extends ElementSk {
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
           <button .hide=${
             window.perf.fetch_chrome_perf_anomalies ? false : true
-          }>Bisect</button>
+          }
+          @click=${ele.openBisect}>Bisect</button>
         </div>
       </div>
     </div>
@@ -556,6 +559,13 @@ export class ExploreSk extends ElementSk {
       </tabs-panel-sk>
       <div class=footer>
         <button @click=${ele.closeQueryDialog}>Close</button>
+      </div>
+    </dialog>
+
+    <dialog id='bisect-dialog'>
+      <h2>Bisect</h2>
+      <div class=footer>
+        <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
     </dialog>
 
@@ -682,6 +692,7 @@ export class ExploreSk extends ElementSk {
     this.traceID = this.querySelector('#trace_id');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
+    this.bisectDialog = this.querySelector('#bisect-dialog');
     this.fromParamsQueryDialog = this.querySelector(
       '#from-params-query-dialog'
     );
@@ -728,6 +739,10 @@ export class ExploreSk extends ElementSk {
 
   private closeQueryDialog(): void {
     this.queryDialog!.close();
+  }
+
+  private closeBisectDialog(): void {
+    this.bisectDialog!.close();
   }
 
   private keyDown(e: KeyboardEvent) {
@@ -922,6 +937,12 @@ export class ExploreSk extends ElementSk {
   private openQuery() {
     this._render();
     this.queryDialog!.showModal();
+  }
+
+  /** Open the bisect dialog box. */
+  private openBisect() {
+    this._render();
+    this.bisectDialog!.showModal();
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
