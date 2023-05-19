@@ -12,6 +12,7 @@ go_library(
     importpath = "go.skia.org/infra/cabe/go/analyzer",
     visibility = ["//visibility:public"],
     deps = [
+        "//cabe/go/backends",
         "//cabe/go/perfresults",
         "//cabe/go/proto:go_proto_lib",
         "//go/sklog",

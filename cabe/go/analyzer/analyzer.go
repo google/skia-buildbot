@@ -4,29 +4,22 @@ import (
 	"context"
 	"fmt"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/cabe/go/perfresults"
+	"go.skia.org/infra/cabe/go/backends"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
-
-// CASResultReader is an interface for getting perfresults.PerfResult for CAS instance and root digest values.
-type CASResultReader func(context.Context, string, string) (map[string]perfresults.PerfResults, error)
-
-// SwarmingTaskReader is an interface for getting Swarming task metadata associated with a pinpoint job.
-type SwarmingTaskReader func(context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 // Options configure one or more fields of an Analyzer instance.
 type Options func(*Analyzer)
 
 // WithCASResultReader configures an Analyzer instance to use the given CASResultReader.
-func WithCASResultReader(r CASResultReader) Options {
+func WithCASResultReader(r backends.CASResultReader) Options {
 	return func(e *Analyzer) {
 		e.readCAS = r
 	}
 }
 
 // WithTaskResultsReader configures an Analyzer instance to use the given TaskResultsReader.
-func WithSwarmingTaskReader(r SwarmingTaskReader) Options {
+func WithSwarmingTaskReader(r backends.SwarmingTaskReader) Options {
 	return func(e *Analyzer) {
 		e.readSwarmingTasks = r
 	}
@@ -45,8 +38,8 @@ func New(opts ...Options) *Analyzer {
 // to process all of the output of an A/B benchmark experiment run.
 // Users of Analyzer must instantiate and attach the necessary service dependencies.
 type Analyzer struct {
-	readCAS           CASResultReader
-	readSwarmingTasks SwarmingTaskReader
+	readCAS           backends.CASResultReader
+	readSwarmingTasks backends.SwarmingTaskReader
 	results           []RResult
 }
 
