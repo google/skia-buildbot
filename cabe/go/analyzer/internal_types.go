@@ -5,6 +5,7 @@ package analyzer
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -193,4 +194,59 @@ type armTask struct {
 	runInfo                *runInfo
 	parsedResults          map[string]perfresults.PerfResults
 	taskInfo               *swarming.SwarmingRpcsTaskRequestMetadata
+}
+
+// all of the data collected for an experiment.
+type processedExperimentTasks struct {
+	control, treatment *processedArmTasks
+}
+
+// returns a list of task pairs, where pairs are identified by botID and start time for the task.
+func (a *processedExperimentTasks) pairedTasks() ([]pairedTasks, error) {
+	ret := []pairedTasks{}
+	sort.Sort(byPairingOrder(a.control.tasks))
+	sort.Sort(byPairingOrder(a.treatment.tasks))
+
+	for i, c := range a.control.tasks {
+		t := a.treatment.tasks[i]
+		if c.botID != t.botID {
+			return nil, fmt.Errorf("bot ID mispatch for pair %d: %q vs %q", i, c.botID, t.botID)
+		}
+		if c.runConfig != t.runConfig {
+			return nil, fmt.Errorf("control/treatment runConfig mismatch: %q vs %q", c.runConfig, t.runConfig)
+		}
+		if c.buildConfig != t.buildConfig {
+			return nil, fmt.Errorf("control/treatment buildConfig mismatch: %q vs %q", c.buildConfig, t.buildConfig)
+		}
+		ret = append(ret, pairedTasks{c, t})
+	}
+	return ret, nil
+}
+
+type pairedTasks struct {
+	control, treatment *armTask
+}
+
+func (p *pairedTasks) isControlOrderFirst() bool {
+	return p.control.taskInfo.TaskResult.StartedTs < p.treatment.taskInfo.TaskResult.StartedTs
+}
+
+func (p *pairedTasks) hasTaskFailures() bool {
+	return p.control.taskInfo.TaskResult.ExitCode != 0 || p.treatment.taskInfo.TaskResult.ExitCode != 0
+}
+
+type byPairingOrder []*armTask
+
+func (v byPairingOrder) Len() int      { return len(v) }
+func (v byPairingOrder) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+
+// This looks fairly naive, but its assumptions should hold. Task pairs should execute on the same
+// bot ID (device), and sorting tasks by start time within a given bot ID should give us the
+// actual run order for tasks on that bot.  Even if bots are re-used by subsequent task pairs,
+// the tasks should still be in pairing order within the given bot ID.
+func (v byPairingOrder) Less(i, j int) bool {
+	if v[i].botID == v[j].botID {
+		return v[i].taskInfo.TaskResult.StartedTs < v[j].taskInfo.TaskResult.StartedTs
+	}
+	return v[i].botID < v[j].botID
 }
