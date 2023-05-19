@@ -36,8 +36,12 @@ import (
 
 var (
 	InvalidChar = regexp.MustCompile(`([^a-zA-Z0-9\._\-])`)
-	keyRe       = regexp.MustCompile(`^,([a-zA-Z0-9\._\-]+=[a-zA-Z0-9\._\\-]+,)+$`)
-	paramRe     = regexp.MustCompile(`^[a-zA-Z0-9\._\-]+$`)
+
+	// For trace name format check, and avoid SQL injection attacks.
+	keyRe = regexp.MustCompile(`^,([^,=;]+=[^,=;]+,)+$`)
+
+	// To avoid SQL injection attacks.
+	paramRe = regexp.MustCompile(`^[^,=;]+$`)
 
 	QueryWillNeverMatch = errors.New("Query will never match.")
 )

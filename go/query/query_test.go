@@ -30,7 +30,7 @@ func TestValidateKey(t *testing.T) {
 		},
 		{
 			key:    ",arch=x86,config=5 65,",
-			valid:  false,
+			valid:  true,
 			reason: "",
 		},
 		{
@@ -74,6 +74,36 @@ func TestValidateKey(t *testing.T) {
 			reason: "Param name prefix of another param name.",
 		},
 		{
+			key:    ",arch=x85,arch,er=x85,",
+			valid:  false,
+			reason: "No comma in param key.",
+		},
+		{
+			key:    ",arch=x85,archer=x,85,",
+			valid:  false,
+			reason: "No comma in param value.",
+		},
+		{
+			key:    ",arch=x85,arch=er=x85,",
+			valid:  false,
+			reason: "No equal in param key.",
+		},
+		{
+			key:    ",arch=x85,archer=x=85,",
+			valid:  false,
+			reason: "No equal in param value.",
+		},
+		{
+			key:    ",arch=x85,archer=;x85,",
+			valid:  false,
+			reason: "Risk of SQL injection attack.",
+		},
+		{
+			key:    ",arch=x85,archer=x85~@#$%^&*()+ :,",
+			valid:  true,
+			reason: "Special chars are allowed by the validation.",
+		},
+		{
 			key:    ",,",
 			valid:  false,
 			reason: "Degenerate case.",
@@ -114,13 +144,43 @@ func TestMakeKey(t *testing.T) {
 			m:      map[string]string{"bad,key": "x86"},
 			key:    "",
 			valid:  false,
-			reason: "Bad key.",
+			reason: "Bad key with comma.",
+		},
+		{
+			m:      map[string]string{"bad=key": "x86"},
+			key:    "",
+			valid:  false,
+			reason: "Bad key with equal.",
+		},
+		{
+			m:      map[string]string{"bad;key": "x86"},
+			key:    "",
+			valid:  false,
+			reason: "Bad key with semicolon.",
 		},
 		{
 			m:      map[string]string{"key": "bad,value"},
 			key:    "",
 			valid:  false,
-			reason: "Bad value.",
+			reason: "Bad value with comma.",
+		},
+		{
+			m:      map[string]string{"key": "bad=value"},
+			key:    "",
+			valid:  false,
+			reason: "Bad value with equal.",
+		},
+		{
+			m:      map[string]string{"key": "bad;value"},
+			key:    "",
+			valid:  false,
+			reason: "Bad value with semicolon.",
+		},
+		{
+			m:      map[string]string{"key~@#$%^&*()+ :": "value~@#$%^&*()+ :"},
+			key:    ",key~@#$%^&*()+ :=value~@#$%^&*()+ :,",
+			valid:  true,
+			reason: "Special chars in key and value.",
 		},
 		{
 			m:      map[string]string{},
@@ -357,6 +417,16 @@ func TestParseKey(t *testing.T) {
 			reason:   "Simple parse",
 		},
 		{
+			key: ",arch=x86,config=565,debug~@#$%^&*()+ :=true~@#$%^&*()+ :,",
+			parsed: map[string]string{
+				"arch":               "x86",
+				"config":             "565",
+				"debug~@#$%^&*()+ :": "true~@#$%^&*()+ :",
+			},
+			hasError: false,
+			reason:   "Special chars are allowed",
+		},
+		{
 			key:      ",config=565,arch=x86,",
 			parsed:   map[string]string{},
 			hasError: true,
@@ -394,6 +464,42 @@ func TestParseKey(t *testing.T) {
 			},
 			hasError: false,
 			reason:   "Only check sort order on the key values, not on key=value, which breaks on this case between 'browser=' and 'browser-'",
+		},
+		{
+			key:      ",arc,h=x86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Comma in key",
+		},
+		{
+			key:      ",arch=x,86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Comma in value",
+		},
+		{
+			key:      ",arc=h=x86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Equal in key",
+		},
+		{
+			key:      ",arch=x=86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Equal in value",
+		},
+		{
+			key:      ",arc;h=x86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Semicolon in key",
+		},
+		{
+			key:      ",arch=x;86,config=565,debug=true,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Semicolon in value",
 		},
 	}
 	for _, tc := range testCases {
@@ -656,6 +762,10 @@ func TestValidateParamSet(t *testing.T) {
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"": []string{}}))
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"); DROP TABLE": []string{}}))
 	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"good": []string{"); DROP TABLE"}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"ba,d": []string{}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"ba=d": []string{}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"good": []string{"),"}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"good": []string{")="}}))
 }
 
 func TestQueryParamKey_HappyPath(t *testing.T) {
