@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/sklog"
@@ -312,13 +314,13 @@ func buildSpecForChangeString(s string) (*cpb.BuildSpec, error) {
 }
 
 // Returns an ArmSpec proto populated with fields matching the details of s.
-func (s *swarmingTaskInfo) inferArmSpec() (*cpb.ArmSpec, error) {
+func inferArmSpec(s *swarming.SwarmingRpcsTaskRequestMetadata) (*cpb.ArmSpec, error) {
 	ret := &cpb.ArmSpec{}
 
-	ppc := pinpointChangeTagForTask(*s)
+	ppc := pinpointChangeTagForTask(s)
 	if ppc != "" {
 	} else {
-		sklog.Errorf("couldn't get pinpoint change info for a pinpoint task. Swarming ID %s", s.taskID)
+		sklog.Errorf("couldn't get pinpoint change info for a pinpoint task. Swarming ID %s", s.TaskId)
 	}
 	bs, err := buildSpecForChangeString(ppc)
 	if err != nil {
@@ -327,7 +329,7 @@ func (s *swarmingTaskInfo) inferArmSpec() (*cpb.ArmSpec, error) {
 
 	ret.BuildSpec = []*cpb.BuildSpec{bs}
 
-	runInfo, err := s.runInfo()
+	runInfo, err := runInfoForTask(s)
 	if err != nil {
 		return nil, err
 	}

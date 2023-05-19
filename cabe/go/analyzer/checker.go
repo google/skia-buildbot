@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/util"
 
 	specpb "go.skia.org/infra/cabe/go/proto"
@@ -17,7 +18,7 @@ type Checker interface {
 	// Findings returns a list of strings describing potential issues that the checker identified.
 	Findings() []string
 	// CheckRunTask validates a single swarming task request/result pair in isolation.
-	CheckRunTask(taskInfo *swarmingTaskInfo)
+	CheckRunTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata)
 	// CheckArmComparability validates assumptions about how treatment and control arm tasks may
 	// differ from each other, and how tasks within an arm may differ from each other.
 	CheckArmComparability(controls, treatments *processedArmTasks)
@@ -118,33 +119,33 @@ func (c *checker) addFinding(checkName string, msg string) {
 
 // CheckRunTask verifies assumptions about an individual request/result pair for a Swarming task
 // that executed a benchmark.
-func (c *checker) CheckRunTask(taskInfo *swarmingTaskInfo) {
+func (c *checker) CheckRunTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata) {
 	if taskInfo == nil {
 		c.addFinding("CheckRunTask", "taskInfo was nil")
 		return
 	}
 
 	addFinding := func(msg string) {
-		c.addFinding(fmt.Sprintf("CheckRunTask %q", taskInfo.taskID), msg)
+		c.addFinding(fmt.Sprintf("CheckRunTask %q", taskInfo.TaskId), msg)
 	}
 
-	if taskInfo.request == nil {
+	if taskInfo.Request == nil {
 		addFinding("taskInfo.request was nil")
 		return
-	} else if taskInfo.request.Properties == nil {
+	} else if taskInfo.Request.Properties == nil {
 		addFinding("taskInfo.request.Properties was nil")
 		return
 	}
 
-	if taskInfo.result == nil {
+	if taskInfo.TaskResult == nil {
 		addFinding("taskInfo.result was nil")
 		return
-	} else if taskInfo.result.BotDimensions == nil {
+	} else if taskInfo.TaskResult.BotDimensions == nil {
 		addFinding("taskInfo.result.BotDimensions was nil")
 		return
 	}
 
-	requestDims := taskInfo.requestDimensions()
+	requestDims := requestDimensionsForTask(taskInfo)
 	if _, ok := requestDims["builder"]; ok {
 		// This is a builder task, not a runner task, so skip it.
 		return
@@ -164,7 +165,7 @@ func (c *checker) CheckRunTask(taskInfo *swarmingTaskInfo) {
 
 	// Check for missing request tags.
 	requestTagKeys := util.NewStringSet()
-	for k := range tagsToMap(taskInfo.request.Tags) {
+	for k := range tagsToMap(taskInfo.Request.Tags) {
 		requestTagKeys[k] = true
 	}
 
@@ -176,7 +177,7 @@ func (c *checker) CheckRunTask(taskInfo *swarmingTaskInfo) {
 
 	// Check for missing result dimensions.
 	resultBotDimKeys := util.NewStringSet()
-	for k := range taskInfo.resultBotDimensions() {
+	for k := range resultBotDimensionsForTask(taskInfo) {
 		resultBotDimKeys[k] = true
 	}
 
@@ -188,7 +189,7 @@ func (c *checker) CheckRunTask(taskInfo *swarmingTaskInfo) {
 
 	// Check for missing result tags.
 	resultTagKeys := util.NewStringSet()
-	for k := range tagsToMap(taskInfo.result.Tags) {
+	for k := range tagsToMap(taskInfo.TaskResult.Tags) {
 		resultTagKeys[k] = true
 	}
 
@@ -287,7 +288,7 @@ type armTasks []*armTask
 func (s armTasks) disjointResultDimensions(ignoredKeys util.StringSet) []string {
 	dimensionSets := []map[string][]string{}
 	for _, t := range s {
-		dimensionSets = append(dimensionSets, t.taskInfo.resultBotDimensions())
+		dimensionSets = append(dimensionSets, resultBotDimensionsForTask(t.taskInfo))
 	}
 	return disjointDimensions(dimensionSets, ignoredKeys)
 
@@ -297,7 +298,7 @@ func (s armTasks) disjointResultDimensions(ignoredKeys util.StringSet) []string 
 func (s armTasks) disjointResultTags(ignoredKeys util.StringSet) []string {
 	tagSets := [][]string{}
 	for _, task := range s {
-		tagSets = append(tagSets, task.taskInfo.result.Tags)
+		tagSets = append(tagSets, task.taskInfo.TaskResult.Tags)
 	}
 	return disjointTags(tagSets, ignoredKeys)
 }
@@ -306,7 +307,7 @@ func (s armTasks) disjointResultTags(ignoredKeys util.StringSet) []string {
 func (s armTasks) disjointRequestDimensions(ignoredKeys util.StringSet) []string {
 	dimensionSets := []map[string][]string{}
 	for _, t := range s {
-		dimensionSets = append(dimensionSets, t.taskInfo.requestDimensions())
+		dimensionSets = append(dimensionSets, requestDimensionsForTask(t.taskInfo))
 	}
 	return disjointDimensions(dimensionSets, ignoredKeys)
 }
@@ -315,7 +316,7 @@ func (s armTasks) disjointRequestDimensions(ignoredKeys util.StringSet) []string
 func (s armTasks) disjointRequestTags(ignoredKeys util.StringSet) []string {
 	tagSets := [][]string{}
 	for _, task := range s {
-		tagSets = append(tagSets, task.taskInfo.request.Tags)
+		tagSets = append(tagSets, task.taskInfo.Request.Tags)
 	}
 	return disjointTags(tagSets, ignoredKeys)
 }

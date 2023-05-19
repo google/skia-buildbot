@@ -26,20 +26,12 @@ func appendIfHasPrefix(prefix, source string, dest *[]string) {
 	}
 }
 
-// To get all the information we need about a given swarming task, we need both the results and
-// the original request. This struct helps us pair them.
-type swarmingTaskInfo struct {
-	taskID  string
-	request *swarming.SwarmingRpcsTaskRequest
-	result  *swarming.SwarmingRpcsTaskResult
-}
-
 // Pinpoint will set a "change:..." tag on the swarming tasks it runs for each arm.
 // The contents are formatted here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/change/change.py;l=52
 // however we only care about the presence of the "change:" prefix in this function. The rest
 // (if anything) is handled by the caller.
-func pinpointChangeTagForTask(t swarmingTaskInfo) string {
-	for _, tag := range t.result.Tags {
+func pinpointChangeTagForTask(t *swarming.SwarmingRpcsTaskRequestMetadata) string {
+	for _, tag := range t.TaskResult.Tags {
 		if strings.HasPrefix(tag, "change:") {
 			return tag[len("change:"):]
 		}
@@ -49,9 +41,9 @@ func pinpointChangeTagForTask(t swarmingTaskInfo) string {
 
 // Request dimensions are key value pairs, and keys can appear more that once.  This function
 // groups values by key.
-func (s *swarmingTaskInfo) requestDimensions() map[string][]string {
+func requestDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map[string][]string {
 	ret := make(map[string][]string)
-	for _, dim := range s.request.Properties.Dimensions {
+	for _, dim := range s.Request.Properties.Dimensions {
 		v := ret[dim.Key]
 		if v == nil {
 			v = []string{}
@@ -62,9 +54,9 @@ func (s *swarmingTaskInfo) requestDimensions() map[string][]string {
 	return ret
 }
 
-func (s *swarmingTaskInfo) resultBotDimensions() map[string][]string {
+func resultBotDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map[string][]string {
 	ret := make(map[string][]string)
-	for _, dim := range s.result.BotDimensions {
+	for _, dim := range s.TaskResult.BotDimensions {
 		v := ret[dim.Key]
 		if v == nil {
 			v = []string{}
@@ -77,9 +69,9 @@ func (s *swarmingTaskInfo) resultBotDimensions() map[string][]string {
 
 // A build task has a tag like "buildbucket_build_id:8810006378346751937"
 // May return nil, nil if the task is not a build task at all.
-func (s *swarmingTaskInfo) buildInfo() (*buildInfo, error) {
+func buildInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*buildInfo, error) {
 	ret := &buildInfo{}
-	for _, tag := range s.result.Tags {
+	for _, tag := range s.TaskResult.Tags {
 		assignIfHasPrefix("buildbucket_build_id:", tag, &ret.buildbucketBuildID)
 		assignIfHasPrefix("buildbucket_hostname:", tag, &ret.buildbucketHostname)
 		assignIfHasPrefix("buildbucket_bucket:", tag, &ret.buildbucketBucket)
@@ -92,12 +84,12 @@ func (s *swarmingTaskInfo) buildInfo() (*buildInfo, error) {
 	return ret, nil
 }
 
-func (s *swarmingTaskInfo) runInfo() (*runInfo, error) {
+func runInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*runInfo, error) {
 	ret := &runInfo{}
 
 	// t.request.Properties.Dimensions reflect what the user (e.g. via Pinpoint) asked swarming to
 	// run the task on.
-	for _, dim := range s.request.Properties.Dimensions {
+	for _, dim := range s.Request.Properties.Dimensions {
 		if dim.Key == "cpu" {
 			ret.cpu = dim.Value
 		}
@@ -113,14 +105,14 @@ func (s *swarmingTaskInfo) runInfo() (*runInfo, error) {
 	}
 
 	// t.result.BotDimensions reflect what hardware swarming actually executed the task on.
-	for _, d := range s.result.BotDimensions {
+	for _, d := range s.TaskResult.BotDimensions {
 		// I am not sure who sets this field or how, but it appears to be there and kinda fits
 		// the bill for a name for a specific "hardware/OS/other runtime stuff" configuration.
 		if d.Key == "synthetic_product_name" {
 			if len(d.Value) == 0 {
-				js, _ := json.Marshal(s.result)
+				js, _ := json.Marshal(s.TaskResult)
 				sklog.Errorf("result: %s", string(js))
-				return nil, fmt.Errorf("task %q had empty values for synthetic_product_name: %#v", s.taskID, s.result.BotDimensions)
+				return nil, fmt.Errorf("task %q had empty values for synthetic_product_name: %#v", s.TaskId, s.TaskResult.BotDimensions)
 
 			}
 			ret.syntheticProductName = d.Value[0]
@@ -132,11 +124,11 @@ func (s *swarmingTaskInfo) runInfo() (*runInfo, error) {
 		return nil, fmt.Errorf("unable to get valid runInfo for task (%+v): %+v", s, ret)
 	}
 
-	ret.botID = s.result.BotId
-	if s.result.StartedTs == "" {
-		return nil, fmt.Errorf("task %q had no StartedTs value", s.taskID)
+	ret.botID = s.TaskResult.BotId
+	if s.TaskResult.StartedTs == "" {
+		return nil, fmt.Errorf("task %q had no StartedTs value", s.TaskId)
 	}
-	ret.startTimestamp = s.result.StartedTs
+	ret.startTimestamp = s.TaskResult.StartedTs
 
 	return ret, nil
 }
@@ -200,5 +192,5 @@ type armTask struct {
 	buildInfo              *buildInfo
 	runInfo                *runInfo
 	parsedResults          map[string]perfresults.PerfResults
-	taskInfo               swarmingTaskInfo
+	taskInfo               *swarming.SwarmingRpcsTaskRequestMetadata
 }

@@ -9,29 +9,29 @@ import (
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
-func TestSwarmingTaskInfo_runInfo(t *testing.T) {
+func TestRunInfoFoTask(t *testing.T) {
 	for i, test := range []struct {
 		name        string
-		task        swarmingTaskInfo
+		task        *swarming.SwarmingRpcsTaskRequestMetadata
 		expected    *runInfo
 		expectError bool
 	}{
 		{
 			name: "empty",
-			task: swarmingTaskInfo{
-				request: &swarming.SwarmingRpcsTaskRequest{
+			task: &swarming.SwarmingRpcsTaskRequestMetadata{
+				Request: &swarming.SwarmingRpcsTaskRequest{
 					Properties: &swarming.SwarmingRpcsTaskProperties{
 						Dimensions: nil, // specifically, to make sure these get checked.
 					},
 				},
-				result: &swarming.SwarmingRpcsTaskResult{},
+				TaskResult: &swarming.SwarmingRpcsTaskResult{},
 			},
 			expectError: true,
 		},
 		{
 			name: "cpu and os but no synthetic_product_name",
-			task: swarmingTaskInfo{
-				request: &swarming.SwarmingRpcsTaskRequest{
+			task: &swarming.SwarmingRpcsTaskRequestMetadata{
+				Request: &swarming.SwarmingRpcsTaskRequest{
 					Properties: &swarming.SwarmingRpcsTaskProperties{
 						Dimensions: []*swarming.SwarmingRpcsStringPair{
 							{Key: "os", Value: "mac"},
@@ -39,7 +39,7 @@ func TestSwarmingTaskInfo_runInfo(t *testing.T) {
 						},
 					},
 				},
-				result: &swarming.SwarmingRpcsTaskResult{
+				TaskResult: &swarming.SwarmingRpcsTaskResult{
 					StartedTs: "0",
 				},
 			},
@@ -51,8 +51,8 @@ func TestSwarmingTaskInfo_runInfo(t *testing.T) {
 		},
 		{
 			name: "cpu, os and synthetic_product_name",
-			task: swarmingTaskInfo{
-				request: &swarming.SwarmingRpcsTaskRequest{
+			task: &swarming.SwarmingRpcsTaskRequestMetadata{
+				Request: &swarming.SwarmingRpcsTaskRequest{
 					Properties: &swarming.SwarmingRpcsTaskProperties{
 						Dimensions: []*swarming.SwarmingRpcsStringPair{
 							{Key: "os", Value: "mac"},
@@ -60,7 +60,7 @@ func TestSwarmingTaskInfo_runInfo(t *testing.T) {
 						},
 					},
 				},
-				result: &swarming.SwarmingRpcsTaskResult{
+				TaskResult: &swarming.SwarmingRpcsTaskResult{
 					BotDimensions: []*swarming.SwarmingRpcsStringListPair{
 						{Key: "synthetic_product_name", Value: []string{"Macmini9,1_arm64-64-Apple_M1_16384_1_4744421.0"}},
 					},
@@ -75,7 +75,7 @@ func TestSwarmingTaskInfo_runInfo(t *testing.T) {
 			},
 		},
 	} {
-		got, err := test.task.runInfo()
+		got, err := runInfoForTask(test.task)
 		if err != nil && !test.expectError {
 			t.Errorf("[%d] %q unexpected error: %v", i, test.name, err)
 		}
