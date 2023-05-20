@@ -416,6 +416,8 @@ func (i *imgTest) Finalize(ctx context.Context) {
 
 	logVerbose(ctx, "Uploading the final JSON to Gold\n")
 	err = goldClient.Finalize(ctx)
+	logVerbose(ctx, "Done uploading the final JSON to Gold\n")
+
 	ifErrLogExit(ctx, err)
 	exitProcess(ctx, 0)
 }
