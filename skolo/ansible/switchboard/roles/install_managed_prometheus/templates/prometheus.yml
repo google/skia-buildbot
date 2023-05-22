@@ -38,11 +38,12 @@ scrape_configs:
         labels:
           job: 'alert_to_pubsub_ansible'
           hostname: 'jumphost'
+{% if install_environment_monitor__needs_environment_monitor is defined and install_environment_monitor__needs_environment_monitor is true %}
       - targets: ['localhost:{{ all.prometheus.monitoring.ports.environment_monitor_ansible  }}']
-        when: install_environment_monitor__needs_environment_monitor is defined and install_environment_monitor__needs_environment_monitor == true
         labels:
           job: 'environment_monitor_ansible'
-          hostname: 'environment_monitor_linux'
+          hostname: 'jumphost'
+{% endif %}
   - job_name: 'test_machines'
     static_configs:
 {% for hostname in hostvars['rack4']['groups'][inventory_hostname + '_machines'] %}
