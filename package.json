@@ -9,6 +9,8 @@
   "dependencies": {
     "@bazel/esbuild": "^5.5.0",
     "@bazel/typescript": "^5.5.0",
+    "@ffmpeg/core": "^0.11.0",
+    "@ffmpeg/ffmpeg": "^0.11.6",
     "@google-web-components/google-apis": "^3.0.1",
     "@google-web-components/google-chart": "^4.0.2",
     "@types/chai": "^4.2.16",

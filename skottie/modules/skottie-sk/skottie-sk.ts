@@ -64,6 +64,11 @@ import '../../../elements-sk/modules/icons/replay-icon-sk';
 import '../skottie-button-sk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
+import '../skottie-exporter-sk';
+import {
+  ExportType,
+  SkottieExporterSk,
+} from '../skottie-exporter-sk/skottie-exporter-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -134,61 +139,58 @@ const displayLoading = () => html`
 export class SkottieSk extends ElementSk {
   private static template = (ele: SkottieSk) => html`
     <app-sk>
-      <header>
-        <h2>Skottie Web Player</h2>
-        <span>
-          <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
-            ${SKIA_VERSION.slice(0, 7)}
-          </a>
+      <div class="app-container">
+        <header>
+          <h2>Skottie Web Player</h2>
+          <span>
+            <a
+              href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
+              class="header__skia-version"
+            >
+              ${SKIA_VERSION.slice(0, 7)}
+            </a>
 
-          <skottie-dropdown-sk
-            id="view-exporter"
-            .name="dropdown-exporter"
-            .options=${[
-              { id: '', value: 'Export' },
-              { id: '1', value: 'GIF' },
-              { id: '2', value: 'WebM' },
-              { id: '3', value: 'PNG sequence' },
-            ]}
-            reset
-            @select=${ele.exportSelectHandler}
-            border
-          >
-          </skottie-dropdown-sk>
+            <skottie-dropdown-sk
+              id="view-exporter"
+              .name="dropdown-exporter"
+              .options=${[
+                { id: '', value: 'Export' },
+                { id: 'gif', value: 'GIF' },
+                { id: 'webM', value: 'WebM' },
+                { id: 'png', value: 'PNG sequence' },
+              ]}
+              reset
+              @select=${ele.exportSelectHandler}
+              border
+            >
+            </skottie-dropdown-sk>
+            <skottie-button-sk
+              id="view-perf-chart"
+              @select=${ele.togglePerformanceChart}
+              type="outline"
+              .content=${'Performance chart'}
+              .classes=${['header__button']}
+            >
+            </skottie-button-sk>
+            <skottie-button-sk
+              id="view-json-layers"
+              @select=${ele.toggleEditor}
+              type="outline"
+              .content=${'View JSON code'}
+              .classes=${['header__button']}
+            >
+            </skottie-button-sk>
 
-          <skottie-button-sk
-            id="view-gif-exporter"
-            @select=${ele.toggleGifExporter}
-            type="outline"
-            .content=${'Export'}
-            .classes=${['header__button']}
-          >
-          </skottie-button-sk>
-          <skottie-button-sk
-            id="view-perf-chart"
-            @select=${ele.togglePerformanceChart}
-            type="outline"
-            .content=${'Performance chart'}
-            .classes=${['header__button']}
-          >
-          </skottie-button-sk>
-          <skottie-button-sk
-            id="view-json-layers"
-            @select=${ele.toggleEditor}
-            type="outline"
-            .content=${'View JSON code'}
-            .classes=${['header__button']}
-          >
-          </skottie-button-sk>
-
-          <theme-chooser-sk></theme-chooser-sk>
-        </span>
-      </header>
-      <main>${ele.pick()}</main>
-      <footer>
-        <error-toast-sk></error-toast-sk>
-        ${redir()}
-      </footer>
+            <theme-chooser-sk></theme-chooser-sk>
+          </span>
+        </header>
+        <main>${ele.pick()}</main>
+        <footer>
+          <error-toast-sk></error-toast-sk>
+          ${redir()}
+        </footer>
+      </div>
+      <skottie-exporter-sk @start=${ele.onExportStart}></skottie-exporter-sk>
     </app-sk>
   `;
 
@@ -234,10 +236,15 @@ export class SkottieSk extends ElementSk {
     </div>
     <div class="playback">
       <div class="playback-content">
-        <button id="playpause" @click=${this.playpause} class="fab">
-          <play-arrow-icon-sk id="playpause-play"></play-arrow-icon-sk>
-          <pause-icon-sk id="playpause-pause"></pause-icon-sk>
-        </button>
+        <skottie-button-sk
+          id="playpause"
+          .content=${html`<play-arrow-icon-sk
+              id="playpause-play"
+            ></play-arrow-icon-sk>
+            <pause-icon-sk id="playpause-pause"></pause-icon-sk>`}
+          .classes=${['playback-content__button']}
+          @select=${this.playpause}
+        ></skottie-button-sk>
         <div class="scrub">
           <input
             id="scrub"
@@ -249,18 +256,25 @@ export class SkottieSk extends ElementSk {
             @change=${this.onScrubEnd}
           />
           <label class="number">
-            Go to frame:
+            Frame:
             <input
               type="number"
               id="frameInput"
+              class="playback-content-frameInput"
               @focus=${this.onFrameFocus}
               @change=${this.onFrameChange}
-            />
+            /><!--
+            --><span class="playback-content-frameTotal" id="frameTotal"
+              >of 0</span
+            >
           </label>
         </div>
-        <button id="rewind" @click=${this.rewind} class="fab">
-          <replay-icon-sk></replay-icon-sk>
-        </button>
+        <skottie-button-sk
+          id="rewind"
+          .content=${html`<replay-icon-sk></replay-icon-sk>`}
+          .classes=${['playback-content__button']}
+          @select=${this.rewind}
+        ></skottie-button-sk>
       </div>
     </div>
 
@@ -472,7 +486,7 @@ export class SkottieSk extends ElementSk {
         <span>Export</span>
         <button @click=${this.toggleGifExporter}>Close</button>
       </div>
-      <skottie-gif-exporter-sk @start=${this.onGifExportStart}>
+      <skottie-gif-exporter-sk @start=${this.onExportStart}>
       </skottie-gif-exporter-sk>
     </dialog>
   `;
@@ -748,7 +762,7 @@ export class SkottieSk extends ElementSk {
     }
   }
 
-  private onGifExportStart(): void {
+  private onExportStart(): void {
     if (this.playing) {
       this.playpause();
     }
@@ -1362,7 +1376,11 @@ export class SkottieSk extends ElementSk {
   }
 
   private exportSelectHandler(e: CustomEvent<DropdownSelectEvent>): void {
-    // TODO(hernan torrisi): implement exporters
+    if (!this.skottiePlayer) {
+      return;
+    }
+    const exportManager = $$<SkottieExporterSk>('skottie-exporter-sk');
+    exportManager?.export(e.detail.value as ExportType, this.skottiePlayer);
   }
 
   private togglePerformanceChart(e: Event): void {

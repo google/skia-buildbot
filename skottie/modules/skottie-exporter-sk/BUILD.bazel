@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "skottie-exporter-sk",
+    sass_deps = ["//elements-sk/modules:colors_sass_lib"],
+    sass_srcs = ["skottie-exporter-sk.scss"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-dropdown-sk",
+        "//skottie/modules/skottie-exporter-sk/skottie-exporter-gif-sk",
+        "//skottie/modules/skottie-player-sk",
+        "//skottie/modules/skottie-exporter-sk/skottie-exporter-webm-sk",
+        "//skottie/modules/skottie-exporter-sk/skottie-exporter-png-sk",
+    ],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-exporter-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

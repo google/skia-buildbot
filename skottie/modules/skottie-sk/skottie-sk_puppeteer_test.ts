@@ -44,9 +44,13 @@ describe('skottie-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
-      await testBed.page.click('#view-gif-exporter');
+      await testBed.page.select('#view-exporter select', 'gif');
+      const gifExporter = await testBed.page.$eval(
+        '#export-form-gif',
+        (ele: Element) => ele
+      );
+      expect(gifExporter).to.exist;
       await takeScreenshot(testBed.page, 'skottie', 'gif_exporter');
-      expect(testBed.page.url()).contains('g=true');
     });
 
     it('shows text editor when the details is expanded', async () => {
@@ -118,9 +122,9 @@ async function navigateTo(page: Page, base: string, queryParams: string = '') {
 }
 
 async function pause(page: Page) {
-  await page.$eval('#playpause', (ele: Element) => {
-    if (ele.textContent === 'Pause') {
-      (ele as HTMLButtonElement).click();
+  await page.$eval('#playpause-pause', (ele: Element) => {
+    if ((ele as HTMLElement).style.display === 'inherit') {
+      page.click('#playpause');
     }
   });
 }

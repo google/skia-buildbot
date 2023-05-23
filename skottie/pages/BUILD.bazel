@@ -61,6 +61,18 @@ sk_page(
             "src": "//skottie/assets:checkerboard",
             "dst": "checker.png",
         },
+        {
+            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
+            "dst": "ffmpeg-core.js",
+        },
+        {
+            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.wasm",
+            "dst": "ffmpeg-core.wasm",
+        },
+        {
+            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.worker.js",
+            "dst": "ffmpeg-core.worker.js",
+        },
     ],
     html_file = "index.html",
     scss_entry_point = "index.scss",

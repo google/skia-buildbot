@@ -19,10 +19,37 @@ body.body-sk.font-sk {
 
     app-sk {
       --sidebar-width: 200px;
-
-      display: block;
       min-height: 100vh;
+      height: 100vh;
       background: var(--surface);
+      display: block;
+    }
+
+    .app-container {
+      display: grid;
+      height: 100%;
+      grid-template-columns: 100%;
+      grid-template-rows: 48px auto 48px;
+    }
+
+    header {
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 0;
+    }
+
+    main {
+      grid-column: 1;
+      grid-row: 2;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+    }
+
+    footer {
+      grid-column: 1;
+      grid-row: 3;
+      min-height: 0;
     }
 
     spinner-sk[active] {
@@ -43,6 +70,11 @@ body.body-sk.font-sk {
       }
 
       span a {
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+
+      .header__button {
         margin-left: 8px;
       }
 
@@ -123,17 +155,20 @@ body.body-sk.font-sk {
 
       .main {
         background: var(--background);
-        margin: 16px;
+        margin: 0;
         flex: 1 1 auto;
 
         .players {
+          min-height: 0;
+
           &-container {
             width: 100%;
+            height: 100%;
             margin: 0;
             flex-direction: row;
 
             &-player {
-              display: block;
+              display: flex;
               flex: 1 1 0;
             }
           }
@@ -142,6 +177,7 @@ body.body-sk.font-sk {
         .playback {
           padding: 24px;
           background-color: var(--skottie-surface);
+          border-radius: 0 0 8px 8px;
 
           &-content {
             display: flex;
@@ -154,6 +190,19 @@ body.body-sk.font-sk {
               border-bottom-right-radius: 5px;
               padding: 4px 8px;
               margin: 0 0 0 -1px;
+            }
+
+            &__button {
+              width: 50px;
+              height: 54px;
+            }
+
+            .icon-sk-svg {
+              fill: var(--skottie-on-surface-white);
+              border: 2px solid var(--skottie-on-surface-white);
+              border-radius: 50%;
+              width: 100%;
+              height: 100%;
             }
 
             #playpause-play {
@@ -192,7 +241,6 @@ body.body-sk.font-sk {
 
     figure canvas,
     figure div {
-      border: solid var(--on-background) 1px;
       margin: 0 auto;
     }
 
@@ -293,7 +341,7 @@ body.body-sk.font-sk {
       input[type='range'] {
         height: 26px;
         -webkit-appearance: none;
-        margin: 10px 0;
+        margin: 8px 0 4px 0;
         width: 100%;
         border: none;
       }

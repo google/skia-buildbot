@@ -6,6 +6,7 @@ skottie-player-sk {
   margin: 0;
   border: 0;
   width: 100%;
+  min-height: 0;
 
   .container {
     position: relative;
@@ -13,6 +14,8 @@ skottie-player-sk {
     margin: 0;
     padding: 0;
     border: 0;
+    height: 100%;
+    text-align: center;
   }
 
   .player-loading {
@@ -39,6 +42,7 @@ skottie-player-sk {
     margin: 0;
     padding: 0;
     border: 0;
+    height: 100%;
   }
 
   .controls {

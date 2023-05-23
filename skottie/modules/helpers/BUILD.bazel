@@ -34,3 +34,20 @@ ts_library(
     srcs = ["viewModes.ts"],
     visibility = ["//visibility:public"],
 )
+
+ts_library(
+    name = "delay_ts_lib",
+    srcs = ["delay.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "framecollectorfactory_ts_lib",
+    srcs = ["frameCollectorFactory.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":delay_ts_lib",
+        "//skottie/modules/skottie-player-sk",
+        "@npm//@ffmpeg/ffmpeg",
+    ],
+)

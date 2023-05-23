@@ -7,10 +7,10 @@
  * </p>
  *
  *
- * @attr slot - A string, with no markup, that is to be used as the text for
+ * @attr content - A string, with no markup, that is to be used as the text for
  *            the text.
  *
- * @prop slot This mirrors the text attribute.
+ * @prop content This mirrors the text attribute.
  *
  * @attr type - A string of type ButtonType that styles the button.
  *
@@ -48,9 +48,12 @@ export class SkottieButtonSk extends ElementSk {
 
   protected classes: string[] = [];
 
+  private _id: string = '';
+
   private static template = (ele: SkottieButtonSk) => html`
     <button
       class=${ele.buildButtonClass()}
+      id=${ele._id}
       ?disabled=${ele._isDisabled}
       @click=${ele.onClick}
     >
@@ -76,6 +79,10 @@ export class SkottieButtonSk extends ElementSk {
     super.connectedCallback();
     this._type = (this.getAttribute('type') as ButtonType) || 'filled';
     this._isDisabled = this.hasAttribute('disabled');
+    if (this.getAttribute('id')) {
+      this._id = this.getAttribute('id') || '';
+      this.setAttribute('id', '');
+    }
     this._render();
   }
 
