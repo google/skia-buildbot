@@ -35,6 +35,18 @@ skia_app_container(
                 "//skottie/pages:inline-bundle",
                 "0644",
             ],
+            [
+                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
+                "0644",
+            ],
+            [
+                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.wasm",
+                "0644",
+            ],
+            [
+                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.worker.js",
+                "0644",
+            ],
         ] + [
             [
                 "//skottie/pages:production/%s.%s" % (page, ext),
