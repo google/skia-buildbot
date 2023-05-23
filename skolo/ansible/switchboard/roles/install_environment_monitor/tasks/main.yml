@@ -1,12 +1,12 @@
-- name: Load, copy, and start environment monitor
-  block:
-    - name: Load environment_monitor_ansible executables.
-      import_role:
-        name: get_ansible_binaries
-      vars:
-        get_ansible_binaries_application: environment_monitor_ansible
-        get_ansible_binaries_version: '{{ environment_monitor_ansible_version }}'
+- name: Load environment_monitor_ansible executables.
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: environment_monitor_ansible
+    get_ansible_binaries_version: '{{ environment_monitor_ansible_version }}'
 
+- name: Copy, and start environment monitor
+  block:
     - name: Copy over service file.
       become: true
       template:
