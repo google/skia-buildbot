@@ -69,7 +69,7 @@ require (
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/twitchtv/twirp v7.1.0+incompatible
 	github.com/unrolled/secure v1.0.8
-	github.com/urfave/cli/v2 v2.3.0
+	github.com/urfave/cli/v2 v2.17.0
 	github.com/vektra/mockery/v2 v2.11.0
 	github.com/willf/bitset v1.1.11
 	github.com/xeipuuv/gojsonschema v1.2.0
@@ -111,7 +111,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -183,6 +183,7 @@ require (
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -196,7 +197,7 @@ require (
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect

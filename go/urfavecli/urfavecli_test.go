@@ -145,7 +145,7 @@ func TestLogFlags(t *testing.T) {
 		" --intSlice={[138 139 140] true}",
 		" --path=",
 		" --string=string",
-		" --stringSlice={[a,b,c] true}",
+		" --stringSlice={[a b c] true}",
 		" --uint64=54",
 		" --uint=53",
 		" --help=false",

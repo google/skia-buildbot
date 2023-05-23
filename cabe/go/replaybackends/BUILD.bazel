@@ -9,6 +9,9 @@ go_library(
     deps = [
         "//cabe/go/backends",
         "//cabe/go/perfresults",
+        "//go/sklog",
+        "//go/swarming",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client:go_default_library",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )

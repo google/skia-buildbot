@@ -12,7 +12,7 @@ go_library(
 )
 
 go_binary(
-    name = "cabe_cli",
+    name = "cabe",
     embed = [":cabe_lib"],
     visibility = ["//visibility:public"],
 )
