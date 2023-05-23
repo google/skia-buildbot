@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cli",
+    srcs = ["check.go"],
+    importpath = "go.skia.org/infra/cabe/go/cmd/cabe/cli",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cabe/go/analyzer",
+        "//cabe/go/backends",
+        "//cabe/go/perfresults",
+        "//go/sklog",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
