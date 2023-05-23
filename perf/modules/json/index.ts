@@ -88,9 +88,9 @@ export interface DataFrame {
 }
 
 export interface Anomaly {
-	id: string;
+	id: number;
 	test_path: string;
-	bug_id: string;
+	bug_id: number;
 	start_revision: number;
 	end_revision: number;
 	is_improvement: boolean;

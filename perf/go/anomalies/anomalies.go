@@ -14,9 +14,9 @@ type AnomalyMap map[string]CommitNumberAnomalyMap
 
 // Anomaly defines the object return from Chrome Perf API.
 type Anomaly struct {
-	Id                  string  `json:"id"`
+	Id                  int     `json:"id"`
 	TestPath            string  `json:"test_path"`
-	BugId               string  `json:"bug_id"`
+	BugId               int     `json:"bug_id"`
 	StartRevision       int     `json:"start_revision"`
 	EndRevision         int     `json:"end_revision"`
 	IsImprovement       bool    `json:"is_improvement"`

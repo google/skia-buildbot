@@ -50,7 +50,7 @@ const (
 )
 
 var anomaly1 = anomalies.Anomaly{
-	Id:            "anomalyId1",
+	Id:            111,
 	TestPath:      testPath1,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
@@ -62,7 +62,7 @@ var anomaly1 = anomalies.Anomaly{
 	PValue:        1.1,
 }
 var anomaly2 = anomalies.Anomaly{
-	Id:            "anomalyId2",
+	Id:            222,
 	TestPath:      testPath2,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
