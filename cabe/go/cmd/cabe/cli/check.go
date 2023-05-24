@@ -16,68 +16,21 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-const (
-	pinpointSwarmingTagName = "pinpoint_job_id"
-)
-
-// flag names
-const (
-	pinpointJobIDFlagName = "pinpoint-job"
-	replayFromZipFlagName = "replay-from-zip"
-	recordToZipFlagName   = "record-to-zip"
-)
-
 // checkCmd holds the flag values and any internal state necessary for
 // executing the `check` subcommand.
 type checkCmd struct {
-	pinpointJobID string
-	recordToZip   string
-	replayFromZip string
+	commonCmd
 }
 
 // CheckCommand returns a [*cli.Command] for running cabe's analysis precondition checker.
 func CheckCommand() *cli.Command {
 	cmd := &checkCmd{}
-	pinpointJobIDFlag := &cli.StringFlag{
-		Name:        pinpointJobIDFlagName,
-		Value:       "",
-		Usage:       "ID of the pinpoint job to check",
-		Destination: &cmd.pinpointJobID,
-	}
-	replayFromZipFlag := &cli.StringFlag{
-		Name:        replayFromZipFlagName,
-		Value:       "",
-		Usage:       "Zip file to replay data from",
-		Destination: &cmd.replayFromZip,
-		Action: func(ctx *cli.Context, v string) error {
-			if cmd.recordToZip != "" {
-				return fmt.Errorf("only one of -%s or -%s may be specified", replayFromZipFlagName, recordToZipFlagName)
-			}
-			return nil
-		},
-	}
-	recordToZipFlag := &cli.StringFlag{
-		Name:        recordToZipFlagName,
-		Value:       "",
-		Usage:       "Zip file to save replay data to",
-		Destination: &cmd.recordToZip,
-		Action: func(ctx *cli.Context, v string) error {
-			if cmd.replayFromZip != "" {
-				return fmt.Errorf("only one of -%s or -%s may be specified", replayFromZipFlagName, recordToZipFlagName)
-			}
-			return nil
-		},
-	}
 	return &cli.Command{
 		Name:        "check",
 		Description: "check runs some diagnostic checks on perf experiment jobs.",
 		Usage:       "cabe check --pinpoint-job <pinpoint-job>",
-		Flags: []cli.Flag{
-			pinpointJobIDFlag,
-			replayFromZipFlag,
-			recordToZipFlag,
-		},
-		Action: cmd.action,
+		Flags:       cmd.flags(),
+		Action:      cmd.action,
 	}
 }
 

@@ -2,7 +2,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "cli",
-    srcs = ["check.go"],
+    srcs = [
+        "analyze.go",
+        "check.go",
+        "common.go",
+        "readcas.go",
+    ],
     importpath = "go.skia.org/infra/cabe/go/cmd/cabe/cli",
     visibility = ["//visibility:public"],
     deps = [
@@ -11,6 +16,7 @@ go_library(
         "//cabe/go/perfresults",
         "//cabe/go/replaybackends",
         "//go/sklog",
+        "@com_github_olekukonko_tablewriter//:tablewriter",
         "@com_github_urfave_cli_v2//:cli",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_protobuf//encoding/prototext",

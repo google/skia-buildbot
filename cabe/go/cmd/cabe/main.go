@@ -24,7 +24,9 @@ func main() {
 		Name:        "cabe cli",
 		Description: "cabe cli provides cli tools for debugging analyzer process",
 		Commands: []*cli.Command{
+			cabecli.AnalyzeCommand(),
 			cabecli.CheckCommand(),
+			cabecli.ReadCASCommand(),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
