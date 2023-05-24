@@ -108,6 +108,11 @@ body.body-sk.font-sk {
           padding: 8px;
           border-bottom: solid var(--surface) 1px;
 
+          .upload-download {
+            display: flex;
+            align-items: center;
+          }
+
           .title {
             font-weight: bold;
           }
@@ -121,6 +126,7 @@ body.body-sk.font-sk {
             border-radius: 10px;
             margin-left: 16px;
             box-shadow: none;
+            flex: 1 1 auto;
           }
         }
 

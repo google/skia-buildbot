@@ -61,6 +61,7 @@ import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
 import '../../../elements-sk/modules/icons/pause-icon-sk';
 import '../../../elements-sk/modules/icons/replay-icon-sk';
+import '../../../elements-sk/modules/icons/file-download-icon-sk';
 import '../skottie-button-sk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
@@ -70,7 +71,12 @@ import {
   SkottieExporterSk,
 } from '../skottie-exporter-sk/skottie-exporter-sk';
 import '../skottie-file-settings-sk';
-import { SkottieFileSettingsEventDetail } from '../skottie-file-settings-sk/skottie-file-settings-sk';
+import {
+  SkottieFileSettingsSk,
+  SkottieFileSettingsEventDetail,
+} from '../skottie-file-settings-sk/skottie-file-settings-sk';
+import '../skottie-file-form-sk';
+import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-form-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -336,21 +342,10 @@ export class SkottieSk extends ElementSk {
     return html`
       <div class="json-chooser">
         <div class="title">JSON File</div>
-        <div class="upload-download">
-          <button class="edit-config large" @click=${this.startEdit}>
-            ${this.state.filename} ${this.width}x${this.height} ...
-          </button>
-          <div class="download">
-            <a
-              target="_blank"
-              download=${this.state.filename}
-              href=${this.downloadURL}
-            >
-              Download
-            </a>
-            ${this.hasEdits ? '(without edits)' : ''}
-          </div>
-        </div>
+        ${this.renderDownload()}
+        <skottie-file-form-sk
+          @files-selected=${this.skottieFilesSelected}
+        ></skottie-file-form-sk>
       </div>
 
       ${this.fileSettingsDialog()} ${this.audioDialog()} ${this.optionsDialog()}
@@ -368,6 +363,29 @@ export class SkottieSk extends ElementSk {
   private rightControls = () => html`
     ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
   `;
+
+  private renderDownload() {
+    if (this.state.lottie) {
+      return html`
+        <div class="upload-download">
+          <button class="large edit-config">
+            ${this.state.filename} ${this.width}x${this.height} ...
+          </button>
+          <div class="download">
+            <a
+              target="_blank"
+              download=${this.state.filename}
+              href=${this.downloadURL}
+            >
+              <file-download-icon-sk></file-download-icon-sk>
+            </a>
+            ${this.hasEdits ? '(without edits)' : ''}
+          </div>
+        </div>
+      `;
+    }
+    return null;
+  }
 
   private optionsDialog = () => html`
     <details class="expando">
@@ -855,6 +873,21 @@ export class SkottieSk extends ElementSk {
     this.initializePlayer();
     // Re-sync all players
     this.rewind();
+  }
+
+  private skottieFilesSelected(e: CustomEvent<SkottieFilesEventDetail>) {
+    const state = e.detail;
+    const width = state.lottie?.w || this.width;
+    const height = state.lottie?.h || this.height;
+    const fileSettings = $$<SkottieFileSettingsSk>('#file-settings', this);
+    if (fileSettings) {
+      fileSettings.width = width;
+      fileSettings.height = height;
+    }
+    this.width = width;
+    this.height = height;
+    this.state = state;
+    this.upload();
   }
 
   private selectionCancelled() {
