@@ -311,6 +311,8 @@ export class ExploreSk extends ElementSk {
 
   private fromParamsKey: string = '';
 
+  private testPath: string = '';
+
   private _initialized: boolean = false;
 
   private commits: CommitDetailPanelSk | null = null;
@@ -564,6 +566,8 @@ export class ExploreSk extends ElementSk {
 
     <dialog id='bisect-dialog'>
       <h2>Bisect</h2>
+      <h3>Test Path<h3>
+      <input id="testpath" type="text" value=${ele.testPath} readonly></input>
       <div class=footer>
         <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
@@ -1047,6 +1051,19 @@ export class ExploreSk extends ElementSk {
     this._render();
   }
 
+  /** get story name for pinpoint. */
+  private getLastSubtest(d: any) {
+    const tmp =
+      d.subtest_7 ||
+      d.subtest_6 ||
+      d.subtest_5 ||
+      d.subtest_4 ||
+      d.subtest_3 ||
+      d.subtest_2 ||
+      d.subtest_1;
+    return tmp ? tmp[0] : '';
+  }
+
   /** Highlight a trace when it is clicked on. */
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.plot!.highlight = [e.detail.name];
@@ -1126,6 +1143,33 @@ export class ExploreSk extends ElementSk {
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;
+        const parts = [];
+        if (
+          this.simpleParamset!.paramsets[0]!.master &&
+          this.simpleParamset!.paramsets[0]!.master.length > 0
+        ) {
+          parts.push(this.simpleParamset!.paramsets[0]!.master[0]);
+        }
+        if (
+          this.simpleParamset!.paramsets[0]!.bot &&
+          this.simpleParamset!.paramsets[0]!.bot.length > 0
+        ) {
+          parts.push(this.simpleParamset!.paramsets[0]!.bot[0]);
+        }
+        if (
+          this.simpleParamset!.paramsets[0]!.benchmark &&
+          this.simpleParamset!.paramsets[0]!.benchmark.length > 0
+        ) {
+          parts.push(this.simpleParamset!.paramsets[0]!.benchmark[0]);
+        }
+        if (
+          this.simpleParamset!.paramsets[0]!.test &&
+          this.simpleParamset!.paramsets[0]!.test.length > 0
+        ) {
+          parts.push(this.simpleParamset!.paramsets[0]!.test[0]);
+        }
+        parts.push(this.getLastSubtest(this.simpleParamset!.paramsets[0]!));
+        this.testPath = parts.join('/');
         if (this.displayMode === 'display_plot') {
           this.jsonsource!.cid = cid;
           this.jsonsource!.traceid = traceid;
