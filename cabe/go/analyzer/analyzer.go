@@ -3,10 +3,12 @@ package analyzer
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	stat "github.com/aclements/go-moremath/stats"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/sync/errgroup"
@@ -79,8 +81,56 @@ type Results struct {
 // experiment.
 func (a *Analyzer) AnalysisResults() []*cpb.AnalysisResult {
 	ret := []*cpb.AnalysisResult{}
+	// Because ExperimentSpec will have so many identical
+	// values across individual results, we'll build a template here
+	// then clone and override the distinct per-result values for the
+	// response proto below.
+	//
+	// Note that for most Pinpoint A/B tryjobs, the ExperimentSpec will
+	// have a Common RunSpec set, and Treatment and Control will have different BuildSpec values.
+	// That is, compare two different builds executing on the same hardware/OS.
+	experimentSpecTemplate := a.experimentSpec
+	if experimentSpecTemplate.Analysis == nil {
+		experimentSpecTemplate.Analysis = &cpb.AnalysisSpec{}
+	}
+	experimentSpecTemplate.Analysis.Benchmark = nil
 
+	sort.Sort(byBenchmarkAndWorkload(a.results))
+
+	for _, res := range a.results {
+		experimentSpec := proto.Clone(experimentSpecTemplate).(*cpb.ExperimentSpec)
+		benchmark := []*cpb.Benchmark{
+			{
+				Name:     res.Benchmark,
+				Workload: []string{res.WorkLoad},
+			},
+		}
+
+		experimentSpec.Analysis.Benchmark = benchmark
+
+		ret = append(ret, &cpb.AnalysisResult{
+			ExperimentSpec: experimentSpec,
+			Statistic: &cpb.Statistic{
+				Upper:           res.Statistics.UpperCi,
+				Lower:           res.Statistics.LowerCi,
+				PValue:          res.Statistics.PValue,
+				ControlMedian:   res.Statistics.YMedian,
+				TreatmentMedian: res.Statistics.XMedian,
+			},
+		})
+	}
 	return ret
+}
+
+type byBenchmarkAndWorkload []Results
+
+func (a byBenchmarkAndWorkload) Len() int      { return len(a) }
+func (a byBenchmarkAndWorkload) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a byBenchmarkAndWorkload) Less(i, j int) bool {
+	if a[i].Benchmark != a[j].Benchmark {
+		return a[i].Benchmark < a[j].Benchmark
+	}
+	return a[i].WorkLoad < a[j].WorkLoad
 }
 
 func (a *Analyzer) ExperimentSpec() *cpb.ExperimentSpec {
@@ -232,6 +282,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 		})
 	}
 
+	a.results = res
 	return res, nil
 }
 

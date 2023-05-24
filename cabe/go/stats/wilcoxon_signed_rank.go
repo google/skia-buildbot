@@ -80,10 +80,10 @@ type BerfWilcoxonSignedRankedTestResult struct {
 	// The p-value for the test
 	PValue float64
 
-	// The median of the first input
+	// The median of the first input. By convention, this is the treatment.
 	XMedian float64
 
-	// The median of the second input
+	// The median of the second input. By convention, this is the control.
 	YMedian float64
 }
 

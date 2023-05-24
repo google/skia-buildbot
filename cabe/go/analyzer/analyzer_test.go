@@ -246,6 +246,47 @@ var (
 			},
 		},
 	}
+	commonArmSpec = &cpb.ArmSpec{
+		BuildSpec: []*cpb.BuildSpec{
+			{
+				GitilesCommit: &cpb.GitilesCommit{
+					Project: "chromium",
+					Id:      "b692c01",
+				},
+			},
+		},
+		RunSpec: []*cpb.RunSpec{
+			{
+				Os:                   "Mac",
+				SyntheticProductName: "Macmini9,1_arm64-64-Apple_M1_apple m1_16384_1_5693005.2",
+			},
+		},
+	}
+
+	analysisResults = []*cpb.AnalysisResult{
+		{
+			ExperimentSpec: &cpb.ExperimentSpec{
+				Common:    cabeSpec.Common,
+				Control:   cabeSpec.Control,
+				Treatment: cabeSpec.Treatment,
+				Analysis: &cpb.AnalysisSpec{
+					Benchmark: []*cpb.Benchmark{
+						{
+							Name:     fakeBenchmarkName,
+							Workload: []string{cabeResults[0].WorkLoad},
+						},
+					},
+				},
+			},
+			Statistic: &cpb.Statistic{
+				Upper:           cabeResults[0].Statistics.UpperCi,
+				Lower:           cabeResults[0].Statistics.LowerCi,
+				PValue:          cabeResults[0].Statistics.PValue,
+				ControlMedian:   cabeResults[0].Statistics.YMedian,
+				TreatmentMedian: cabeResults[0].Statistics.XMedian,
+			},
+		},
+	}
 )
 
 func TestRun_withReplayBackends(t *testing.T) {
@@ -286,6 +327,17 @@ func TestRun_withReplayBackends(t *testing.T) {
 
 	diff = cmp.Diff(cabeResults, res,
 		cmpopts.SortSlices(byWorkload),
+		cmpopts.EquateEmpty(),
+		cmpopts.EquateApprox(0, 0.03),
+		protocmp.Transform())
+
+	assert.Equal(t, "", diff)
+
+	gotAnalysisResults := a.AnalysisResults()
+	assert.Equal(t, len(res), len(gotAnalysisResults), "Analyzer should generate the same number of Result structs as it does AnalysisResult protos")
+	// Just check the first *cpb.AnalysisResult proto to make sure
+	// it contains the same data as the first Result struct.
+	diff = cmp.Diff(analysisResults[:1], gotAnalysisResults[:1],
 		cmpopts.EquateEmpty(),
 		cmpopts.EquateApprox(0, 0.03),
 		protocmp.Transform())
