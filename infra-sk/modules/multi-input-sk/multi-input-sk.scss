@@ -1,9 +1,9 @@
-@import '../../../elements-sk/modules/themes/color-palette';
-@import '../../../elements-sk/modules/themes/themes';
+@import '../../themes.scss';
 
+.body-sk multi-input-sk,
 multi-input-sk {
   .input-container {
-    border: 1px solid black;
+    border: 1px solid var(--outline);
     border-radius: 4px;
     display: flex;
     justify-content: flex-start;

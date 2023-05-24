@@ -1,5 +1,3 @@
-@import '../../elements-sk/modules/themes/color-palette';
-@import '../../elements-sk/modules/themes/themes';
 @import '../../infra-sk/themes';
 
 body,
@@ -79,44 +77,4 @@ body {
 
 .nowrap {
   white-space: nowrap;
-}
-
-:root {
-  // TODO(westont): Move to named colors, unify theme.
-  --primary: var(--light-green-700);
-  --on-primary: var(--white);
-  --secondary: #e6ab02;
-  --on-secondary: var(--black);
-  --surface: var(--grey-200);
-  --surface-1dp: var(--grey-300);
-  --surface-1dp: var(--grey-400);
-
-  .darkmode {
-    --grey-850: #303030;
-    --primary: var(--light-green-700);
-    --on-primary: var(--grey-500);
-    --secondary: #9a7200;
-    --on-secondary: var(--grey-200);
-    --on-background: var(--grey-300);
-    --on-surface: var(--grey-400);
-    --on-primary: var(--grey-200);
-    --background: var(--grey-900);
-    --on-background: var(--grey-300);
-    --surface: var(--grey-850);
-    --on-surface: var(--grey-200);
-    --error: var(--amber-900);
-
-    input {
-      background-color: var(--surface);
-      color: var(--on-surface);
-    }
-    input-sk {
-      .underline-background {
-        background-color: var(--surface-2dp);
-      }
-      input {
-        background-color: var(--surface);
-      }
-    }
-  }
 }

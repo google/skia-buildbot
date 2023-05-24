@@ -1,21 +1,29 @@
 @import '../../../elements-sk/modules/styles/buttons';
 @import '../colors';
 @import '../../../elements-sk/modules/colors';
+@import '../../../infra-sk/themes.scss';
 
+.body-sk triage-sk,
 triage-sk {
   display: inline-block;
 
   button {
     min-width: 0;
-    padding: 0.6em;
+    padding: 6px;
+    height: 36px;
+    fill: var(--on-surface);
+    svg {
+      width: 24px;
+      height: 24px;
+    }
 
     &:disabled {
       cursor: not-allowed;
     }
 
     &.selected {
-      background-color: var(--dark-white);
-      border-color: var(--dark-white);
+      background-color: var(--surface-1dp);
+      border-color: transparent;
       box-shadow: none;
     }
 

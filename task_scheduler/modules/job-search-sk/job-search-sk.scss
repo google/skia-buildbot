@@ -17,10 +17,6 @@ job-search-sk {
     width: -webkit-fill-available;
   }
 
-  button.cancel {
-    background-color: var(--color-canceled);
-  }
-
   button.delete {
     margin: 0px;
     padding: 0px;
@@ -28,7 +24,6 @@ job-search-sk {
   }
 
   button.search {
-    background-color: var(--secondary);
     margin: 0px;
   }
 

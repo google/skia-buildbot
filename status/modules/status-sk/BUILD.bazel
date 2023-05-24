@@ -7,9 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "status-sk",
-    sass_deps = [
-        "//status/modules:styles_sass_lib",
-    ],
+    sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["status-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/app-sk",

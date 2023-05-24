@@ -3,9 +3,10 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 sk_element(
     name = "bulk-triage-sk",
     sass_deps = [
-        "//golden/modules:colors_sass_lib",
+        "//infra-sk:themes_sass_lib",
         "//elements-sk/modules/styles:buttons_sass_lib",
         "//elements-sk/modules:colors_sass_lib",
+        "//golden/modules:colors_sass_lib",
     ],
     sass_srcs = ["bulk-triage-sk.scss"],
     sk_element_deps = [

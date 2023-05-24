@@ -29,21 +29,15 @@ export class CodesizeScaffoldSk extends ElementSk {
       </header>
 
       <aside>
-        <ul>
-          <li><a href="/">Home</a></li>
-        </ul>
-        <ul>
-          <li>
-            <a
-              href="https://chrome-supersize.firebaseapp.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="View Chrome's codesize tool (called Super Size Tiger View) which has
+        <a href="/">Home</a>
+        <a
+          href="https://chrome-supersize.firebaseapp.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View Chrome's codesize tool (called Super Size Tiger View) which has
                         input data from Chrome's apk for Android systems."
-              >Chrome's Tool</a
-            >
-          </li>
-        </ul>
+          >Chrome's Tool</a
+        >
       </aside>
 
       <main></main>

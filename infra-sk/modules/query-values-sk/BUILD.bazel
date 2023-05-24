@@ -7,10 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "query-values-sk",
-    sass_deps = [
-        "//elements-sk/modules/themes:color-palette_sass_lib",
-        "//elements-sk/modules/themes:themes_sass_lib",
-    ],
+    sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["query-values-sk.scss"],
     sk_element_deps = [
         "//elements-sk/modules/checkbox-sk",

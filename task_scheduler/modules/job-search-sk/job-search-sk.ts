@@ -179,7 +179,7 @@ export class JobSearchSk extends ElementSk {
           </td>
           <td></td>
           <td>
-            <button class="search" @click="${ele.search}">Search</button>
+            <button class="search action" @click="${ele.search}">Search</button>
           </td>
         </tr>
       </table>

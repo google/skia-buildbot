@@ -97,31 +97,32 @@ export class IndexPageSk extends ElementSk {
           </span>
         </p>
         <p class="binaries">Binaries:</p>
-        <ul>
+        <table>
           ${binariesFromCommitOrPatchset.binaries.map(
             (output) => html`
-              <li>
-                <a href="${hrefForBinary(output)}"
-                  >${output.metadata.binary_name}</a
-                >
-                <a
-                  href="https://task-scheduler.skia.org/task/${output.metadata
-                    .task_id}"
-                  class="compile-task"
-                >
-                  ${output.metadata.compile_task_name}
-                </a>
+              <tr>
+                <td>
+                  <a href="${hrefForBinary(output)}"
+                    >${output.metadata.binary_name}</a
+                  >
+                </td>
+                <td>
+                  <a
+                    href="https://task-scheduler.skia.org/task/${output.metadata
+                      .task_id}"
+                  >
+                    ${output.metadata.compile_task_name}
+                  </a>
+                </td>
                 ${hasDiff
-                  ? html`<a
-                      href="${hrefForBinaryDiff(output)}"
-                      class="size-diff"
-                      >Size Diff</a
-                    >`
+                  ? html`<td>
+                      <a href="${hrefForBinaryDiff(output)}">Size Diff</a>
+                    </td>`
                   : ''}
-              </li>
+              </tr>
             `
           )}
-        </ul>
+        </table>
       </div>
     `;
   };

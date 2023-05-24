@@ -1,21 +1,29 @@
 @import '../../../infra-sk/themes';
 
 index-page-sk {
+  padding: 16px;
+  display: block;
+
   div.commit-or-cl {
-    background: var(--on-primary);
-    border: 1px solid var(--surface-1dp);
     padding: 10px;
-    margin-bottom: 10px;
+    background: var(--surface-1dp);
+    border-radius: 8px;
+    margin: 16px 0;
   }
 
   .author-and-timestamp {
-    font-size: 0.8em;
+    font-size: 90%;
   }
 
-  .compile-task,
-  .size-diff {
-    font-size: 0.8em;
-    margin-left: 0.5em;
+  table {
+    font-size: 90%;
+    margin-left: 16px;
+  }
+
+  table,
+  tr,
+  td {
+    background-color: var(--surface-1dp);
   }
 
   .binaries {

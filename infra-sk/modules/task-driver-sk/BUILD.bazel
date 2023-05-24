@@ -8,7 +8,7 @@ sk_demo_page_server(
 sk_element(
     name = "task-driver-sk",
     sass_deps = [
-        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//infra-sk:themes_sass_lib",
         "//elements-sk/modules:colors_sass_lib",
     ],
     sass_srcs = ["task-driver-sk.scss"],

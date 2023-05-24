@@ -39,6 +39,19 @@ choice in local storage.
 The `body-sk` class also adds more styling to many common elements such as
 buttons, links, and other elements-sk elements.
 
+The Material Design pallette was created from
+
+  https://www.figma.com/community/plugin/1020820278641129628/Material-Theme-Builder-1P
+
+using these two colors as the seeds:
+
+    primary: #005db7
+    secondary: #006e1c
+
+And then translate all the CSS variables it provides into the CSS variables of
+the existing theme structure. For example: `--md-sys-color-primary-light`
+becomes `--primary`.
+
 # Layer 3
 
 The third layer is applied by adding the `font-sk` class to the body element of
@@ -117,34 +130,37 @@ to see how these styles apply to title bars and sidebars.
   }
 
   /* Semantic colors defined by elements-sk. */
-  --background: var(--grey-50);
-  --disabled: var(--grey-500);
-  --error: var(--red-900);
-  --on-background: var(--black);
-  --on-disabled: var(--grey-700);
-  --on-error: var(--white);
-  --on-primary-variant: var(--black);
-  --on-primary: var(--white);
-  --on-secondary: var(--white);
-  --on-surface: var(--black);
-  --primary-variant: var(--light-blue-600);
-  --primary: var(--blue-800);
-  --secondary: var(--green-500);
-  --surface-1dp: var(--grey-200);
-  --surface-2dp: var(--grey-400);
-  --surface: var(--white);
+  --background: #fdfbff;
+  --disabled: #c4c6cf;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error-container: #410002;
+  --on-background: #1a1b1e;
+  --on-disabled: #74777f;
+  --on-error: #ffffff;
+  --on-primary-variant: #001b3d;
+  --on-primary: #ffffff;
+  --on-secondary: #ffffff;
+  --on-surface: #1a1b1e;
+  --primary-variant: #a9c7ff;
+  --primary: #005db7;
+  --secondary: #006e1c;
+  --surface: #f4f3f7;
+  --surface-1dp: #efedf1;
+  --surface-2dp: #e9e7ec;
+  --outline: #74777f;
   --transparent-overlay: rgba(0, 0, 0, 0.5);
 
   /* Additional semantic colors. */
-  --primary-highlight: var(--light-blue-100);
-  --secondary-highlight: var(--green-100);
-  --on-hightlight: var(--black);
+  --primary-highlight: #d6e3ff;
+  --secondary-highlight: #94f990;
+  --on-hightlight: var(--on-background);
 
   --failure-alpha: rgba(217, 95, 2, 0.8);
   --failure: rgb(217, 95, 2);
-  --on-failure: var(--black);
-  --on-success: var(--black);
-  --on-warning: var(--black);
+  --on-failure: var(--on-background);
+  --on-success: var(--on-background);
+  --on-warning: var(--on-background);
   --success-alpha: rgba(102, 166, 30, 0.3);
   --success: rgb(102, 166, 30);
   --warning-alpha: rgb(255, 171, 64, 0.8);
@@ -152,45 +168,43 @@ to see how these styles apply to title bars and sidebars.
   --unexpected: rgb(117, 112, 179);
   --unexpected-alpha: rgba(117, 112, 179, 1);
 
-  --positive: var(--green-500);
-  --negative: var(--red-500);
-  --untriaged: var(--brown-400);
+  --positive: #4caf50;
+  --negative: #f44336;
+  --untriaged: #8d6e63;
 
   &.darkmode,
   & .darkmode {
     /* Semantic colors defined by elements-sk. */
-    --background: #121212;
-    --disabled: var(--grey-600);
-    --error: var(--pink-400);
-    --on-background: #cccccc;
-    --on-disabled: var(--grey-300);
-    --on-error: var(--black);
-    --on-primary-variant: var(--surface);
-    --on-primary: var(--surface);
-    --on-secondary: var(--background);
-    --on-surface: #dddddd;
-    --primary-variant: var(--light-blue-100);
-    --primary: #adc6ff; // #98b3f500
-    --secondary: #88d6bb;
-    --surface-1dp: var(--grey-800);
-    --surface-2dp: var(--grey-700);
-    --surface: var(--grey-900);
+    --background: #000000;
+    --disabled: #44474e;
+    --error: #ffb4ab;
+    --on-error: #690005;
+    --error-container: #93000a;
+    --on-error-container: #ffdad6;
+    --on-background: #e3e2e6;
+    --on-disabled: #c4c6cf;
+    --on-primary-variant: #00468c;
+    --on-primary: #003063;
+    --on-secondary: #00390a;
+    --on-surface: #c7c6ca;
+    --primary-variant: #d6e3ff;
+    --primary: #a9c7ff; // #98b3f500
+    --secondary: #78dc77;
+    --surface: #1a1b1e;
+    --surface-1dp: #1e2023;
+    --surface-2dp: #292a2d;
+    --outline: #8e9099;
     --transparent-overlay: rgba(255, 255, 255, 0.5);
 
     /* Additional semantic colors. */
-    --primary-highlight: #2b4678;
-    --secondary-highlight: #00513f;
-    --on-hightlight: var(--grey-100);
+    --primary-highlight: #00468c;
+    --secondary-highlight: #005313;
+    --on-hightlight: #d6e3ff;
+    --on-secondary-highlight: #94f990;
 
-    --failure-alpha: rgba(217, 95, 2, 0.5);
-    --on-failure: var(--on-secondary);
-    --on-success: var(--on-secondary);
-    --on-warning: var(--on-secondary);
-    --warning-alpha: rgb(255, 171, 64, 0.5);
-
-    --positive: var(--green-500);
-    --negative: var(--red-500);
-    --untriaged: var(--brown-400);
+    --on-failure: var(--on-surface);
+    --on-success: var(--on-surface);
+    --on-warning: var(--on-surface);
   }
 
   a:active,
@@ -217,7 +231,7 @@ to see how these styles apply to title bars and sidebars.
     align-items: center;
     background: transparent;
     border-radius: 4px;
-    border: solid 1px var(--on-surface);
+    border: solid 1px var(--outline);
     box-shadow: none;
     color: var(--primary);
     display: inline-flex;
@@ -331,7 +345,8 @@ to see how these styles apply to title bars and sidebars.
   }
 
   multi-select-sk {
-    border: solid 1px var(--on-surface);
+    border-radius: 4px;
+    border: solid 1px var(--outline);
     background-color: var(--surface);
     color: var(--on-surface);
   }
@@ -342,11 +357,17 @@ to see how these styles apply to title bars and sidebars.
   }
 
   multi-select-sk > [selected] {
-    background: var(--surface-1dp);
+    background: var(--surface-2dp);
   }
 
   multi-select-sk > :hover {
-    border: var(--surface-1dp) solid 1px;
+    border: var(--surface-2dp) solid 1px;
+  }
+
+  select,
+  select-sk {
+    border-radius: 4px;
+    border-color: var(--outline);
   }
 
   select-sk,
@@ -356,7 +377,7 @@ to see how these styles apply to title bars and sidebars.
   }
 
   select-sk > [selected] {
-    background: var(--surface-1dp);
+    background: var(--surface-2dp);
   }
 
   select-sk > * {
@@ -364,20 +385,38 @@ to see how these styles apply to title bars and sidebars.
   }
 
   select-sk > :hover {
-    border: var(--surface-1dp) solid 1px;
+    border: var(--surface-2dp) solid 1px;
   }
 
   select-sk > :focus {
-    background-color: var(--surface-1dp);
+    background-color: var(--surface-2dp);
     transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   select-sk > [selected] {
-    background-color: var(--surface-1dp);
+    background-color: var(--surface-2dp);
   }
 
-  error-toast-sk {
+  error-toast-sk toast-sk {
+    border-radius: 4px;
+    background: var(--error-container);
+    color: var(--on-error-container);
+    fill: var(--on-error-container);
     padding: 8px;
+
+    button {
+      background: var(--error-container);
+      color: var(--on-error-container);
+      fill: var(--on-error-container);
+    }
+  }
+
+  toast-sk {
+    border-radius: 4px;
+    color: var(--on-hightlight);
+    fill: var(--on-hightlight);
+    border: none;
+    background-color: var(--primary-highlight);
   }
 
   error-toast-sk button {

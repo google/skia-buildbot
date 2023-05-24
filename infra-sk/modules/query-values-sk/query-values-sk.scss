@@ -1,7 +1,6 @@
-@import '../../../elements-sk/modules/themes/color-palette';
-@import '../../../elements-sk/modules/themes/themes';
 @import '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 @import '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
+@import '../../themes.scss';
 
 query-values-sk {
   #regex ~ #values,

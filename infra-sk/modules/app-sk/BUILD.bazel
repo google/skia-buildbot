@@ -2,10 +2,7 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "app-sk",
-    sass_deps = [
-        "//elements-sk/modules/themes:color-palette_sass_lib",
-        "//elements-sk/modules/themes:themes_sass_lib",
-    ],
+    sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["app-sk.scss"],
     sk_element_deps = ["//elements-sk/modules/icons/menu-icon-sk"],
     ts_deps = ["//elements-sk/modules:define_ts_lib"],

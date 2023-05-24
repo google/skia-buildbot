@@ -31,13 +31,13 @@ cluster-summary2-sk {
   }
 
   .high {
-    background: var(--red-700);
-    color: var(--surface);
+    background: var(--failure);
+    color: var(--on-failure);
   }
 
   .low {
-    background: var(--green-700);
-    color: var(--surface);
+    background: var(--success);
+    color: var(--on-success);
   }
 
   @media (max-width: 600px) {
@@ -149,16 +149,4 @@ cluster-summary2-sk {
     'commits    commits'
     'actions    actions'
     'cloud      cloud';
-}
-
-.body-sk.darkmode cluster-summary2-sk {
-  .high {
-    color: var(--on-surface);
-    background: var(--red-500);
-  }
-
-  .low {
-    color: var(--on-surface);
-    background: var(--green-500);
-  }
 }

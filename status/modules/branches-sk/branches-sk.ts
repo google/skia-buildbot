@@ -23,6 +23,7 @@ const commitBgAlt = '#EFEFEF'; // Background color of alternating commits.
 const font = '10px monospace'; // Font used for labels.
 // This is filled in later.
 let palette: Array<string> = [];
+let textColor: string = '#000000';
 
 const BRANCH_PREFIX = 'origin/';
 
@@ -237,7 +238,7 @@ class DisplayCommit {
       w + 2 * paddingX,
       h + paddingY
     );
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = textColor;
     ctx.fillText(this.labelText(), labelCoords.x, labelCoords.y);
   }
 
@@ -479,6 +480,8 @@ export class BranchesSk extends ElementSk {
       getComputedStyle(this).getPropertyValue('--branch-color-3'),
       getComputedStyle(this).getPropertyValue('--branch-color-4'),
     ];
+
+    textColor = getComputedStyle(this).getPropertyValue('--surface');
 
     // Draw the commits.
     for (const commit of this.commits) {

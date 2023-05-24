@@ -73,11 +73,15 @@ const examples: example[] = [
   },
   {
     background: '--secondary-highlight',
-    color: '--on-highlight',
+    color: '--on-secondary-highlight',
   },
   {
     background: '--surface',
     color: '--on-surface',
+  },
+  {
+    background: '--surface',
+    color: '--outline',
   },
   {
     background: '--surface-1dp',
@@ -118,6 +122,10 @@ const examples: example[] = [
   {
     background: '--error',
     color: '--on-error',
+  },
+  {
+    background: '--error-container',
+    color: '--on-error-container',
   },
   {
     background: '--failure',

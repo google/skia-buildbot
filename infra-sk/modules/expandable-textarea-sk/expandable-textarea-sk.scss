@@ -1,6 +1,4 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/themes/color-palette';
-@import '../../../elements-sk/modules/themes/themes';
+@import '../../themes.scss';
 
 expandable-textarea-sk {
   button.expander {

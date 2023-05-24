@@ -9,9 +9,7 @@ sk_element(
     name = "query-sk",
     sass_deps = [
         "//elements-sk/modules/styles:buttons_sass_lib",
-        "//elements-sk/modules/themes:color-palette_sass_lib",
-        "//elements-sk/modules/themes:themes_sass_lib",
-        "//elements-sk/modules:colors_sass_lib",
+        "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["query-sk.scss"],
     sk_element_deps = [

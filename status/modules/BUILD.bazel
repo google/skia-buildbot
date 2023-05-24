@@ -10,11 +10,7 @@ sass_library(
     name = "styles_sass_lib",
     srcs = ["styles.scss"],
     visibility = ["//visibility:public"],
-    deps = [
-        "//elements-sk/modules/themes:color-palette_sass_lib",
-        "//elements-sk/modules/themes:themes_sass_lib",
-        "//infra-sk:themes_sass_lib",
-    ],
+    deps = ["//infra-sk:themes_sass_lib"],
 )
 
 ts_library(

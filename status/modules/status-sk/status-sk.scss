@@ -1,4 +1,4 @@
-@import '../styles.scss';
+@import '../../../infra-sk/themes.scss';
 
 .body-sk status-sk {
   app-sk {
@@ -101,22 +101,21 @@ status-sk[state='closed'] app-sk header {
 aside {
   .table {
     .tr:hover {
-      background-color: var(--primary);
-      color: var(--on-primary);
-      fill: var(--on-primary);
+      color: var(--on-surface);
+      fill: var(--on-surface);
 
       // Inherited color of the underline needs to be overridden so we don't end up with e.g. black
       // text with white underline.
       .value {
-        background-color: var(--surface);
-        color: var(--on-surface);
+        background-color: var(--warning-alpha);
+        color: var(--on-warning);
         text-decoration: underline;
       }
     }
 
     .value {
-      background-color: var(--secondary);
-      color: var(--on-secondary);
+      background-color: var(--warning-alpha);
+      color: var(--on-warning);
       border-radius: 3px;
       padding: 4px;
       margin: 5px;
