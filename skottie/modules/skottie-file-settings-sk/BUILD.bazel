@@ -1,0 +1,23 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "skottie-file-settings-sk",
+    sass_deps = ["//elements-sk/modules:colors_sass_lib"],
+    sass_srcs = ["skottie-file-settings-sk.scss"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-button-sk",
+        "//elements-sk/modules/icons/lock-icon-sk",
+        "//elements-sk/modules/icons/lock-open-icon-sk",
+    ],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-file-settings-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

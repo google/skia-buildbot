@@ -67,6 +67,7 @@ export class SkottieButtonSk extends ElementSk {
 
   set content(val: ContentType) {
     this._content = val;
+    this._render();
   }
 
   buildButtonClass(): string {

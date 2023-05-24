@@ -87,6 +87,7 @@ body.body-sk.font-sk {
       display: flex;
       flex-flow: row;
       background-color: var(--surface);
+      width: 100%;
 
       .left,
       .right,
@@ -100,7 +101,7 @@ body.body-sk.font-sk {
       .right {
         background: var(--surface-1dp);
         padding: 0;
-        width: 250px;
+        width: 329px;
         flex: 0 0 auto;
 
         .json-chooser {

@@ -69,6 +69,8 @@ import {
   ExportType,
   SkottieExporterSk,
 } from '../skottie-exporter-sk/skottie-exporter-sk';
+import '../skottie-file-settings-sk';
+import { SkottieFileSettingsEventDetail } from '../skottie-file-settings-sk/skottie-file-settings-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -351,7 +353,7 @@ export class SkottieSk extends ElementSk {
         </div>
       </div>
 
-      ${this.audioDialog()} ${this.optionsDialog()}
+      ${this.fileSettingsDialog()} ${this.audioDialog()} ${this.optionsDialog()}
 
       <button
         class="apply-button"
@@ -407,6 +409,27 @@ export class SkottieSk extends ElementSk {
       `,
       AUDIO_SUPPORTED_DOMAINS
     );
+
+  private fileSettingsDialog = () =>
+    html`
+      <details
+        class="expando"
+        ?open=${this.showFileSettings}
+        @toggle=${(e: Event) =>
+          this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}
+      >
+        <summary id="fileSettings-open">
+          <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk
+          ><expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-file-settings-sk
+          .width=${this.width}
+          .height=${this.height}
+          .fps=${this.fps}
+          @settings-change=${this.skottieFileSettingsUpdated}
+        ></skottie-file-settings-sk>
+      </details>
+    `;
 
   private iframeDirections = () =>
     `<iframe width="${this.width}" height="${this.height}" src="${window.location.origin}/e/${this.hash}?w=${this.width}&h=${this.height}" scrolling=no>`;
@@ -608,6 +631,8 @@ export class SkottieSk extends ElementSk {
 
   private showShaderEditor: boolean = false;
 
+  private showFileSettings: boolean = false;
+
   private skottieLibrary: SkottieLibrarySk | null = null;
 
   private skottiePlayer: SkottiePlayerSk | null = null;
@@ -650,6 +675,7 @@ export class SkottieSk extends ElementSk {
         f: this.fps,
         bg: this.backgroundColor,
         mode: this.viewMode,
+        fs: this.showFileSettings,
       }),
       /* setState */ (newState) => {
         this.showLottie = !!newState.l;
@@ -663,6 +689,7 @@ export class SkottieSk extends ElementSk {
         this.width = +newState.w;
         this.height = +newState.h;
         this.fps = +newState.f;
+        this.showFileSettings = !!newState.fs;
         this.viewMode =
           newState.mode === 'presentation' ? 'presentation' : 'default';
         this.backgroundColor = String(newState.bg);
@@ -814,6 +841,20 @@ export class SkottieSk extends ElementSk {
       // Re-sync all players
       this.rewind();
     }
+  }
+
+  private skottieFileSettingsUpdated(
+    e: CustomEvent<SkottieFileSettingsEventDetail>
+  ) {
+    this.width = e.detail.width;
+    this.height = e.detail.height;
+    this.fps = e.detail.fps;
+    this.autoSize();
+    this.stateChanged();
+    this.render();
+    this.initializePlayer();
+    // Re-sync all players
+    this.rewind();
   }
 
   private selectionCancelled() {
@@ -1413,6 +1454,12 @@ export class SkottieSk extends ElementSk {
 
   private toggleAudio(open: boolean): void {
     this.showAudio = open;
+    this.stateChanged();
+    this.render();
+  }
+
+  private toggleFileSettings(open: boolean): void {
+    this.showFileSettings = open;
     this.stateChanged();
     this.render();
   }

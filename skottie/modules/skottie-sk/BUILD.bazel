@@ -51,6 +51,7 @@ sk_element(
         "//skottie/modules/skottie-button-sk",
         "//skottie/modules/skottie-dropdown-sk",
         "//skottie/modules/skottie-exporter-sk",
+        "//skottie/modules/skottie-file-settings-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
