@@ -313,6 +313,12 @@ export class ExploreSk extends ElementSk {
 
   private testPath: string = '';
 
+  private startCommit: string = '';
+
+  private endCommit: string = '';
+
+  private story: string = '';
+
   private _initialized: boolean = false;
 
   private commits: CommitDetailPanelSk | null = null;
@@ -566,8 +572,18 @@ export class ExploreSk extends ElementSk {
 
     <dialog id='bisect-dialog'>
       <h2>Bisect</h2>
-      <h3>Test Path<h3>
+      <h3>Test Path</h3>
       <input id="testpath" type="text" value=${ele.testPath} readonly></input>
+      <h3>Bug ID</h3>
+      <input id="bug-id" type="text"></input>
+      <h3>Start Commit</h3>
+      <input id="start-commit" type="text" value=${ele.startCommit}></input>
+      <h3>End Commit</h3>
+      <input id="end-commit" type="text" value=${ele.endCommit}></input>
+      <h3>Story</h3>
+      <input id="story" type="text" value=${ele.story}></input>
+      <h3>Patch to apply to the entire job(optional)</h3>
+      <input id="patch" type="text"></input>
       <div class=footer>
         <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
@@ -1144,6 +1160,7 @@ export class ExploreSk extends ElementSk {
         const cid = commits[0]!;
         const traceid = e.detail.name;
         const parts = [];
+        this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!);
         if (
           this.simpleParamset!.paramsets[0]!.master &&
           this.simpleParamset!.paramsets[0]!.master.length > 0
@@ -1168,8 +1185,10 @@ export class ExploreSk extends ElementSk {
         ) {
           parts.push(this.simpleParamset!.paramsets[0]!.test[0]);
         }
-        parts.push(this.getLastSubtest(this.simpleParamset!.paramsets[0]!));
+        parts.push(this.story);
         this.testPath = parts.join('/');
+        this.startCommit = prevCommit.toString();
+        this.endCommit = commit.toString();
         if (this.displayMode === 'display_plot') {
           this.jsonsource!.cid = cid;
           this.jsonsource!.traceid = traceid;
