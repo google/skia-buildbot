@@ -19,6 +19,23 @@ See the [Design Doc](http://go/cabe-rpc).
 - `//cabe/go/proto`
   - protobuf message and service definitions
 
+## Querying the production cabe.skia.org service with `grpcurl`
+
+To make a `GetAnalysis` request for a specific pinpoint job, you can use the
+[grpcurl](https://github.com/fullstorydev/grpcurl) command line utility.
+
+For this command to work, you should also have `gcloud` installed, and run
+`gcloud auth login` so you're logged in using an authorized account.
+
+```
+grpcurl -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -d '{"pinpoint_job_id":"<PINPOINT JOB ID>"}' \
+    cabe.skia.org:443 cabe.proto.Analysis/GetAnalysis
+```
+
+If successful, this command will write a textproto encoding of the
+`cabe.proto.GetAnalysisResponse` from the server to stdout.
+
 ## Running locally
 
 To start the server, in one terminal run:
