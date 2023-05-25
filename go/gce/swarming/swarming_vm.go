@@ -69,23 +69,36 @@ var (
 	winAnsiblePlaybook   = filepath.Join("switchboard", "win.yml")
 )
 
-type machineRange struct {
-	min int
-	max int
+type validMachineRange struct {
+	min                  int
+	max                  int
+	kind                 string
+	expectedInstanceType string // If empty, any instance type is accepted.
 }
 
-func (r machineRange) inRange(n int) bool { return n >= r.min && n <= r.max }
+func (r validMachineRange) matchesNumberAndKind(n int, kind string) bool {
+	return n >= r.min && n <= r.max && kind == r.kind
+}
 
-var instanceTypeByMachineRange = map[machineRange]string{
-	{0, 99}:    "", // Any machine type is accepted.
-	{100, 199}: instance_types.INSTANCE_TYPE_LINUX_SMALL,
-	{200, 299}: instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
-	{300, 399}: instance_types.INSTANCE_TYPE_LINUX_LARGE,
-	{400, 404}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
-	{405, 408}: instance_types.INSTANCE_TYPE_LINUX_AMD,
-	{409, 499}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
-	{500, 599}: instance_types.INSTANCE_TYPE_WIN_MEDIUM,
-	{600, 699}: instance_types.INSTANCE_TYPE_WIN_LARGE,
+var validMachineRanges = []validMachineRange{
+	// skia-e-gce-* and skia-ct-gce-* machines.
+	{0, 99, kindExternal, ""}, // Any instance type is accepted, including CT machines.
+	{100, 199, kindExternal, instance_types.INSTANCE_TYPE_LINUX_SMALL},
+	{200, 299, kindExternal, instance_types.INSTANCE_TYPE_LINUX_MEDIUM},
+	{300, 399, kindExternal, instance_types.INSTANCE_TYPE_LINUX_LARGE},
+	{400, 404, kindExternal, instance_types.INSTANCE_TYPE_LINUX_SKYLAKE},
+	{405, 408, kindExternal, instance_types.INSTANCE_TYPE_LINUX_AMD},
+	{409, 499, kindExternal, instance_types.INSTANCE_TYPE_LINUX_SKYLAKE},
+	{500, 599, kindExternal, instance_types.INSTANCE_TYPE_WIN_MEDIUM},
+	{600, 699, kindExternal, instance_types.INSTANCE_TYPE_WIN_LARGE},
+
+	// skia-i-gce-* machines.
+	{100, 199, kindInternal, instance_types.INSTANCE_TYPE_LINUX_SMALL},
+	{200, 299, kindInternal, instance_types.INSTANCE_TYPE_LINUX_LARGE},
+
+	// skia-d-gce-* machines.
+	{100, 100, kindDev, instance_types.INSTANCE_TYPE_LINUX_SMALL}, // Exactly one machine.
+	{101, 599, kindDev, instance_types.INSTANCE_TYPE_LINUX_MICRO},
 }
 
 type vmsToCreate struct {
@@ -167,12 +180,12 @@ func makeVMsToCreate(ctx context.Context, kind, instanceType string, forceInstan
 	if !forceInstanceType {
 		for _, instanceNum := range instanceNums {
 			found := false
-			for machineRange, expectedInstanceType := range instanceTypeByMachineRange {
-				if machineRange.inRange(instanceNum) {
+			for _, r := range validMachineRanges {
+				if r.matchesNumberAndKind(instanceNum, kind) {
 					found = true
 					// Empty string means any instance type is valid.
-					if expectedInstanceType != "" && instanceType != expectedInstanceType {
-						return vmsToCreate{}, skerr.Fmt("Machine number %d is expected to be of instance type %s. To force a different type, re-run with --force-type.", instanceNum, expectedInstanceType)
+					if r.expectedInstanceType != "" && instanceType != r.expectedInstanceType {
+						return vmsToCreate{}, skerr.Fmt("Machine number %d is expected to be of instance type %s. To force a different type, re-run with --force-type.", instanceNum, r.expectedInstanceType)
 					}
 					break
 				}

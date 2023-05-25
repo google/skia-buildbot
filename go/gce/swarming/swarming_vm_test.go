@@ -282,9 +282,6 @@ func TestMakeVMsToCreate_External_600To699Range_WinLarge_Success(t *testing.T) {
 }
 
 func TestMakeVMsToCreate_External_0To99Range_CT_Success(t *testing.T) {
-	// TODO(lovisolo): This test does not pass because range validation is broken for CT machines.
-	t.SkipNow()
-
 	testVMsToCreate(t, vmsToCreateTestCase{
 		kind:                         kindExternal,
 		instanceType:                 instance_types.INSTANCE_TYPE_CT,
@@ -325,10 +322,6 @@ func TestMakeVMsToCreate_Internal_100To199Range_LinuxSmall_Success(t *testing.T)
 }
 
 func TestMakeVMsToCreate_Internal_200To299Range_LinuxLarge_Success(t *testing.T) {
-	// TODO(lovisolo): This test does not pass because range validation is broken for internal
-	//                 machines.
-	t.SkipNow()
-
 	testVMsToCreate(t, vmsToCreateTestCase{
 		kind:                         kindInternal,
 		instanceType:                 instance_types.INSTANCE_TYPE_LINUX_LARGE,
@@ -366,9 +359,6 @@ func TestMakeVMsToCreate_Dev_100_LinuxSmall_Success(t *testing.T) {
 }
 
 func TestMakeVMsToCreate_Dev_101To599Range_LinuxMicro_Success(t *testing.T) {
-	// TODO(lovisolo): This test does not pass because range validation is broken for dev machines.
-	t.SkipNow()
-
 	testVMsToCreate(t, vmsToCreateTestCase{
 		kind:                         kindDev,
 		instanceType:                 instance_types.INSTANCE_TYPE_LINUX_MICRO,
@@ -468,22 +458,20 @@ func TestMakeVMsToCreate_ForceInstanceType_Success(t *testing.T) {
 		test(999, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
 
 		// skia-i-gce-* instances.
-		// TODO(lovisolo): Commented out because validation for internal instances is broken.
-		// test(0, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(99, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(0, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(99, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
 		test(100, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongInstanceTypeErr)
 		test(199, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongInstanceTypeErr)
 		test(200, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongInstanceTypeErr)
 		test(299, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongInstanceTypeErr)
-		// TODO(lovisolo): Commented out because validation for internal instances is broken.
-		// test(300, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(399, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(400, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(499, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(500, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(599, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(600, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
-		// test(699, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(300, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(399, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(400, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(499, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(500, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(599, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(600, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
+		test(699, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
 		test(700, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
 		test(799, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
 		test(800, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
@@ -492,24 +480,21 @@ func TestMakeVMsToCreate_ForceInstanceType_Success(t *testing.T) {
 		test(999, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)
 
 		// skia-d-gce-* instances.
-		// TODO(lovisolo): Commented out because validation for dev instances is broken.
-		// test(0, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
-		// test(99, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
+		test(0, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
+		test(99, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(100, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(101, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(199, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(200, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(299, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
-		// TODO(lovisolo): Commented out because validation for dev instances is broken.
-		// test(300, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
-		// test(399, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
+		test(300, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
+		test(399, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(400, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(499, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(500, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
 		test(599, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongInstanceTypeErr)
-		// TODO(lovisolo): Commented out because validation for dev instances is broken.
-		// test(600, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
-		// test(699, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
+		test(600, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
+		test(699, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(700, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(799, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(800, kindDev, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
