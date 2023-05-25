@@ -5,9 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -16,6 +13,8 @@ import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/skerr"
 	"gopkg.in/yaml.v2"
+
+	_ "embed"
 )
 
 const (
@@ -41,18 +40,24 @@ const (
 )
 
 var (
-	// "Constants"
-	SETUP_SCRIPT_LINUX_CT_PATH    = filepath.Join("go", "gce", "swarming", "setup-script-linux-ct.sh")
-	SETUP_SCRIPT_LINUX_PATH       = filepath.Join("go", "gce", "swarming", "setup-script-linux.sh")
-	SETUP_SCRIPT_WIN_ANSIBLE_PATH = filepath.Join("go", "gce", "swarming", "setup-win.ps1")
-	NODE_SETUP_PATH               = filepath.Join("third_party", "node", "setup_6.x")
+	//go:embed setup-script-linux.sh
+	setupScriptLinuxSH string
+
+	//go:embed setup-script-linux-ct.sh
+	setupScriptLinuxCTSH string
+
+	//go:embed setup-win.ps1
+	setupWinPS1 string
+
+	//go:embed third_party/node/setup_6.x
+	nodeSetup6xScript string
 
 	externalNamePrefixRegexp = regexp.MustCompile("^skia-e-")
 )
 
 // Base configs for Swarming GCE instances.
-func Swarming20180406(name string, machineType, serviceAccount, setupScript, nodeSetupScript, sourceImage string) *gce.Instance {
-	vm := &gce.Instance{
+func swarming20180406(name string, machineType, serviceAccount, setupScript, sourceImage string) *gce.Instance {
+	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
 			SizeGb:      15,
@@ -77,58 +82,54 @@ func Swarming20180406(name string, machineType, serviceAccount, setupScript, nod
 		Tags:              []string{"use-swarming-auth"},
 		User:              USER_CHROME_BOT,
 	}
-	if nodeSetupScript != "" {
-		vm.Metadata["node-setup-script"] = nodeSetupScript
-	}
-	return vm
 }
 
 // Linux GCE instances.
-func linuxSwarmingBot(num int, machineType, setupScript, nodeSetupScript string) *gce.Instance {
-	return Swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+func linuxSwarmingBot(num int, machineType string) *gce.Instance {
+	return swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptLinuxSH, DEBIAN_SOURCE_IMAGE_EXTERNAL)
 }
 
 // Micro Linux GCE instances.
-func LinuxMicro(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_F1_MICRO, setupScript, nodeSetupScript)
+func LinuxMicro(num int) *gce.Instance {
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_F1_MICRO)
 	vm.DataDisks[0].SizeGb = 10
 	return vm
 }
 
 // Small Linux GCE instances.
-func LinuxSmall(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHMEM_2, setupScript, nodeSetupScript)
+func LinuxSmall(num int) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHMEM_2)
 }
 
 // Medium Linux GCE instances.
-func LinuxMedium(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16, setupScript, nodeSetupScript)
+func LinuxMedium(num int) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16)
 }
 
 // Large Linux GCE instances.
-func LinuxLarge(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64, setupScript, nodeSetupScript)
+func LinuxLarge(num int) *gce.Instance {
+	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64)
 }
 
 // Linux GCE instances with GPUs.
-func LinuxGpu(num int, setupScript, nodeSetupScript string) *gce.Instance {
+func LinuxGpu(num int) *gce.Instance {
 	// Max 8 CPUs when using a GPU.
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8, setupScript, nodeSetupScript)
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8)
 	vm.Gpu = true
 	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE // Required for GPUs.
 	return vm
 }
 
 // Linux GCE instances with AMD CPUs (skbug.com/10269).
-func LinuxAmd(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_N2D_STANDARD_16, setupScript, nodeSetupScript)
+func LinuxAmd(num int) *gce.Instance {
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_N2D_STANDARD_16)
 	vm.MinCpuPlatform = gce.CPU_PLATFORM_AMD
 	return vm
 }
 
 // Linux GCE instances with Skylake CPUs.
-func LinuxSkylake(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	vm := LinuxMedium(num, setupScript, nodeSetupScript)
+func LinuxSkylake(num int) *gce.Instance {
+	vm := LinuxMedium(num)
 	vm.MinCpuPlatform = gce.CPU_PLATFORM_SKYLAKE
 	return vm
 }
@@ -156,88 +157,58 @@ func Dev(vm *gce.Instance) *gce.Instance {
 }
 
 // Skia CT bots.
-func SkiaCT(num int, setupScript, nodeSetupScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, nodeSetupScript, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+func SkiaCT(num int) *gce.Instance {
+	vm := swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptLinuxCTSH, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+	vm.Metadata["node-setup-script"] = nodeSetup6xScript
 	vm.DataDisks[0].SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
 	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-3"
 	return vm
 }
 
-// Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, bootDiskType string) *gce.Instance {
-	vm.BootDisk.SizeGb = 300
-	vm.BootDisk.Type = bootDiskType
-	vm.DataDisks = nil
-	vm.Os = gce.OS_WINDOWS
-	return vm
-}
-
-// Windows GCE instances.
-func WinSwarmingBot(name, machineType, setupScript, bootDiskType string) *gce.Instance {
-	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, "", WIN_SOURCE_IMAGE)
-	return AddWinConfigs(vm, bootDiskType)
-}
-
 // Medium Windows GCE instances.
-func WinMedium(num int, setupScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinMedium(ctx context.Context, num int) (*gce.Instance, error) {
+	return winSwarmingBot(ctx, num, gce.MACHINE_TYPE_STANDARD_16)
 }
 
 // Large Windows GCE instances.
-func WinLarge(num int, setupScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScript, gce.DISK_TYPE_PERSISTENT_SSD)
+func WinLarge(ctx context.Context, num int) (*gce.Instance, error) {
+	return winSwarmingBot(ctx, num, gce.MACHINE_TYPE_HIGHCPU_64)
 }
 
-// Returns the contents of the VM setup script and NodeJS setup script necessary for CT machines,
-// given a local checkout.
-//
-// Note that CT machines are not configured via Ansible at this time.
-//
-// TODO(lovisolo): Should we configure CT machines via Ansible as well?
-func GetLinuxScriptsForCT(ctx context.Context, checkoutRoot, workdir string) (string, string, error) {
-	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_CT_PATH))
+// Windows GCE instances.
+func winSwarmingBot(ctx context.Context, num int, machineType string) (*gce.Instance, error) {
+	setupScript, err := getWindowsSetupScript(ctx)
 	if err != nil {
-		return "", "", skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
-	nodeSetupBytes, err := os.ReadFile(filepath.Join(checkoutRoot, NODE_SETUP_PATH))
-	if err != nil {
-		return "", "", skerr.Wrap(err)
-	}
-	return string(setupScriptBytes), string(nodeSetupBytes), nil
+
+	vm := swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScript, WIN_SOURCE_IMAGE)
+	vm.BootDisk.SizeGb = 300
+	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.DataDisks = nil
+	vm.Os = gce.OS_WINDOWS
+	return vm, nil
 }
 
-// Returns the contents of the setup script, given a local checkout.
-func GetLinuxScript(checkoutRoot string) (string, error) {
-	setupScriptBytes, err := os.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_LINUX_PATH))
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
-	return string(setupScriptBytes), nil
-}
-
-// Returns the setup script, given a local checkout. Writes the script into the given workdir.
-func GetWindowsSetupScript(ctx context.Context, checkoutRoot, workdir string) (string, error) {
-	chromeBotSkoloPassword, err := getChromeBotSkoloPassword(ctx, checkoutRoot)
+// getWindowsSetupScript returns the contents of the setup script for Windows GCE instances.
+func getWindowsSetupScript(ctx context.Context) (string, error) {
+	chromeBotSkoloPassword, err := getChromeBotSkoloPassword(ctx)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 
-	setupScriptTemplateBytes, err := ioutil.ReadFile(filepath.Join(checkoutRoot, SETUP_SCRIPT_WIN_ANSIBLE_PATH))
-	if err != nil {
-		return "", err
-	}
-	setupScript := strings.Replace(string(setupScriptTemplateBytes), "CHROME_BOT_PASSWORD", chromeBotSkoloPassword, -1)
+	setupScript := strings.Replace(setupWinPS1, "CHROME_BOT_PASSWORD", chromeBotSkoloPassword, -1)
 	return setupScript, nil
 }
 
 // getChromeBotSkoloPassword retrieves the chrome-bot Skolo password from Berglas.
-func getChromeBotSkoloPassword(ctx context.Context, checkoutRoot string) (string, error) {
+func getChromeBotSkoloPassword(ctx context.Context) (string, error) {
 	// Read secret using Berglas.
 	berglasOutput := bytes.Buffer{}
 	cmd := &exec.Command{
-		Name:           "/bin/bash",
-		Args:           []string{filepath.Join(checkoutRoot, "kube", "secrets", "get-secret.sh"), "etc", "ansible-secret-vars"},
+		Name:           "berglas",
+		Args:           []string{"access", "skia-secrets/etc/ansible-secret-vars"},
 		CombinedOutput: &berglasOutput,
 	}
 	if err := exec.Run(ctx, cmd); err != nil {
@@ -245,13 +216,17 @@ func getChromeBotSkoloPassword(ctx context.Context, checkoutRoot string) (string
 	}
 
 	// Parse Berglas output.
+	base64DecodedBerglasOutput, err := base64.StdEncoding.DecodeString(berglasOutput.String())
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
 	berglasSecret := struct {
 		ApiVersion string `yaml:"apiVersion"`
 		Data       struct {
 			SecretsYml string `yaml:"secrets.yml"`
 		} `yaml:"data"`
 	}{}
-	if err := yaml.Unmarshal(berglasOutput.Bytes(), &berglasSecret); err != nil {
+	if err := yaml.Unmarshal(base64DecodedBerglasOutput, &berglasSecret); err != nil {
 		return "", skerr.Wrap(err)
 	}
 

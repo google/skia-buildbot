@@ -22,9 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"go.skia.org/infra/go/common"
@@ -88,7 +86,6 @@ var (
 	instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
 	forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
 	internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
-	workdir           = flag.String("workdir", ".", "Working directory.")
 )
 
 func main() {
@@ -109,68 +106,53 @@ func main() {
 		sklog.Fatal("Please specify at least one instance number via --instances.")
 	}
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	// All instance types except CT instances are configured via Ansible.
-	configuredViaAnsible := true
-
-	// Read the various scripts.
-	_, filename, _, _ := runtime.Caller(0)
-	checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
 	ctx := context.Background()
-	var setupScript, nodeSetup string
-	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
-		setupScript, err = instance_types.GetWindowsSetupScript(ctx, checkoutRoot, wdAbs)
-	} else if *instanceType == instance_types.INSTANCE_TYPE_CT {
-		// TODO(lovisolo): Should we configure CT instances via Ansible as well?
-		configuredViaAnsible = false
-		setupScript, nodeSetup, err = instance_types.GetLinuxScriptsForCT(ctx, checkoutRoot, wdAbs)
-	} else {
-		setupScript, err = instance_types.GetLinuxScript(checkoutRoot)
-	}
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
+	configuredViaAnsible := *instanceType != instance_types.INSTANCE_TYPE_CT // TODO(lovisolo): Should we configure CT instances via Ansible as well?
 	zone := gce.ZONE_DEFAULT
 	project := gce.PROJECT_ID_SWARMING
+
 	var getInstance func(int) *gce.Instance
 	switch *instanceType {
 	case instance_types.INSTANCE_TYPE_CT:
-		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_MICRO:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_MEDIUM:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_GPU:
 		zone = gce.ZONE_GPU
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_AMD:
 		zone = gce.ZONE_AMD
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
 		zone = gce.ZONE_SKYLAKE
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript, nodeSetup) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num) }
 	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
 		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinMedium(num, setupScript)
+			instance, err := instance_types.WinMedium(ctx, num)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			return instance
 		}
 	case instance_types.INSTANCE_TYPE_WIN_LARGE:
 		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinLarge(num, setupScript)
+			instance, err := instance_types.WinLarge(ctx, num)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			return instance
 		}
-	}
-	if getInstance == nil {
+	default:
 		sklog.Fatalf("Could not find matching instance type for --type %s", *instanceType)
 	}
+
 	if *internal {
 		project = gce.PROJECT_ID_INTERNAL_SWARMING
 		getInstanceInner := getInstance
@@ -280,7 +262,7 @@ func main() {
 			command += " --ask-pass"
 		}
 
-		sklog.Infof("To finish setting up these machines, cd into %s, then run the following commands:", filepath.Join(checkoutRoot, ansibleDirectory))
+		sklog.Infof("To finish setting up these machines, cd into %s, then run the following commands:", ansibleDirectory)
 		sklog.Infof("$ make update_ssh_gce_config")
 		sklog.Infof(command)
 	}

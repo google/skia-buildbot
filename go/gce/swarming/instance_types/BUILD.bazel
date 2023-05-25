@@ -1,8 +1,15 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "instance_types",
     srcs = ["instance_types.go"],
+    embedsrcs = [
+        "setup-script-linux-ct.sh",
+        "setup-script-linux.sh",
+        "setup-win.ps1",
+        "third_party/node/setup_6.x",
+    ],
     importpath = "go.skia.org/infra/go/gce/swarming/instance_types",
     visibility = ["//visibility:public"],
     deps = [
@@ -11,5 +18,16 @@ go_library(
         "//go/gce",
         "//go/skerr",
         "@in_gopkg_yaml_v2//:yaml_v2",
+    ],
+)
+
+go_test(
+    name = "instance_types_test",
+    srcs = ["instance_types_test.go"],
+    embed = [":instance_types"],
+    deps = [
+        "//go/exec",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )
