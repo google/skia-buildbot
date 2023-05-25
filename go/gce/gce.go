@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	ACCELERATOR_TYPE_NVIDIA_TESLA_K80 = "projects/google.com:skia-buildbots/zones/us-east1-d/acceleratorTypes/nvidia-tesla-k80"
-
 	CPU_PLATFORM_AMD     = "AMD Rome"
 	CPU_PLATFORM_SKYLAKE = "Intel Skylake"
 
@@ -94,7 +92,6 @@ const (
 
 	ZONE_CT      = ZONE_CENTRAL1_B
 	ZONE_DEFAULT = ZONE_CENTRAL1_C
-	ZONE_GPU     = ZONE_EAST1_D
 	ZONE_SKYLAKE = ZONE_CENTRAL1_B
 	// On 5/20/20 "AMD Rome" was only available on us-central1-a and us-central1-f in us-central (https://cloud.google.com/compute/docs/regions-zones#available)
 	ZONE_AMD = ZONE_CENTRAL1_A
@@ -414,9 +411,6 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
-	// Whether or not to include an NVIDIA Tesla k80 GPU on the instance.
-	Gpu bool
-
 	// Files to download from Google Storage.
 	GSDownloads []*GSDownload
 
@@ -638,14 +632,6 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 		Tags: &compute.Tags{
 			Items: vm.Tags,
 		},
-	}
-	if vm.Gpu {
-		i.GuestAccelerators = []*compute.AcceleratorConfig{
-			{
-				AcceleratorCount: 1,
-				AcceleratorType:  ACCELERATOR_TYPE_NVIDIA_TESLA_K80,
-			},
-		}
 	}
 	err := g.CheckOperation(g.service.Instances.Insert(g.project, g.zone, i).Do())
 	if err != nil {

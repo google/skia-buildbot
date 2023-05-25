@@ -52,7 +52,6 @@ var (
 		instance_types.INSTANCE_TYPE_LINUX_SMALL,
 		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
 		instance_types.INSTANCE_TYPE_LINUX_LARGE,
-		instance_types.INSTANCE_TYPE_LINUX_GPU,
 		instance_types.INSTANCE_TYPE_LINUX_AMD,
 		instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
 		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
@@ -132,9 +131,6 @@ func makeVMsToCreate(ctx context.Context, kind, instanceType string, forceInstan
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num) }
-	case instance_types.INSTANCE_TYPE_LINUX_GPU:
-		retval.zone = gce.ZONE_GPU
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_AMD:
 		retval.zone = gce.ZONE_AMD
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num) }

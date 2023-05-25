@@ -32,7 +32,6 @@ const (
 	INSTANCE_TYPE_LINUX_SMALL   = "linux-small"
 	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
 	INSTANCE_TYPE_LINUX_LARGE   = "linux-large"
-	INSTANCE_TYPE_LINUX_GPU     = "linux-gpu" // TODO(lovisolo): Can we remove this instance type? We don't have any ATM.
 	INSTANCE_TYPE_LINUX_AMD     = "linux-amd"
 	INSTANCE_TYPE_LINUX_SKYLAKE = "linux-skylake"
 	INSTANCE_TYPE_WIN_MEDIUM    = "win-medium"
@@ -109,15 +108,6 @@ func LinuxMedium(num int) *gce.Instance {
 // Large Linux GCE instances.
 func LinuxLarge(num int) *gce.Instance {
 	return linuxSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64)
-}
-
-// Linux GCE instances with GPUs.
-func LinuxGpu(num int) *gce.Instance {
-	// Max 8 CPUs when using a GPU.
-	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8)
-	vm.Gpu = true
-	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE // Required for GPUs.
-	return vm
 }
 
 // Linux GCE instances with AMD CPUs (skbug.com/10269).
