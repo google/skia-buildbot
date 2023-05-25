@@ -339,8 +339,8 @@ func disjointDimensions(dimensionSets []map[string][]string, ignoredKeys util.St
 		}
 	}
 	for k, v := range kvCounts {
-		if v == 1 {
-			ret = append(ret, k)
+		if v < len(dimensionSets) { // k appeared in some, but not all dimensionSets.
+			ret = append(ret, fmt.Sprintf("%d tasks with {%s}", v, k))
 		}
 	}
 	return ret

@@ -43,7 +43,7 @@ func TestDisjointDimensions(t *testing.T) {
 				{"dim1": []string{"foo"}, "dim2": []string{"bar"}},
 				{"dim1": []string{"foo"}, "dim2": []string{"bar"}, "dim3": []string{"baz"}},
 			},
-			expected: []string{`key: "dim3", values: ["baz"]`},
+			expected: []string{`1 tasks with {key: "dim3", values: ["baz"]}`},
 		},
 		{
 			name: "two elements with one different dimension key, ignored",
@@ -332,8 +332,8 @@ func TestCheckArmComparability(t *testing.T) {
 				},
 			},
 			expectedFindings: []string{
-				`CheckArmComparability: disjoint result dims within control tasks: [key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-390.116"] key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-440.100"]]`,
-				`CheckArmComparability: disjoint result dims across arms' tasks: [key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-440.100"]]`,
+				`CheckArmComparability: disjoint result dims within control tasks: [1 tasks with {key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-390.116"]} 1 tasks with {key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-440.100"]}]`,
+				`CheckArmComparability: disjoint result dims across arms' tasks: [1 tasks with {key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-440.100"]} 3 tasks with {key: "gpu", values: ["10de" "10de:1cb3" "10de:1cb3-390.116"]}]`,
 			},
 		},
 	} {
