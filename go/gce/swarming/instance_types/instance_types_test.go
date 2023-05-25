@@ -2,12 +2,11 @@ package instance_types
 
 import (
 	"context"
-	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
+	instance_types_testing "go.skia.org/infra/go/gce/swarming/instance_types/testing"
 )
 
 func TestFilesCorrectlyEmbedded(t *testing.T) {
@@ -18,30 +17,7 @@ func TestFilesCorrectlyEmbedded(t *testing.T) {
 }
 
 func TestChromeBotSkoloPassword(t *testing.T) {
-	secretsYml := `secrets:
-  skolo_password: 'FakePassword'
-`
-
-	ansibleSecretVarsYml := `apiVersion: v1
-data:
-  secrets.yml: ` + base64.StdEncoding.EncodeToString([]byte(secretsYml)) + `
-kind: Secret
-metadata:
-  creationTimestamp: null
-  name: ansible-secret-vars
-`
-
-	berglasOutput := base64.StdEncoding.EncodeToString([]byte(ansibleSecretVarsYml))
-
-	ctx := exec.NewContext(context.Background(), func(ctx context.Context, c *exec.Command) error {
-		assert.Equal(t, "berglas", c.Name)
-		assert.Equal(t, []string{"access", "skia-secrets/etc/ansible-secret-vars"}, c.Args)
-		_, err := c.CombinedOutput.Write([]byte(berglasOutput))
-		require.NoError(t, err)
-		return nil
-	})
-
-	password, err := getChromeBotSkoloPassword(ctx)
+	password, err := getChromeBotSkoloPassword(instance_types_testing.NewBerglasContextForTesting(t, context.Background()))
 	require.NoError(t, err)
 	assert.Equal(t, "FakePassword", password)
 }

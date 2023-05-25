@@ -32,7 +32,7 @@ const (
 	INSTANCE_TYPE_LINUX_SMALL   = "linux-small"
 	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
 	INSTANCE_TYPE_LINUX_LARGE   = "linux-large"
-	INSTANCE_TYPE_LINUX_GPU     = "linux-gpu"
+	INSTANCE_TYPE_LINUX_GPU     = "linux-gpu" // TODO(lovisolo): Can we remove this instance type? We don't have any ATM.
 	INSTANCE_TYPE_LINUX_AMD     = "linux-amd"
 	INSTANCE_TYPE_LINUX_SKYLAKE = "linux-skylake"
 	INSTANCE_TYPE_WIN_MEDIUM    = "win-medium"

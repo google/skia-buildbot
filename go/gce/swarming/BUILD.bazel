@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -9,6 +10,7 @@ go_library(
         "//go/common",
         "//go/gce",
         "//go/gce/swarming/instance_types",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
     ],
@@ -18,4 +20,17 @@ go_binary(
     name = "swarming",
     embed = [":swarming_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "swarming_test",
+    srcs = ["swarming_vm_test.go"],
+    embed = [":swarming_lib"],
+    deps = [
+        "//go/gce",
+        "//go/gce/swarming/instance_types",
+        "//go/gce/swarming/instance_types/testing",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )

@@ -28,12 +28,25 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/swarming/instance_types"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	kindExternal = "external"
+	kindInternal = "internal"
+	kindDev      = "dev"
+)
+
 var (
-	VALID_INSTANCE_TYPES = []string{
+	instanceKinds = []string{
+		kindExternal,
+		kindInternal,
+		kindDev,
+	}
+
+	validInstanceTypes = []string{
 		instance_types.INSTANCE_TYPE_CT,
 		instance_types.INSTANCE_TYPE_LINUX_MICRO,
 		instance_types.INSTANCE_TYPE_LINUX_SMALL,
@@ -45,7 +58,8 @@ var (
 		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 		instance_types.INSTANCE_TYPE_WIN_LARGE,
 	}
-	WIN_INSTANCE_TYPES = []string{
+
+	winInstanceTypes = []string{
 		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 		instance_types.INSTANCE_TYPE_WIN_LARGE,
 	}
@@ -69,51 +83,32 @@ var instanceTypeByMachineRange = map[machineRange]string{
 	{300, 399}: instance_types.INSTANCE_TYPE_LINUX_LARGE,
 	{400, 404}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
 	{405, 408}: instance_types.INSTANCE_TYPE_LINUX_AMD,
-	{409, 500}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
+	{409, 499}: instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
 	{500, 599}: instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 	{600, 699}: instance_types.INSTANCE_TYPE_WIN_LARGE,
 }
 
-var (
-	// Flags.
-	instances         = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
-	create            = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
-	delete            = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
-	deleteDataDisk    = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
-	dev               = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
-	dumpJson          = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
-	ignoreExists      = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
-	instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
-	forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
-	internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
-)
+type vmsToCreate struct {
+	vms                  []*gce.Instance
+	zone                 string
+	project              string
+	configuredViaAnsible bool
+}
 
-func main() {
-	common.Init()
-
-	// Validation.
-	if *create == *delete {
-		sklog.Fatal("Please specify --create or --delete, but not both.")
-	}
-	if !util.In(*instanceType, VALID_INSTANCE_TYPES) {
-		sklog.Fatalf("--type must be one of %v", VALID_INSTANCE_TYPES)
-	}
-	instanceNums, err := util.ParseIntSet(*instances)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	if len(instanceNums) == 0 {
-		sklog.Fatal("Please specify at least one instance number via --instances.")
+func makeVMsToCreate(ctx context.Context, kind, instanceType string, forceInstanceType bool, instanceNums []int) (vmsToCreate, error) {
+	if !util.In(kind, instanceKinds) {
+		return vmsToCreate{}, skerr.Fmt("Unknown kind: %s", kind)
 	}
 
-	ctx := context.Background()
-
-	configuredViaAnsible := *instanceType != instance_types.INSTANCE_TYPE_CT // TODO(lovisolo): Should we configure CT instances via Ansible as well?
-	zone := gce.ZONE_DEFAULT
-	project := gce.PROJECT_ID_SWARMING
+	retval := vmsToCreate{
+		zone:    gce.ZONE_DEFAULT,
+		project: gce.PROJECT_ID_SWARMING,
+		// CT instances are the only ones that we do not configure via Ansible.
+		configuredViaAnsible: instanceType != instance_types.INSTANCE_TYPE_CT,
+	}
 
 	var getInstance func(int) *gce.Instance
-	switch *instanceType {
+	switch instanceType {
 	case instance_types.INSTANCE_TYPE_CT:
 		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_MICRO:
@@ -125,13 +120,13 @@ func main() {
 	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_GPU:
-		zone = gce.ZONE_GPU
+		retval.zone = gce.ZONE_GPU
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_AMD:
-		zone = gce.ZONE_AMD
+		retval.zone = gce.ZONE_AMD
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
-		zone = gce.ZONE_SKYLAKE
+		retval.zone = gce.ZONE_SKYLAKE
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num) }
 	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
 		getInstance = func(num int) *gce.Instance {
@@ -150,16 +145,17 @@ func main() {
 			return instance
 		}
 	default:
-		sklog.Fatalf("Could not find matching instance type for --type %s", *instanceType)
+		// Should never happen.
+		panic(fmt.Sprintf("Unknown instanceType: %q. This is a bug.", instanceType))
 	}
 
-	if *internal {
-		project = gce.PROJECT_ID_INTERNAL_SWARMING
+	if kind == kindInternal {
+		retval.project = gce.PROJECT_ID_INTERNAL_SWARMING
 		getInstanceInner := getInstance
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Internal(getInstanceInner(num))
 		}
-	} else if *dev {
+	} else if kind == kindDev {
 		getInstanceInner := getInstance
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Dev(getInstanceInner(num))
@@ -168,38 +164,90 @@ func main() {
 
 	// Validate that the given instance type and machine numbers correspond with the per-type range
 	// assignment.
-	if !*forceInstanceType {
+	if !forceInstanceType {
 		for _, instanceNum := range instanceNums {
 			found := false
 			for machineRange, expectedInstanceType := range instanceTypeByMachineRange {
 				if machineRange.inRange(instanceNum) {
 					found = true
 					// Empty string means any instance type is valid.
-					if expectedInstanceType != "" && *instanceType != expectedInstanceType {
-						sklog.Fatalf("Machine number %d is expected to be of instance type %s. To force a different type, re-run with --force-type.", instanceNum, expectedInstanceType)
+					if expectedInstanceType != "" && instanceType != expectedInstanceType {
+						return vmsToCreate{}, skerr.Fmt("Machine number %d is expected to be of instance type %s. To force a different type, re-run with --force-type.", instanceNum, expectedInstanceType)
 					}
 					break
 				}
 			}
 			if !found {
-				sklog.Fatalf("Machine number %d is not in any known machine range, and thus its expected instance type cannot be determined. To proceed anyway, re-run with --force-type.", instanceNum)
+				return vmsToCreate{}, skerr.Fmt("Machine number %d is not in any known machine range, and thus its expected instance type cannot be determined. To proceed anyway, re-run with --force-type.", instanceNum)
 			}
 		}
 	}
 
+	// Create the Instance objects.
+	for _, num := range instanceNums {
+		retval.vms = append(retval.vms, getInstance(num))
+	}
+
+	return retval, nil
+}
+
+func main() {
+	var (
+		// Flags.
+		instances         = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
+		create            = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
+		delete            = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
+		deleteDataDisk    = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
+		dev               = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
+		dumpJson          = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
+		ignoreExists      = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+		instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", validInstanceTypes))
+		forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
+		internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	)
+
+	common.Init()
+
+	// Validation.
+	if *create == *delete {
+		sklog.Fatal("Please specify --create or --delete, but not both.")
+	}
+	if !util.In(*instanceType, validInstanceTypes) {
+		sklog.Fatalf("--type must be one of %v", validInstanceTypes)
+	}
+	instanceNums, err := util.ParseIntSet(*instances)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if len(instanceNums) == 0 {
+		sklog.Fatal("Please specify at least one instance number via --instances.")
+	}
+	if *dev && *internal {
+		sklog.Fatalf("At most one of --dev or --internal must be set.")
+	}
+
+	kind := kindExternal
+	if *internal {
+		kind = kindInternal
+	}
+	if *dev {
+		kind = kindDev
+	}
+
+	// Get the list of VMs to create.
+	ctx := context.Background()
+	vmsToCreate, err := makeVMsToCreate(ctx, kind, *instanceType, *forceInstanceType, instanceNums)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Create the GCloud object.
-	g, err := gce.NewLocalGCloud(project, zone)
+	g, err := gce.NewLocalGCloud(vmsToCreate.project, vmsToCreate.zone)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	if err := g.CheckSsh(); err != nil {
 		sklog.Fatal(err)
-	}
-
-	// Create the Instance objects.
-	vms := make([]*gce.Instance, 0, len(instanceNums))
-	for _, num := range instanceNums {
-		vms = append(vms, getInstance(num))
 	}
 
 	// If requested, dump JSON for the given instances and exit.
@@ -209,7 +257,7 @@ func main() {
 			verb = "delete"
 		}
 		data := map[string][]*gce.Instance{
-			verb: vms,
+			verb: vmsToCreate.vms,
 		}
 		b, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
@@ -226,7 +274,7 @@ func main() {
 	}
 	sklog.Infof("%s instances: %v", verb, instanceNums)
 	group := util.NewNamedErrGroup()
-	for _, vm := range vms {
+	for _, vm := range vmsToCreate.vms {
 		vm := vm // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(vm.Name, func() error {
 			if *create {
@@ -246,9 +294,9 @@ func main() {
 	// Print out ansible-playbook command if necessary.
 	//
 	// TODO(lovisolo): Run Ansible playbook unless --skip-ansible-playbook is provided.
-	if *create && configuredViaAnsible {
+	if *create && vmsToCreate.configuredViaAnsible {
 		playbook := linuxAnsiblePlaybook
-		if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+		if util.In(*instanceType, winInstanceTypes) {
 			playbook = winAnsiblePlaybook
 		}
 		var machines []string
@@ -257,7 +305,7 @@ func main() {
 		}
 		commaSeparatedMachines := strings.Join(machines, ",")
 		command := fmt.Sprintf("$ ansible-playbook %s --limit %s", playbook, commaSeparatedMachines)
-		if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+		if util.In(*instanceType, winInstanceTypes) {
 			// For some reason, sometimes passwordless auth does not work on Windows machines.
 			command += " --ask-pass"
 		}

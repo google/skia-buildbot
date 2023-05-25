@@ -26,7 +26,7 @@ go_test(
     srcs = ["instance_types_test.go"],
     embed = [":instance_types"],
     deps = [
-        "//go/exec",
+        "//go/gce/swarming/instance_types/testing",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
