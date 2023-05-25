@@ -9,9 +9,12 @@ import (
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/httputils"
@@ -20,13 +23,16 @@ import (
 	"go.skia.org/infra/kube/go/authproxy"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func testSetupAppWithBackends(t *testing.T) (context.Context, *App, func()) {
 	ctx := context.Background()
 	swarmingClient := mocks.NewApiClient(t)
-
+	anything := mock.MatchedBy(func(any) bool { return true })
+	swarmingClient.On("ListTasks",
+		anything, anything, anything, anything, anything).Return(nil, nil).Maybe()
 	a := &App{
 		port:           ":0",
 		grpcPort:       ":0",
@@ -113,9 +119,16 @@ func TestGRPCAuthorizationPolicy_UserIsAuthorized_Succeeds(t *testing.T) {
 
 	ctx, analysisClient := testSetupClientWithUserInRoles(t, ctx, a, roles.Roles{roles.Viewer})
 
-	resp, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, resp)
+	// Since this test server doesn't use replaybackends, just the swarming mock API, there's no
+	// concise way to have this return a set of cpb.AnalysisResult values to assert against.
+	// So this test just makes sure that if there's an error then it isn't "PermissionDenied",
+	// at least.
+	_, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{
+		PinpointJobId: proto.String("123"),
+	})
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.NotEqual(t, st.Code(), codes.PermissionDenied)
 }
 
 func TestGRPCAuthorizationPolicy_UserIsNotAuthorized_Fails(t *testing.T) {
@@ -124,7 +137,12 @@ func TestGRPCAuthorizationPolicy_UserIsNotAuthorized_Fails(t *testing.T) {
 
 	ctx, analysisClient := testSetupClientWithUserInRoles(t, ctx, a, roles.Roles{roles.Editor})
 
-	resp, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{})
+	resp, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{
+		PinpointJobId: proto.String("123"),
+	})
 	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, st.Code(), codes.PermissionDenied)
 	assert.Nil(t, resp)
 }

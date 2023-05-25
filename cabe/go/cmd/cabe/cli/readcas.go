@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/urfave/cli/v2"
-	"go.skia.org/infra/cabe/go/analyzer"
+
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/sklog"
 )
@@ -60,7 +60,7 @@ func (cmd *readCASCmd) action(cliCtx *cli.Context) error {
 	}
 
 	rbeClient := rbeClients[cmd.casInstance]
-	benchmarkResults, err := analyzer.FetchBenchmarkJSON(ctx, rbeClient, cmd.rootDigest)
+	benchmarkResults, err := backends.FetchBenchmarkJSON(ctx, rbeClient, cmd.rootDigest)
 	if err != nil {
 		sklog.Fatalf("fetch benchmark json: %v", err)
 		return err

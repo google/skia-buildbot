@@ -40,8 +40,10 @@ func WithSwarmingTaskReader(r backends.SwarmingTaskReader) Options {
 }
 
 // New returns a new instance of Analyzer. Set either pinpointJobID, or controlDigests and treatmentDigests.
-func New(opts ...Options) *Analyzer {
-	ret := &Analyzer{}
+func New(pinpointJobID string, opts ...Options) *Analyzer {
+	ret := &Analyzer{
+		pinpointJobID: pinpointJobID,
+	}
 	for _, opt := range opts {
 		opt(ret)
 	}
@@ -52,6 +54,7 @@ func New(opts ...Options) *Analyzer {
 // to process all of the output of an A/B benchmark experiment run.
 // Users of Analyzer must instantiate and attach the necessary service dependencies.
 type Analyzer struct {
+	pinpointJobID     string
 	readCAS           backends.CASResultReader
 	readSwarmingTasks backends.SwarmingTaskReader
 
@@ -146,7 +149,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 
 	res := []Results{}
 
-	allTaskInfos, err := a.readSwarmingTasks(ctx)
+	allTaskInfos, err := a.readSwarmingTasks(ctx, a.pinpointJobID)
 	if err != nil {
 		return res, err
 	}
@@ -289,7 +292,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 // RunChecker verifies some assumptions we need to make about the experiment data input for
 // our analyses.
 func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
-	allTaskInfos, err := a.readSwarmingTasks(ctx)
+	allTaskInfos, err := a.readSwarmingTasks(ctx, a.pinpointJobID)
 	if err != nil {
 		return err
 	}

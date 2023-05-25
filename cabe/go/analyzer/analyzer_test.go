@@ -302,6 +302,7 @@ func TestRun_withReplayBackends(t *testing.T) {
 		fakeBenchmarkName,
 	)
 	a := New(
+		"16f46f1c260000",
 		WithCASResultReader(replayer.CASResultReader),
 		WithSwarmingTaskReader(replayer.SwarmingTaskReader),
 	)

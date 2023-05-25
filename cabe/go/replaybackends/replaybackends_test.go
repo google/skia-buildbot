@@ -38,7 +38,7 @@ func TestFromZipFile(t *testing.T) {
 	assert.Equal(t, 42, len(pr.Histograms))
 	assert.Equal(t, "blink_decode_time_gpu_rasterization", pr.Histograms[0].Name)
 
-	swarmingRes, err := replayers.SwarmingTaskReader(ctx)
+	swarmingRes, err := replayers.SwarmingTaskReader(ctx, "16f46f1c260000")
 	assert.NoError(t, err)
 	require.NotNil(t, swarmingRes)
 	assert.Equal(t, 130, len(swarmingRes))

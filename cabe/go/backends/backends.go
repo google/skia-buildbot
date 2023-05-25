@@ -25,7 +25,7 @@ var (
 type CASResultReader func(context.Context, string, string) (map[string]perfresults.PerfResults, error)
 
 // SwarmingTaskReader is an interface for getting Swarming task metadata associated with a pinpoint job.
-type SwarmingTaskReader func(context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+type SwarmingTaskReader func(context.Context, string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 func outboundAuthTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
 	ts, err := google.DefaultTokenSource(ctx, scopesForBackends...)

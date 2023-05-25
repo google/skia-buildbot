@@ -125,7 +125,7 @@ func FromZipFile(replayZipFile string, benchmarkName string) *ReplayBackends {
 		}
 	}
 
-	ret.SwarmingTaskReader = func(ctx context.Context) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
+	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
 		return ret.ParsedSwarmingTasks, nil
 	}
 
@@ -148,13 +148,12 @@ func FromZipFile(replayZipFile string, benchmarkName string) *ReplayBackends {
 // Be sure to call [ReplayBackends.Close()] when you are done making calls to RBE and Swarming
 // in order to complete the recording process and save the replay data to replayZipFile.
 func ToZipFile(replayZipFile string,
-	pinpointJobID string,
 	rbeClients map[string]*rbeclient.Client,
 	swarmingClient swarming.ApiClient) *ReplayBackends {
 	ret := &ReplayBackends{
 		replayZipFile: replayZipFile,
 	}
-	ret.SwarmingTaskReader = func(ctx context.Context) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
+	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
 		var start, end time.Time
 		end = time.Now()
 		start = time.Now().Add(-time.Hour * 24 * 14) // past two weeks
@@ -177,7 +176,6 @@ func ToZipFile(replayZipFile string,
 		}
 		return rmd, err
 	}
-
 	ret.CASResultReader = func(ctx context.Context, instance, digest string) (map[string]perfresults.PerfResults, error) {
 		rbeClient, ok := rbeClients[instance]
 		if !ok {

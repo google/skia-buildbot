@@ -11,6 +11,7 @@ import (
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/gorilla/mux"
+	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/swarming"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -26,6 +27,7 @@ import (
 
 	"go.skia.org/infra/cabe/go/analysisserver"
 	"go.skia.org/infra/cabe/go/backends"
+	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
 
@@ -67,6 +69,24 @@ func (a *App) FlagSet() *flag.FlagSet {
 	fs.BoolVar(&a.disableGRPCSP, "disable_grpcsp", false, "disable authorization checks for incoming grpc calls")
 
 	return fs
+}
+
+func (a *App) casResultReader(ctx context.Context, instance, digest string) (map[string]perfresults.PerfResults, error) {
+	rbeClient, ok := a.rbeClients[instance]
+	if !ok {
+		return nil, fmt.Errorf("no RBE client for instance %s", instance)
+	}
+
+	return backends.FetchBenchmarkJSON(ctx, rbeClient, digest)
+}
+
+func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
+	tasksResp, err := a.swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -56), time.Now(), []string{"pinpoint_job_id:" + pinpointJobID}, "")
+	if err != nil {
+		sklog.Fatalf("list task results: %v", err)
+		return nil, err
+	}
+	return tasksResp, nil
 }
 
 // Start creates server instances and listens for connections on their ports.
@@ -125,7 +145,7 @@ func (a *App) Start(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	sklog.Infof("registering cabe grpc server")
-	analysisServer := analysisserver.New(a.rbeClients, a.swarmingClient)
+	analysisServer := analysisserver.New(a.casResultReader, a.swarmingTaskReader)
 
 	lis, err := net.Listen("tcp", a.grpcPort)
 	if err != nil {

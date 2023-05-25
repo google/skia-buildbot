@@ -54,11 +54,11 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 
 	var casResultReader = func(c context.Context, casInstance, digest string) (map[string]perfresults.PerfResults, error) {
 		rbeClient := rbeClients[casInstance]
-		return analyzer.FetchBenchmarkJSON(ctx, rbeClient, digest)
+		return backends.FetchBenchmarkJSON(ctx, rbeClient, digest)
 	}
 
-	var swarmingTaskReader = func(ctx context.Context) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-		tasksResp, err := swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -56), time.Now(), []string{pinpointSwarmingTagName + ":" + cmd.pinpointJobID}, "")
+	var swarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+		tasksResp, err := swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -56), time.Now(), []string{pinpointSwarmingTagName + ":" + pinpointJobID}, "")
 		if err != nil {
 			sklog.Fatalf("list task results: %v", err)
 			return nil, err
@@ -71,7 +71,7 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 		casResultReader = replayBackends.CASResultReader
 		swarmingTaskReader = replayBackends.SwarmingTaskReader
 	} else if cmd.recordToZip != "" {
-		replayBackends := replaybackends.ToZipFile(cmd.recordToZip, cmd.pinpointJobID, rbeClients, swarmingClient)
+		replayBackends := replaybackends.ToZipFile(cmd.recordToZip, rbeClients, swarmingClient)
 		defer func() {
 			if err := replayBackends.Close(); err != nil {
 				sklog.Fatalf("closing replay backends: %v", err)
@@ -86,7 +86,7 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 		analyzer.WithSwarmingTaskReader(swarmingTaskReader),
 	}
 
-	a := analyzer.New(analyzerOpts...)
+	a := analyzer.New(cmd.pinpointJobID, analyzerOpts...)
 
 	results, err := a.Run(ctx)
 	if err != nil {
