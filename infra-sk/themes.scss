@@ -52,6 +52,11 @@ And then translate all the CSS variables it provides into the CSS variables of
 the existing theme structure. For example: `--md-sys-color-primary-light`
 becomes `--primary`.
 
+An alternate source for the algorithms used to generate the color pallette are
+here:
+
+    https://github.com/material-foundation/material-color-utilities
+
 # Layer 3
 
 The third layer is applied by adding the `font-sk` class to the body element of
