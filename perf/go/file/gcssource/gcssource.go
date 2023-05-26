@@ -65,6 +65,9 @@ type GCSSource struct {
 
 	// filter to accept/reject files based on their filename.
 	filter *filter.Filter
+
+	// deadLetterEnabled is true if the dead letter topic is configured.
+	deadLetterEnabled bool
 }
 
 // New returns a new *GCSSource
@@ -96,19 +99,26 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 		return nil, skerr.Wrap(err)
 	}
 
+	dlEnabled := config.IsDeadLetterCollectionEnabled(instanceConfig)
+
 	return &GCSSource{
-		instanceConfig: instanceConfig,
-		storageClient:  gcsClient,
-		nackCounter:    metrics2.GetCounter("perf_file_gcssource_nack", nil),
-		ackCounter:     metrics2.GetCounter("perf_file_gcssource_ack", nil),
-		subscription:   sub,
-		filter:         f,
+		instanceConfig:    instanceConfig,
+		storageClient:     gcsClient,
+		nackCounter:       metrics2.GetCounter("perf_file_gcssource_nack", nil),
+		ackCounter:        metrics2.GetCounter("perf_file_gcssource_ack", nil),
+		subscription:      sub,
+		filter:            f,
+		deadLetterEnabled: dlEnabled,
 	}, nil
 }
 
 // receiveSingleEventWrapper is the func we pass to Subscription.Receive.
 func (s *GCSSource) receiveSingleEventWrapper(ctx context.Context, msg *pubsub.Message) {
-	if s.receiveSingleEvent(ctx, msg) {
+	ack := s.receiveSingleEvent(ctx, msg)
+	if s.deadLetterEnabled {
+		return
+	}
+	if ack {
 		s.ackCounter.Inc(1)
 		msg.Ack()
 	} else {
@@ -132,6 +142,7 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 
 	// Apply filters to the filename.
 	if s.filter.Reject(filename) {
+		sklog.Errorf("File is rejected by the filename filter: %s", filename)
 		return true
 	}
 
@@ -144,6 +155,7 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 		}
 	}
 	if !found {
+		sklog.Errorf("File %s is not in any config file listed buckets: %s", filename, s.instanceConfig.IngestionConfig.SourceConfig.Sources)
 		return true
 	}
 
@@ -159,9 +171,10 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 		return false
 	}
 	s.fileChannel <- file.File{
-		Name:     filename,
-		Contents: reader,
-		Created:  attrs.Created,
+		Name:      filename,
+		Contents:  reader,
+		Created:   attrs.Created,
+		PubSubMsg: msg,
 	}
 	return true
 }

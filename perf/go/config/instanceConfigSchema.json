@@ -193,6 +193,12 @@
         "subscription": {
           "type": "string"
         },
+        "dl_topic": {
+          "type": "string"
+        },
+        "dl_subscription": {
+          "type": "string"
+        },
         "sources": {
           "items": {
             "type": "string"

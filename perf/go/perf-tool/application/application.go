@@ -41,7 +41,7 @@ import (
 
 // Application contains the high level functions needed by perf-tool.
 type Application interface {
-	ConfigCreatePubSubTopics(instanceConfig *config.InstanceConfig) error
+	ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *config.InstanceConfig) error
 	DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
 	DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
 	DatabaseBackupRegressions(local bool, instanceConfig *config.InstanceConfig, outputFile, backupTo string) error
@@ -68,40 +68,103 @@ func New() Application {
 // regressionBatchSize is the size of batches used when backing up Regressions.
 const regressionBatchSize = 1000
 
-func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName string) error {
+// ackDeadline is the acknowledge deadline of the Pub/Sub subscriptions.
+const ackDeadline = 10 * time.Minute
+
+func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName string) (*pubsub.Topic, error) {
 	topic := client.Topic(topicName)
 	ok, err := topic.Exists(ctx)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	if ok {
 		fmt.Printf("Topic %q already exists\n", topicName)
-		return nil
+		return topic, nil
 	}
 
-	_, err = client.CreateTopic(ctx, topicName)
+	topic, err = client.CreateTopic(ctx, topicName)
 	if err != nil {
-		return fmt.Errorf("Failed to create topic %q: %s", topicName, err)
+		return nil, fmt.Errorf("Failed to create topic %q: %s", topicName, err)
 	}
-	return nil
+	return topic, nil
 }
 
-// ConfigCreatePubSubTopics creates the PubSub topics for the given config.
-func (app) ConfigCreatePubSubTopics(instanceConfig *config.InstanceConfig) error {
+// ConfigCreatePubSubTopicsAndSubscriptions creates the PubSub topics and subscriptions for the given config.
+func (app) ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *config.InstanceConfig) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, instanceConfig.IngestionConfig.SourceConfig.Project)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := createPubSubTopic(ctx, client, instanceConfig.IngestionConfig.SourceConfig.Topic); err != nil {
-		return skerr.Wrap(err)
+
+	if instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic != "" {
+		if dlTopic, err := createPubSubTopic(ctx, client, instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic); err != nil {
+			return skerr.Wrap(err)
+		} else if instanceConfig.IngestionConfig.SourceConfig.DeadLetterSubscription != "" {
+			cfg := pubsub.SubscriptionConfig{
+				Topic: dlTopic,
+			}
+			if err := createPubSubSubcription(ctx, client, instanceConfig.IngestionConfig.SourceConfig.DeadLetterSubscription, cfg); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
 	}
-	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
-		if err := createPubSubTopic(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName); err != nil {
+
+	if topic, err := createPubSubTopic(ctx, client, instanceConfig.IngestionConfig.SourceConfig.Topic); err != nil {
+		return skerr.Wrap(err)
+	} else {
+		cfg := pubsub.SubscriptionConfig{
+			Topic: topic,
+		}
+		if instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic != "" {
+			dlPolicy := &pubsub.DeadLetterPolicy{
+				DeadLetterTopic:     "projects/skia-public/topics/" + instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic,
+				MaxDeliveryAttempts: 10,
+			}
+			cfg.AckDeadline = ackDeadline
+			cfg.DeadLetterPolicy = dlPolicy
+		}
+
+		if err := createPubSubSubcription(ctx, client, instanceConfig.IngestionConfig.SourceConfig.Subscription, cfg); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
 
+	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
+		if _, err := createPubSubTopic(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+func createPubSubSubcription(ctx context.Context, client *pubsub.Client, subscriptionName string, cfg pubsub.SubscriptionConfig) error {
+	subscription := client.Subscription(subscriptionName)
+	ok, err := subscription.Exists(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if ok {
+		fmt.Printf("Subscription %q already exists\n", subscriptionName)
+
+		configToUpdate := pubsub.SubscriptionConfigToUpdate{
+			AckDeadline:      cfg.AckDeadline,
+			DeadLetterPolicy: cfg.DeadLetterPolicy,
+		}
+		_, err := subscription.Update(ctx, configToUpdate)
+		if err != nil {
+			fmt.Printf("Subscription %q update got error: %s \n", subscriptionName, err)
+		} else {
+			fmt.Printf("Subscription %q updated\n", subscriptionName)
+		}
+		return nil
+	}
+
+	_, err = client.CreateSubscription(ctx, subscriptionName, cfg)
+	if err != nil {
+		return fmt.Errorf("Failed to create subscription %q: %s", subscriptionName, err)
+	}
 	return nil
 }
 

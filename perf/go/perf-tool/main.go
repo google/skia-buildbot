@@ -220,8 +220,8 @@ func actualMain(app application.Application) {
 				Name: "config",
 				Subcommands: []*cli.Command{
 					{
-						Name:  "create-pubsub-topics",
-						Usage: "Create PubSub topics for the given big_table_config.",
+						Name:  "create-pubsub-topics-and-subscriptions",
+						Usage: "Create PubSub topics and subscriptions for the given config.",
 						Flags: []cli.Flag{
 							configFilenameFlag,
 							connectionStringFlag,
@@ -231,7 +231,7 @@ func actualMain(app application.Application) {
 							if err != nil {
 								return skerr.Wrap(err)
 							}
-							return app.ConfigCreatePubSubTopics(instanceConfig)
+							return app.ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig)
 						},
 					},
 					{

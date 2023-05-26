@@ -19,6 +19,8 @@
             "project": "skia-public",
             "topic": "perf-ingestion-chrome-non-public",
             "subscription": "perf-ingestion-chrome-non-public-prod",
+            "dl_topic": "perf-ingestion-chrome-non-public-dl",
+            "dl_subscription": "perf-ingestion-chrome-non-public-dl-prod",
             "sources": [
                 "gs://chrome-perf-non-public/ingest"
             ]

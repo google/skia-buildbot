@@ -5,4 +5,5 @@ go_library(
     srcs = ["file.go"],
     importpath = "go.skia.org/infra/perf/go/file",
     visibility = ["//visibility:public"],
+    deps = ["@com_google_cloud_go_pubsub//:pubsub"],
 )

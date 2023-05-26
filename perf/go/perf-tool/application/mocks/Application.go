@@ -18,8 +18,8 @@ type Application struct {
 	mock.Mock
 }
 
-// ConfigCreatePubSubTopics provides a mock function with given fields: instanceConfig
-func (_m *Application) ConfigCreatePubSubTopics(instanceConfig *config.InstanceConfig) error {
+// ConfigCreatePubSubTopicsAndSubscriptions provides a mock function with given fields: instanceConfig
+func (_m *Application) ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *config.InstanceConfig) error {
 	ret := _m.Called(instanceConfig)
 
 	var r0 error

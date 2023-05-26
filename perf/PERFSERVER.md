@@ -26,8 +26,6 @@ perfserver [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
 
 The main web UI.
 
-**--auth_bypass_list**="": Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.
-
 **--commit_range_url**="": A URI Usage: Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.
 
 **--config_filename**="": The name of the config file to use. (default: ./configs/nano.json)
@@ -42,9 +40,11 @@ The main web UI.
 
 **--event_driven_regression_detection**: If true then regression detection is done based on PubSub events.
 
-**--interesting**="": The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements. (default: 50.000000)
+**--fetch_chrome_perf_anomalies**: Fetch anomalies and show the bisect button
 
-**--internal_only**: Require the user to be logged in to see any page.
+**--hide_list_of_commits_on_explore**: Hide the commit-detail-panel-sk element on the Explore details tab.
+
+**--interesting**="": The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements. (default: 50.000000)
 
 **--internal_port**="": HTTP service address for internal clients, e.g. probers. No authentication on this port. (default: :9000)
 
@@ -65,8 +65,6 @@ The main web UI.
 **--port**="": HTTP service address (e.g., ':8000') (default: :8000)
 
 **--prom_port**="": Metrics service address (e.g., ':10110') (default: :20000)
-
-**--proxy-login**: Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.
 
 **--radius**="": The number of commits to include on either side of a commit when clustering. (default: 7)
 
@@ -92,8 +90,6 @@ Run the ingestion process.
 
 Run the regression detection process.
 
-**--auth_bypass_list**="": Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.
-
 **--commit_range_url**="": A URI Usage: Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.
 
 **--config_filename**="": The name of the config file to use. (default: ./configs/nano.json)
@@ -108,9 +104,11 @@ Run the regression detection process.
 
 **--event_driven_regression_detection**: If true then regression detection is done based on PubSub events.
 
-**--interesting**="": The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements. (default: 50.000000)
+**--fetch_chrome_perf_anomalies**: Fetch anomalies and show the bisect button
 
-**--internal_only**: Require the user to be logged in to see any page.
+**--hide_list_of_commits_on_explore**: Hide the commit-detail-panel-sk element on the Explore details tab.
+
+**--interesting**="": The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements. (default: 50.000000)
 
 **--internal_port**="": HTTP service address for internal clients, e.g. probers. No authentication on this port. (default: :9000)
 
@@ -131,8 +129,6 @@ Run the regression detection process.
 **--port**="": HTTP service address (e.g., ':8000') (default: :8000)
 
 **--prom_port**="": Metrics service address (e.g., ':10110') (default: :20000)
-
-**--proxy-login**: Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.
 
 **--radius**="": The number of commits to include on either side of a commit when clustering. (default: 7)
 

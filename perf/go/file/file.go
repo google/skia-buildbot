@@ -6,13 +6,16 @@ import (
 	"context"
 	"io"
 	"time"
+
+	"cloud.google.com/go/pubsub"
 )
 
 // File represents a single file.
 type File struct {
-	Name     string
-	Contents io.ReadCloser
-	Created  time.Time
+	Name      string
+	Contents  io.ReadCloser
+	Created   time.Time
+	PubSubMsg *pubsub.Message
 }
 
 // Source is a source of Files.

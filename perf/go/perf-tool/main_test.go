@@ -34,11 +34,11 @@ func createInstanceConfigFile(t *testing.T) string {
 
 func TestActualMain_ConfigCreatePubSubTopics_Success(t *testing.T) {
 	app := &mocks.Application{}
-	app.On("ConfigCreatePubSubTopics", mock.AnythingOfType("*config.InstanceConfig")).Return(nil)
+	app.On("ConfigCreatePubSubTopicsAndSubscriptions", mock.AnythingOfType("*config.InstanceConfig")).Return(nil)
 
 	filename := createInstanceConfigFile(t)
 
-	os.Args = []string{"perf-tool", "config", "create-pubsub-topics", "--config_filename=" + filename}
+	os.Args = []string{"perf-tool", "config", "create-pubsub-topics-and-subscriptions", "--config_filename=" + filename}
 	actualMain(app)
 	app.AssertExpectations(t)
 }

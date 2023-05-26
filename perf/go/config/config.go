@@ -145,6 +145,26 @@ type SourceConfig struct {
 	// incorporates the Topic name will be used.
 	Subscription string `json:"subscription"`
 
+	// DeadLetterTopic is the PubSub dead letter topic to use when a message cannot be handled.
+	// When this attribute is configed:
+	// If the Pub/Sub service attempts to deliver a message
+	// but the subscriber can't acknowledge it within the maximum number of delivery attempts,
+	// Pub/Sub will forward the undeliverable message to a dead-letter topic
+	// Pub/Sub dead letter topic doc:
+	// https://cloud.google.com/pubsub/docs/handling-failures#dead_letter_topic
+	// Only used for source of type "gcs".
+	DeadLetterTopic string `json:"dl_topic,omitempty"`
+
+	// DeadLetterSubscription is the name of the dead letter subscription to use when
+	// a message cannot be handled.
+	// To avoid losing messages from the dead-letter topic,
+	// attach at least one dead-letter subscription to the dead-letter topic.
+	// The dead-letter subscription receives messages from the dead-letter topic
+	// Pub/Sub dead-letter topic doc:
+	// https://cloud.google.com/pubsub/docs/handling-failures#configure_a_dead_letter_topic
+	// Only used for source of type "gcs".
+	DeadLetterSubscription string `json:"dl_subscription,omitempty"`
+
 	// Sources is the list of sources of data files. For a source of "gcs" this
 	// is a list of Google Cloud Storage URLs, e.g.
 	// "gs://skia-perf/nano-json-v1". For a source of type "dir" is must only
@@ -554,4 +574,8 @@ func Init(filename string) error {
 	}
 	Config = cfg
 	return nil
+}
+
+func IsDeadLetterCollectionEnabled(instanceConfig *InstanceConfig) bool {
+	return instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic != ""
 }

@@ -96,6 +96,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 				sklog.Errorf("Failed to parse %v: %s", f, err)
 				failedToParse.Inc(1)
 			}
+
 			continue
 		}
 
@@ -121,7 +122,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		if err != nil {
 			if err := g.Update(ctx); err != nil {
 				sklog.Errorf("Failed to Update: ", err)
-
 			}
 			commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
 			if err != nil {
@@ -142,6 +142,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		sklog.Info("WriteTraces")
 		const retries = writeRetries
 		i := 0
+		writeFailed := false
 		for {
 			// Write data to the trace store.
 			err := store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
@@ -150,13 +151,18 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 			}
 			i++
 			if i > retries {
-				failedToWrite.Inc(1)
-				sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
-				continue
+				writeFailed = true
+				break
 			}
 		}
-		successfulWrite.Inc(1)
-		successfulWriteCount.Inc(int64(len(params)))
+		if writeFailed {
+			failedToWrite.Inc(1)
+			sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
+		} else {
+			f.PubSubMsg.Ack()
+			successfulWrite.Inc(1)
+			successfulWriteCount.Inc(int64(len(params)))
+		}
 
 		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
 			sklog.Errorf("Failed to send pubsub event: %s", err)

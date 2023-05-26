@@ -27,9 +27,9 @@ perf-tool [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
 
 ## config
 
-### create-pubsub-topics
+### create-pubsub-topics-and-subscriptions
 
-Create PubSub topics for the given big_table_config.
+Create PubSub topics and subscriptions for the given config.
 
 **--config_filename**="": Load configuration from `FILE`
 
@@ -120,14 +120,6 @@ Writes a JSON files with the traces that match --query for the given range of co
 **--verbose**: Verbose output.
 
 ## database
-
-### migrate
-
-Migrate the database to the latest version of the schema.
-
-**--config_filename**="": Load configuration from `FILE`
-
-**--connection_string**="": Override the connection string in the config file.
 
 ### backup
 
