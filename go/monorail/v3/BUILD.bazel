@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/httputils",
         "//go/skerr",
+        "//go/sklog",
         "//go/util",
         "@org_golang_google_api//idtoken",
     ],

@@ -108,7 +108,7 @@ func TestMakeIssue_Success(t *testing.T) {
 	testCCUser := "batman@gotham.com"
 
 	// Mock request and response.
-	reqBody := []byte(fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [{"label": "%s"}], "components": [{"component": "projects/%s/componentDefs/%s"}], "cc_users": [{"user": "users/%s"}], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, testOwner, testStatus, testSummary, testLabelName, instance, testComponentDefID, testCCUser, testPriorityField, testPriorityValue, testIssueTypeField, testIssueTypeValue, testDescription))
+	reqBody := []byte(fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [{"label": "%s"}], "components": [{"component": "projects/%s/componentDefs/%s"}], "cc_users": [{"user": "users/%s"}], "field_values": [{"field": "%s", "value": "%s"},{"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, testOwner, testStatus, testSummary, testLabelName, instance, testComponentDefID, testCCUser, testPriorityField, testPriorityValue, testIssueTypeField, testIssueTypeValue, testDescription))
 	respBody, err := json.Marshal(&MonorailIssue{
 		Title: testSummary,
 	})
@@ -129,13 +129,43 @@ func TestMakeIssue_Success(t *testing.T) {
 	issue, err := ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID}, []string{testCCUser})
 	require.NoError(t, err)
 	require.Equal(t, testSummary, issue.Title)
+}
 
-	// Using an unsupported project should return an error for failing to find
-	// it's priority field name and type field name.
-	instance = "unsupported-project-name"
-	issue, err = ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID}, []string{testCCUser})
-	require.Error(t, err)
-	require.Nil(t, issue)
+func TestMakeIssue_NoPriorityNoType_Success(t *testing.T) {
+	const instance = "unrecognized-project-name"
+	const testOwner = "superman@krypton.com"
+	const testSummary = "Test Issue Summary"
+	const testDescription = "Test Issue Description"
+	const testStatus = "Open"
+
+	const testPriorityValue = "P1"
+	const testIssueTypeValue = "Task"
+	const testLabelName = "Test-Label1"
+	const testComponentDefID = "2000"
+	const testCCUser = "batman@gotham.com"
+
+	// Mock request and response.
+	reqBody := []byte(fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [{"label": "%s"},{"label": "%s"},{"label": "%s"}], "components": [{"component": "projects/%s/componentDefs/%s"}], "cc_users": [{"user": "users/%s"}], "field_values": []}, "description": "%s"}`, instance, testOwner, testStatus, testSummary, testLabelName, testPriorityValue, testIssueTypeValue, instance, testComponentDefID, testCCUser, testDescription))
+	respBody, err := json.Marshal(&MonorailIssue{
+		Title: testSummary,
+	})
+	// Monorail API prepends chars to prevent XSS.
+	respBody = append([]byte("abcd\n"), respBody...)
+	require.NoError(t, err)
+
+	// Mock HTTP client.
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
+	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/MakeIssue").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	// Full E2E run.
+	ms := &MonorailService{
+		HttpClient: httpClient,
+	}
+	issue, err := ms.MakeIssue(instance, testOwner, testSummary, testDescription, testStatus, testPriorityValue, testIssueTypeValue, []string{testLabelName}, []string{testComponentDefID}, []string{testCCUser})
+	require.NoError(t, err)
+	require.Equal(t, testSummary, issue.Title)
 }
 
 func TestSearchIssuesWithPagination_Success(t *testing.T) {

@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -184,19 +185,29 @@ func (m *MonorailService) GetIssue(issueName string) (*MonorailIssue, error) {
 }
 
 // MakeIssue implements the IMonorailService interface.
+// If the specified instance is not found in ProjectToPriorityFieldNames and/or
+// ProjectToTypeFieldNames then the priority/type is instead added as labels
+// instead of as custom fields.
 func (m *MonorailService) MakeIssue(instance, owner, summary, description, status, priority, issueType string, labels, componentDefIDs, ccUsers []string) (*MonorailIssue, error) {
-	priorityFieldName, ok := ProjectToPriorityFieldNames[instance]
-	if !ok {
-		return nil, fmt.Errorf("We do not have priority field name information for project %s", instance)
-	}
-	typeFieldName, ok := ProjectToTypeFieldNames[instance]
-	if !ok {
-		return nil, fmt.Errorf("We do not have type field name information for project %s", instance)
-	}
 	labelsJSON := []string{}
 	for _, l := range labels {
 		labelsJSON = append(labelsJSON, fmt.Sprintf(`{"label": "%s"}`, l))
 	}
+
+	fieldValuesJSON := []string{}
+	if priorityFieldName, ok := ProjectToPriorityFieldNames[instance]; ok {
+		fieldValuesJSON = append(fieldValuesJSON, fmt.Sprintf(`{"field": "%s", "value": "%s"}`, priorityFieldName, priority))
+	} else {
+		sklog.Infof("We do not have priority field name information for project %s so we will add %s as a label", instance, priority)
+		labelsJSON = append(labelsJSON, fmt.Sprintf(`{"label": "%s"}`, priority))
+	}
+	if typeFieldName, ok := ProjectToTypeFieldNames[instance]; ok {
+		fieldValuesJSON = append(fieldValuesJSON, fmt.Sprintf(`{"field": "%s", "value": "%s"}`, typeFieldName, issueType))
+	} else {
+		sklog.Infof("We do not have type field name information for project %s so we will add %s as a label", instance, issueType)
+		labelsJSON = append(labelsJSON, fmt.Sprintf(`{"label": "%s"}`, issueType))
+	}
+
 	componentsJSON := []string{}
 	for _, c := range componentDefIDs {
 		componentsJSON = append(componentsJSON, fmt.Sprintf(`{"component": "projects/%s/componentDefs/%s"}`, instance, c))
@@ -206,7 +217,7 @@ func (m *MonorailService) MakeIssue(instance, owner, summary, description, statu
 		ccUsersJSON = append(ccUsersJSON, fmt.Sprintf(`{"user": "users/%s"}`, c))
 	}
 
-	rpc := fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [%s], "components": [%s], "cc_users": [%s], "field_values": [{"field": "%s", "value": "%s"}, {"field": "%s", "value": "%s"}]}, "description": "%s"}`, instance, owner, status, summary, strings.Join(labelsJSON, ","), strings.Join(componentsJSON, ","), strings.Join(ccUsersJSON, ","), priorityFieldName, priority, typeFieldName, issueType, description)
+	rpc := fmt.Sprintf(`{"parent": "projects/%s", "issue": {"owner": {"user": "users/%s"}, "status": {"status": "%s"}, "summary": "%s", "labels": [%s], "components": [%s], "cc_users": [%s], "field_values": [%s]}, "description": "%s"}`, instance, owner, status, summary, strings.Join(labelsJSON, ","), strings.Join(componentsJSON, ","), strings.Join(ccUsersJSON, ","), strings.Join(fieldValuesJSON, ","), description)
 	b, err := m.makeJSONCall([]byte(rpc), "Issues", "MakeIssue")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Issues.MakeIssue JSON API call failed")
