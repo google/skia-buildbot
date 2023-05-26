@@ -265,6 +265,11 @@ export class SkottiePlayerSk extends ElementSk {
     );
   }
 
+  getBackgroundColor(): string {
+    const params = new URL(document.location.href).searchParams;
+    return params.has('bg') ? params.get('bg')! : '#fff';
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     const params = new URL(document.location.href).searchParams;
@@ -275,7 +280,7 @@ export class SkottiePlayerSk extends ElementSk {
       ? +this.getAttribute('height')!
       : 256;
     this.showControls = params.has('controls');
-    this.bgColor = params.has('bg') ? params.get('bg')! : '#fff';
+    this.bgColor = this.getBackgroundColor();
     this._render();
   }
 
@@ -284,6 +289,8 @@ export class SkottiePlayerSk extends ElementSk {
     this.height = config.height;
     this.renderFPS = config.fps;
     this._animationName = config.lottie.nm as string;
+    const params = new URL(document.location.href).searchParams;
+    this.bgColor = this.getBackgroundColor();
 
     this._render();
     return canvasReady.then((ck: CanvasKit) => {

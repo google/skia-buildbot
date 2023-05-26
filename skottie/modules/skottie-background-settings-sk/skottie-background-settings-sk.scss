@@ -1,0 +1,32 @@
+@import '../../../elements-sk/modules/colors';
+
+skottie-background-settings-sk {
+  .wrapper {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .color-form {
+    margin-top: 16px;
+
+    &--color {
+      border: 1px solid var(--skottie-on-surface-white);
+      border-right: none;
+      border-radius: 4px 0 0 4px;
+      padding: 4px;
+
+      input {
+        border: none;
+        width: 18px;
+        padding: 6px 0 0 0;
+      }
+    }
+
+    &--opacity {
+      border: 1px solid var(--skottie-on-surface-white);
+      border-radius: 0 4px 4px 0;
+      padding: 4px;
+      width: 80px;
+    }
+  }
+}

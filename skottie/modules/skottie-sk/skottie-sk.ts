@@ -29,7 +29,7 @@ import '../skottie-library-sk';
 import { SoundMap, AudioPlayer } from '../audio';
 import '../skottie-performance-sk';
 import { renderByDomain } from '../helpers/templates';
-import { supportedDomains } from '../helpers/domains';
+import { isDomain, supportedDomains } from '../helpers/domains';
 import '../skottie-audio-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -77,6 +77,8 @@ import {
 } from '../skottie-file-settings-sk/skottie-file-settings-sk';
 import '../skottie-file-form-sk';
 import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-form-sk';
+import '../skottie-background-settings-sk';
+import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -118,7 +120,7 @@ const AUDIO_SUPPORTED_DOMAINS = [
   supportedDomains.LOCALHOST,
 ];
 
-type UIMode = 'dialog' | 'loading' | 'loaded';
+type UIMode = 'dialog' | 'loading' | 'loaded' | 'idle';
 
 const caption = (text: string, mode: ViewMode) => {
   if (mode === 'presentation') {
@@ -208,6 +210,8 @@ export class SkottieSk extends ElementSk {
       default:
       case 'dialog':
         return this.displayDialog();
+      case 'idle':
+        return this.displayIdle();
       case 'loading':
         return displayLoading();
       case 'loaded':
@@ -225,6 +229,14 @@ export class SkottieSk extends ElementSk {
       @skottie-selected=${this.skottieFileSelected}
       @cancelled=${this.selectionCancelled}
     ></skottie-config-sk>
+  `;
+
+  private displayIdle = () => html`
+    <div class="threecol">
+      <div class="left">${this.leftControls()}</div>
+      <div class="main"></div>
+      <div class="right">${this.rightControls()}</div>
+    </div>
   `;
 
   private displayLoaded = () => html`
@@ -307,8 +319,8 @@ export class SkottieSk extends ElementSk {
     return html`
       <details class="embed expando">
         <summary id="embed-open">
-          <span>Embed</span><expand-less-icon-sk></expand-less-icon-sk
-          ><expand-more-icon-sk></expand-more-icon-sk>
+          <span>Embed</span><expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <label>
           Embed using an iframe
@@ -348,7 +360,8 @@ export class SkottieSk extends ElementSk {
         ></skottie-file-form-sk>
       </div>
 
-      ${this.fileSettingsDialog()} ${this.audioDialog()} ${this.optionsDialog()}
+      ${this.fileSettingsDialog()} ${this.backgroundDialog()}
+      ${this.audioDialog()} ${this.optionsDialog()}
 
       <button
         class="apply-button"
@@ -390,8 +403,8 @@ export class SkottieSk extends ElementSk {
   private optionsDialog = () => html`
     <details class="expando">
       <summary id="options-open">
-        <span>Options</span><expand-less-icon-sk></expand-less-icon-sk
-        ><expand-more-icon-sk></expand-more-icon-sk>
+        <span>Options</span><expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
       </summary>
       <div class="options-container">
         <checkbox-sk
@@ -414,8 +427,8 @@ export class SkottieSk extends ElementSk {
             this.toggleAudio((e.target! as HTMLDetailsElement).open)}
         >
           <summary id="audio-open">
-            <span>Audio</span><expand-less-icon-sk></expand-less-icon-sk
-            ><expand-more-icon-sk></expand-more-icon-sk>
+            <span>Audio</span><expand-less-icon-sk></expand-less-icon-sk>
+            <expand-more-icon-sk></expand-more-icon-sk>
           </summary>
 
           <skottie-audio-sk
@@ -437,8 +450,8 @@ export class SkottieSk extends ElementSk {
           this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}
       >
         <summary id="fileSettings-open">
-          <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk
-          ><expand-more-icon-sk></expand-more-icon-sk>
+          <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <skottie-file-settings-sk
           .width=${this.width}
@@ -446,6 +459,25 @@ export class SkottieSk extends ElementSk {
           .fps=${this.fps}
           @settings-change=${this.skottieFileSettingsUpdated}
         ></skottie-file-settings-sk>
+      </details>
+    `;
+
+  private backgroundDialog = () =>
+    html`
+      <details
+        class="expando"
+        ?open=${this.showBackgroundSettings}
+        @toggle=${(e: Event) =>
+          this.toggleBackgroundSettings((e.target! as HTMLDetailsElement).open)}
+      >
+        <summary>
+          <span>Background color</span>
+          <expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-background-settings-sk
+          @background-change=${this.skottieBackgroundUpdated}
+        ></skottie-background-settings-sk>
       </details>
     `;
 
@@ -485,8 +517,8 @@ export class SkottieSk extends ElementSk {
       this.toggleLibrary((e.target! as HTMLDetailsElement).open)}
   >
     <summary id="library-open">
-      <span>Library</span><expand-less-icon-sk></expand-less-icon-sk
-      ><expand-more-icon-sk></expand-more-icon-sk>
+      <span>Library</span><expand-less-icon-sk></expand-less-icon-sk>
+      <expand-more-icon-sk></expand-more-icon-sk>
     </summary>
 
     <skottie-library-sk @select=${this.updateAnimation}> </skottie-library-sk>
@@ -540,8 +572,8 @@ export class SkottieSk extends ElementSk {
         this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}
     >
       <summary id="edit-text-open">
-        <span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk
-        ><expand-more-icon-sk></expand-more-icon-sk>
+        <span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
       </summary>
 
       <skottie-text-editor-sk
@@ -561,8 +593,8 @@ export class SkottieSk extends ElementSk {
         this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}
     >
       <summary>
-        <span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk
-        ><expand-more-icon-sk></expand-more-icon-sk>
+        <span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
       </summary>
 
       <skottie-shader-editor-sk
@@ -651,6 +683,8 @@ export class SkottieSk extends ElementSk {
 
   private showFileSettings: boolean = false;
 
+  private showBackgroundSettings: boolean = false;
+
   private skottieLibrary: SkottieLibrarySk | null = null;
 
   private skottiePlayer: SkottiePlayerSk | null = null;
@@ -661,7 +695,7 @@ export class SkottieSk extends ElementSk {
 
   private stateChanged: () => void;
 
-  private ui: UIMode = 'dialog';
+  private ui: UIMode = 'idle';
 
   private viewMode: ViewMode = 'default';
 
@@ -694,6 +728,7 @@ export class SkottieSk extends ElementSk {
         bg: this.backgroundColor,
         mode: this.viewMode,
         fs: this.showFileSettings,
+        b: this.showBackgroundSettings,
       }),
       /* setState */ (newState) => {
         this.showLottie = !!newState.l;
@@ -708,6 +743,7 @@ export class SkottieSk extends ElementSk {
         this.height = +newState.h;
         this.fps = +newState.f;
         this.showFileSettings = !!newState.fs;
+        this.showBackgroundSettings = !!newState.b;
         this.viewMode =
           newState.mode === 'presentation' ? 'presentation' : 'default';
         this.backgroundColor = String(newState.bg);
@@ -867,12 +903,14 @@ export class SkottieSk extends ElementSk {
     this.width = e.detail.width;
     this.height = e.detail.height;
     this.fps = e.detail.fps;
-    this.autoSize();
     this.stateChanged();
+    if (this.state.lottie) {
+      this.autoSize();
+      this.initializePlayer();
+      // Re-sync all players
+      this.rewind();
+    }
     this.render();
-    this.initializePlayer();
-    // Re-sync all players
-    this.rewind();
   }
 
   private skottieFilesSelected(e: CustomEvent<SkottieFilesEventDetail>) {
@@ -888,6 +926,22 @@ export class SkottieSk extends ElementSk {
     this.height = height;
     this.state = state;
     this.upload();
+  }
+
+  private skottieBackgroundUpdated(
+    e: CustomEvent<SkottieBackgroundSettingsEventDetail>
+  ) {
+    const background = e.detail;
+    this.backgroundColor = background.color;
+    this.stateChanged();
+    if (this.state.lottie) {
+      this.autoSize();
+      this.initializePlayer();
+      // Re-sync all players
+      this.rewind();
+    }
+
+    this.render();
   }
 
   private selectionCancelled() {
@@ -1099,7 +1153,9 @@ export class SkottieSk extends ElementSk {
     errorMessage(msg);
     console.error(msg);
     window.history.pushState(null, '', '/');
-    this.ui = 'dialog';
+    // For development we recover to the loaded state to see the animation
+    // even if the upload didn't work
+    this.ui = isDomain(supportedDomains.LOCALHOST) ? 'loaded' : 'idle';
     this.render();
   }
 
@@ -1131,7 +1187,6 @@ export class SkottieSk extends ElementSk {
           }
           this.ui = 'loaded';
           this.loadAssetsAndRender().then(() => {
-            console.log('loaded');
             this.dispatchEvent(
               new CustomEvent('initial-animation-loaded', { bubbles: true })
             );
@@ -1493,6 +1548,12 @@ export class SkottieSk extends ElementSk {
 
   private toggleFileSettings(open: boolean): void {
     this.showFileSettings = open;
+    this.stateChanged();
+    this.render();
+  }
+
+  private toggleBackgroundSettings(open: boolean): void {
+    this.showBackgroundSettings = open;
     this.stateChanged();
     this.render();
   }
