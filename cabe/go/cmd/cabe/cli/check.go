@@ -1,18 +1,12 @@
 package cli
 
 import (
-	"context"
 	"fmt"
-	"time"
 
 	"github.com/urfave/cli/v2"
 	"google.golang.org/protobuf/encoding/prototext"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/cabe/go/analyzer"
-	"go.skia.org/infra/cabe/go/backends"
-	"go.skia.org/infra/cabe/go/perfresults"
-	"go.skia.org/infra/cabe/go/replaybackends"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -31,57 +25,20 @@ func CheckCommand() *cli.Command {
 		Usage:       "cabe check --pinpoint-job <pinpoint-job>",
 		Flags:       cmd.flags(),
 		Action:      cmd.action,
+		After:       cmd.cleanup,
 	}
 }
 
 // action runs diagnostic checks on an experiment.
 func (cmd *checkCmd) action(cliCtx *cli.Context) error {
 	ctx := cliCtx.Context
-
-	rbeClients, err := backends.DialRBECAS(ctx)
-	if err != nil {
-		sklog.Fatalf("dialing RBE-CAS backends: %v", err)
+	if err := cmd.dialBackends(ctx); err != nil {
 		return err
-	}
-
-	swarmingClient, err := backends.DialSwarming(ctx)
-	if err != nil {
-		sklog.Fatalf("dialing swarming: %v", err)
-		return err
-	}
-
-	var casResultReader = func(c context.Context, casInstance, digest string) (map[string]perfresults.PerfResults, error) {
-		rbeClient := rbeClients[casInstance]
-		return backends.FetchBenchmarkJSON(ctx, rbeClient, digest)
-	}
-
-	var swarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-		tasksResp, err := swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -56), time.Now(), []string{pinpointSwarmingTagName + ":" + pinpointJobID}, "")
-		if err != nil {
-			sklog.Fatalf("list task results: %v", err)
-			return nil, err
-		}
-		return tasksResp, nil
-	}
-
-	if cmd.replayFromZip != "" {
-		replayBackends := replaybackends.FromZipFile(cmd.replayFromZip, "blank")
-		casResultReader = replayBackends.CASResultReader
-		swarmingTaskReader = replayBackends.SwarmingTaskReader
-	} else if cmd.recordToZip != "" {
-		replayBackends := replaybackends.ToZipFile(cmd.recordToZip, rbeClients, swarmingClient)
-		defer func() {
-			if err := replayBackends.Close(); err != nil {
-				sklog.Fatalf("closing replay backends: %v", err)
-			}
-		}()
-		casResultReader = replayBackends.CASResultReader
-		swarmingTaskReader = replayBackends.SwarmingTaskReader
 	}
 
 	var analyzerOpts = []analyzer.Options{
-		analyzer.WithCASResultReader(casResultReader),
-		analyzer.WithSwarmingTaskReader(swarmingTaskReader),
+		analyzer.WithCASResultReader(cmd.casResultReader),
+		analyzer.WithSwarmingTaskReader(cmd.swarmingTaskReader),
 	}
 
 	a := analyzer.New(cmd.pinpointJobID, analyzerOpts...)

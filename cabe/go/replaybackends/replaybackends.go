@@ -156,10 +156,10 @@ func ToZipFile(replayZipFile string,
 	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
 		var start, end time.Time
 		end = time.Now()
-		start = time.Now().Add(-time.Hour * 24 * 14) // past two weeks
+		start = time.Now().Add(-time.Hour * 24 * 52) // past 52 days
 		state := ""                                  // any state
 
-		sklog.Infof("getting task metadata from swarming service")
+		sklog.Infof("getting task metadata from swarming service, pinpoint_job_id: %v", pinpointJobID)
 		rmd, err := swarmingClient.ListTasks(ctx, start, end, []string{"pinpoint_job_id:" + pinpointJobID}, state)
 		if err != nil {
 			sklog.Errorf("getting swarming tasks: %v", err)
@@ -215,7 +215,9 @@ func ToZipFile(replayZipFile string,
 func (r *ReplayBackends) Close() error {
 	sklog.Infof("closing replay backends")
 	if r.zipWriter == nil {
-		return fmt.Errorf("cannot close replay backends without a writer")
+		sklog.Infof("no zipWriter to close")
+
+		return nil
 	}
 	if err := r.zipWriter.Close(); err != nil {
 		return err
