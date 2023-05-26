@@ -54,6 +54,8 @@ only). Feel free to make a CL to modify a roller config, or
 [file a bug](https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug)
 to request a change.
 
+The text proto which governs configuration can be read [here](https://skia.googlesource.com/buildbot/+/refs/heads/main/autoroll/go/config/config.proto).
+
 ## AutoRoll Modes
 
 There are three modes in which the roller may run:
