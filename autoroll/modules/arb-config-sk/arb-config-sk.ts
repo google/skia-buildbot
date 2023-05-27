@@ -17,7 +17,6 @@ import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { LoginTo } from '../../../infra-sk/modules/login';
 
 import { Config } from '../config';
 

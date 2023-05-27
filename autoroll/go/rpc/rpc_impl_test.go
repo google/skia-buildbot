@@ -24,27 +24,45 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	strategy_mocks "go.skia.org/infra/autoroll/go/strategy/mocks"
 	unthrottle_mocks "go.skia.org/infra/autoroll/go/unthrottle/mocks"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
 	// Fake user emails.
-	viewer = "viewer@google.com"
-	editor = "editor@google.com"
-	admin  = "admin@google.com"
+	noAccess = "no-access@google.com"
+	viewer   = "viewer@google.com"
+	editor   = "editor@google.com"
+	admin    = "admin@google.com"
 )
 
 var (
-	// Allow fake users.
-	viewers = allowed.NewAllowedFromList([]string{viewer, editor, admin})
-	editors = allowed.NewAllowedFromList([]string{editor, admin})
-	admins  = allowed.NewAllowedFromList([]string{admin})
+	notLoggedInStatus = alogin.Status{
+		EMail: alogin.NotLoggedIn,
+		Roles: roles.Roles{},
+	}
+
+	unauthorizedStatus = alogin.Status{
+		EMail: noAccess,
+		Roles: roles.Roles{},
+	}
+
+	viewerStatus = alogin.Status{
+		EMail: alogin.EMail(viewer),
+		Roles: roles.Roles{roles.Viewer},
+	}
+
+	editorStatus = alogin.Status{
+		EMail: alogin.EMail(editor),
+		Roles: roles.Roles{roles.Editor},
+	}
 
 	// Current at time of writing.
 	currentTime = time.Unix(1598467386, 0).UTC()
@@ -252,7 +270,8 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 	loadRollersFunc = func(context.Context, status.DB, db.DB) (map[string]*AutoRoller, context.CancelFunc, error) {
 		return rollers, func() {}, nil
 	}
-	srv, err := NewAutoRollServer(ctx, sdb, cdb, rdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
+	plogin := mocks.NewLogin(t)
+	srv, err := NewAutoRollServer(ctx, sdb, cdb, rdb, mdb, &unthrottle_mocks.Throttle{}, time.Duration(0), plogin)
 	require.NoError(t, err)
 	return ctx, rollers, srv
 }
@@ -264,20 +283,18 @@ func TestGetRollers(t *testing.T) {
 	req := &GetRollersRequest{}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
+
 	res, err := srv.GetRollers(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	mockUser = "no-access@google.com"
+	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err = srv.GetRollers(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
 
 	// Check results.
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.GetRollers(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -303,27 +320,24 @@ func TestGetRolls(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetRolls(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	mockUser = "no-access@google.com"
+	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err = srv.GetRolls(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
 
 	// Check error for unknown roller.
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.GetRolls(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
 
 	// Check results.
 	req.RollerId = roller.Cfg.RollerName
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
 	srv.rollsDB.(*rolls_mocks.DB).On("GetRolls", testutils.AnyContext, req.RollerId, "").Return([]*autoroll.AutoRollIssue{}, "", nil)
 	res, err = srv.GetRolls(ctx, req)
 	require.NoError(t, err)
@@ -340,20 +354,17 @@ func TestGetMiniStatus(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetMiniStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	mockUser = "no-access@google.com"
+	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err = srv.GetMiniStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
 
 	// Check error for unknown roller.
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.GetMiniStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
@@ -390,20 +401,17 @@ func TestGetStatus(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	mockUser = "no-access@google.com"
+	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err = srv.GetStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
 
 	// Check error for unknown roller.
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.GetStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
@@ -434,20 +442,17 @@ func TestSetMode(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.SetMode(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.SetMode(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check error for unknown roller.
-	mockUser = editor
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
 	res, err = srv.SetMode(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
@@ -491,20 +496,17 @@ func TestSetStrategy(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.SetStrategy(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.SetStrategy(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check error for unknown roller.
-	mockUser = editor
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
 	res, err = srv.SetStrategy(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
@@ -534,20 +536,17 @@ func TestCreateManualRoll(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.CreateManualRoll(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.CreateManualRoll(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check error for unknown roller.
-	mockUser = editor
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
 	res, err = srv.CreateManualRoll(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
@@ -557,7 +556,7 @@ func TestCreateManualRoll(t *testing.T) {
 	manualReq := &manual.ManualRollRequest{
 		RollerName: req.RollerId,
 		Revision:   req.Revision,
-		Requester:  mockUser,
+		Requester:  editor,
 		Status:     manual.STATUS_PENDING,
 		Timestamp:  firestore.FixTimestamp(timeNowFunc()),
 	}
@@ -581,20 +580,17 @@ func TestUnthrottle(t *testing.T) {
 	}
 
 	// Check authorization.
-	mockUser := ""
-	srv.MockGetUserForTesting(func(ctx context.Context) string {
-		return mockUser
-	})
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.Unthrottle(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-	mockUser = viewer
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
 	res, err = srv.Unthrottle(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check error for unknown roller.
-	mockUser = editor
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
 	res, err = srv.Unthrottle(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")

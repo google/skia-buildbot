@@ -14,17 +14,18 @@ sk_element(
         "//infra-sk/modules/human-date-sk",
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
         "//infra-sk/modules:string_ts_lib",
         "@npm//lit-html",
         "//autoroll/modules:utils_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:human_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "arb-status-sk.ts",
@@ -37,14 +38,15 @@ sk_page(
     name = "arb-status-sk-demo",
     html_file = "arb-status-sk-demo.html",
     sk_element_deps = [
-        "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
         ":arb-status-sk",
         "//elements-sk/modules/error-toast-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//autoroll/modules/rpc-mock:index_ts_lib",
         "@npm//fetch-mock",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "arb-status-sk-demo.ts",
 )

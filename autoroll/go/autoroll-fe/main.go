@@ -28,7 +28,8 @@ import (
 	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/unthrottle"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -38,12 +39,18 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
+)
+
+const (
+	// The gerrit OAuth 2 3-legged flow redirect handler.
+	gerritOAuth2Redirect = "/gerritRedirect/"
 )
 
 var (
@@ -343,19 +350,6 @@ func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-func oAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	// We share the same OAuth2 redirect URL between the normal login flow and
-	// the Gerrit auth flow used for editing roller configs.  Use the presence
-	// of the state variable in the configEditsInProgress map to distinguish
-	// between the two.
-	state := r.FormValue("state")
-	if _, ok := configEditsInProgress[state]; ok {
-		submitConfigUpdate(w, r)
-	} else {
-		login.OAuth2CallbackHandler(w, r)
-	}
-}
-
 // addCorsMiddleware wraps the specified HTTP handler with a handler that applies the
 // CORS specification on the request, and adds relevant CORS headers as necessary.
 // This is needed for some handlers that do not have this middleware. Eg: the twirp
@@ -368,14 +362,13 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 	return corsWrapper.Handler(handler)
 }
 
-func runServer(ctx context.Context, serverURL string, srv http.Handler) {
+func runServer(ctx context.Context, serverURL string, srv http.Handler, plogin alogin.Login) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/config", configHandler)
-	r.HandleFunc(login.DefaultOAuth2Callback, oAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc(gerritOAuth2Redirect, submitConfigUpdate)
+	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/config", configJSONHandler)
@@ -387,8 +380,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
 		if *internal {
-			h = login.RestrictViewer(h)
-			h = login.ForceAuth(h, login.DefaultOAuth2Callback)
+			h = alogin.ForceRole(h, plogin, roles.Viewer)
 		}
 		h = httputils.HealthzAndHTTPS(h)
 	}
@@ -448,17 +440,8 @@ func main() {
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	configGitiles = gitiles.NewRepo(*configRepo, client)
 
-	// Read the configs for the rollers.
-	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
-	// "google/skia-root@google.com", editors are specified in each roller's
-	// config file, and viewers are either public or @google.com.
-	var viewAllow allowed.Allow
-	if *internal {
-		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(allowedViewers), allowed.Googlers())
-	}
-	editAllow := allowed.Googlers()
-	adminAllow := allowed.Googlers()
-	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, rollsDB, manualRollDB, throttleDB, viewAllow, editAllow, adminAllow, *configRefreshInterval)
+	plogin := proxylogin.NewWithDefaults()
+	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, rollsDB, manualRollDB, throttleDB, *configRefreshInterval, plogin)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -467,17 +450,20 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
 
 	// Load the OAuth2 config information.
+
+	// TODO(jcgregorio) This should not use
+	// the client id and secret used for skia.org login, instead a separate
+	// client id and secret should be used.
 	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")
 	if err != nil {
 		sklog.Fatalf("Failed to load OAuth2 configuration: %s", err)
 	}
 	gerritOauthConfig.ClientID = clientID
 	gerritOauthConfig.ClientSecret = clientSecret
-	gerritOauthConfig.RedirectURL = serverURL + login.DefaultOAuth2Callback
+	gerritOauthConfig.RedirectURL = serverURL + gerritOAuth2Redirect
 
 	// Create the server.
-	runServer(ctx, serverURL, srv.GetHandler())
+	runServer(ctx, serverURL, srv.GetHandler(), plogin)
 }

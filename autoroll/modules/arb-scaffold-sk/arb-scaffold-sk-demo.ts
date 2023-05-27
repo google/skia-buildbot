@@ -1,16 +1,13 @@
 import fetchMock from 'fetch-mock';
-import { ARBScaffoldSk } from './arb-scaffold-sk';
 
+import { Status } from '../../../infra-sk/modules/json';
+
+const status: Status = {
+  email: 'user@google.com',
+  roles: ['admin'],
+};
+
+fetchMock.get('/_/login/status', status);
+
+// eslint-disable-next-line import/first
 import './index';
-
-const loginURL = `https://${window.location.host}/loginstatus/`;
-fetchMock.get(loginURL, {
-  Email: 'user@google.com',
-  LoginURL: 'https://accounts.google.com/',
-  IsAGoogler: true,
-});
-fetchMock.get('https://skia.org/loginstatus/', {
-  Email: 'user@google.com',
-  LoginURL: 'https://accounts.google.com/',
-  IsAGoogler: true,
-});

@@ -23,7 +23,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -53,10 +53,7 @@ export class ARBScaffoldSk extends ElementSk {
           <spinner-sk></spinner-sk>
         </div>
         <div class="spacer"></div>
-        <login-sk
-          ?testing_offline=${ele.testingOffline}
-          login_host="${ele.loginHost}"
-        ></login-sk>
+        <alogin-sk ?testing_offline=${ele.testingOffline}></alogin-sk>
         <theme-chooser-sk></theme-chooser-sk>
       </header>
 
@@ -130,11 +127,6 @@ export class ARBScaffoldSk extends ElementSk {
     this.removeEventListener('begin-task', this.addBusyTask);
     this.removeEventListener('end-task', this.finishedTask);
     this.removeEventListener('fetch-error', this.fetchError);
-  }
-
-  /** @prop loginHost Host name used for login. */
-  get loginHost() {
-    return window.location.host;
   }
 
   /** @prop title Reflects the app_title attribute for ease of use. */

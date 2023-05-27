@@ -18,7 +18,6 @@ sk_element(
         "//autoroll/modules/config:index_ts_lib",
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:login_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
@@ -35,15 +34,16 @@ sk_page(
     name = "arb-config-sk-demo",
     html_file = "arb-config-sk-demo.html",
     sk_element_deps = [
-        "//infra-sk/modules/login-sk",
         "//infra-sk/modules/theme-chooser-sk",
         ":arb-config-sk",
         "//elements-sk/modules/error-toast-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//autoroll/modules/rpc-mock:fake-config_ts_lib",
         "//autoroll/modules/rpc-mock:index_ts_lib",
         "@npm//fetch-mock",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "arb-config-sk-demo.ts",
 )

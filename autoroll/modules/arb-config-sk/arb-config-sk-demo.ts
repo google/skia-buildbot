@@ -1,17 +1,19 @@
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { ARBConfigSk } from './arb-config-sk';
-import { SetupMocks, GetFakeStatus } from '../rpc-mock';
+import { SetupMocks } from '../rpc-mock';
 import { GetFakeConfig } from '../rpc-mock/fake-config';
+import { Status } from '../../../infra-sk/modules/json';
 
-import './index';
+const status: Status = {
+  email: 'user@google.com',
+  roles: ['admin'],
+};
 
-fetchMock.get('/loginstatus/', {
-  Email: 'user@google.com',
-  LoginURL: 'https://accounts.google.com/',
-  IsAGoogler: true,
-});
+fetchMock.get('/_/login/status', status);
 fetchMock.get('/r/skia-skiabot-test/config', GetFakeConfig());
 SetupMocks();
+
+// eslint-disable-next-line import/first
+import './index';

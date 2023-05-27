@@ -18,12 +18,12 @@ import (
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
-	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/twirp_auth"
+	"go.skia.org/infra/go/twirp_auth2"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -44,7 +44,7 @@ var loadRollersFunc = loadRollers
 
 // AutoRollServer implements AutoRollRPCs.
 type AutoRollServer struct {
-	*twirp_auth.AuthHelper
+	*twirp_auth2.AuthHelper
 	cancelPolling context.CancelFunc
 	handler       http.Handler
 	manualRollDB  manual.DB
@@ -61,20 +61,21 @@ func (s *AutoRollServer) GetHandler() http.Handler {
 
 // NewAutoRollServer returns an AutoRollServer instance.
 // If configRefreshInterval is zero, the configs are not refreshed.
-func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, rollsDB recent_rolls.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
+func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, rollsDB recent_rolls.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, configRefreshInterval time.Duration, plogin alogin.Login) (*AutoRollServer, error) {
 	rollers, cancelPolling, err := loadRollersFunc(ctx, statusDB, configDB)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to load roller configs from DB")
 	}
 	srv := &AutoRollServer{
-		AuthHelper:    twirp_auth.NewAuthHelper(viewers, editors, admins),
+		AuthHelper:    twirp_auth2.New(),
 		cancelPolling: cancelPolling,
 		manualRollDB:  manualRollDB,
 		throttle:      throttle,
 		rollers:       rollers,
 		rollsDB:       rollsDB,
 	}
-	srv.handler = twirp_auth.Middleware(NewAutoRollServiceServer(srv, nil))
+
+	srv.handler = alogin.StatusMiddleware(plogin)(NewAutoRollServiceServer(srv, nil))
 	if configRefreshInterval != time.Duration(0) {
 		go util.RepeatCtx(ctx, configRefreshInterval, func(ctx context.Context) {
 			rollers, cancelPolling, err = loadRollersFunc(ctx, statusDB, configDB)

@@ -17,7 +17,7 @@ import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { LoginTo } from '../../../infra-sk/modules/login';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { truncate } from '../../../infra-sk/modules/string';
 import '../../../infra-sk/modules/human-date-sk';
 
@@ -42,6 +42,7 @@ import {
   TryJob_Result,
 } from '../rpc';
 import { LastCheckInSpan } from '../utils';
+import { Status } from '../../../infra-sk/modules/json';
 
 interface RollCandidate {
   revision: Revision;
@@ -674,8 +675,8 @@ export class ARBStatusSk extends ElementSk {
     super.connectedCallback();
     this._upgradeProperty('roller');
     this._render();
-    LoginTo('/loginstatus/').then((loginstatus: any) => {
-      this.editRights = loginstatus.IsAGoogler;
+    LoggedIn().then((loginstatus: Status) => {
+      this.editRights = loginstatus.roles!.includes('editor');
       this._render();
     });
     this.reload();
