@@ -25,7 +25,6 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -236,9 +235,6 @@ func runServer(ctx context.Context, serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/td/{taskId}", taskDriverHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	handlers.AddTaskDriverHandlers(r, d, lm)
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)

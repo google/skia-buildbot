@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/common",
         "//go/httputils",
-        "//go/login",
         "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",
