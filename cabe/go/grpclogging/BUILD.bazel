@@ -1,0 +1,32 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "grpclogging",
+    srcs = ["grpclogging.go"],
+    importpath = "go.skia.org/infra/cabe/go/grpclogging",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/now",
+        "//go/sklog",
+        "@go_googleapis//google/rpc:status_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//status",
+    ],
+)
+
+go_test(
+    name = "grpclogging_test",
+    srcs = ["grpclogging_test.go"],
+    embed = [":grpclogging"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "//go/now",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//proto",
+    ],
+)

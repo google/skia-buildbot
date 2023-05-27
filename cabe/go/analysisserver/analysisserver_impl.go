@@ -2,7 +2,9 @@ package analysisserver
 
 import (
 	"context"
-	"fmt"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -28,7 +30,7 @@ func New(casResultReader backends.CASResultReader, swarmingTaskReader backends.S
 // GetAnalysis returns the results of a performance experiment analysis.
 func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalysisRequest) (*cpb.GetAnalysisResponse, error) {
 	if req.GetPinpointJobId() == "" {
-		return nil, fmt.Errorf("bad request: missing pinpoint_job_id")
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing pinpoint_job_id")
 	}
 	a := analyzer.New(
 		req.GetPinpointJobId(),
@@ -38,7 +40,7 @@ func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalys
 
 	if _, err := a.Run(ctx); err != nil {
 		sklog.Errorf("running analyzer: %#v", err)
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "analyzer error: %v", err)
 	}
 
 	res := a.AnalysisResults()

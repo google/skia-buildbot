@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
@@ -27,6 +28,7 @@ import (
 
 	"go.skia.org/infra/cabe/go/analysisserver"
 	"go.skia.org/infra/cabe/go/backends"
+	"go.skia.org/infra/cabe/go/grpclogging"
 	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 )
@@ -47,12 +49,14 @@ func init() {
 
 // App is the cabe server application.
 type App struct {
-	port          string
-	grpcPort      string
-	promPort      string
-	disableGRPCSP bool
-	authPolicy    *grpcsp.ServerPolicy
+	port           string
+	grpcPort       string
+	promPort       string
+	disableGRPCSP  bool
+	disableGRPCLog bool
 
+	authPolicy     *grpcsp.ServerPolicy
+	grpcLogger     *grpclogging.GRPCLogger
 	swarmingClient swarming.ApiClient
 	rbeClients     map[string]*rbeclient.Client
 
@@ -67,6 +71,7 @@ func (a *App) FlagSet() *flag.FlagSet {
 	fs.StringVar(&a.promPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	fs.StringVar(&a.grpcPort, "grpc_port", ":50051", "gRPC service port (e.g., ':50051')")
 	fs.BoolVar(&a.disableGRPCSP, "disable_grpcsp", false, "disable authorization checks for incoming grpc calls")
+	fs.BoolVar(&a.disableGRPCLog, "disable_grpclog", false, "disable structured logging for grpc client and server calls")
 
 	return fs
 }
@@ -130,8 +135,18 @@ func (a *App) Start(ctx context.Context) error {
 			sklog.Fatal(err)
 		}
 	}()
-
 	opts := []grpc.ServerOption{}
+
+	interceptors := []grpc.UnaryServerInterceptor{}
+	if a.grpcLogger != nil {
+		interceptors = append(interceptors, a.grpcLogger.ServerUnaryLoggingInterceptor)
+	}
+
+	if !a.disableGRPCSP {
+		interceptors = append(interceptors, a.authPolicy.UnaryInterceptor())
+	}
+
+	opts = append(opts, grpc.ChainUnaryInterceptor(interceptors...))
 	if !a.disableGRPCSP {
 		opts = append(opts, grpc.UnaryInterceptor(a.authPolicy.UnaryInterceptor()))
 	}
@@ -168,7 +183,14 @@ func (a *App) Start(ctx context.Context) error {
 // services required by App.
 func (a *App) DialBackends(ctx context.Context) error {
 	sklog.Infof("dialing RBE-CAS backends")
-	rbeClients, err := backends.DialRBECAS(ctx)
+	opts := []grpc.DialOption{}
+	if a.grpcLogger != nil {
+		opts = append(opts,
+			grpc.WithChainUnaryInterceptor(a.grpcLogger.ClientUnaryLoggingInterceptor),
+			grpc.WithChainStreamInterceptor(a.grpcLogger.ClientStreamLoggingInterceptor))
+	}
+
+	rbeClients, err := backends.DialRBECAS(ctx, opts...)
 	if err != nil {
 		sklog.Fatalf("dialing RBE-CAS backends: %v", err)
 		return err
@@ -254,6 +276,9 @@ func main() {
 		sklog.Fatalf("configuring authorization policy: %v", err)
 	}
 
+	if !a.disableGRPCLog {
+		a.grpcLogger = grpclogging.New(os.Stdout)
+	}
 	ctx := context.Background()
 
 	if err := a.DialBackends(ctx); err != nil {

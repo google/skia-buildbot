@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//cabe/go/analysisserver",
         "//cabe/go/backends",
+        "//cabe/go/grpclogging",
         "//cabe/go/perfresults",
         "//cabe/go/proto:go_proto_lib",
         "//go/cleanup",

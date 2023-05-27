@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/sklog"
+	"google.golang.org/grpc"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 )
@@ -27,7 +28,7 @@ var (
 // We create one Client for each RBE-CAS instance we need to connect to, each
 // of which is Dialed separately. Returns either a map of CAS instance name to
 // Client, or an error if any of the Clients could not be Dialed.
-func DialRBECAS(ctx context.Context) (map[string]*rbeclient.Client, error) {
+func DialRBECAS(ctx context.Context, dialOpts ...grpc.DialOption) (map[string]*rbeclient.Client, error) {
 	creds, err := outboundGRPCCreds(ctx)
 	if err != nil {
 		sklog.Errorf("getting grpc creds: %v", err)
@@ -36,6 +37,7 @@ func DialRBECAS(ctx context.Context) (map[string]*rbeclient.Client, error) {
 	dialParams := rbeclient.DialParams{
 		Service:               rbeServiceAddress,
 		UseApplicationDefault: true,
+		DialOpts:              dialOpts,
 	}
 	perRPCCreds := &rbeclient.PerRPCCreds{
 		Creds: *creds,

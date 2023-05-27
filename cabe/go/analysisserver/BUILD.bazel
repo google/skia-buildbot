@@ -11,6 +11,8 @@ go_library(
         "//cabe/go/backends",
         "//cabe/go/proto:go_proto_lib",
         "//go/sklog",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
     ],
 )
 
