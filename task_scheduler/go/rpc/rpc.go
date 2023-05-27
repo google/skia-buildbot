@@ -9,12 +9,12 @@ import (
 	"time"
 
 	twirp "github.com/twitchtv/twirp"
-	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/twirp_auth2"
+	"go.skia.org/infra/go/twirp_auth"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -31,15 +31,15 @@ import (
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.
-func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, plogin alogin.Login) http.Handler {
-	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, swarm)
+func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) http.Handler {
+	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, swarm, viewers, editors, admins)
 	srv := NewTaskSchedulerServiceServer(impl, nil)
-	return alogin.StatusMiddleware(plogin)(srv)
+	return twirp_auth.Middleware(srv)
 }
 
 // taskSchedulerServiceImpl implements TaskSchedulerService.
 type taskSchedulerServiceImpl struct {
-	*twirp_auth2.AuthHelper
+	*twirp_auth.AuthHelper
 	db           db.DB
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
@@ -48,9 +48,9 @@ type taskSchedulerServiceImpl struct {
 }
 
 // newTaskSchedulerServiceImpl returns a taskSchedulerServiceImpl instance.
-func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient) *taskSchedulerServiceImpl {
+func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) *taskSchedulerServiceImpl {
 	return &taskSchedulerServiceImpl{
-		AuthHelper:   twirp_auth2.New(),
+		AuthHelper:   twirp_auth.NewAuthHelper(viewers, editors, admins),
 		db:           db,
 		repos:        repos,
 		skipTasks:    skipTasks,

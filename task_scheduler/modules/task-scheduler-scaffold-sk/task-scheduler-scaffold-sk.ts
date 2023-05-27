@@ -24,7 +24,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/alogin-sk';
+import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -57,7 +57,10 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
           <spinner-sk></spinner-sk>
         </div>
         <div class="spacer"></div>
-        <alogin-sk ?testing_offline=${ele.testingOffline}></alogin-sk>
+        <login-sk
+          ?testing_offline=${ele.testingOffline}
+          login_host="${ele.loginHost}"
+        ></login-sk>
         <theme-chooser-sk></theme-chooser-sk>
       </header>
 

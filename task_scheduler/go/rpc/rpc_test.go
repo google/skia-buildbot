@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	fs_testutils "go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/git"
@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
@@ -31,25 +30,16 @@ const (
 	// Fake user emails.
 	viewer = "viewer@google.com"
 	editor = "editor@google.com"
+	admin  = "admin@google.com"
 
 	fakeRepo = "fake.git"
 )
 
 var (
-	unauthorizedStatus = alogin.Status{
-		EMail: alogin.NotLoggedIn,
-		Roles: roles.Roles{},
-	}
-
-	viewerStatus = alogin.Status{
-		EMail: alogin.EMail(viewer),
-		Roles: roles.Roles{roles.Viewer},
-	}
-
-	editorStatus = alogin.Status{
-		EMail: alogin.EMail(editor),
-		Roles: roles.Roles{roles.Editor},
-	}
+	// Allow fake users.
+	viewers = allowed.NewAllowedFromList([]string{viewer, editor, admin})
+	editors = allowed.NewAllowedFromList([]string{editor, admin})
+	admins  = allowed.NewAllowedFromList([]string{admin})
 )
 
 func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *mocks.ApiClient, func()) {
@@ -137,7 +127,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	swarm := &mocks.ApiClient{}
 
 	// Create the service.
-	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm)
+	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm, viewers, editors, admins)
 	return ctx, srv, task, job, skipRule, swarm, func() {
 		btCleanup()
 		cleanupFS()
@@ -164,18 +154,20 @@ func TestTriggerJobs(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.TriggerJobs(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.TriggerJobs(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	mockUser = editor
 	res, err = srv.TriggerJobs(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res.JobIds))
@@ -194,13 +186,16 @@ func TestGetJob(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.GetJob(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.GetJob(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res.Job)
@@ -222,18 +217,20 @@ func TestCancelJob(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.CancelJob(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.CancelJob(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	mockUser = editor
 	res, err = srv.CancelJob(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res.Job)
@@ -251,13 +248,16 @@ func TestSearchJobs(t *testing.T) {
 	req := &SearchJobsRequest{}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.SearchJobs(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.SearchJobs(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Jobs))
@@ -276,13 +276,16 @@ func TestGetTask(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.GetTask(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.GetTask(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res.Task)
@@ -322,13 +325,16 @@ func TestSearchTasks(t *testing.T) {
 	req := &SearchTasksRequest{}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.SearchTasks(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.SearchTasks(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Tasks))
@@ -345,13 +351,16 @@ func TestGetSkipTaskRules(t *testing.T) {
 	req := &GetSkipTaskRulesRequest{}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.GetSkipTaskRules(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.GetSkipTaskRules(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Rules))
@@ -374,18 +383,20 @@ func TestAddSkipTaskRule(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.AddSkipTaskRule(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.AddSkipTaskRule(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	mockUser = editor
 	res, err = srv.AddSkipTaskRule(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res.Rules))
@@ -412,18 +423,20 @@ func TestDeleteSkipTaskRule(t *testing.T) {
 	}
 
 	// Check authorization.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
+	mockUser := ""
+	srv.MockGetUserForTesting(func(ctx context.Context) string {
+		return mockUser
+	})
 	res, err := srv.DeleteSkipTaskRule(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
-
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	mockUser = viewer
 	res, err = srv.DeleteSkipTaskRule(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
 
 	// Check results.
-	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	mockUser = editor
 	res, err = srv.DeleteSkipTaskRule(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(res.Rules))

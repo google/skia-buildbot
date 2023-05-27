@@ -18,8 +18,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/alogin"
-	"go.skia.org/infra/go/alogin/proxylogin"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
@@ -28,6 +27,7 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -308,7 +308,7 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 	return corsWrapper.Handler(handler)
 }
 
-func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
+func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
@@ -321,11 +321,13 @@ func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
+
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)
-	h = alogin.StatusMiddleware(plogin)(h)
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
@@ -412,9 +414,11 @@ func main() {
 	}); err != nil {
 		sklog.Fatal(err)
 	}
-	plogin := proxylogin.NewWithDefaults()
 
-	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, swarm, plogin)
+	var viewAllow allowed.Allow = nil
+	editAllow := allowed.Googlers()
+	adminAllow := allowed.Googlers()
+	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, swarm, viewAllow, editAllow, adminAllow)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -423,8 +427,9 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
+	login.InitWithAllow(ctx, serverURL+login.DefaultOAuth2Callback, adminAllow, editAllow, viewAllow)
 
-	go runServer(serverURL, srv, plogin)
+	go runServer(serverURL, srv)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}
