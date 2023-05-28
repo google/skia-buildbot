@@ -7,12 +7,6 @@ export interface Status {
 
 export interface LoginStatus {
 	Email: string;
-	ID: string;
-	LoginURL: string;
-	IsAGoogler: boolean;
-	IsAdmin: boolean;
-	IsEditor: boolean;
-	IsViewer: boolean;
 }
 
 export type EMail = string;

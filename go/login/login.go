@@ -730,13 +730,7 @@ func normalizeGmailAddress(user string) string {
 // LoginStatus is the status returned by the StatusHandler endpoint, serialized
 // as JSON.
 type LoginStatus struct {
-	Email      string `json:"Email"`
-	ID         string `json:"ID"`
-	LoginURL   string `json:"LoginURL"`
-	IsAGoogler bool   `json:"IsAGoogler"`
-	IsAdmin    bool   `json:"IsAdmin"`
-	IsEditor   bool   `json:"IsEditor"`
-	IsViewer   bool   `json:"IsViewer"`
+	Email string `json:"Email"`
 }
 
 // StatusHandler returns the login status of the user as JSON that looks like:
@@ -754,15 +748,9 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("StatusHandler")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	email, id := userIdentifiers(r)
+	email, _ := userIdentifiers(r)
 	body := LoginStatus{
-		Email:      email,
-		ID:         id,
-		LoginURL:   LoginURL(w, r),
-		IsAGoogler: IsGoogler(r),
-		IsAdmin:    IsAdmin(r),
-		IsEditor:   IsEditor(r),
-		IsViewer:   IsViewer(r),
+		Email: email,
 	}
 
 	sklog.Infof("Origin: %s", r.Header.Get("Origin"))
