@@ -44,7 +44,7 @@ const qualityDetails: Record<Quality, Detail> = {
     scale: 540,
   },
   medium: {
-    colors: 128,
+    colors: 256,
     fps: 12,
     scale: 540,
   },
@@ -225,7 +225,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
       '-pix_fmt',
       'pal8',
       '-loop',
-      '-1',
+      '0', // infinite loop
       '-codec:v',
       'gif',
       '-gifflags',
