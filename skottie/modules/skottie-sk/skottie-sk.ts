@@ -79,6 +79,8 @@ import '../skottie-file-form-sk';
 import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-form-sk';
 import '../skottie-background-settings-sk';
 import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
+import '../skottie-font-selector-sk';
+import { SkottieFontEventDetail } from '../skottie-font-selector-sk/skottie-font-selector-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -334,6 +336,21 @@ export class SkottieSk extends ElementSk {
     `;
   }
 
+  private fontSelector() {
+    return html`
+      <details class="embed expando">
+        <summary id="embed-open">
+          <span>Font selector</span><expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-font-selector-sk
+          @animation-updated=${this.onAnimationUpdated}
+          .animation=${this.state.lottie}
+        ></skottie-font-selector-sk>
+      </details>
+    `;
+  }
+
   private performanceChartTemplate() {
     return html`
       <dialog class="perf-chart" ?open=${this.showPerformanceChart}>
@@ -374,7 +391,8 @@ export class SkottieSk extends ElementSk {
   };
 
   private rightControls = () => html`
-    ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
+    ${this.fontSelector()} ${this.jsonTextEditor()} ${this.library()}
+    ${this.embedDialog()}
   `;
 
   private renderDownload() {
@@ -1617,6 +1635,11 @@ export class SkottieSk extends ElementSk {
       this.ui = 'loading';
       this.render();
     }
+  }
+
+  private onAnimationUpdated(ev: CustomEvent<SkottieFontEventDetail>): void {
+    this.state.lottie = ev.detail.animation;
+    this.upload();
   }
 
   overrideAssetsPathForTesting(p: string): void {

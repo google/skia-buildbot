@@ -34,6 +34,7 @@ export interface LottieAsset {
 export interface FontAsset extends Record<string, unknown> {
   fName: string;
   fFamily: string;
+  fStyle: string;
 }
 
 export interface LottieAnimation extends Record<string, unknown> {

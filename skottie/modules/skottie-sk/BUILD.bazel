@@ -51,6 +51,7 @@ sk_element(
         "//skottie/modules/skottie-button-sk",
         "//skottie/modules/skottie-dropdown-sk",
         "//skottie/modules/skottie-exporter-sk",
+        "//skottie/modules/skottie-font-selector-sk",
         "//skottie/modules/skottie-file-settings-sk",
         "//elements-sk/modules/icons/file-download-icon-sk",
         "//skottie/modules/skottie-file-form-sk",
