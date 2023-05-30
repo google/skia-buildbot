@@ -1,14 +1,7 @@
 load("//infra-sk:index.bzl", "sass_library")
 
 sass_library(
-    name = "color-palette_sass_lib",
-    srcs = ["color-palette.scss"],
-    visibility = ["//visibility:public"],
-)
-
-sass_library(
     name = "themes_sass_lib",
     srcs = ["themes.scss"],
     visibility = ["//visibility:public"],
-    deps = [":color-palette_sass_lib"],
 )

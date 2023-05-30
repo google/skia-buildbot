@@ -68,15 +68,15 @@ table.inner-table {
 }
 
 .error {
-  color: var(--red-500);
+  color: #f44336;
 }
 
 .darkmode .error {
-  color: var(--red-300);
+  color: #e57373;
 }
 
 .green {
-  color: var(--green-400);
+  color: #66bb6a;
 }
 /* The table used for task triggering form layouts. */
 table.options {

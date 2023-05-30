@@ -7,24 +7,24 @@
 */
 
 :root {
-  --primary: var(--blue-grey-600);
-  --on-primary: var(--white);
+  --primary: #546e7a;
+  --on-primary: #ffffff;
   --primary-variant: rgb(204, 204, 255);
-  --on-primary-variant: var(--black);
+  --on-primary-variant: #000000;
   --link-color: hsl(199, 70%, 40%);
 }
 .darkmode {
   --grey-850: #303030;
 
-  --primary: var(--blue-grey-600);
-  --on-primary: var(--white);
+  --primary: #546e7a;
+  --on-primary: #ffffff;
   --primary-variant: rgb(204, 204, 255);
-  --on-primary-variant: var(--black);
-  --background: var(--grey-900);
-  --on-background: var(--grey-300);
+  --on-primary-variant: #000000;
+  --background: #212121;
+  --on-background: #e0e0e0;
   --surface: var(--grey-850);
-  --on-surface: var(--grey-200);
-  --error: var(--amber-900);
+  --on-surface: #eee;
+  --error: #ff6f00;
   --link-color: hsl(199, 70%, 60%);
 }
 

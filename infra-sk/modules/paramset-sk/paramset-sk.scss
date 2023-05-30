@@ -51,7 +51,7 @@ paramset-sk {
 
   @keyframes flash {
     from {
-      background-color: var(--surface, var(--white));
+      background-color: var(--surface, #ffffff);
     }
     to {
       background-color: var(--surface-1dp, var(--orange));

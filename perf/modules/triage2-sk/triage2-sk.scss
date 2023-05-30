@@ -46,15 +46,15 @@ triage2-sk {
   }
 
   .positive {
-    fill: var(--green-700);
+    fill: #388e3c;
   }
 
   .negative {
-    fill: var(--red-700);
+    fill: #d32f2f;
   }
 
   .untriaged {
-    fill: var(--brown-400);
+    fill: #8d6e63;
   }
 
   button:not([selected]) {
@@ -74,15 +74,15 @@ triage2-sk {
 
 .body-sk.darkmode triage2-sk {
   .positive {
-    fill: var(--green-500);
+    fill: #4caf50;
   }
 
   .negative {
-    fill: var(--red-500);
+    fill: #f44336;
   }
 
   .untriaged {
-    fill: var(--brown-400);
+    fill: #8d6e63;
   }
 
   button:not([selected]) {

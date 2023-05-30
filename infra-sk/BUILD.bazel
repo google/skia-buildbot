@@ -8,7 +8,6 @@ sass_library(
         "//elements-sk/modules/styles:buttons_sass_lib",
         "//elements-sk/modules/styles:select_sass_lib",
         "//elements-sk/modules/styles:table_sass_lib",
-        "//elements-sk/modules/themes:color-palette_sass_lib",
         "//elements-sk/modules/themes:themes_sass_lib",
     ],
 )

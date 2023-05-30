@@ -4,16 +4,16 @@
   --dark-grayish-blue: #8899a6;
   --dark-desaturated-blue: #192734;
 
-  --active: var(--red-300);
+  --active: #e57373;
   --inactive: var(--dark-grayish-blue);
-  --silenced: var(--green-300);
-  --assigned: var(--orange-300);
+  --silenced: #81c784;
+  --assigned: #ffb74d;
   --selected: var(--dark-desaturated-blue);
 
   --minimized: var(--dark-desaturated-blue);
   --comments: var(--dark-desaturated-blue);
-  --icons: var(--green-300);
-  --disabled: var(--grey-700);
+  --icons: #81c784;
+  --disabled: #616161;
   --dialog-background: var(--dark-desaturated-blue);
 }
 

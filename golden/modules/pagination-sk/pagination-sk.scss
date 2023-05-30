@@ -9,12 +9,12 @@ pagination-sk {
   }
 
   button {
-    color: var(--black);
+    color: #000000;
     font-weight: bold;
   }
 
   button[disabled] {
-    color: var(--white);
+    color: #ffffff;
     background: var(--light-gray);
     box-shadow: none;
     font-weight: normal;

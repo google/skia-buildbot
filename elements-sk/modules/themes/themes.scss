@@ -17,8 +17,6 @@ and dark themes:
   https://material.io/design/color/dark-theme.html#ui-application
 */
 
-@import './color-palette';
-
 /* Define Color Palette */
 html {
   /* See https://material.io/design/color/dark-theme.html for how to use each of
@@ -34,22 +32,22 @@ html {
      The colors were chosen to meet MD guidelines and come as close as possible
      to the color scheme elements-sk had before theme support was added.
      */
-  --primary: var(--blue-800);
-  --on-primary: var(--white);
+  --primary: #1565c0;
+  --on-primary: #ffffff;
   --primary-variant: #5e92f3;
-  --on-primary-variant: var(--black);
-  --secondary: var(--deep-orange-800);
-  --on-secondary: var(--black);
-  --background: var(--grey-50);
-  --on-background: var(--black);
-  --surface: var(--white);
-  --on-surface: var(--black);
-  --surface-1dp: var(--grey-200);
-  --surface-2dp: var(--grey-400);
-  --disabled: var(--grey-100);
-  --on-disabled: var(--grey-700);
-  --error: var(--red-900);
-  --on-error: var(--white);
+  --on-primary-variant: #000000;
+  --secondary: #d84315;
+  --on-secondary: #000000;
+  --background: #fafafa;
+  --on-background: #000000;
+  --surface: #ffffff;
+  --on-surface: #000000;
+  --surface-1dp: #eee;
+  --surface-2dp: #bdbdbd;
+  --disabled: #f5f5f5;
+  --on-disabled: #616161;
+  --error: #b71c1c;
+  --on-error: #ffffff;
   --transparent-overlay: rgba(0, 0, 0, 0.5);
 
   --text-intensity-high: 87%;
@@ -64,22 +62,22 @@ https://material.io/design/color/dark-theme.html#ui-application for the default
 dark color scheme.
 */
 .darkmode {
-  --primary: var(--purple-200);
-  --on-primary: var(--black);
-  --primary-variant: var(--indigo-700);
-  --on-primary-variant: var(--white);
-  --secondary: var(--teal-200);
-  --on-secondary: var(--black);
-  --background: var(--black);
-  --on-background: var(--white);
-  --surface: var(--grey-900);
-  --surface-1dp: var(--grey-800);
-  --surface-2dp: var(--grey-700);
-  --disabled: var(--grey-600);
-  --on-disabled: var(--grey-300);
-  --on-surface: var(--white);
-  --error: var(--pink-400);
-  --on-error: var(--black);
+  --primary: #ce93d8;
+  --on-primary: #000000;
+  --primary-variant: #303f9f;
+  --on-primary-variant: #ffffff;
+  --secondary: #80cbc4;
+  --on-secondary: #000000;
+  --background: #000000;
+  --on-background: #ffffff;
+  --surface: #212121;
+  --surface-1dp: #424242;
+  --surface-2dp: #616161;
+  --disabled: #757575;
+  --on-disabled: #e0e0e0;
+  --on-surface: #ffffff;
+  --error: #ec407a;
+  --on-error: #000000;
   --transparent-overlay: rgba(255, 255, 255, 0.5);
 }
 
