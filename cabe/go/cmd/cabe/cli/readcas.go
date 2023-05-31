@@ -5,7 +5,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -18,6 +17,7 @@ const (
 // readCASCmd holds the flag values and any internal state necessary for
 // executing the `readCASCmd` subcommand.
 type readCASCmd struct {
+	commonCmd
 	rootDigest  string
 	casInstance string
 }
@@ -37,30 +37,28 @@ func ReadCASCommand() *cli.Command {
 		Usage:       "RBE-CAS instance",
 		Destination: &cmd.casInstance,
 	}
+	flags := cmd.flags()
+	flags = append(flags, rootDigestFlag)
+	flags = append(flags, casInstanceFlag)
 	return &cli.Command{
 		Name:        "readcas",
 		Description: "readcas reads results data from RBE-CAS.",
 		Usage:       "cabe readcas -- --root-digest <root-digest> --cas-instance <cas-instance>",
-		Flags: []cli.Flag{
-			rootDigestFlag,
-			casInstanceFlag,
-		},
-		Action: cmd.action,
+		Flags:       flags,
+		Action:      cmd.action,
+		After:       cmd.cleanup,
 	}
 }
 
 // action runs reading results data from RBE-CAS.
 func (cmd *readCASCmd) action(cliCtx *cli.Context) error {
 	ctx := cliCtx.Context
-
-	rbeClients, err := backends.DialRBECAS(ctx)
-	if err != nil {
-		sklog.Fatalf("dialing RBE-CAS backends: %v", err)
+	if err := cmd.dialBackends(ctx); err != nil {
 		return err
 	}
 
-	rbeClient := rbeClients[cmd.casInstance]
-	benchmarkResults, err := backends.FetchBenchmarkJSON(ctx, rbeClient, cmd.rootDigest)
+	benchmarkResults, err := cmd.casResultReader(ctx, cmd.casInstance, cmd.rootDigest)
+
 	if err != nil {
 		sklog.Fatalf("fetch benchmark json: %v", err)
 		return err

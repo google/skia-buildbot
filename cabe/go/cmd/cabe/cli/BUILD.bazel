@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -22,5 +23,23 @@ go_library(
         "@com_github_urfave_cli_v2//:cli",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_protobuf//encoding/prototext",
+    ],
+)
+
+go_test(
+    name = "cli_test",
+    srcs = [
+        "analyze_test.go",
+        "check_test.go",
+        "common_test.go",
+        "readcas_test.go",
+    ],
+    data = ["@cabe_replay_data//:all_files"],
+    embed = [":cli"],
+    deps = [
+        "//bazel/go/bazel",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_github_urfave_cli_v2//:cli",
     ],
 )

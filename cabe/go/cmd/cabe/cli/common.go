@@ -61,6 +61,13 @@ func (a *commonCmd) readSwarmingTasksFromAPI(ctx context.Context, pinpointJobID 
 }
 
 func (cmd *commonCmd) dialBackends(ctx context.Context) error {
+	if cmd.replayFromZip != "" {
+		cmd.replayBackends = replaybackends.FromZipFile(cmd.replayFromZip, "blank")
+		cmd.casResultReader = cmd.replayBackends.CASResultReader
+		cmd.swarmingTaskReader = cmd.replayBackends.SwarmingTaskReader
+		return nil
+	}
+
 	rbeClients, err := backends.DialRBECAS(ctx)
 	if err != nil {
 		sklog.Fatalf("dialing RBE-CAS backends: %v", err)
@@ -78,11 +85,7 @@ func (cmd *commonCmd) dialBackends(ctx context.Context) error {
 	cmd.swarmingTaskReader = cmd.readSwarmingTasksFromAPI
 	cmd.casResultReader = cmd.readCASResultFromRBEAPI
 
-	if cmd.replayFromZip != "" {
-		cmd.replayBackends = replaybackends.FromZipFile(cmd.replayFromZip, "blank")
-		cmd.casResultReader = cmd.replayBackends.CASResultReader
-		cmd.swarmingTaskReader = cmd.replayBackends.SwarmingTaskReader
-	} else if cmd.recordToZip != "" {
+	if cmd.recordToZip != "" {
 		cmd.replayBackends = replaybackends.ToZipFile(cmd.recordToZip, rbeClients, swarmingClient)
 		cmd.casResultReader = cmd.replayBackends.CASResultReader
 		cmd.swarmingTaskReader = cmd.replayBackends.SwarmingTaskReader
