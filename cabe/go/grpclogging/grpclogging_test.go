@@ -8,11 +8,13 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/kube/go/authproxy"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +45,30 @@ func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"response":{},"full_method":"test.service/TestMethod"}}`+"\n",
+		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"response":{},"full_method":"test.service/TestMethod","user":""}}`+"\n",
+		string(buf.Bytes()))
+}
+
+func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
+	ttCtx, l, buf := testSetupLogger(t)
+	req := &cpb.GetAnalysisRequest{
+		PinpointJobId: proto.String("d3c4f84d"),
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		ttCtx.SetTime(startTime.Add(3 * time.Second))
+		return &cpb.GetAnalysisResponse{}, nil
+	}
+	md := metadata.New(map[string]string{
+		authproxy.WebAuthHeaderName: "user@domain.com",
+	})
+
+	resp, err := l.ServerUnaryLoggingInterceptor(
+		metadata.NewIncomingContext(ttCtx.Context, md),
+		req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t,
+		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"response":{},"full_method":"test.service/TestMethod","user":"user@domain.com"}}`+"\n",
 		string(buf.Bytes()))
 }
 
@@ -60,7 +85,7 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, resp)
 	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":1000000000,"status":{"code":3,"message":"forced error response"},"error":"rpc error: code = InvalidArgument desc = forced error response","server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"full_method":"test.service/TestMethod"}}`+"\n",
+		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":1000000000,"status":{"code":3,"message":"forced error response"},"error":"rpc error: code = InvalidArgument desc = forced error response","server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"full_method":"test.service/TestMethod","user":""}}`+"\n",
 		string(buf.Bytes()))
 }
 

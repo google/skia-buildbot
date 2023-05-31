@@ -13,10 +13,12 @@ import (
 
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/kube/go/authproxy"
 )
 
 type grpcLogEntry struct {
@@ -34,6 +36,7 @@ type serverUnaryGRPCLogEntry struct {
 	Request    any    `json:"request,omitempty"`
 	Response   any    `json:"response,omitempty"`
 	FullMethod string `json:"full_method,omitempty"`
+	User       string `json:"user"`
 }
 
 type clientUnaryGRPCLogEntry struct {
@@ -62,8 +65,21 @@ func New(w io.Writer) *GRPCLogger {
 	}
 }
 
+func userFromAuthProxy(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	user := md.Get(authproxy.WebAuthHeaderName)
+	if len(user) > 0 {
+		return user[0]
+	}
+	return ""
+}
+
 // ServerUnaryLoggingInterceptor implements [grpc.UnaryServerInterceptor].
 func (l *GRPCLogger) ServerUnaryLoggingInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	authProxyUser := userFromAuthProxy(ctx)
 	start := now.Now(ctx)
 	resp, err := handler(ctx, req)
 	elapsed := now.Now(ctx).Sub(start)
@@ -74,6 +90,7 @@ func (l *GRPCLogger) ServerUnaryLoggingInterceptor(ctx context.Context, req any,
 			Request:    req,
 			Response:   resp,
 			FullMethod: info.FullMethod,
+			User:       authProxyUser,
 		},
 		err: err,
 	})

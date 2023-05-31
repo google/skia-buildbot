@@ -9,8 +9,10 @@ go_library(
     deps = [
         "//go/now",
         "//go/sklog",
+        "//kube/go/authproxy",
         "@go_googleapis//google/rpc:status_go_proto",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//metadata",
         "@org_golang_google_grpc//status",
     ],
 )
@@ -22,10 +24,12 @@ go_test(
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "//go/now",
+        "//kube/go/authproxy",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//metadata",
         "@org_golang_google_grpc//status",
         "@org_golang_google_protobuf//proto",
     ],
