@@ -32,10 +32,12 @@ func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalys
 	if req.GetPinpointJobId() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing pinpoint_job_id")
 	}
+
 	a := analyzer.New(
 		req.GetPinpointJobId(),
 		analyzer.WithSwarmingTaskReader(s.swarmingTaskReader),
 		analyzer.WithCASResultReader(s.casResultReader),
+		analyzer.WithExperimentSpec(req.ExperimentSpec),
 	)
 
 	if _, err := a.Run(ctx); err != nil {
@@ -49,5 +51,8 @@ func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalys
 		Results: res,
 	}
 
+	if req.ExperimentSpec == nil {
+		ret.InferredExperimentSpec = a.ExperimentSpec()
+	}
 	return ret, nil
 }

@@ -39,6 +39,13 @@ func WithSwarmingTaskReader(r backends.SwarmingTaskReader) Options {
 	}
 }
 
+// WithExperimentSpec configures an Analyzer instance to use the given ExperimentSpec.
+func WithExperimentSpec(s *cpb.ExperimentSpec) Options {
+	return func(e *Analyzer) {
+		e.experimentSpec = s
+	}
+}
+
 // New returns a new instance of Analyzer. Set either pinpointJobID, or controlDigests and treatmentDigests.
 func New(pinpointJobID string, opts ...Options) *Analyzer {
 	ret := &Analyzer{

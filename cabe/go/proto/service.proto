@@ -34,5 +34,12 @@ message GetAnalysisRequest {
 
 message GetAnalysisResponse {
   repeated AnalysisResult results = 1;
+
+  // If an experiment_spec was not included in the GetAnalysisRequest,
+  // cabe will apply some best-effort heuristics to infer an experiment
+  // specification based on swarming task metadata and contents of task
+  // output json files. The GetAnalysis method will attach whatever
+  // it was able to infer the experiment to this field.
+  optional ExperimentSpec inferred_experiment_spec = 2;
 }
 

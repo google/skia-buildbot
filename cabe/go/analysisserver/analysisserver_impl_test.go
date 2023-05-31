@@ -18,11 +18,8 @@ import (
 	"go.skia.org/infra/cabe/go/replaybackends"
 
 	"go.skia.org/infra/bazel/go/bazel"
-	mockswarming "go.skia.org/infra/go/swarming/mocks"
-	"go.skia.org/infra/go/testutils"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,16 +74,6 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 				path,
 				benchmarkName,
 			)
-
-			if false {
-				swarm := mockswarming.NewApiClient(t)
-				defer swarm.AssertExpectations(t)
-
-				anyTime := mock.AnythingOfTypeArgument("time.Time")
-
-				swarm.On("ListTasks", testutils.AnyContext, anyTime, anyTime, []string{"pinpoint_job_id:123"}, "").Return(
-					replayer.ParsedSwarmingTasks, nil)
-			}
 			client, closer := startTestServer(t, replayer.CASResultReader, replayer.SwarmingTaskReader)
 			defer closer()
 
@@ -100,7 +87,11 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-
+			if request.ExperimentSpec == nil {
+				assert.NotNil(t, r.InferredExperimentSpec)
+			} else {
+				assert.Nil(t, r.InferredExperimentSpec)
+			}
 			diff := cmp.Diff(wantFirstResult, r.Results[0], cmpopts.EquateEmpty(), cmpopts.EquateApprox(0, 0.03), protocmp.Transform())
 
 			assert.Equal(t, diff, "", "diff should be empty")
@@ -172,5 +163,22 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			},
 		},
 	}
-	test("basic request", &cpb.GetAnalysisRequest{PinpointJobId: proto.String("123")}, analysisResults[0], false)
+	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: proto.String("123")}, analysisResults[0], false)
+	test("basic request, including experiment spec", &cpb.GetAnalysisRequest{
+		PinpointJobId: proto.String("123"),
+		ExperimentSpec: &cpb.ExperimentSpec{
+			Common:    cabeSpec.Common,
+			Control:   cabeSpec.Control,
+			Treatment: cabeSpec.Treatment,
+			Analysis: &cpb.AnalysisSpec{
+				Benchmark: []*cpb.Benchmark{
+					{
+						Name:     fakeBenchmarkName,
+						Workload: []string{"Compositing.Display.DrawToSwapUs"},
+					},
+				},
+			},
+		},
+	}, analysisResults[0], false)
+
 }
