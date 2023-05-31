@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/scrap/go/scrap"
+	"go.skia.org/infra/shaders/go/config"
 )
 
 func main() {
@@ -22,6 +23,7 @@ func main() {
 	generator.AddMultiple(
 		scrap.ScrapBody{},
 		scrap.ScrapID{},
+		config.SkShadersConfig{},
 	)
 
 	generator.AddUnion(scrap.AllTypes)

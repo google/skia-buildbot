@@ -29,6 +29,11 @@ export interface ScrapID {
 	Hash: SHA256;
 }
 
+export interface SkShadersConfig {
+	fiddle_origin: string;
+	jsfiddle_origin: string;
+}
+
 export type Type = 'svg' | 'sksl' | 'particle';
 
 export type SHA256 = string;

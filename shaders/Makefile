@@ -28,6 +28,15 @@ wasm_libs:
 push: release
 	$(BAZEL) run --config=mayberemote //shaders:pushk_shader_container
 
+# First create a list of all the modules that ./go/ts depends upon.
+tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/shaders/go/ts/  )
+
+# Then use that list to find all the Go files that make up those dependent modules.
+tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}' )
+
+./modules/json/index.ts: $(tsDependentFiles) Makefile
+	go generate ./go/ts
+
 bazel_release_ci:
 	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
 	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137

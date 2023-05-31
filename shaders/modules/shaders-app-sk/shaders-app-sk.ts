@@ -50,6 +50,7 @@ import {
 import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk';
 import '../edit-child-shader-sk';
 import * as SkSLConstants from '../sksl-constants/sksl-constants';
+import '../window/window';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;
@@ -964,7 +965,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
 
   private async viewInFiddle() {
     const loadInFiddle = function (scrapID: string) {
-      const url = `https://fiddle.skia.org/scrap/sksl/${scrapID}`;
+      const url = `${window.shaders.fiddle_origin}/scrap/sksl/${scrapID}`;
       window.open(url);
     };
 
@@ -978,7 +979,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
 
   private async viewInJsFiddle() {
     const loadInJSFiddle = function (scrapID: string) {
-      const url = `https://jsfiddle.skia.org/scrap/sksl/${scrapID}`;
+      const url = `${window.shaders.jsfiddle_origin}/scrap/sksl/${scrapID}`;
       window.open(url);
     };
 

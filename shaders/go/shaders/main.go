@@ -20,12 +20,15 @@ import (
 	"go.skia.org/infra/scrap/go/client"
 	"go.skia.org/infra/scrap/go/fakeclient"
 	"go.skia.org/infra/scrap/go/scrap"
+	"go.skia.org/infra/shaders/go/config"
 )
 
 // flags
 var (
 	scrapExchange     = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
 	fakeScrapExchange = flag.Bool("fake_scrapexchange", false, "If set to true, --scrapexchange will be ignored and a fake, in-memory implementation will be used instead.")
+	fiddleOrigin      = flag.String("fiddle_origin", "https://fiddle.skia.org", `The fiddle origin (e.g. "https://fiddle.skia.org").`)
+	jsFiddleOrigin    = flag.String("jsfiddle_origin", "https://jsfiddle.skia.org", `The jsfiddle origin (e.g. "https://jsfiddle.skia.org").`)
 )
 
 // server is the state of the server.
@@ -102,7 +105,17 @@ func (srv *server) pageHandler(w http.ResponseWriter, r *http.Request, p string)
 	if *baseapp.Local {
 		srv.loadTemplates()
 	}
-	if err := srv.templates.ExecuteTemplate(w, p, map[string]string{
+	context := config.SkShadersConfig{
+		FiddleOrigin:   *fiddleOrigin,
+		JsFiddleOrigin: *jsFiddleOrigin,
+	}
+	b, err := json.MarshalIndent(context, "", "  ")
+	if err != nil {
+		sklog.Errorf("Failed to JSON encode window.shaders context: %s", err)
+		return
+	}
+	if err := srv.templates.ExecuteTemplate(w, p, map[string]interface{}{
+		"context": template.JS(string(b)),
 		// Look in //shaders/pages/BUILD.bazel for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {

@@ -43,19 +43,20 @@ sk_element(
         "//elements-sk/modules/icons/edit-icon-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules/uniform:uniform_ts_lib",
-        "//shaders/modules/shadernode:index_ts_lib",
-        "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
-        "//shaders/wasm_libs:canvaskit_types",  # keep
-        "@npm//@types/codemirror",
-        "@npm//codemirror",
-        "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "//shaders/modules/shadernode:index_ts_lib",
+        "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
+        "//shaders/modules/window:window_ts_lib",
+        "//shaders/wasm_libs:canvaskit_types",  # keep
+        "@npm//@types/codemirror",
+        "@npm//codemirror",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
