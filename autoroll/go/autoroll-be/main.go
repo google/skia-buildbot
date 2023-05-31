@@ -60,9 +60,9 @@ type HangOption string
 
 const (
 	hangNone                 HangOption = ""
-	hangImmediately                     = "immediately"
-	hangBeforeRollerCreation            = "before-roller-creation"
-	hangBeforeRunning                   = "before-running"
+	hangImmediately          HangOption = "immediately"
+	hangBeforeRollerCreation HangOption = "before-roller-creation"
+	hangBeforeRunning        HangOption = "before-running"
 )
 
 var hangOptions = []HangOption{hangNone, hangImmediately, hangBeforeRollerCreation, hangBeforeRunning}
@@ -79,6 +79,7 @@ var (
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
+	validateConfig         = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -105,17 +106,9 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 
-	if *hang == hangImmediately {
+	if HangOption(*hang) == hangImmediately {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
-	}
-
-	// Rollers use a custom temporary dir, to ensure that it's on a
-	// persistent disk. Create it if it does not exist.
-	if _, err := os.Stat(os.TempDir()); os.IsNotExist(err) {
-		if err := os.Mkdir(os.TempDir(), os.ModePerm); err != nil {
-			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
-		}
 	}
 
 	// Decode the config.
@@ -138,6 +131,20 @@ func main() {
 	var cfg config.Config
 	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
 		sklog.Fatal(err)
+	}
+	if err := cfg.Validate(); err != nil {
+		sklog.Fatal(err)
+	}
+	if *validateConfig {
+		return
+	}
+
+	// Rollers use a custom temporary dir, to ensure that it's on a
+	// persistent disk. Create it if it does not exist.
+	if _, err := os.Stat(os.TempDir()); os.IsNotExist(err) {
+		if err := os.Mkdir(os.TempDir(), os.ModePerm); err != nil {
+			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
+		}
 	}
 
 	ctx := context.Background()
@@ -324,7 +331,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	if *hang == hangBeforeRollerCreation {
+	if HangOption(*hang) == hangBeforeRollerCreation {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
 	}
@@ -334,7 +341,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	if *hang == hangBeforeRunning {
+	if HangOption(*hang) == hangBeforeRunning {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
 	}
