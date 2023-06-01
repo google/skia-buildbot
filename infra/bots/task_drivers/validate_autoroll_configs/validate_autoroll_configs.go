@@ -6,24 +6,24 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"strings"
 
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
@@ -31,41 +31,32 @@ var (
 	projectId         = flag.String("project_id", "", "ID of the Google Cloud project.")
 	taskId            = flag.String("task_id", "", "ID of this task.")
 	taskName          = flag.String("task_name", "", "Name of the task.")
-	workdir           = flag.String("workdir", ".", "Working directory")
 	configsFlag       = common.NewMultiStringFlag("config", nil, "Config file or dir of config files to validate. May be specified multiple times.")
 	checkGCSArtifacts = flag.Bool("check-gcs-artifacts", false, "If true, filter out rollers whose GCS artifacts are missing.")
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
-)
 
-var (
-	// "constants"
-	chromiumGerritHosts = []string{
-		"https://chromium-review.googlesource.com",
-		"https://chrome-internal-review.googlesource.com",
-	}
+	imageRegex      = regexp.MustCompile(`gcr.io/skia-public/autoroll-be@sha256:[a-f0-9]+`)
+	rollerNameRegex = regexp.MustCompile(`\s*roller_name:\s*"(.+)"`)
 )
 
 func validateConfig(ctx context.Context, content []byte) (string, error) {
-	// Decode the config.
-	var cfg config.Config
-	if err := prototext.Unmarshal(content, &cfg); err != nil {
+	image := imageRegex.Find(content)
+	if image == nil {
+		return "", skerr.Fmt("failed to find docker image in config")
+	}
+	configBase64 := base64.StdEncoding.EncodeToString(content)
+	_, err := exec.RunCwd(ctx, ".", "docker", "run", string(image), "autoroll-be", "--validate-config", fmt.Sprintf("--config=%s", configBase64))
+	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-
-	// Validate the config.
-	if err := cfg.Validate(); err != nil {
-		return "", skerr.Wrap(err)
+	rollerName := rollerNameRegex.FindSubmatch(content)
+	if len(rollerName) == 2 {
+		return string(rollerName[1]), nil
 	}
-
-	gerrit := cfg.GetGerrit()
-	if gerrit != nil && util.In(gerrit.Url, chromiumGerritHosts) && (gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT && gerrit.Config != config.GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ) {
-		return "", skerr.Fmt("Chromium rollers must use Gerrit config CHROMIUM_BOT_COMMIT")
-	}
-
-	return cfg.RollerName, nil
+	return "", skerr.Fmt("failed to find roller_name in config")
 }
 
 func readAndValidateConfig(ctx context.Context, f string) (string, error) {

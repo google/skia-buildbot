@@ -43,6 +43,17 @@ var (
 
 	// ValidK8sLabel matches valid labels for Kubernetes.
 	ValidK8sLabel = regexp.MustCompile(`^[a-zA-Z\._-]{1,63}$`)
+
+	// Gerrit hosts used by Chromium projects.
+	chromiumGerritHosts = []string{
+		"https://chromium-review.googlesource.com",
+		"https://chrome-internal-review.googlesource.com",
+	}
+	// Valid Gerrit configs for Chromium projects.
+	validChromiumGerritConfigs = []GerritConfig_Config{
+		GerritConfig_CHROMIUM_BOT_COMMIT,
+		GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ,
+	}
 )
 
 // RepoManagerConfig provides configuration information for RepoManagers.
@@ -145,6 +156,23 @@ func (c *Config) Validate() error {
 	cr := []util.Validator{}
 	if c.GetGerrit() != nil {
 		cr = append(cr, c.GetGerrit())
+		gerrit := c.GetGerrit()
+		if gerrit != nil && util.In(gerrit.Url, chromiumGerritHosts) {
+			isValid := false
+			for _, gc := range validChromiumGerritConfigs {
+				if gc == gerrit.Config {
+					isValid = true
+					break
+				}
+			}
+			if !isValid {
+				validConfigsStr := make([]string, 0, len(validChromiumGerritConfigs))
+				for _, gc := range validChromiumGerritConfigs {
+					validConfigsStr = append(validConfigsStr, gc.String())
+				}
+				return skerr.Fmt("Chromium rollers must use one of the following Gerrit configs: %v", validConfigsStr)
+			}
+		}
 	}
 	if c.GetGithub() != nil {
 		cr = append(cr, c.GetGithub())
@@ -163,7 +191,7 @@ func (c *Config) Validate() error {
 		return skerr.Fmt("Kubernetes config is required.")
 	}
 	if err := c.Kubernetes.Validate(); err != nil {
-		return fmt.Errorf("Kubernetes validation failed: %s", err)
+		return skerr.Wrapf(err, "kubernetes validation failed")
 	}
 
 	rm := []RepoManagerConfig{}
