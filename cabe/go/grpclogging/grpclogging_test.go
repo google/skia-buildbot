@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/now"
@@ -35,7 +34,7 @@ func testSetupLogger(t *testing.T) (*now.TimeTravelCtx, *GRPCLogger, *bytes.Buff
 func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("d3c4f84d"),
+		PinpointJobId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
@@ -52,7 +51,7 @@ func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("d3c4f84d"),
+		PinpointJobId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
@@ -75,7 +74,7 @@ func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
 func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("d3c4f84d"),
+		PinpointJobId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(1 * time.Second))
@@ -92,7 +91,7 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("d3c4f84d"),
+		PinpointJobId: "d3c4f84d",
 	}
 	invoker := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
@@ -113,7 +112,7 @@ func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
 func TestClientUnaryLoggingInterceptor_error(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("d3c4f84d"),
+		PinpointJobId: "d3c4f84d",
 	}
 	invoker := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))

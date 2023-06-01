@@ -14,7 +14,7 @@ service Analysis {
 }
 
 message GetAnalysisRequest {
-  optional string pinpoint_job_id = 1;
+  string pinpoint_job_id = 1;
 
   // experiment_spec defines the experiment arms as well as which specific
   // benchmarks and workloads it should expect to find in task result output
@@ -29,7 +29,7 @@ message GetAnalysisRequest {
   // explicit experiment_spec value.
   //
   // *See infer_specs.go and infer_specs_test.go for implementation details.
-  optional ExperimentSpec experiment_spec = 2;
+  ExperimentSpec experiment_spec = 2;
 }
 
 message GetAnalysisResponse {
@@ -40,6 +40,6 @@ message GetAnalysisResponse {
   // specification based on swarming task metadata and contents of task
   // output json files. The GetAnalysis method will attach whatever
   // it was able to infer the experiment to this field.
-  optional ExperimentSpec inferred_experiment_spec = 2;
+  ExperimentSpec inferred_experiment_spec = 2;
 }
 

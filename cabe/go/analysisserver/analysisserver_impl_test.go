@@ -10,7 +10,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"go.skia.org/infra/cabe/go/backends"
@@ -163,9 +162,9 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			},
 		},
 	}
-	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: proto.String("123")}, analysisResults[0], false)
+	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: "123"}, analysisResults[0], false)
 	test("basic request, including experiment spec", &cpb.GetAnalysisRequest{
-		PinpointJobId: proto.String("123"),
+		PinpointJobId: "123",
 		ExperimentSpec: &cpb.ExperimentSpec{
 			Common:    cabeSpec.Common,
 			Control:   cabeSpec.Control,

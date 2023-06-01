@@ -8,7 +8,7 @@ import "spec.proto";
 // AnalysisMetadata defines the metadata of an analysis.
 message AnalysisMetadata {
   // The report_id of an analysis
-  optional string report_id = 1;
+  string report_id = 1;
 }
 
 // AnalysisResult defines the result of an analysis
