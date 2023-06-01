@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/pinpoint"
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
@@ -77,6 +78,8 @@ func main() {
 		frontend.TriageResponse{},
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
+		pinpoint.CreateBisectRequest{},
+		pinpoint.CreateBisectResponse{},
 		provider.Commit{},
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},

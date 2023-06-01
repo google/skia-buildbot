@@ -242,6 +242,30 @@ export interface TryBugResponse {
 	url: string;
 }
 
+export interface CreateBisectRequest {
+	comparison_mode: string;
+	target: string;
+	start_git_hash: string;
+	end_git_hash: string;
+	configuration: string;
+	benchmark: string;
+	story: string;
+	story_tags: string[] | null;
+	chart: string;
+	statistic: string;
+	comparison_magnitude: string;
+	pin: string;
+	project: string;
+	bug_id: string;
+	batch_id: string;
+	user: string;
+}
+
+export interface CreateBisectResponse {
+	job_id: string;
+	job_url: string;
+}
+
 export interface FullSummary {
 	summary: ClusterSummary;
 	triage: TriageStatus;
