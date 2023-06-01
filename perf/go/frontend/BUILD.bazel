@@ -35,6 +35,7 @@ go_library(
         "//perf/go/git",
         "//perf/go/git/provider",
         "//perf/go/notify",
+        "//perf/go/pinpoint",
         "//perf/go/progress",
         "//perf/go/psrefresh",
         "//perf/go/regression",

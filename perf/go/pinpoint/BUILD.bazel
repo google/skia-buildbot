@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pinpoint",
+    srcs = ["pinpoint.go"],
+    importpath = "go.skia.org/infra/perf/go/pinpoint",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "@org_golang_x_oauth2//google",
+    ],
+)

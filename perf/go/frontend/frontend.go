@@ -52,6 +52,7 @@ import (
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/pinpoint"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
@@ -138,6 +139,8 @@ type Frontend struct {
 	host string
 
 	anomalyStore anomalies.Store
+
+	pinpoint *pinpoint.Client
 }
 
 // New returns a new Frontend instance.
@@ -381,6 +384,11 @@ func (f *Frontend) initialize() {
 		f.anomalyStore, err = cache.New(chromeClient)
 		if err != nil {
 			sklog.Fatal("Failed to build anomalies.Store: %s", err)
+		}
+
+		f.pinpoint, err = pinpoint.New(ctx)
+		if err != nil {
+			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
 		}
 	}
 
@@ -1437,6 +1445,34 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
+// createBisectHandler takes the POST'd create bisect request
+// then it calls Pinpoint Service API to create bisect job and returns the job id and job url.
+func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if f.pinpoint == nil {
+		err := skerr.Fmt("Pinpoint client has not been initialized.")
+		httputils.ReportError(w, err, "Create bisect is not enabled for this instance, please check configuration file.", http.StatusInternalServerError)
+		return
+	}
+
+	var cbr pinpoint.CreateBisectRequest
+	if err := json.NewDecoder(r.Body).Decode(&cbr); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := f.pinpoint.CreateBisect(r.Context(), cbr)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to create bisect job.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to parse the response of creating bisect job: %s", err)
+	}
+}
+
 // Serve content on the configured endpoints.Serve.
 //
 // This method does not return.
@@ -1518,6 +1554,8 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/alert/notify/try", f.alertNotifyTryHandler).Methods("POST")
 
 	router.HandleFunc("/_/login/status", f.loginStatus).Methods("GET")
+
+	router.HandleFunc("/_/bisect/create", f.createBisectHandler).Methods("POST")
 
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)
