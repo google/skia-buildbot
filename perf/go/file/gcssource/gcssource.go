@@ -93,6 +93,11 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	// If we don't ack or nack a message, the pub/sub library will automatically
+	// extend the ack deadline of all fetched Messages up to the duration specified,
+	// which will stuck the ingestor and no new message will be consumed from pub/sub.
+	// Disable automatic deadline extension by specifying a duration less than 0
+	sub.ReceiveSettings.MaxExtension = -1
 
 	f, err := filter.New(instanceConfig.IngestionConfig.SourceConfig.AcceptIfNameMatches, instanceConfig.IngestionConfig.SourceConfig.RejectIfNameMatches)
 	if err != nil {
