@@ -2,10 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"flag"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -20,17 +17,17 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
-	"google.golang.org/protobuf/encoding/prototext"
 )
 
 // flags
 var (
-	configContents    = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
-	configFile        = flag.String("config_file", "", "Configuration file to use.")
+	rollerName        = flag.String("roller_name", "", "Name of the roller.")
+	childBranch       = flag.String("child_branch", "", "Git branch of the child.")
+	childRepo         = flag.String("child_repo", "", "Git repo URL of the child.")
+	childDisplayName  = flag.String("child_display_name", "", "Display name of the child.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
@@ -49,25 +46,39 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
-	// Decode the config.
-	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
-		sklog.Fatal("Exactly one of --config or --config_file is required.")
+	// Create the config. A lot of functionality requires an actual config
+	// struct, so we fake most of it here.
+	cfg := config.Config{
+		RollerName:        *rollerName,
+		ChildDisplayName:  *childDisplayName,
+		ParentDisplayName: "Google3",
+		ParentWaterfall:   "https://goto.google.com/skia-testing-status",
+		OwnerPrimary:      "fake",
+		OwnerSecondary:    "fake",
+		Contacts:          []string{"fake"},
+		ServiceAccount:    "fake",
+		IsInternal:        true,
+		Reviewer:          []string{"fake"},
+		CommitMsg: &config.CommitMsgConfig{
+			BuiltIn: config.CommitMsgConfig_DEFAULT,
+		},
+		CodeReview: &config.Config_Google3{
+			Google3: &config.Google3Config{},
+		},
+		Kubernetes: &config.KubernetesConfig{
+			Cpu:    "fake",
+			Memory: "fake",
+			Disk:   "fake",
+			Image:  "fake",
+		},
+		RepoManager: &config.Config_Google3RepoManager{
+			Google3RepoManager: &config.Google3RepoManagerConfig{
+				ChildBranch: *childBranch,
+				ChildRepo:   *childRepo,
+			},
+		},
 	}
-	var configBytes []byte
-	var err error
-	if *configContents != "" {
-		configBytes, err = base64.StdEncoding.DecodeString(*configContents)
-	} else {
-		err = util.WithReadFile(*configFile, func(f io.Reader) error {
-			configBytes, err = ioutil.ReadAll(f)
-			return err
-		})
-	}
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	var cfg config.Config
-	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
+	if err := cfg.Validate(); err != nil {
 		sklog.Fatal(err)
 	}
 
