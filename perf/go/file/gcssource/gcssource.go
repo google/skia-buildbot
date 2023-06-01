@@ -114,6 +114,7 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 
 // receiveSingleEventWrapper is the func we pass to Subscription.Receive.
 func (s *GCSSource) receiveSingleEventWrapper(ctx context.Context, msg *pubsub.Message) {
+	sklog.Debugf("Message received: %v", msg)
 	ack := s.receiveSingleEvent(ctx, msg)
 	if s.deadLetterEnabled {
 		return
@@ -121,9 +122,11 @@ func (s *GCSSource) receiveSingleEventWrapper(ctx context.Context, msg *pubsub.M
 	if ack {
 		s.ackCounter.Inc(1)
 		msg.Ack()
+		sklog.Debugf("Message was acked: %v", msg)
 	} else {
 		s.nackCounter.Inc(1)
 		msg.Nack()
+		sklog.Debugf("Message was nacked: %v", msg)
 	}
 }
 

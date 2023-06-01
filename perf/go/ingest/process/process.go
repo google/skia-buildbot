@@ -91,6 +91,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		params, values, gitHash, err := p.Parse(f)
 		if err != nil {
 			if err == parser.ErrFileShouldBeSkipped {
+				sklog.Debugf("File should be skipped %v: %s", f, err)
 				skipped.Inc(1)
 			} else {
 				sklog.Errorf("Failed to parse %v: %s", f, err)
@@ -162,6 +163,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 			f.PubSubMsg.Ack()
 			successfulWrite.Inc(1)
 			successfulWriteCount.Inc(int64(len(params)))
+			sklog.Debugf("Message acked: %v", f.PubSubMsg)
 		}
 
 		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
