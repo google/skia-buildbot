@@ -18,10 +18,10 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_driver/go/lib/docker"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -42,14 +42,14 @@ var (
 	rollerNameRegex = regexp.MustCompile(`\s*roller_name:\s*"(.+)"`)
 )
 
-func validateConfig(ctx context.Context, content []byte) (string, error) {
+func validateConfig(ctx context.Context, dockerClient *docker.Docker, content []byte) (string, error) {
 	image := imageRegex.Find(content)
 	if image == nil {
 		return "", skerr.Fmt("failed to find docker image in config")
 	}
 	configBase64 := base64.StdEncoding.EncodeToString(content)
-	_, err := exec.RunCwd(ctx, ".", "docker", "run", string(image), "autoroll-be", "--validate-config", fmt.Sprintf("--config=%s", configBase64))
-	if err != nil {
+	cmd := []string{"autoroll-be", "--validate-config", fmt.Sprintf("--config=%s", configBase64)}
+	if err := dockerClient.Run(ctx, string(image), cmd, nil, nil); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	rollerName := rollerNameRegex.FindSubmatch(content)
@@ -59,19 +59,19 @@ func validateConfig(ctx context.Context, content []byte) (string, error) {
 	return "", skerr.Fmt("failed to find roller_name in config")
 }
 
-func readAndValidateConfig(ctx context.Context, f string) (string, error) {
+func readAndValidateConfig(ctx context.Context, dockerClient *docker.Docker, f string) (string, error) {
 	var rollerName string
 	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		content, err := ioutil.ReadFile(f)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		rollerName, err = validateConfig(ctx, content)
+		rollerName, err = validateConfig(ctx, dockerClient, content)
 		return skerr.Wrap(err)
 	})
 }
 
-func validateTemplate(ctx context.Context, client *http.Client, vars *conversion.TemplateVars, f string) ([]string, error) {
+func validateTemplate(ctx context.Context, client *http.Client, dockerClient *docker.Docker, vars *conversion.TemplateVars, f string) ([]string, error) {
 	var rollerNames []string
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		tmplContents, err := ioutil.ReadFile(f)
@@ -83,7 +83,7 @@ func validateTemplate(ctx context.Context, client *http.Client, vars *conversion
 			return skerr.Wrapf(err, "failed to process template file %s", f)
 		}
 		for _, cfgBytes := range generatedConfigs {
-			rollerName, err := validateConfig(ctx, cfgBytes)
+			rollerName, err := validateConfig(ctx, dockerClient, cfgBytes)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -111,6 +111,15 @@ func main() {
 	if err != nil {
 		td.Fatalf(ctx, "Failed to create template vars: %s", err)
 	}
+	dockerClient, err := docker.New(ctx, ts)
+	if err != nil {
+		td.Fatalf(ctx, "Failed to create Docker client: %s", err)
+	}
+	defer func() {
+		if err := dockerClient.Cleanup(ctx); err != nil {
+			td.Fatalf(ctx, "failed Docker cleanup: %s", err)
+		}
+	}()
 
 	// Gather files to validate.
 	configFiles := []string{}
@@ -137,7 +146,7 @@ func main() {
 	// Validate the file(s).
 	rollers := make(map[string]string, len(configFiles))
 	for _, f := range configFiles {
-		rollerName, err := readAndValidateConfig(ctx, f)
+		rollerName, err := readAndValidateConfig(ctx, dockerClient, f)
 		if err != nil {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
@@ -147,7 +156,7 @@ func main() {
 		rollers[rollerName] = f
 	}
 	for _, f := range templateFiles {
-		rollerNames, err := validateTemplate(ctx, client, vars, f)
+		rollerNames, err := validateTemplate(ctx, client, dockerClient, vars, f)
 		if err != nil {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}

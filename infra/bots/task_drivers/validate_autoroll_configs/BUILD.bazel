@@ -8,10 +8,10 @@ go_library(
     deps = [
         "//autoroll/go/config/conversion",
         "//go/common",
-        "//go/exec",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
+        "//task_driver/go/lib/docker",
         "//task_driver/go/lib/git_steps",
         "//task_driver/go/td",
     ],
