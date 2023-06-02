@@ -122,6 +122,11 @@ func (s *GCSSource) receiveSingleEventWrapper(ctx context.Context, msg *pubsub.M
 	sklog.Debugf("Message received: %v", msg)
 	ack := s.receiveSingleEvent(ctx, msg)
 	if s.deadLetterEnabled {
+		if !ack {
+			s.nackCounter.Inc(1)
+			msg.Nack()
+			sklog.Debugf("Message nacked during receive check: %v", msg)
+		}
 		return
 	}
 	if ack {

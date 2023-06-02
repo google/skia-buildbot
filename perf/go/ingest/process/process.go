@@ -71,6 +71,8 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 	successfulWrite := metrics2.GetCounter("perfserver_ingest_successful_write")
 	successfulWriteCount := metrics2.GetCounter("perfserver_ingest_num_points_written")
 
+	dlEnabled := config.IsDeadLetterCollectionEnabled(instanceConfig)
+
 	// New Parser.
 	p, err := parser.New(instanceConfig)
 	if err != nil {
@@ -97,7 +99,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 				sklog.Errorf("Failed to parse %v: %s", f, err)
 				failedToParse.Inc(1)
 			}
-
+			nackMessageIfNecessary(dlEnabled, f)
 			continue
 		}
 
@@ -106,6 +108,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		// if git_hash is missing from GCS file
 		if len(gitHash) == 0 {
 			sklog.Errorf("Unable to handle empty git hash.")
+			nackMessageIfNecessary(dlEnabled, f)
 			continue
 		}
 
@@ -114,6 +117,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 			commitNumberFromFile, err = p.ParseCommitNumberFromGitHash(gitHash)
 			if err != nil {
 				sklog.Errorf("Unable to convert githash to integer commit number %q.", gitHash, err)
+				nackMessageIfNecessary(dlEnabled, f)
 				continue
 			}
 		}
@@ -128,6 +132,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 			if err != nil {
 				badGitHash.Inc(1)
 				sklog.Error("Failed to find commit number %v: %s", f, err)
+				nackMessageIfNecessary(dlEnabled, f)
 				continue
 			}
 		}
@@ -159,6 +164,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		if writeFailed {
 			failedToWrite.Inc(1)
 			sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
+			nackMessageIfNecessary(dlEnabled, f)
 		} else {
 			f.PubSubMsg.Ack()
 			successfulWrite.Inc(1)
@@ -235,4 +241,12 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 
 	sklog.Infof("Exited while waiting on files. Should only happen on source_type=dir.")
 	return nil
+}
+
+func nackMessageIfNecessary(dlEnabled bool, f file.File) {
+	if dlEnabled {
+		// This message will be available to the ingestor immediately.
+		f.PubSubMsg.Nack()
+		sklog.Debugf("Message nacked during message process: %v", f.PubSubMsg)
+	}
 }
