@@ -11,13 +11,19 @@ import (
 	specpb "go.skia.org/infra/cabe/go/proto"
 )
 
+const (
+	taskCompletedState = "COMPLETED"
+)
+
 // Checker performs diagnostic checks on experiment artifacts prior to analysis. Its main use case
 // is akin to a compiler's static type checker - it identifies conditions that violate assumptions
 // about the input data before proceeding with the rest of the input processing steps.
 type Checker interface {
 	// Findings returns a list of strings describing potential issues that the checker identified.
 	Findings() []string
-	// CheckRunTask validates a single swarming task request/result pair in isolation.
+	// CheckSwarmingTask validates a single swarming task in isolation.
+	CheckSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata)
+	// CheckRunTask validates a single swarming run task request/result pair in isolation.
 	CheckRunTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata)
 	// CheckArmComparability validates assumptions about how treatment and control arm tasks may
 	// differ from each other, and how tasks within an arm may differ from each other.
@@ -115,6 +121,19 @@ func NewChecker(opts ...CheckerOptions) Checker {
 
 func (c *checker) addFinding(checkName string, msg string) {
 	c.findings = append(c.findings, fmt.Sprintf("%s: %s", checkName, msg))
+}
+
+func (c *checker) CheckSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata) {
+	addFinding := func(msg string) {
+		c.addFinding(fmt.Sprintf("CheckSwarmingTask %q", taskInfo.TaskId), msg)
+	}
+	if taskInfo.TaskResult == nil {
+		addFinding("SwarmingRpcsTaskRequestMetadata had no TaskResult")
+		return
+	}
+	if taskInfo.TaskResult.State != taskCompletedState {
+		addFinding(fmt.Sprintf("TaskResult is in state %q rather than %q", taskInfo.TaskResult.State, taskCompletedState))
+	}
 }
 
 // CheckRunTask verifies assumptions about an individual request/result pair for a Swarming task

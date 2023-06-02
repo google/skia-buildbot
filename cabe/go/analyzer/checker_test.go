@@ -12,6 +12,8 @@ import (
 	"go.skia.org/infra/go/util"
 
 	specpb "go.skia.org/infra/cabe/go/proto"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDisjointDimensions(t *testing.T) {
@@ -164,6 +166,25 @@ func TestSwarmingTaskInfos_disjointRequestDimensions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCheckSwarmingTask_stateNotCOMPLETED(t *testing.T) {
+	c := NewChecker()
+	c.CheckSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+		Request: &swarming.SwarmingRpcsTaskRequest{},
+		TaskResult: &swarming.SwarmingRpcsTaskResult{
+			State: "CANCELED",
+		},
+	})
+	assert.Equal(t, len(c.Findings()), 1)
+}
+
+func TestCheckSwarmingTask_noTaskResult(t *testing.T) {
+	c := NewChecker()
+	c.CheckSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+		Request: &swarming.SwarmingRpcsTaskRequest{},
+	})
+	assert.Equal(t, len(c.Findings()), 1)
 }
 
 func TestCheckRunTask(t *testing.T) {

@@ -304,18 +304,25 @@ func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
 		return err
 	}
 
+	for _, taskInfo := range allTaskInfos {
+		c.CheckSwarmingTask(taskInfo)
+	}
+
 	processedTasks, err := processPinpointTryjobTasks(allTaskInfos)
 	if err != nil {
+		sklog.Errorf("RunChecker: processPinpointTryjobTasks returned %v", err)
 		return err
 	}
 
 	err = a.extractTaskOutputs(ctx, processedTasks)
 	if err != nil {
+		sklog.Errorf("RunChecker: extractTaskOutputs returned %v", err)
 		return err
 	}
 
 	pairs, err := processedTasks.pairedTasks()
 	if err != nil {
+		sklog.Errorf("RunChecker: processedTasks.pairedTasks() returned %v", err)
 		return err
 	}
 

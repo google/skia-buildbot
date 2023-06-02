@@ -47,7 +47,7 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 
 	results, err := a.Run(ctx)
 	if err != nil {
-		sklog.Fatalf("failed to analyze %s: %+v", cmd.pinpointJobID, err)
+		sklog.Errorf("failed to analyze %s: %+v", cmd.pinpointJobID, err)
 		return err
 	}
 

@@ -213,10 +213,7 @@ func ToZipFile(replayZipFile string,
 }
 
 func (r *ReplayBackends) Close() error {
-	sklog.Infof("closing replay backends")
 	if r.zipWriter == nil {
-		sklog.Infof("no zipWriter to close")
-
 		return nil
 	}
 	if err := r.zipWriter.Close(); err != nil {

@@ -60,7 +60,7 @@ func (cmd *readCASCmd) action(cliCtx *cli.Context) error {
 	benchmarkResults, err := cmd.casResultReader(ctx, cmd.casInstance, cmd.rootDigest)
 
 	if err != nil {
-		sklog.Fatalf("fetch benchmark json: %v", err)
+		sklog.Errorf("fetch benchmark json: %v", err)
 		return err
 	}
 

@@ -45,8 +45,7 @@ func (cmd *checkCmd) action(cliCtx *cli.Context) error {
 
 	c := analyzer.NewChecker(analyzer.DefaultCheckerOpts...)
 	if err := a.RunChecker(ctx, c); err != nil {
-		sklog.Fatalf("run checker error: %v", err)
-		return err
+		sklog.Errorf("run checker error: %v", err)
 	}
 
 	exSpec := a.ExperimentSpec()
