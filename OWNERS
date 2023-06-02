@@ -1,1 +1,8 @@
 *
+
+per-file go.mod,package.json=borenet@google.com
+per-file go.mod,package.json=cmumford@google.com
+per-file go.mod,package.json=jcgregorio@google.com
+per-file go.mod,package.json=kjlubick@google.com
+per-file go.mod,package.json=lovisolo@google.com
+per-file go.mod,package.json=rmistry@google.com
