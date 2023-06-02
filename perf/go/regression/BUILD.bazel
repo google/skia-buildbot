@@ -13,6 +13,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/regression",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",

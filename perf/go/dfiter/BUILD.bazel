@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/dfiter",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/query",
         "//go/skerr",
         "//go/sklog",

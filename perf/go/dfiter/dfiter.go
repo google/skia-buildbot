@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -144,6 +145,10 @@ func NewDataFrameIterator(
 		sklog.Infof("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1)
 		return nil, ErrInsufficientData
 	}
+	// Record the total number of floating point values that were just queried
+	// fron the database. Since we know the size of a float we can use this to
+	// roughly estimate the MB/s of regression detection.
+	metrics2.GetCounter("perf_regression_detection_floats").Inc(int64(len(df.Header) * len(df.TraceSet)))
 	return &dataframeSlicer{
 		df:     df,
 		size:   2*alert.Radius + 1,

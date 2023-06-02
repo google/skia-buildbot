@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -159,6 +160,9 @@ func ProcessRegressions(ctx context.Context,
 	allRequests := allRequestsFromBaseRequest(req, ps, expandBaseRequest)
 	span.AddAttributes(trace.Int64Attribute("num_requests", int64(len(allRequests))))
 	sklog.Infof("Single request expanded into %d requests.", len(allRequests))
+
+	metrics2.GetCounter("perf_regression_detection_requests").Inc(1)
+
 	for index, req := range allRequests {
 		req.Progress.Message("Requests", fmt.Sprintf("Processing request %d/%d", index, len(allRequests)))
 		req.Progress.Message("Stage", "Loading data to analyze")
