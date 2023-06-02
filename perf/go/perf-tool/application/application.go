@@ -817,7 +817,7 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		if err != nil {
 			return fmt.Errorf("Failed to create parser: %s", skerr.Unwrap(err))
 		}
-		p, v, hash, err := parser.Parse(f)
+		p, v, hash, err := parser.Parse(ctx, f)
 		if err != nil {
 			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
 		}

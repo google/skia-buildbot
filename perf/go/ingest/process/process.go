@@ -90,7 +90,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		filesReceived.Inc(1)
 
 		// Parse the file.
-		params, values, gitHash, err := p.Parse(f)
+		params, values, gitHash, err := p.Parse(ctx, f)
 		if err != nil {
 			if err == parser.ErrFileShouldBeSkipped {
 				sklog.Debugf("File should be skipped %v: %s", f, err)

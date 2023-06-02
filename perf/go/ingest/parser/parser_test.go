@@ -2,6 +2,7 @@
 package parser
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -129,7 +130,7 @@ var SubTests = map[string]struct {
 }
 
 func parse_Success(t *testing.T, p *Parser, f file.File) {
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
 	assert.Len(t, values, 4)
@@ -151,7 +152,7 @@ func parseTryBot_Success(t *testing.T, p *Parser, f file.File) {
 
 func parse_NoBranchSpecified_Success(t *testing.T, p *Parser, f file.File) {
 	p.branchNames = nil
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
 	assert.Len(t, values, 4)
@@ -163,7 +164,7 @@ func parse_NoBranchSpecified_Success(t *testing.T, p *Parser, f file.File) {
 }
 
 func parse_MalformedJSONError(t *testing.T, p *Parser, f file.File) {
-	_, _, _, err := p.Parse(f)
+	_, _, _, err := p.Parse(context.Background(), f)
 	require.Error(t, err)
 	assert.NotEqual(t, ErrFileShouldBeSkipped, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
@@ -178,21 +179,21 @@ func parseTryBot_MalformedJSONError(t *testing.T, p *Parser, f file.File) {
 }
 
 func parse_SkipIfNotListedInBranches(t *testing.T, p *Parser, f file.File) {
-	_, _, _, err := p.Parse(f)
+	_, _, _, err := p.Parse(context.Background(), f)
 	assert.Equal(t, ErrFileShouldBeSkipped, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
 }
 
 func parse_SkipIfListedInBranchesButHasNoData(t *testing.T, p *Parser, f file.File) {
-	_, _, _, err := p.Parse(f)
+	_, _, _, err := p.Parse(context.Background(), f)
 	assert.Equal(t, ErrFileShouldBeSkipped, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
 }
 
 func parse_OnlyOneMeasurementInfile(t *testing.T, p *Parser, f file.File) {
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	assert.Len(t, params, 1)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
@@ -200,7 +201,7 @@ func parse_OnlyOneMeasurementInfile(t *testing.T, p *Parser, f file.File) {
 }
 
 func parse_OnlyOneMeasurementWithValueZeroInfile(t *testing.T, p *Parser, f file.File) {
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	assert.Len(t, params, 1)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
@@ -223,7 +224,7 @@ func parseTryBot_ReadErr(t *testing.T, p *Parser, f file.File) {
 
 func parse_ReadErr(t *testing.T, p *Parser, f file.File) {
 	f.Contents = ioutil.NopCloser(alwaysErrReader{})
-	_, _, _, err := p.Parse(f)
+	_, _, _, err := p.Parse(context.Background(), f)
 	require.Error(t, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(1), p.parseFailCounter.Get())
@@ -239,7 +240,7 @@ var V1OnlySubTests = map[string]struct {
 }
 
 func parse_WithCommitNumberSpecified_Success(t *testing.T, p *Parser, f file.File) {
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	commitNumber, err := p.ParseCommitNumberFromGitHash(gitHash)
 	require.NoError(t, err)
@@ -253,7 +254,7 @@ func parse_WithCommitNumberSpecified_Success(t *testing.T, p *Parser, f file.Fil
 }
 
 func parse_InvalidCommitNumber_Error(t *testing.T, p *Parser, f file.File) {
-	_, _, gitHash, err := p.Parse(f)
+	_, _, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	commitNumber, err := p.ParseCommitNumberFromGitHash(gitHash)
 	require.Error(t, err)
@@ -376,7 +377,7 @@ func TestParseWithInvalidCharRegex_Success(t *testing.T) {
 		Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
 	}
 
-	params, values, gitHash, err := p.Parse(f)
+	params, values, gitHash, err := p.Parse(context.Background(), f)
 	require.NoError(t, err)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
 	assert.Len(t, values, 4)
@@ -437,7 +438,7 @@ func TestParseWithConfigFile_InvalidCharRegex_NoEqual_NoComma(t *testing.T) {
 				Name:     fileName,
 				Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
 			}
-			params, _, _, err := p.Parse(f)
+			params, _, _, err := p.Parse(context.Background(), f)
 			require.NoError(t, err)
 			assert.Contains(t, params, expectedParams)
 			assert.Equal(t, int64(1), p.parseCounter.Get())
@@ -448,7 +449,7 @@ func TestParseWithConfigFile_InvalidCharRegex_NoEqual_NoComma(t *testing.T) {
 				Name:     fileName,
 				Contents: testutils.GetReader(t, filepath.Join(versionOneName, fileName)),
 			}
-			params, _, _, err = p.Parse(f)
+			params, _, _, err = p.Parse(context.Background(), f)
 			require.NoError(t, err)
 			assert.Contains(t, params, expectedParams)
 			assert.Equal(t, int64(2), p.parseCounter.Get())

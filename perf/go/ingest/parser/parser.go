@@ -3,6 +3,7 @@ package parser
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -243,7 +245,10 @@ func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramt
 // processed any further.
 //
 // The File.Contents will be closed when this func returns.
-func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, error) {
+func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params, []float32, string, error) {
+	_, span := trace.StartSpan(ctx, "ingest.parser.Parse")
+	defer span.End()
+
 	defer util.Close(file.Contents)
 	p.parseCounter.Inc(1)
 

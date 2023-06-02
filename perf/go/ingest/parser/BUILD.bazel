@@ -17,6 +17,7 @@ go_library(
         "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/types",
+        "@io_opencensus_go//trace",
     ],
 )
 
