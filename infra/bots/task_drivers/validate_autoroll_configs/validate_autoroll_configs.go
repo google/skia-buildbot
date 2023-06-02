@@ -23,7 +23,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/docker"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
+	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -42,14 +44,22 @@ var (
 	rollerNameRegex = regexp.MustCompile(`\s*roller_name:\s*"(.+)"`)
 )
 
-func validateConfig(ctx context.Context, dockerClient *docker.Docker, content []byte) (string, error) {
+func validateConfig(ctx context.Context, ts oauth2.TokenSource, dockerConfigDir string, content []byte) (string, error) {
 	image := imageRegex.Find(content)
 	if image == nil {
 		return "", skerr.Fmt("failed to find docker image in config")
 	}
 	configBase64 := base64.StdEncoding.EncodeToString(content)
 	cmd := []string{"autoroll-be", "--validate-config", fmt.Sprintf("--config=%s", configBase64)}
-	if err := dockerClient.Run(ctx, string(image), cmd, nil, nil); err != nil {
+	// Login to docker (required to push to docker).
+	token, err := ts.Token()
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	if err := docker.Login(ctx, token.AccessToken, string(image), dockerConfigDir); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	if err := docker.Run(ctx, string(image), dockerConfigDir, cmd, nil, nil); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	rollerName := rollerNameRegex.FindSubmatch(content)
@@ -59,19 +69,19 @@ func validateConfig(ctx context.Context, dockerClient *docker.Docker, content []
 	return "", skerr.Fmt("failed to find roller_name in config")
 }
 
-func readAndValidateConfig(ctx context.Context, dockerClient *docker.Docker, f string) (string, error) {
+func readAndValidateConfig(ctx context.Context, ts oauth2.TokenSource, dockerConfigDir string, f string) (string, error) {
 	var rollerName string
 	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		content, err := ioutil.ReadFile(f)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		rollerName, err = validateConfig(ctx, dockerClient, content)
+		rollerName, err = validateConfig(ctx, ts, dockerConfigDir, content)
 		return skerr.Wrap(err)
 	})
 }
 
-func validateTemplate(ctx context.Context, client *http.Client, dockerClient *docker.Docker, vars *conversion.TemplateVars, f string) ([]string, error) {
+func validateTemplate(ctx context.Context, client *http.Client, ts oauth2.TokenSource, dockerConfigDir string, vars *conversion.TemplateVars, f string) ([]string, error) {
 	var rollerNames []string
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		tmplContents, err := ioutil.ReadFile(f)
@@ -83,7 +93,7 @@ func validateTemplate(ctx context.Context, client *http.Client, dockerClient *do
 			return skerr.Wrapf(err, "failed to process template file %s", f)
 		}
 		for _, cfgBytes := range generatedConfigs {
-			rollerName, err := validateConfig(ctx, dockerClient, cfgBytes)
+			rollerName, err := validateConfig(ctx, ts, dockerConfigDir, cfgBytes)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -111,13 +121,14 @@ func main() {
 	if err != nil {
 		td.Fatalf(ctx, "Failed to create template vars: %s", err)
 	}
-	dockerClient, err := docker.New(ctx, ts)
+	// Create a temporary config dir for Docker.
+	dockerConfigDir, err := os_steps.TempDir(ctx, "", "")
 	if err != nil {
-		td.Fatalf(ctx, "Failed to create Docker client: %s", err)
+		td.Fatal(ctx, err)
 	}
 	defer func() {
-		if err := dockerClient.Cleanup(ctx); err != nil {
-			td.Fatalf(ctx, "failed Docker cleanup: %s", err)
+		if err := os_steps.RemoveAll(ctx, dockerConfigDir); err != nil {
+			sklog.Errorf("Could not remove %s: %s", dockerConfigDir, err)
 		}
 	}()
 
@@ -146,7 +157,7 @@ func main() {
 	// Validate the file(s).
 	rollers := make(map[string]string, len(configFiles))
 	for _, f := range configFiles {
-		rollerName, err := readAndValidateConfig(ctx, dockerClient, f)
+		rollerName, err := readAndValidateConfig(ctx, ts, dockerConfigDir, f)
 		if err != nil {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
@@ -156,7 +167,7 @@ func main() {
 		rollers[rollerName] = f
 	}
 	for _, f := range templateFiles {
-		rollerNames, err := validateTemplate(ctx, client, dockerClient, vars, f)
+		rollerNames, err := validateTemplate(ctx, client, ts, dockerConfigDir, vars, f)
 		if err != nil {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
