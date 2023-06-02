@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -60,6 +61,158 @@ func sendPubSubEvent(ctx context.Context, pubSubClient *pubsub.Client, topicName
 	return skerr.Wrap(err)
 }
 
+// workerInfo is all the information that a worker Go routine will need to
+// process a single incoming file.
+type workerInfo struct {
+	filesReceived        metrics2.Counter
+	failedToParse        metrics2.Counter
+	skipped              metrics2.Counter
+	badGitHash           metrics2.Counter
+	failedToWrite        metrics2.Counter
+	successfulWrite      metrics2.Counter
+	successfulWriteCount metrics2.Counter
+	dlEnabled            bool
+	p                    *parser.Parser
+	store                tracestore.TraceStore
+	g                    *git.Git
+	pubSubClient         *pubsub.Client
+	instanceConfig       *config.InstanceConfig
+}
+
+// newWorker returns a new *workerInfo.
+func newWorker(
+	filesReceived metrics2.Counter,
+	failedToParse metrics2.Counter,
+	skipped metrics2.Counter,
+	badGitHash metrics2.Counter,
+	failedToWrite metrics2.Counter,
+	successfulWrite metrics2.Counter,
+	successfulWriteCount metrics2.Counter,
+	dlEnabled bool,
+	p *parser.Parser,
+	store tracestore.TraceStore,
+	g *git.Git,
+	pubSubClient *pubsub.Client,
+	instanceConfig *config.InstanceConfig,
+) *workerInfo {
+	return &workerInfo{
+		filesReceived:        filesReceived,
+		failedToParse:        failedToParse,
+		skipped:              skipped,
+		badGitHash:           badGitHash,
+		failedToWrite:        failedToWrite,
+		successfulWrite:      successfulWrite,
+		successfulWriteCount: successfulWriteCount,
+		dlEnabled:            dlEnabled,
+		p:                    p,
+		store:                store,
+		g:                    g,
+		pubSubClient:         pubSubClient,
+		instanceConfig:       instanceConfig,
+	}
+}
+
+// processSingleFile parses a single incoming file and write the data to the
+// datastore.
+func (w *workerInfo) processSingleFile(f file.File) error {
+	ctx := context.Background()
+	ctx, span := trace.StartSpan(ctx, "ingest.parser.processSingleFile")
+	defer span.End()
+
+	sklog.Infof("Ingest received: %v", f)
+	w.filesReceived.Inc(1)
+
+	// Parse the file.
+	params, values, gitHash, err := w.p.Parse(ctx, f)
+	if err != nil {
+		if err == parser.ErrFileShouldBeSkipped {
+			sklog.Debugf("File should be skipped %v: %s", f, err)
+			w.skipped.Inc(1)
+		} else {
+			sklog.Errorf("Failed to parse %v: %s", f, err)
+			w.failedToParse.Inc(1)
+		}
+		nackMessageIfNecessary(w.dlEnabled, f)
+		return nil
+	}
+
+	sklog.Info("Lookup CommitNumber")
+
+	// if git_hash is missing from GCS file
+	if len(gitHash) == 0 {
+		sklog.Errorf("Unable to handle empty git hash.")
+		nackMessageIfNecessary(w.dlEnabled, f)
+		return nil
+	}
+
+	commitNumberFromFile := types.CommitNumber(0)
+	if w.g.RepoSuppliedCommitNumber() {
+		commitNumberFromFile, err = w.p.ParseCommitNumberFromGitHash(gitHash)
+		if err != nil {
+			sklog.Errorf("Unable to convert githash to integer commit number %q.", gitHash, err)
+			nackMessageIfNecessary(w.dlEnabled, f)
+			return nil
+		}
+	}
+
+	// Convert gitHash or check the existance of a commitNumber.
+	commitNumber, err := w.g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
+	if err != nil {
+		if err := w.g.Update(ctx); err != nil {
+			sklog.Errorf("Failed to Update: ", err)
+		}
+		commitNumber, err = w.g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
+		if err != nil {
+			w.badGitHash.Inc(1)
+			sklog.Error("Failed to find commit number %v: %s", f, err)
+			nackMessageIfNecessary(w.dlEnabled, f)
+			return nil
+		}
+	}
+
+	sklog.Info("Build ParamSet")
+	// Build paramset from params.
+	ps := paramtools.NewParamSet()
+	for _, p := range params {
+		ps.AddParams(p)
+	}
+	ps.Normalize()
+
+	sklog.Info("WriteTraces")
+	const retries = writeRetries
+	i := 0
+	writeFailed := false
+	for {
+		// Write data to the trace store.
+		err := w.store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
+		if err == nil {
+			break
+		}
+		i++
+		if i > retries {
+			writeFailed = true
+			break
+		}
+	}
+	if writeFailed {
+		w.failedToWrite.Inc(1)
+		sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
+		nackMessageIfNecessary(w.dlEnabled, f)
+	} else {
+		f.PubSubMsg.Ack()
+		w.successfulWrite.Inc(1)
+		w.successfulWriteCount.Inc(int64(len(params)))
+		sklog.Debugf("Message acked: %v", f.PubSubMsg)
+	}
+
+	if err := sendPubSubEvent(ctx, w.pubSubClient, w.instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
+		sklog.Errorf("Failed to send pubsub event: %s", err)
+	} else {
+		sklog.Info("FileIngestionTopicName pubsub message sent.")
+	}
+	return nil
+}
+
 // worker ingests files that arrive on the given 'ch' channel.
 func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestore.TraceStore, ch <-chan file.File, pubSubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
 	// Metrics.
@@ -70,7 +223,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 	failedToWrite := metrics2.GetCounter("perfserver_ingest_failed_to_write")
 	successfulWrite := metrics2.GetCounter("perfserver_ingest_successful_write")
 	successfulWriteCount := metrics2.GetCounter("perfserver_ingest_num_points_written")
-
 	dlEnabled := config.IsDeadLetterCollectionEnabled(instanceConfig)
 
 	// New Parser.
@@ -81,101 +233,15 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		return
 	}
 
+	workerInfo := newWorker(filesReceived, failedToParse, skipped, badGitHash, failedToWrite, successfulWrite, successfulWriteCount, dlEnabled, p, store, g, pubSubClient, instanceConfig)
+
 	for f := range ch {
 		if err := ctx.Err(); err != nil {
 			sklog.Error(err)
 			break
 		}
-		sklog.Infof("Ingest received: %v", f)
-		filesReceived.Inc(1)
-
-		// Parse the file.
-		params, values, gitHash, err := p.Parse(ctx, f)
-		if err != nil {
-			if err == parser.ErrFileShouldBeSkipped {
-				sklog.Debugf("File should be skipped %v: %s", f, err)
-				skipped.Inc(1)
-			} else {
-				sklog.Errorf("Failed to parse %v: %s", f, err)
-				failedToParse.Inc(1)
-			}
-			nackMessageIfNecessary(dlEnabled, f)
-			continue
-		}
-
-		sklog.Info("Lookup CommitNumber")
-
-		// if git_hash is missing from GCS file
-		if len(gitHash) == 0 {
-			sklog.Errorf("Unable to handle empty git hash.")
-			nackMessageIfNecessary(dlEnabled, f)
-			continue
-		}
-
-		commitNumberFromFile := types.CommitNumber(0)
-		if g.RepoSuppliedCommitNumber() {
-			commitNumberFromFile, err = p.ParseCommitNumberFromGitHash(gitHash)
-			if err != nil {
-				sklog.Errorf("Unable to convert githash to integer commit number %q.", gitHash, err)
-				nackMessageIfNecessary(dlEnabled, f)
-				continue
-			}
-		}
-
-		// Convert gitHash or check the existance of a commitNumber.
-		commitNumber, err := g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
-		if err != nil {
-			if err := g.Update(ctx); err != nil {
-				sklog.Errorf("Failed to Update: ", err)
-			}
-			commitNumber, err = g.GetCommitNumber(ctx, gitHash, commitNumberFromFile)
-			if err != nil {
-				badGitHash.Inc(1)
-				sklog.Error("Failed to find commit number %v: %s", f, err)
-				nackMessageIfNecessary(dlEnabled, f)
-				continue
-			}
-		}
-
-		sklog.Info("Build ParamSet")
-		// Build paramset from params.
-		ps := paramtools.NewParamSet()
-		for _, p := range params {
-			ps.AddParams(p)
-		}
-		ps.Normalize()
-
-		sklog.Info("WriteTraces")
-		const retries = writeRetries
-		i := 0
-		writeFailed := false
-		for {
-			// Write data to the trace store.
-			err := store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
-			if err == nil {
-				break
-			}
-			i++
-			if i > retries {
-				writeFailed = true
-				break
-			}
-		}
-		if writeFailed {
-			failedToWrite.Inc(1)
-			sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
-			nackMessageIfNecessary(dlEnabled, f)
-		} else {
-			f.PubSubMsg.Ack()
-			successfulWrite.Inc(1)
-			successfulWriteCount.Inc(int64(len(params)))
-			sklog.Debugf("Message acked: %v", f.PubSubMsg)
-		}
-
-		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
-			sklog.Errorf("Failed to send pubsub event: %s", err)
-		} else {
-			sklog.Info("FileIngestionTopicName pubsub message sent.")
+		if err := workerInfo.processSingleFile(f); err != nil {
+			break
 		}
 	}
 	wg.Done()
