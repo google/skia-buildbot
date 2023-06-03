@@ -199,10 +199,12 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		sklog.Errorf("Failed to write after %d retries %q: %s", retries, f.Name, err)
 		nackMessageIfNecessary(w.dlEnabled, f)
 	} else {
-		f.PubSubMsg.Ack()
+		if f.PubSubMsg != nil {
+			f.PubSubMsg.Ack()
+			sklog.Debugf("Message acked: %v", f.PubSubMsg)
+		}
 		w.successfulWrite.Inc(1)
 		w.successfulWriteCount.Inc(int64(len(params)))
-		sklog.Debugf("Message acked: %v", f.PubSubMsg)
 	}
 
 	if err := sendPubSubEvent(ctx, w.pubSubClient, w.instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
