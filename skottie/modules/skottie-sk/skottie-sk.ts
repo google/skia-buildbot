@@ -79,6 +79,8 @@ import '../skottie-file-form-sk';
 import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-form-sk';
 import '../skottie-background-settings-sk';
 import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
+import '../skottie-text-sampler-sk';
+import { SkottieTextSampleEventDetail } from '../skottie-text-sampler-sk/skottie-text-sampler-sk';
 import '../skottie-font-selector-sk';
 import { SkottieFontEventDetail } from '../skottie-font-selector-sk/skottie-font-selector-sk';
 
@@ -336,6 +338,21 @@ export class SkottieSk extends ElementSk {
     `;
   }
 
+  private renderTextSampler(): TemplateResult {
+    return html`
+      <details class="expando">
+        <summary id="sampler-open">
+          <span>Text Samples</span><expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-text-sampler-sk
+          @animation-updated=${this.onAnimationUpdated}
+          .animation=${this.state.lottie}
+        ></skottie-text-sampler-sk>
+      </details>
+    `;
+  }
+
   private fontSelector() {
     return html`
       <details class="embed expando">
@@ -391,8 +408,8 @@ export class SkottieSk extends ElementSk {
   };
 
   private rightControls = () => html`
-    ${this.fontSelector()} ${this.jsonTextEditor()} ${this.library()}
-    ${this.embedDialog()}
+    ${this.fontSelector()} ${this.renderTextSampler()} ${this.jsonTextEditor()}
+    ${this.library()} ${this.embedDialog()}
   `;
 
   private renderDownload() {
@@ -1637,7 +1654,9 @@ export class SkottieSk extends ElementSk {
     }
   }
 
-  private onAnimationUpdated(ev: CustomEvent<SkottieFontEventDetail>): void {
+  private onAnimationUpdated(
+    ev: CustomEvent<SkottieFontEventDetail | SkottieTextSampleEventDetail>
+  ): void {
     this.state.lottie = ev.detail.animation;
     this.upload();
   }
