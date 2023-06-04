@@ -1726,6 +1726,9 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	if len(paramSetsContext) > 0 {
 		err := util.ChunkIter(len(paramSetsContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeParamSetsChunk")
+			defer span.End()
+
 			chunk := paramSetsContext[startIdx:endIdx]
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[insertIntoParamSets].Execute(&b, chunk); err != nil {
@@ -1796,6 +1799,9 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	if len(postingsTemplateContext) > 0 {
 		err := util.ChunkIter(len(postingsTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
+			defer span.End()
+
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
@@ -1820,6 +1826,9 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
 	err = util.ChunkIter(len(valuesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunk")
+		defer span.End()
+
 		var b bytes.Buffer
 		if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
 			return skerr.Wrapf(err, "failed to expand trace values template")
