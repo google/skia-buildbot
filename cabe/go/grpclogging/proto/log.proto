@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package cabe.grpclogs;
+option go_package = "go.skia.org/infra/cabe/go/grpclogging/proto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/any.proto";
+
+// Entry is a structured log message for grpc events.
+// It can represent either side of an rpc: client or server.
+message Entry {
+    google.protobuf.Timestamp start  = 1;
+    google.protobuf.Duration elapsed = 2;
+    int32 status_code = 3;
+    string status_message = 4;
+    repeated google.protobuf.Any status_details = 5;
+    string error = 6;
+
+    // When cabe receives an incoming gRPC request, that would
+    // be logged in the server_unary field. Since cabe does
+    // not currently implement any streaming server calls,
+    // there is no corresponding server_stream field.
+    ServerUnary server_unary = 7;
+
+    // When cabe makes an outgoing unary gRPC call to some
+    // other service, that gets logged in client_unary.
+    ClientUnary client_unary = 8;
+
+    // When cabe makes an outgoing streaming gRPC call to some
+    // other service, that gets logged in client_stream.
+    ClientStream client_stream = 9;
+}
+
+// ServerUnary logs the server side of a grpc unary request, as intercepted
+// by https://pkg.go.dev/google.golang.org/grpc#UnaryServerInterceptor
+message ServerUnary {
+    // request is the incoming grpc request proto sent by
+    // a client calling cabe.
+    google.protobuf.Any request = 1;
+
+    // response is the outgoing grpc response proto returned
+    // by cabe to the caller.
+    google.protobuf.Any response = 2;
+
+    // full_method is the fully qualified grpc method being
+    // called, e.g. "cabe.proto.Analysis/GetAnalysis"
+    string full_method = 3;
+
+    // user is the identity of the user making the incoming server request.
+    string user = 4;
+}
+
+// ClientUnary logs the client side of a grpc unary request, as intercepted
+// by https://pkg.go.dev/google.golang.org/grpc#UnaryClientInterceptor
+message ClientUnary {
+    string method  = 1;
+    google.protobuf.Any request = 2;
+    google.protobuf.Any response = 3;
+}
+
+// ClientStream logs the client side of a grpc stream request, as intercepted
+// by https://pkg.go.dev/google.golang.org/grpc#StreamClientInterceptor
+message ClientStream {
+    string method = 1;
+    string stream_name = 2;
+    bool server_streams = 3;
+    bool client_streams = 4;
+}

@@ -3,6 +3,7 @@ package grpclogging
 import (
 	"bytes"
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -10,7 +11,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
+	pb "go.skia.org/infra/cabe/go/grpclogging/proto"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/kube/go/authproxy"
@@ -31,6 +34,26 @@ func testSetupLogger(t *testing.T) (*now.TimeTravelCtx, *GRPCLogger, *bytes.Buff
 	return ttCtx, l, buf
 }
 
+func entryFromBuf(t *testing.T, buf *bytes.Buffer) *pb.Entry {
+	entry := &pb.Entry{}
+	err := protojson.Unmarshal(buf.Bytes(), entry)
+	require.NoError(t, err)
+	return entry
+}
+
+func assertLoggedServerUnary(t *testing.T, entry *pb.Entry, req *cpb.GetAnalysisRequest) {
+	loggedReq := &cpb.GetAnalysisRequest{}
+	err := entry.ServerUnary.Request.UnmarshalTo(loggedReq)
+	require.NoError(t, err)
+	assert.Equal(t, loggedReq.PinpointJobId, req.PinpointJobId)
+
+	if entry.StatusCode == int32(codes.OK) {
+		loggedResp := &cpb.GetAnalysisResponse{}
+		err = entry.ServerUnary.Response.UnmarshalTo(loggedResp)
+		require.NoError(t, err)
+	}
+}
+
 func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
 	req := &cpb.GetAnalysisRequest{
@@ -43,9 +66,40 @@ func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	resp, err := l.ServerUnaryLoggingInterceptor(ttCtx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"response":{},"full_method":"test.service/TestMethod","user":""}}`+"\n",
-		string(buf.Bytes()))
+
+	entry := entryFromBuf(t, buf)
+
+	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assertLoggedServerUnary(t, entry, req)
+}
+
+func TestServerUnaryLoggingInterceptor_withNaNs(t *testing.T) {
+	ttCtx, l, buf := testSetupLogger(t)
+	req := &cpb.GetAnalysisRequest{
+		PinpointJobId: "d3c4f84d",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		ttCtx.SetTime(startTime.Add(3 * time.Second))
+		return &cpb.GetAnalysisResponse{
+			Results: []*cpb.AnalysisResult{
+				{
+					Statistic: &cpb.Statistic{
+						Upper: math.NaN(),
+					},
+				},
+			},
+		}, nil
+	}
+	resp, err := l.ServerUnaryLoggingInterceptor(ttCtx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+
+	entry := entryFromBuf(t, buf)
+
+	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assertLoggedServerUnary(t, entry, req)
 }
 
 func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
@@ -66,9 +120,12 @@ func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
 		req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"response":{},"full_method":"test.service/TestMethod","user":"user@domain.com"}}`+"\n",
-		string(buf.Bytes()))
+	entry := entryFromBuf(t, buf)
+
+	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assert.Equal(t, "user@domain.com", entry.ServerUnary.User)
+	assertLoggedServerUnary(t, entry, req)
 }
 
 func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
@@ -83,9 +140,11 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	resp, err := l.ServerUnaryLoggingInterceptor(ttCtx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
 	require.Error(t, err)
 	assert.Nil(t, resp)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":1000000000,"status":{"code":3,"message":"forced error response"},"error":"rpc error: code = InvalidArgument desc = forced error response","server_unary":{"request":{"pinpoint_job_id":"d3c4f84d"},"full_method":"test.service/TestMethod","user":""}}`+"\n",
-		string(buf.Bytes()))
+	entry := entryFromBuf(t, buf)
+
+	assert.Equal(t, int32(codes.InvalidArgument), entry.StatusCode)
+	assert.Equal(t, int64(1), entry.Elapsed.Seconds)
+	assertLoggedServerUnary(t, entry, req)
 }
 
 func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
@@ -104,9 +163,10 @@ func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
 	err := l.ClientUnaryLoggingInterceptor(ttCtx, "test.service/TestMethod", req, resp, nil, invoker, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"client_unary":{"method":"test.service/TestMethod","request":{"pinpoint_job_id":"d3c4f84d"},"response":{}}}`+"\n",
-		string(buf.Bytes()))
+
+	entry := entryFromBuf(t, buf)
+	assert.Equal(t, entry.ClientUnary.Method, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
 }
 
 func TestClientUnaryLoggingInterceptor_error(t *testing.T) {
@@ -122,9 +182,11 @@ func TestClientUnaryLoggingInterceptor_error(t *testing.T) {
 	resp := &cpb.GetAnalysisResponse{}
 	err := l.ClientUnaryLoggingInterceptor(ttCtx, "test.service/TestMethod", req, resp, nil, invoker, nil)
 	require.Error(t, err)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"status":{"code":3,"message":"forced error response"},"error":"rpc error: code = InvalidArgument desc = forced error response","client_unary":{"method":"test.service/TestMethod","request":{"pinpoint_job_id":"d3c4f84d"},"response":{}}}`+"\n",
-		string(buf.Bytes()))
+
+	entry := entryFromBuf(t, buf)
+	assert.Equal(t, entry.ClientUnary.Method, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assert.Equal(t, int32(codes.InvalidArgument), entry.StatusCode)
 }
 
 func TestClientStreamLoggingInterceptor_noError(t *testing.T) {
@@ -139,9 +201,9 @@ func TestClientStreamLoggingInterceptor_noError(t *testing.T) {
 	}
 	_, err := l.ClientStreamLoggingInterceptor(ttCtx, desc, nil, "test.service/TestMethod", streamer)
 	require.NoError(t, err)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"client_stream":{"method":"test.service/TestMethod","stream_name":"test/stream"}}`+"\n",
-		string(buf.Bytes()))
+	entry := entryFromBuf(t, buf)
+	assert.Equal(t, entry.ClientStream.Method, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
 }
 
 func TestClientStreamLoggingInterceptor_error(t *testing.T) {
@@ -156,7 +218,9 @@ func TestClientStreamLoggingInterceptor_error(t *testing.T) {
 	}
 	_, err := l.ClientStreamLoggingInterceptor(ttCtx, desc, nil, "test.service/TestMethod", streamer)
 	require.Error(t, err)
-	assert.Equal(t,
-		`{"start":"2022-01-31T02:02:03+01:00","elapsed_ns":3000000000,"status":{"code":3,"message":"forced error response"},"error":"rpc error: code = InvalidArgument desc = forced error response","client_stream":{"method":"test.service/TestMethod","stream_name":"test/stream"}}`+"\n",
-		string(buf.Bytes()))
+
+	entry := entryFromBuf(t, buf)
+	assert.Equal(t, entry.ClientStream.Method, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assert.Equal(t, int32(codes.InvalidArgument), entry.StatusCode)
 }
