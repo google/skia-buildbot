@@ -15,8 +15,9 @@
     # Downloaded from
     # https://www.amd.com/en/support/graphics/radeon-rx-vega-series/radeon-rx-vega-series/radeon-rx-vega-56.
     # Specific file:
-    # https://drivers.amd.com/drivers/amd-software-adrenalin-edition-22.4.1-win10-win11-april5.exe.
-    src: "{{ win_package_src }}/amd-software-adrenalin-edition-22.4.1-win10-win11-april5.zip"
+    # https://drivers.amd.com/drivers/whql-amd-software-adrenalin-edition-23.5.2-win10-win11-may31.exe.
+    # converted to a ZIP archive using //skolo/bash/self_extracting_exe_to_zip.sh.
+    src: "{{ win_package_src }}/whql-amd-software-adrenalin-edition-23.5.2-win10-win11-may31.zip"
     dest: C:\Temp\radeon_gfx.zip
 
 - name: Extract the Radeon driver ZIP
