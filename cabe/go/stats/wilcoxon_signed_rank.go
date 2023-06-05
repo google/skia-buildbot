@@ -114,6 +114,9 @@ func BerfWilcoxonSignedRankedTest(x, y []float64, alt Hypothesis, transform Data
 	if transform == LogTransform {
 		var transformX, transformY []float64
 		for i := range x {
+			if x[i] <= 0 || y[i] <= 0 {
+				return nil, fmt.Errorf("x[i] and y[i] must be greater than 0 to use log transform, but got x[i]: %v and y[i]: %v", x[i], y[i])
+			}
 			transformX = append(transformX, math.Log(x[i]))
 			transformY = append(transformY, math.Log(y[i]))
 		}
