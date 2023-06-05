@@ -8,6 +8,7 @@ sk_element(
     ],
     sass_srcs = ["explore-sk.scss"],
     sk_element_deps = [
+        "//infra-sk/modules/alogin-sk",
         "//infra-sk/modules/paramset-sk",
         "//infra-sk/modules/query-sk",
         "//perf/modules/commit-detail-panel-sk",
@@ -42,6 +43,7 @@ sk_element(
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "explore-sk.ts",

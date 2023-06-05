@@ -38,6 +38,7 @@ import '../query-count-sk';
 import '../window/window';
 
 import {
+  CreateBisectRequest,
   DataFrame,
   RequestType,
   ParamSet,
@@ -87,6 +88,8 @@ import { fromKey, paramsToParamSet } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -319,6 +322,8 @@ export class ExploreSk extends ElementSk {
 
   private story: string = '';
 
+  private user: string = '';
+
   private _initialized: boolean = false;
 
   private commits: CommitDetailPanelSk | null = null;
@@ -466,7 +471,7 @@ export class ExploreSk extends ElementSk {
             CSV
           </button>
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
-          <button .hide=${!window.perf.fetch_chrome_perf_anomalies}
+          <button ?hidden=${!window.perf.fetch_chrome_perf_anomalies}
           @click=${ele.openBisect}>Bisect</button>
         </div>
       </div>
@@ -583,6 +588,7 @@ export class ExploreSk extends ElementSk {
       <h3>Patch to apply to the entire job(optional)</h3>
       <input id="patch" type="text"></input>
       <div class=footer>
+        <button @click=${ele.postBisect}>Bisect</button>
         <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
     </dialog>
@@ -719,6 +725,11 @@ export class ExploreSk extends ElementSk {
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this.user = status.email;
+      })
+      .catch(errorMessage);
 
     fetch(`/_/initpage/?tz=${tz}`, {
       method: 'GET',
@@ -761,6 +772,40 @@ export class ExploreSk extends ElementSk {
 
   private closeBisectDialog(): void {
     this.bisectDialog!.close();
+  }
+
+  private postBisect(): void {
+    const parts: string[] =
+      this.simpleParamset!.paramsets[0]!.test[0].split('_');
+    const tail: string = parts.pop()!;
+    const req: CreateBisectRequest = {
+      comparison_mode: 'performance',
+      target: '',
+      start_git_hash: this.startCommit,
+      end_git_hash: this.endCommit,
+      configuration: this.testPath.split('/')[1],
+      benchmark: this.testPath.split('/')[2],
+      story: this.getLastSubtest(this.simpleParamset!.paramsets[0]!),
+      story_tags: [],
+      chart: parts.join('_'),
+      statistic: tail,
+      comparison_magnitude: '',
+      pin: '',
+      project: 'chromium',
+      bug_id: '',
+      batch_id: '',
+      user: this.user,
+    };
+    fetch('/_/bisect/create', {
+      method: 'POST',
+      body: JSON.stringify(req),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => {})
+      .catch(errorMessage);
   }
 
   private keyDown(e: KeyboardEvent) {
