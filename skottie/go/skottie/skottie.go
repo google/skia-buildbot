@@ -30,7 +30,6 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -49,9 +48,6 @@ const (
 )
 
 type skottieConfig struct {
-	// AuthorizedUsers is a list of email addresses or domains that can log into this instance.
-	AuthorizedUsers []string `json:"authorized_users"`
-
 	// CanUploadZips controls if this instance supports people uploading zip files.
 	CanUploadZips bool `json:"can_upload_zips"`
 
@@ -60,9 +56,6 @@ type skottieConfig struct {
 
 	// GCSBucket is the bucket to store and retrieve the skottie assets.
 	GCSBucket string `json:"gcs_bucket"`
-
-	// ForceAuth requires users to log in to view the skotties.
-	ForceAuth bool `json:"force_auth"`
 
 	// Local is true if running locally (not in production).
 	Local bool `json:"local"`
@@ -115,15 +108,6 @@ func main() {
 	h = httputils.CrossOriginOpenerPolicy(h)
 	h = httputils.CrossOriginEmbedderPolicy(h)
 	if !sc.Local {
-		if sc.ForceAuth {
-			sklog.Infof("The allowed list of users is: %q", sc.AuthorizedUsers)
-			redirectURL := sc.SiteURL + callbackPath
-			ctx := context.Background()
-			if err := login.Init(ctx, redirectURL, strings.Join(sc.AuthorizedUsers, " "), sc.ClientSecretFile); err != nil {
-				sklog.Fatalf("Failed to initialize login: %s", err)
-			}
-			h = login.ForceAuth(h, callbackPath)
-		}
 		h = httputils.HealthzAndHTTPS(h)
 	}
 
