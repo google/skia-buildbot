@@ -101,9 +101,6 @@ func (s *taskSchedulerServiceImpl) TriggerJobs(ctx context.Context, req *Trigger
 
 // getJob returns the given job.
 func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job, *types.Job, error) {
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, nil, err
-	}
 	dbJob, err := s.db.GetJobById(ctx, id)
 	if err == db.ErrNotFound || dbJob == nil {
 		sklog.Errorf("Unable to find job %q", id)
@@ -184,9 +181,6 @@ func (s *taskSchedulerServiceImpl) CancelJob(ctx context.Context, req *CancelJob
 
 // SearchJobs searches the DB and returns jobs matching the given criteria.
 func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJobsRequest) (*SearchJobsResponse, error) {
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	params := &db.JobSearchParams{}
 	if req.HasBuildbucketBuildId {
 		bbID, err := strconv.ParseInt(req.BuildbucketBuildId, 10, 64)
@@ -251,9 +245,6 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 
 // getTask returns the given task.
 func (s *taskSchedulerServiceImpl) getTask(ctx context.Context, id string) (*Task, *types.Task, error) {
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, nil, err
-	}
 	dbTask, err := s.db.GetTaskById(ctx, id)
 	if err == db.ErrNotFound || dbTask == nil {
 		return nil, nil, twirp.NotFoundError("Unknown task")
@@ -296,9 +287,6 @@ func (s *taskSchedulerServiceImpl) GetTask(ctx context.Context, req *GetTaskRequ
 // SearchTasks searches the DB and returns tasks matching the given
 // criteria.
 func (s *taskSchedulerServiceImpl) SearchTasks(ctx context.Context, req *SearchTasksRequest) (*SearchTasksResponse, error) {
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	params := &db.TaskSearchParams{}
 	if req.HasAttempt {
 		params.Attempt = intPtr(int64(req.Attempt))
@@ -372,9 +360,6 @@ func (s *taskSchedulerServiceImpl) getSkipTaskRules() []*SkipTaskRule {
 
 // GetSkipTaskRules returns all active rules for skipping tasks.
 func (s *taskSchedulerServiceImpl) GetSkipTaskRules(ctx context.Context, req *GetSkipTaskRulesRequest) (*GetSkipTaskRulesResponse, error) {
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	return &GetSkipTaskRulesResponse{
 		Rules: s.getSkipTaskRules(),
 	}, nil

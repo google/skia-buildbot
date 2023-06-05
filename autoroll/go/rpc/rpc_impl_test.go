@@ -282,20 +282,8 @@ func TestGetRollers(t *testing.T) {
 	ctx, rollers, srv := setup(t)
 	req := &GetRollersRequest{}
 
-	// Check authorization.
 	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
-
 	res, err := srv.GetRollers(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
-	res, err = srv.GetRollers(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetRollers(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	expectRollers := make([]*AutoRollMiniStatus, 0, len(rollers))
@@ -319,19 +307,9 @@ func TestGetRolls(t *testing.T) {
 		RollerId: "this roller doesn't exist",
 	}
 
-	// Check authorization.
+	// Check error for unknown roller.
 	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetRolls(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
-	res, err = srv.GetRolls(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
-
-	// Check error for unknown roller.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetRolls(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
 
@@ -353,19 +331,9 @@ func TestGetMiniStatus(t *testing.T) {
 		RollerId: "this roller doesn't exist",
 	}
 
-	// Check authorization.
+	// Check error for unknown roller.
 	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetMiniStatus(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
-	res, err = srv.GetMiniStatus(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
-
-	// Check error for unknown roller.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetMiniStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
 
@@ -400,19 +368,9 @@ func TestGetStatus(t *testing.T) {
 		RollerId: "this roller doesn't exist",
 	}
 
-	// Check authorization.
+	// Check error for unknown roller.
 	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
 	res, err := srv.GetStatus(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
-	res, err = srv.GetStatus(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"no-access@google.com\" is not an authorized viewer")
-
-	// Check error for unknown roller.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetStatus(ctx, req)
 	require.Nil(t, res)
 	require.EqualError(t, err, "twirp error not_found: Unknown roller")
 

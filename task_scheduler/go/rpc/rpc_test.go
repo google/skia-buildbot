@@ -193,15 +193,9 @@ func TestGetJob(t *testing.T) {
 		Id: job.Id,
 	}
 
-	// Check authorization.
+	// Check results.
 	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err := srv.GetJob(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetJob(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res.Job)
 	require.Equal(t, job.Id, res.Job.Id)
@@ -250,15 +244,9 @@ func TestSearchJobs(t *testing.T) {
 
 	req := &SearchJobsRequest{}
 
-	// Check authorization.
+	// Check results.
 	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err := srv.SearchJobs(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.SearchJobs(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Jobs))
 	require.Equal(t, job.Id, res.Jobs[0].Id)
@@ -275,15 +263,9 @@ func TestGetTask(t *testing.T) {
 		Id: task.Id,
 	}
 
-	// Check authorization.
+	// Check results.
 	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err := srv.GetTask(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetTask(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, res.Task)
 	require.Equal(t, task.Id, res.Task.Id)
@@ -321,15 +303,9 @@ func TestSearchTasks(t *testing.T) {
 
 	req := &SearchTasksRequest{}
 
-	// Check authorization.
+	// Check results.
 	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err := srv.SearchTasks(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.SearchTasks(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Tasks))
 	require.Equal(t, task.Id, res.Tasks[0].Id)
@@ -344,15 +320,9 @@ func TestGetSkipTaskRules(t *testing.T) {
 
 	req := &GetSkipTaskRulesRequest{}
 
-	// Check authorization.
+	// Check results.
 	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
 	res, err := srv.GetSkipTaskRules(ctx, req)
-	require.Nil(t, res)
-	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized viewer")
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &viewerStatus)
-	res, err = srv.GetSkipTaskRules(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Rules))
 	require.Equal(t, skipRule.AddedBy, res.Rules[0].AddedBy)

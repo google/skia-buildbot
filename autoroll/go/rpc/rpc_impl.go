@@ -181,10 +181,6 @@ func (s autoRollMiniStatusSlice) Swap(a, b int) {
 
 // GetRollers implements AutoRollRPCs.
 func (s *AutoRollServer) GetRollers(ctx context.Context, req *GetRollersRequest) (*GetRollersResponse, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	s.rollersMtx.RLock()
 	defer s.rollersMtx.RUnlock()
 	statuses := make([]*AutoRollMiniStatus, 0, len(s.rollers))
@@ -209,10 +205,6 @@ func (s *AutoRollServer) GetRollers(ctx context.Context, req *GetRollersRequest)
 
 // GetRolls implements AutoRollRPCs.
 func (s *AutoRollServer) GetRolls(ctx context.Context, req *GetRollsRequest) (*GetRollsResponse, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	if _, err := s.GetRoller(req.RollerId); err != nil {
 		return nil, err
 	}
@@ -232,10 +224,6 @@ func (s *AutoRollServer) GetRolls(ctx context.Context, req *GetRollsRequest) (*G
 
 // GetMiniStatus implements AutoRollRPCs.
 func (s *AutoRollServer) GetMiniStatus(ctx context.Context, req *GetMiniStatusRequest) (*GetMiniStatusResponse, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
@@ -251,10 +239,6 @@ func (s *AutoRollServer) GetMiniStatus(ctx context.Context, req *GetMiniStatusRe
 
 // getStatus retrieves the status for the given roller.
 func (s *AutoRollServer) getStatus(ctx context.Context, rollerID string) (*AutoRollStatus, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	roller, err := s.GetRoller(rollerID)
 	if err != nil {
 		return nil, err
@@ -335,10 +319,6 @@ func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*Set
 
 // GetModeHistory implements AutoRollRPCs.
 func (s *AutoRollServer) GetModeHistory(ctx context.Context, req *GetModeHistoryRequest) (*GetModeHistoryResponse, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
@@ -397,10 +377,6 @@ func (s *AutoRollServer) SetStrategy(ctx context.Context, req *SetStrategyReques
 
 // GetStrategyHistory implements AutoRollRPCs.
 func (s *AutoRollServer) GetStrategyHistory(ctx context.Context, req *GetStrategyHistoryRequest) (*GetStrategyHistoryResponse, error) {
-	// Verify that the user has view access.
-	if _, err := s.GetViewer(ctx); err != nil {
-		return nil, err
-	}
 	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
