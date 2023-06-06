@@ -1461,6 +1461,7 @@ func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
 	resp, err := f.pinpoint.CreateBisect(r.Context(), cbr)
 	if err != nil {

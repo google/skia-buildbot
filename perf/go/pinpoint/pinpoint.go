@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2/google"
 )
 
@@ -79,6 +80,7 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to get pinpoint response.")
 	}
+	sklog.Debugf("Got response from Pinpoint service: %+v", *httpResponse)
 
 	respBody, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
