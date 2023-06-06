@@ -304,6 +304,8 @@ export class ExploreSk extends ElementSk {
   // Are we waiting on data from the server.
   private _spinning: boolean = false;
 
+  private _dialogOn: boolean = false;
+
   // The id of the current frame request. Will be the empty string if there
   // is no pending request.
   private _requestId = '';
@@ -770,10 +772,12 @@ export class ExploreSk extends ElementSk {
 
   private closeQueryDialog(): void {
     this.queryDialog!.close();
+    this._dialogOn = false;
   }
 
   private closeBisectDialog(): void {
     this.bisectDialog!.close();
+    this._dialogOn = false;
   }
 
   private postBisect(): void {
@@ -818,11 +822,12 @@ export class ExploreSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {})
       .catch(errorMessage);
+    this.closeBisectDialog();
   }
 
   private keyDown(e: KeyboardEvent) {
     // Ignore IME composition events.
-    if (e.isComposing || e.keyCode === 229) {
+    if (this._dialogOn || e.isComposing || e.keyCode === 229) {
       return;
     }
     switch (e.key) {
@@ -1011,12 +1016,14 @@ export class ExploreSk extends ElementSk {
   /** Open the query dialog box. */
   private openQuery() {
     this._render();
+    this._dialogOn = true;
     this.queryDialog!.showModal();
   }
 
   /** Open the bisect dialog box. */
   private openBisect() {
     this._render();
+    this._dialogOn = true;
     this.bisectDialog!.showModal();
   }
 
@@ -1565,6 +1572,7 @@ export class ExploreSk extends ElementSk {
     f: string
   ) {
     this.queryDialog!.close();
+    this._dialogOn = false;
 
     if (plotType === 'query') {
       if (!q || q.trim() === '') {
