@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"net/http"
 	"path"
 	"regexp"
@@ -129,7 +128,8 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 		return nil, nil, skerr.Wrap(err)
 	}
 	if len(versions) == 0 {
-		return nil, nil, fmt.Errorf("No valid files found in GCS.")
+		sklog.Errorf("No valid revisions found in %s/%s", c.gcsBucket, c.gcsPath)
+		return lastRollRev, []*revision.Revision{}, nil
 	}
 	sort.Sort(gcsVersionSlice(versions))
 
