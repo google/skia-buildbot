@@ -164,6 +164,17 @@ func hasDisableLoggingRequestResponse(options []Option) bool {
 	return false
 }
 
+var (
+	// Whether or not this is a Serve test.
+	isServeTest bool
+
+	// server started by the Serve function. Used from tests to gracefully stop the server.
+	server *http.Server
+
+	// error returned by server.ListenAndServe. Used from tests.
+	listenAndServeErr error
+)
+
 // Serve builds and runs the App in a secure manner in our kubernetes cluster.
 //
 // The constructor builds an App instance. Note that we don't pass in an App
@@ -267,12 +278,16 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Ready to serve at http://%s%s", hostname, *Port) // The port string includes a colon, e.g. ":8000".
-	server := &http.Server{
+	server = &http.Server{
 		Addr:           *Port,
 		Handler:        r,
 		ReadTimeout:    SERVER_READ_TIMEOUT,
 		WriteTimeout:   SERVER_WRITE_TIMEOUT,
 		MaxHeaderBytes: 1 << 20,
 	}
-	sklog.Fatal(server.ListenAndServe())
+	if isServeTest {
+		listenAndServeErr = server.ListenAndServe()
+	} else {
+		sklog.Fatal(server.ListenAndServe())
+	}
 }
