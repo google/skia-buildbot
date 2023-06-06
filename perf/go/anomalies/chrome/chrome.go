@@ -34,7 +34,7 @@ type chromePerfResponse struct {
 	Anomalies map[string][]anomalies.Anomaly `json:"anomalies"`
 }
 
-// ChromePerfClient implements ChromePerf.
+// ChromePerfClient implements anomalies.Store.
 type ChromePerfClient struct {
 	httpClient         *http.Client
 	getAnomaliesCalled metrics2.Counter
