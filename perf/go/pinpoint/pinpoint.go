@@ -69,13 +69,15 @@ func New(ctx context.Context) (*Client, error) {
 func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBisectRequest) (*CreateBisectResponse, error) {
 	pc.createBisectCalled.Inc(1)
 
-	requestBodyJSONStr, err := json.Marshal(createBisectRequest)
+	requestBodyJSONBytes, err := json.Marshal(createBisectRequest)
 	if err != nil {
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to create pinpoint request.")
 	}
+	requestBodyJSONStr := string(requestBodyJSONBytes)
+	sklog.Debugf("Preparing to send this request to Pinpoint service: %s", requestBodyJSONStr)
 
-	httpResponse, err := httputils.PostWithContext(ctx, pc.httpClient, pinpointURL, contentType, strings.NewReader(string(requestBodyJSONStr)))
+	httpResponse, err := httputils.PostWithContext(ctx, pc.httpClient, pinpointURL, contentType, strings.NewReader(requestBodyJSONStr))
 	if err != nil {
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to get pinpoint response.")
