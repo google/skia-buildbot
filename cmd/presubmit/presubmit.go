@@ -500,7 +500,11 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 		{regex: regexp.MustCompile(`github\.com/golang/glog`), suggestion: "go.skia.org/infra/go/sklog"},
 		{regex: regexp.MustCompile(`github\.com/skia-dev/glog`), suggestion: "go.skia.org/infra/go/sklog"},
 		{regex: regexp.MustCompile(`http\.Get`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
-		{regex: regexp.MustCompile(`http\.Head`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
+		{regex: regexp.MustCompile(`http\.Head`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils",
+			exceptions: []*regexp.Regexp{
+				// generated file we have no control over.
+				regexp.MustCompile(`go/issuetracker/.*\.go`),
+			}},
 		{regex: regexp.MustCompile(`http\.Post`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`http\.PostForm`), suggestion: "NewTimeoutClient in go.skia.org/infra/go/httputils"},
 		{regex: regexp.MustCompile(`os\.Interrupt`), suggestion: "AtExit in go.skia.org/go/cleanup"},

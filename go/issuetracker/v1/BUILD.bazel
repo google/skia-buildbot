@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "issuetracker",
+    srcs = ["issuetracker.go"],
+    importpath = "go.skia.org/infra/go/issuetracker/v1",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_skia_dev_google_api_go_client//gensupport",
+        "@org_golang_google_api//googleapi",
+        "@org_golang_google_api//option",
+        "@org_golang_google_api//transport/http",
+    ],
+)
