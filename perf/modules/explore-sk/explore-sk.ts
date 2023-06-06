@@ -123,6 +123,8 @@ const RANGE_CHANGE_ON_ZOOM_PERCENT = 0.5;
 // The minimum length [right - left] of a zoom range.
 const MIN_ZOOM_RANGE = 0.1;
 
+const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
+
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
 // Even though pivot.Request sent to the server can be null, we don't want to
@@ -778,6 +780,10 @@ export class ExploreSk extends ElementSk {
     const parts: string[] =
       this.simpleParamset!.paramsets[0]!.test[0].split('_');
     const tail: string = parts.pop()!;
+    const chart = STATISTIC_VALUES.includes(tail)
+      ? parts.join('_')
+      : this.simpleParamset!.paramsets[0]!.test[0];
+    const statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
     const bugId = document.getElementById('bug-id')! as HTMLInputElement;
     const startCommit = document.getElementById(
       'start-commit'
@@ -796,8 +802,8 @@ export class ExploreSk extends ElementSk {
       benchmark: this.testPath.split('/')[2],
       story: story.value,
       story_tags: [],
-      chart: parts.join('_'),
-      statistic: tail,
+      chart: chart,
+      statistic: statistic,
       comparison_magnitude: '',
       pin: patch.value,
       project: 'chromium',
