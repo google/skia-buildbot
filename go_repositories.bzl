@@ -1830,8 +1830,8 @@ def go_repositories():
     go_repository(
         name = "com_github_mitchellh_go_wordwrap",
         importpath = "github.com/mitchellh/go-wordwrap",
-        sum = "h1:6GlHJ/LTGMrIJbwgdqdl2eEH8o+Exx/0m8ir9Gns0u4=",
-        version = "v1.0.0",
+        sum = "h1:TLuKupo69TCn6TQSyGxwI1EblZZEsQ0vMlAFQflz0v0=",
+        version = "v1.0.1",
     )
 
     go_repository(
@@ -2149,6 +2149,12 @@ def go_repositories():
         importpath = "github.com/prometheus/tsdb",
         sum = "h1:YZcsG11NqnK4czYLrWd9mpEuAJIHVQLwdrleYfszMAA=",
         version = "v0.7.1",
+    )
+    go_repository(
+        name = "com_github_protocolbuffers_txtpbfmt",
+        importpath = "github.com/protocolbuffers/txtpbfmt",
+        sum = "h1:XHLAvwaTYM0PxS/HO7E0PfBaY/y0jGM5NM7g05lCb0k=",
+        version = "v0.0.0-20230412060525-fa9f017c0ded",
     )
 
     go_repository(

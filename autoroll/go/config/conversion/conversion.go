@@ -52,8 +52,8 @@ var (
 	protoMarshalOptions = prototext.MarshalOptions{
 		Multiline: true,
 	}
-	// funcMap is used for executing templates.
-	funcMap = template.FuncMap{
+	// FuncMap is used for executing templates.
+	FuncMap = template.FuncMap{
 		"map":      makeMap,
 		"list":     makeList,
 		"sanitize": sanitize,
@@ -202,7 +202,7 @@ func CreateTemplateVars(ctx context.Context, client *http.Client, privacySandbox
 // ProcessTemplate converts a single template into at least one config.
 func ProcessTemplate(ctx context.Context, client *http.Client, srcPath, tmplContents string, vars *TemplateVars, checkGCSArtifacts bool) (map[string][]byte, error) {
 	// Read and execute the template.
-	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(funcMap).Parse(tmplContents)
+	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(FuncMap).Parse(tmplContents)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to parse template file %q", srcPath)
 	}
