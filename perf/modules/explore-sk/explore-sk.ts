@@ -778,21 +778,30 @@ export class ExploreSk extends ElementSk {
     const parts: string[] =
       this.simpleParamset!.paramsets[0]!.test[0].split('_');
     const tail: string = parts.pop()!;
+    const bugId = document.getElementById('bug-id')! as HTMLInputElement;
+    const startCommit = document.getElementById(
+      'start-commit'
+    )! as HTMLInputElement;
+    const endCommit = document.getElementById(
+      'end-commit'
+    )! as HTMLInputElement;
+    const story = document.getElementById('story')! as HTMLInputElement;
+    const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
       comparison_mode: 'performance',
       target: '',
-      start_git_hash: this.startCommit,
-      end_git_hash: this.endCommit,
+      start_git_hash: startCommit.value,
+      end_git_hash: endCommit.value,
       configuration: this.testPath.split('/')[1],
       benchmark: this.testPath.split('/')[2],
-      story: this.getLastSubtest(this.simpleParamset!.paramsets[0]!),
+      story: story.value,
       story_tags: [],
       chart: parts.join('_'),
       statistic: tail,
       comparison_magnitude: '',
-      pin: '',
+      pin: patch.value,
       project: 'chromium',
-      bug_id: '',
+      bug_id: bugId.value,
       batch_id: '',
       user: this.user,
     };
