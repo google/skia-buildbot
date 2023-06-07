@@ -3,11 +3,11 @@ kind: Service
 metadata:
   name: gold-{{.INSTANCE_ID}}-frontend
   annotations:
-    beta.cloud.google.com/backend-config: '{"ports": {"8000":"skia-default-backendconfig"}}'
+    beta.cloud.google.com/backend-config: '{"ports": {"9000":"skia-default-backendconfig"}}'
 spec:
   ports:
     - name: http
-      port: 8000
+      port: 9000
     - name: metrics
       port: 20000
   selector:
@@ -45,8 +45,6 @@ spec:
             - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
             - "--config=/etc/gold-config/{{.INSTANCE_ID}}-frontend.json5"
           ports:
-            - containerPort: 8000
-              name: http
             - containerPort: 20000
               name: prom
           volumeMounts:
@@ -75,6 +73,30 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 6
+        - name: auth-proxy
+          args:
+            - '--port=:9000'
+            - '--target_port=:8000'
+            - '--prom-port=:10000'
+            {{- range $viewer := .authorized_users}}
+            - '--role=viewer={{$viewer}}'
+            {{- end}}
+          image: {{.AUTH_PROXY_IMAGE}}
+          ports:
+            - containerPort: 9000
+            - containerPort: 10000
+              name: prom
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9000
+            initialDelaySeconds: 1
+            periodSeconds: 3
+          resources:
+            requests:
+              memory: '30Mi'
+              cpu: '200m'
+              ephemeral-storage: '200M'
       volumes:
         - name: gold-{{.INSTANCE_ID}}-config-volume
           configMap:

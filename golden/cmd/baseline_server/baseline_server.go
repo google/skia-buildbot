@@ -17,6 +17,7 @@ import (
 	"golang.org/x/oauth2/google"
 	gstorage "google.golang.org/api/storage/v1"
 
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -103,7 +104,7 @@ func main() {
 		DB:            db,
 		GCSClient:     gsClient,
 		ReviewSystems: reviewSystems,
-	}, web.BaselineSubset)
+	}, web.BaselineSubset, proxylogin.NewWithDefaults())
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}

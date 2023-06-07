@@ -10,9 +10,9 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/web",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/alogin",
         "//go/httputils",
         "//go/human",
-        "//go/login",
         "//go/now",
         "//go/paramtools",
         "//go/skerr",
@@ -50,6 +50,9 @@ go_test(
     srcs = ["web_test.go"],
     embed = [":web"],
     deps = [
+        "//go/alogin",
+        "//go/alogin/mocks",
+        "//go/alogin/proxylogin",
         "//go/now",
         "//go/paramtools",
         "//go/testutils",

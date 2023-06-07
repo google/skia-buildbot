@@ -26,11 +26,12 @@ import (
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing/loggingtracer"
@@ -51,8 +52,6 @@ import (
 )
 
 const (
-	// callbackPath is callback endpoint used for the OAuth2 flow
-	callbackPath = "/oauth2callback/"
 
 	// Arbitrarily picked.
 	maxSQLConnections = 32
@@ -60,15 +59,6 @@ const (
 
 type frontendServerConfig struct {
 	config.Common
-
-	// A list of email addresses or domains that can log into this instance.
-	AuthorizedUsers []string `json:"authorized_users"`
-
-	// Client secret file for OAuth2 authentication.
-	ClientSecretFile string `json:"client_secret_file"`
-
-	// Force the user to be authenticated for all requests.
-	ForceLogin bool `json:"force_login"`
 
 	// Configuration settings that will get passed to the frontend (see modules/settings.ts)
 	FrontendConfig frontendConfig `json:"frontend"`
@@ -155,8 +145,6 @@ func main() {
 
 	mustStartDebugServer(fsc)
 
-	mustSetUpOAuth2Login(ctx, fsc)
-
 	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
 
 	sqlDB := mustInitSQLDatabase(ctx, fsc, *logSQLQueries)
@@ -171,9 +159,11 @@ func main() {
 
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
-	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, gsClient, ignoreStore, reviewSystems, s2a)
+	plogin := proxylogin.NewWithDefaults()
 
-	rootRouter := mustMakeRootRouter(fsc, handlers)
+	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, gsClient, ignoreStore, reviewSystems, s2a, plogin)
+
+	rootRouter := mustMakeRootRouter(fsc, handlers, plogin)
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + fsc.ReadyPort)
@@ -236,19 +226,6 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 			sklog.Infof("Internal server on http://127.0.0.1" + fsc.DebugPort)
 			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, internalRouter))
 		}()
-	}
-}
-
-// mustSetUpOAuth2Login initializes the OAuth 2.0 login system.
-func mustSetUpOAuth2Login(ctx context.Context, fsc *frontendServerConfig) {
-	// Set up login
-	redirectURL := fsc.SiteURL + "/oauth2callback/"
-	if fsc.Local {
-		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", fsc.ReadyPort)
-	}
-	sklog.Infof("The allowed list of users is: %q", fsc.AuthorizedUsers)
-	if err := login.Init(ctx, redirectURL, strings.Join(fsc.AuthorizedUsers, " "), fsc.ClientSecretFile); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 }
 
@@ -389,7 +366,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []c
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API, alogin alogin.Login) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		DB:                        db,
 		GCSClient:                 gsClient,
@@ -398,7 +375,7 @@ func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgx
 		Search2API:                s2a,
 		WindowSize:                fsc.WindowSize,
 		GroupingParamKeysByCorpus: fsc.GroupingParamKeysByCorpus,
-	}, web.FullFrontEnd)
+	}, web.FullFrontEnd, alogin)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
@@ -407,7 +384,7 @@ func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgx
 }
 
 // mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
-func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers) *mux.Router {
+func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) *mux.Router {
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
@@ -415,10 +392,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers) *mux.
 	// LoggingGzipRequestResponse.
 	loggedRouter := mux.NewRouter()
 
-	// Login endpoints.
-	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
-	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
-	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
+	loggedRouter.HandleFunc("/login/status", alogin.LoginStatusHandler(plogin))
 
 	// JSON endpoints.
 	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
@@ -433,12 +407,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers) *mux.
 	appRouter.PathPrefix("/img/").HandlerFunc(handlers.ImageHandler).Methods("GET")
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
 
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
-	// necessary it was requested via the force_login flag.
 	appHandler := http.Handler(appRouter)
-	if fsc.ForceLogin {
-		appHandler = login.ForceAuth(appRouter, callbackPath)
-	}
 
 	// The appHandler contains all application specific routes that are have logging and
 	// authentication configured. Now we wrap it into the router that is exposed to the host

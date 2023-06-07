@@ -37,8 +37,8 @@ describe('gold-scaffold-sk', () => {
   });
 
   describe('html layout', () => {
-    it('adds a login-sk element', () => {
-      const log = $$('header login-sk', goldScaffoldSk);
+    it('adds a alogin-sk element', () => {
+      const log = $$('header alogin-sk', goldScaffoldSk);
       expect(log).to.not.be.null;
     });
 

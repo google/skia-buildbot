@@ -29,9 +29,9 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
+	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -123,12 +123,11 @@ type Handlers struct {
 	knownHashesMutex sync.RWMutex
 	knownHashesCache string
 
-	// These can be set for unit tests to simplify the testing.
-	testingAuthAs string
+	alogin alogin.Login
 }
 
 // NewHandlers returns a new instance of Handlers.
-func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
+func NewHandlers(conf HandlersConfig, val validateFields, alogin alogin.Login) (*Handlers, error) {
 	// These fields are required by all types.
 	if conf.DB == nil {
 		return nil, skerr.Fmt("Baseliner cannot be nil")
@@ -158,13 +157,13 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
 		clSummaryCache:          clcache,
 		baselineCache:           ttlcache.New(baselineCachePrimaryBranchEntryTTL, baselineCacheCleanupInterval),
-		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
+		alogin:                  alogin,
 	}, nil
 }
 
 // limitForAnonUsers blocks using the configured rate.Limiter for expensive queries.
 func (wh *Handlers) limitForAnonUsers(r *http.Request) error {
-	if login.LoggedInAs(r) != "" {
+	if wh.alogin.LoggedInAs(r) != alogin.NotLoggedIn {
 		return nil
 	}
 	return wh.anonymousExpensiveQuota.Wait(r.Context())
@@ -172,7 +171,7 @@ func (wh *Handlers) limitForAnonUsers(r *http.Request) error {
 
 // cheapLimitForAnonUsers blocks using the configured rate.Limiter for cheap queries.
 func (wh *Handlers) cheapLimitForAnonUsers(r *http.Request) error {
-	if login.LoggedInAs(r) != "" {
+	if wh.alogin.LoggedInAs(r) != alogin.NotLoggedIn {
 		return nil
 	}
 	return wh.anonymousCheapQuota.Wait(r.Context())
@@ -181,7 +180,7 @@ func (wh *Handlers) cheapLimitForAnonUsers(r *http.Request) error {
 // cheapLimitForGerritPlugin blocks using the configured rate.Limiter for queries for the
 // Gerrit Plugin.
 func (wh *Handlers) cheapLimitForGerritPlugin(r *http.Request) error {
-	if login.LoggedInAs(r) != "" {
+	if wh.alogin.LoggedInAs(r) != alogin.NotLoggedIn {
 		return nil
 	}
 	return wh.anonymousGerritQuota.Wait(r.Context())
@@ -703,7 +702,7 @@ func (wh *Handlers) addIgnoreCounts2(ctx context.Context, rules []frontend.Ignor
 func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_UpdateIgnoreRule", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
-	user := wh.loggedInAs(r)
+	user := wh.alogin.LoggedInAs(r)
 	if user == "" {
 		http.Error(w, "You must be logged in to update an ignore rule.", http.StatusUnauthorized)
 		return
@@ -719,7 +718,7 @@ func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ts := now.Now(ctx)
-	ignoreRule := ignore.NewRule(user, ts.Add(expiresInterval), irb.Filter, irb.Note)
+	ignoreRule := ignore.NewRule(user.String(), ts.Add(expiresInterval), irb.Filter, irb.Note)
 	ignoreRule.ID = id
 	if err := wh.IgnoreStore.Update(ctx, ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
@@ -756,8 +755,8 @@ func getValidatedIgnoreRule(r *http.Request) (time.Duration, frontend.IgnoreRule
 
 // DeleteIgnoreRule deletes an existing ignores rule.
 func (wh *Handlers) DeleteIgnoreRule(w http.ResponseWriter, r *http.Request) {
-	user := wh.loggedInAs(r)
-	if user == "" {
+	user := wh.alogin.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to delete an ignore rule", http.StatusUnauthorized)
 		return
 	}
@@ -779,8 +778,8 @@ func (wh *Handlers) DeleteIgnoreRule(w http.ResponseWriter, r *http.Request) {
 
 // AddIgnoreRule is for adding a new ignore rule.
 func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
-	user := wh.loggedInAs(r)
-	if user == "" {
+	user := wh.alogin.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
 	}
@@ -793,7 +792,7 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ts := now.Now(ctx)
-	ignoreRule := ignore.NewRule(user, ts.Add(expiresInterval), irb.Filter, irb.Note)
+	ignoreRule := ignore.NewRule(user.String(), ts.Add(expiresInterval), irb.Filter, irb.Note)
 	if err := wh.IgnoreStore.Create(ctx, ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
 		return
@@ -816,8 +815,9 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandlerV2", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
-	user := login.LoggedInAs(r)
-	if user == "" {
+
+	user := wh.alogin.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
 		return
 	}
@@ -829,7 +829,7 @@ func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("Triage v2 request: %#v", req)
 
-	if err := wh.triage2(ctx, user, req); err != nil {
+	if err := wh.triage2(ctx, user.String(), req); err != nil {
 		httputils.ReportError(w, err, "Could not triage", http.StatusInternalServerError)
 		return
 	}
@@ -983,8 +983,8 @@ func fillPreviousLabel(ctx context.Context, tx pgx.Tx, deltas []schema.Expectati
 func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandlerV3", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
-	user := login.LoggedInAs(r)
-	if user == "" {
+	user := wh.alogin.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
 		return
 	}
@@ -996,7 +996,7 @@ func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("Triage v3 request: %#v", req)
 
-	res, err := wh.triage3(ctx, user, req)
+	res, err := wh.triage3(ctx, user.String(), req)
 	if err != nil {
 		httputils.ReportError(w, err, "Could not triage", http.StatusInternalServerError)
 		return
@@ -1682,8 +1682,8 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_TriageUndoHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	// Get the user and make sure they are logged in.
-	user := login.LoggedInAs(r)
-	if user == "" {
+	user := wh.alogin.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to change expectations", http.StatusUnauthorized)
 		return
 	}
@@ -1692,7 +1692,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	changeID := r.URL.Query().Get("id")
 
 	// Do the undo procedure.
-	if err := wh.undoExpectationChanges(ctx, changeID, user); err != nil {
+	if err := wh.undoExpectationChanges(ctx, changeID, user.String()); err != nil {
 		httputils.ReportError(w, err, "Unable to undo.", http.StatusInternalServerError)
 		return
 	}
@@ -2117,8 +2117,8 @@ func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {
 	_, span := trace.StartSpan(r.Context(), "web_Whoami")
 	defer span.End()
 
-	user := wh.loggedInAs(r)
-	sendJSONResponse(w, map[string]string{"whoami": user})
+	user := wh.alogin.LoggedInAs(r)
+	sendJSONResponse(w, map[string]string{"whoami": user.String()})
 }
 
 // LatestPositiveDigestHandler returns the most recent positive digest for the given trace.
@@ -2320,13 +2320,6 @@ ORDER BY 2 DESC, 1 ASC`
 		rv = append(rv, c)
 	}
 	return rv, nil
-}
-
-func (wh *Handlers) loggedInAs(r *http.Request) string {
-	if wh.testingAuthAs != "" {
-		return wh.testingAuthAs
-	}
-	return login.LoggedInAs(r)
 }
 
 func (wh *Handlers) getCodeReviewSystem(crs string) (clstore.ReviewSystem, bool) {

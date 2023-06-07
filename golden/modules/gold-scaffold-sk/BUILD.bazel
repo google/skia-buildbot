@@ -15,7 +15,6 @@ sk_element(
     sk_element_deps = [
         "//golden/modules/last-commit-sk",
         "//infra-sk/modules/app-sk",
-        "//infra-sk/modules/login-sk",
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/find-in-page-icon-sk",
         "//elements-sk/modules/icons/folder-icon-sk",
@@ -28,6 +27,7 @@ sk_element(
         "//elements-sk/modules/icons/sync-problem-icon-sk",
         "//elements-sk/modules/icons/view-day-icon-sk",
         "//elements-sk/modules/spinner-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//golden/modules:common_ts_lib",

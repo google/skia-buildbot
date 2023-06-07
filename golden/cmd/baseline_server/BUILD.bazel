@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/golden/cmd/baseline_server",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/alogin/proxylogin",
         "//go/common",
         "//go/httputils",
         "//go/metrics2",

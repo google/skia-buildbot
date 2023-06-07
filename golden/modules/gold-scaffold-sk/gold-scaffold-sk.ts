@@ -21,7 +21,7 @@ import { title } from '../settings';
 import { FetchErrorEventDetail } from '../common';
 
 import '../../../infra-sk/modules/app-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 
 import '../last-commit-sk';
 
@@ -53,8 +53,7 @@ export class GoldScaffoldSk extends ElementSk {
         </div>
         <div class=spacer></div>
         <last-commit-sk></last-commit-sk>
-        <login-sk ?testing_offline=${ele.testingOffline}
-                  .loginHost=${window.location.host}></login-sk>
+        <alogin-sk ?testing_offline=${ele.testingOffline}></alogin-sk>
       </header>
 
       <aside>

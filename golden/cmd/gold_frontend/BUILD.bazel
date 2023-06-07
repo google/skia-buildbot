@@ -7,11 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/golden/cmd/gold_frontend",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/alogin",
+        "//go/alogin/proxylogin",
         "//go/auth",
         "//go/common",
         "//go/gerrit",
         "//go/httputils",
-        "//go/login",
         "//go/metrics2",
         "//go/sklog",
         "//go/tracing/loggingtracer",
