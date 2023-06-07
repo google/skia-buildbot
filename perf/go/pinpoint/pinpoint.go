@@ -3,9 +3,10 @@ package pinpoint
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
+	"net/url"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -21,22 +22,19 @@ const (
 )
 
 type CreateBisectRequest struct {
-	ComparisonMode      string   `json:"comparison_mode"`
-	Target              string   `json:"target"`
-	StartGitHash        string   `json:"start_git_hash"`
-	EndGitHash          string   `json:"end_git_hash"`
-	Configuration       string   `json:"configuration"`
-	Benchmark           string   `json:"benchmark"`
-	Story               string   `json:"story"`
-	StoryTags           []string `json:"story_tags"`
-	Chart               string   `json:"chart"`
-	Statistic           string   `json:"statistic"`
-	ComparisonMagnitude string   `json:"comparison_magnitude"`
-	Pin                 string   `json:"pin"`
-	Project             string   `json:"project"`
-	BugId               string   `json:"bug_id"`
-	BatchId             string   `json:"batch_id"`
-	User                string   `json:"user"`
+	ComparisonMode      string `json:"comparison_mode"`
+	StartGitHash        string `json:"start_git_hash"`
+	EndGitHash          string `json:"end_git_hash"`
+	Configuration       string `json:"configuration"`
+	Benchmark           string `json:"benchmark"`
+	Story               string `json:"story"`
+	Chart               string `json:"chart"`
+	Statistic           string `json:"statistic"`
+	ComparisonMagnitude string `json:"comparison_magnitude"`
+	Pin                 string `json:"pin"`
+	Project             string `json:"project"`
+	BugId               string `json:"bug_id"`
+	User                string `json:"user"`
 }
 
 type CreateBisectResponse struct {
@@ -69,15 +67,10 @@ func New(ctx context.Context) (*Client, error) {
 func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBisectRequest) (*CreateBisectResponse, error) {
 	pc.createBisectCalled.Inc(1)
 
-	requestBodyJSONBytes, err := json.Marshal(createBisectRequest)
-	if err != nil {
-		pc.createBisectFailed.Inc(1)
-		return nil, skerr.Wrapf(err, "Failed to create pinpoint request.")
-	}
-	requestBodyJSONStr := string(requestBodyJSONBytes)
-	sklog.Debugf("Preparing to send this request to Pinpoint service: %s", requestBodyJSONStr)
+	requestURL := buildPinpointRequestURL(createBisectRequest)
+	sklog.Debugf("Preparing to call this Pinpoint service URL: %s", requestURL)
 
-	httpResponse, err := httputils.PostWithContext(ctx, pc.httpClient, pinpointURL, contentType, strings.NewReader(requestBodyJSONStr))
+	httpResponse, err := httputils.PostWithContext(ctx, pc.httpClient, requestURL, contentType, nil)
 	if err != nil {
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to get pinpoint response.")
@@ -98,4 +91,49 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 	}
 
 	return &resp, nil
+}
+
+func buildPinpointRequestURL(createBisectRequest CreateBisectRequest) string {
+	params := url.Values{}
+	if createBisectRequest.ComparisonMode != "" {
+		params.Set("comparison_mode", createBisectRequest.ComparisonMode)
+	}
+	if createBisectRequest.StartGitHash != "" {
+		params.Set("start_git_hash", createBisectRequest.StartGitHash)
+	}
+	if createBisectRequest.EndGitHash != "" {
+		params.Set("end_git_hash", createBisectRequest.EndGitHash)
+	}
+	if createBisectRequest.Configuration != "" {
+		params.Set("configuration", createBisectRequest.Configuration)
+	}
+	if createBisectRequest.Benchmark != "" {
+		params.Set("benchmark", createBisectRequest.Benchmark)
+	}
+	if createBisectRequest.Story != "" {
+		params.Set("story", createBisectRequest.Story)
+	}
+	if createBisectRequest.Chart != "" {
+		params.Set("chart", createBisectRequest.Chart)
+	}
+	if createBisectRequest.Statistic != "" {
+		params.Set("statistic", createBisectRequest.Statistic)
+	}
+	if createBisectRequest.ComparisonMagnitude != "" {
+		params.Set("comparison_magnitude", createBisectRequest.ComparisonMagnitude)
+	}
+	if createBisectRequest.Pin != "" {
+		params.Set("pin", createBisectRequest.Pin)
+	}
+	if createBisectRequest.Project != "" {
+		params.Set("project", createBisectRequest.Project)
+	}
+	if createBisectRequest.BugId != "" {
+		params.Set("bug_id", createBisectRequest.BugId)
+	}
+	if createBisectRequest.User != "" {
+		params.Set("user", createBisectRequest.User)
+	}
+
+	return fmt.Sprintf("%s?%s", pinpointURL, params.Encode())
 }
