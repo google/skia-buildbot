@@ -90,6 +90,7 @@
  *
  * @attr summary {Boolean} - If present then display the summary bar.
  */
+import { Anomaly } from '../json';
 import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
@@ -390,6 +391,12 @@ interface LineData {
   summary: TracePaths;
 }
 
+export interface AnomalyData {
+  x: number;
+  y: number;
+  anomaly: Anomaly;
+}
+
 interface MousePosition {
   clientX: number;
   clientY: number;
@@ -464,6 +471,8 @@ export class PlotSimpleSk extends ElementSk {
 
   /** The locations of the background bands. See bands property. */
   private _bands: number[] = [];
+
+  private _anomalyDataMap: { [key: string]: AnomalyData[] } = {};
 
   /** A map of trace names to 'true' of traces that are highlighted. */
   private highlighted: { [key: string]: boolean } = {};
@@ -671,6 +680,18 @@ export class PlotSimpleSk extends ElementSk {
   private LEFT_MARGIN!: number; // px
 
   private Y_AXIS_TICK_LENGTH!: number; // px
+
+  private ANOMALY_BACKGROUND!: string; // CSS color.
+
+  private REGRESSION_COLOR!: string; // CSS color.
+
+  private IMPROVEMENT_COLOR!: string; // CSS color.
+
+  private ANOMALY_RADIUS!: number; // px
+
+  private ANOMALY_FONT_SIZE!: number; //px
+
+  private ANOMALY_FONT!: string; // CSS font string.
 
   private LABEL_FONT_SIZE!: number; // px
 
@@ -952,7 +973,13 @@ export class PlotSimpleSk extends ElementSk {
     this.lineData = this.lineData.filter(
       (line) => ids.indexOf(line.name) === -1
     );
-
+    if (this.anomalyDataMap !== null) {
+      ids.forEach((id) => {
+        if (id in this.anomalyDataMap) {
+          delete this.anomalyDataMap[id];
+        }
+      });
+    }
     const onlySpecialLinesRemaining = this.lineData.every((line) =>
       line.name.startsWith(SPECIAL)
     );
@@ -971,6 +998,7 @@ export class PlotSimpleSk extends ElementSk {
    */
   removeAll(): void {
     this.lineData = [];
+    this.anomalyDataMap = {};
     this.labels = [];
     this.highlight = [];
     this.hoverPt = {
@@ -1040,6 +1068,12 @@ export class PlotSimpleSk extends ElementSk {
 
     this.Y_AXIS_TICK_LENGTH = this.MARGIN / 4; // px
 
+    this.ANOMALY_RADIUS = 14 * this.scale; // px
+
+    this.ANOMALY_FONT_SIZE = 30 * this.scale;
+
+    this.ANOMALY_FONT = `${this.ANOMALY_FONT_SIZE}px Material Icons`;
+
     this.LABEL_FONT_SIZE = 14 * this.scale; // px
 
     this.LABEL_MARGIN = 6 * this.scale; // px
@@ -1060,6 +1094,10 @@ export class PlotSimpleSk extends ElementSk {
     // Start by using the computed colors.
     this.LABEL_COLOR = style.color;
     this.LABEL_BACKGROUND = style.backgroundColor;
+
+    this.ANOMALY_BACKGROUND = style.getPropertyValue('--on-surface');
+    this.IMPROVEMENT_COLOR = style.getPropertyValue('--success');
+    this.REGRESSION_COLOR = style.getPropertyValue('--failure');
 
     // Now override with CSS variables if they are present.
     const onBackground = style.getPropertyValue('--on-backgroud');
@@ -1607,6 +1645,9 @@ export class PlotSimpleSk extends ElementSk {
         }
       }
 
+      // Draw the anomalies.
+      this.drawAnomalies(ctx, this.detailArea);
+
       if (this.inZoomDrag === 'details') {
         this.drawZoomRect(ctx, this.zoomRect);
       } else if (this.inZoomDrag === 'no-zoom') {
@@ -1627,6 +1668,7 @@ export class PlotSimpleSk extends ElementSk {
           // Draw the label offset from the crosshair.
           ctx.font = this.LABEL_FONT;
           ctx.textBaseline = 'bottom';
+          ctx.textAlign = 'start';
           const label = this.numberFormatter.format(this.hoverPt.y);
           let x = this.crosshair.x + this.MARGIN;
           let y = this.crosshair.y - this.MARGIN;
@@ -1708,6 +1750,40 @@ export class PlotSimpleSk extends ElementSk {
     });
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  // Draw all anomalies in the given area.
+  private drawAnomalies(ctx: CanvasRenderingContext2D, area: Area) {
+    const keys = Object.keys(this._anomalyDataMap);
+    keys.forEach((key) => {
+      this._anomalyDataMap[key].forEach((anomalyData) => {
+        const anomaly = anomalyData.anomaly;
+        const cx = area.range.x(anomalyData.x);
+        const cy = area.range.y(anomalyData.y);
+        const anomalyPath = new Path2D();
+
+        // Draw white circle background of anomaly icon.
+        anomalyPath.moveTo(cx + this.ANOMALY_RADIUS, cy);
+        anomalyPath.arc(cx, cy, this.ANOMALY_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = this.ANOMALY_BACKGROUND;
+
+        ctx.fill(anomalyPath);
+        let symbol = '';
+        if (anomaly.is_improvement) {
+          ctx.fillStyle = this.IMPROVEMENT_COLOR;
+          symbol = String.fromCharCode(0xe86c);
+        } else {
+          ctx.fillStyle = this.REGRESSION_COLOR;
+          symbol = String.fromCharCode(0xe000);
+        }
+
+        // Draw anomaly icon.
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = this.ANOMALY_FONT;
+        ctx.fillText(symbol, cx, cy);
+      });
+    });
   }
 
   // Draw everything on the trace canvas.
@@ -1848,6 +1924,15 @@ export class PlotSimpleSk extends ElementSk {
     } else {
       this._bands = bands;
     }
+    this.drawOverlayCanvas();
+  }
+
+  get anomalyDataMap(): { [key: string]: AnomalyData[] } {
+    return this._anomalyDataMap;
+  }
+
+  set anomalyDataMap(anomalyDataMap: { [key: string]: AnomalyData[] }) {
+    this._anomalyDataMap = anomalyDataMap;
     this.drawOverlayCanvas();
   }
 

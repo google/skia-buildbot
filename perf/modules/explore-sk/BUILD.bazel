@@ -25,6 +25,7 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
+        "//perf/modules/anomaly-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -58,6 +59,7 @@ karma_test(
     deps = [
         ":explore-sk",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/plot-simple-sk",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//fetch-mock",

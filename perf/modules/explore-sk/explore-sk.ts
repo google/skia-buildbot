@@ -26,6 +26,7 @@ import '../../../elements-sk/modules/tabs-sk';
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
+import '../anomaly-sk';
 import '../commit-detail-panel-sk';
 import '../commit-range-sk';
 import '../domain-picker-sk';
@@ -39,6 +40,7 @@ import '../window/window';
 
 import {
   CreateBisectRequest,
+  Anomaly,
   DataFrame,
   RequestType,
   ParamSet,
@@ -46,6 +48,7 @@ import {
   FrameResponse,
   ShiftRequest,
   ShiftResponse,
+  TraceSet,
   progress,
   pivot,
   FrameResponseDisplayMode,
@@ -63,6 +66,7 @@ import {
   ParamSetSkClickEventDetail,
   ParamSetSkPlusClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
+import { AnomalySk, getAnomalyDataMap } from '../anomaly-sk/anomaly-sk';
 import {
   QuerySk,
   QuerySkQueryChangeEventDetail,
@@ -329,6 +333,8 @@ export class ExploreSk extends ElementSk {
   private user: string = '';
 
   private _initialized: boolean = false;
+
+  private anomalyTable: AnomalySk | null = null;
 
   private commits: CommitDetailPanelSk | null = null;
 
@@ -673,6 +679,7 @@ export class ExploreSk extends ElementSk {
               >
             </paramset-sk>
             <code><pre id=logEntry></pre></code>
+            <anomaly-sk id=anomaly></anomaly-sk>
           </div>
           <div>
             <commit-range-sk></commit-range-sk>
@@ -696,6 +703,7 @@ export class ExploreSk extends ElementSk {
     this._initialized = true;
     this._render();
 
+    this.anomalyTable = this.querySelector('#anomaly');
     this.commits = this.querySelector('#commits');
     this.commitsTab = this.querySelector('#commitsTab');
     this.detailTab = this.querySelector('#detailTab');
@@ -1191,6 +1199,18 @@ export class ExploreSk extends ElementSk {
       }
     }
 
+    // Find if selected point is an anomaly.
+    let selected_anomaly: Anomaly | null = null;
+    if (e.detail.name in this.plot!.anomalyDataMap) {
+      const anomalyData = this.plot!.anomalyDataMap[e.detail.name];
+      for (let i = 0; i < anomalyData.length; i++) {
+        if (anomalyData[i].x === e.detail.x) {
+          selected_anomaly = anomalyData[i].anomaly;
+          break;
+        }
+      }
+    }
+
     // Convert the trace id into a paramset to display.
     const params: { [key: string]: string } = fromKey(e.detail.name);
     const paramset: ParamSet = {};
@@ -1218,6 +1238,7 @@ export class ExploreSk extends ElementSk {
         this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.logEntry!.innerHTML = escapeAndLinkifyToString(json.logEntry);
+        this.anomalyTable!.anomaly = selected_anomaly;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;
@@ -1506,6 +1527,14 @@ export class ExploreSk extends ElementSk {
 
     this.plot!.addLines(dataframe.traceset, labels);
 
+    if (json.anomalymap !== null) {
+      const anomalyDataMap = getAnomalyDataMap(
+        dataframe.traceset,
+        dataframe.header!,
+        json.anomalymap
+      );
+      this.plot!.anomalyDataMap = anomalyDataMap;
+    }
     // Normalize bands to be just offsets.
     const bands: number[] = [];
     dataframe.header!.forEach((h, i) => {

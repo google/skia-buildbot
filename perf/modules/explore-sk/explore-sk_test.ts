@@ -1,7 +1,7 @@
 /* eslint-disable dot-notation */
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { ColumnHeader, progress } from '../json';
+import { ColumnHeader, DataFrame, TraceSet, progress } from '../json';
 import {
   calculateRangeChange,
   defaultPointSelected,
@@ -10,7 +10,7 @@ import {
   PointSelected,
   selectionToEvent,
 } from './explore-sk';
-
+import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
 fetchMock.config.overwriteRoutes = true;
 
 describe('calculateRangeChange', () => {

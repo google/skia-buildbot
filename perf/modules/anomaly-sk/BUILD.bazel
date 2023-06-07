@@ -1,0 +1,60 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "anomaly-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["anomaly-sk.scss"],
+    sk_element_deps = ["//perf/modules/plot-simple-sk"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "anomaly-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "anomaly-sk-demo",
+    html_file = "anomaly-sk-demo.html",
+    sk_element_deps = [":anomaly-sk"],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_entry_point = "anomaly-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "anomaly-sk_puppeteer_test",
+    src = "anomaly-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":anomaly-sk-demo",
+)
+
+karma_test(
+    name = "anomaly-sk_test",
+    src = "anomaly-sk_test.ts",
+    deps = [
+        ":anomaly-sk",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/plot-simple-sk",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

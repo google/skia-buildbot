@@ -5,7 +5,7 @@ import {
   TestBed,
 } from '../../../puppeteer-tests/util';
 
-describe('plot-simple-sk', () => {
+describe('anomaly-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed();
@@ -13,22 +13,17 @@ describe('plot-simple-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({ width: 750, height: 1400 });
+    await testBed.page.setViewport({ width: 600, height: 1000 });
   });
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('plot-simple-sk')).to.have.length(3);
+    expect(await testBed.page.$$('anomaly-sk')).to.have.length(4);
   });
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'perf', 'plot-simple-sk');
-    });
-
-    it('show anomalies', async () => {
-      await testBed.page.click('#anomaly');
-      await takeScreenshot(testBed.page, 'perf', 'plot-simple-sk');
+      await takeScreenshot(testBed.page, 'perf', 'anomaly-sk');
     });
   });
 });

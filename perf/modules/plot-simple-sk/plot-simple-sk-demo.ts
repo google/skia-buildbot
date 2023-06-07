@@ -1,11 +1,12 @@
 import './index';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import {
+  AnomalyData,
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,
   PlotSimpleSkZoomEventDetails,
 } from './plot-simple-sk';
-
+import { Anomaly } from '../json';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
@@ -18,9 +19,33 @@ const random = (): number => {
   return seed / MAX;
 };
 
+const dummyAnomaly = (isImprovement: boolean): Anomaly => {
+  return {
+    id: 0,
+    test_path: '',
+    bug_id: 123456,
+    start_revision: 0,
+    end_revision: 3,
+    is_improvement: isImprovement,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 0,
+    median_after_anomaly: 0,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+  };
+};
+
 window.customElements.whenDefined('plot-simple-sk').then(() => {
   const ele = $$<PlotSimpleSk>('#plot')!;
   let n = 0;
+  let traces: { [name: string]: number[] } = {};
 
   function add(plot: PlotSimpleSk, num: number) {
     const labels = [];
@@ -28,7 +53,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
       labels.push(new Date(1554143900000 + i * i * 5 * 1000 * 60));
     }
 
-    const traces: { [name: string]: number[] } = {};
+    traces = {};
     for (let j = 0; j < num; j++) {
       const trace = [];
       for (let i = 0; i < 50; i++) {
@@ -41,6 +66,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
       const id = `trace${j + n}`;
       traces[id] = trace;
     }
+
     n += num;
     plot.addLines(traces, labels);
   }
@@ -117,5 +143,30 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
       trace.push(0);
     }
     ele.addLines({ specialZero: trace }, []);
+  });
+
+  $$<HTMLButtonElement>('#anomaly')!.addEventListener('click', () => {
+    const anomalyDataMap: { [key: string]: AnomalyData[] } = {};
+    const keys = Object.keys(traces);
+    if (keys.length > 0) {
+      const id = keys[0];
+      anomalyDataMap[id] = [
+        {
+          x: 5,
+          y: traces[id][5],
+          anomaly: dummyAnomaly(false),
+        },
+        {
+          x: 20,
+          y: traces[id][20],
+          anomaly: dummyAnomaly(true),
+        },
+      ];
+    }
+    ele.anomalyDataMap = anomalyDataMap;
+  });
+
+  $$<HTMLButtonElement>('#clearanomaly')!.addEventListener('click', () => {
+    ele.anomalyDataMap = {};
   });
 });
