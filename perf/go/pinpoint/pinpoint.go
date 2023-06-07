@@ -38,8 +38,8 @@ type CreateBisectRequest struct {
 }
 
 type CreateBisectResponse struct {
-	JobID  string `json:"job_id"`
-	JobURL string `json:"job_url"`
+	JobID  string `json:"jobId"`
+	JobURL string `json:"jobUrl"`
 }
 
 type Client struct {

@@ -259,8 +259,8 @@ export interface CreateBisectRequest {
 }
 
 export interface CreateBisectResponse {
-	job_id: string;
-	job_url: string;
+	jobId: string;
+	jobUrl: string;
 }
 
 export interface FullSummary {
