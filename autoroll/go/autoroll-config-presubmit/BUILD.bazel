@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "autoroll-config-presubmit_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-config-presubmit",
+    visibility = ["//visibility:private"],
+    deps = ["//go/git"],
+)
+
+go_binary(
+    name = "autoroll-config-presubmit",
+    embed = [":autoroll-config-presubmit_lib"],
+    visibility = ["//visibility:public"],
+)
