@@ -185,7 +185,9 @@ const (
 	// data. Note that values over 200 caused the insert rate to drop precipitously,
 	// going from 20,000 qps with a batch size of 100 down to 400 qps with a batch
 	// size of 200.
-	writeTracesChunkSize = 100
+	writeTracesValuesChunkSize    = 100
+	writeTracesPostingsChunkSize  = 1000
+	writeTracesParamSetsChunkSize = 100
 
 	// See writeTracesChunkSize.
 	readTracesChunkSize = 100
@@ -1725,7 +1727,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	}
 
 	if len(paramSetsContext) > 0 {
-		err := util.ChunkIter(len(paramSetsContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(paramSetsContext), writeTracesParamSetsChunkSize, func(startIdx int, endIdx int) error {
 			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeParamSetsChunk")
 			defer span.End()
 
@@ -1798,7 +1800,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	sklog.Infof("About to format %d postings names", len(params))
 
 	if len(postingsTemplateContext) > 0 {
-		err := util.ChunkIter(len(postingsTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(postingsTemplateContext), writeTracesPostingsChunkSize, func(startIdx int, endIdx int) error {
 			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
 			defer span.End()
 
@@ -1825,7 +1827,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
-	err = util.ChunkIter(len(valuesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+	err = util.ChunkIter(len(valuesTemplateContext), writeTracesValuesChunkSize, func(startIdx int, endIdx int) error {
 		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunk")
 		defer span.End()
 
