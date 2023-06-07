@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -80,6 +81,7 @@ var (
 	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
 	validateConfig         = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
+	genK8sConfig           = flag.String("gen-k8s-config", "", "Eg. \"skia-infra-public/skia-chromium.cfg:/path/to/k8s/config\". If set, generate a Kubernetes config file for the roller and write it in the given directory, without running the autoroll backend.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -138,6 +140,17 @@ func main() {
 	if *validateConfig {
 		return
 	}
+	ctx := context.Background()
+	if *genK8sConfig != "" {
+		split := strings.Split(*genK8sConfig, ":")
+		if len(split) != 2 {
+			sklog.Fatal("Invalid value %q for --gen-k8s-config, expected <source config relpath>:<dest path>")
+		}
+		if err := conversion.ConvertConfig(ctx, configBytes, split[0], split[1]); err != nil {
+			sklog.Fatalf("failed to convert config: %s", err)
+		}
+		return
+	}
 
 	// Rollers use a custom temporary dir, to ensure that it's on a
 	// persistent disk. Create it if it does not exist.
@@ -146,8 +159,6 @@ func main() {
 			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
 		}
 	}
-
-	ctx := context.Background()
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
