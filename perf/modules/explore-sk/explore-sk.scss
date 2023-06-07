@@ -235,6 +235,49 @@ explore-sk {
     }
   }
 
+  #bisect-dialog {
+    overflow: auto;
+    width: 45%;
+
+    paramset-sk {
+      display: inline-block;
+
+      div {
+        display: block;
+      }
+    }
+
+    #testpath {
+      width: 90%;
+    }
+
+    #patch {
+      width: 90%;
+    }
+
+    tabs-panel-sk {
+      margin-top: 0;
+      border-top: solid 1px var(--on-surface);
+      background: var(--surface);
+    }
+
+    tabs-sk {
+      display: block;
+      border-bottom: solid 1px;
+      margin-top: 8px;
+
+      button {
+        margin: 0;
+        padding: 4px 4px 0 4px;
+      }
+    }
+
+    .footer {
+      display: flex;
+      justify-content: right;
+    }
+  }
+
   textarea {
     background: var(--surface);
     color: var(--on-surface);
