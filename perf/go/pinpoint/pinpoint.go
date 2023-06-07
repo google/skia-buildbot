@@ -135,5 +135,7 @@ func buildPinpointRequestURL(createBisectRequest CreateBisectRequest) string {
 		params.Set("user", createBisectRequest.User)
 	}
 
+	params.Set("tags", "{\"origin\":\"skia_perf\"}")
+
 	return fmt.Sprintf("%s?%s", pinpointURL, params.Encode())
 }
