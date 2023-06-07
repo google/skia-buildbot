@@ -50,6 +50,10 @@ func (rfs RevisionFilters) Skip(ctx context.Context, rev revision.Revision) (str
 // Revision is invalid and should be skipped. If the Revision is invalid, the
 // InvalidReason field is set to the message returned by RevisionFilter.Skip.
 func (rfs RevisionFilters) MaybeSetInvalid(ctx context.Context, rev *revision.Revision) error {
+	// If the revision is already invalid, we don't need to do anything.
+	if rev.InvalidReason != "" {
+		return nil
+	}
 	invalidReason, err := rfs.Skip(ctx, *rev)
 	if err != nil {
 		return skerr.Wrap(err)
