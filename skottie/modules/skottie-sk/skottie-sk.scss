@@ -102,6 +102,8 @@ body.body-sk.font-sk {
         background: var(--surface-1dp);
         padding: 0;
         width: 329px;
+        overflow-y: auto;
+        overflow-x: hidden;
         flex: 0 0 auto;
 
         .json-chooser {
