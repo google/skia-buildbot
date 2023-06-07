@@ -204,7 +204,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 
 	// Step3: Run dart license script to create new licenses.
 	licensesGoldenDir := filepath.Join(parentRepoDir, "ci", "licenses_golden")
-	licenseCmd := []string{dartBinary, "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
+	licenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
 	sklog.Infof("Running %s", licenseCmd)
 	if err := exec.Run(ctx, &exec.Command{
 		Dir:            licenseToolsDir,
@@ -234,7 +234,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 
 		// Step7: Update sky_engine/LICENSE. It should always be run
 		// according to https://github.com/flutter/engine/pull/4959#issuecomment-380222322
-		updateLicenseCmd := []string{dartBinary, "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
+		updateLicenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
 		sklog.Infof("Running %s", updateLicenseCmd)
 		releasesLicensePath := filepath.Join(parentRepoDir, "sky", "packages", "sky_engine", "LICENSE")
 		outFile, err := os.Create(releasesLicensePath)
