@@ -16,8 +16,10 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -25,6 +27,7 @@ import (
 func main() {
 	const (
 		flagCommit             = "commit"
+		flagCommitSubject      = "commit-subject"
 		flagEmail              = "email"
 		flagLouhiExecutionID   = "louhi-execution-id"
 		flagLouhiPubSubProject = "louhi-pubsub-project"
@@ -143,6 +146,45 @@ func main() {
 				},
 				Action: func(ctx *cli.Context) error {
 					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))
+				},
+			},
+			{
+				Name:        "upload-cl",
+				Description: "Upload a CL with any changes in the local checkout.",
+				Usage:       "upload-cl <options>",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     flagCommitSubject,
+						Usage:    "Commit message subject line.",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     flagLouhiPubSubProject,
+						Usage:    "GCP project used for sending Louhi pub/sub notifications.",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagLouhiExecutionID,
+						Usage:    "Execution ID of the Louhi flow.",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagSourceCommit,
+						Usage:    "Commit hash which triggered the build.",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     flagSourceRepo,
+						Usage:    "URL of the repo which triggered the build.",
+						Required: false,
+					},
+				},
+				Action: func(ctx *cli.Context) error {
+					cwd, err := os.Getwd()
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
 				},
 			},
 		},
