@@ -119,7 +119,7 @@ func (app) ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *config.Insta
 		if instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic != "" {
 			dlPolicy := &pubsub.DeadLetterPolicy{
 				DeadLetterTopic:     "projects/skia-public/topics/" + instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic,
-				MaxDeliveryAttempts: 10,
+				MaxDeliveryAttempts: 5,
 			}
 			cfg.AckDeadline = ackDeadline
 			cfg.DeadLetterPolicy = dlPolicy
