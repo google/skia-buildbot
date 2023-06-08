@@ -13,7 +13,6 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -165,6 +164,9 @@ func (c ClientConfig) Client() *http.Client {
 			Dial: ConfiguredDialTimeout(c.DialTimeout),
 		}
 	}
+	if c.Metrics {
+		t = NewMetricsTransport(t)
+	}
 	if c.Retries != nil {
 		if c.RequestTimeout != 0 && c.Retries.maxElapsedTime > c.RequestTimeout {
 			sklog.Warningf("Setting ClientConfig.Retries.maxElapsedTime to value of ClientConfig.RequestTimeout. Was %s, now %s.", c.Retries.maxElapsedTime, c.RequestTimeout)
@@ -183,9 +185,6 @@ func (c ClientConfig) Client() *http.Client {
 	}
 	if c.Response2xxAnd3xx {
 		t = Response2xxAnd3xxTransport{t}
-	}
-	if c.Metrics {
-		t = NewMetricsTransport(t)
 	}
 	return &http.Client{
 		Transport: t,
@@ -569,29 +568,30 @@ func getPositiveInt(query url.Values, param string, defaultVal int) (int, error)
 
 // MetricsTransport is an http.RoundTripper which logs each request to metrics.
 type MetricsTransport struct {
-	counters    map[string]metrics2.Counter
-	countersMtx sync.Mutex
-	rt          http.RoundTripper
+	rt http.RoundTripper
 }
 
-// getCounter returns the cached metrics2.Counter for the given host.
-func (mt *MetricsTransport) getCounter(host string) metrics2.Counter {
-	mt.countersMtx.Lock()
-	defer mt.countersMtx.Unlock()
-	c, ok := mt.counters[host]
-	if !ok {
-		c = metrics2.GetCounter("http_request_metrics", map[string]string{
-			"host": host,
-		})
-		mt.counters[host] = c
-	}
-	return c
+// updateMetrics returns the cached metrics2.Counter for the given host.
+func (mt *MetricsTransport) updateMetrics(host string, status int, latency time.Duration) {
+	statusStr := strconv.Itoa(status)
+	metrics2.GetCounter("http_request_metrics", map[string]string{
+		"host":   host,
+		"status": statusStr,
+	}).Inc(1)
+	metrics2.GetInt64Metric("http_request_latency_ms", map[string]string{
+		"host":   host,
+		"status": statusStr,
+	}).Update(latency.Milliseconds())
 }
 
 // See docs for http.RoundTripper.
 func (mt *MetricsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	mt.getCounter(req.URL.Host).Inc(1)
-	return mt.rt.RoundTrip(req)
+	start := time.Now()
+	resp, err := mt.rt.RoundTrip(req)
+	if resp != nil {
+		mt.updateMetrics(req.URL.Host, resp.StatusCode, time.Now().Sub(start))
+	}
+	return resp, err
 }
 
 // NewMetricsTransport returns a MetricsTransport instance which wraps the given
@@ -608,8 +608,7 @@ func NewMetricsTransport(rt http.RoundTripper) http.RoundTripper {
 		}
 	}
 	return &MetricsTransport{
-		counters: map[string]metrics2.Counter{},
-		rt:       rt,
+		rt: rt,
 	}
 }
 
