@@ -578,10 +578,10 @@ func (mt *MetricsTransport) updateMetrics(host string, status int, latency time.
 		"host":   host,
 		"status": statusStr,
 	}).Inc(1)
-	metrics2.GetInt64Metric("http_request_latency_ms", map[string]string{
+	metrics2.GetFloat64SummaryMetric("http_request_latency_ms", map[string]string{
 		"host":   host,
 		"status": statusStr,
-	}).Update(latency.Milliseconds())
+	}).Observe(float64(latency.Milliseconds()))
 }
 
 // See docs for http.RoundTripper.
