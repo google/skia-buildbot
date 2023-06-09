@@ -61,6 +61,8 @@ type IssueTrackerQueryConfig struct {
 	UntriagedPriorities []string
 	// Issues are also considered untriaged if they are assigned to any of these emails.
 	UntriagedAliases []string
+	// Whether unassigned issues should be considered as untriaged.
+	UnassignedIsUntriaged bool
 }
 
 // See documentation for bugs.Search interface.
@@ -91,6 +93,9 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 		countsData.OpenCount++
 		if i.Assignee == "" {
 			countsData.UnassignedCount++
+			if it.queryConfig.UnassignedIsUntriaged {
+				countsData.UntriagedCount++
+			}
 		}
 		created := time.Unix(i.CreatedTS, 0)
 		modified := time.Unix(i.ModifiedTS, 0)

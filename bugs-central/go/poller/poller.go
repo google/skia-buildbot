@@ -171,6 +171,20 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	}
 	bugFrameworks = append(bugFrameworks, skMonorail)
 
+	//////////////////// Skia - Buganizer ////////////////////
+	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
+		Query:                 "componentid:1363359 status:open",
+		Client:                types.SkiaClient,
+		UntriagedPriorities:   []string{},
+		UntriagedAliases:      []string{"none"},
+		UnassignedIsUntriaged: true,
+	}
+	skiaIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, skiaIssueTrackerQueryConfig)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to init issuetracker for skia")
+	}
+	bugFrameworks = append(bugFrameworks, skiaIssueTracker)
+
 	//////////////////// OSS-Fuzz - Monorail ////////////////////
 	fuzzQueryConfig := &monorail.MonorailQueryConfig{
 		Instance:              "oss-fuzz",
