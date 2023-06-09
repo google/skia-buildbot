@@ -109,6 +109,17 @@ func TestProcessTemplate(t *testing.T) {
 	}
 }
 
+func TestSplitAndProcessPath(t *testing.T) {
+	check := func(input, expectRelDir, expectBase string) {
+		actualBase, actualRelDir := splitAndProcessPath(input)
+		require.Equal(t, expectBase, actualBase)
+		require.Equal(t, expectRelDir, actualRelDir)
+	}
+	check("path/to/roller.cfg", "path/to", "roller.cfg")
+	check("path/to/generated/roller.cfg", "path/to", "roller.cfg")
+	check("now/generated/in/middle/roller.cfg", "now/in/middle", "roller.cfg")
+}
+
 const fakeTmplContents = `
 {{ define "roller" }}
 config {

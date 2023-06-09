@@ -19,8 +19,10 @@ import (
 	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -178,11 +180,24 @@ func main() {
 						Usage:    "URL of the repo which triggered the build.",
 						Required: false,
 					},
+					&cli.StringFlag{
+						Name:     flagEmail,
+						Usage:    "Email address to attribute the build.",
+						Required: true,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					cwd, err := os.Getwd()
 					if err != nil {
 						return skerr.Wrap(err)
+					}
+					// Initialize git authentication.
+					ts, err := git_steps.Init(ctx.Context, true)
+					if err != nil {
+						return td.FailStep(ctx.Context, err)
+					}
+					if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
+						return td.FailStep(ctx.Context, err)
 					}
 					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
 				},
