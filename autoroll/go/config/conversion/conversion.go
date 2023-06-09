@@ -118,7 +118,7 @@ func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 	cfgMap["configBase64"] = cfgFileBase64
 
 	// Run kube-conf-gen to generate the backend config file.
-	relDir, baseName := splitAndProcessPath(relPath)
+	baseName, relDir := splitAndProcessPath(relPath)
 	dstPath := filepath.Join(dstDir, relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
 	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
 		return skerr.Wrapf(err, "failed to write output")
