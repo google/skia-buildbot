@@ -185,8 +185,8 @@ const (
 	// data. Note that values over 200 caused the insert rate to drop precipitously,
 	// going from 20,000 qps with a batch size of 100 down to 400 qps with a batch
 	// size of 200.
-	writeTracesValuesChunkSize    = 2000
-	writeTracesPostingsChunkSize  = 2000
+	writeTracesValuesChunkSize    = 50
+	writeTracesPostingsChunkSize  = 50
 	writeTracesParamSetsChunkSize = 100
 
 	// See writeTracesChunkSize.
