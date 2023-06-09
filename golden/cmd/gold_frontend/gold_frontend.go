@@ -392,7 +392,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 	// LoggingGzipRequestResponse.
 	loggedRouter := mux.NewRouter()
 
-	loggedRouter.HandleFunc("/login/status", alogin.LoginStatusHandler(plogin))
+	loggedRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 
 	// JSON endpoints.
 	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
