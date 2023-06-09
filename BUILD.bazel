@@ -158,7 +158,6 @@ genrule(
         "//infra/bots/task_drivers/command_wrapper",
         "//infra/bots/task_drivers/roll_cipd_packages",
         "//infra/bots/task_drivers/presubmit",
-        "//infra/bots/task_drivers/validate_autoroll_configs",
     ],
     outs = ["built_task_drivers.tar"],
     # Make a temporary directory in the output directory, as recommended by

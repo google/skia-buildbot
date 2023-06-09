@@ -44,13 +44,6 @@ release-google3: autoroll-google3
 .PHONY: release-all
 release-all: release-fe release-be release-google3
 
-# validate runs the validate_autoroll_config task driver using the provided
-# CONFIG variable, which may be a single config file or a directory containing
-# config files.
-.PHONY: validate
-validate:
-	go run ../infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs.go --local --config="$(CONFIG)"
-
 # Run the autoroll-fe locally. This is just for convenience in testing.
 .PHONY: run-local-fe-instance
 run-local-fe-instance: autoroll-fe
