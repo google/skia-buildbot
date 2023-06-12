@@ -8,21 +8,36 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/protocolbuffers/txtpbfmt/parser"
 	"github.com/urfave/cli/v2"
-	"go.skia.org/infra/autoroll/go/config/conversion"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/chrome_branch"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/errgroup"
+)
+
+var (
+	// FuncMap is used for executing templates.
+	FuncMap = template.FuncMap{
+		"map":      makeMap,
+		"list":     makeList,
+		"sanitize": sanitize,
+	}
 )
 
 func main() {
@@ -91,7 +106,7 @@ func main() {
 
 func generate(ctx context.Context, tmplVarsFile, dir string) error {
 	// Load config variables.
-	var vars conversion.TemplateVars
+	var vars templateVars
 	if err := util.WithReadFile(tmplVarsFile, func(f io.Reader) error {
 		return json.NewDecoder(f).Decode(&vars)
 	}); err != nil {
@@ -128,7 +143,7 @@ func generate(ctx context.Context, tmplVarsFile, dir string) error {
 	}
 	for _, tmplPath := range templates {
 		fmt.Printf("Processing %s\n", tmplPath)
-		generatedConfigs, err := ProcessTemplate(tmplPath, &vars)
+		generatedConfigs, err := processTemplate(tmplPath, &vars)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to process template file %s", tmplPath)
 		}
@@ -153,7 +168,7 @@ func updateInputs(ctx context.Context, tmplVarsFile, privacySandboxAndroidRepoUR
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-	vars, err := conversion.CreateTemplateVars(ctx, client, privacySandboxAndroidRepoURL, privacySandboxAndroidVersionsPath)
+	vars, err := createTemplateVars(ctx, client, privacySandboxAndroidRepoURL, privacySandboxAndroidVersionsPath)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -168,14 +183,14 @@ func updateInputs(ctx context.Context, tmplVarsFile, privacySandboxAndroidRepoUR
 
 var rollerNameRegex = regexp.MustCompile(`(?m)^\s*roller_name:\s*"(\S+)"`)
 
-// ProcessTemplate converts a single template into at least one config.
-func ProcessTemplate(srcPath string, vars *conversion.TemplateVars) (map[string][]byte, error) {
+// processTemplate converts a single template into at least one config.
+func processTemplate(srcPath string, vars *templateVars) (map[string][]byte, error) {
 	// Read and execute the template.
 	tmplContents, err := ioutil.ReadFile(srcPath)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to read template file %s", srcPath)
 	}
-	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(conversion.FuncMap).Parse(string(tmplContents))
+	tmpl, err := template.New(filepath.Base(srcPath)).Funcs(FuncMap).Parse(string(tmplContents))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to parse template file %q", srcPath)
 	}
@@ -254,4 +269,156 @@ func splitConfigs(allConfigs []byte) [][]byte {
 		configsBytes = append(configsBytes, configBytes)
 	}
 	return configsBytes
+}
+
+// createTemplateVars reads data from multiple sources to produce variables used
+// as input to templates.
+func createTemplateVars(ctx context.Context, client *http.Client, privacySandboxAndroidRepoURL, privacySandboxAndroidVersionsPath string) (*templateVars, error) {
+	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	vars := &templateVars{
+		Vars: reg.Vars(),
+	}
+
+	// Load the privacy sandbox versions for each of the active milestones.
+	if privacySandboxAndroidRepoURL != "" && privacySandboxAndroidVersionsPath != "" {
+		var eg errgroup.Group
+		repo := gitiles.NewRepo(privacySandboxAndroidRepoURL, client)
+		var mtx sync.Mutex
+		milestones := append(vars.Branches.ActiveMilestones, vars.Branches.Chromium.Main)
+		for _, m := range milestones {
+			m := m // https://golang.org/doc/faq#closures_and_goroutines
+			eg.Go(func() error {
+				branchName := fmt.Sprintf("m%d", m.Milestone)
+				ref := fmt.Sprintf("refs/heads/chromium/%d", m.Number)
+				bucket := fmt.Sprintf("luci.chrome-m%d.try", m.Milestone)
+				if m.Number == 0 {
+					branchName = "main"
+					ref = "refs/heads/main"
+					bucket = "luci.chrome.try"
+				}
+				sklog.Infof("Reading privacy sandbox versions at milestone: %+v", m)
+				contents, err := repo.ReadFileAtRef(ctx, privacySandboxAndroidVersionsPath, ref)
+				if err != nil {
+					if strings.Contains(err.Error(), "NOT_FOUND") {
+						sklog.Warningf("%s not found in %s", privacySandboxAndroidVersionsPath, ref)
+						return nil
+					}
+					return skerr.Wrapf(err, "failed to load privacy sandbox version for %s", ref)
+				}
+				var psVersions []*privacySandboxVersion
+				if err := json.Unmarshal(contents, &psVersions); err != nil {
+					return skerr.Wrapf(err, "failed to parse privacy sandbox version for %s from %s", ref, string(contents))
+				}
+				for _, v := range psVersions {
+					v.BranchName = branchName
+					v.Ref = ref
+					v.Bucket = bucket
+				}
+				mtx.Lock()
+				defer mtx.Unlock()
+				vars.PrivacySandboxVersions = append(vars.PrivacySandboxVersions, psVersions...)
+				return nil
+			})
+		}
+		if err := eg.Wait(); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		sort.Sort(privacySandboxVersionSlice(vars.PrivacySandboxVersions))
+	}
+
+	return vars, nil
+}
+
+// privacySandboxVersion tracks a single version of the privacy sandbox.
+type privacySandboxVersion struct {
+	BranchName    string `json:"BranchName"`
+	Ref           string `json:"Ref"`
+	Bucket        string `json:"Bucket"`
+	PylFile       string `json:"PylFile"`
+	PylTargetPath string `json:"PylTargetPath"`
+	CipdPackage   string `json:"CipdPackage"`
+	CipdTag       string `json:"CipdTag"`
+}
+
+// privacySandboxVersionSlice implements sort.Interface.
+type privacySandboxVersionSlice []*privacySandboxVersion
+
+// Len implements sort.Interface.
+func (s privacySandboxVersionSlice) Len() int {
+	return len(s)
+}
+
+func sortHelper(a, b string) (bool, bool) {
+	if a != b {
+		return true, a < b
+	}
+	return false, false
+}
+
+// Less implements sort.Interface.
+func (s privacySandboxVersionSlice) Less(i, j int) bool {
+	a := s[i]
+	b := s[j]
+	if diff, less := sortHelper(a.BranchName, b.BranchName); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.Ref, b.Ref); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.Bucket, b.Bucket); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.CipdPackage, b.CipdPackage); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.CipdTag, b.CipdTag); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.PylFile, b.PylFile); diff {
+		return less
+	}
+	if diff, less := sortHelper(a.PylTargetPath, b.PylTargetPath); diff {
+		return less
+	}
+	return false
+}
+
+// Swap implements sort.Interface.
+func (s privacySandboxVersionSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+type templateVars struct {
+	*config_vars.Vars
+	PrivacySandboxVersions []*privacySandboxVersion
+}
+
+func makeMap(elems ...interface{}) (map[string]interface{}, error) {
+	if len(elems)%2 != 0 {
+		return nil, skerr.Fmt("Requires an even number of elements, not %d", len(elems))
+	}
+	rv := make(map[string]interface{}, len(elems)/2)
+	for i := 0; i < len(elems); i += 2 {
+		key, ok := elems[i].(string)
+		if !ok {
+			return nil, skerr.Fmt("Map keys must be strings, not %v", elems[i])
+		}
+		rv[key] = elems[i+1]
+	}
+	return rv, nil
+}
+
+func makeList(args ...interface{}) []interface{} {
+	return args
+}
+
+func sanitize(v string) string {
+	re1 := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
+	v = re1.ReplaceAllString(v, "-")
+	re2 := regexp.MustCompile(`--+`)
+	v = re2.ReplaceAllString(v, "-")
+	return v
 }

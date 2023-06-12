@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/testutils"
 )
@@ -114,7 +113,7 @@ func TestRollerNameRegex(t *testing.T) {
 
 // TestProcessTemplate just tests a simple config template with mocked data sources.
 func TestProcessTemplate(t *testing.T) {
-	vars := &conversion.TemplateVars{
+	vars := &templateVars{
 		Vars: config_vars.FakeVars(),
 	}
 	tmp, err := ioutil.TempDir("", "")
@@ -126,7 +125,7 @@ func TestProcessTemplate(t *testing.T) {
 	require.NoError(t, ioutil.WriteFile(file, []byte(fakeTmplContents), os.ModePerm))
 	generatedDir := filepath.Join(tmp, "generated")
 
-	actual, err := ProcessTemplate(file, vars)
+	actual, err := processTemplate(file, vars)
 	require.NoError(t, err)
 	require.Len(t, actual, 3)
 	actual1, ok := actual[generatedDir+"/gen-roller-8-0-chromium-m80.cfg"]
@@ -138,4 +137,70 @@ func TestProcessTemplate(t *testing.T) {
 	actual3, ok := actual[generatedDir+"/gen-roller-8-2-chromium-m82.cfg"]
 	require.True(t, ok)
 	require.NotNil(t, actual3)
+}
+
+func TestSortPrivacySandboxVersionSlice(t *testing.T) {
+	// Check inequality.
+	checkLess := func(less, more *privacySandboxVersion) {
+		s := privacySandboxVersionSlice([]*privacySandboxVersion{less, more})
+		require.True(t, s.Less(0, 1))
+		require.False(t, s.Less(1, 0))
+		require.False(t, s.Less(0, 0))
+		require.False(t, s.Less(1, 1))
+	}
+	checkLess(&privacySandboxVersion{
+		BranchName: "less",
+	}, &privacySandboxVersion{
+		BranchName: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		Ref: "less",
+	}, &privacySandboxVersion{
+		Ref: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		Bucket: "less",
+	}, &privacySandboxVersion{
+		Bucket: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		PylFile: "less",
+	}, &privacySandboxVersion{
+		PylFile: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		PylTargetPath: "less",
+	}, &privacySandboxVersion{
+		PylTargetPath: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		CipdPackage: "less",
+	}, &privacySandboxVersion{
+		CipdPackage: "more",
+	})
+	checkLess(&privacySandboxVersion{
+		CipdTag: "less",
+	}, &privacySandboxVersion{
+		CipdTag: "more",
+	})
+
+	// Check equality.
+	s := privacySandboxVersionSlice([]*privacySandboxVersion{{}, {}})
+	require.False(t, s.Less(0, 1))
+	require.False(t, s.Less(1, 0))
+	require.False(t, s.Less(0, 0))
+	require.False(t, s.Less(1, 1))
+}
+
+func TestSanitize(t *testing.T) {
+	test := func(input, expect string) {
+		actual := sanitize(input)
+		require.Equal(t, expect, actual)
+	}
+
+	test("my-name", "my-name")
+	test("my--name", "my-name")
+	test("my-name-", "my-name-")
+	test("my.name", "my-name")
+	test(".../...", "-")
 }

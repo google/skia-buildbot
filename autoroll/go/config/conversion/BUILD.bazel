@@ -12,19 +12,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/config",
-        "//autoroll/go/config_vars",
-        "//go/chrome_branch",
-        "//go/gcs/gcsclient",
-        "//go/gitiles",
         "//go/skerr",
         "//go/sklog",
         "//kube/go/kube_conf_gen_lib",
-        "@com_google_cloud_go_storage//:storage",
-        "@org_golang_google_api//iterator",
-        "@org_golang_google_api//option",
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//encoding/prototext",
-        "@org_golang_x_sync//errgroup",
     ],
 )
 
@@ -32,10 +24,5 @@ go_test(
     name = "conversion_test",
     srcs = ["conversion_test.go"],
     embed = [":conversion"],
-    deps = [
-        "//autoroll/go/config",
-        "//autoroll/go/config_vars",
-        "@com_github_stretchr_testify//require",
-        "@org_golang_google_protobuf//encoding/prototext",
-    ],
+    deps = ["@com_github_stretchr_testify//require"],
 )
