@@ -330,6 +330,8 @@ export class ExploreSk extends ElementSk {
 
   private story: string = '';
 
+  private bugId: string = '';
+
   private user: string = '';
 
   private _initialized: boolean = false;
@@ -588,7 +590,7 @@ export class ExploreSk extends ElementSk {
       <h3>Test Path</h3>
       <input id="testpath" type="text" value=${ele.testPath} readonly></input>
       <h3>Bug ID</h3>
-      <input id="bug-id" type="text"></input>
+      <input id="bug-id" type="text" value=${ele.bugId}></input>
       <h3>Start Commit</h3>
       <input id="start-commit" type="text" value=${ele.startCommit}></input>
       <h3>End Commit</h3>
@@ -1272,6 +1274,11 @@ export class ExploreSk extends ElementSk {
         this.testPath = parts.join('/');
         this.startCommit = prevCommit.toString();
         this.endCommit = commit.toString();
+        if (selected_anomaly !== null && selected_anomaly.bug_id != -1) {
+          this.bugId = selected_anomaly.bug_id.toString();
+        } else {
+          this.bugId = '';
+        }
         if (this.displayMode === 'display_plot') {
           this.jsonsource!.cid = cid;
           this.jsonsource!.traceid = traceid;
