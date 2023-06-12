@@ -17,6 +17,7 @@ go_library(
         "//go/exec",
         "//go/git",
         "//go/gitauth",
+        "//go/httputils",
         "//go/skerr",
         "//go/util",
         "//go/vfs",

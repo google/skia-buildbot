@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vfs"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
@@ -35,6 +36,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 	if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
 		return td.FailStep(ctx, err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create a shallow clone of the repo.
 	checkoutDir, err := shallowClone(ctx, repo, git.DefaultRef)
@@ -84,7 +86,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 			}
 			if _, ok := stageFile.Images[image.Image]; ok {
 				// Use the stagemanager to update the image references.
-				sm := stages.NewStageManager(ctx, vfs.Local(checkoutDir), dockerClient)
+				sm := stages.NewStageManager(ctx, vfs.Local(checkoutDir), dockerClient, stages.GitilesCommitResolver(httpClient))
 				if err := sm.SetStage(ctx, image.Image, "latest", image.Tag); err != nil {
 					return err
 				}

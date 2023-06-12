@@ -72,3 +72,16 @@ func (f *StageFile) EncodeFile(filepath string) error {
 		return dec.Encode(f)
 	}))
 }
+
+// GitRepoForImage returns the Git repo URL for the given image.
+func (f *StageFile) GitRepoForImage(image string) (string, error) {
+	img, ok := f.Images[image]
+	if !ok {
+		return "", skerr.Fmt("image %q does not exist in %s", image, StageFilePath)
+	}
+	repoURL := img.GitRepo
+	if repoURL == "" {
+		repoURL = f.DefaultGitRepo
+	}
+	return repoURL, nil
+}

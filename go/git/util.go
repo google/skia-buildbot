@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	commitHashRegex = regexp.MustCompile(`^[a-f0-9]{40}$`)
+	commitHashRegex = regexp.MustCompile(`^[a-f0-9]+$`)
 
 	// This regex is taken from:
 	// https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/common/git/footer/footer.go?q=%22%5E%5Cs*(%5B%5Cw-%5D%2B):%20*(.*)$%22&ss=chromium
@@ -337,7 +337,14 @@ func GetStringFooterVal(footersMap map[string]string, footer string) string {
 	return ""
 }
 
-// IsCommitHash returns true if the given string looks like a Git commit hash.
+// IsFullCommitHash returns true if the given string looks like a full 40-
+// character Git commit hash.
+func IsFullCommitHash(s string) bool {
+	return IsCommitHash(s) && len(s) == 40
+}
+
+// IsCommitHash returns true if the given string looks like a valid (possibly
+// shortened) Git commit hash.
 func IsCommitHash(s string) bool {
-	return commitHashRegex.MatchString(s)
+	return commitHashRegex.MatchString(s) && len(s) >= 4 && len(s) <= 40
 }

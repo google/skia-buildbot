@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	filesystem "io/fs"
+	"net/http"
 	"path"
 	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vfs"
@@ -35,21 +37,38 @@ var (
 	configDirs = []string{"skia-infra-corp", "skia-infra-public", "skia-infra-public-dev", "templates"}
 )
 
-// StageManager provides utilities for working with release stage files.
-type StageManager struct {
-	fs     vfs.FS
-	docker docker.Client
-}
+// CommitResolver is a function used to resolve a short Git commit hash or ref
+// to a full commit hash.
+type CommitResolver func(ctx context.Context, repoURL, reference string) (string, error)
 
-// NewStageManager returns a StageManager instance.
-func NewStageManager(ctx context.Context, fs vfs.FS, dockerClient docker.Client) *StageManager {
-	return &StageManager{
-		fs:     fs,
-		docker: dockerClient,
+// GitilesCommitResolver returns a CommitResolver which uses gitiles and the
+// given http.Client to resolve commits.
+func GitilesCommitResolver(httpClient *http.Client) CommitResolver {
+	return func(ctx context.Context, repoURL, reference string) (string, error) {
+		return gitiles.NewRepo(repoURL, httpClient).ResolveRef(ctx, reference)
 	}
 }
 
-// AddImage adds the given image to the stage file.
+// StageManager provides utilities for working with release stage files.
+type StageManager struct {
+	fs             vfs.FS
+	docker         docker.Client
+	commitResolver CommitResolver
+}
+
+// NewStageManager returns a StageManager instance. The http.Client is used for
+// interacting with git repositories and should have the necessary
+// authentication settings (eg. OAuth2.0 token source and scopes) attached.
+func NewStageManager(ctx context.Context, fs vfs.FS, dockerClient docker.Client, commitResolver CommitResolver) *StageManager {
+	return &StageManager{
+		fs:             fs,
+		docker:         dockerClient,
+		commitResolver: commitResolver,
+	}
+}
+
+// AddImage adds the given image to the stage file. The gitRepo is optional and
+// overrides the default git repo.
 func (sm *StageManager) AddImage(ctx context.Context, image, gitRepo string) error {
 	return sm.updateImages(ctx, func(sf *StageFile) error {
 		if _, ok := sf.Images[image]; ok {
@@ -83,54 +102,63 @@ func (sm *StageManager) SetStage(ctx context.Context, image, stage, reference st
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
-	// Retrieve the digest of the image.
-	var gitHash string
-	if strings.HasPrefix(reference, GitTagPrefix) {
-		maybeHash := strings.TrimPrefix(reference, GitTagPrefix)
-		if git.IsCommitHash(maybeHash) {
-			gitHash = maybeHash
-		}
-	} else if git.IsCommitHash(reference) {
-		gitHash = reference
-		reference = GitTagPrefix + reference
-	}
-	manifest, err := sm.docker.GetManifest(ctx, registry, repository, reference)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	digest := manifest.Digest
-
-	// Find a "git-abc123" tag for the image, derive the commit hash.
-	if gitHash == "" {
-		instances, err := sm.docker.ListInstances(ctx, registry, repository)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		instance, ok := instances[digest]
-		if !ok {
-			return skerr.Fmt("failed to find instance %q of %s", digest, image)
-		}
-		for _, tag := range instance.Tags {
-			if strings.HasPrefix(tag, GitTagPrefix) {
-				maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
-				if git.IsCommitHash(maybeHash) {
-					gitHash = maybeHash
-					break
-				}
-			}
-		}
-	}
-	if gitHash == "" {
-		return skerr.Fmt("failed to find \"git-\" tag on instance %q of %s", digest, image)
-	}
-
-	// Update the StageFile and all dependent configs.
 	return sm.updateImages(ctx, func(sf *StageFile) error {
 		img, ok := sf.Images[image]
 		if !ok {
 			return skerr.Fmt("unknown image %q", image)
 		}
+
+		// If the reference looks like a Git commit hash, query the git repository
+		// to validate it and to retrieve the full hash.
+		var gitHash string
+		maybeGitHash := strings.TrimPrefix(reference, GitTagPrefix)
+		if git.IsCommitHash(maybeGitHash) {
+			repoURL := img.GitRepo
+			if repoURL == "" {
+				repoURL = sf.DefaultGitRepo
+			}
+			fullHash, err := sm.commitResolver(ctx, repoURL, maybeGitHash)
+			// The ref may look like a git commit hash and not be, and could
+			// still be a valid Docker image tag, so we don't return the error
+			// here.
+			if err == nil {
+				gitHash = fullHash
+				reference = GitTagPrefix + fullHash
+			}
+		}
+
+		// Retrieve the digest of the image.
+		manifest, err := sm.docker.GetManifest(ctx, registry, repository, reference)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		digest := manifest.Digest
+
+		// Find a "git-abc123" tag for the image, derive the commit hash.
+		if gitHash == "" {
+			instances, err := sm.docker.ListInstances(ctx, registry, repository)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			instance, ok := instances[digest]
+			if !ok {
+				return skerr.Fmt("failed to find instance %q of %s", digest, image)
+			}
+			for _, tag := range instance.Tags {
+				if strings.HasPrefix(tag, GitTagPrefix) {
+					maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
+					if git.IsFullCommitHash(maybeHash) {
+						gitHash = maybeHash
+						break
+					}
+				}
+			}
+		}
+		if gitHash == "" {
+			return skerr.Fmt("failed to find \"git-\" tag on instance %q of %s", digest, image)
+		}
+
+		// Update the stage file.
 		if img.Stages == nil {
 			img.Stages = map[string]*Stage{}
 		}
@@ -181,6 +209,18 @@ func (sm *StageManager) Apply(ctx context.Context) error {
 	return sm.updateImages(ctx, func(sf *StageFile) error {
 		return nil
 	})
+}
+
+// ReadStageFile reads and returns the stage file.
+func (sm *StageManager) ReadStageFile(ctx context.Context) (*StageFile, error) {
+	var rv *StageFile
+	if err := sm.updateImages(ctx, func(sf *StageFile) error {
+		rv = sf
+		return nil
+	}); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
 }
 
 // updateImages generates updates to the stage file and configs in the config

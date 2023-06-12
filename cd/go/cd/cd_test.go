@@ -1,9 +1,18 @@
 package cd
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/docker"
+	docker_mocks "go.skia.org/infra/go/docker/mocks"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestUploadedCLRegex(t *testing.T) {
@@ -33,4 +42,130 @@ To https://my-project.googlesource.com/my-repo.git
 `
 	const expect = "https://my-project-review.googlesource.com/c/my-repo/+/12345"
 	require.Equal(t, expect, uploadedCLRegex.FindString(logOutput))
+}
+
+func TestMatchDockerImagesToGitCommits(t *testing.T) {
+	ctx := context.Background()
+	dockerClient := &docker_mocks.Client{}
+	urlmock := mockhttpclient.NewURLMock()
+	repo := gitiles.NewRepo("https://my-repo.git", urlmock.Client())
+	image := "gcr.io/skia-public/autoroll-be"
+	limit := 3
+
+	dockerClient.On("ListInstances", testutils.AnyContext, "gcr.io", "skia-public/autoroll-be").Return(map[string]*docker.ImageInstance{
+		"sha256:1111111111": {
+			Digest: "sha256:1111111111",
+			Tags:   []string{"git-1111111111111111111111111111111111111111"},
+		},
+		"sha256:2222222222": {
+			Digest: "sha256:2222222222",
+			Tags:   []string{"git-2222222222222222222222222222222222222222"},
+		},
+		"sha256:3333333333": {
+			Digest: "sha256:3333333333",
+			Tags:   []string{"git-3333333333333333333333333333333333333333"},
+		},
+		"sha256:4444444444": {
+			Digest: "sha256:4444444444",
+			Tags:   []string{"git-4444444444444444444444444444444444444444"},
+		},
+		"sha256:5555555555": {
+			Digest: "sha256:5555555555",
+			Tags:   []string{"git-5555555555555555555555555555555555555555"},
+		},
+	}, nil)
+	ts := time.Unix(1684339486, 0).UTC()
+	tsStr := ts.Format("Mon Jan 02 15:04:05 2006")
+	b := append([]byte(")]}'\n"), []byte(testutils.MarshalJSON(t, &gitiles.Log{
+		Log: []*gitiles.Commit{
+			{
+				Commit:  "1111111111111111111111111111111111111111",
+				Parents: []string{"2222222222222222222222222222222222222222"},
+				Author: &gitiles.Author{
+					Name:  "1111",
+					Email: "1111@google.com",
+					Time:  tsStr,
+				},
+				Committer: &gitiles.Author{
+					Name:  "1111",
+					Email: "1111@google.com",
+					Time:  tsStr,
+				},
+				Message: "",
+			},
+			{
+				Commit:  "2222222222222222222222222222222222222222",
+				Parents: []string{"3333333333333333333333333333333333333333"},
+				Author: &gitiles.Author{
+					Name:  "2222",
+					Email: "2222@google.com",
+					Time:  tsStr,
+				},
+				Committer: &gitiles.Author{
+					Name:  "2222",
+					Email: "2222@google.com",
+					Time:  tsStr,
+				},
+				Message: "",
+			},
+			{
+				Commit:  "3333333333333333333333333333333333333333",
+				Parents: []string{"4444444444444444444444444444444444444444"},
+				Author: &gitiles.Author{
+					Name:  "3333",
+					Email: "3333@google.com",
+					Time:  tsStr,
+				},
+				Committer: &gitiles.Author{
+					Name:  "3333",
+					Email: "3333@google.com",
+					Time:  tsStr,
+				},
+				Message: "",
+			},
+		},
+		Next: "4444444444444444444444444444444444444444",
+	}))...)
+	urlmock.MockOnce("https://my-repo.git/+log/main?format=JSON&n=3", mockhttpclient.MockGetDialogue(b))
+
+	images, err := MatchDockerImagesToGitCommits(ctx, dockerClient, repo, image, limit)
+	require.NoError(t, err)
+	require.Equal(t, []*DockerImageWithGitCommit{
+		{
+			Digest: "sha256:1111111111",
+			Commit: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "1111111111111111111111111111111111111111",
+					Author: "1111 (1111@google.com)",
+				},
+				Parents:   []string{"2222222222222222222222222222222222222222"},
+				Timestamp: ts,
+			},
+			Tags: []string{"git-1111111111111111111111111111111111111111"},
+		},
+		{
+			Digest: "sha256:2222222222",
+			Commit: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "2222222222222222222222222222222222222222",
+					Author: "2222 (2222@google.com)",
+				},
+				Parents:   []string{"3333333333333333333333333333333333333333"},
+				Timestamp: ts,
+			},
+			Tags: []string{"git-2222222222222222222222222222222222222222"},
+		},
+		{
+			Digest: "sha256:3333333333",
+			Commit: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "3333333333333333333333333333333333333333",
+					Author: "3333 (3333@google.com)",
+				},
+				Parents:   []string{"4444444444444444444444444444444444444444"},
+				Timestamp: ts,
+			},
+			Tags: []string{"git-3333333333333333333333333333333333333333"},
+		},
+	}, images)
 }

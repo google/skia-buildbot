@@ -273,9 +273,9 @@ func TestGetStringFooterVal(t *testing.T) {
 	}
 }
 
-func TestIsCommitHash(t *testing.T) {
+func TestIsFullCommitHash(t *testing.T) {
 	test := func(s string, expect bool, name string) {
-		require.Equal(t, expect, IsCommitHash(s))
+		require.Equal(t, expect, IsFullCommitHash(s))
 	}
 	test("", false, "empty")
 	test("abc123", false, "too short")

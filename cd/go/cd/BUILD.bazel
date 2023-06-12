@@ -7,7 +7,9 @@ go_library(
     importpath = "go.skia.org/infra/cd/go/cd",
     visibility = ["//visibility:public"],
     deps = [
+        "//cd/go/stages",
         "//go/auth",
+        "//go/docker",
         "//go/exec",
         "//go/gerrit/rubberstamper",
         "//go/git",
@@ -16,6 +18,7 @@ go_library(
         "//go/louhi",
         "//go/louhi/pubsub",
         "//go/skerr",
+        "//go/vcsinfo",
         "//task_driver/go/td",
         "@org_golang_x_oauth2//google",
     ],
@@ -25,5 +28,13 @@ go_test(
     name = "cd_test",
     srcs = ["cd_test.go"],
     embed = [":cd"],
-    deps = ["@com_github_stretchr_testify//require"],
+    deps = [
+        "//go/docker",
+        "//go/docker/mocks",
+        "//go/gitiles",
+        "//go/mockhttpclient",
+        "//go/testutils",
+        "//go/vcsinfo",
+        "@com_github_stretchr_testify//require",
+    ],
 )

@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//go/docker",
         "//go/git",
+        "//go/gitiles",
         "//go/skerr",
         "//go/util",
         "//go/vfs",
@@ -27,6 +28,7 @@ go_test(
     deps = [
         "//go/docker",
         "//go/docker/mocks",
+        "//go/skerr",
         "//go/testutils",
         "//go/vfs",
         "@com_github_stretchr_testify//require",

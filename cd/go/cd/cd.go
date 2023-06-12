@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
+	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
@@ -14,6 +17,7 @@ import (
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/oauth2/google"
 )
@@ -94,4 +98,62 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 		}
 	}
 	return nil
+}
+
+// DockerImageWithGitCommit pairs a Docker image instance with the Git commit at
+// which the image was built.
+type DockerImageWithGitCommit struct {
+	Digest string
+	Commit *vcsinfo.LongCommit
+	Tags   []string
+}
+
+// MatchDockerImagesToGitCommits retrieves all versions of a given Docker image
+// and maps them to the Git commits at which they were built.
+func MatchDockerImagesToGitCommits(ctx context.Context, dockerClient docker.Client, repo gitiles.GitilesRepo, image string, limit int) ([]*DockerImageWithGitCommit, error) {
+	registry, repository, _, err := docker.SplitImage(image)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	instances, err := dockerClient.ListInstances(ctx, registry, repository)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	instancesByCommit := make(map[string]*DockerImageWithGitCommit, len(instances))
+
+	for _, instance := range instances {
+		var commitHash string
+		for _, tag := range instance.Tags {
+			if strings.HasPrefix(tag, stages.GitTagPrefix) {
+				commitHash = strings.TrimPrefix(tag, stages.GitTagPrefix)
+				break
+			}
+		}
+		if !git.IsFullCommitHash(commitHash) {
+			continue
+		}
+		instancesByCommit[commitHash] = &DockerImageWithGitCommit{
+			Digest: instance.Digest,
+			Tags:   instance.Tags,
+		}
+	}
+
+	rv := make([]*DockerImageWithGitCommit, 0, len(instances))
+	if err := repo.LogFnBatch(ctx, git.MainBranch, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+		for _, c := range commits {
+			instance, ok := instancesByCommit[c.Hash]
+			if ok {
+				instance.Commit = c
+				rv = append(rv, instance)
+				delete(instancesByCommit, c.Hash)
+				if len(instancesByCommit) == 0 || len(rv) >= limit {
+					return gitiles.ErrStopIteration
+				}
+			}
+		}
+		return nil
+	}, gitiles.LogBatchSize(limit)); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
 }
