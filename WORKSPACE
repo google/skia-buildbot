@@ -319,7 +319,7 @@ container_pull(
 # skia_app_container macro.
 container_pull(
     name = "base-cipd",
-    digest = "sha256:0ae30b768fb1bdcbea5b6721075b758806c4076a74a8a99a67ff3632df87cf5a",
+    digest = "sha256:85cdd1d386600802e4b5eee9cd8e367f89db3258a1d0fc4ec33be856511695e5",
     registry = "gcr.io",
     repository = "skia-public/base-cipd",
 )
