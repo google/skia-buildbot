@@ -1,6 +1,7 @@
 FROM debian:testing-slim
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
+  adduser \
   ca-certificates \
   doxygen \
   graphviz \

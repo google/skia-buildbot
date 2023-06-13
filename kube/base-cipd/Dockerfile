@@ -3,7 +3,7 @@ ARG CIPD_ROOT="/cipd"
 # Keep the tag for base-cipd in sync with the tag used here for debian.
 FROM debian:testing-slim AS base
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
-  ca-certificates \
+  adduser ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
   && addgroup --gid 2000 skia \
   && adduser --uid 2000 --gid 2000 skia
@@ -15,11 +15,11 @@ USER skia:skia
 # installing some packages that we prefer to obtain via CIPD.
 FROM base AS install_cipd
 USER root
-RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl python2-minimal
+RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl python3-minimal
 USER skia:skia
 COPY ./tmp/recipes.cfg /tmp/recipes.cfg
 RUN cat /tmp/recipes.cfg | \
-  python2 -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']" > \
+  python3 -c "import json; import sys; print(json.load(sys.stdin)['deps']['depot_tools']['revision'])" > \
   /tmp/depot_tools_rev \
   && cd $(mktemp -d) \
   && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
