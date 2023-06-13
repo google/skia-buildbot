@@ -78,7 +78,13 @@ spec:
             - '--port=:8000'
             - '--target_port=:7000'
             - '--prom-port=:10000'
+            {{- if index . "force_login"}}
+            {{- if not .force_login}}
             - '--passive'
+            {{- end}}
+            {{- else}}
+            - '--passive'
+            {{- end}}
             {{- range $viewer := .authorized_users}}
             - '--role=viewer={{$viewer}}'
             {{- end}}

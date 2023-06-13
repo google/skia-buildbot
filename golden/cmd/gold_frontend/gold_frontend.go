@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing/loggingtracer"
 	"go.skia.org/infra/golden/go/clstore"
@@ -59,6 +60,9 @@ const (
 
 type frontendServerConfig struct {
 	config.Common
+
+	// Force the user to be authenticated for all requests.
+	ForceLogin bool `json:"force_login"`
 
 	// Configuration settings that will get passed to the frontend (see modules/settings.ts)
 	FrontendConfig frontendConfig `json:"frontend"`
@@ -413,6 +417,10 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 	// authentication configured. Now we wrap it into the router that is exposed to the host
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter.PathPrefix("/").Handler(appHandler)
+
+	if fsc.ForceLogin {
+		appHandler = alogin.ForceRoleMiddleware(plogin, roles.Viewer)(appRouter)
+	}
 
 	return rootRouter
 }
