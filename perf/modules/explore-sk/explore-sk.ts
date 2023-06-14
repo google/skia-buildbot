@@ -10,6 +10,7 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { ParamSet as CommonSkParamSet } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
@@ -22,6 +23,7 @@ import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/toast-sk';
 
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
@@ -40,6 +42,7 @@ import '../window/window';
 
 import {
   CreateBisectRequest,
+  CreateBisectResponse,
   Anomaly,
   DataFrame,
   RequestType,
@@ -332,6 +335,10 @@ export class ExploreSk extends ElementSk {
 
   private bugId: string = '';
 
+  private jobUrl: string = '';
+
+  private jobId: string = '';
+
   private user: string = '';
 
   private _initialized: boolean = false;
@@ -393,6 +400,12 @@ export class ExploreSk extends ElementSk {
   private helpDialog: HTMLDialogElement | null = null;
 
   private commitRangeSk: CommitRangeSk | null = null;
+
+  private pinpointJobToast: ToastSk | null = null;
+
+  private closeToastButton: HTMLButtonElement | null = null;
+
+  private bisectButton: HTMLButtonElement | null = null;
 
   constructor() {
     super(ExploreSk.template);
@@ -600,7 +613,7 @@ export class ExploreSk extends ElementSk {
       <h3>Patch to apply to the entire job(optional)</h3>
       <input id="patch" type="text"></input>
       <div class=footer>
-        <button @click=${ele.postBisect}>Bisect</button>
+        <button id="bisect-button" @click=${ele.postBisect}>Bisect</button>
         <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
     </dialog>
@@ -695,6 +708,10 @@ export class ExploreSk extends ElementSk {
       </tabs-panel-sk>
     </div>
   </div>
+  <toast-sk id="pinpoint-job-toast" duration=10000>
+    Pinpoint bisection started: <a href=${ele.jobUrl}>${ele.jobId}</a>.
+    <button id="hide-toast" class="action">Close</button>
+  </toast-sk>
   `;
 
   connectedCallback(): void {
@@ -736,6 +753,9 @@ export class ExploreSk extends ElementSk {
     );
     this.helpDialog = this.querySelector('#help');
     this.commitRangeSk = this.querySelector('commit-range-sk');
+    this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
+    this.closeToastButton = this.querySelector('#hide-toast');
+    this.bisectButton = this.querySelector('#bisect-button');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -773,6 +793,9 @@ export class ExploreSk extends ElementSk {
       .catch(errorMessage);
 
     document.addEventListener('keydown', (e) => this.keyDown(e));
+    this.closeToastButton!.addEventListener('click', () =>
+      this.pinpointJobToast?.hide()
+    );
   }
 
   // Call this anytime something in private state is changed. Will be replaced
@@ -791,6 +814,7 @@ export class ExploreSk extends ElementSk {
   }
 
   private postBisect(): void {
+    this.bisectButton!.disabled = true;
     const parts: string[] =
       this.simpleParamset!.paramsets[0]!.test[0].split('_');
     const tail: string = parts.pop()!;
@@ -830,8 +854,13 @@ export class ExploreSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {})
+      .then((json: CreateBisectResponse) => {
+        this.jobUrl = json.jobUrl;
+        this.jobId = json.jobId;
+        this.pinpointJobToast?.show();
+      })
       .catch(errorMessage);
+    this.bisectButton!.disabled = false;
     this.closeBisectDialog();
   }
 

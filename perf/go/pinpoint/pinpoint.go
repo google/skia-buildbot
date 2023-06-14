@@ -3,6 +3,7 @@ package pinpoint
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -81,6 +82,11 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 	if err != nil {
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to read body from pinpoint response.")
+	}
+	if httpResponse.StatusCode != http.StatusOK {
+		errMsg := fmt.Sprintf("The request failed with status code %d and body: %s", httpResponse.StatusCode, string(respBody))
+		err = errors.New(errMsg)
+		return nil, skerr.Wrapf(err, "Pinpoint request failed.")
 	}
 
 	resp := CreateBisectResponse{}

@@ -25,6 +25,7 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
+        "//elements-sk/modules/toast-sk",
         "//perf/modules/anomaly-sk",
     ],
     ts_deps = [
