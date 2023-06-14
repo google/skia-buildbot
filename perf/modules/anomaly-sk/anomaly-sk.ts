@@ -147,6 +147,10 @@ export class AnomalySk extends ElementSk {
               <td>${anomaly.start_revision} - ${anomaly.end_revision}</td>
             </tr>
             <tr>
+              <th>Improvement</th>
+              <td>${anomaly.is_improvement}</td>
+            </tr>
+            <tr>
               <th>Bug Id</th>
               <td>${AnomalySk.formatBug(anomaly.bug_id)}</td>
             </tr>

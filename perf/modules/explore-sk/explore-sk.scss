@@ -59,11 +59,6 @@ explore-sk {
     justify-content: space-evenly;
   }
 
-  anomaly-sk {
-    display: flex;
-    margin: 1.25em;
-  }
-
   checkbox-sk {
     display: inline-block;
   }
@@ -77,6 +72,14 @@ explore-sk {
   }
 
   #params_and_logentry {
+    code,
+    #logEntry {
+      white-space: pre-wrap;
+    }
+    anomaly-sk {
+      display: flex;
+      margin: 1.25em;
+    }
     display: flex;
   }
 
