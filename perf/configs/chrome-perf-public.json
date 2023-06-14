@@ -1,5 +1,5 @@
 {
-    "URL": "https://chrome-perf.skia.org",
+    "URL": "https://perf.luci.app",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
