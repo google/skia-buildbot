@@ -1,0 +1,40 @@
+{
+    "URL": "https://chrome-perf-internal.skia.org",
+    "allowed_hosts": [],
+    "contact": "browser-perf-engprod@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "cockroachdb",
+        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/chrome_int?sslmode=disable",
+        "tile_size": 8192,
+        "enable_follower_reads": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-chrome-non-public-backfill",
+            "subscription": "perf-ingestion-chrome-non-public-backfill-prod",
+            "dl_topic": "perf-ingestion-chrome-non-public-backfill-dl",
+            "dl_subscription": "perf-ingestion-chrome-non-public-backfill-dl-prod",
+            "sources": [
+                "gs://chrome-perf-non-public/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://chromium.googlesource.com/chromium/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "file_change_marker": "",
+        "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
+        "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+    }
+}
