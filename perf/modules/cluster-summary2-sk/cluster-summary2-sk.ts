@@ -308,7 +308,7 @@ export class ClusterSummary2Sk extends ElementSk {
       .then((status: LoginStatus) => {
         this.status!.classList.toggle(
           'disabled',
-          !status.roles!.includes('editor')
+          !(status.roles || []).includes('editor')
         );
       })
       .catch(errorMessage);
