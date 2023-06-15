@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
@@ -233,29 +233,29 @@ func (srv *Server) verdaccioReverseProxyHandler(h http.Handler, projectName stri
 }
 
 // See baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *Server) AddHandlers(r chi.Router) {
 
 	// All endpoints that require authentication should be added to this router.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 
 	for project := range srv.supportedProjectsToInfo {
 		projectInfo := srv.supportedProjectsToInfo[project]
-		appRouter.Handle(fmt.Sprintf("/rejection-logs-%s", project), srv.rejectionsLogHandler(appRouter, projectInfo)).Methods("GET")
+		appRouter.Get(fmt.Sprintf("/rejection-logs-%s", project), srv.rejectionsLogHandler(appRouter, projectInfo).ServeHTTP)
 
 		projectEndpoint := fmt.Sprintf("/%s", project)
 		// This path supports both GETs and POSTs because:
 		// All registry API calls use GETS- https://github.com/npm/registry/blob/master/docs/REGISTRY-API.md
 		// But the audit call at "/-/npm/v1/security/audits" uses a POST.
-		r.PathPrefix(projectEndpoint + "/").Handler(http.StripPrefix(projectEndpoint, srv.verdaccioReverseProxyHandler(r, project)))
+		r.Handle(projectEndpoint+"/*", http.StripPrefix(projectEndpoint, srv.verdaccioReverseProxyHandler(r, project)))
 	}
 
 	plogin := proxylogin.NewWithDefaults()
-	r.PathPrefix("/").Handler(alogin.ForceRole(appRouter, plogin, roles.Viewer))
+	r.Handle("/*", alogin.ForceRole(appRouter, plogin, roles.Viewer))
 }
 
 // See baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (srv *Server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 func main() {

@@ -15,7 +15,7 @@ go_library(
         "//go/sklog",
         "//skcq/go/db",
         "//skcq/go/types",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",

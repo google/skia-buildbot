@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"google.golang.org/api/iterator"
@@ -150,22 +150,22 @@ func (srv *Server) user(r *http.Request) string {
 }
 
 // AddHandlers implements baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *Server) AddHandlers(r chi.Router) {
 	// Get task status will be used from swarming bots.
-	r.HandleFunc(getTaskStatusURI, srv.statusHandler).Methods("GET")
+	r.Get(getTaskStatusURI, srv.statusHandler)
 
 	// All endpoints that require authentication should be added to this router.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 	appRouter.HandleFunc("/", srv.indexHandler)
 	appRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 	appRouter.HandleFunc(myLeasesURI, srv.myLeasesHandler)
 	appRouter.HandleFunc(allLeasesURI, srv.allLeasesHandler)
-	appRouter.HandleFunc(poolDetailsPostURI, srv.poolDetailsHandler).Methods("POST")
-	appRouter.HandleFunc(getSupportedPoolsPostURI, srv.supportedPoolsHandler).Methods("POST")
-	appRouter.HandleFunc(getLeasesPostURI, srv.getLeasesHandler).Methods("POST")
-	appRouter.HandleFunc(addTaskPostURI, srv.addTaskHandler).Methods("POST")
-	appRouter.HandleFunc(extendTaskPostURI, srv.extendTaskHandler).Methods("POST")
-	appRouter.HandleFunc(expireTaskPostURI, srv.expireTaskHandler).Methods("POST")
+	appRouter.Post(poolDetailsPostURI, srv.poolDetailsHandler)
+	appRouter.Post(getSupportedPoolsPostURI, srv.supportedPoolsHandler)
+	appRouter.Post(getLeasesPostURI, srv.getLeasesHandler)
+	appRouter.Post(addTaskPostURI, srv.addTaskHandler)
+	appRouter.Post(extendTaskPostURI, srv.extendTaskHandler)
+	appRouter.Post(expireTaskPostURI, srv.expireTaskHandler)
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
@@ -173,7 +173,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 		appHandler = alogin.ForceRoleMiddleware(plogin, roles.Viewer)(appHandler)
 	}
 
-	r.PathPrefix("/").Handler(appHandler)
+	r.Handle("/*", appHandler)
 }
 
 func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -489,8 +489,8 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddMiddleware implements baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (srv *Server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 func main() {

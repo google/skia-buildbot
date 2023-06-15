@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -51,7 +51,7 @@ const (
 	sshUserIP2 = "chrome-bot@skia-spin513-002"
 )
 
-func setupForTestLocalOrProd(t *testing.T, local bool) (context.Context, machine.Description, *server, *mux.Router, *httptest.ResponseRecorder) {
+func setupForTestLocalOrProd(t *testing.T, local bool) (context.Context, machine.Description, *server, chi.Router, *httptest.ResponseRecorder) {
 	ctx := now.TimeTravelingContext(fakeTime)
 	desc := machine.NewDescription(ctx)
 	desc.Dimensions = machine.SwarmingDimensions{
@@ -77,15 +77,15 @@ func setupForTestLocalOrProd(t *testing.T, local bool) (context.Context, machine
 		login: proxylogin.NewWithDefaults(),
 	}
 
-	// Put a mux.Router in place so the request path gets parsed.
-	router := mux.NewRouter()
+	// Put a chi.Router in place so the request path gets parsed.
+	router := chi.NewRouter()
 	s.AddHandlers(router)
 	w := httptest.NewRecorder()
 
 	return ctx, desc, s, router, w
 }
 
-func setupForTest(t *testing.T) (context.Context, machine.Description, *server, *mux.Router, *httptest.ResponseRecorder) {
+func setupForTest(t *testing.T) (context.Context, machine.Description, *server, chi.Router, *httptest.ResponseRecorder) {
 	return setupForTestLocalOrProd(t, true)
 }
 

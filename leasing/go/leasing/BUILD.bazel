@@ -30,7 +30,7 @@ go_library(
         "//go/swarming",
         "//go/util",
         "//leasing/go/types",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
@@ -52,7 +52,7 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":leasing_lib"],
     deps = [
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_stretchr_testify//require",
     ],
 )

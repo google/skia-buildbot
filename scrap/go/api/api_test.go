@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -59,9 +59,9 @@ func makeRequest(scrapExchange *mocks.ScrapExchange, w http.ResponseWriter, r *h
 		scrapExchange: scrapExchange,
 	}
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	a.AddHandlers(router, AddProtectedEndpoints)
 
 	router.ServeHTTP(w, r)
@@ -70,9 +70,9 @@ func makeRequest(scrapExchange *mocks.ScrapExchange, w http.ResponseWriter, r *h
 func testMethodAndPathReturnExpectedStatusCode(t *testing.T, method string, path string, expectedCode int) {
 	a := New(nil)
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	a.AddHandlers(router, DoNotAddProtectedEndpoints)
 
 	w := httptest.NewRecorder()

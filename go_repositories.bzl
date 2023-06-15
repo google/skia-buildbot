@@ -797,6 +797,12 @@ def go_repositories():
         sum = "h1:6zsha5zo/TWhRhwqCD3+EarCAgZ2yN28ipRnGPnwkI0=",
         version = "v0.2.2",
     )
+    go_repository(
+        name = "com_github_go_chi_chi_v5",
+        importpath = "github.com/go-chi/chi/v5",
+        sum = "h1:lD+NLqFcAi1ovnVZpsnObHGW4xb4J8lNmoYVfECH1Y0=",
+        version = "v5.0.8",
+    )
 
     go_repository(
         name = "com_github_go_errors_errors",

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -133,32 +133,32 @@ func (srv *Server) IsEditor(r *http.Request) bool {
 }
 
 // AddHandlers implements baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *Server) AddHandlers(r chi.Router) {
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(srv.plogin))
 
 	// All endpoints that require authentication should be added to this router. The
 	// rest of endpoints are left unauthenticated because they are accessed from various
 	// places like: Skia infra apps, Gerrit plugin, Chrome extensions, presubmits, etc.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 
 	if srv.skiaRepoSpecified {
 		// If the main skia repo has been specified then leave default repo
 		// handlers around for backwards compatibility.
-		appRouter.HandleFunc("/", srv.treeStateDefaultRepoHandler).Methods("GET")
-		r.HandleFunc("/current", httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+		appRouter.Get("/", srv.treeStateDefaultRepoHandler)
+		r.Get("/current", httputils.CorsHandler(srv.bannerStatusHandler))
 	}
-	appRouter.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
+	appRouter.Post("/_/get_autorollers", srv.autorollersHandler)
 
 	// Add repo-specific endpoints.
-	appRouter.HandleFunc(fmt.Sprintf("/%s", repoNameRegex), srv.treeStateDefaultRepoHandler).Methods("GET")
-	appRouter.HandleFunc(fmt.Sprintf("/%s/_/add_tree_status", repoNameRegex), srv.addStatusHandler).Methods("POST")
-	appRouter.HandleFunc(fmt.Sprintf("/%s/_/recent_statuses", repoNameRegex), srv.recentStatusesHandler).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+	appRouter.Get(fmt.Sprintf("/%s", repoNameRegex), srv.treeStateDefaultRepoHandler)
+	appRouter.Post(fmt.Sprintf("/%s/_/add_tree_status", repoNameRegex), srv.addStatusHandler)
+	appRouter.Post(fmt.Sprintf("/%s/_/recent_statuses", repoNameRegex), srv.recentStatusesHandler)
+	r.Get(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler))
 
 	if *internalPort != "" {
-		internalRouter := mux.NewRouter()
-		internalRouter.HandleFunc(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
-		internalRouter.HandleFunc("/current", srv.bannerStatusHandler).Methods("GET")
+		internalRouter := chi.NewRouter()
+		internalRouter.Get(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler))
+		internalRouter.Get("/current", srv.bannerStatusHandler)
 
 		go func() {
 			sklog.Infof("Internal server on %q", *internalPort)
@@ -169,12 +169,12 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 
-	r.PathPrefix("/").Handler(appHandler)
+	r.Handle("/*", appHandler)
 }
 
 // AddMiddleware implements baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (srv *Server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 // IsRepoSupported is a utility function that returns true if the specified

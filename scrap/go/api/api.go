@@ -9,7 +9,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -89,27 +89,27 @@ const (
 //	+----------------------------------------+--------+---------+---------------+-----------------------------------+------+
 //	| /_/_names/{type}/                      | GET    |         | []string      | Returns all named scraps of type. |      |
 //	+----------------------------------------+--------+---------+---------------+-----------------------------------+------+
-func (a *Api) AddHandlers(r *mux.Router, option Option) {
+func (a *Api) AddHandlers(r chi.Router, option Option) {
 	if option == AddProtectedEndpoints {
-		r.HandleFunc("/_/scraps/", a.scrapCreateHandler).Methods("POST")
+		r.Post("/_/scraps/", a.scrapCreateHandler)
 	}
 
-	scraps := r.Path("/_/scraps/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}").Subrouter()
-	scraps.Methods("GET").HandlerFunc(a.scrapGetHandler)
+	const scrapPath = "/_/scraps/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}"
+	r.Get(scrapPath, a.scrapGetHandler)
 	if option == AddProtectedEndpoints {
-		scraps.Methods("DELETE").HandlerFunc(a.scrapDeleteHandler)
+		r.Delete(scrapPath, a.scrapDeleteHandler)
 	}
 
-	r.HandleFunc("/_/raw/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", a.rawGetHandler).Methods("GET")
-	r.HandleFunc("/_/tmpl/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}/{lang:[a-z]+}", a.templateGetHandler).Methods("GET")
+	r.Get("/_/raw/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", a.rawGetHandler)
+	r.Get("/_/tmpl/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}/{lang:[a-z]+}", a.templateGetHandler)
 
-	names := r.Path("/_/names/{type:[a-z]+}/{name:@[0-9a-zA-Z-_]+}").Subrouter()
-	names.Methods("GET").HandlerFunc(a.nameGetHandler)
+	const namePath = "/_/names/{type:[a-z]+}/{name:@[0-9a-zA-Z-_]+}"
+	r.Get(namePath, a.nameGetHandler)
 	if option == AddProtectedEndpoints {
-		names.Methods("PUT").HandlerFunc(a.namePutHandler)
-		names.Methods("DELETE").HandlerFunc(a.nameDeleteHandler)
+		r.Put(namePath, a.namePutHandler)
+		r.Delete(namePath, a.nameDeleteHandler)
 	}
-	r.HandleFunc("/_/names/{type:[a-z]+}/", a.namesListHandler).Methods("GET")
+	r.Get("/_/names/{type:[a-z]+}/", a.namesListHandler)
 }
 
 // writeJSON writes 'body' as a JSON encoded HTTP response with the right
@@ -149,8 +149,7 @@ func (a *Api) scrapCreateHandler(w http.ResponseWriter, r *http.Request) {
 //
 // This function will also report the error on the http.ResponseWriter.
 func (a *Api) getType(w http.ResponseWriter, r *http.Request) (scrap.Type, bool) {
-	vars := mux.Vars(r)
-	t := scrap.ToType(vars[typeVar])
+	t := scrap.ToType(chi.URLParam(r, typeVar))
 	if t == scrap.UnknownType {
 		httputils.ReportError(w, errUnknownType, "Unknown type.", http.StatusBadRequest)
 		return scrap.UnknownType, false
@@ -161,8 +160,7 @@ func (a *Api) getType(w http.ResponseWriter, r *http.Request) (scrap.Type, bool)
 // hashOrNameAndType extracts the hashOrName and Type from the URL, returning true if the Type was valid.
 // If false is returned then an error has already been reported on the http.ResponseWriter.
 func (a *Api) hashOrNameAndType(w http.ResponseWriter, r *http.Request) (string, scrap.Type, bool) {
-	vars := mux.Vars(r)
-	hashOrName := vars[hashOrNameVar]
+	hashOrName := chi.URLParam(r, hashOrNameVar)
 	t, ok := a.getType(w, r)
 	return hashOrName, t, ok
 }
@@ -170,8 +168,7 @@ func (a *Api) hashOrNameAndType(w http.ResponseWriter, r *http.Request) (string,
 // nameAndType extracts the name and Type from the URL, returning true if the Type was valid.
 // If false is returned then an error has already been reported on the http.ResponseWriter.
 func (a *Api) nameAndType(w http.ResponseWriter, r *http.Request) (string, scrap.Type, bool) {
-	vars := mux.Vars(r)
-	name := vars[nameVar]
+	name := chi.URLParam(r, nameVar)
 	t, ok := a.getType(w, r)
 	return name, t, ok
 }
@@ -231,14 +228,13 @@ func (a *Api) rawGetHandler(w http.ResponseWriter, r *http.Request) {
 // templateGetHandler implements the REST API, see AddHandlers.
 func (a *Api) templateGetHandler(w http.ResponseWriter, r *http.Request) {
 	metrics2.GetCounter(templateGetCallMetric).Inc(1)
-	vars := mux.Vars(r)
-	hashOrName := vars[hashOrNameVar]
+	hashOrName := chi.URLParam(r, hashOrNameVar)
 	t, ok := a.getType(w, r)
 	if !ok {
 		return
 	}
 
-	l := scrap.ToLang(vars[langVar])
+	l := scrap.ToLang(chi.URLParam(r, langVar))
 	if l == scrap.UnknownLang {
 		httputils.ReportError(w, errUnknownLang, "Unknown language.", http.StatusBadRequest)
 		return

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -637,37 +637,37 @@ func (srv *server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // See baseapp.App.
-func (srv *server) AddHandlers(r *mux.Router) {
+func (srv *server) AddHandlers(r chi.Router) {
 	r.HandleFunc("/", srv.mainHandler)
 	r.HandleFunc(("/_/login/status"), alogin.LoginStatusHandler(srv.alogin))
 
 	// GETs
-	r.HandleFunc("/_/emails", srv.emailsHandler).Methods("GET")
-	r.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
-	r.HandleFunc("/_/new_silence", srv.newSilenceHandler).Methods("GET")
-	r.HandleFunc("/_/recent_incidents", srv.recentIncidentsHandler).Methods("GET")
-	r.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
+	r.Get("/_/emails", srv.emailsHandler)
+	r.Get("/_/incidents", srv.incidentHandler)
+	r.Get("/_/new_silence", srv.newSilenceHandler)
+	r.Get("/_/recent_incidents", srv.recentIncidentsHandler)
+	r.Get("/_/silences", srv.silencesHandler)
 
 	// POSTs
-	r.HandleFunc("/_/add_note", srv.addNoteHandler).Methods("POST")
-	r.HandleFunc("/_/add_silence_note", srv.addSilenceNoteHandler).Methods("POST")
-	r.HandleFunc("/_/archive_silence", srv.archiveSilenceHandler).Methods("POST")
-	r.HandleFunc("/_/assign", srv.assignHandler).Methods("POST")
-	r.HandleFunc("/_/assign_multiple", srv.assignMultipleHandler).Methods("POST")
-	r.HandleFunc("/_/audit_logs", srv.auditLogsHandler).Methods("POST")
-	r.HandleFunc("/_/del_note", srv.delNoteHandler).Methods("POST")
-	r.HandleFunc("/_/del_silence_note", srv.delSilenceNoteHandler).Methods("POST")
-	r.HandleFunc("/_/del_silence", srv.deleteSilenceHandler).Methods("POST")
-	r.HandleFunc("/_/reactivate_silence", srv.reactivateSilenceHandler).Methods("POST")
-	r.HandleFunc("/_/save_silence", srv.saveSilenceHandler).Methods("POST")
-	r.HandleFunc("/_/take", srv.takeHandler).Methods("POST")
-	r.HandleFunc("/_/stats", srv.statsHandler).Methods("POST")
-	r.HandleFunc("/_/incidents_in_range", srv.incidentsInRangeHandler).Methods("POST")
+	r.Post("/_/add_note", srv.addNoteHandler)
+	r.Post("/_/add_silence_note", srv.addSilenceNoteHandler)
+	r.Post("/_/archive_silence", srv.archiveSilenceHandler)
+	r.Post("/_/assign", srv.assignHandler)
+	r.Post("/_/assign_multiple", srv.assignMultipleHandler)
+	r.Post("/_/audit_logs", srv.auditLogsHandler)
+	r.Post("/_/del_note", srv.delNoteHandler)
+	r.Post("/_/del_silence_note", srv.delSilenceNoteHandler)
+	r.Post("/_/del_silence", srv.deleteSilenceHandler)
+	r.Post("/_/reactivate_silence", srv.reactivateSilenceHandler)
+	r.Post("/_/save_silence", srv.saveSilenceHandler)
+	r.Post("/_/take", srv.takeHandler)
+	r.Post("/_/stats", srv.statsHandler)
+	r.Post("/_/incidents_in_range", srv.incidentsInRangeHandler)
 }
 
 // See baseapp.App.
-func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
+func (srv *server) AddMiddleware() []func(http.Handler) http.Handler {
+	ret := []func(http.Handler) http.Handler{}
 	if !*baseapp.Local {
 		ret = append(ret, alogin.ForceRoleMiddleware(srv.alogin, roles.Viewer))
 	}
@@ -676,9 +676,9 @@ func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 
 func (srv *server) startInternalServer() {
 	// Internal endpoints that are only accessible from within the cluster.
-	unprotected := mux.NewRouter()
-	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
-	unprotected.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
+	unprotected := chi.NewRouter()
+	unprotected.Get("/_/incidents", srv.incidentHandler)
+	unprotected.Get("/_/silences", srv.silencesHandler)
 	go func() {
 		sklog.Fatal(http.ListenAndServe(*internalPort, unprotected))
 	}()

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
@@ -53,7 +53,7 @@ func maybeStartDebugServer() {
 	// Start the internal server on the internal port if requested.
 	if *debugPort != "" {
 		// Add the profiling endpoints to the internal router.
-		internalRouter := mux.NewRouter()
+		internalRouter := chi.NewRouter()
 
 		// Set up the health check endpoint.
 		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)

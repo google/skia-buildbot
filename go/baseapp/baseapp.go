@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -32,12 +32,12 @@ const (
 // App is the interface that Constructor returns.
 type App interface {
 	// AddHandlers is called by Serve and the receiver must add all handlers
-	// to the passed in mux.Router.
-	AddHandlers(*mux.Router)
+	// to the passed in chi.Router.
+	AddHandlers(chi.Router)
 
-	// AddMiddleware returns a list of mux.Middleware's to add to the router.
+	// AddMiddleware returns a list of middleware functions to add to the router.
 	// This is a good place to add auth middleware.
-	AddMiddleware() []mux.MiddlewareFunc
+	AddMiddleware() []func(http.Handler) http.Handler
 }
 
 // Constructor is a function that builds an App instance.
@@ -93,7 +93,7 @@ func cspString(allowedHosts []string, local bool, options []Option) string {
 }
 
 // SecurityMiddleware sets the CPS headers.
-func SecurityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
+func SecurityMiddleware(allowedHosts []string, local bool, options []Option) func(http.Handler) http.Handler {
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
@@ -241,21 +241,13 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	}
 
 	// Add all routing.
-	r := mux.NewRouter()
-	r.HandleFunc("/cspreport", cspReporter).Methods("POST")
-	// The /static/ path is kept for legacy apps, but all apps should migrate to /dist/
-	// to work with puppeteer.
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
-	app.AddHandlers(r)
-
-	// We must specify that we handle /healthz or it will never flow through to our middleware.
-	// Even though this handler is never actually called (due to the early termination in
-	// httputils.HealthzAndHTTPS), we need to have it added to the routes we handle.
-	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	r := chi.NewRouter()
 
 	// Layer on all the middleware.
-	middleware := []mux.MiddlewareFunc{}
+	//
+	// chi.Router panics if we add middleware after defining routes, so we must add our middleware
+	// functions first.
+	middleware := []func(http.Handler) http.Handler{}
 	if !*Local {
 		middleware = append(middleware, httputils.HealthzAndHTTPS)
 	}
@@ -271,6 +263,18 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 
 	middleware = append(middleware, SecurityMiddleware(allowedHosts, *Local, options))
 	r.Use(middleware...)
+
+	r.Post("/cspreport", cspReporter)
+	// The /static/ path is kept for legacy apps, but all apps should migrate to /dist/
+	// to work with puppeteer.
+	r.Handle("/static/*", http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
+	app.AddHandlers(r)
+
+	// We must specify that we handle /healthz or it will never flow through to our middleware.
+	// Even though this handler is never actually called (due to the early termination in
+	// httputils.HealthzAndHTTPS), we need to have it added to the routes we handle.
+	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// Start serving.
 	hostname, err := os.Hostname()

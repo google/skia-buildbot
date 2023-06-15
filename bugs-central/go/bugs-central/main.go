@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 
@@ -107,21 +107,21 @@ func (srv *Server) loadTemplates() {
 }
 
 // See baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *Server) AddHandlers(r chi.Router) {
 	// Endpoint that status will use to get client counts.
-	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
+	r.Get("/get_client_counts", httputils.CorsHandler(srv.getClientCounts))
 
 	plogin := proxylogin.NewWithDefaults()
 
 	// All other endpoints must be logged in.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 	appRouter.HandleFunc("/", srv.indexHandler)
-	appRouter.HandleFunc("/_/get_issue_counts", srv.getIssueCountsHandler).Methods("POST")
-	appRouter.HandleFunc("/_/get_clients_sources_queries", srv.getClients).Methods("POST")
-	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
-	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
+	appRouter.Post("/_/get_issue_counts", srv.getIssueCountsHandler)
+	appRouter.Post("/_/get_clients_sources_queries", srv.getClients)
+	appRouter.Post("/_/get_charts_data", srv.getChartsData)
+	appRouter.Post("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO)
 
-	appRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin)).Methods("GET")
+	appRouter.Get("/_/login/status", alogin.LoginStatusHandler(plogin))
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
@@ -129,7 +129,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 		appHandler = alogin.ForceRole(appRouter, plogin, roles.Viewer)
 	}
 
-	r.PathPrefix("/").Handler(appHandler)
+	r.Handle("/*", appHandler)
 }
 
 func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -408,8 +408,8 @@ func (srv *Server) getIssueCountsHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // See baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (srv *Server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 func main() {

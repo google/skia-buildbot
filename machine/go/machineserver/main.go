@@ -16,7 +16,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/unrolled/secure"
 
@@ -218,8 +218,7 @@ func sendJSONResponse(data interface{}, w http.ResponseWriter) {
 // getID retrieves the value of {id:.+} from URLs. It reports an error on the
 // ResponseWrite if none is found.
 func getID(w http.ResponseWriter, r *http.Request) (string, error) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		http.Error(w, "Machine ID must be supplied.", http.StatusBadRequest)
 		return "", errFailedToGetID
@@ -640,40 +639,40 @@ func (s *server) editorSecureGzip(h http.Handler) http.Handler {
 	return s.editor(s.secureGzip(h))
 }
 
-func (s *server) AddHandlers(r *mux.Router) {
+func (s *server) AddHandlers(r chi.Router) {
 	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// Pages
-	r.Handle("/", s.secureGzip(http.HandlerFunc(s.machinesPageHandler))).Methods("GET")
+	r.Handle("/", s.secureGzip(http.HandlerFunc(s.machinesPageHandler)))
 
 	// Resources
 	if s.flags.resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(1)
 		s.flags.resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", s.secureGzip(http.HandlerFunc(httputils.MakeResourceHandler(s.flags.resourcesDir))))).Methods("GET")
+	r.Handle("/dist/*", http.StripPrefix("/dist/", s.secureGzip(http.HandlerFunc(httputils.MakeResourceHandler(s.flags.resourcesDir)))))
 
 	// UI API
-	r.Handle("/_/machine/toggle_mode/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineToggleModeHandler))).Methods("POST")
-	r.Handle("/_/machine/toggle_powercycle/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineTogglePowerCycleHandler))).Methods("POST")
-	r.Handle("/_/machine/set_attached_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetAttachedDeviceHandler))).Methods("POST")
-	r.Handle("/_/machine/remove_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineRemoveDeviceHandler))).Methods("POST")
-	r.Handle("/_/machine/delete_machine/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineDeleteMachineHandler))).Methods("POST")
-	r.Handle("/_/machine/set_note/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetNoteHandler))).Methods("POST")
-	r.Handle("/_/machine/supply_chromeos/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSupplyChromeOSInfoHandler))).Methods("POST")
-	r.Handle("/_/machine/clear_quarantined/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineClearQuarantinedHandler))).Methods("POST")
+	r.Post("/_/machine/toggle_mode/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineToggleModeHandler)).ServeHTTP)
+	r.Post("/_/machine/toggle_powercycle/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineTogglePowerCycleHandler)).ServeHTTP)
+	r.Post("/_/machine/set_attached_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetAttachedDeviceHandler)).ServeHTTP)
+	r.Post("/_/machine/remove_device/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineRemoveDeviceHandler)).ServeHTTP)
+	r.Post("/_/machine/delete_machine/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineDeleteMachineHandler)).ServeHTTP)
+	r.Post("/_/machine/set_note/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSetNoteHandler)).ServeHTTP)
+	r.Post("/_/machine/supply_chromeos/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineSupplyChromeOSInfoHandler)).ServeHTTP)
+	r.Post("/_/machine/clear_quarantined/{id:.+}", s.editorSecureGzip(http.HandlerFunc(s.machineClearQuarantinedHandler)).ServeHTTP)
 
 	// External APIs
-	r.Handle(rpc.PowerCycleCompleteURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleCompleteHandler))).Methods("POST")
-	r.Handle(rpc.PowerCycleStateUpdateURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleStateUpdateHandler))).Methods("POST")
-	r.Handle(rpc.MachineEventURL, s.editorSecureGzip(s.httpEventSource)).Methods("POST")
+	r.Post(rpc.PowerCycleCompleteURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleCompleteHandler)).ServeHTTP)
+	r.Post(rpc.PowerCycleStateUpdateURL, s.editorSecureGzip(http.HandlerFunc(s.apiPowerCycleStateUpdateHandler)).ServeHTTP)
+	r.Post(rpc.MachineEventURL, s.editorSecureGzip(s.httpEventSource).ServeHTTP)
 	r.Handle(rpc.SSEMachineDescriptionUpdatedURL, s.editor(s.sserServer.GetHandler(context.Background()))) // GZip interferes with SSE.
 
 	// Public APIs
-	r.Handle("/_/machines", gzip(http.HandlerFunc(s.machinesHandler))).Methods("GET")
-	r.Handle(rpc.MachineDescriptionURL, gzip(http.HandlerFunc(s.apiMachineDescriptionHandler))).Methods("GET")
-	r.Handle(rpc.PowerCycleListURL, gzip(http.HandlerFunc(s.apiPowerCycleListHandler))).Methods("GET")
-	r.Handle("/loginstatus/", gzip(http.HandlerFunc(s.loginStatus))).Methods("GET")
+	r.Get("/_/machines", gzip(http.HandlerFunc(s.machinesHandler)).ServeHTTP)
+	r.Get(rpc.MachineDescriptionURL, gzip(http.HandlerFunc(s.apiMachineDescriptionHandler)).ServeHTTP)
+	r.Get(rpc.PowerCycleListURL, gzip(http.HandlerFunc(s.apiPowerCycleListHandler)).ServeHTTP)
+	r.Get("/loginstatus/", gzip(http.HandlerFunc(s.loginStatus)).ServeHTTP)
 }
 
 func main() {
@@ -681,7 +680,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	s.AddHandlers(r)
 
 	sklog.Infof("Ready to serve at: %q", s.flags.port)

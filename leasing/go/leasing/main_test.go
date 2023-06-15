@@ -5,13 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddHandlers_UnauthorizedGetToTaskStatusURI_DoesNotReturn401(t *testing.T) {
 	srv := &Server{}
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	srv.AddHandlers(router)
 
 	r := httptest.NewRequest("GET", getTaskStatusURI, nil)

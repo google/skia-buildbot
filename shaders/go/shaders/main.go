@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 
 	"go.skia.org/infra/go/baseapp"
@@ -133,7 +133,7 @@ func (srv *server) debugHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *server) loadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	hashOrName := mux.Vars(r)["hashOrName"]
+	hashOrName := chi.URLParam(r, "hashOrName")
 
 	body, err := srv.scrapClient.LoadScrap(r.Context(), scrap.SKSL, hashOrName)
 	if err != nil {
@@ -170,23 +170,23 @@ func (srv *server) saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // See baseapp.App.
-func (srv *server) AddHandlers(r *mux.Router) {
+func (srv *server) AddHandlers(r chi.Router) {
 	r.HandleFunc("/", srv.mainHandler)
 	r.HandleFunc("/debug", srv.debugHandler)
-	r.HandleFunc("/_/load/{hashOrName:[@0-9a-zA-Z-_]+}", srv.loadHandler).Methods("GET")
-	r.HandleFunc("/_/save/", srv.saveHandler).Methods("POST")
+	r.Get("/_/load/{hashOrName:[@0-9a-zA-Z-_]+}", srv.loadHandler)
+	r.Post("/_/save/", srv.saveHandler)
 
 	// /img/ is an alias for /dist/ and serves(almost) the same files.
 	// It differs from the /dist/ resource handler (defined in baseapp) in two ways:
 	//
 	// 1. The resource handler allows cross-origin resource fetches.
 	// 2. Only shader images are allowed - all other requests will fail.
-	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.HandlerFunc(makeCorsResourceHandler(*baseapp.ResourcesDir))))
+	r.Handle("/img/*", http.StripPrefix("/img/", http.HandlerFunc(makeCorsResourceHandler(*baseapp.ResourcesDir))))
 }
 
 // See baseapp.App.
-func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (srv *server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 func main() {

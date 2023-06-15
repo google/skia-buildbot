@@ -13,7 +13,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -336,18 +336,18 @@ func (s *server) mostRecentBinariesRPCHandler(w http.ResponseWriter, r *http.Req
 }
 
 // See baseapp.App.
-func (s *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", s.indexPageHandler).Methods("GET")
-	r.HandleFunc("/binary", s.binaryPageHandler).Methods("GET")
-	r.HandleFunc("/binary_diff", s.binaryDiffPageHandler).Methods("GET")
-	r.HandleFunc("/rpc/binary/v1", s.binaryRPCHandler).Methods("POST")
-	r.HandleFunc("/rpc/binary_size_diff/v1", s.binarySizeDiffRPCHandler).Methods("POST")
-	r.HandleFunc("/rpc/most_recent_binaries/v1", s.mostRecentBinariesRPCHandler).Methods("GET")
+func (s *server) AddHandlers(r chi.Router) {
+	r.Get("/", s.indexPageHandler)
+	r.Get("/binary", s.binaryPageHandler)
+	r.Get("/binary_diff", s.binaryDiffPageHandler)
+	r.Post("/rpc/binary/v1", s.binaryRPCHandler)
+	r.Post("/rpc/binary_size_diff/v1", s.binarySizeDiffRPCHandler)
+	r.Get("/rpc/most_recent_binaries/v1", s.mostRecentBinariesRPCHandler)
 }
 
 // See baseapp.App.
-func (s *server) AddMiddleware() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+func (s *server) AddMiddleware() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{}
 }
 
 func main() {

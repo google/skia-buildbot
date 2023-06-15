@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
@@ -795,8 +795,8 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := context.Background()
 	query := r.Form
-	hash := mux.Vars(r)["hash"]
-	dest := mux.Vars(r)["dest"]
+	hash := chi.URLParam(r, "hash")
+	dest := chi.URLParam(r, "dest")
 	index, err := f.perfGit.CommitNumberFromGitHash(ctx, hash)
 	if err != nil {
 		httputils.ReportError(w, err, "Could not look up git hash.", http.StatusInternalServerError)
@@ -1303,7 +1303,7 @@ func (f *Frontend) shiftHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	show := mux.Vars(r)["show"]
+	show := chi.URLParam(r, "show")
 	resp, err := f.alertStore.List(r.Context(), show == "true")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
@@ -1352,7 +1352,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	sid := mux.Vars(r)["id"]
+	sid := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
@@ -1481,7 +1481,7 @@ func (f *Frontend) Serve() {
 	// Start the internal server on the internal port if requested.
 	if f.flags.InternalPort != "" {
 		// Add the profiling endpoints to the internal router.
-		internalRouter := mux.NewRouter()
+		internalRouter := chi.NewRouter()
 
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
@@ -1498,7 +1498,7 @@ func (f *Frontend) Serve() {
 	}
 
 	// Resources are served directly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 
 	allowedHosts := []string{f.host}
 	if len(config.Config.AllowedHosts) > 0 {
@@ -1507,7 +1507,7 @@ func (f *Frontend) Serve() {
 
 	router.Use(baseapp.SecurityMiddleware(allowedHosts, f.flags.Local, nil))
 
-	router.PathPrefix("/dist/").HandlerFunc(f.makeDistHandler())
+	router.HandleFunc("/dist/*", f.makeDistHandler())
 
 	// Redirects for the old Perf URLs.
 	router.HandleFunc("/", oldMainHandler)
@@ -1527,36 +1527,36 @@ func (f *Frontend) Serve() {
 	// JSON handlers.
 
 	// Common endpoint for all long-running requests.
-	router.HandleFunc("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler).Methods("GET")
+	router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
 
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
-	router.HandleFunc("/_/cidRange/", f.cidRangeHandler).Methods("POST")
-	router.HandleFunc("/_/count/", f.countHandler).Methods("POST")
-	router.HandleFunc("/_/cid/", f.cidHandler).Methods("POST")
-	router.HandleFunc("/_/keys/", f.keysHandler).Methods("POST")
+	router.Post("/_/cidRange/", f.cidRangeHandler)
+	router.Post("/_/count/", f.countHandler)
+	router.Post("/_/cid/", f.cidHandler)
+	router.Post("/_/keys/", f.keysHandler)
 
-	router.HandleFunc("/_/frame/start", f.frameStartHandler).Methods("POST")
-	router.HandleFunc("/_/cluster/start", f.clusterStartHandler).Methods("POST")
-	router.HandleFunc("/_/trybot/load/", f.trybotLoadHandler).Methods("POST")
-	router.HandleFunc("/_/dryrun/start", f.dryrunRequests.StartHandler).Methods("POST")
+	router.Post("/_/frame/start", f.frameStartHandler)
+	router.Post("/_/cluster/start", f.clusterStartHandler)
+	router.Post("/_/trybot/load/", f.trybotLoadHandler)
+	router.Post("/_/dryrun/start", f.dryrunRequests.StartHandler)
 
-	router.HandleFunc("/_/reg/", f.regressionRangeHandler).Methods("POST")
-	router.HandleFunc("/_/reg/count", f.regressionCountHandler).Methods("GET")
-	router.HandleFunc("/_/reg/current", f.regressionCurrentHandler).Methods("GET")
-	router.HandleFunc("/_/triage/", f.triageHandler).Methods("POST")
+	router.Post("/_/reg/", f.regressionRangeHandler)
+	router.Get("/_/reg/count", f.regressionCountHandler)
+	router.Get("/_/reg/current", f.regressionCurrentHandler)
+	router.Post("/_/triage/", f.triageHandler)
 	router.HandleFunc("/_/alerts/", f.alertsHandler)
-	router.HandleFunc("/_/details/", f.detailsHandler).Methods("POST")
-	router.HandleFunc("/_/shift/", f.shiftHandler).Methods("POST")
-	router.HandleFunc("/_/alert/list/{show}", f.alertListHandler).Methods("GET")
-	router.HandleFunc("/_/alert/new", alertNewHandler).Methods("GET")
-	router.HandleFunc("/_/alert/update", f.alertUpdateHandler).Methods("POST")
-	router.HandleFunc("/_/alert/delete/{id:[0-9]+}", f.alertDeleteHandler).Methods("POST")
-	router.HandleFunc("/_/alert/bug/try", f.alertBugTryHandler).Methods("POST")
-	router.HandleFunc("/_/alert/notify/try", f.alertNotifyTryHandler).Methods("POST")
+	router.Post("/_/details/", f.detailsHandler)
+	router.Post("/_/shift/", f.shiftHandler)
+	router.Get("/_/alert/list/{show}", f.alertListHandler)
+	router.Get("/_/alert/new", alertNewHandler)
+	router.Post("/_/alert/update", f.alertUpdateHandler)
+	router.Post("/_/alert/delete/{id:[0-9]+}", f.alertDeleteHandler)
+	router.Post("/_/alert/bug/try", f.alertBugTryHandler)
+	router.Post("/_/alert/notify/try", f.alertNotifyTryHandler)
 
-	router.HandleFunc("/_/login/status", f.loginStatus).Methods("GET")
+	router.Get("/_/login/status", f.loginStatus)
 
-	router.HandleFunc("/_/bisect/create", f.createBisectHandler).Methods("POST")
+	router.Post("/_/bisect/create", f.createBisectHandler)
 
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
@@ -60,7 +59,8 @@ func TestServe_EndToEnd(t *testing.T) {
 	assertGet200OK(t, "http://localhost:8000/", "Hello, world!")
 	assertGet200OK(t, "http://localhost:8000/about", "About us...")
 	assertGet200OK(t, "http://localhost:8000/user/somegoogler/info", `Details for user "somegoogler"`)
-	assertGet404NotFound(t, "http://localhost:8000/about/") // The handler only recognizes /about.
+	assertGet404NotFound(t, "http://localhost:8000/user/invalid-user-123/info") // Invalid username.
+	assertGet404NotFound(t, "http://localhost:8000/about/")                     // The handler only recognizes /about.
 	assertGet404NotFound(t, "http://localhost:8000/no-such-page")
 
 	// API router.
@@ -81,7 +81,7 @@ func TestServe_EndToEnd(t *testing.T) {
 
 	// Other URLs.
 	assertGet200OK(t, "http://localhost:8000/healthz", "" /* =expectedBody */)
-	assertGet200OK(t, "http://localhost:20000/metrics", "num_http_requests 12") // Excludes 404s.
+	assertGet200OK(t, "http://localhost:20000/metrics", "num_http_requests 16") // Includes 404s.
 
 	// Assert that the middleware added via App.AddMiddleware() works.
 	assert.Equal(t, []string{
@@ -89,8 +89,12 @@ func TestServe_EndToEnd(t *testing.T) {
 		"/",
 		"/about",
 		"/user/somegoogler/info",
+		"/user/invalid-user-123/info",
+		"/about/",
+		"/no-such-page",
 		"/api/foo?city=chapel%20hill&city=durham&state=nc",
 		"/api/bar",
+		"/api/no-such-endpoint",
 		"/dist/a.txt",
 		"/dist/b.txt",
 		"/static/a.txt",
@@ -115,6 +119,7 @@ func TestServe_EndToEnd(t *testing.T) {
 				{name: "ingredient", values: []string{"tomato", "basil"}},
 			},
 		},
+		{url: "/api/no-such-endpoint"},
 	}, app.loggedAPIRequests)
 
 	// Gracefully shut down the HTTP server.
@@ -143,61 +148,61 @@ func newE2ETestApp() *e2eTestApp {
 	}
 }
 
-func (a *e2eTestApp) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+func (a *e2eTestApp) AddHandlers(r chi.Router) {
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		if _, err := w.Write([]byte("<p>Hello, world!</p>")); err != nil {
 			sklog.Errorf("writing HTTP response: %s", err)
 		}
-	}).Methods("GET")
+	})
 
-	r.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/about", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		if _, err := w.Write([]byte("<p>About us...</p>")); err != nil {
 			sklog.Errorf("writing HTTP response: %s", err)
 		}
-	}).Methods("GET")
+	})
 
-	r.HandleFunc("/user/{username}/info", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/user/{username:[a-zA-Z]+}/info", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		if _, err := w.Write([]byte(fmt.Sprintf("<p>Details for user %q</p>", mux.Vars(r)["username"]))); err != nil {
+		if _, err := w.Write([]byte(fmt.Sprintf("<p>Details for user %q</p>", chi.URLParam(r, "username")))); err != nil {
 			sklog.Errorf("writing HTTP response: %s", err)
 		}
 	})
 
-	apiRouter := r.PathPrefix("/api").Subrouter()
+	r.Route("/api", func(r chi.Router) {
+		// Adds a logger for API request parameters.
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Parse GET and POST parameters.
+				if err := r.ParseForm(); err != nil {
+					sklog.Errorf("failed to parse form: %s", err)
+				} else {
+					a.logAPIRequest(r.URL.String(), r.Form)
+				}
+				next.ServeHTTP(w, r)
+			})
+		})
 
-	// Adds a logger for API request parameters.
-	apiRouter.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Parse GET and POST parameters.
-			if err := r.ParseForm(); err != nil {
-				sklog.Errorf("failed to parse form: %s", err)
-			} else {
-				a.logAPIRequest(r.URL.String(), r.Form)
+		r.Get("/foo", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			if _, err := w.Write([]byte(`{"status": "ok"}`)); err != nil {
+				sklog.Errorf("writing HTTP response: %s", err)
 			}
-			next.ServeHTTP(w, r)
+		})
+
+		r.Post("/bar", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			if _, err := w.Write([]byte(`{"status": "ok"}`)); err != nil {
+				sklog.Errorf("writing HTTP response: %s", err)
+			}
 		})
 	})
-
-	apiRouter.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(`{"status": "ok"}`)); err != nil {
-			sklog.Errorf("writing HTTP response: %s", err)
-		}
-	}).Methods("GET")
-
-	apiRouter.HandleFunc("/bar", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(`{"status": "ok"}`)); err != nil {
-			sklog.Errorf("writing HTTP response: %s", err)
-		}
-	}).Methods("POST")
 }
 
-func (a *e2eTestApp) AddMiddleware() []mux.MiddlewareFunc {
+func (a *e2eTestApp) AddMiddleware() []func(http.Handler) http.Handler {
 	// Adds a simple URL logging middleware.
-	return []mux.MiddlewareFunc{
+	return []func(http.Handler) http.Handler{
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				a.httpRequestCounter.Inc(1)
@@ -238,7 +243,7 @@ func makeHTTPRequest(t *testing.T, method, url, contentType string, body io.Read
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, res.Body.Close()) }()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 	return res.StatusCode, string(resBody)
 }

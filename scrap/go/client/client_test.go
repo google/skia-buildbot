@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
@@ -46,7 +46,7 @@ func TestNew_InvalidURL_ReturnsError(t *testing.T) {
 func setupForTest(t *testing.T) (*mocks.ScrapExchange, *Client) {
 	scrapExchangeMock := &mocks.ScrapExchange{}
 	a := api.New(scrapExchangeMock)
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	a.AddHandlers(router, api.AddProtectedEndpoints)
 
 	// Create a test server that mocks out the scrap exchange.

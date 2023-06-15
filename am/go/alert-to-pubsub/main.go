@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -230,7 +230,7 @@ func main() {
 
 	server := NewServer(topic)
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/api/v1/alerts", server.alertHandler)
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.HealthzAndHTTPS(h)

@@ -22,7 +22,7 @@ go_library(
         "//npm-audit-mirror/go/examiner",
         "//npm-audit-mirror/go/mirrors",
         "//npm-audit-mirror/go/types",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",
     ],

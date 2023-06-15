@@ -12,7 +12,7 @@ import (
 	"runtime"
 
 	"cloud.google.com/go/storage"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
@@ -131,15 +131,15 @@ func gzip(h http.Handler) http.Handler {
 	return httputils.GzipRequestResponse(h)
 }
 
-func (srv *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", srv.mainHandler).Methods("GET")
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", gzip(http.HandlerFunc(httputils.MakeResourceHandler(srv.flags.resourcesDir))))).Methods("GET")
+func (srv *server) AddHandlers(r chi.Router) {
+	r.Get("/", srv.mainHandler)
+	r.Get("/dist/*", http.StripPrefix("/dist/", gzip(http.HandlerFunc(httputils.MakeResourceHandler(srv.flags.resourcesDir)))).ServeHTTP)
 	srv.apiEndpoints.AddHandlers(r, api.DoNotAddProtectedEndpoints)
 }
 
 func (srv *server) startInternalServer() {
 	// Internal endpoints that are only accessible from within the cluster.
-	internal := mux.NewRouter()
+	internal := chi.NewRouter()
 	srv.apiEndpoints.AddHandlers(internal, api.AddProtectedEndpoints)
 	go func() {
 		sklog.Fatal(http.ListenAndServe(srv.flags.internalPort, internal))
@@ -153,7 +153,7 @@ func main() {
 	}
 
 	// Add HTTP handlers.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	s.AddHandlers(r)
 
 	// Do not wrap http.Handler with security or authentication middleware if we

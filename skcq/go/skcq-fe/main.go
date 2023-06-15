@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
 
@@ -74,19 +74,19 @@ func (srv *Server) loadTemplates() {
 }
 
 // See baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *Server) AddHandlers(r chi.Router) {
 	// SkCQ handlers.
-	r.HandleFunc("/", srv.indexHandler).Methods("GET")
-	r.HandleFunc("/verifiers_detail/{change_id:[0-9]+}/{patchset_id:[0-9]+}", srv.verifiersDetailHandler).Methods("GET")
-	r.HandleFunc("/_/get_current_changes", srv.getCurrentChangesHandler).Methods("POST")
-	r.HandleFunc("/_/get_change_attempts", srv.getChangeAttemptsHandler).Methods("POST")
+	r.Get("/", srv.indexHandler)
+	r.Get("/verifiers_detail/{change_id:[0-9]+}/{patchset_id:[0-9]+}", srv.verifiersDetailHandler)
+	r.Post("/_/get_current_changes", srv.getCurrentChangesHandler)
+	r.Post("/_/get_change_attempts", srv.getChangeAttemptsHandler)
 }
 
 func (srv *Server) verifiersDetailHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	changeID := mux.Vars(r)["change_id"]
-	patchsetID := mux.Vars(r)["patchset_id"]
+	changeID := chi.URLParam(r, "change_id")
+	patchsetID := chi.URLParam(r, "patchset_id")
 	internalText := ""
 	if *internal {
 		internalText = "(Internal-only)"
@@ -172,11 +172,11 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // See baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
+func (srv *Server) AddMiddleware() []func(http.Handler) http.Handler {
 	if *baseapp.Local {
-		return []mux.MiddlewareFunc{}
+		return []func(http.Handler) http.Handler{}
 	}
-	return []mux.MiddlewareFunc{alogin.ForceRoleMiddleware(srv.alogin, roles.Viewer)}
+	return []func(http.Handler) http.Handler{alogin.ForceRoleMiddleware(srv.alogin, roles.Viewer)}
 }
 
 func main() {

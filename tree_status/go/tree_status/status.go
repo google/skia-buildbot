@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"google.golang.org/api/iterator"
 
@@ -96,7 +96,7 @@ func GetStatuses(repo string, num int) ([]*types.Status, error) {
 func (srv *Server) treeStateDefaultRepoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	repo := mux.Vars(r)["repo"]
+	repo := chi.URLParam(r, "repo")
 	if !IsRepoSupported(repo) {
 		// Use the default repo if it is specified else throw an error.
 		if srv.skiaRepoSpecified {
@@ -132,7 +132,7 @@ func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	repo := mux.Vars(r)["repo"]
+	repo := chi.URLParam(r, "repo")
 	if !IsRepoSupported(repo) {
 		// Use the default repo if it is specified else throw an error.
 		if srv.skiaRepoSpecified {
@@ -177,7 +177,7 @@ func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) recentStatusesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	repo := mux.Vars(r)["repo"]
+	repo := chi.URLParam(r, "repo")
 	if !IsRepoSupported(repo) {
 		httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
 		return
@@ -198,7 +198,7 @@ func (srv *Server) recentStatusesHandler(w http.ResponseWriter, r *http.Request)
 
 func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	repo := mux.Vars(r)["repo"]
+	repo := chi.URLParam(r, "repo")
 	if !IsRepoSupported(repo) {
 		httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
 		return
