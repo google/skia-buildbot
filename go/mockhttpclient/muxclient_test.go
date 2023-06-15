@@ -3,47 +3,52 @@ package mockhttpclient
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/util"
 )
 
 func TestBasic(t *testing.T) {
 	// This is the example in the documentation.
-	r := mux.NewRouter()
-	r.Schemes("https").Host("www.google.com").Methods("GET").
-		Handler(MockGetDialogue([]byte("Here's a response.")))
+
+	r := chi.NewRouter()
+	r.With(SchemeMatcher("https"), HostMatcher("www.google.com")).
+		Get("/", MockGetDialogue([]byte("Here's a response.")).ServeHTTP)
+
 	client := NewMuxClient(r)
 	res, err := client.Get("https://www.google.com")
 	require.NoError(t, err)
-	respBody, err := ioutil.ReadAll(res.Body)
+	respBody, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 	require.Equal(t, []byte("Here's a response."), respBody)
 }
 
 func TestVars(t *testing.T) {
 	// This is the example in the documentation.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	expectedResponse := "Success."
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		Queries("name", "{name}", "size", "42").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.With(HostMatcher("example.com"), QueryMatcher("name", "foo", "size", "42")).
+		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 			t := MuxSafeT(t)
-			require.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
-			_, err := w.Write([]byte(expectedResponse))
+			values, err := url.ParseQuery(r.URL.RawQuery)
+			require.NoError(t, err)
+			require.Equal(t, chi.URLParam(r, "id"), "foo")
+			require.Equal(t, values.Get("name"), "foo")
+			_, err = w.Write([]byte(expectedResponse))
 			require.NoError(t, err)
 		})
+
 	client := NewMuxClient(r)
 	resp, err := client.Post("http://example.com/add/foo?name=foo&size=42", "", nil)
 	require.NoError(t, err)
-	actualResponse, err := ioutil.ReadAll(resp.Body)
+	actualResponse, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, expectedResponse, string(actualResponse))
 }
@@ -60,12 +65,13 @@ func (t *mockTestingT) Errorf(format string, args ...interface{}) {
 func TestAssertionFailure(t *testing.T) {
 	mockT := &mockTestingT{}
 
-	r := mux.NewRouter()
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		Queries("name", "{name}", "size", "42").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r := chi.NewRouter()
+	r.With(HostMatcher("example.com"), QueryMatcher("name", "bar", "size", "42")).
+		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 			t := MuxSafeT(mockT)
-			require.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+			values, err := url.ParseQuery(r.URL.RawQuery)
+			require.NoError(t, err)
+			require.Equal(t, chi.URLParam(r, "id"), values.Get("name"))
 		})
 	client := NewMuxClient(r)
 	_, err := client.Post("http://example.com/add/foo?name=bar&size=42", "", nil)
@@ -80,12 +86,10 @@ func TestAssertionFailure(t *testing.T) {
 }
 
 func TestMissingHandler(t *testing.T) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	handlerCalled := false
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		// Intentional typo "naem".
-		Queries("naem", "{name}", "size", "42").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.With(HostMatcher("example.com")).
+		Post("/remove/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 			handlerCalled = true
 		})
 	client := NewMuxClient(r)
@@ -96,9 +100,9 @@ func TestMissingHandler(t *testing.T) {
 }
 
 func TestErrorResponse(t *testing.T) {
-	r := mux.NewRouter()
-	r.Schemes("https").Host("www.google.com").Methods("GET").
-		Handler(MockGetError("TODO(benjaminwagner)", http.StatusTeapot))
+	r := chi.NewRouter()
+	r.With(SchemeMatcher("https"), HostMatcher("www.google.com")).
+		Get("/", MockGetError("TODO(benjaminwagner)", http.StatusTeapot).ServeHTTP)
 	client := NewMuxClient(r)
 	res, err := client.Get("https://www.google.com")
 	require.NoError(t, err)
@@ -142,20 +146,19 @@ func doStreamingRequestAndAssertBodyClosed(t *testing.T, client *http.Client, ur
 }
 
 func TestStreamingBodyClosedForEmptyHandler(t *testing.T) {
-	r := mux.NewRouter()
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		})
+	r := chi.NewRouter()
+	r.With(HostMatcher("example.com")).
+		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http://example.com/add/foo")
 	require.NoError(t, err)
 }
 
 func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	handlerCalled := false
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.With(HostMatcher("example.com")).
+		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 			handlerCalled = true
 		})
 	client := NewMuxClient(r)
@@ -166,10 +169,10 @@ func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
 }
 
 func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	handlerCalled := false
-	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.With(HostMatcher("example.com")).
+		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 			handlerCalled = true
 		})
 	client := NewMuxClient(r)
@@ -180,9 +183,9 @@ func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
 }
 
 func TestMockDialogueFailureInMuxClient(t *testing.T) {
-	r := mux.NewRouter()
-	r.Schemes("https").Host("www.google.com").Methods("POST").
-		Handler(MockGetDialogue([]byte("Here's a response.")))
+	r := chi.NewRouter()
+	r.With(SchemeMatcher("https"), HostMatcher("www.google.com")).
+		Post("/", MockGetDialogue([]byte("Here's a response.")).ServeHTTP)
 	client := NewMuxClient(r)
 	_, err := client.Post("https://www.google.com", "", nil)
 	require.Error(t, err)

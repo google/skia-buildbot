@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	github_api "github.com/google/go-github/v29/github"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
@@ -42,9 +42,12 @@ func TestGithubSearch(t *testing.T) {
 		},
 	}
 	respBody := []byte(testutils.MarshalJSON(t, []*github_api.Issue{&issue1, &issue2}))
-	r := mux.NewRouter()
-	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues").Queries("labels", "abc,xyz", "per_page", "1000", "state", "open").Handler(md)
+	r := chi.NewRouter()
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com"),
+		mockhttpclient.QueryMatcher("labels", "abc,xyz", "per_page", "1000", "state", "open")).
+		Get("/repos/kryptonians/krypton/issues", mockhttpclient.MockGetDialogue(respBody).ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := github.NewGitHub(ctx, "kryptonians", "krypton", httpClient)

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
@@ -30,9 +30,12 @@ func TestMonorailSearch(t *testing.T) {
 	// Monorail API prepends chars to prevent XSS.
 	respBody = append([]byte("abcd\n"), respBody...)
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/SearchIssues").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/SearchIssues", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	monorailService := &monorail_srv.MonorailService{

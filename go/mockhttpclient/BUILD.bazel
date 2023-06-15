@@ -12,7 +12,7 @@ go_library(
     deps = [
         "//go/sklog",
         "//go/util",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@com_github_texttheater_golang_levenshtein//levenshtein",
@@ -28,7 +28,7 @@ go_test(
     embed = [":mockhttpclient"],
     deps = [
         "//go/util",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_stretchr_testify//require",
     ],
 )

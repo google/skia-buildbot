@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/mockhttpclient"
@@ -26,9 +26,12 @@ func TestGetEmail_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Users/GetUser").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Users/GetUser", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	ms := &MonorailService{
@@ -51,9 +54,12 @@ func TestSetOwnerAndAddComment_Success(t *testing.T) {
 	respBody := []byte("abcd\n{}")
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/ModifyIssues").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/ModifyIssues", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	ms := &MonorailService{
@@ -78,9 +84,12 @@ func TestGetIssue_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/GetIssue").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/GetIssue", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	ms := &MonorailService{
@@ -117,9 +126,12 @@ func TestMakeIssue_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/MakeIssue").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/MakeIssue", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	// Full E2E run.
@@ -154,9 +166,12 @@ func TestMakeIssue_NoPriorityNoType_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/MakeIssue").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/MakeIssue", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	// Full E2E run.
@@ -181,9 +196,12 @@ func TestSearchIssuesWithPagination_Success(t *testing.T) {
 	respBody = append([]byte("abcd\n"), respBody...)
 
 	// Mock HTTP client.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusOK)
-	r.Schemes("https").Host("api-dot-monorail-prod.appspot.com").Methods("POST").Path("/prpc/monorail.v3.Issues/SearchIssues").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api-dot-monorail-prod.appspot.com")).
+		Post("/prpc/monorail.v3.Issues/SearchIssues", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	ms := &MonorailService{

@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	expect "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/util"
@@ -16,13 +17,70 @@ import (
 
 // muxClient implements http.RoundTripper and sends requests to a mux.Router.
 type muxClient struct {
-	router *mux.Router
+	router chi.Router
 }
 
 // muxClientNotFoundHandler provides a useful error message for client requests that don't match any
 // mux.Route.
 func muxClientNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, fmt.Sprintf("No matching handler for %s", r.URL.String()), TEST_FAILED_STATUS_CODE)
+}
+
+// SchemeMatcher is a middleware that returns 404 if the request does not match the given scheme.
+func SchemeMatcher(scheme string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Scheme == scheme {
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, http.StatusText(404), 404)
+			}
+		})
+	}
+}
+
+// HostMatcher is a middleware that returns 404 if the request does not match the given host.
+func HostMatcher(host string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Host == host {
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, http.StatusText(404), 404)
+			}
+		})
+	}
+}
+
+// QueryMatcher is a middleware that returns 404 if the request does not have the given key/value
+// pairs in the query string. For example, QueryMatcher("name", "foo", "size", "42") would match
+// "example.com/hello?name=foo&size=42" but it wouldn't match
+// "example.com/hello?name=bar&length=123".
+func QueryMatcher(pairs ...string) func(http.Handler) http.Handler {
+	if len(pairs)%2 != 0 {
+		panic("the number of arguments must be even")
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			values, err := url.ParseQuery(r.URL.RawQuery)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error parsing query: %s", err), 500)
+				return
+			}
+			ok := true
+			for i := 0; i < len(pairs); i += 2 {
+				if !values.Has(pairs[i]) || values.Get(pairs[i]) != pairs[i+1] {
+					ok = false
+					break
+				}
+			}
+			if ok {
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, http.StatusText(404), 404)
+			}
+		})
+	}
 }
 
 // NewMuxClient returns an http.Client instance which sends requests to the given mux.Router.
@@ -38,24 +96,21 @@ func muxClientNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 // Examples:
 //
 //	// Mock out a URL to always respond with the same body.
-//	r := mux.NewRouter()
-//	r.Schemes("https").Host("www.google.com").Methods("GET").
-//	    Handler(MockGetDialogue([]byte("Here's a response.")))
+//	r := chi.NewRouter()
+//	r.With(SchemeMatcher("https"), HostMatcher("www.google.com")).
+//		Get("/", MockGetDialogue([]byte("Here's a response.")).ServeHTTP)
 //	client := NewMuxClient(r)
 //	res, _ := client.Get("https://www.google.com")
-//	respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
+//	respBody, _ := io.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
 //
 //	// Check that the client uses the correct ID in the request.
-//	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
-//	    Queries("name", "{name}", "size", "42").
-//	    HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//	      t := MuxSafeT(t)
-//	      assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
-//	    })
-func NewMuxClient(r *mux.Router) *http.Client {
-	if r.NotFoundHandler == nil {
-		r.NotFoundHandler = http.HandlerFunc(muxClientNotFoundHandler)
-	}
+//	r.With(HostMatcher("example.com"), QueryMatcher("name", "foo", "size", "42")).
+//		Post("/add/{id:[a-zA-Z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
+//		t := MuxSafeT(t)
+//		assert.Equal(t, chi.URLParam(r, "id"), values.Get("name"))
+//	})
+func NewMuxClient(r chi.Router) *http.Client {
+	r.NotFound(http.HandlerFunc(muxClientNotFoundHandler))
 	m := &muxClient{
 		router: r,
 	}

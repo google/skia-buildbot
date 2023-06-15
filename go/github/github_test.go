@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/go-github/v29/github"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/git"
@@ -21,9 +21,12 @@ func TestAddComment(t *testing.T) {
 	reqType := "application/json"
 	reqBody := []byte(`{"body":"test msg"}
 `)
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, nil, http.StatusCreated)
-	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/issues/1234/comments").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Post("/repos/kryptonians/krypton/issues/1234/comments", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -33,9 +36,12 @@ func TestAddComment(t *testing.T) {
 }
 
 func TestGetAuthenticatedUser(t *testing.T) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetError("OK", http.StatusOK)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/user").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/user", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -51,9 +57,12 @@ func TestListOpenPullRequests(t *testing.T) {
 		{Number: &prNum1},
 		{Number: &prNum2},
 	}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/pulls").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/pulls", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -67,9 +76,12 @@ func TestListOpenPullRequests(t *testing.T) {
 
 func TestGetPullRequest(t *testing.T) {
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/pulls/1234", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -85,9 +97,12 @@ func TestGetReference(t *testing.T) {
 	testRepoOwner := "batman"
 	testRepoName := "gotham"
 	respBody := []byte(testutils.MarshalJSON(t, &github.Reference{Object: &github.GitObject{SHA: &testSHA}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef))).Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef)), md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
@@ -106,9 +121,12 @@ func TestListMatchingReferences(t *testing.T) {
 	retRef1 := github.Reference{Object: &github.GitObject{SHA: &testSHA1}}
 	retRef2 := github.Reference{Object: &github.GitObject{SHA: &testSHA2}}
 	respBody := []byte(testutils.MarshalJSON(t, []github.Reference{retRef1, retRef2}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef))).Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef)), md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
@@ -124,9 +142,12 @@ func TestDeleteReference(t *testing.T) {
 	testRef := "test-branch"
 	testRepoOwner := "batman"
 	testRepoName := "gotham"
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockDeleteDialogueWithResponseCode("", nil, nil, http.StatusNoContent)
-	r.Schemes("https").Host("api.github.com").Methods("DELETE").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, testRef)).Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Delete(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, testRef), md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
@@ -142,9 +163,12 @@ func TestCreateReference(t *testing.T) {
 	testRepoName := "gotham"
 	reqBody := []byte(fmt.Sprintf(`{"ref":"refs/%s","sha":"%s"}
 `, testRef, testSHA))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, nil, http.StatusCreated)
-	r.Schemes("https").Host("api.github.com").Methods("POST").Path(fmt.Sprintf("/repos/%s/%s/git/refs", testRepoOwner, testRepoName)).Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Post(fmt.Sprintf("/repos/%s/%s/git/refs", testRepoOwner, testRepoName), md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
@@ -159,9 +183,12 @@ func TestCreatePullRequest(t *testing.T) {
 `)
 	number := 12345
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Number: &number}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, respBody, http.StatusCreated)
-	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/pulls").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Post("/repos/kryptonians/krypton/pulls", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -175,9 +202,12 @@ func TestMergePullRequest(t *testing.T) {
 	reqType := "application/json"
 	reqBody := []byte(`{"commit_message":"test comment","merge_method":"squash"}
 `)
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPutDialogue(reqType, reqBody, nil)
-	r.Schemes("https").Host("api.github.com").Methods("PUT").Path("/repos/kryptonians/krypton/pulls/1234/merge").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Put("/repos/kryptonians/krypton/pulls/1234/merge", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -191,9 +221,12 @@ func TestClosePullRequest(t *testing.T) {
 	reqType := "application/json"
 	reqBody := []byte(`{"state":"closed"}
 `)
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockPatchDialogue(reqType, reqBody, respBody)
-	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Patch("/repos/kryptonians/krypton/pulls/1234", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -209,9 +242,13 @@ func TestGetIssues(t *testing.T) {
 	issue1 := github.Issue{ID: &id1}
 	issue2 := github.Issue{ID: &id2}
 	respBody := []byte(testutils.MarshalJSON(t, []*github.Issue{&issue1, &issue2}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues").Queries("labels", "label1,label2", "per_page", "123", "state", "open").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com"),
+		mockhttpclient.QueryMatcher("labels", "label1,label2", "per_page", "123", "state", "open")).
+		Get("/repos/kryptonians/krypton/issues", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -229,9 +266,12 @@ func TestGetLabelsRequest(t *testing.T) {
 	label1 := github.Label{Name: &label1Name}
 	label2 := github.Label{Name: &label2Name}
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/issues/1234", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -247,16 +287,22 @@ func TestAddLabelRequest(t *testing.T) {
 	label1 := github.Label{Name: &label1Name}
 	label2 := github.Label{Name: &label2Name}
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/issues/1234", md.ServeHTTP)
 
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{}))
 	patchReqType := "application/json"
 	patchReqBody := []byte(`{"labels":["test1","test2","test3"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
-	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/issues/1234").Handler(patchMd)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Patch("/repos/kryptonians/krypton/issues/1234", patchMd.ServeHTTP)
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
@@ -272,16 +318,22 @@ func TestRemoveLabelRequest(t *testing.T) {
 	label1 := github.Label{Name: &label1Name}
 	label2 := github.Label{Name: &label2Name}
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/issues/1234", md.ServeHTTP)
 
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{}))
 	patchReqType := "application/json"
 	patchReqBody := []byte(`{"labels":["test1"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
-	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/issues/1234").Handler(patchMd)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Patch("/repos/kryptonians/krypton/issues/1234", patchMd.ServeHTTP)
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
@@ -297,16 +349,22 @@ func TestReplaceLabelRequest(t *testing.T) {
 	label1 := github.Label{Name: &label1Name}
 	label2 := github.Label{Name: &label2Name}
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/issues/1234", md.ServeHTTP)
 
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{}))
 	patchReqType := "application/json"
 	patchReqBody := []byte(`{"labels":["test2","test3"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
-	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/issues/1234").Handler(patchMd)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Patch("/repos/kryptonians/krypton/issues/1234", patchMd.ServeHTTP)
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
@@ -323,9 +381,12 @@ func TestGetChecksRequest(t *testing.T) {
 	checkName1 := "check1"
 	check1 := github.CheckRun{ID: &checkID1, Name: &checkName1, StartedAt: &github.Timestamp{Time: time.Now()}}
 	respBody := []byte(testutils.MarshalJSON(t, &github.ListCheckRunsResults{CheckRuns: []*github.CheckRun{&check1}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/check-runs").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/commits/abcd/check-runs", md.ServeHTTP)
 
 	// Mock out status call.
 	checkID2 := int64(200)
@@ -334,7 +395,10 @@ func TestGetChecksRequest(t *testing.T) {
 	repoStatusCheck2 := github.RepoStatus{ID: &checkID2, Context: &checkName2, State: &pendingState}
 	statusRespBody := []byte(testutils.MarshalJSON(t, &github.CombinedStatus{Statuses: []github.RepoStatus{repoStatusCheck2}}))
 	mdStatus := mockhttpclient.MockGetDialogue(statusRespBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/status").Handler(mdStatus)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/commits/abcd/status", mdStatus.ServeHTTP)
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
@@ -357,13 +421,19 @@ func TestReRequestLatestCheckSuite(t *testing.T) {
 	checkSuiteStatus := "failed"
 	checkSuite := github.CheckSuite{ID: &checkSuiteID, Status: &checkSuiteStatus}
 	respBody := []byte(testutils.MarshalJSON(t, &github.ListCheckSuiteResults{Total: &totalResults, CheckSuites: []*github.CheckSuite{&checkSuite}}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	listmd := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/check-suites").Handler(listmd)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/commits/abcd/check-suites", listmd.ServeHTTP)
 
 	// Mock out rerequest check suite call.
 	rerequestmd := mockhttpclient.MockPostDialogueWithResponseCode("application/json", nil, nil, http.StatusCreated)
-	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/check-suites/100/rerequest").Handler(rerequestmd)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Post("/repos/kryptonians/krypton/check-suites/100/rerequest", rerequestmd.ServeHTTP)
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
@@ -376,9 +446,12 @@ func TestReRequestLatestCheckSuite(t *testing.T) {
 func TestGetDescription(t *testing.T) {
 	body := "test test test"
 	respBody := []byte(testutils.MarshalJSON(t, &github.Issue{Body: &body}))
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/12345").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("api.github.com")).
+		Get("/repos/kryptonians/krypton/issues/12345", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -390,9 +463,12 @@ func TestGetDescription(t *testing.T) {
 
 func TestReadRawFileRequest(t *testing.T) {
 	respBody := []byte(`abcd`)
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("raw.githubusercontent.com").Methods("GET").Path("/kryptonians/krypton/main/dummy/path/to/this.txt").Handler(md)
+	r.With(
+		mockhttpclient.SchemeMatcher("https"),
+		mockhttpclient.HostMatcher("raw.githubusercontent.com")).
+		Get("/kryptonians/krypton/main//dummy/path/to/this.txt", md.ServeHTTP)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -403,7 +479,7 @@ func TestReadRawFileRequest(t *testing.T) {
 }
 
 func TestGetFullHistoryUrl(t *testing.T) {
-	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	httpClient := mockhttpclient.NewMuxClient(chi.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
 	fullHistoryUrl := githubClient.GetFullHistoryUrl("superman@krypton.com")
@@ -411,7 +487,7 @@ func TestGetFullHistoryUrl(t *testing.T) {
 }
 
 func TestGetPullRequestUrlBase(t *testing.T) {
-	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	httpClient := mockhttpclient.NewMuxClient(chi.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
 	pullRequestUrlBase := githubClient.GetPullRequestUrlBase()
@@ -419,7 +495,7 @@ func TestGetPullRequestUrlBase(t *testing.T) {
 }
 
 func TestGetIssueUrlBase(t *testing.T) {
-	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	httpClient := mockhttpclient.NewMuxClient(chi.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
