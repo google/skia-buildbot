@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -29,7 +29,7 @@ func main() {
 	)
 	defer common.Defer()
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)
