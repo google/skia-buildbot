@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	sse "github.com/r3labs/sse/v2"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -112,7 +112,7 @@ func (s *ServerImpl) handlePeerNotification(w http.ResponseWriter, r *http.Reque
 
 // Start implements Server.
 func (s *ServerImpl) Start(ctx context.Context) error {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc(PeerEndpointURLPath, s.handlePeerNotification)
 
 	// For testing purposes a 0 is allowed for internalPort, which will

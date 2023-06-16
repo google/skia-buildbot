@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -94,7 +94,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/", index)
 	r.HandleFunc("/_/sse", sserServer.ClientConnectionHandler(ctx))
 
