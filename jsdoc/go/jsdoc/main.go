@@ -5,7 +5,7 @@ import (
 	"flag"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -24,8 +24,8 @@ func main() {
 		"jsdocserver",
 		common.PrometheusOpt(promPort),
 	)
-	r := mux.NewRouter()
-	r.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir)))
+	r := chi.NewRouter()
+	r.Handle("/*", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir)))
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
