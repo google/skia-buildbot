@@ -13,7 +13,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//go/util/limitwriter",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@io_opencensus_go//plugin/ochttp",
         "@io_opencensus_go//trace",
         "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/fiddlek/go/store/mocks"
@@ -51,9 +51,9 @@ func TestScrapHandler_HappyPath(t *testing.T) {
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	addHandlers(router)
 
 	router.ServeHTTP(w, r)
@@ -74,9 +74,9 @@ func TestScrapHandler_ScrapExchangeFails_ReturnsInternalServerError(t *testing.T
 	defer scrapClientMock.AssertExpectations(t)
 	scrapClient = scrapClientMock
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	addHandlers(router)
 
 	router.ServeHTTP(w, r)
@@ -109,9 +109,9 @@ func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	addHandlers(router)
 
 	router.ServeHTTP(w, r)
@@ -124,9 +124,9 @@ func TestScrapHandler_WithInvalidType_ReturnsBadRequest(t *testing.T) {
 	r := httptest.NewRequest("GET", "/scrap/NotAType/@smiley", nil)
 	w := httptest.NewRecorder()
 
-	// Make the request through a mux.Router so the URL paths get parsed and
+	// Make the request through a chi.Router so the URL paths get parsed and
 	// routed correctly.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	addHandlers(router)
 
 	router.ServeHTTP(w, r)

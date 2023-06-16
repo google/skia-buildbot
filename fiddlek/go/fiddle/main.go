@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/named"
 	"go.skia.org/infra/fiddlek/go/runner"
@@ -189,7 +189,7 @@ func namedHandler(w http.ResponseWriter, r *http.Request) {
 
 // iframeHandle handles permalinks to individual fiddles.
 func iframeHandle(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
 		http.NotFound(w, r)
@@ -216,7 +216,7 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadContext(w http.ResponseWriter, r *http.Request) (*types.FiddleContext, error) {
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid id: %s", err)
@@ -270,13 +270,13 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 // scrapHandler handles links to scrap exchange expanded templates and turns them into fiddles.
 func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	// Load the scrap.
-	typ := scrap.ToType(mux.Vars(r)["type"])
+	typ := scrap.ToType(chi.URLParam(r, "type"))
 	if typ == scrap.UnknownType {
-		err := skerr.Fmt("Unknown type: %q", mux.Vars(r)["type"])
+		err := skerr.Fmt("Unknown type: %q", chi.URLParam(r, "type"))
 		httputils.ReportError(w, err, "Unknown type.", http.StatusBadRequest)
 		return
 	}
-	hashOrName := mux.Vars(r)["hashOrName"]
+	hashOrName := chi.URLParam(r, "hashOrName")
 	var b bytes.Buffer
 	if err := scrapClient.Expand(r.Context(), typ, hashOrName, scrap.CPP, &b); err != nil {
 		httputils.ReportError(w, err, "Failed to load templated scrap.", http.StatusInternalServerError)
@@ -321,7 +321,7 @@ func scrapHandler(w http.ResponseWriter, r *http.Request) {
 //	/i/@some_name.skp
 func imageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	fiddleHash, media, err := names.DereferenceImageID(id)
 	w.Header().Add("Cache-Control", "max-age=300")
 	if err != nil {
@@ -350,7 +350,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 // Where NNN is the id of the source image.
 func sourceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		http.NotFound(w, r)
@@ -552,20 +552,20 @@ func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/c/cbb8dee39e9f1576cd97c2d504db8eee?mode=basic", http.StatusFound)
 }
 
-func addHandlers(r *mux.Router) {
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(makeDistHandler())))
+func addHandlers(r chi.Router) {
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(makeDistHandler())))
 
-	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler).Methods("GET")
-	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle).Methods("GET")
-	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle).Methods("GET")
-	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler).Methods("GET")
-	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
-	r.HandleFunc("/f/", failedHandler).Methods("GET")
-	r.HandleFunc("/named/", namedHandler).Methods("GET")
-	r.HandleFunc("/new", basicModeHandler).Methods("GET")
-	r.HandleFunc("/", mainHandler).Methods("GET")
-	r.HandleFunc("/_/run", runHandler).Methods("POST")
-	r.HandleFunc("/healthz", healthzHandler).Methods("GET")
+	r.Get("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
+	r.Get("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
+	r.Get("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
+	r.Get("/s/{id:[0-9]+}", sourceHandler)
+	r.Get("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler)
+	r.Get("/f/", failedHandler)
+	r.Get("/named/", namedHandler)
+	r.Get("/new", basicModeHandler)
+	r.Get("/", mainHandler)
+	r.Post("/_/run", runHandler)
+	r.Get("/healthz", healthzHandler)
 }
 
 func main() {
@@ -609,7 +609,7 @@ func main() {
 	}
 	names = named.New(fiddleStore)
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	addHandlers(r)
 
 	h := httputils.LoggingGzipRequestResponse(r)

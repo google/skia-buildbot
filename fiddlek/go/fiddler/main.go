@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/types"
@@ -391,8 +391,8 @@ func main() {
 	}
 	version = strings.TrimSpace(string(b))
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", mainHandler)
+	r := chi.NewRouter()
+	r.HandleFunc("/*", mainHandler)
 	r.Handle("/run", &ochttp.Handler{Handler: http.HandlerFunc(runHandler)}) // Just wrap the /run handler for tracing.
 
 	h := httputils.LoggingGzipRequestResponse(r)
