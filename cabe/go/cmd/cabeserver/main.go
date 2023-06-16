@@ -11,7 +11,7 @@ import (
 	"time"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/swarming"
 	"google.golang.org/grpc"
@@ -116,7 +116,7 @@ func (a *App) Start(ctx context.Context) error {
 		// health checks AND serve grpc requests, we can separate the http and
 		// grpc port flags in k8s configs.
 		sklog.Infof("registering http healthz handler")
-		topLevelRouter := mux.NewRouter()
+		topLevelRouter := chi.NewRouter()
 		h := httputils.HealthzAndHTTPS(topLevelRouter)
 		httpServeMux := http.NewServeMux()
 		httpServeMux.Handle("/", h)
