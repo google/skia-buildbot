@@ -27,7 +27,7 @@ go_library(
         "//task_scheduler/go/skip_tasks",
         "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/types",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_rs_cors//:cors",
         "@com_google_cloud_go_bigtable//:bigtable",
         "@com_google_cloud_go_datastore//:datastore",

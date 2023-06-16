@@ -14,7 +14,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2/google"
 
@@ -197,8 +197,8 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	id, ok := mux.Vars(r)["id"]
-	if !ok {
+	id := chi.URLParam(r, "id")
+	if id == "" {
 		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
@@ -247,8 +247,8 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	jobId, ok := mux.Vars(r)["id"]
-	if !ok {
+	jobId := chi.URLParam(r, "id")
+	if jobId == "" {
 		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
@@ -270,8 +270,8 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	id, ok := mux.Vars(r)["id"]
-	if !ok {
+	id := chi.URLParam(r, "id")
+	if id == "" {
 		httputils.ReportError(w, nil, "Task ID is required.", http.StatusInternalServerError)
 		return
 	}
@@ -309,10 +309,10 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 }
 
 func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(addCorsMiddleware(srv))
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	r.Handle(rpc.TaskSchedulerServicePathPrefix+"*", addCorsMiddleware(srv))
 	r.HandleFunc("/skip_tasks", skipTasksHandler)
 	r.HandleFunc("/job/{id}", jobHandler)
 	r.HandleFunc("/job/{id}/timeline", jobTimelineHandler)
@@ -320,7 +320,7 @@ func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
 	r.HandleFunc("/task/{id}", taskHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/res/*", httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 
 	h := httputils.LoggingRequestResponse(r)
