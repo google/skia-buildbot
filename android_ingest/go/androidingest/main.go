@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/android_ingest/go/buildapi"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/lookup"
@@ -241,8 +241,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 // them to the android-build dashboard.
 func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	begin := mux.Vars(r)["begin"]
-	end := mux.Vars(r)["end"]
+	begin := chi.URLParam(r, "begin")
+	end := chi.URLParam(r, "end")
 
 	if begin == "" || end == "" {
 		http.NotFound(w, r)
@@ -272,7 +272,7 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 // them to the source android-build dashboard.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	redirBranch := r.FormValue("branch")
 
 	// If this is an old link, before we recorded branches, then we want to link to the old master branch.
@@ -302,12 +302,12 @@ func main() {
 
 	initialize()
 
-	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
-	r.HandleFunc("/upload", UploadHandler).Methods("POST")
-	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler).Methods("GET")
-	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler).Methods("GET")
-	r.HandleFunc("/", indexHandler).Methods("GET")
+	r := chi.NewRouter()
+	r.Get("/res/*", http.StripPrefix("/res/", http.HandlerFunc(makeResourceHandler())).ServeHTTP)
+	r.Post("/upload", UploadHandler)
+	r.Get("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
+	r.Get("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
+	r.Get("/", indexHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
