@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -98,7 +98,7 @@ func main() {
 		}
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	skmetadata.SetupServer(r, pm, im, clientTokenMapping)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on http://localhost%s", *port)

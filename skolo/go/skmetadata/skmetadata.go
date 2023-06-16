@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
@@ -148,8 +148,8 @@ func makeInstanceMetadataHandler(im InstanceMetadata) func(http.ResponseWriter, 
 	return func(w http.ResponseWriter, r *http.Request) {
 		instance := r.RemoteAddr // TODO(borenet): This is not correct.
 
-		key, ok := mux.Vars(r)["key"]
-		if !ok {
+		key := chi.URLParam(r, "key")
+		if key == "" {
 			httputils.ReportError(w, nil, "Metadata key is required.", http.StatusInternalServerError)
 		}
 
@@ -170,8 +170,8 @@ func makeInstanceMetadataHandler(im InstanceMetadata) func(http.ResponseWriter, 
 // project-level metadata.
 func makeProjectMetadataHandler(pm ProjectMetadata) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		key, ok := mux.Vars(r)["key"]
-		if !ok {
+		key := chi.URLParam(r, "key")
+		if key == "" {
 			httputils.ReportError(w, nil, "Metadata key is required.", http.StatusInternalServerError)
 		}
 		sklog.Infof("Project metadata: %s", key)
@@ -188,9 +188,19 @@ func makeProjectMetadataHandler(pm ProjectMetadata) func(http.ResponseWriter, *h
 }
 
 // mdHandler adds a handler to the given router for the specified metadata endpoint.
-func mdHandler(r *mux.Router, level string, handler http.HandlerFunc) {
+func mdHandler(r chi.Router, level string, handler http.HandlerFunc) {
+	matchMetadataFlavorHeader := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key := http.CanonicalHeaderKey(metadata.HEADER_MD_FLAVOR_KEY)
+			if r.Header.Get(key) == metadata.HEADER_MD_FLAVOR_VAL {
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, http.StatusText(404), 404)
+			}
+		})
+	}
 	path := fmt.Sprintf(metadata.METADATA_SUB_URL_TMPL, level, "{key}")
-	r.HandleFunc(path, handler).Headers(metadata.HEADER_MD_FLAVOR_KEY, metadata.HEADER_MD_FLAVOR_VAL)
+	r.With(matchMetadataFlavorHeader).HandleFunc(path, handler)
 	sklog.Infof("%s: %s", level, path)
 }
 
@@ -222,7 +232,7 @@ func getMyIP() ([]string, error) {
 
 // SetupServer adds handlers to the given router which mimic the API of the GCE
 // metadata server.
-func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]*ServiceAccountToken) {
+func SetupServer(r chi.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]*ServiceAccountToken) {
 	mdHandler(r, metadata.LEVEL_INSTANCE, makeInstanceMetadataHandler(im))
 	mdHandler(r, metadata.LEVEL_PROJECT, makeProjectMetadataHandler(pm))
 

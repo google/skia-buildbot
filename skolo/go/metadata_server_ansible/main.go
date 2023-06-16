@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -153,7 +153,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/computeMetadata/v1/instance/service-accounts/default/token", s.handleTokenRequest)
 	http.Handle("/", httputils.Healthz(httputils.LoggingGzipRequestResponse(r)))
 	sklog.Infof("Ready to serve on the following ports: %s", *ports)

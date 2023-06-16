@@ -11,7 +11,7 @@ go_library(
         "//go/metadata",
         "//go/sklog",
         "//go/util",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_x_oauth2//:oauth2",
     ],
