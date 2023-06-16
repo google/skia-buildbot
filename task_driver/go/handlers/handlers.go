@@ -10,7 +10,7 @@ import (
 
 	"go.opencensus.io/trace"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/display"
@@ -61,8 +61,8 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 // It returns "" if it is not found, in which case it also writes an error to
 // the ResponseWriter.
 func getVar(w http.ResponseWriter, r *http.Request, key string) string {
-	val, ok := mux.Vars(r)[key]
-	if !ok {
+	val := chi.URLParam(r, key)
+	if val == "" {
 		http.Error(w, fmt.Sprintf("No %s in request path.", key), http.StatusBadRequest)
 		return ""
 	}
@@ -174,8 +174,8 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		stepId, ok := mux.Vars(r)["stepId"]
-		if !ok {
+		stepId := chi.URLParam(r, "stepId")
+		if stepId == "" {
 			stepId = td.StepIDRoot
 		}
 		errIdx, err := strconv.Atoi(errId)
@@ -206,7 +206,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 }
 
 // AddTaskDriverHandlers adds handlers for Task Drivers to the given Router.
-func AddTaskDriverHandlers(r *mux.Router, d db.DB, lm *logs.LogsManager) {
+func AddTaskDriverHandlers(r chi.Router, d db.DB, lm *logs.LogsManager) {
 	r.HandleFunc("/json/td/{taskId}", httputils.CorsHandler(jsonTaskDriverHandler(d)))
 	r.HandleFunc("/errors/{taskId}/{errId}", fullErrorHandler(d))
 	r.HandleFunc("/errors/{taskId}/{stepId}/{errId}", fullErrorHandler(d))

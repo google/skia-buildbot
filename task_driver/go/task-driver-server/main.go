@@ -19,7 +19,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.opencensus.io/trace"
 	"golang.org/x/oauth2/google"
 
@@ -98,8 +98,8 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 // It returns "" if it is not found, in which case it also writes an error to
 // the ResponseWriter.
 func getVar(w http.ResponseWriter, r *http.Request, key string) string {
-	val, ok := mux.Vars(r)[key]
-	if !ok {
+	val := chi.URLParam(r, key)
+	if val == "" {
 		http.Error(w, fmt.Sprintf("No %s in request path.", key), http.StatusBadRequest)
 		return ""
 	}
@@ -232,9 +232,9 @@ func loadTemplates() {
 // Run the web server.
 func runServer(ctx context.Context, serverURL string) {
 	loadTemplates()
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/td/{taskId}", taskDriverHandler)
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	handlers.AddTaskDriverHandlers(r, d, lm)
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)

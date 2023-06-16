@@ -23,8 +23,8 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/status"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/alogin"
@@ -273,18 +273,18 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 
 // Note: srv already has the twirp handlers on it when passed into this function.
 func runServer(serverURL string, srv http.Handler) {
-	topLevelRouter := mux.NewRouter()
+	topLevelRouter := chi.NewRouter()
 	topLevelRouter.Use(alogin.StatusMiddleware(plogin))
 	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
-	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
-	r := topLevelRouter.NewRoute().Subrouter()
-	r.Use(httputils.LoggingGzipRequestResponse)
-	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
-	r.HandleFunc("/capacity", capacityHandler)
-	r.HandleFunc("/lkgr", lkgrHandler)
-	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
-	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
+	topLevelRouter.Handle(rpc.StatusServicePathPrefix+"*", httputils.LoggingRequestResponse(srv))
+	topLevelRouter.With(httputils.LoggingGzipRequestResponse).Route("/", func(r chi.Router) {
+		r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
+		r.HandleFunc("/capacity", capacityHandler)
+		r.HandleFunc("/lkgr", lkgrHandler)
+		r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
+		r.HandleFunc("/dist/*", httputils.MakeResourceHandler(*resourcesDir))
+		handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
+	})
 	var h http.Handler = topLevelRouter
 	if !*testing {
 		h = httputils.HealthzAndHTTPS(topLevelRouter)
