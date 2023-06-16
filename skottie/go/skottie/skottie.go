@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
@@ -90,17 +90,17 @@ func main() {
 		sklog.Fatalf("Failed to start: %s", err)
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
 	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
-	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html")).Methods("GET")
-	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html")).Methods("GET")
+	r.Get("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html"))
+	r.Get("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html"))
 
-	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
-	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")
-	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
+	r.Get("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
+	r.Get(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler)
+	r.Post("/_/upload", srv.uploadHandler)
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(sc.ResourcesPath))))).Methods("GET")
+	r.Get("/static/*", http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(sc.ResourcesPath)))).ServeHTTP)
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
@@ -204,7 +204,7 @@ func (s *Server) verificationHandler(w http.ResponseWriter, _ *http.Request) {
 func (s *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	hash := mux.Vars(r)["hash"]
+	hash := chi.URLParam(r, "hash")
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
 	reader, err := s.gcsClient.FileReader(r.Context(), path)
 	if err != nil {
@@ -225,8 +225,8 @@ func (s *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	hash := mux.Vars(r)["hash"]
-	name := mux.Vars(r)["name"]
+	hash := chi.URLParam(r, "hash")
+	name := chi.URLParam(r, "name")
 	path := strings.Join([]string{hash, "assets", name}, "/")
 	reader, err := s.gcsClient.FileReader(r.Context(), path)
 	if err != nil {
