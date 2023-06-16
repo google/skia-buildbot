@@ -109,7 +109,7 @@ func TestForceRoleMiddleware_UserIsLoggedIn_HandlerCalled(t *testing.T) {
 
 	called := false
 	m := alogin.ForceRoleMiddleware(login, roles.Viewer)
-	h := m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -127,7 +127,7 @@ func TestForceRoleMiddleware_UserIsNotLoggedIn_HandleIsNotCalled(t *testing.T) {
 
 	called := false
 	m := alogin.ForceRoleMiddleware(login, roles.Viewer)
-	h := m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 

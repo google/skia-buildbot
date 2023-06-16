@@ -10,7 +10,6 @@ go_library(
         "//go/httputils",
         "//go/roles",
         "//go/sklog",
-        "@com_github_gorilla_mux//:mux",
     ],
 )
 

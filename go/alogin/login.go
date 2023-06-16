@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
@@ -80,7 +79,7 @@ func LoginStatusHandler(login Login) http.HandlerFunc {
 // context. This allows handler to use GetSession() to retrieve the Session
 // information even if the don't have access to the original http.Request
 // object, like in a twirp handler.
-func StatusMiddleware(login Login) mux.MiddlewareFunc {
+func StatusMiddleware(login Login) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			session := &Status{
@@ -122,9 +121,9 @@ func ForceRole(h http.Handler, login Login, role roles.Role) http.Handler {
 	})
 }
 
-// ForceRoleMiddleware returns a mux.MiddlewareFunc that restricts access to
+// ForceRoleMiddleware returns a middleware that restricts access to
 // only those users that have the given role.
-func ForceRoleMiddleware(login Login, role roles.Role) mux.MiddlewareFunc {
+func ForceRoleMiddleware(login Login, role roles.Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !login.HasRole(r, role) {
