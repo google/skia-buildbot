@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -40,8 +40,8 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.PathPrefix("/dist/").HandlerFunc(makeResourceHandler(*resourcesDir))
+	router := chi.NewRouter()
+	router.HandleFunc("/dist/*", makeResourceHandler(*resourcesDir))
 	router.HandleFunc("/", mainHandler)
 	router.HandleFunc("/old", versionsHandler)
 	router.HandleFunc("/versions", versionsHandler)
