@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -186,13 +186,13 @@ func cspHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWr
 // scrapHandler handles links to scrap exchange expanded templates and turns them into fiddles.
 func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	// Load the scrap.
-	typ := scrap.ToType(mux.Vars(r)["type"])
+	typ := scrap.ToType(chi.URLParam(r, "type"))
 	if typ == scrap.UnknownType {
-		err := skerr.Fmt("Unknown type: %q", mux.Vars(r)["type"])
+		err := skerr.Fmt("Unknown type: %q", chi.URLParam(r, "type"))
 		httputils.ReportError(w, err, "Unknown type.", http.StatusBadRequest)
 		return
 	}
-	hashOrName := mux.Vars(r)["hashOrName"]
+	hashOrName := chi.URLParam(r, "hashOrName")
 	var b bytes.Buffer
 	if err := scrapClient.Expand(r.Context(), typ, hashOrName, scrap.JS, &b); err != nil {
 		httputils.ReportError(w, err, "Failed to load templated scrap.", http.StatusInternalServerError)
@@ -209,16 +209,16 @@ func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/canvaskit/"+jsfiddleHash, http.StatusTemporaryRedirect)
 }
 
-func addHandlers(r *mux.Router) {
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
-	r.HandleFunc("/canvaskit", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
-	r.HandleFunc("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
-	r.HandleFunc("/pathkit", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
-	r.HandleFunc("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
-	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
-	r.HandleFunc("/", mainHandler).Methods("GET")
-	r.HandleFunc("/_/save", saveHandler).Methods("PUT")
-	r.HandleFunc("/_/code", codeHandler).Methods("GET")
+func addHandlers(r chi.Router) {
+	r.Get("/res/*", makeResourceHandler())
+	r.Get("/canvaskit", cspHandler(htmlHandler(canvaskitPage)))
+	r.Get("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage)))
+	r.Get("/pathkit", cspHandler(htmlHandler(pathkitPage)))
+	r.Get("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage)))
+	r.Get("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler)
+	r.Get("/", mainHandler)
+	r.Put("/_/save", saveHandler)
+	r.Get("/_/code", codeHandler)
 }
 
 func main() {
@@ -243,7 +243,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	addHandlers(r)
 
 	h := httputils.LoggingGzipRequestResponse(r)
