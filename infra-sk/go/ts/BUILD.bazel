@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/alogin",
         "//go/go2ts",
-        "//go/login",
         "//go/roles",
         "//go/sklog",
         "//go/util",

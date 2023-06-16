@@ -26,7 +26,7 @@ describe('ct-scaffold-sk', () => {
   });
 
   describe('html layout', () => {
-    it('adds a login-sk element', () => {
+    it('adds an alogin-sk element', () => {
       const log = $$('header alogin-sk', scaffoldSk);
       expect(log).to.not.be.null;
     });

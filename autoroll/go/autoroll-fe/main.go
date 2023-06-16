@@ -457,7 +457,7 @@ func main() {
 	// TODO(jcgregorio) This should not use
 	// the client id and secret used for skia.org login, instead a separate
 	// client id and secret should be used.
-	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx, "")
+	_, clientID, clientSecret, err := login.TryLoadingFromAllSources(ctx)
 	if err != nil {
 		sklog.Fatalf("Failed to load OAuth2 configuration: %s", err)
 	}

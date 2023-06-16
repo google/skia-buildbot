@@ -21,7 +21,7 @@
  *    <header>
  *      <h1>Hello App</h1>
  *      <div class=spacer></div>
- *      <login-sk></login-sk>
+ *      <alogin-sk></alogin-sk>
  *    </header>
  *    <aside>
  *      <h2>This is the side bar</h2>

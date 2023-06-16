@@ -41,7 +41,7 @@ var (
 
 func initLoginForTests(t *testing.T) {
 	ctx := context.Background()
-	err := initLogin(ctx, "id", "secret", "http://localhost", saltForTesting, defaultAllowedDomains, SkiaOrg)
+	err := initLogin(ctx, "id", "secret", "http://localhost", saltForTesting, SkiaOrg)
 	require.NoError(t, err)
 }
 
@@ -82,7 +82,6 @@ func TestLoggedInAs(t *testing.T) {
 func testLoggedInAs(t *testing.T, domain DomainName) {
 	err := setDomain(domain)
 	require.NoError(t, err)
-	setActiveAllowLists(defaultAllowedDomains)
 
 	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
 	require.NoError(t, err)
@@ -103,65 +102,6 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	w := httptest.NewRecorder()
 	url := LoginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
-
-	delete(activeUserDomainAllowList, "chromium.org")
-	assert.Equal(t, LoggedInAs(r), "", "Not in the domain allow list.")
-	url = LoginURL(w, r)
-	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
-
-	activeUserEmailAllowList["fred@chromium.org"] = true
-	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email allow list.")
-}
-
-func TestLoggedInAsFromContext(t *testing.T) {
-	initLoginForTests(t)
-	for _, d := range AllDomainNames {
-		t.Run(string(d), func(t *testing.T) {
-			testLoggedInAsFromContext(t, d)
-		})
-	}
-}
-
-func testLoggedInAsFromContext(t *testing.T, domain DomainName) {
-	err := setDomain(domain)
-	require.NoError(t, err)
-	setActiveAllowLists(defaultAllowedDomains)
-	// attachSessionToContext is what the SessionMiddleware does.
-	attachSessionToContext := func(r *http.Request) *http.Request {
-		session, _ := getSession(r)
-		ctx := context.WithValue(r.Context(), loginCtxKey, session)
-		return r.WithContext(ctx)
-	}
-
-	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
-	require.NoError(t, err)
-	r = attachSessionToContext(r)
-
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "No skid cookie means not logged in.")
-
-	s := Session{
-		Email:     "fred@chromium.org",
-		ID:        "12345",
-		AuthScope: emailScope,
-		Token:     nil,
-	}
-	cookie, err := cookieFor(&s, r)
-	assert.NoError(t, err)
-	assert.Equal(t, string(domain), cookie.Domain)
-	r.AddCookie(cookie)
-	r = attachSessionToContext(r)
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
-	w := httptest.NewRecorder()
-	url := LoginURL(w, r)
-	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
-
-	delete(activeUserDomainAllowList, "chromium.org")
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "", "Not in the domain allow list.")
-	url = LoginURL(w, r)
-	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
-
-	activeUserEmailAllowList["fred@chromium.org"] = true
-	assert.Equal(t, LoggedInAsFromContext(r.Context()), "fred@chromium.org", "Found in the email allow list.")
 }
 
 func TestDomainFromHost(t *testing.T) {
@@ -175,7 +115,7 @@ func TestDomainFromHost(t *testing.T) {
 }
 
 func TestDomainFromHost_LuciApp(t *testing.T) {
-	err := initLogin(context.Background(), "id", "secret", "", saltForTesting, defaultAllowedDomains, LuciApp)
+	err := initLogin(context.Background(), "id", "secret", "", saltForTesting, LuciApp)
 	require.NoError(t, err)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
@@ -190,76 +130,10 @@ func TestDomainFromHost_LuciApp(t *testing.T) {
 
 func TestIsAuthorized(t *testing.T) {
 	initLoginForTests(t)
-	setActiveAllowLists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 
 	assert.True(t, isAuthorized("fred@chromium.org"))
 	assert.True(t, isAuthorized("service-account@proj.iam.gserviceaccount.com"))
-
-	assert.False(t, isAuthorized("fred@example.com"))
-	assert.False(t, isAuthorized("evil@proj.iam.gserviceaccount.com"))
-}
-
-func TestIsAuthorized_Gmail(t *testing.T) {
-	initLoginForTests(t)
-	setActiveAllowLists("google.com example@gmail.com")
-
-	assert.True(t, isAuthorized("example@gmail.com"))
-	assert.True(t, isAuthorized("ex.amp.le@gmail.com"))
-	assert.True(t, isAuthorized("example+somethi.ng@gmail.com"))
-	assert.True(t, isAuthorized("ex.amp.le+something@gmail.com"))
-
-	assert.False(t, isAuthorized("fred@gmail.com"))
-	assert.False(t, isAuthorized("example@g.mail.com"))
-}
-
-func TestNormalizeGmailAddress(t *testing.T) {
-	assert.Equal(t, "example", normalizeGmailAddress(".ex.ampl.e."))
-	assert.Equal(t, "example", normalizeGmailAddress("exa.mple"))
-	assert.Equal(t, "example", normalizeGmailAddress("example+"))
-	assert.Equal(t, "example", normalizeGmailAddress("example+decoration+more+plus"))
-	assert.Equal(t, "example", normalizeGmailAddress("examp.le+.dec."))
-}
-
-func TestSessionMiddleware(t *testing.T) {
-	// Setup.
-	initLoginForTests(t)
-	setActiveAllowLists(defaultAllowedDomains)
-
-	// Helper function to set up a request with the given Session and test the
-	// middleware, verifying that we get the session back via GetSession.
-	test := func(t *testing.T, expect *Session) {
-		// Create a request.
-		req, err := http.NewRequest("GET", "/", nil)
-		require.NoError(t, err)
-		if expect != nil {
-			cookie, err := cookieFor(expect, req)
-			require.NoError(t, err)
-			req.AddCookie(cookie)
-		}
-
-		// Create an http.Handler which uses LoginMiddleware and checks the
-		// return value of GetSession against the expectation.
-		handler := SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			actual := getSessionFromContext(r.Context())
-			assertdeep.Equal(t, expect, actual)
-		}))
-
-		// Run the test.
-		handler.ServeHTTP(nil, req)
-	}
-
-	// Test cases.
-	t.Run("not logged in", func(t *testing.T) {
-		test(t, nil)
-	})
-	t.Run("logged in", func(t *testing.T) {
-		test(t, &Session{
-			Email:     "fred@chromium.org",
-			ID:        "12345",
-			AuthScope: emailScope,
-			Token:     nil,
-		})
-	})
+	assert.False(t, isAuthorized("this is not an email"))
 }
 
 func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
@@ -318,7 +192,6 @@ func setupForOAuth2CallbackHandlerTest(t *testing.T, url string) (*httptest.Resp
 		Value: sessionIDForTesting,
 	}
 	r.AddCookie(cookie)
-	setActiveAllowLists("")
 	return w, r
 }
 
@@ -391,8 +264,6 @@ func TestOAuth2CallbackHandler_HappyPath(t *testing.T) {
 
 	oauthConfigMock.On("Exchange", testutils.AnyContext, codeForTesting).Return(tokenWith, nil)
 	oauthConfig = oauthConfigMock
-
-	viewAllow = nil
 
 	OAuth2CallbackHandler(w, r)
 	require.Contains(t, w.Body.String(), "Found")

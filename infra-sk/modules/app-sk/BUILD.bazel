@@ -18,11 +18,11 @@ sk_page(
     html_file = "app-sk-demo.html",
     scss_entry_point = "app-sk-demo.scss",
     sk_element_deps = [
-        "//infra-sk/modules/login-sk",
         ":app-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/create-icon-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_entry_point = "app-sk-demo.ts",
 )

@@ -24,6 +24,6 @@ local copy, invoke your playbook with `--extra-vars win_package_src=path/to/loca
   tasks:
     - name: Copy skolo.pow
       win_copy:
-        src: "{{ win_package_src }}/skolo.pow"
+        src: '{{ win_package_src }}/skolo.pow'
         dest: c:\Temp\skolo.pow
 ```

@@ -32,9 +32,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -74,17 +72,8 @@ const (
 	// Default cookie salt used only for testing.
 	defaultCookieSalt = "notverysecret"
 
-	// defaultAllowedDomains is a list of domains we use frequently.
-	defaultAllowedDomains = "google.com chromium.org skia.org"
-
 	// cookieDomainSkiaCorp is the cookie domain for skia*.corp.goog.
 	cookieDomainSkiaCorp = "corp.goog"
-
-	// loginConfigFile is the location of the login config when running in kubernetes.
-	loginConfigFile = "/etc/skia.org/login.json"
-
-	// defaultClientSecretFile is the default path to the file used for OAuth2 login.
-	defaultClientSecretFile = "client_secret.json"
 
 	// loginSecretProject is the GCP project containing the login secrets.
 	loginSecretProject = "skia-infra-public"
@@ -251,22 +240,19 @@ type Session struct {
 // "client_secret.json" file in the current directory to extract the client id
 // and client secret from. If all three of those fail then it returns an error.
 //
-// The authAllowList is the space separated list of domains and email addresses
-// that are allowed to log in.
-//
 // InitOptions include setting the DomainName to be used for authentication.
-func Init(ctx context.Context, redirectURL string, authAllowList string, clientSecretFile string, opts ...InitOption) error {
+func Init(ctx context.Context, redirectURL string, opts ...InitOption) error {
 	cookieSalt := defaultCookieSalt
 	var clientID string
 	var clientSecret string
 	var err error
 	if !skipLoadingSecrets(opts...) {
-		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx, clientSecretFile)
+		cookieSalt, clientID, clientSecret, err = TryLoadingFromAllSources(ctx)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
 	}
-	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, authAllowList, opts...)
+	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, opts...)
 }
 
 // Returns true if SkipLoadingSecrets has been passed in as an option.
@@ -288,7 +274,7 @@ func abbrev(s string) string {
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
-func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, authAllowList string, opts ...InitOption) error {
+func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt string, opts ...InitOption) error {
 	for _, opt := range opts {
 		if err := opt.Apply(); err != nil {
 			return skerr.Wrapf(err, "applying option")
@@ -306,7 +292,6 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 	cookieSalt = salt
 
-	setActiveAllowLists(authAllowList)
 	var err error
 	tokenValidatorService, err = oauth2_api.NewService(ctx, option.WithHTTPClient(httputils.NewTimeoutClient()))
 	if err != nil {
@@ -475,31 +460,6 @@ func LoggedInAs(r *http.Request) string {
 	}
 
 	return ""
-}
-
-// LoggedInAsFromContext returns the email from the session cookie if it is
-// present and matches either the domain or the user allow list. The passed-in
-// Context must be from a request whose http.Handler was wrapped using
-// SessionMiddleware. This differs from LoggedInAs in that it doesn't fall back
-// to checking the OAuth 2 Bearer token.
-func LoggedInAsFromContext(ctx context.Context) string {
-	if session := getSessionFromContext(ctx); session != nil {
-		email := session.Email
-		if isAuthorized(email) {
-			return email
-		}
-	}
-	return ""
-}
-
-// userIdentifiers returns both the email and opaque user id of the logged in
-// user, and will return two empty strings if they are not logged in.
-func userIdentifiers(r *http.Request) (string, string) {
-	s, err := getSession(r)
-	if err != nil {
-		return "", ""
-	}
-	return s.Email, s.ID
 }
 
 // A JSON Web Token can contain much info, such as 'iss'. We don't care about
@@ -687,8 +647,8 @@ func extractEmailAndAccountIDFromToken(token *oauth2.Token) (string, string, str
 	return email, decoded.ID, ""
 }
 
-// isAuthorized returns true if the given email address matches either the
-// domain or the user allow list.
+// isAuthorized returns true if the given email address is not the empty string
+// and looks vaguely like an email address.
 func isAuthorized(email string) bool {
 	if email == "" {
 		return false
@@ -699,115 +659,7 @@ func isAuthorized(email string) bool {
 		return false
 	}
 
-	user, domain := parts[0], parts[1]
-	if domain == "gmail.com" {
-		user = normalizeGmailAddress(user)
-	}
-	normalizedEmail := user + "@" + domain
-
-	if viewAllow != nil {
-		sklog.Infof("viewAllow = %v", viewAllow)
-		return viewAllow.Member(normalizedEmail)
-	}
-
-	if len(activeUserDomainAllowList) == 0 {
-		return true // if the list is empty, everybody is allowed
-	}
-	return activeUserDomainAllowList[domain] || activeUserEmailAllowList[normalizedEmail]
-}
-
-// normalizeGmailAddress removes periods and text after a plus sign.
-// See https://stackoverflow.com/a/15499627 for more.
-func normalizeGmailAddress(user string) string {
-	user = strings.ReplaceAll(user, ".", "")
-	plusIdx := strings.Index(user, "+")
-	if plusIdx >= 0 {
-		return user[:plusIdx]
-	}
-	return user
-}
-
-// LoginStatus is the status returned by the StatusHandler endpoint, serialized
-// as JSON.
-type LoginStatus struct {
-	Email string `json:"Email"`
-}
-
-// StatusHandler returns the login status of the user as JSON that looks like:
-//
-//	{
-//	  "Email":     "fred@example.com",
-//	  "ID":        "12342...34324",
-//	  "LoginURL":  "https://..."
-//	  "IsAGoogler": false,
-//	  "IsViewer":   true,
-//	  "IsEditor":   true,
-//	  "IsAdmin:     false
-//	}
-func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("StatusHandler")
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	email, _ := userIdentifiers(r)
-	body := LoginStatus{
-		Email: email,
-	}
-
-	sklog.Infof("Origin: %s", r.Header.Get("Origin"))
-	if origin := r.Header.Get("Origin"); origin != "" {
-		u, err := url.Parse(origin)
-		if err != nil {
-			httputils.ReportError(w, err, "Invalid Origin", http.StatusInternalServerError)
-			return
-		}
-		if strings.HasSuffix(u.Host, "."+cookieDomain) ||
-			strings.HasSuffix(u.Host, "."+cookieDomainSkiaCorp) ||
-			strings.HasPrefix(u.Host, "localhost:") {
-			prefix := "https://"
-			if strings.HasPrefix(u.Host, "localhost:") {
-				prefix = "http://"
-			}
-			w.Header().Add("Access-Control-Allow-Origin", prefix+u.Host)
-			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-			w.Header().Add("Access-Control-Allow-Credentials", "true")
-			w.Header().Add("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		}
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	if err := enc.Encode(body); err != nil {
-		sklog.Errorf("Failed to encode Login status to JSON: %s", err)
-	}
-}
-
-// ForceAuth is middleware that enforces authentication
-// before the wrapped handler is called. oauthCallbackPath is the
-// URL path that the user is redirected to at the end of the auth flow.
-func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := LoggedInAs(r)
-		if userID == "" {
-			if strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
-				// If this is the oauth2 callback, run that handler.
-				OAuth2CallbackHandler(w, r)
-				return
-			} else {
-				// If this is not the oauth callback then redirect.
-				redirectURL := LoginURL(w, r)
-				sklog.Infof("Redirect URL: %s", redirectURL)
-				if redirectURL == "" {
-					httputils.ReportError(w, fmt.Errorf("unable to get redirect URL"), "Redirect to login failed:", http.StatusInternalServerError)
-					return
-				}
-				http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
-				return
-			}
-		}
-		h.ServeHTTP(w, r)
-	})
+	return true
 }
 
 // loginInfo is the JSON file format that client info is stored in as a kubernetes secret.
@@ -822,8 +674,10 @@ type loginInfo struct {
 // above fail.
 //
 // Returns salt, clientID, clientSecret.
-func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (string, string, string, error) {
+func TryLoadingFromAllSources(ctx context.Context) (string, string, string, error) {
 	// GCP secret.
+	var err1 error
+	var err2 error
 	secretClient, err1 := secret.NewClient(ctx)
 	if err1 == nil {
 		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
@@ -834,33 +688,7 @@ func TryLoadingFromAllSources(ctx context.Context, clientSecretFile string) (str
 		err1 = skerr.Wrapf(err1, "failed loading login secrets from GCP secret manager; failed to create client")
 	}
 
-	// Local file, this is only used for testing.
-	cookieSalt, clientID, clientSecret, err2 := TryLoadingFromFile(clientSecretFile)
-	if err2 == nil {
-		return cookieSalt, clientID, clientSecret, nil
-	}
-	return "", "", "", skerr.Fmt("Failed loading from metadata, GCP secrets, and from %s: %s | %s", clientSecretFile, err1, err2)
-}
-
-// TryLoadingFromFile tries to load the client id and client secret from the
-// given file.  If not specified, it tries to load from client_secret.json in
-// the current working directory.
-//
-// Returns DEFAULT_COOKIE_SALT, clientID, clientSecret.
-func TryLoadingFromFile(clientSecretFile string) (string, string, string, error) {
-	if clientSecretFile == "" {
-		clientSecretFile = defaultClientSecretFile
-	}
-	b, err := ioutil.ReadFile(clientSecretFile)
-	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from %s", clientSecretFile)
-	}
-	config, err := google.ConfigFromJSON(b)
-	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed decoding login secrets from %s", clientSecretFile)
-	}
-	sklog.Infof("Successfully read client secret from %s", clientSecretFile)
-	return defaultCookieSalt, config.ClientID, config.ClientSecret, nil
+	return "", "", "", skerr.Fmt("Failed loading from metadata and GCP secrets: %s | %s", err1, err2)
 }
 
 // TryLoadingFromGCPSecret tries to load the cookie salt, client id, and client
@@ -917,35 +745,4 @@ func validateBearerToken(ctx context.Context, token string) (*oauth2_api.Tokenin
 	validBearerTokenCache.Set(token, ti, ttlcache.DefaultExpiration)
 
 	return ti, nil
-}
-
-// SessionMiddleware is middleware which attaches login info to the request
-// context. This allows the passed-in handler to use GetSession().
-func SessionMiddleware(sub http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Ignore the error. If it matters that the user is not logged in, the
-		// request will fail at some other level.
-		session, _ := getSession(r)
-		ctx := context.WithValue(r.Context(), loginCtxKey, session)
-		sub.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-// getSessionFromContext returns the current user's Session, or nil if the user is not
-// logged in. The passed-in Context must be from a request whose http.Handler
-// was wrapped using SessionMiddleware.
-func getSessionFromContext(ctx context.Context) *Session {
-	session := ctx.Value(loginCtxKey)
-	if session != nil {
-		return session.(*Session)
-	}
-	return nil
-}
-
-// FakeLoggedInAs is to be used by unit tests which want to fake that a user is logged in.
-func FakeLoggedInAs(ctx context.Context, userEmail string) context.Context {
-	s := Session{
-		Email: userEmail,
-	}
-	return context.WithValue(ctx, loginCtxKey, &s)
 }

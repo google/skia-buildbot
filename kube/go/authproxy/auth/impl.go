@@ -35,8 +35,6 @@ func (l authImpl) Init(ctx context.Context, port string, local bool) error {
 	return login.Init(
 		ctx,
 		redirectURL,
-		"", /* Empty means accept all signed in domain. */
-		"", /* Get secrets from Secret Manager*/
 	)
 }
 

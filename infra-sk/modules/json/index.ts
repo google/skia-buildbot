@@ -5,10 +5,6 @@ export interface Status {
 	roles: Roles;
 }
 
-export interface LoginStatus {
-	Email: string;
-}
-
 export type EMail = string;
 
 export type Role = 'viewer' | 'editor' | 'admin' | '';

@@ -26,22 +26,26 @@ leasing-scaffold-sk {
     display: flex;
     flex-direction: column;
     text-align: left;
+
     a {
       padding: 1em 1em;
-      color: var(--on-surface); /* Override User Agent SS*/
+      color: var(--on-surface);
+      /* Override User Agent SS*/
       text-decoration: none;
     }
+
     span {
       padding: 0 0.5em;
       vertical-align: middle;
       font-size: 1.4em;
     }
+
     span:hover {
       text-decoration: underline;
     }
   }
 
-  login-sk {
+  alogin-sk {
     margin-right: 1em;
   }
 

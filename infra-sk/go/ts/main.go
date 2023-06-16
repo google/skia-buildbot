@@ -10,7 +10,6 @@ import (
 
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/go2ts"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -22,7 +21,6 @@ func main() {
 
 	generator := go2ts.New()
 	generator.Add(alogin.Status{})
-	generator.Add(login.LoginStatus{})
 	generator.AddMultipleUnion(
 		roles.AllRoles,
 	)

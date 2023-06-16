@@ -16,13 +16,6 @@ ts_library(
     visibility = ["//visibility:public"],
 )
 
-ts_library(
-    name = "login_ts_lib",
-    srcs = ["login.ts"],
-    visibility = ["//visibility:public"],
-    deps = ["//infra-sk/modules/json:index_ts_lib"],
-)
-
 karma_test(
     name = "string_test",
     src = "string_test.ts",
