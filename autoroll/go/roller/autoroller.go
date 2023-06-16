@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config"
@@ -806,7 +806,7 @@ func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, us
 }
 
 // AddHandlers implements main.AutoRollerI.
-func (r *AutoRoller) AddHandlers(*mux.Router) {}
+func (r *AutoRoller) AddHandlers(chi.Router) {}
 
 // Callback function which runs when roll CLs are closed.
 func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.RollImpl) error {

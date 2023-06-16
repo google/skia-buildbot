@@ -41,7 +41,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
     ],
 )
 

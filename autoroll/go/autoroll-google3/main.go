@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/status"
@@ -105,7 +105,7 @@ func main() {
 		}
 	}
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
 		sklog.Fatal(err)
 	}

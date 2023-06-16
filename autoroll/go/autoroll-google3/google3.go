@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -85,9 +85,10 @@ func (a *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	}, nil)
 }
 
-// AddHandlers adds the AutoRoller's HTTP handlers to the mux.Router.
-func (a *AutoRoller) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/json/roll", a.rollHandler).Methods(http.MethodPost, http.MethodPut)
+// AddHandlers adds the AutoRoller's HTTP handlers to the chi.Router.
+func (a *AutoRoller) AddHandlers(r chi.Router) {
+	r.Post("/json/roll", a.rollHandler)
+	r.Put("/json/roll", a.rollHandler)
 }
 
 // UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.

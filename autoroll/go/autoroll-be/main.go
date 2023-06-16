@@ -17,7 +17,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/conversion"
@@ -89,7 +89,7 @@ type AutoRollerI interface {
 	// Start initiates the AutoRoller's loop.
 	Start(ctx context.Context, tickFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
-	AddHandlers(r *mux.Router)
+	AddHandlers(r chi.Router)
 }
 
 // clientConfig returns a common httputils.ClientConfig to be used for all

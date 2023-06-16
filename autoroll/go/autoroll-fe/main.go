@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/db"
@@ -135,8 +135,8 @@ func reloadTemplates() {
 }
 
 func getRoller(w http.ResponseWriter, r *http.Request) *config.Config {
-	name, ok := mux.Vars(r)["roller"]
-	if !ok {
+	name := chi.URLParam(r, "roller")
+	if name == "" {
 		http.Error(w, "Unable to find roller name in request path.", http.StatusBadRequest)
 		return nil
 	}
@@ -363,19 +363,20 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 }
 
 func runServer(ctx context.Context, serverURL string, srv http.Handler, plogin alogin.Login) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/config", configHandler)
 	r.HandleFunc(gerritOAuth2Redirect, submitConfigUpdate)
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
-	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
-	rollerRouter.HandleFunc("", rollerHandler)
-	rollerRouter.HandleFunc("/config", configJSONHandler)
-	rollerRouter.HandleFunc("/mode-history", modeHistoryHandler)
-	rollerRouter.HandleFunc("/roll-history", rollHistoryHandler)
-	rollerRouter.HandleFunc("/strategy-history", strategyHistoryHandler)
-	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(addCorsMiddleware(srv))
+	r.Route("/r/{roller}", func(r chi.Router) {
+		r.HandleFunc("/", rollerHandler)
+		r.HandleFunc("/config", configJSONHandler)
+		r.HandleFunc("/mode-history", modeHistoryHandler)
+		r.HandleFunc("/roll-history", rollHistoryHandler)
+		r.HandleFunc("/strategy-history", strategyHistoryHandler)
+	})
+	r.Handle(rpc.AutoRollServicePathPrefix+"*", addCorsMiddleware(srv))
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
