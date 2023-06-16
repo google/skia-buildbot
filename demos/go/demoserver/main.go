@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/demos/go/frontend"
@@ -66,9 +66,9 @@ func main() {
 		demos = newSyncedDemos(ctx, *repoURL, *branch, checkoutDir, *demosDir)
 	}
 
-	r := mux.NewRouter()
-	r.PathPrefix("/demo/").HandlerFunc(demos.demoHandler())
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir(*resourcesDir))))
+	r := chi.NewRouter()
+	r.HandleFunc("/demo/*", demos.demoHandler())
+	r.Handle("/dist/*", http.StripPrefix("/dist/", http.FileServer(http.Dir(*resourcesDir))))
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(*resourcesDir, "main.html"))
 	})
