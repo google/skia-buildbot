@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -23,7 +23,7 @@ const (
 
 // Server is the core functionality of test_machine_monitor.
 type Server struct {
-	r                      *mux.Router
+	r                      chi.Router
 	machine                *machine.Machine
 	triggerInterrogationCh chan<- bool
 
@@ -39,7 +39,7 @@ type Server struct {
 
 // New returns a new instance of Server.
 func New(m *machine.Machine, triggerInterrogationCh chan<- bool) (*Server, error) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	ret := &Server{
 		r:                      r,
 		machine:                m,
@@ -55,15 +55,15 @@ func New(m *machine.Machine, triggerInterrogationCh chan<- bool) (*Server, error
 		onAfterTaskSuccess:           metrics2.GetCounter("bot_config_server_on_after_task_requests_success", map[string]string{"machine": m.MachineID}),
 	}
 
-	r.HandleFunc("/get_state", ret.getState).Methods("POST")
-	r.HandleFunc("/get_settings", ret.getSettings).Methods("GET")
-	r.HandleFunc("/get_dimensions", ret.getDimensions).Methods("POST")
-	r.HandleFunc(OnBeforeTaskPath, ret.onBeforeTask).Methods("GET")
-	r.HandleFunc(OnAfterTaskPath, ret.onAfterTask).Methods("GET")
 	r.Use(
 		httputils.HealthzAndHTTPS,
 		httputils.LoggingGzipRequestResponse,
 	)
+	r.Post("/get_state", ret.getState)
+	r.Get("/get_settings", ret.getSettings)
+	r.Post("/get_dimensions", ret.getDimensions)
+	r.Get(OnBeforeTaskPath, ret.onBeforeTask)
+	r.Get(OnAfterTaskPath, ret.onAfterTask)
 
 	return ret, nil
 }

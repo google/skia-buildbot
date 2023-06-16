@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
@@ -110,7 +110,7 @@ func newBotForTest(t *testing.T, metadataHander, botCodeHandler http.HandlerFunc
 
 	// Now launch a local HTTP server that will stand in place for both the
 	// metadata server and the swarming server.
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 
 	// This endpoint will pretend to be the metadata server.
 	r.HandleFunc("/metadata", metadataHander)
