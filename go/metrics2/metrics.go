@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.skia.org/infra/go/sklog"
 )
@@ -150,7 +150,7 @@ func GetDefaultClient() Client {
 //
 // port - string, The port on which to serve the metrics, e.g. ":10110".
 func InitPrometheus(port string) {
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
 	go func() {
 		sklog.Fatal(http.ListenAndServe(port, r))
