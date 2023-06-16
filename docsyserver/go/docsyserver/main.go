@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/docsyserver/go/codereview"
 	"go.skia.org/infra/docsyserver/go/codereview/gerrit"
 	"go.skia.org/infra/docsyserver/go/docset"
@@ -98,8 +98,8 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(server.mainHandler))
+	router := chi.NewRouter()
+	router.HandleFunc("/*", autogzip.HandleFunc(server.mainHandler))
 
 	var h http.Handler = router
 	if !*local {

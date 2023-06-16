@@ -15,7 +15,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "@com_github_fiorix_go_web//autogzip",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
     ],
 )
 
