@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
 )
@@ -42,7 +43,10 @@ func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	}
 
 	// Generate and add files created by gn/gn_to_bp.py
-	gnEnv := []string{fmt.Sprintf("PATH=%s/:%s", path.Join(skiaCheckout, "bin"), os.Getenv("PATH"))}
+	gnEnv := []string{
+		fmt.Sprintf("PATH=%s/:%s", path.Join(skiaCheckout, "bin"), os.Getenv("PATH")),
+		fmt.Sprintf("PYTHONPATH=%s", filepath.Join(skiaCheckout, "gn")),
+	}
 	if _, gnToBpErr := exec.RunCommand(ctx, &exec.Command{
 		Env:  gnEnv,
 		Dir:  skiaCheckout,
