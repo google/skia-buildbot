@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"go.skia.org/infra/go/common"
@@ -208,8 +208,8 @@ func (a *App) Run() error {
 	}
 
 	// Add all routing.
-	r := mux.NewRouter()
-	r.HandleFunc("/send", a.incomingEmaiHandler).Methods("POST")
+	r := chi.NewRouter()
+	r.Post("/send", a.incomingEmaiHandler)
 
 	// We must specify that we handle /healthz or it will never flow through to
 	// our middleware. Even though this handler is never actually called (due to

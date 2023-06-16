@@ -14,7 +14,7 @@ go_library(
         "//go/secret",
         "//go/skerr",
         "//go/sklog",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_github_sendgrid_sendgrid_go//:sendgrid-go",
         "@com_github_sendgrid_sendgrid_go//helpers/mail",
         "@org_golang_x_oauth2//google",
