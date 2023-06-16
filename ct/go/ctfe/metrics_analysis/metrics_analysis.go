@@ -14,7 +14,7 @@ import (
 	"text/template"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -339,13 +339,13 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(externalRouter *mux.Router) {
-	externalRouter.HandleFunc("/"+ctfeutil.METRICS_ANALYSIS_URI, addTaskView).Methods("GET")
-	externalRouter.HandleFunc("/"+ctfeutil.METRICS_ANALYSIS_RUNS_URI, runsHistoryView).Methods("GET")
+func AddHandlers(externalRouter chi.Router) {
+	externalRouter.Get("/"+ctfeutil.METRICS_ANALYSIS_URI, addTaskView)
+	externalRouter.Get("/"+ctfeutil.METRICS_ANALYSIS_RUNS_URI, runsHistoryView)
 
-	externalRouter.HandleFunc("/"+ctfeutil.ADD_METRICS_ANALYSIS_TASK_POST_URI, addTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.EDIT_METRICS_ANALYSIS_TASK_POST_URI, editTaskHandler).Methods("POST")
+	externalRouter.Post("/"+ctfeutil.ADD_METRICS_ANALYSIS_TASK_POST_URI, addTaskHandler)
+	externalRouter.Post("/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, getTasksHandler)
+	externalRouter.Post("/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, deleteTaskHandler)
+	externalRouter.Post("/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, redoTaskHandler)
+	externalRouter.Post("/"+ctfeutil.EDIT_METRICS_ANALYSIS_TASK_POST_URI, editTaskHandler)
 }

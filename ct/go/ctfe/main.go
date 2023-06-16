@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
@@ -100,8 +100,8 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 }
 
 func runServer(serverURL string) {
-	externalRouter := mux.NewRouter()
-	externalRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	externalRouter := chi.NewRouter()
+	externalRouter.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 
 	admin_tasks.AddHandlers(externalRouter)
 	chromium_analysis.AddHandlers(externalRouter)
@@ -112,7 +112,7 @@ func runServer(serverURL string) {
 	task_common.AddHandlers(externalRouter)
 
 	// Handler for displaying results stored in Google Storage.
-	externalRouter.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
+	externalRouter.HandleFunc(ctfeutil.RESULTS_URI+"*", resultsHandler)
 
 	externalRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 

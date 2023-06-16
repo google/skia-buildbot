@@ -14,7 +14,7 @@ import (
 	"text/template"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
@@ -380,17 +380,17 @@ func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Reque
 	task_common.GetTasksHandler(&RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
-func AddHandlers(externalRouter *mux.Router) {
-	externalRouter.HandleFunc("/"+ctfeutil.ADMIN_TASK_URI, addTaskView).Methods("GET")
-	externalRouter.HandleFunc("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
-	externalRouter.HandleFunc("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
+func AddHandlers(externalRouter chi.Router) {
+	externalRouter.Get("/"+ctfeutil.ADMIN_TASK_URI, addTaskView)
+	externalRouter.Get("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView)
+	externalRouter.Get("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView)
 
-	externalRouter.HandleFunc("/"+ctfeutil.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, redoRecreatePageSetsTaskHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, redoRecreateWebpageArchivesTaskHandler).Methods("POST")
+	externalRouter.Post("/"+ctfeutil.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler)
+	externalRouter.Post("/"+ctfeutil.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler)
+	externalRouter.Post("/"+ctfeutil.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler)
+	externalRouter.Post("/"+ctfeutil.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler)
+	externalRouter.Post("/"+ctfeutil.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler)
+	externalRouter.Post("/"+ctfeutil.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler)
+	externalRouter.Post("/"+ctfeutil.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, redoRecreatePageSetsTaskHandler)
+	externalRouter.Post("/"+ctfeutil.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, redoRecreateWebpageArchivesTaskHandler)
 }

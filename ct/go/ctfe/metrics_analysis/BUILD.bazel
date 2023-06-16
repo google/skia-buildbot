@@ -16,7 +16,7 @@ go_library(
         "//go/httputils",
         "//go/swarming",
         "//go/util",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_go_chi_chi_v5//:chi",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_google_api//iterator",
     ],

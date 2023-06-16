@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -836,12 +836,12 @@ func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddHandlers(externalRouter *mux.Router) {
-	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.TASK_PRIORITIES_GET_URI, taskPrioritiesHandler).Methods("GET")
-	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
+func AddHandlers(externalRouter chi.Router) {
+	externalRouter.Post("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler)
+	externalRouter.Post("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler)
+	externalRouter.Post("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler)
+	externalRouter.Get("/"+ctfeutil.TASK_PRIORITIES_GET_URI, taskPrioritiesHandler)
+	externalRouter.Get("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler)
 }
 
 func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, cas cas.CAS, getGCETasksCount func(ctx context.Context) (int, error)) error {

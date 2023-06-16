@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
@@ -247,11 +247,11 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(pendingTasksTemplate, w, r)
 }
 
-func AddHandlers(externalRouter *mux.Router) {
+func AddHandlers(externalRouter chi.Router) {
 	// Runs history handlers.
-	externalRouter.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
-	externalRouter.HandleFunc("/"+ctfeutil.COMPLETED_TASKS_POST_URL, completedTasksHandler).Methods("POST")
+	externalRouter.Get("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView)
+	externalRouter.Post("/"+ctfeutil.COMPLETED_TASKS_POST_URL, completedTasksHandler)
 
 	// Task Queue handlers.
-	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
+	externalRouter.Get("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView)
 }
