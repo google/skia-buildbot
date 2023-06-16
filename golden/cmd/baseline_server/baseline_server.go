@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2/google"
 	gstorage "google.golang.org/api/storage/v1"
@@ -112,55 +112,55 @@ func main() {
 	handlers.StartKnownHashesCacheProcess(ctx)
 
 	// Set up a router for all the application endpoints which are part of the Gold API.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 
 	// Version 0 of the routes are actually the unversioned legacy versions of the route.
-	v0 := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+	v0 := func(method, rpcRoute string, handlerFunc http.HandlerFunc) {
 		counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
 			// For consistency, we remove the /json from all routes when adding them in the metrics.
 			"route":   strings.TrimPrefix(rpcRoute, "/json"),
 			"version": "v0",
 		})
-		return appRouter.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+		appRouter.MethodFunc(method, rpcRoute, func(w http.ResponseWriter, r *http.Request) {
 			counter.Inc(1)
 			handlerFunc(w, r)
 		})
 	}
 
-	v1 := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+	v1 := func(method, rpcRoute string, handlerFunc http.HandlerFunc) {
 		counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
 			// For consistency, we remove the /json/vN from all routes when adding them in the metrics.
 			"route":   strings.TrimPrefix(rpcRoute, "/json/v1"),
 			"version": "v1",
 		})
-		return appRouter.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+		appRouter.MethodFunc(method, rpcRoute, func(w http.ResponseWriter, r *http.Request) {
 			counter.Inc(1)
 			handlerFunc(w, r)
 		})
 	}
 
-	v2 := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+	v2 := func(method, rpcRoute string, handlerFunc http.HandlerFunc) {
 		counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
 			// For consistency, we remove the /json/vN from all routes when adding them in the metrics.
 			"route":   strings.TrimPrefix(rpcRoute, "/json/v2"),
 			"version": "v2",
 		})
-		return appRouter.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+		appRouter.MethodFunc(method, rpcRoute, func(w http.ResponseWriter, r *http.Request) {
 			counter.Inc(1)
 			handlerFunc(w, r)
 		})
 	}
 
 	// Serve the known hashes from GCS.
-	v0(frontend.KnownHashesRoute, handlers.KnownHashesHandler).Methods("GET")
-	v1(frontend.KnownHashesRouteV1, handlers.KnownHashesHandler).Methods("GET")
+	v0("GET", frontend.KnownHashesRoute, handlers.KnownHashesHandler)
+	v1("GET", frontend.KnownHashesRouteV1, handlers.KnownHashesHandler)
 	// Serve the expectations for the master branch and for CLs in progress.
-	v2(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
+	v2("GET", frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2)
 
 	// Only log and compress the app routes, but not the health check.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 	router.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	router.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(appRouter))
+	router.Handle("/*", httputils.LoggingGzipRequestResponse(appRouter))
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + bsc.ReadyPort)

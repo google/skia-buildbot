@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
@@ -14,7 +14,7 @@ import (
 
 func TestAddJSONRoute_ValidRoute_Success(t *testing.T) {
 
-	test := func(router *mux.Router, jsonRoute, expectedResponse string, callCountMetricExpectedToIncrease metrics2.Counter) {
+	test := func(router chi.Router, jsonRoute, expectedResponse string, callCountMetricExpectedToIncrease metrics2.Counter) {
 		// Mock HTTP request and response.
 		req, err := http.NewRequest("GET", jsonRoute, nil)
 		require.NoError(t, err)
@@ -41,16 +41,17 @@ func TestAddJSONRoute_ValidRoute_Success(t *testing.T) {
 	}
 
 	// Set up some routes to test against.
-	router := mux.NewRouter()
-	addJSONRoute("/json/foo", fakeHandler("hello from /foo unversioned"), router, "")
-	addJSONRoute("/json/v1/foo", fakeHandler("hello from /foo v1"), router, "")
-	addJSONRoute("/json/v2/foo", fakeHandler("hello from /foo v2"), router, "")
-	addJSONRoute("/json/bar", fakeHandler("hello from /bar unversioned"), router, "")
-	addJSONRoute("/json/v1/bar", fakeHandler("hello from /bar v1"), router, "")
-	addJSONRoute("/json/v10/foo/{bar}/{baz}", fakeHandler("hello from /foo/{bar}/{baz} v10"), router, "")
-	prefixedRouter := router.NewRoute().PathPrefix("/json").Subrouter()
-	addJSONRoute("/json/qux", fakeHandler("hello from /qux unversioned"), prefixedRouter, "/json")
-	addJSONRoute("/json/v1/qux", fakeHandler("hello from /qux v1"), prefixedRouter, "/json")
+	router := chi.NewRouter()
+	addJSONRoute("GET", "/json/foo", fakeHandler("hello from /foo unversioned"), router, "")
+	addJSONRoute("GET", "/json/v1/foo", fakeHandler("hello from /foo v1"), router, "")
+	addJSONRoute("GET", "/json/v2/foo", fakeHandler("hello from /foo v2"), router, "")
+	addJSONRoute("GET", "/json/bar", fakeHandler("hello from /bar unversioned"), router, "")
+	addJSONRoute("GET", "/json/v1/bar", fakeHandler("hello from /bar v1"), router, "")
+	addJSONRoute("GET", "/json/v10/foo/{bar}/{baz}", fakeHandler("hello from /foo/{bar}/{baz} v10"), router, "")
+	router.Route("/json", func(prefixedRouter chi.Router) {
+		addJSONRoute("GET", "/json/qux", fakeHandler("hello from /qux unversioned"), prefixedRouter, "/json")
+		addJSONRoute("GET", "/json/v1/qux", fakeHandler("hello from /qux v1"), prefixedRouter, "/json")
+	})
 
 	counterFor := func(route, version string) metrics2.Counter {
 		return metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
@@ -76,8 +77,8 @@ func TestAddJSONRoute_InvalidRoute_Panics(t *testing.T) {
 
 	test := func(routerPathPrefix, jsonRoute, expectedError string) {
 		require.PanicsWithValue(t, expectedError, func() {
-			router := mux.NewRouter()
-			addJSONRoute(jsonRoute, func(w http.ResponseWriter, r *http.Request) {}, router, routerPathPrefix)
+			router := chi.NewRouter()
+			addJSONRoute("GET", jsonRoute, func(w http.ResponseWriter, r *http.Request) {}, router, routerPathPrefix)
 		}, jsonRoute)
 	}
 

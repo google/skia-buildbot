@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -336,13 +336,13 @@ func (wh *Handlers) PatchsetsAndTryjobsForCL2(w http.ResponseWriter, r *http.Req
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	clID, ok := mux.Vars(r)["id"]
-	if !ok {
+	clID := chi.URLParam(r, "id")
+	if clID == "" {
 		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
-	crs, ok := mux.Vars(r)["system"]
-	if !ok {
+	crs := chi.URLParam(r, "system")
+	if crs == "" {
 		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
@@ -707,7 +707,7 @@ func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to update an ignore rule.", http.StatusUnauthorized)
 		return
 	}
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
@@ -762,7 +762,7 @@ func (wh *Handlers) DeleteIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, span := trace.StartSpan(r.Context(), "web_DeleteIgnoreRule", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
@@ -2132,8 +2132,8 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	tID, ok := mux.Vars(r)["traceID"]
-	if !ok {
+	tID := chi.URLParam(r, "traceID")
+	if tID == "" {
 		http.Error(w, "Must specify traceID.", http.StatusBadRequest)
 		return
 	}
@@ -2187,19 +2187,17 @@ func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 	}
 
-	requestVars := mux.Vars(r)
-	crs, ok := requestVars["system"]
-	if !ok {
+	crs := chi.URLParam(r, "system")
+	if crs == "" {
 		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
-	clID, ok := requestVars["id"]
-	if !ok {
+	clID := chi.URLParam(r, "id")
+	if clID == "" {
 		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
-	_, ok = wh.getCodeReviewSystem(crs)
-	if !ok {
+	if _, ok := wh.getCodeReviewSystem(crs); !ok {
 		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
 		return
 	}
@@ -2467,13 +2465,13 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	clID, ok := mux.Vars(r)["id"]
-	if !ok {
+	clID := chi.URLParam(r, "id")
+	if clID == "" {
 		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
-	crs, ok := mux.Vars(r)["system"]
-	if !ok {
+	crs := chi.URLParam(r, "system")
+	if crs == "" {
 		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
@@ -2765,7 +2763,7 @@ func (wh *Handlers) PositiveDigestsByGroupingIDHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	gID := mux.Vars(r)["groupingID"]
+	gID := chi.URLParam(r, "groupingID")
 	if len(gID) != 2*md5.Size {
 		http.Error(w, "Must specify 'groupingID', which is a hex-encoded MD5 hash of the JSON encoded group keys (e.g. source_type and name)", http.StatusBadRequest)
 		return

@@ -15,10 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	ttlcache "github.com/patrickmn/go-cache"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -232,7 +232,7 @@ func TestAddIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
-	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
+	r = setChiURLParams(r, map[string]string{"id": "12345"})
 	wh.AddIgnoreRule(w, r)
 
 	resp := w.Result()
@@ -346,7 +346,7 @@ func TestUpdateIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
-	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
+	r = setChiURLParams(r, map[string]string{"id": "12345"})
 	wh.UpdateIgnoreRule(w, r)
 
 	resp := w.Result()
@@ -633,7 +633,7 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     dks.ChangelistIDThatAttemptsToFixIOS,
 	})
@@ -664,7 +664,7 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     dks.ChangelistIDThatAttemptsToFixIOS,
 	})
@@ -693,7 +693,7 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     "1234",
 	})
@@ -721,7 +721,7 @@ func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *t
 	// Support both & and ? for the query param options (as used by Flutter)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios&master=true", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     dks.ChangelistIDThatAttemptsToFixIOS + "&master=true",
 	})
@@ -732,7 +732,7 @@ func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *t
 
 	w = httptest.NewRecorder()
 	r = httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios?master=true", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     dks.ChangelistIDThatAttemptsToFixIOS + "?master=true",
 	})
@@ -937,7 +937,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"id":     "my_cl",
 		"system": "my-system",
 	})
@@ -995,7 +995,7 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 	for i := 0; i < 10; i++ {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-		r = mux.SetURLVars(r, map[string]string{
+		r = setChiURLParams(r, map[string]string{
 			"id":     "my_cl",
 			"system": "my-system",
 		})
@@ -1062,7 +1062,7 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 	for i := 0; i < 2; i++ {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-		r = mux.SetURLVars(r, map[string]string{
+		r = setChiURLParams(r, map[string]string{
 			"id":     "my_cl",
 			"system": "my-system",
 		})
@@ -1090,7 +1090,7 @@ func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": "my-system",
 	})
 	wh.ChangelistSummaryHandler(w, r)
@@ -1110,7 +1110,7 @@ func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"id": "my_cl",
 	})
 	wh.ChangelistSummaryHandler(w, r)
@@ -1130,7 +1130,7 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"id":     "my_cl",
 		"system": "bad-system",
 	})
@@ -1155,7 +1155,7 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"id":     "my_cl",
 		"system": "my-system",
 	})
@@ -1495,7 +1495,7 @@ func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit-internal/CL_fix_ios", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritInternalCRS,
 		"id":     dks.ChangelistIDThatAddsNewTests,
 	})
@@ -1525,7 +1525,7 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit/not-a-real-cl", nil)
-	r = mux.SetURLVars(r, map[string]string{
+	r = setChiURLParams(r, map[string]string{
 		"system": dks.GerritCRS,
 		"id":     "not-a-real-cl",
 	})
@@ -2912,7 +2912,7 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-			r = mux.SetURLVars(r, map[string]string{"traceID": string(traceID)})
+			r = setChiURLParams(r, map[string]string{"traceID": string(traceID)})
 
 			wh.LatestPositiveDigestHandler(w, r)
 			expectedJSONResponse := `{"digest":"` + string(expectedDigest) + `"}`
@@ -2944,7 +2944,7 @@ func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{"traceID": "this is formatted incorrectly"})
+	r = setChiURLParams(r, map[string]string{"traceID": "this is formatted incorrectly"})
 
 	wh.LatestPositiveDigestHandler(w, r)
 	resp := w.Result()
@@ -2966,7 +2966,7 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{"traceID": "1234567890abcdef1234567890abcdef"})
+	r = setChiURLParams(r, map[string]string{"traceID": "1234567890abcdef1234567890abcdef"})
 
 	wh.LatestPositiveDigestHandler(w, r)
 	expectedJSONResponse := `{"digest":""}`
@@ -3554,17 +3554,31 @@ func assertDiffImageWas(t *testing.T, w *httptest.ResponseRecorder, expectedText
 	assert.Equal(t, expectedTextImage, buf.String())
 }
 
-// setID applies the ID mux.Var to a copy of the given request. In a normal server setting, mux will
-// parse the given url with a string that indicates how to extract variables (e.g.
-// '/json/ignores/save/{id}' and store those to the request's context. However, since we just call
-// the handler directly, we need to set those variables ourselves.
-func setID(r *http.Request, id string) *http.Request {
-	return mux.SetURLVars(r, map[string]string{"id": id})
+// setChiURLParams attaches a chi.Context to the given http.Request and populates the context with
+// the given params. This emulates the behavior of a chi.Router. For example, when a chi.Router has
+// a handler for "/users/{name}/details" and the router receives a "/users/jsmith/details" request,
+// the http.Request passed to the handler function will have a chi.Context populated with
+// {"name": "jsmith"}. The handler function can retrieve the param with chi.URLParam(r, "name").
+//
+// Based on
+// https://github.com/go-chi/chi/blob/7f280968675bcc9f310008fc6b8abff0b923734c/mux_test.go#L1171.
+func setChiURLParams(r *http.Request, params map[string]string) *http.Request {
+	rctx := chi.NewRouteContext()
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+	for k, v := range params {
+		rctx.URLParams.Add(k, v)
+	}
+	return r
 }
 
-// setGroupingID works much like setID.
+// setID sets the "id" URL parameter. See setChiURLParams for details.
+func setID(r *http.Request, id string) *http.Request {
+	return setChiURLParams(r, map[string]string{"id": id})
+}
+
+// setGroupingID sets the "groupingID" URL parameter. See setChiURLParams for details.
 func setGroupingID(r *http.Request, id string) *http.Request {
-	return mux.SetURLVars(r, map[string]string{"groupingID": id})
+	return setChiURLParams(r, map[string]string{"groupingID": id})
 }
 
 // waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"

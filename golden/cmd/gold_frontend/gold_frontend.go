@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
@@ -215,7 +215,7 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 	// Start the internal server on the internal port if requested.
 	if fsc.DebugPort != "" {
 		// Add the profiling endpoints to the internal router.
-		internalRouter := mux.NewRouter()
+		internalRouter := chi.NewRouter()
 
 		// Set up the health check endpoint.
 		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -387,14 +387,14 @@ func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgx
 	return handlers
 }
 
-// mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
-func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) *mux.Router {
-	rootRouter := mux.NewRouter()
+// mustMakeRootRouter returns a chi.Router that can be used to serve Gold's web UI and JSON API.
+func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) chi.Router {
+	rootRouter := chi.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
-	loggedRouter := mux.NewRouter()
+	loggedRouter := chi.NewRouter()
 
 	loggedRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 
@@ -406,17 +406,17 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 	addUIRoutes(loggedRouter, fsc, handlers)
 
 	// set up the app router that might be authenticated and logs almost everything.
-	appRouter := mux.NewRouter()
+	appRouter := chi.NewRouter()
 	// Images should not be served gzipped as PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix("/img/").HandlerFunc(handlers.ImageHandler).Methods("GET")
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
+	appRouter.Get("/img/*", handlers.ImageHandler)
+	appRouter.Handle("/*", httputils.LoggingGzipRequestResponse(loggedRouter))
 
 	appHandler := http.Handler(appRouter)
 
 	// The appHandler contains all application specific routes that are have logging and
 	// authentication configured. Now we wrap it into the router that is exposed to the host
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
-	rootRouter.PathPrefix("/").Handler(appHandler)
+	rootRouter.Handle("/*", appHandler)
 
 	if fsc.ForceLogin {
 		appHandler = alogin.ForceRoleMiddleware(plogin, roles.Viewer)(appRouter)
@@ -427,14 +427,14 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 
 // addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
 // CSS bundles, static images (digest and diff images are handled elsewhere), etc.
-func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
 	// Serve static assets (JS and CSS bundles, images, etc.).
 	//
 	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
 	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
 	// unexpose them and only serve the JS/CSS bundles from this route (and any other static assets
 	// such as the favicon).
-	router.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(makeResourceHandler(fsc.ResourcesPath))))
+	router.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(makeResourceHandler(fsc.ResourcesPath))))
 
 	var templates *template.Template
 
@@ -492,17 +492,17 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 
 // addAuthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that require authentication.
-func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
 	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
 	// would be handled by the route that handles the returning the index template and make
 	// debugging confusing.
 	pathPrefix := "/json"
-	jsonRouter := router.PathPrefix(pathPrefix).Subrouter()
+	jsonRouter := router.Route(pathPrefix, func(r chi.Router) {})
 
 	add := func(jsonRoute string, handlerFunc http.HandlerFunc, method string) {
-		addJSONRoute(jsonRoute, handlerFunc, jsonRouter, pathPrefix).Methods(method)
+		addJSONRoute(method, jsonRoute, handlerFunc, jsonRouter, pathPrefix)
 	}
 
 	add("/json/v2/byblame", handlers.ByBlameHandler, "GET")
@@ -545,9 +545,9 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 // addUnauthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that do not require authentication.
-func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, handlers *web.Handlers) {
+func addUnauthenticatedJSONRoutes(router chi.Router, _ *frontendServerConfig, handlers *web.Handlers) {
 	add := func(jsonRoute string, handlerFunc http.HandlerFunc) {
-		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
+		addJSONRoute("GET", jsonRoute, httputils.CorsHandler(handlerFunc), router, "")
 	}
 
 	add("/json/v2/trstatus", handlers.StatusHandler)
@@ -584,7 +584,7 @@ var (
 // RPC version number and the subrouter path prefix, if any (e.g. "/json/v2/my/rpc" vs. "/my/rpc").
 // This results in clearer code at the callsite because the reader can immediately see what the
 // final RPC route will look like from outside the HTTP server.
-func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Router, routerPathPrefix string) *mux.Route {
+func addJSONRoute(method, jsonRoute string, handlerFunc http.HandlerFunc, router chi.Router, routerPathPrefix string) {
 	// Make sure the jsonRoute agrees with the router path prefix (which can be the empty string).
 	if !strings.HasPrefix(jsonRoute, routerPathPrefix) {
 		panic(fmt.Sprintf(`Prefix "%s" not found in JSON RPC route: %s`, routerPathPrefix, jsonRoute))
@@ -618,10 +618,20 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 		"version": fmt.Sprintf("v%d", version),
 	})
 
-	return router.HandleFunc(strings.TrimPrefix(jsonRoute, routerPathPrefix), func(w http.ResponseWriter, r *http.Request) {
+	pattern := strings.TrimPrefix(jsonRoute, routerPathPrefix)
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		counter.Inc(1)
 		handlerFunc(w, r)
-	})
+	}
+
+	switch method {
+	case "GET":
+		router.Get(pattern, fn)
+	case "POST":
+		router.Post(pattern, fn)
+	default:
+		panic(fmt.Sprintf("unknown method: %s", method))
+	}
 }
 
 // makeResourceHandler creates a static file handler that sets a caching policy.
