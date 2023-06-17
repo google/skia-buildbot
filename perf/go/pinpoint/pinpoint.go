@@ -86,6 +86,7 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 	if httpResponse.StatusCode != http.StatusOK {
 		errMsg := fmt.Sprintf("The request failed with status code %d and body: %s", httpResponse.StatusCode, string(respBody))
 		err = errors.New(errMsg)
+		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Pinpoint request failed.")
 	}
 
