@@ -17,6 +17,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
 import { LottieAnimation, LottieLayer, LottieAsset } from '../types';
+import { isCompAsset } from '../helpers/animation';
 
 type FontType = {
   fName: string;
@@ -380,7 +381,7 @@ export class SkottieFontSelectorSk extends ElementSk {
     replacingFont: string
   ): void {
     assets.forEach((asset) => {
-      if (asset.layers) {
+      if (isCompAsset(asset)) {
         this.updateFontInLayers(asset.layers, targetFont, replacingFont);
       }
     });

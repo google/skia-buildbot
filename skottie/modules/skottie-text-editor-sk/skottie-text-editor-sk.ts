@@ -23,6 +23,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ExtraLayerData, TextData } from './text-replace';
 import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { isCompAsset } from '../helpers/animation';
 
 export interface TextEditApplyEventDetail {
   texts: TextData[];
@@ -35,20 +36,22 @@ const FORM_FEED = 13;
 
 export class SkottieTextEditorSk extends ElementSk {
   private static template = (ele: SkottieTextEditorSk) => html`
-  <div>
-    <header class="editor-header">
-      <div class="editor-header-title">Text Editor</div>
-      <div class="editor-header-separator"></div>
-      ${ele.ungroupButton()}
-      <button class="editor-header-save-button" @click=${ele.save}>Save</button>
-    </header>
-    <section>
-      <ul class="text-container">
-         ${ele.texts.map((item: TextData) => ele.textElement(item))}
-      </ul>
-    <section>
-  </div>
-`;
+   <div>
+     <header class="editor-header">
+       <div class="editor-header-title">Text Editor</div>
+       <div class="editor-header-separator"></div>
+       ${ele.ungroupButton()}
+       <button class="editor-header-save-button" @click=${
+         ele.save
+       }>Save</button>
+     </header>
+     <section>
+       <ul class="text-container">
+          ${ele.texts.map((item: TextData) => ele.textElement(item))}
+       </ul>
+     <section>
+   </div>
+ `;
 
   private ungroupButton = () => {
     if (this.mode === 'presentation') {
@@ -139,7 +142,7 @@ export class SkottieTextEditorSk extends ElementSk {
     }
     const animationAssets = animation.assets;
     animationAssets.forEach((asset: LottieAsset) => {
-      if (asset.layers) {
+      if (isCompAsset(asset)) {
         asset.layers.forEach((layer: LottieLayer) => {
           if (layer.refId === precompId) {
             comp = layer;
@@ -163,11 +166,12 @@ export class SkottieTextEditorSk extends ElementSk {
       })) // we map them to some extra data
       .concat(
         animation.assets // we iterate over the assets of the animation looking for precomps
-          .filter((asset: LottieAsset) => asset.layers) // we filter assets that of type precomp (by querying if they have a layers property)
+          // we filter assets that of type precomp (by querying if they have a layers property)
+          .filter((asset: LottieAsset) => isCompAsset(asset))
           .reduce((accumulator: ExtraLayerData[], precomp: LottieAsset) => {
             // we flatten into a single array layers from multiple precomps
             accumulator = accumulator.concat(
-              precomp.layers
+              ((isCompAsset(precomp) && precomp.layers) || [])
                 .filter((layer: LottieLayer) => layer.ty === LAYER_TEXT_TYPE) // we filter all layers of type text
                 .map(
                   (layer: LottieLayer) =>

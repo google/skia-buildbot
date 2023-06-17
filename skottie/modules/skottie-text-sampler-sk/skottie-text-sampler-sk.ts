@@ -14,6 +14,7 @@ import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-button-sk';
 import { LottieAnimation, LottieAsset, LottieLayer } from '../types';
+import { isCompAsset } from '../helpers/animation';
 
 type SampleText = {
   id: string;
@@ -106,7 +107,7 @@ export class SkottieTextSamplerSk extends ElementSk {
 
   private updateTextInAssets(assets: LottieAsset[], text: string): void {
     assets.forEach((asset) => {
-      if (asset.layers) {
+      if (isCompAsset(asset)) {
         this.updateTextInLayers(asset.layers, text);
       }
     });

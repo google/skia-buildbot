@@ -12,6 +12,7 @@ sk_element(
         ":shader-replace_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//skottie/modules/helpers:animation_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

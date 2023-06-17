@@ -83,6 +83,9 @@ import '../skottie-text-sampler-sk';
 import { SkottieTextSampleEventDetail } from '../skottie-text-sampler-sk/skottie-text-sampler-sk';
 import '../skottie-font-selector-sk';
 import { SkottieFontEventDetail } from '../skottie-font-selector-sk/skottie-font-selector-sk';
+import '../skottie-color-manager-sk';
+import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
+import { isBinaryAsset } from '../helpers/animation';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -395,7 +398,7 @@ export class SkottieSk extends ElementSk {
       </div>
 
       ${this.fileSettingsDialog()} ${this.backgroundDialog()}
-      ${this.audioDialog()} ${this.optionsDialog()}
+      ${this.audioDialog()} ${this.optionsDialog()} ${this.colorManager()}
 
       <button
         class="apply-button"
@@ -513,6 +516,21 @@ export class SkottieSk extends ElementSk {
         <skottie-background-settings-sk
           @background-change=${this.skottieBackgroundUpdated}
         ></skottie-background-settings-sk>
+      </details>
+    `;
+
+  private colorManager = () =>
+    html`
+      <details class="expando">
+        <summary>
+          <span>Color manager</span>
+          <expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-color-manager-sk
+          .animation=${this.state.lottie}
+          @animation-updated=${this.onAnimationUpdated}
+        ></skottie-color-manager-sk>
       </details>
     `;
 
@@ -1111,6 +1129,9 @@ export class SkottieSk extends ElementSk {
   private loadAssets(assets: LottieAsset[]): Promise<LoadedAsset | null>[] {
     const promises: Promise<LoadedAsset | null>[] = [];
     for (const asset of assets) {
+      if (!isBinaryAsset(asset)) {
+        continue;
+      }
       if (asset.id.startsWith('audio_')) {
         // Howler handles our audio assets, they don't provide a promise when making a new Howl.
         // We push the audio asset as is and hope that it loads before playback starts.
@@ -1655,7 +1676,11 @@ export class SkottieSk extends ElementSk {
   }
 
   private onAnimationUpdated(
-    ev: CustomEvent<SkottieFontEventDetail | SkottieTextSampleEventDetail>
+    ev: CustomEvent<
+      | SkottieFontEventDetail
+      | SkottieTextSampleEventDetail
+      | SkottieTemplateEventDetail
+    >
   ): void {
     this.state.lottie = ev.detail.animation;
     this.upload();

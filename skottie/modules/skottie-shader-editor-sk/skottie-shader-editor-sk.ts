@@ -22,6 +22,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ShaderData } from './shader-replace';
 import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { isCompAsset } from '../helpers/animation';
 
 export interface ShaderEditApplyEventDetail {
   shaders: ShaderData[];
@@ -32,19 +33,21 @@ export interface ShaderEditApplyEventDetail {
 
 export class ShaderEditorSk extends ElementSk {
   private static template = (ele: ShaderEditorSk) => html`
-  <div>
-    <header class="editor-header">
-      <div class="editor-header-title">Shader Editor</div>
-      <div class="editor-header-separator"></div>
-      <button class="editor-header-save-button" @click=${ele.save}>Save</button>
-    </header>
-    <section>
-      <ul class="shader-container">
-         ${ele.shaders.map((item: ShaderData) => ele.shaderElement(item))}
-      </ul>
-    <section>
-  </div>
-`;
+   <div>
+     <header class="editor-header">
+       <div class="editor-header-title">Shader Editor</div>
+       <div class="editor-header-separator"></div>
+       <button class="editor-header-save-button" @click=${
+         ele.save
+       }>Save</button>
+     </header>
+     <section>
+       <ul class="shader-container">
+          ${ele.shaders.map((item: ShaderData) => ele.shaderElement(item))}
+       </ul>
+     <section>
+   </div>
+ `;
 
   private shaderElement = (item: ShaderData) => html`
     <li class="shader-element">
@@ -98,7 +101,7 @@ export class ShaderEditorSk extends ElementSk {
     }
     const animationAssets = animation.assets;
     animationAssets.forEach((asset: LottieAsset) => {
-      if (asset.layers) {
+      if (isCompAsset(asset)) {
         asset.layers.forEach((layer: LottieLayer) => {
           if (layer.refId === precompId) {
             comp = layer;

@@ -51,3 +51,16 @@ ts_library(
         "@npm//@ffmpeg/ffmpeg",
     ],
 )
+
+ts_library(
+    name = "animation_ts_lib",
+    srcs = ["animation.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//skottie/modules:types_ts_lib"],
+)
+
+ts_library(
+    name = "color_ts_lib",
+    srcs = ["color.ts"],
+    visibility = ["//visibility:public"],
+)

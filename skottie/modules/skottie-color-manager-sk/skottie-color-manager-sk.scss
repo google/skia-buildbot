@@ -1,0 +1,42 @@
+@import '../../../elements-sk/modules/colors';
+
+skottie-color-manager-sk {
+  .wrapper {
+    .no-manager {
+      .info-box {
+        display: flex;
+        color: var(--skottie-surface-light);
+        flex-direction: row;
+        gap: 16px;
+
+        &--icon {
+          font-size: 17px;
+          padding-top: 4px;
+        }
+
+        &--description {
+          font-size: 12px;
+        }
+      }
+
+      .apply-btn {
+        margin-top: 12px;
+        padding: 8px 16px;
+      }
+    }
+
+    .manager {
+      .color-form--color {
+        display: flex;
+        align-items: baseline;
+        flex-direction: row;
+        gap: 4px;
+        margin-top: 16px;
+      }
+      .color-form--original-color {
+        display: inline-block;
+        margin-top: 16px;
+      }
+    }
+  }
+}

@@ -12,6 +12,7 @@ sk_element(
         ":text-replace_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//skottie/modules/helpers:animation_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -24,5 +25,8 @@ ts_library(
     name = "text-replace_ts_lib",
     srcs = ["text-replace.ts"],
     visibility = ["//visibility:public"],
-    deps = ["//skottie/modules:types_ts_lib"],
+    deps = [
+        "//skottie/modules:types_ts_lib",
+        "//skottie/modules/helpers:animation_ts_lib",
+    ],
 )

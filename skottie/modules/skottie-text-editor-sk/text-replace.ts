@@ -1,3 +1,4 @@
+import { isCompAsset } from '../helpers/animation';
 import { LottieAnimation, LottieAsset, LottieLayer } from '../types';
 
 export interface ExtraLayerData {
@@ -32,7 +33,7 @@ export const replaceTexts = (
         const asset = animation.assets.find(
           (assetItem: LottieAsset) => assetItem.id === item.parentId
         );
-        layers = asset ? asset.layers : [];
+        layers = asset && isCompAsset(asset) ? asset.layers : [];
       }
 
       // Replaces current animation layer with new layer value
@@ -82,10 +83,13 @@ export const replaceTextsByLayerName = (
   replaceTextsInLayers(textsDictionary, animation.layers);
 
   animation.assets
-    .filter((asset: LottieAsset) => asset.layers)
-    .forEach((asset: LottieAsset) =>
-      replaceTextsInLayers(textsDictionary, asset.layers)
-    );
+    .filter((asset: LottieAsset) => isCompAsset(asset))
+    .forEach((asset: LottieAsset) => {
+      if (isCompAsset(asset)) {
+        return replaceTextsInLayers(textsDictionary, asset.layers);
+      }
+      return asset;
+    });
 
   return animation;
 };
