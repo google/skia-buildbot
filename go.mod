@@ -39,7 +39,6 @@ require (
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
 	github.com/google/uuid v1.1.2
 	github.com/googleapis/gax-go/v2 v2.3.0
-	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hako/durafmt v0.0.0-20200710122514-c0fb7b4da026
 	github.com/hashicorp/go-multierror v1.1.0

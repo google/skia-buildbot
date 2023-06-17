@@ -36,7 +36,7 @@ Use `go.skia.org/infra/go/login` paired with
 When using OAuth, see the secrets section below for including client secrets.
 
 Wrap your `http.Handler` (many services use
-[mux.NewRouter()](https://github.com/gorilla/mux) with
+[chi.NewRouter()](https://github.com/go-chi/chi) with
 `go.skia.org/infra/go/httputils.LoggingGzipRequestResponse` to provide
 monitoring and logging of HTTP requests and responses. Then, wrap it in
 `go.skia.org/infra/go/httputils.HealthzAndHTTPS` to add an unlogged /healthz

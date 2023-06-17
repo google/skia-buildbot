@@ -1155,13 +1155,6 @@ def go_repositories():
     )
 
     go_repository(
-        name = "com_github_gorilla_mux",
-        importpath = "github.com/gorilla/mux",
-        sum = "h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=",
-        version = "v1.8.0",
-    )
-
-    go_repository(
         name = "com_github_gorilla_securecookie",
         importpath = "github.com/gorilla/securecookie",
         sum = "h1:miw7JPhV+b/lAHSXz4qd/nN9jRiAFV5FwjeKyCS8BvQ=",
