@@ -101,6 +101,7 @@ func main() {
 	r.Post("/_/upload", srv.uploadHandler)
 
 	r.Get("/static/*", http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(sc.ResourcesPath)))).ServeHTTP)
+	r.Get("/", srv.templateHandler("index.html"))
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
