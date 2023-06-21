@@ -4,6 +4,11 @@ include ../make/bazel.mk
 build: build-placeholders
 	$(BAZEL) build --config=mayberemote //debugger-app/...
 
+.PHONY: release-base
+release-base:
+	$(BAZEL) run --config=mayberemote //debugger-app:push_debugger_container-base
+	$(MAKE) build-placeholders
+
 .PHONY: release
 release: get_latest_skia
 	$(BAZEL) run --config=mayberemote //debugger-app:push_debugger_container
