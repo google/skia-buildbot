@@ -859,9 +859,11 @@ export class ExploreSk extends ElementSk {
         this.jobId = json.jobId;
         this.pinpointJobToast?.show();
       })
-      .catch(errorMessage);
-    this.bisectButton!.disabled = false;
-    this.closeBisectDialog();
+      .catch(errorMessage)
+      .finally(() => {
+        this.bisectButton!.disabled = false;
+        this.closeBisectDialog();
+      });
   }
 
   private keyDown(e: KeyboardEvent) {

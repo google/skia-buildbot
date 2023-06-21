@@ -1,6 +1,7 @@
 {
     "URL": "http://localhost:8001",
     "contact": "user@example.org",
+    "fetch_chrome_perf_anomalies": true,
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@localhost:26257/demo?sslmode=disable",
