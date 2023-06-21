@@ -48,7 +48,7 @@ skia_app_container(
         ],
     },
     entrypoint = "/usr/local/bin/debugger-app",
-    repository = "skia-public/debugger-app",
+    repository = "skia-public/debugger-app-base",
 )
 
 skia_app_container(
