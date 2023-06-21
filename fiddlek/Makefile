@@ -24,15 +24,20 @@ serve:
 release-fiddle: build
 	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddle_container
 
-build-fiddler:
+.PHONY: pull-skia-release-image
+pull-skia-release-image:
+	# Pull down the most recently build Skia docker container.
 	$(DOCKER) pull gcr.io/skia-public/skia-release:prod
+
+.PHONY: skia-source
+skia-source: pull-skia-release-image
 	# Extract skia checkout from the most recently built docker container.
 	# This is built with @skia//docker/skia-wasm-release/Dockerfile
 	$(DOCKER) run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
 	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-release:prod \
 	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/"
 
-release-fiddler: build build-fiddler
+release-fiddler: build skia-source
 	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddler_container
 	# Cleanup the build directory.
 	git checkout build/*
