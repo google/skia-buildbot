@@ -633,20 +633,21 @@ func TestFullChangeId(t *testing.T) {
 		Project:  "skia",
 		Branch:   "main",
 		ChangeId: "abc",
+		Issue:    123,
 	}
-	require.Equal(t, "skia~main~abc", FullChangeId(ci))
+	require.Equal(t, "skia~123", FullChangeId(ci))
 
 	// Test project with "/" in the name.
 	ci.Project = "chromium/src"
-	require.Equal(t, "chromium%2Fsrc~main~abc", FullChangeId(ci))
+	require.Equal(t, "chromium%2Fsrc~123", FullChangeId(ci))
 
 	// Test branch with "/" in the name.
 	ci.Branch = "chrome/m90"
-	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
+	require.Equal(t, "chromium%2Fsrc~123", FullChangeId(ci))
 
 	// Test branch with "refs/heads/" prefix.
 	ci.Branch = "refs/heads/chrome/m90"
-	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
+	require.Equal(t, "chromium%2Fsrc~123", FullChangeId(ci))
 }
 
 func TestCreateChange_WithCommitAndChangeID_ReturnsError(t *testing.T) {

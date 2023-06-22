@@ -150,6 +150,12 @@ func handleExternalChangeId(ctx context.Context, changes map[string]string, exte
 func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, emails []string, dryRun bool) (int64, error) {
 	// Create the change.
 	const baseChangeID = ""
+
+	// Temporarily add tracing for b/288325182
+	// TODO(borenet): Remove this as soon as the above is resolved.
+	g.SetTraceIDPrefix("b/288325182")
+	defer g.SetTraceIDPrefix("")
+
 	ci, err := gerrit.CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, baseChangeID, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range changes {
 			if contents == "" {
