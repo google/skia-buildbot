@@ -709,7 +709,9 @@ export class ExploreSk extends ElementSk {
     </div>
   </div>
   <toast-sk id="pinpoint-job-toast" duration=10000>
-    Pinpoint bisection started: <a href=${ele.jobUrl}>${ele.jobId}</a>.
+    Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${
+    ele.jobId
+  }</a>.
     <button id="hide-toast" class="action">Close</button>
   </toast-sk>
   `;

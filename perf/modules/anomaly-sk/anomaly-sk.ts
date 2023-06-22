@@ -106,7 +106,9 @@ export class AnomalySk extends ElementSk {
     if (bugId == -1) {
       return html``;
     }
-    return html`<a href="${'https://crbug.com/' + bugId}">${bugId}</td>`;
+    return html`<a href="${
+      'https://crbug.com/' + bugId
+    }" target=_blank>${bugId}</td>`;
   };
 
   private static template = (ele: AnomalySk) => {
