@@ -84,7 +84,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return skerr.Wrap(err)
 	}
 	sync := func(ctx context.Context, extraArgs ...string) error {
-		args := []string{"sync", "--delete_unversioned_trees", "--force"}
+		args := []string{"sync", "--delete_unversioned_trees", "--force", "-v"}
 		if !c.RunHooks {
 			args = append(args, "--nohooks")
 		}
