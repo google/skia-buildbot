@@ -457,8 +457,15 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	f.loadTemplates()
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
-		ctx := calc.NewContext(nil, nil)
-		if err := f.templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
+		calcContext := calc.NewContext(nil, nil)
+		templateContext := struct {
+			Nonce string
+			Funcs map[string]calc.Func
+		}{
+			Nonce: secure.CSPNonce(r.Context()),
+			Funcs: calcContext.Funcs,
+		}
+		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
 			sklog.Error("Failed to expand template:", err)
 		}
 	}

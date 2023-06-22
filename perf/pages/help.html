@@ -23,10 +23,10 @@
   <perf-scaffold-sk>
     <div id="container">
       <section>
-        {{range $k, $v := .Funcs}}
-        <h2>{{$k}}</h2>
-        <p>{{$v.Describe}}</p>
-        {{end}}
+        {% range $k, $v := .Funcs %}
+        <h2>{% $k %}</h2>
+        <p>{% $v.Describe %}</p>
+        {% end %}
       </section>
 
       <section>
