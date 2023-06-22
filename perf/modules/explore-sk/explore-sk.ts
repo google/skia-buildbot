@@ -857,6 +857,7 @@ export class ExploreSk extends ElementSk {
       .then((json: CreateBisectResponse) => {
         this.jobUrl = json.jobUrl;
         this.jobId = json.jobId;
+        this._render();
         this.pinpointJobToast?.show();
       })
       .catch(errorMessage)
