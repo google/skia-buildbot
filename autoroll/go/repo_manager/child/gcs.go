@@ -128,7 +128,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 		return nil, nil, skerr.Wrap(err)
 	}
 	if len(versions) == 0 {
-		sklog.Errorf("No valid revisions found in %s/%s", c.gcsBucket, c.gcsPath)
+		sklog.Warningf("No valid revisions found in %s/%s", c.gcsBucket, c.gcsPath)
 		return lastRollRev, []*revision.Revision{}, nil
 	}
 	sort.Sort(gcsVersionSlice(versions))
