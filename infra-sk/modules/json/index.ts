@@ -7,6 +7,6 @@ export interface Status {
 
 export type EMail = string;
 
-export type Role = 'viewer' | 'editor' | 'admin' | '';
+export type Role = 'viewer' | 'editor' | 'admin' | 'bisecter' | '';
 
 export type Roles = Role[] | null;

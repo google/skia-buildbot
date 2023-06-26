@@ -24,7 +24,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"go.opencensus.io/trace"
-	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auditlog"
@@ -65,7 +64,6 @@ import (
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
-	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -143,8 +141,6 @@ type Frontend struct {
 	anomalyStore anomalies.Store
 
 	pinpoint *pinpoint.Client
-
-	pinpointAllowed *allowed.AllowedFromChromeInfraAuth
 }
 
 // New returns a new Frontend instance.
@@ -393,17 +389,6 @@ func (f *Frontend) initialize() {
 		f.pinpoint, err = pinpoint.New(ctx)
 		if err != nil {
 			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
-		}
-
-		ts, err := google.DefaultTokenSource(ctx, "email")
-		if err != nil {
-			sklog.Fatal("Failed to build criaClient: %s", err)
-		}
-
-		criaClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-		f.pinpointAllowed, err = allowed.NewAllowedFromChromeInfraAuth(criaClient, "project-pinpoint-tryjob-access")
-		if err != nil {
-			sklog.Fatal("Failed to create Pinpoint allowed: %s", err)
 		}
 	}
 
@@ -1472,9 +1457,7 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	user := f.loginProvider.LoggedInAs(r).String()
-
-	if user == "" || !f.pinpointAllowed.Member(user) {
+	if !f.loginProvider.HasRole(r, roles.Bisecter) {
 		http.Error(w, "User is not logged in or is not authorized to start bisect.", http.StatusForbidden)
 		return
 	}

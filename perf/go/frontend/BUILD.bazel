@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/frontend",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/allowed",
         "//go/alogin",
         "//go/alogin/proxylogin",
         "//go/auditlog",
@@ -51,7 +50,6 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@io_opencensus_go//trace",
-        "@org_golang_x_oauth2//google",
     ],
 )
 
