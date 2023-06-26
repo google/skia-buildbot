@@ -30,6 +30,12 @@ const (
 	// ftReadmeRevisionTmpl is the template used for writing revisions to the
 	// FreeType readme file.
 	ftReadmeRevisionTmpl = "%sRevision: %s"
+	// ftReadmeCPEPrefixTmpl is the template used for writing CPEPrefixs to the
+	// FreeType readme file.
+	ftReadmeCPEPrefixTmpl = "%sCPEPrefix: cpe:/a:freetype:freetype:%s"
+
+	// ftVersion is expected to have this form. Used to create cpeVersion.
+	ftVersionTmpl = "^VER-([0-9]+)-([0-9]+)-([0-9]+)-[0-9]+-g[0-9a-f]+$"
 
 	// FtIncludeSrc is the includes directory in the child repo.
 	FtIncludeSrc = "include"
@@ -38,8 +44,10 @@ const (
 )
 
 var (
-	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
-	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
+	ftReadmeVersionRegex   = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
+	ftReadmeRevisionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
+	ftReadmeCPEPrefixRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeCPEPrefixTmpl, "(?m)^", ".*"))
+	ftVersionRegex         = regexp.MustCompile(ftVersionTmpl)
 
 	// FtIncludesToMerge are header files which should be merged when rolling.
 	FtIncludesToMerge = []string{
@@ -75,6 +83,7 @@ func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg 
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
+		cpeVersion := ftVersionRegex.ReplaceAllString(ftVersion, "$1.$2.$3")
 		oldReadmeBytes, err := vfs.ReadFile(ctx, fs, FtReadmePath)
 		if err != nil {
 			return nil, skerr.Wrap(err)
@@ -82,6 +91,7 @@ func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg 
 		oldReadmeContents := string(oldReadmeBytes)
 		newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, "", ftVersion))
 		newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to.Id))
+		newReadmeContents = ftReadmeCPEPrefixRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeCPEPrefixTmpl, "", cpeVersion))
 		if newReadmeContents != oldReadmeContents {
 			changes[FtReadmePath] = newReadmeContents
 		}

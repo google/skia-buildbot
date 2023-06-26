@@ -34,8 +34,10 @@ commit %d
 blah blah
 Version: %s
 Revision: %s
+CPEPrefix: cpe:/a:freetype:freetype:%s
 blah blah`
-	ftVersionTmpl = "v0.0.%d"
+	ftVersionTmpl  = "VER-0-0-%d"
+	cpeVersionTmpl = "0.0.%d"
 )
 
 func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
@@ -65,7 +67,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	parentRepo.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
 }`, ftChildPath, child.RepoUrl(), childCommits[0]))
-	parentRepo.Add(ctx, parent.FtReadmePath, fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf(ftVersionTmpl, 0), childCommits[0]))
+	parentRepo.Add(ctx, parent.FtReadmePath, fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf(ftVersionTmpl, 0), childCommits[0], fmt.Sprintf(cpeVersionTmpl, 0)))
 	for idx, h := range parent.FtIncludesToMerge {
 		parentRepo.Add(ctx, path.Join(parent.FtIncludeDest, h), fmt.Sprintf(ftIncludeTmpl, "parent", idx, 0))
 	}
@@ -232,7 +234,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to modify the README.chromium file.
-	reqBody = []byte(fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf("v0.0.9-0-g%s", tipRev.Id[:7]), tipRev.Id))
+	reqBody = []byte(fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf("VER-0-0-9-0-g%s", tipRev.Id[:7]), tipRev.Id, "0.0.9"))
 	urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(parent.FtReadmePath)), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the requests to modify the header files.
