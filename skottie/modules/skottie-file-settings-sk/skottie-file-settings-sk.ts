@@ -99,11 +99,8 @@ export class SkottieFileSettingsSk extends ElementSk {
   }
 
   renderAspectRatioButton(): TemplateResult {
-    if (this._isRatioLocked) {
-      return html`<lock-open-icon-sk></lock-open-icon-sk>`;
-    } else {
-      return html`<lock-icon-sk></lock-icon-sk>`;
-    }
+    const iconText = this._isRatioLocked ? 'link' : 'link_off';
+    return html` <span class="icon-sk">${iconText}</span> `;
   }
 
   connectedCallback(): void {

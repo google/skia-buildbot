@@ -42,6 +42,11 @@ skottie-file-settings-sk {
       display: inline-block;
       width: 30px;
       margin-left: 4px;
+      vertical-align: bottom;
+
+      button {
+        padding: 5px;
+      }
 
       svg.icon-sk-svg {
         width: 100%;

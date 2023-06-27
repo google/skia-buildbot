@@ -20,6 +20,8 @@ skottie-file-form-sk {
       cursor: pointer;
       display: block;
       margin: 8px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     &--input {
       display: none;

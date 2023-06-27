@@ -411,7 +411,7 @@ export class SkottieSk extends ElementSk {
   };
 
   private rightControls = () => html`
-    ${this.fontSelector()} ${this.renderTextSampler()} ${this.jsonTextEditor()}
+    ${this.jsonTextEditor()} ${this.fontSelector()} ${this.renderTextSampler()}
     ${this.library()} ${this.embedDialog()}
   `;
 
@@ -419,9 +419,9 @@ export class SkottieSk extends ElementSk {
     if (this.state.lottie) {
       return html`
         <div class="upload-download">
-          <button class="large edit-config">
+          <div class="large edit-config">
             ${this.state.filename} ${this.width}x${this.height} ...
-          </button>
+          </div>
           <div class="download">
             <a
               target="_blank"

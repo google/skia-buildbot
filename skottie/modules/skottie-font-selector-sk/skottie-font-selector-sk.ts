@@ -311,6 +311,12 @@ const availableFonts: FontType[] = [
   },
 ];
 
+availableFonts.sort(function (a, b) {
+  const textA = a.fName.toUpperCase();
+  const textB = b.fName.toUpperCase();
+  return textA < textB ? -1 : textA > textB ? 1 : 0;
+});
+
 export interface SkottieFontEventDetail {
   animation: LottieAnimation;
 }
