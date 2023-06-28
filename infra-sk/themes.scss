@@ -80,8 +80,6 @@ to see how these styles apply to title bars and sidebars.
 */
 
 @import '../elements-sk/modules/themes/themes';
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400,700|Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0');
-
 @import '../elements-sk/modules/styles/buttons';
 @import '../elements-sk/modules/styles/select';
 @import '../elements-sk/modules/styles/table';
@@ -147,11 +145,17 @@ to see how these styles apply to title bars and sidebars.
     direction: ltr;
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
+    width: 20px;
+    height: 20px;
+    overflow: hidden;
   }
 
   .large-icon-sk {
     @extend .icon-sk;
     font-size: 24px;
+    width: 24px;
+    height: 24px;
+    overflow: hidden;
   }
 
   /* Semantic colors defined by elements-sk. */

@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "comments-sk",
-    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
+    sass_deps = [
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//infra-sk:themes_sass_lib",
+    ],
     sass_srcs = ["comments-sk.scss"],
     sk_element_deps = [
         "//ct/modules/input-sk",

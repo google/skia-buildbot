@@ -11,7 +11,7 @@ sk_element(
     name = "image-compare-sk",
     sass_deps = [
         "//elements-sk/modules/styles:buttons_sass_lib",
-        "//elements-sk/modules:colors_sass_lib",
+        "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["image-compare-sk.scss"],
     sk_element_deps = [
