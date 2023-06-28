@@ -414,7 +414,7 @@ export class ExploreSk extends ElementSk {
   private static template = (ele: ExploreSk) => html`
   <div id=explore class=${ele.displayMode}>
     <div id=buttons>
-      <button @click=${ele.openQuery}>Query</button>
+      <button id=open_query_dialog @click=${ele.openQuery}>Query</button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
         <button
           @click=${() => ele.removeAll(false)}
@@ -543,7 +543,7 @@ export class ExploreSk extends ElementSk {
           </div>
       </div>
 
-      <details>
+      <details id=time-range-summary>
         <summary>Time Range</summary>
         <domain-picker-sk id=range>
         </domain-picker-sk>
@@ -1308,7 +1308,7 @@ export class ExploreSk extends ElementSk {
         this.testPath = parts.join('/');
         this.startCommit = prevCommit.toString();
         this.endCommit = commit.toString();
-        if (selected_anomaly !== null && selected_anomaly.bug_id != -1) {
+        if (selected_anomaly !== null && selected_anomaly.bug_id !== -1) {
           this.bugId = selected_anomaly.bug_id.toString();
         } else {
           this.bugId = '';
@@ -1620,7 +1620,7 @@ export class ExploreSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  private add(replace: boolean, plotType: addPlotType) {
+  add(replace: boolean, plotType: addPlotType): void {
     const q = this.query!.current_query;
     const f = this.formula!.value;
     this.addFromQueryOrFormula(replace, plotType, q, f);
