@@ -78,7 +78,9 @@ spec:
             requests:
               memory: "{{.kubernetes.memory}}"
               cpu: {{.kubernetes.cpu}}
-              ephemeral-storage: '100M'
+              # TODO(borenet): Some rollers already use close to 1G of ephemeral
+              # storage. We should probably make this configurable per-roller.
+              ephemeral-storage: '500M'
           readinessProbe:
             httpGet:
               path: /healthz
