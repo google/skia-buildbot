@@ -63,15 +63,8 @@ export class CheckOrRadio extends HTMLElement {
 
   private _input: HTMLInputElement | null = null;
 
-  content: string = `<label><input type=${this._role}></input>
-  <span class=icons>
-    <span class="icon-sk unchecked">check_box_outline_blank</span>
-    <span class="icon-sk checked">check_box</span>
-  </span>
-  <span class=label></span></label>`;
-
   connectedCallback() {
-    this.innerHTML = this.content;
+    this.innerHTML = `<label><input type=${this._role}></input><span class=box></span><span class=label></span></label>`;
 
     this._label = this.querySelector<HTMLSpanElement>('.label');
     this._input = this.querySelector<HTMLInputElement>('input');
