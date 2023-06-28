@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400,700|Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0');
 /* A basic color theme and associated dark theme inspired by
    https://material.io/design/color/dark-theme.html.
 
@@ -141,4 +142,31 @@ dark color scheme.
 
 .overlay-themes-sk {
   background-color: var(--transparent-overlay);
+}
+
+.icon-sk {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.large-icon-sk {
+  @extend .icon-sk;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
 }

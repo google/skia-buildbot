@@ -80,8 +80,6 @@ to see how these styles apply to title bars and sidebars.
 */
 
 @import '../elements-sk/modules/themes/themes';
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400,700|Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0');
-
 @import '../elements-sk/modules/styles/buttons';
 @import '../elements-sk/modules/styles/select';
 @import '../elements-sk/modules/styles/table';
@@ -131,27 +129,6 @@ to see how these styles apply to title bars and sidebars.
     pre {
       font-family: var(--mono-font);
     }
-  }
-
-  .icon-sk {
-    font-family: 'Material Symbols Outlined';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .large-icon-sk {
-    @extend .icon-sk;
-    font-size: 24px;
   }
 
   /* Semantic colors defined by elements-sk. */

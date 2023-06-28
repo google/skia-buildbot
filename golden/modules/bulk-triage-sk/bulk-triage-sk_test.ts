@@ -48,7 +48,7 @@ describe('bulk-triage-sk', () => {
   });
 
   it('shows the correct total digest count', async () => {
-    expect(await bulkTriageSkPO.getTriageAllCheckboxLabel()).to.equal(
+    expect(await bulkTriageSkPO.getTriageAllCheckboxLabel()).contains(
       'Triage all 7 digests'
     );
   });
