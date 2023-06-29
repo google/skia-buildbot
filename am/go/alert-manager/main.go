@@ -59,6 +59,8 @@ const (
 	reminderNumThreshold       = 10
 	reminderDurationThreshold  = 600
 	reminderDurationPercentage = 0.60
+
+	numPubSubReceiverGoRoutines = 10
 )
 
 // server is the state of the server.
@@ -100,7 +102,7 @@ func New() (baseapp.App, error) {
 		return nil, fmt.Errorf("Failed to init Cloud Datastore: %s", err)
 	}
 
-	sub, err := sub.New(ctx, *baseapp.Local, *project, alerts.TOPIC, 1)
+	sub, err := sub.New(ctx, *baseapp.Local, *project, alerts.TOPIC, numPubSubReceiverGoRoutines)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create subscription.")
 	}
