@@ -487,7 +487,7 @@ func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 	resp := buildResponse(t)
 
 	mockChromePerf := anomaliesStockMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", testutils.AnyContext, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
@@ -505,7 +505,7 @@ func TestAddAnomaliesToResponse_ErrorGetAnomalies_GotEmptyAnomalyMap(t *testing.
 	resp := buildResponse(t)
 
 	mockChromePerf := anomaliesStockMock.NewStore(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
+	mockChromePerf.On("GetAnomalies", testutils.AnyContext, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
 
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)

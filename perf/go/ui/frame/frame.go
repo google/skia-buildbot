@@ -309,6 +309,8 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 
 // addAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
 func addAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store) {
+	ctx, span := trace.StartSpan(ctx, "addAnomaliesToResponse")
+	defer span.End()
 	df := response.DataFrame
 	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
 		startCommitPosition := df.Header[0].Offset
