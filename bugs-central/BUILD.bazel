@@ -27,9 +27,4 @@ skia_app_container(
         ],
     },
     repository = "skia-public/bugs-central",
-    run_commands_root = [
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps",
-    ],
 )

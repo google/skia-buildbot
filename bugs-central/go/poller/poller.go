@@ -160,7 +160,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	//////////////////// Skia - Monorail ////////////////////
 	skQueryConfig := &monorail.MonorailQueryConfig{
 		Instance:              "skia",
-		Query:                 "is:open",
+		Query:                 "is:open -component:AutoRoll",
 		Client:                types.SkiaClient,
 		UntriagedStatuses:     []string{"Untriaged"},
 		UnassignedIsUntriaged: true,
