@@ -58,27 +58,30 @@ func New(ctx context.Context) (*ChromePerfClient, error) {
 
 // GetAnomalies implements ChromePerf, it calls chrome perf API to fetch anomlies.
 func (cp *ChromePerfClient) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
-	cp.getAnomaliesCalled.Inc(1)
 	testPathes := make([]string, 0)
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, err := TraceNameToTestPath(traceName)
+		testPath, stat, err := TraceNameToTestPath(traceName)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
-		} else {
+		} else if stat == "value" { // We will only show anomalies for the traces of the 'value' stat.
 			testPathes = append(testPathes, testPath)
 			testPathTraceNameMap[testPath] = traceName
 		}
 	}
 
-	// Call Chrome Perf API to fetch anomalies.
-	chromePerfResp, err := cp.callChromePerf(ctx, testPathes, startCommitPosition, endCommitPosition)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
+	if len(testPathes) > 0 {
+		cp.getAnomaliesCalled.Inc(1)
+		// Call Chrome Perf API to fetch anomalies.
+		chromePerfResp, err := cp.callChromePerf(ctx, testPathes, startCommitPosition, endCommitPosition)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
+		}
+		return GetAnomalyMapFromChromePerfResult(chromePerfResp, testPathTraceNameMap), nil
 	}
 
-	return GetAnomalyMapFromChromePerfResult(chromePerfResp, testPathTraceNameMap), nil
+	return anomalies.AnomalyMap{}, nil
 }
 
 func GetAnomalyMapFromChromePerfResult(chromePerfResponse *chromePerfResponse, testPathTraceNameMap map[string]string) anomalies.AnomalyMap {
@@ -134,10 +137,11 @@ func (cp *ChromePerfClient) callChromePerf(ctx context.Context, testPathes []str
 // subtest_2=222,...subtest_7=777,unit=microsecond,improvement_direction=up,"
 // test path will be: "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg
 // /111/222/.../777"
-func TraceNameToTestPath(traceName string) (testPath string, err error) {
+// It also returns the trace statistics like 'value', 'sum', 'max', 'min' or 'error'
+func TraceNameToTestPath(traceName string) (string, string, error) {
 	keyValueEquations := strings.Split(traceName, ",")
 	if len(keyValueEquations) == 0 {
-		return "", fmt.Errorf("Cannot build test path from trace name: %q.", traceName)
+		return "", "", fmt.Errorf("Cannot build test path from trace name: %q.", traceName)
 	}
 
 	paramKeyValueMap := map[string]string{}
@@ -148,29 +152,34 @@ func TraceNameToTestPath(traceName string) (testPath string, err error) {
 		}
 	}
 
-	testPath = ""
+	statistics := ""
+	if val, ok := paramKeyValueMap["stat"]; ok {
+		statistics = val
+	}
+
+	testPath := ""
 	if val, ok := paramKeyValueMap["master"]; ok {
 		testPath += val
 	} else {
-		return "", fmt.Errorf("Cannot get master from trace name: %q.", traceName)
+		return "", "", fmt.Errorf("Cannot get master from trace name: %q.", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["bot"]; ok {
 		testPath += "/" + val
 	} else {
-		return "", fmt.Errorf("Cannot get bot from trace name: %q.", traceName)
+		return "", "", fmt.Errorf("Cannot get bot from trace name: %q.", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["benchmark"]; ok {
 		testPath += "/" + val
 	} else {
-		return "", fmt.Errorf("Cannot get benchmark from trace name: %q.", traceName)
+		return "", "", fmt.Errorf("Cannot get benchmark from trace name: %q.", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["test"]; ok {
 		testPath += "/" + val
 	} else {
-		return "", fmt.Errorf("Cannot get test from trace name: %q.", traceName)
+		return "", "", fmt.Errorf("Cannot get test from trace name: %q.", traceName)
 	}
 
 	for i := 1; i <= 7; i++ {
@@ -183,5 +192,5 @@ func TraceNameToTestPath(traceName string) (testPath string, err error) {
 		}
 	}
 
-	return testPath, nil
+	return testPath, statistics, nil
 }
