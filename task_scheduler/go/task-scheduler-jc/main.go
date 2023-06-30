@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 	"time"
@@ -89,6 +90,14 @@ func main() {
 	wdAbs, err := filepath.Abs(*workdir)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	// task-scheduler-jc uses a custom temporary dir, to ensure that it's on a
+	// persistent disk. Create it if it does not exist.
+	if _, err := os.Stat(os.TempDir()); os.IsNotExist(err) {
+		if err := os.Mkdir(os.TempDir(), os.ModePerm); err != nil {
+			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
+		}
 	}
 
 	// Set up token source and authenticated API clients.
