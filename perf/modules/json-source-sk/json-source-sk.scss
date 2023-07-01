@@ -11,6 +11,10 @@ json-source-sk {
     align-items: center;
   }
 
+  #controls[hidden] {
+    display: none;
+  }
+
   pre {
     margin: 8px;
     padding: 8px;

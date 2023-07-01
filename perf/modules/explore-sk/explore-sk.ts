@@ -91,7 +91,7 @@ import {
   PivotTableSk,
   PivotTableSkChangeEventDetail,
 } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, paramsToParamSet } from '../paramtools';
+import { fromKey, paramsToParamSet, validKey } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
@@ -1187,7 +1187,7 @@ export class ExploreSk extends ElementSk {
   }
 
   /** Highlight a trace when it is clicked on. */
-  private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
+  traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
     this.plot!.highlight = [e.detail.name];
     this.plot!.xbar = e.detail.x;
     this.commits!.details = [];
@@ -1247,12 +1247,18 @@ export class ExploreSk extends ElementSk {
       }
     }
 
-    // Convert the trace id into a paramset to display.
-    const params: { [key: string]: string } = fromKey(e.detail.name);
     const paramset: ParamSet = {};
-    Object.keys(params).forEach((key) => {
-      paramset[key] = [params[key]];
-    });
+    this.simpleParamset!.paramsets = [];
+
+    if (validKey(e.detail.name)) {
+      // Convert the trace id into a paramset to display.
+      const params: { [key: string]: string } = fromKey(e.detail.name);
+      Object.keys(params).forEach((key) => {
+        paramset[key] = [params[key]];
+      });
+
+      this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
+    }
 
     this._render();
 

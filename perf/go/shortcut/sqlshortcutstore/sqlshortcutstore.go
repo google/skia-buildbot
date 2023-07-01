@@ -78,7 +78,7 @@ func (s *SQLShortcutStore) Insert(ctx context.Context, r io.Reader) (string, err
 // InsertShortcut implements the shortcut.Store interface.
 func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shortcut) (string, error) {
 	for _, key := range sc.Keys {
-		if !query.ValidateKey(key) {
+		if !query.IsValid(key) {
 			return "", skerr.Fmt("Tried to store an invalid trace key: %q", key)
 		}
 	}

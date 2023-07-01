@@ -2,6 +2,8 @@
 package frontend
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,4 +36,22 @@ func TestFrontendIsEditor_UserIsOnlyViewer_ReportsError(t *testing.T) {
 	w, r, f := setupForTest(t, false)
 	f.isEditor(w, r, "my-test-action", nil)
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
+}
+
+func TestFrontendDetailsHandler_InvalidTraceID_ReturnsErrorMessage(t *testing.T) {
+	f := &Frontend{}
+	w := httptest.NewRecorder()
+
+	req := CommitDetailsRequest{
+		CommitNumber: 0,
+		TraceID:      `calc("this is not a trace id, but a calculation")`,
+	}
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(req)
+	require.NoError(t, err)
+
+	r := httptest.NewRequest("POST", "/_/details", &b)
+	f.detailsHandler(w, r)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.Contains(t, w.Body.String(), "version\":0")
 }

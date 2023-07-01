@@ -51,6 +51,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/pinpoint"
 	"go.skia.org/infra/perf/go/progress"
@@ -1212,15 +1213,24 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
-	name := ""
-	name, err = f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
+	// If the trace is really a calculation then don't provide any details, but
+	// also don't generate an error.
+	if !query.IsValid(dr.TraceID) {
+		ret := format.Format{
+			Version: 0, // Specifying an unacceptable version of the format causes the control to be hidden.
+		}
+		if err := json.NewEncoder(w).Encode(ret); err != nil {
+			sklog.Errorf("writing detailsHandler error response: %s", err)
+		}
+		return
+	}
+
+	name, err := f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
 	}
 
-	sklog.Infof("Full URL to source: %q", name)
 	reader, err := f.ingestedFS.Open(name)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get reader for source file location", http.StatusInternalServerError)

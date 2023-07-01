@@ -1549,7 +1549,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	// Now break up the incoming trace ids into chuck for the workers.
 	currentChunk := []traceIDForSQL{}
 	for key := range traceNames {
-		if !query.ValidateKey(key) {
+		if !query.IsValid(key) {
 			sklog.Errorf("Invalid key: %q", key)
 			continue
 		}

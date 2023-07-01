@@ -27,6 +27,11 @@ export function fromKey(structuredKey: string): Params {
   return ret;
 }
 
+/** Checks that the trace id isn't a calculation or special_* trace. */
+export function validKey(key: string): boolean {
+  return key.startsWith(',') && key.endsWith(',');
+}
+
 /** Add the given Params to the ParamSet. */
 export function addParamsToParamSet(ps: ParamSet, p: Params): void {
   Object.entries(p).forEach((keyValue) => {

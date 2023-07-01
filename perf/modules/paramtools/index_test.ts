@@ -5,6 +5,7 @@ import {
   fromKey,
   makeKey,
   paramsToParamSet,
+  validKey,
 } from './index';
 
 describe('paramtooms', () => {
@@ -73,5 +74,15 @@ describe('paramsToParamSet', () => {
       { a: ['1'], b: ['2'] },
       paramsToParamSet({ a: '1', b: '2' })
     );
+  });
+});
+
+describe('validKey', () => {
+  it('returns true for valid trace ids', () => {
+    assert.isTrue(validKey(',a=b,'));
+  });
+
+  it('returns false for calculations', () => {
+    assert.isFalse(validKey('avg(,a=b,)'));
   });
 });

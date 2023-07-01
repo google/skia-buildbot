@@ -1,6 +1,7 @@
+/* eslint-disable dot-notation */
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
-import fetchMock from 'fetch-mock';
+import fetchMock, { restore } from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ExploreSk } from './explore-sk';
@@ -58,7 +59,7 @@ fetchMock.post('/_/frame/start', {
   url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
 });
 
-fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', {
+const normalTracesResponse = {
   status: 'Finished',
   messages: [
     {
@@ -356,6 +357,82 @@ fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', {
     anomalymap: null,
   },
   url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
+};
+
+const calculationTraceSet = {
+  'avg(",arch=arm,bench_type=skandroidcodec,compiler=Clang,")': [
+    61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 60.854946, 60.8525,
+    61.43297, 61.24557, 61.098125, 61.284843, 60.7938, 61.741615, 62.60328,
+    60.93729, 60.925156, 63.232346, 61.770676, 62.252968, 61.87958, 61.140102,
+    62.40708, 62.869167, 60.893852, 61.042187, 61.17974, 61.73057, 61.754063,
+    60.726772, 61.837135, 61.868282, 61.161095, 61.88469, 60.81271, 61.4625,
+    60.91443, 60.806095, 60.81344, 61.624477, 60.98828, 60.838856, 61.989845,
+    60.84349, 61.973698, 61.97073, 60.615208, 62.083595, 61.148228, 1e32, 1e32,
+  ],
+  'avg(",arch=arm64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,")':
+    [
+      1.0060265, 1.0050516, 1.0032824, 1.0048633, 1.0030173, 1.0089877,
+      1.005564, 1.0143331, 1.0087292, 1.004551, 1.0055237, 1.0070225, 1.0050403,
+      1.0034873, 1.0055274, 1.0046265, 1.0032196, 1.0046984, 1.0029291,
+      1.0070547, 1.0091536, 1.007189, 1.0019591, 1.0073526, 1.0068724,
+      1.0070788, 1.0009079, 1.0057614, 1.0018076, 1.0048864, 1.0045946,
+      1.0053095, 1.0055135, 1.0083896, 1.007283, 1.009362, 1.0063659, 1.0073311,
+      1.0077171, 1.0068235, 1.0078387, 1.010589, 1.0133693, 1.001502, 1.0090255,
+      1e32, 1.0033516, 1e32, 1.0042962, 1e32,
+    ],
+};
+
+let returnCalculationsInResponse = false;
+
+const calculationResponse = JSON.parse(JSON.stringify(normalTracesResponse));
+
+calculationResponse.results.dataframe.traceset = calculationTraceSet;
+
+fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', () => {
+  if (returnCalculationsInResponse) {
+    return calculationResponse;
+  }
+  return normalTracesResponse;
+});
+
+fetchMock.post('/_/cid/', {
+  commitSlice: [
+    {
+      offset: 67193,
+      hash: '0d7087e5b99087f5945f04dbda7b7a7a4b12e344',
+      ts: 1687990261,
+      author: 'John Stiles (johnstiles@google.com)',
+      message: 'Remove Win10 + ANGLE + IrisXe test and perf jobs.',
+      url: 'https://skia.googlesource.com/skia/+show/0d7087e5b99087f5945f04dbda7b7a7a4b12e344',
+      body: '',
+    },
+    {
+      offset: 67194,
+      hash: '2894e7194406ad8014d3e85b39379ca0e4607ead',
+      ts: 1687991201,
+      author: 'Arman Uguray (armansito@google.com)',
+      message: 'Roll vello from ef2630ad to 12e764d5',
+      url: 'https://skia.googlesource.com/skia/+show/2894e7194406ad8014d3e85b39379ca0e4607ead',
+      body: '',
+    },
+  ],
+  logEntry:
+    'commit 0d7087e5b99087f5945f04dbda7b7a7a4b12e344\nAuthor John Stiles (johnstiles@google.com)\nDate 28 Jun 23 22:11 +0000\n\nRemove Win10 + ANGLE + IrisXe test and perf jobs.\n\nOnce skia:14417 is resolved, we should reinstate these jobs.\n\nBug: skia:14417\nChange-Id: Ib6b2a06cf7983c998d1d4e95a5e4973377b3bd48\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/718157\nAuto-Submit: John Stiles \u003cjohnstiles@google.com\u003e\nCommit-Queue: Joe Gregorio \u003cjcgregorio@google.com\u003e\nCommit-Queue: John Stiles \u003cjohnstiles@google.com\u003e\nReviewed-by: Joe Gregorio \u003cjcgregorio@google.com\u003e\n',
+});
+
+fetchMock.post('/_/details/?results=false', {
+  gitHash: 'e539c1a62d339f6509463a7e59d83141576e3722',
+  key: {
+    arch: 'arm',
+    compiler: 'Clang',
+    cpu_or_gpu: 'CPU',
+    cpu_or_gpu_value: 'SnapdragonQM215',
+    extra_config: 'Android',
+    model: 'JioNext',
+    os: 'Android',
+  },
+  swarming_bot_id: 'skia-rpi2-rack1-shelf1-026',
+  swarming_task_id: '631c9c79d2c59211',
 });
 
 window.perf = {
@@ -380,14 +457,70 @@ customElements.whenDefined('explore-sk').then(() => {
 
   const explore = $$<ExploreSk>('explore-sk');
 
+  // Some utility functions used later.
+
+  // Clicks inside the canvas element inside the plot-simple-sk element.
+  const clickOnPlot = () => {
+    const rect = explore!
+      .querySelector<HTMLCanvasElement>('canvas')!
+      .getBoundingClientRect();
+    // eslint-disable-next-line dot-notation
+    explore!['plot']!.dispatchEvent(
+      new MouseEvent('click', {
+        // Pick a point in the middle of the canvas.
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      })
+    );
+  };
+
+  // Calls itself via timeout until the plot-simple-sk element reports that it
+  // has traces loaded, at which point it calls clickOnPlot.
+  const checkIfLoaded = () => {
+    // eslint-disable-next-line dot-notation
+    if (explore!['plot']!.getLineNames().length > 1) {
+      clickOnPlot();
+    } else {
+      setTimeout(checkIfLoaded, 100);
+    }
+  };
+
+  // Add handlers for the all demo buttons at the top of the demo page. These
+  // buttons are triggered by the puppeteer tests.
+
   $$('#demo-show-query-dialog')?.addEventListener('click', () => {
     $$<HTMLButtonElement>('#open_query_dialog')!.click();
     $$<HTMLDetailsElement>('#time-range-summary')!.open = true;
   });
 
   $$('#demo-load-traces')?.addEventListener('click', () => {
+    returnCalculationsInResponse = false;
     // eslint-disable-next-line dot-notation
     explore!['query']!.current_query = 'arch=arm';
     explore!.add(true, 'query');
+  });
+
+  $$('#demo-select-trace')?.addEventListener('click', () => {
+    returnCalculationsInResponse = false;
+
+    // First load the data.
+    explore!['query']!.current_query = 'arch=arm';
+    explore!.add(true, 'query');
+
+    // Then wait until the data has loaded before sending the
+    // synthetic mouse click.
+    setTimeout(checkIfLoaded, 100);
+  });
+
+  $$('#demo-select-calc-trace')?.addEventListener('click', () => {
+    returnCalculationsInResponse = true;
+
+    // First load data.
+    explore!['query']!.current_query = 'arch=arm';
+    explore!.add(true, 'query');
+
+    // Then wait until the data has loaded before sending the
+    // synthetic mouse click.
+    setTimeout(checkIfLoaded, 100);
   });
 });

@@ -18,6 +18,7 @@ import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 
 function isUrl(link: string): boolean {
   try {
+    // eslint-disable-next-line no-new
     new URL(link);
     return true;
   } catch (e) {

@@ -17,6 +17,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 
 import '../../../elements-sk/modules/spinner-sk';
+import { validKey } from '../paramtools';
 
 export class JSONSourceSk extends ElementSk {
   private _json: string;
@@ -34,7 +35,7 @@ export class JSONSourceSk extends ElementSk {
   }
 
   private static template = (ele: JSONSourceSk) => html`
-    <div id="controls">
+    <div id="controls" ?hidden=${!ele.validTraceID()}>
       <button @click=${ele._loadSource}>View Source File</button>
       <button @click=${ele._loadSourceSmall}>
         View Source File Without Results
@@ -48,6 +49,10 @@ export class JSONSourceSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this._spinner = $$('#spinner', this);
+  }
+
+  private validTraceID(): boolean {
+    return validKey(this._traceid);
   }
 
   /** @prop cid - The Commit ID. */
@@ -84,7 +89,7 @@ export class JSONSourceSk extends ElementSk {
     if (this._spinner!.active === true) {
       return;
     }
-    if (!this.traceid) {
+    if (!this.validTraceID()) {
       return;
     }
     if (this.cid === -1) {

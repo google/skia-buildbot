@@ -115,7 +115,7 @@ func TestValidateKey(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		if got, want := ValidateKey(tc.key), tc.valid; got != want {
+		if got, want := IsValid(tc.key), tc.valid; got != want {
 			t.Errorf("Failed validation for %q. Got %v Want %v. %s", tc.key, got, want, tc.reason)
 		}
 	}

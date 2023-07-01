@@ -87,10 +87,10 @@ func ValidateParamSet(ps paramtools.ParamSet) error {
 	return nil
 }
 
-// ValidateKey returns true if a key is valid, i.e. if the parameter names are
+// IsValid returns true if a key is valid, i.e. if the parameter names are
 // in alphabetical order and if the param names and values are restricted to
 // valid values.
-func ValidateKey(key string) bool {
+func IsValid(key string) bool {
 	if !keyRe.MatchString(key) {
 		return false
 	}

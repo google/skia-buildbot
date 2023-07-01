@@ -18,6 +18,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
