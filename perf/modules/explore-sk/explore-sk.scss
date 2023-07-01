@@ -132,6 +132,10 @@ explore-sk {
     checkbox-sk {
       margin: 0;
     }
+
+    [hidden] {
+      display: none;
+    }
   }
 
   #spinner[aria-hidden='true'] {

@@ -39,6 +39,19 @@ describe('explore-sk', () => {
       });
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_traces_loaded');
     });
+
+    it('displays bisect button if window.perf.fetch_chrome_perf_anomalies is true', async () => {
+      await testBed.page.click('#demo-show-bisect-button');
+      await testBed.page.waitForSelector('#traceButtons', {
+        visible: true,
+      });
+      await takeScreenshot(
+        testBed.page,
+        'perf',
+        'explore-sk_display_bisect_button'
+      );
+    });
+
     it('highlights a trace when the plot is clicked on', async () => {
       await testBed.page.click('#demo-select-trace');
       await testBed.page.waitForSelector('#controls', {

@@ -495,6 +495,15 @@ customElements.whenDefined('explore-sk').then(() => {
 
   $$('#demo-load-traces')?.addEventListener('click', () => {
     returnCalculationsInResponse = false;
+    window.perf.fetch_chrome_perf_anomalies = false;
+    // eslint-disable-next-line dot-notation
+    explore!['query']!.current_query = 'arch=arm';
+    explore!.add(true, 'query');
+  });
+
+  $$('#demo-show-bisect-button')?.addEventListener('click', () => {
+    returnCalculationsInResponse = false;
+    window.perf.fetch_chrome_perf_anomalies = true;
     // eslint-disable-next-line dot-notation
     explore!['query']!.current_query = 'arch=arm';
     explore!.add(true, 'query');
@@ -502,6 +511,7 @@ customElements.whenDefined('explore-sk').then(() => {
 
   $$('#demo-select-trace')?.addEventListener('click', () => {
     returnCalculationsInResponse = false;
+    window.perf.fetch_chrome_perf_anomalies = true;
 
     // First load the data.
     explore!['query']!.current_query = 'arch=arm';
