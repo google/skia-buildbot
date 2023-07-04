@@ -27,12 +27,13 @@ var (
 )
 
 type issueTrackerIssue struct {
-	Id         int64  `json:"id"`
-	Status     string `json:"status"`
-	Priority   string `json:"priority"`
-	Assignee   string `json:"assignee"`
-	CreatedTS  int64  `json:"created_ts"`
-	ModifiedTS int64  `json:"modified_ts"`
+	Id         int64   `json:"id"`
+	Status     string  `json:"status"`
+	Priority   string  `json:"priority"`
+	Assignee   string  `json:"assignee"`
+	CreatedTS  int64   `json:"created_ts"`
+	ModifiedTS int64   `json:"modified_ts"`
+	Hotlists   []int64 `json:"hotlist_ids"`
 }
 
 // issueTracker implements bugs.BugsFramework for github repos.
@@ -63,6 +64,8 @@ type IssueTrackerQueryConfig struct {
 	UntriagedAliases []string
 	// Whether unassigned issues should be considered as untriaged.
 	UnassignedIsUntriaged bool
+	// Which hotlists should be excluded.
+	HotlistsToExclude []int64
 }
 
 // See documentation for bugs.Search interface.
@@ -93,9 +96,6 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 		countsData.OpenCount++
 		if i.Assignee == "" {
 			countsData.UnassignedCount++
-			if it.queryConfig.UnassignedIsUntriaged {
-				countsData.UntriagedCount++
-			}
 		}
 		created := time.Unix(i.CreatedTS, 0)
 		modified := time.Unix(i.ModifiedTS, 0)
@@ -103,7 +103,23 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 		countsData.IncPriority(priority)
 		sloViolation, reason, d := types.IsPrioritySLOViolation(time.Now(), created, modified, priority)
 		countsData.IncSLOViolation(sloViolation, priority)
-		if util.In(i.Priority, it.queryConfig.UntriagedPriorities) {
+
+		foundHotlistToIgnore := false
+		if len(it.queryConfig.HotlistsToExclude) > 0 && len(i.Hotlists) > 0 {
+			for _, hotlistToIgnore := range it.queryConfig.HotlistsToExclude {
+				for _, hotlist := range i.Hotlists {
+					if hotlistToIgnore == hotlist {
+						foundHotlistToIgnore = true
+						break
+					}
+				}
+			}
+		}
+		if foundHotlistToIgnore {
+			// Do not count as untriaged.
+		} else if i.Assignee == "" && it.queryConfig.UnassignedIsUntriaged {
+			countsData.UntriagedCount++
+		} else if util.In(i.Priority, it.queryConfig.UntriagedPriorities) {
 			countsData.UntriagedCount++
 		} else if util.In(i.Assignee, it.queryConfig.UntriagedAliases) {
 			countsData.UntriagedCount++
@@ -141,16 +157,18 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient typ
 	countsData.QueryLink = fmt.Sprintf("http://b/issues?q=%s", qc.Query)
 	// Construct query for untriaged issues.
 	if len(qc.UntriagedPriorities) > 0 || len(qc.UntriagedAliases) > 0 {
-		untriagedPrioritiesTokens := []string{}
+		untriagedTokens := []string{}
 		for _, p := range qc.UntriagedPriorities {
-			untriagedPrioritiesTokens = append(untriagedPrioritiesTokens, fmt.Sprintf("p:%s", p))
+			untriagedTokens = append(untriagedTokens, fmt.Sprintf("p:%s", p))
 		}
-		untriagedAliasesTokens := []string{}
 		for _, a := range qc.UntriagedAliases {
-			untriagedAliasesTokens = append(untriagedAliasesTokens, fmt.Sprintf("assignee:%s", a))
+			untriagedTokens = append(untriagedTokens, fmt.Sprintf("assignee:%s", a))
 		}
-		untriagedTokens := append(untriagedPrioritiesTokens, untriagedAliasesTokens...)
-		countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s)", countsData.QueryLink, strings.Join(untriagedTokens, "|"))
+		hotlistsToExclude := []string{}
+		for _, a := range qc.HotlistsToExclude {
+			hotlistsToExclude = append(hotlistsToExclude, fmt.Sprintf("-hotlistid:%d", a))
+		}
+		countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s) %s", countsData.QueryLink, strings.Join(untriagedTokens, "|"), strings.Join(hotlistsToExclude, " "))
 		// Calculate priority links.
 		countsData.P0Link = fmt.Sprintf("%s P:P0", countsData.QueryLink)
 		countsData.P1Link = fmt.Sprintf("%s P:P1", countsData.QueryLink)

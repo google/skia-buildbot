@@ -84,6 +84,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Client:              types.AndroidClient,
 		UntriagedPriorities: []string{},
 		UntriagedAliases:    []string{"skia-android-triage@google.com", "none"},
+		HotlistsToExclude:   []int64{4595112},
 	}
 	androidIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, androidQueryConfig)
 	if err != nil {
