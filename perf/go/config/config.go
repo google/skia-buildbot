@@ -526,6 +526,10 @@ type InstanceConfig struct {
 	// FetchChromePerfAnomalies if true means fetch anomalies from Chrome Perf
 	FetchChromePerfAnomalies bool `json:"fetch_chrome_perf_anomalies,omitempty"`
 
+	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
+	// which percentage of traces get uploaded
+	TraceSampleProportion float32 `json:"trace_sample_proportion,omitempty"`
+
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`

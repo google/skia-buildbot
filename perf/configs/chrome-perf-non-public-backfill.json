@@ -2,6 +2,7 @@
     "URL": "https://chrome-perf.corp.goog",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
+    "trace_sample_proportion": 0.0,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "auth_config": {

@@ -255,7 +255,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 // Except for file.Sources of type "dir" this function should never return
 // except on error.
 func Start(ctx context.Context, local bool, numParallelIngesters int, instanceConfig *config.InstanceConfig) error {
-	if err := tracing.Init(local); err != nil {
+	if err := tracing.Init(local, instanceConfig); err != nil {
 		sklog.Fatalf("Failed to start tracing: %s", err)
 	}
 

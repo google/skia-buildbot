@@ -5,5 +5,8 @@ go_library(
     srcs = ["tracing.go"],
     importpath = "go.skia.org/infra/perf/go/tracing",
     visibility = ["//visibility:public"],
-    deps = ["//go/tracing"],
+    deps = [
+        "//go/tracing",
+        "//perf/go/config",
+    ],
 )

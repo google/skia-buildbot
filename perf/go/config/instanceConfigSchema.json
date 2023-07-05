@@ -152,6 +152,9 @@
         "fetch_chrome_perf_anomalies": {
           "type": "boolean"
         },
+        "trace_sample_proportion": {
+          "type": "number"
+        },
         "auth_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/AuthConfig"

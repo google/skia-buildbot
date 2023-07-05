@@ -4,6 +4,7 @@
     "status.skia.org"
   ],
   "contact": "https://bugs.skia.org",
+  "trace_sample_proportion": 0.01,
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
   },

@@ -267,10 +267,6 @@ func (f *Frontend) initialize() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	if err := tracing.Init(f.flags.Local); err != nil {
-		sklog.Fatalf("Failed to start tracing: %s", err)
-	}
-
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
 
@@ -305,6 +301,10 @@ func (f *Frontend) initialize() {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
 	}
 	cfg := config.Config
+
+	if err := tracing.Init(f.flags.Local, cfg); err != nil {
+		sklog.Fatalf("Failed to start tracing: %s", err)
+	}
 
 	u, err := url.Parse(cfg.URL)
 	if err != nil {

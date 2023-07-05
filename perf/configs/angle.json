@@ -1,6 +1,7 @@
 {
   "URL": "https://angle-perf.skia.org",
   "contact": "https://bugs.chromium.org/p/angle/issues/list?q=component%3ATools&can=2",
+  "trace_sample_proportion": 0.01,
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
   },

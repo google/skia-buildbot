@@ -1,6 +1,7 @@
 {
     "URL": "http://localhost:8001",
     "contact": "user@example.org",
+    "trace_sample_proportion": 1.0,
     "fetch_chrome_perf_anomalies": true,
     "data_store_config": {
         "datastore_type": "cockroachdb",
