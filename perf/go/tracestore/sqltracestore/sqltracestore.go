@@ -216,7 +216,7 @@ const (
 	// Max number of trace_ids to add to a query to speed it up. This is a rough
 	// guess, some testing should be done to validate the right size for this
 	// const.
-	countOptimizationThreshold = 1000
+	countOptimizationThreshold = 10000
 )
 
 type orderedParamSetCacheEntry struct {
