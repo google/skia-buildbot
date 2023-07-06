@@ -391,19 +391,22 @@ var templates = map[statement]string{
         {{ $key := .Key }}
         SELECT
             count(*)
-        FROM
-            Postings@primary
-            {{ .AsOf }}
-        WHERE
-            tile_number = {{ .TileNumber }}
-            AND key_value IN
-            (
-                {{ range $index, $value :=  .Values -}}
-                    {{ if $index }},{{end}}
-                    '{{ $key }}={{ $value }}'
-                {{ end }}
-            )
-    `,
+        FROM (
+            SELECT
+               *
+            FROM
+               Postings
+            WHERE
+               tile_number = {{ .TileNumber }}
+               AND key_value IN
+               (
+                  {{ range $index, $value :=  .Values -}}
+                     {{ if $index }},{{end}}
+                     '{{ $key }}={{ $value }}'
+                  {{ end }}
+               )
+            LIMIT {{ .CountOptimizationThreshold }}
+        )`,
 	restrictClause: `
     AND trace_ID IN
     ({{ range $index, $value := .Values -}}
@@ -514,10 +517,11 @@ type paramSetForTileContext struct {
 
 // countMatchingTraces is the context for the countMatchingTraces template.
 type countMatchingTracesContext struct {
-	TileNumber types.TileNumber
-	Key        string
-	Values     []string
-	AsOf       string
+	TileNumber                 types.TileNumber
+	Key                        string
+	Values                     []string
+	AsOf                       string
+	CountOptimizationThreshold int64
 }
 
 // restrictClauseContext is the context for the restrictClause template.
@@ -1091,10 +1095,11 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 		go func(key string, values []string) {
 			defer wg.Done()
 			context := countMatchingTracesContext{
-				TileNumber: tileNumber,
-				Key:        key,
-				Values:     values,
-				AsOf:       "",
+				TileNumber:                 tileNumber,
+				Key:                        key,
+				Values:                     values,
+				AsOf:                       "",
+				CountOptimizationThreshold: countOptimizationThreshold,
 			}
 			if s.enableFollowerReads {
 				context.AsOf = followerReadsStatement
@@ -1150,7 +1155,7 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 	// We want to avoid create too large of an "AND IN ()" clause, so if there
 	// are too many matches for the optimal key then just skip the restrict
 	// clause completely.
-	if optimal.count > countOptimizationThreshold {
+	if optimal.count >= countOptimizationThreshold {
 		return "", "", runnable
 	}
 
