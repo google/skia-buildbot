@@ -450,7 +450,7 @@ window.perf = {
 };
 
 customElements.whenDefined('explore-sk').then(() => {
-  // Insert the element later, which should given enough time for fetchMock to be in place.
+  // Insert the element later, which should give enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
     .insertAdjacentElement('afterend', document.createElement('explore-sk'));
@@ -542,5 +542,12 @@ customElements.whenDefined('explore-sk').then(() => {
         key: '?',
       })
     );
+  });
+
+  $$('#demo-highlighted-only')?.addEventListener('click', () => {
+    // eslint-disable-next-line dot-notation
+    explore!['query']!.current_query = 'arch=arm';
+    explore!.add(true, 'query');
+    $$<HTMLButtonElement>('#highlighted-only')!.click();
   });
 });

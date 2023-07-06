@@ -51,7 +51,6 @@ import {
   FrameResponse,
   ShiftRequest,
   ShiftResponse,
-  TraceSet,
   progress,
   pivot,
   FrameResponseDisplayMode,
@@ -432,7 +431,9 @@ export class ExploreSk extends ElementSk {
         <button
           @click=${ele.highlightedOnly}
           ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-          title='Remove all but the highlighted traces.'>
+          title='Remove all but the highlighted traces.'
+          id=highlighted-only
+          >
           Highlighted Only
         </button>
 
@@ -1857,7 +1858,12 @@ export class ExploreSk extends ElementSk {
     const toremove: string[] = [];
     const toShortcut: string[] = [];
 
+    let totalNonSpecialKeys = 0;
     Object.keys(this._dataframe.traceset).forEach((key) => {
+      if (!key.startsWith('special')) {
+        totalNonSpecialKeys++;
+      }
+
       if (ids.indexOf(key) === -1 && !key.startsWith('special')) {
         // Detect if it is a formula being removed.
         if (this.state.formulas.indexOf(key) !== -1) {
@@ -1871,6 +1877,13 @@ export class ExploreSk extends ElementSk {
         toShortcut.push(key);
       }
     });
+
+    if (toremove.length === totalNonSpecialKeys) {
+      errorMessage(
+        "At least one trace much be selected for 'Highlighted Only' to work."
+      );
+      return;
+    }
 
     // Remove the traces from the traceset so they don't reappear.
     toremove.forEach((key) => {

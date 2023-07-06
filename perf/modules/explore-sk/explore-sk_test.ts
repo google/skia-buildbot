@@ -1,7 +1,7 @@
 /* eslint-disable dot-notation */
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { ColumnHeader, DataFrame, TraceSet, progress } from '../json';
+import { ColumnHeader, progress } from '../json';
 import {
   calculateRangeChange,
   defaultPointSelected,
@@ -10,7 +10,7 @@ import {
   PointSelected,
   selectionToEvent,
 } from './explore-sk';
-import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+
 fetchMock.config.overwriteRoutes = true;
 
 describe('calculateRangeChange', () => {
@@ -115,7 +115,7 @@ describe('applyFuncToTraces', () => {
     // Confirm we hit the mock.
     assert.isTrue(fetchMock.done());
 
-    // Confirm the formula is werapped in iqrr().
+    // Confirm the formula is wrapped in iqrr().
     const body = JSON.parse(
       fetchMock.lastOptions(startURL)?.body as unknown as string
     ) as any;
