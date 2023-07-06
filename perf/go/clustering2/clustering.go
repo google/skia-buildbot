@@ -63,6 +63,10 @@ type ClusterSummary struct {
 
 	// Timestamp is the timestamp when this regression was found.
 	Timestamp time.Time `json:"ts"`
+
+	// NotificationID is the ID of the notification sent for this regression.
+	// Will be the empty string if no notification has been sent.
+	NotificationID string `json:"notification_id,omitempty"`
 }
 
 // NewClusterSummary returns a new ClusterSummary.

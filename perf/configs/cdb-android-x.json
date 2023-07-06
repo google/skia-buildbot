@@ -2,6 +2,7 @@
   "URL": "https://androidx-perf.skia.org/",
   "contact": "http://go/androidx-discuss",
   "trace_sample_proportion": 0.01,
+  "notifications": "html_email",
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
   },

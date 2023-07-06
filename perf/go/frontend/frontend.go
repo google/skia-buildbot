@@ -53,6 +53,7 @@ import (
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/pinpoint"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
@@ -408,10 +409,13 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
+	notifierType := config.Config.Notifications
 	if f.flags.NoEmail {
-		f.notifier = notify.New(notify.NoEmail{}, config.Config.URL)
-	} else {
-		f.notifier = notify.New(notify.NewEmailService(), config.Config.URL)
+		notifierType = notifytypes.None
+	}
+	f.notifier, err = notify.New(notifierType, config.Config.URL)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)

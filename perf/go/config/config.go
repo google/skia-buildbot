@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/notifytypes"
 
 	_ "embed" // For embed functionality.
 )
@@ -529,6 +530,9 @@ type InstanceConfig struct {
 	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
 	// which percentage of traces get uploaded
 	TraceSampleProportion float32 `json:"trace_sample_proportion,omitempty"`
+
+	// Notifications chooses how notifications are sent when a regression is found.
+	Notifications notifytypes.Type `json:"notifications"`
 
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`

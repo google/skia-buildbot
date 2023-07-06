@@ -129,6 +129,7 @@
       "required": [
         "URL",
         "contact",
+        "notifications",
         "data_store_config",
         "ingestion_config",
         "git_repo_config"
@@ -154,6 +155,9 @@
         },
         "trace_sample_proportion": {
           "type": "number"
+        },
+        "notifications": {
+          "type": "string"
         },
         "auth_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",

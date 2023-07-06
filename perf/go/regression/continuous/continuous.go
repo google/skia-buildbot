@@ -125,16 +125,30 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 			resp.Frame.DataFrame.ParamSet = paramtools.NewReadOnlyParamSet()
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
+				// TODO(jcgregorio) Also load existing stored regressions and if
+				// the detected regression has gone away then also send a
+				// follow-up email.
+
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.Alert.IDAsString, *req)
+
 					isNew, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(ctx, details, cfg, cl); err != nil {
+						notificationID, err := c.notifier.RegressionFound(ctx, details, cfg, cl)
+						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
+						}
+						cl.NotificationID = notificationID
+
+						if notificationID != "" {
+							_, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+							if err != nil {
+								sklog.Errorf("save cluster with notification: %s", err)
+							}
 						}
 					}
 				}
@@ -146,8 +160,17 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(ctx, details, cfg, cl); err != nil {
+						notificationID, err := c.notifier.RegressionFound(ctx, details, cfg, cl)
+						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
+						}
+						cl.NotificationID = notificationID
+
+						if notificationID != "" {
+							_, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+							if err != nil {
+								sklog.Errorf("save cluster with notification: %s", err)
+							}
 						}
 					}
 				}

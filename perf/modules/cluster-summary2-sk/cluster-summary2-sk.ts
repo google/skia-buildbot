@@ -189,6 +189,7 @@ export class ClusterSummary2Sk extends ElementSk {
       centroid: null,
       shortcut: '',
       step_point: null,
+      notification_id: '',
       num: 0,
       step_fit: {
         regression: 0,

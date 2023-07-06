@@ -62,6 +62,7 @@ export interface ClusterSummary {
 	step_point: ColumnHeader | null;
 	num: number;
 	ts: string;
+	notification_id?: string;
 }
 
 export interface Commit {
@@ -400,5 +401,7 @@ export type TryBotRequestKind = 'trybot' | 'commit';
 export type CL = string;
 
 export type ProcessState = 'Running' | 'Success' | 'Error';
+
+export type NotifierTypes = 'html_email' | 'none';
 
 export namespace progress { export type Status = 'Running' | 'Finished' | 'Error'; }

@@ -3,6 +3,7 @@
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
     "fetch_chrome_perf_anomalies": true,
+    "notifications": "none",
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@localhost:26257/demo?sslmode=disable",

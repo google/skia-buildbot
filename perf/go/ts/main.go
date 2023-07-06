@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/pinpoint"
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
@@ -102,6 +103,7 @@ func main() {
 		{types.AllStepDetections, "StepDetection"},
 		{results.AllRequestKind, "TryBotRequestKind"},
 		{frame.AllResponseDisplayModes, "FrameResponseDisplayMode"},
+		{notifytypes.AllNotifierTypes, "NotifierTypes"},
 	})
 
 	generator.AddUnionToNamespace(progress.AllStatus, "progress")

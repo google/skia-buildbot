@@ -1,104 +1,35 @@
-// notify is a package for sending notification.
+// Package notify is a package for sending notifications.
 package notify
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"html/template"
-	"regexp"
 
-	"go.skia.org/infra/email/go/emailclient"
-	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
+// Formatter has implementations for both HTML and Markdown.
+type Formatter interface {
+	// Return body and subject.
+	FormatNewRegression(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
+	FormatRegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
+}
+
+// Transport has implementations for email, issuetracker, and the noop implementation.
+type Transport interface {
+	SendNewRegression(ctx context.Context, alert *alerts.Alert, body, subject string) (threadingReference string, err error)
+	SendRegressionMissing(ctx context.Context, threadingReference string, alert *alerts.Alert, body, subject string) (err error)
+}
+
 const (
 	fromAddress = "alertserver@skia.org"
-	email       = `<b>Alert</b><br><br>
-<p>
-	A Perf Regression ({{.Cluster.StepFit.Status}}) has been found at:
-</p>
-<p style="padding: 1em;">
-	<a href="{{.URL}}/g/t/{{.Commit.GitHash}}">{{.URL}}/g/t/{{.Commit.GitHash}}</a>
-</p>
-<p>
-  For:
-</p>
-<p style="padding: 1em;">
-  <a href="{{.Commit.URL}}">{{.Commit.URL}}</a>
-</p>
-<p>
-	With {{.Cluster.Num}} matching traces.
-</p>
-<p>
-   And direction {{.Cluster.StepFit.Status}}.
-</p>
-<p>
-	From Alert <a href="{{.URL}}/a/?{{ .Alert.IDAsString }}">{{ .Alert.DisplayName }}</a>
-</p>
-`
 )
 
-var (
-	emailTemplate = template.Must(template.New("email").Parse(email))
-
-	emailAddressSplitter = regexp.MustCompile("[, ]+")
-)
-
-// Email sending interface. Note that email.GMail implements this interface.
-type Email interface {
-	Send(from string, to []string, subject string, body string, threadingReference string) (string, error)
-}
-
-// NoEmail implements Email but only logs the information without sending email.
-type NoEmail struct{}
-
-// Send implements the Email interface.
-func (n NoEmail) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
-	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q ThreadingReference: %q", from, to, subject, body, threadingReference)
-	return "", nil
-}
-
-// EmailService implements Email using emailservice.
-type EmailService struct {
-	client emailclient.Client
-}
-
-// NewEmailService returns a new EmailService instance.
-func NewEmailService() EmailService {
-	return EmailService{
-		client: emailclient.New(),
-	}
-}
-
-// Send implements Email.
-func (e EmailService) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
-	return e.client.SendWithMarkup("", from, to, subject, "", body, threadingReference)
-}
-
-// Notifier sends notifications.
-type Notifier struct {
-	// email is the thing that sends email.
-	email Email
-
-	// url is the URL of this instance of Perf.
-	url string
-}
-
-// New returns a new Notifier.
-func New(email Email, url string) *Notifier {
-	return &Notifier{
-		email: email,
-		url:   url,
-	}
-}
-
-// context is used in expanding the emailTemplate.
+// context is used in expanding the message templates.
 type templateContext struct {
 	URL     string
 	Commit  provider.Commit
@@ -106,43 +37,49 @@ type templateContext struct {
 	Cluster *clustering2.ClusterSummary
 }
 
-func (n *Notifier) formatEmail(c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
-	templateContext := &templateContext{
-		URL:     n.url,
-		Commit:  c,
-		Alert:   alert,
-		Cluster: cl,
-	}
+// Notifier sends notifications.
+type Notifier struct {
+	formatter Formatter
 
-	var b bytes.Buffer
-	if err := emailTemplate.Execute(&b, templateContext); err != nil {
-		return "", fmt.Errorf("Failed to format email body: %s", err)
-	}
-	return b.String(), nil
+	transport Transport
+
+	// url is the URL of this instance of Perf.
+	url string
 }
 
-func splitEmails(s string) []string {
-	ret := []string{}
-	for _, e := range emailAddressSplitter.Split(s, -1) {
-		if e != "" {
-			ret = append(ret, e)
-		}
+// new returns a new Notifier.
+func new(formatter Formatter, transport Transport, url string) *Notifier {
+	return &Notifier{
+		formatter: formatter,
+		transport: transport,
+		url:       url,
 	}
-	return ret
 }
 
-// Send a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *Notifier) Send(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) error {
-	if alert.Alert == "" {
-		return fmt.Errorf("No notification sent. No email address set for alert #%s", alert.IDAsString)
+// RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
+func (n *Notifier) RegressionFound(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
+	body, subject, err := n.formatter.FormatNewRegression(ctx, c, alert, cl, n.url)
+	if err != nil {
+		return "", err
 	}
-	body, err := n.formatEmail(c, alert, cl)
+	threadingReference, err := n.transport.SendNewRegression(ctx, alert, body, subject)
+	if err != nil {
+		return "", skerr.Wrapf(err, "sending new regression message")
+	}
+
+	return threadingReference, nil
+}
+
+// RegressionMissing sends a notification that a previous regression found for
+// the given cluster found at the given commit has disappeared after more data
+// has arrived. Where to send it is defined in the alerts.Config.
+func (n *Notifier) RegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, threadingReference string) error {
+	body, subject, err := n.formatter.FormatRegressionMissing(ctx, c, alert, cl, n.url)
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, c.Display(now.Now(ctx)))
-	if _, err := n.email.Send(fromAddress, splitEmails(alert.Alert), subject, body, ""); err != nil {
-		return fmt.Errorf("Failed to send email: %s", err)
+	if err := n.transport.SendRegressionMissing(ctx, threadingReference, alert, body, subject); err != nil {
+		return skerr.Wrapf(err, "sending regression missing message")
 	}
 
 	return nil
@@ -151,7 +88,7 @@ func (n *Notifier) Send(ctx context.Context, c provider.Commit, alert *alerts.Al
 // ExampleSend sends an example for dummy data for the given alerts.Config.
 func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 	c := provider.Commit{
-		Subject:   "Re-enable opList dependency tracking",
+		Subject:   "An example commit use for testing.",
 		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 		GitHash:   "d261e1075a93677442fdf7fe72aba7e583863664",
 		Timestamp: 1498176000,
@@ -162,5 +99,25 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 			Status: stepfit.HIGH,
 		},
 	}
-	return n.Send(ctx, c, alert, cl)
+	threadingReference, err := n.RegressionFound(ctx, c, alert, cl)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	err = n.RegressionMissing(ctx, c, alert, cl, threadingReference)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// New returns a Notifier of the selected type.
+func New(t notifytypes.Type, URL string) (*Notifier, error) {
+	switch t {
+	case notifytypes.None:
+		return new(NewHTMLFormatter(), NewNoopTransport(), URL), nil
+	case notifytypes.HTMLEmail:
+		return new(NewHTMLFormatter(), NewEmailTransport(), URL), nil
+	default:
+		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", t, notifytypes.AllNotifierTypes)
+	}
 }
