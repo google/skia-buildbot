@@ -76,10 +76,12 @@ explore-sk {
     #logEntry {
       white-space: pre-wrap;
     }
+
     anomaly-sk {
       display: flex;
       margin: 1.25em;
     }
+
     display: flex;
   }
 
@@ -178,29 +180,36 @@ explore-sk {
     background: var(--background);
   }
 
-  #help table * {
-    border: 0;
-  }
+  #help {
+    table * {
+      border: 0;
+    }
 
-  #help table {
-    border-spacing: 0.6em;
-  }
+    table {
+      border-spacing: 0.6em;
 
-  #help table td.mono {
-    font-family: 'Courier New', Courier, monospace;
-  }
+      td.mono {
+        font-family: 'Courier New', Courier, monospace;
+      }
+    }
 
-  #help h2 {
-    margin-top: 0;
-  }
+    h2 {
+      margin-top: 0;
+    }
 
-  #help sup,
-  #help .footnote {
-    font-size: 80%;
-  }
+    sup,
+    .footnote {
+      font-size: 80%;
+    }
 
-  #help .footnote {
-    padding: 1em;
+    .footnote {
+      padding: 1em;
+    }
+
+    .help-footer {
+      display: flex;
+      justify-content: end;
+    }
   }
 
   tabs-panel-sk {

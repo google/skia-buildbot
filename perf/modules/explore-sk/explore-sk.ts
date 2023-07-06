@@ -668,6 +668,9 @@ export class ExploreSk extends ElementSk {
       <div class=footnote>
         <sup>1</sup> And Dvorak equivalents.
       </div>
+      <div class=help-footer>
+        <button class=action @click=${ele.closeHelp}>Close</button>
+      </div>
     </dialog>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
@@ -1409,6 +1412,10 @@ export class ExploreSk extends ElementSk {
       this.plot!.highlight = keys;
     }
     this._render();
+  }
+
+  private closeHelp() {
+    this.helpDialog!.close();
   }
 
   /** Create a FrameRequest that will re-create the current state of the page. */

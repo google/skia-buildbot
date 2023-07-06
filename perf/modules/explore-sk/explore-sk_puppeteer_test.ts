@@ -59,6 +59,7 @@ describe('explore-sk', () => {
       });
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_trace_selected');
     });
+
     it('displays a subset of data when a calculated trace is clicked on', async () => {
       await testBed.page.click('#demo-select-calc-trace');
       await testBed.page.waitForSelector('#details', {
@@ -69,6 +70,14 @@ describe('explore-sk', () => {
         'perf',
         'explore-sk_trace_calc_selected'
       );
+    });
+
+    it('loads shows the help dialog on a keypress of ?', async () => {
+      await testBed.page.click('#demo-show-help');
+      await testBed.page.waitForSelector('#help', {
+        visible: true,
+      });
+      await takeScreenshot(testBed.page, 'perf', 'explore-sk_help_dialog');
     });
   });
 });

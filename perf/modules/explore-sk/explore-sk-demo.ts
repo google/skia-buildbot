@@ -533,4 +533,14 @@ customElements.whenDefined('explore-sk').then(() => {
     // synthetic mouse click.
     setTimeout(checkIfLoaded, 100);
   });
+
+  $$('#demo-show-help')?.addEventListener('click', () => {
+    // eslint-disable-next-line dot-notation
+    explore!['keyDown'](
+      new KeyboardEvent('keydown', {
+        isComposing: false,
+        key: '?',
+      })
+    );
+  });
 });
