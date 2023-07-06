@@ -25,7 +25,7 @@ type ReadOnlyParamSet map[string][]string
 
 // NewParams returns the parsed structured key (see query) as Params.
 //
-// It presumes a valid key, i.e. something that passed query.ValidateKey.
+// It presumes a valid key, i.e. something that passed query.IsValid.
 func NewParams(key string) Params {
 	ret := Params{}
 	parts := strings.Split(key, ",")
