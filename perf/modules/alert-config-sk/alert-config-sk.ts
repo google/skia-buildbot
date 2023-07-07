@@ -291,7 +291,7 @@ export class AlertConfigSk extends ElementSk {
       label="Data is sparse, so only include commits that have data."
     ></checkbox-sk>
 
-    ${window.perf.no_email
+    ${window.perf.notifications !== 'html_email'
       ? html``
       : html`
           <h3>Where are alerts sent</h3>

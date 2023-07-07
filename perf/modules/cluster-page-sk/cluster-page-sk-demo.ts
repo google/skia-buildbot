@@ -120,6 +120,6 @@ window.perf = {
   step_up_only: false,
   display_group_by: true,
   hide_list_of_commits_on_explore: false,
-  no_email: false,
+  notifications: 'none',
   fetch_chrome_perf_anomalies: false,
 };

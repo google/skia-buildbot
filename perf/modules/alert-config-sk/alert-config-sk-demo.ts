@@ -24,11 +24,11 @@ $$('#hide_group_by')!.addEventListener('click', () => {
   refreshControls();
 });
 $$('#display_email')!.addEventListener('click', () => {
-  window.perf.no_email = false;
+  window.perf.notifications = 'html_email';
   refreshControls();
 });
 $$('#hide_email')!.addEventListener('click', () => {
-  window.perf.no_email = true;
+  window.perf.notifications = 'none';
   refreshControls();
 });
 

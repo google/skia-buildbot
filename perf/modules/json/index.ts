@@ -220,7 +220,7 @@ export interface SkPerfConfig {
 	demo: boolean;
 	display_group_by: boolean;
 	hide_list_of_commits_on_explore: boolean;
-	no_email: boolean;
+	notifications: NotifierTypes;
 	fetch_chrome_perf_anomalies: boolean;
 }
 
@@ -396,12 +396,12 @@ export type RequestType = 0 | 1;
 
 export type Subset = 'all' | 'regressions' | 'untriaged';
 
+export type NotifierTypes = 'html_email' | 'none';
+
 export type TryBotRequestKind = 'trybot' | 'commit';
 
 export type CL = string;
 
 export type ProcessState = 'Running' | 'Success' | 'Error';
-
-export type NotifierTypes = 'html_email' | 'none';
 
 export namespace progress { export type Status = 'Running' | 'Finished' | 'Error'; }

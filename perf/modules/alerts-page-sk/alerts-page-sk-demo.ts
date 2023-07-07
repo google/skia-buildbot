@@ -5,7 +5,7 @@ import { Alert } from '../json';
 window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.display_group_by = true;
-window.perf.no_email = false;
+window.perf.notifications = 'none';
 
 fetchMock.get('/_/login/status', {
   email: 'someone@example.org',
