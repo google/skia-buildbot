@@ -230,9 +230,11 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			Interesting:                float32(f.flags.Interesting),
 			StepUpOnly:                 f.flags.StepUpOnly,
 			CommitRangeURL:             f.flags.CommitRangeURL,
+			Demo:                       false,
 			DisplayGroupBy:             f.flags.DisplayGroupBy,
 			HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
 			Notifications:              config.Config.NotifyConfig.Notifications,
+			FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
