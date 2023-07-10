@@ -26,6 +26,20 @@ const (
 	doNotIgnoreNil
 )
 
+// forceToStringPolicy determines if a type should be forced into a string.
+//
+// An option ",string" can be added to the json tag for string, floating point,
+// integer, and boolean types and that will force the value to be serialized as
+// a string. For example:
+//
+//	Int64String int64 `json:",string"`
+type forceToStringPolicy int
+
+const (
+	forceToString forceToStringPolicy = iota
+	doNotForceToString
+)
+
 // Go2TS writes TypeScript definitions for Go types.
 type Go2TS struct {
 	// typeDeclarations maps any added reflect.Types to their corresponding TypeScript type
@@ -326,7 +340,7 @@ func (g *Go2TS) addTypeDeclaration(reflectType reflect.Type, typeName, namespace
 	typeDeclaration := &typescript.TypeAliasDeclaration{
 		Namespace:  namespace,
 		Identifier: typeName,
-		Type:       g.reflectTypeToTypeScriptType(reflectType, namespace, ignoreNilPolicy, explicitlyDiscovered),
+		Type:       g.reflectTypeToTypeScriptType(reflectType, namespace, ignoreNilPolicy, explicitlyDiscovered, doNotForceToString),
 	}
 
 	g.getOrSaveTypeDeclaration(reflectType, typeDeclaration)
@@ -446,6 +460,18 @@ func (g *Go2TS) populateInterfaceDeclarationProperties(interfaceDeclaration *typ
 			propertyName = jsonTag[0]
 		}
 
+		// Process all the remaining options that we care about.
+		markedAsOptional := false
+		forceString := doNotForceToString
+		for _, option := range jsonTag[1:] {
+			if option == "string" {
+				forceString = forceToString
+			}
+			if option == "omitempty" {
+				markedAsOptional = true
+			}
+		}
+
 		// A `json:"-"` tag means the field will not be serialized to JSON, so we can skip it.
 		if propertyName == "-" {
 			continue
@@ -482,10 +508,7 @@ func (g *Go2TS) populateInterfaceDeclarationProperties(interfaceDeclaration *typ
 		if ignoreNilPolicy == ignoreNil || hasIgnoreNilTag {
 			propertyIgnoreNilPolicy = ignoreNil
 		}
-		propertyType := g.reflectTypeToTypeScriptType(structField.Type, interfaceDeclaration.Namespace, propertyIgnoreNilPolicy, implicitlyDiscovered)
-
-		// We mark the property as optional if the field is tagged with "omitempty".
-		markedAsOptional := len(jsonTag) > 1 && jsonTag[1] == "omitempty"
+		propertyType := g.reflectTypeToTypeScriptType(structField.Type, interfaceDeclaration.Namespace, propertyIgnoreNilPolicy, implicitlyDiscovered, forceString)
 
 		// Create the property signature and add it to the interface declaration.
 		property := typescript.PropertySignature{
@@ -507,11 +530,11 @@ const (
 	implicitlyDiscovered
 )
 
-func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace string, ignoreNilPolicy ignoreNilPolicy, typeDiscovery typeDiscovery) typescript.Type {
+func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace string, ignoreNilPolicy ignoreNilPolicy, typeDiscovery typeDiscovery, forceString forceToStringPolicy) typescript.Type {
 	// If the type is a pointer, then we remove the pointer indirection, compute the resulting
 	// TypeScript type, and return the union between that type and null.
 	if reflectType.Kind() == reflect.Ptr {
-		tsType := g.reflectTypeToTypeScriptType(removeIndirection(reflectType), namespace, ignoreNilPolicy, typeDiscovery)
+		tsType := g.reflectTypeToTypeScriptType(removeIndirection(reflectType), namespace, ignoreNilPolicy, typeDiscovery, forceString)
 		if ignoreNilPolicy == ignoreNil {
 			return tsType
 		}
@@ -547,13 +570,21 @@ func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace 
 		reflect.Int,
 		reflect.Float32,
 		reflect.Float64:
-		tsType = typescript.Number
+		if forceString == forceToString {
+			tsType = typescript.String
+		} else {
+			tsType = typescript.Number
+		}
 
 	case reflect.String:
 		tsType = typescript.String
 
 	case reflect.Bool:
-		tsType = typescript.Boolean
+		if forceString == forceToString {
+			tsType = typescript.String
+		} else {
+			tsType = typescript.Boolean
+		}
 
 	case reflect.Map:
 		// TypeScript index signature parameter types[1] must be either "string" or "number", and
@@ -580,7 +611,7 @@ func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace 
 
 		tsType = &typescript.MapType{
 			IndexType: indexType,
-			ValueType: g.reflectTypeToTypeScriptType(reflectType.Elem(), namespace, ignoreNilPolicy, implicitlyDiscovered),
+			ValueType: g.reflectTypeToTypeScriptType(reflectType.Elem(), namespace, ignoreNilPolicy, implicitlyDiscovered, doNotForceToString),
 		}
 
 		// Maps can be nil.
@@ -592,7 +623,7 @@ func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace 
 
 	case reflect.Slice, reflect.Array:
 		tsType = &typescript.ArrayType{
-			ItemsType: g.reflectTypeToTypeScriptType(reflectType.Elem(), namespace, ignoreNilPolicy, implicitlyDiscovered),
+			ItemsType: g.reflectTypeToTypeScriptType(reflectType.Elem(), namespace, ignoreNilPolicy, implicitlyDiscovered, doNotForceToString),
 		}
 		// Slices can be nil, but not arrays.
 		if reflectType.Kind() == reflect.Slice && ignoreNilPolicy == doNotIgnoreNil {

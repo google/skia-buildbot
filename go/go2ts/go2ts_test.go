@@ -41,6 +41,14 @@ func TestRender_ComplexStruct_Success(t *testing.T) {
 		OutermostField string
 	}
 
+	type StructWithSomeFieldsForcedToStrings struct {
+		BoolAsString                              bool  `json:",string"`
+		IntAsString                               int   `json:",string"`
+		Int64AsStringOmitEmpty                    int   `json:"id_string_omitempty,string,omitempty"`
+		Int64AsStringOmitEmptyReversedOptionOrder int   `json:"id_omitempty_string,omitempty,string"`
+		Uint8NotAsAString                         uint8 `json:"string,"` // Ensure we don't mistakenly use the tag name.
+	}
+
 	// This struct shows that the outermost fields in embedded structs always take precedence,
 	// regardless of whether the overlapping field appears before or after the struct.
 	type StructWithOverlappingEmbeddedStructs struct {
@@ -121,6 +129,7 @@ func TestRender_ComplexStruct_Success(t *testing.T) {
 		WithEmbeddedStruct                   StructWithEmbeddedStruct
 		WithEmbeddedStructPtr                StructWithEmbeddedStructPtr
 		MultilevelEmbedded                   MultilevelEmbeddedStruct
+		StructWithSomeFieldsForcedToStrings  StructWithSomeFieldsForcedToStrings
 		StructWithOverlappingEmbeddedStructs StructWithOverlappingEmbeddedStructs
 		RecursiveStruct                      RecursiveStruct
 		OptionalString                       string       `json:",omitempty"`
@@ -205,6 +214,14 @@ export interface MultilevelEmbeddedStruct {
 	AnotherInnermostField: string;
 }
 
+export interface StructWithSomeFieldsForcedToStrings {
+	BoolAsString: string;
+	IntAsString: string;
+	id_string_omitempty?: string;
+	id_omitempty_string?: string;
+	string: number;
+}
+
 export interface StructWithOverlappingEmbeddedStructs {
 	InnermostField: number;
 	AnotherInnermostField: number;
@@ -238,6 +255,7 @@ export interface ComplexStruct {
 	WithEmbeddedStruct: StructWithEmbeddedStruct;
 	WithEmbeddedStructPtr: StructWithEmbeddedStructPtr;
 	MultilevelEmbedded: MultilevelEmbeddedStruct;
+	StructWithSomeFieldsForcedToStrings: StructWithSomeFieldsForcedToStrings;
 	StructWithOverlappingEmbeddedStructs: StructWithOverlappingEmbeddedStructs;
 	RecursiveStruct: RecursiveStruct;
 	OptionalString?: string;
