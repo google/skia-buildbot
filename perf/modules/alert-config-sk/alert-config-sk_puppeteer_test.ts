@@ -18,7 +18,7 @@ describe('alert-config-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('alert-config-sk')).to.have.length(2);
+    expect(await testBed.page.$$('alert-config-sk')).to.have.length(1);
   });
 
   describe('screenshots', () => {
@@ -29,9 +29,33 @@ describe('alert-config-sk', () => {
       await testBed.page.click('#hide_group_by');
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-group-by');
     });
-    it('does not show email if window.perf.notification is none', async () => {
-      await testBed.page.click('#hide_email');
-      await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-email');
+    it('shows email control if window.perf.notification html_email', async () => {
+      await testBed.page.click('#display_email');
+      await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-email');
+    });
+    it('shows issue tracker control if window.perf.notification is markdown_issuetracker', async () => {
+      await testBed.page.click('#display_issue');
+      await takeScreenshot(
+        testBed.page,
+        'perf',
+        'alert-config-sk-issue-tracker'
+      );
+    });
+    it('does not show email or issue tracker if window.perf.notification is none', async () => {
+      await testBed.page.click('#hide_notification');
+      await takeScreenshot(
+        testBed.page,
+        'perf',
+        'alert-config-sk-no-notification'
+      );
+    });
+    it('shows an error if the issue tracker component is not a valid int', async () => {
+      await testBed.page.click('#invalid_component');
+      await takeScreenshot(
+        testBed.page,
+        'perf',
+        'alert-config-sk-invalid-component'
+      );
     });
   });
 });

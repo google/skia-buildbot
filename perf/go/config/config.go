@@ -58,6 +58,21 @@ type AuthConfig struct {
 	EmailRegex string `json:"email_regex,omitempty"`
 }
 
+type NotifyConfig struct {
+	// Notifications chooses how notifications are sent when a regression is found.
+	Notifications notifytypes.Type `json:"notifications"`
+
+	// IssueTrackerAPIKeySecretProject is the name of the GCP project where the
+	// issue tracker API key is stored in the secret manager. Only required if
+	// Notifications is set to use an issue tracker.
+	IssueTrackerAPIKeySecretProject string `json:"issue_tracker_api_key_secret_project,omitempty"`
+
+	// IssueTrackerAPIKeySecretName is the name of the secret in the secret
+	// manager that contains the issue tracker API key. Only required if
+	// Notifications is set to use an issue tracker.
+	IssueTrackerAPIKeySecretName string `json:"issue_tracker_api_key_secret_name,omitempty"`
+}
+
 // DataStoreType determines what type of datastore to build. Applies to
 // tracestore.Store, alerts.Store, regression.Store, and shortcut.Store.
 type DataStoreType string
@@ -531,13 +546,11 @@ type InstanceConfig struct {
 	// which percentage of traces get uploaded
 	TraceSampleProportion float32 `json:"trace_sample_proportion,omitempty"`
 
-	// Notifications chooses how notifications are sent when a regression is found.
-	Notifications notifytypes.Type `json:"notifications"`
-
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
+	NotifyConfig    NotifyConfig    `json:"notify_config"`
 }
 
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig

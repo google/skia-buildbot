@@ -7,9 +7,13 @@ const (
 	// HTMLEmail means send HTML formatted emails.
 	HTMLEmail Type = "html_email"
 
+	// MarkdownIssueTracker means send Markdown formatted notifications to the
+	// issue tracker.
+	MarkdownIssueTracker Type = "markdown_issuetracker"
+
 	// None means do not send any notification.
 	None Type = "none"
 )
 
-// AllNotifierTypes is the list of all valid NotifyType's.
-var AllNotifierTypes []Type = []Type{HTMLEmail, None}
+// AllNotifierTypes is the list of all valid NotifyTypes.
+var AllNotifierTypes []Type = []Type{HTMLEmail, MarkdownIssueTracker, None}

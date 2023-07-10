@@ -11,32 +11,32 @@
         width: 40em;
       }
 
-      body {
-        display: flex;
+      section {
+        padding: 8px;
       }
 
-      section {
+      .state_and_controls {
+        display: flex;
         padding: 8px;
       }
     </style>
   </head>
 
-  <body class="body-sk font-sk">
-    <section class="body-sk font-sk">
-      <h1>alert-config-sk</h1>
+  <body class="body-sk font-sk darkmode">
+    <h1>alert-config-sk</h1>
+    <div class="state_and_controls" >
       <alert-config-sk></alert-config-sk>
-    </section>
-
-    <section class="body-sk font-sk darkmode">
-      <h1>alert-config-sk</h1>
-      <alert-config-sk></alert-config-sk>
-    </section>
-
-    <h2>State</h2>
-    <button id="display_group_by">Display Group By</button>
-    <button id="hide_group_by">Hide Group By</button>
-    <button id="display_email">Display email</button>
-    <button id="hide_email">Hide email</button>
-    <pre id="state"></pre>
+      <section>
+        <h2>State</h2>
+        <button id="display_group_by">Display Group By</button>
+        <button id="hide_group_by">Hide Group By</button>
+        <button id="display_email">Display email</button>
+        <button id="display_issue">Display issue tracker component</button>
+        <button id="hide_notification">No Notification Options</button>
+        <button id="invalid_component">Invalid Component</button>
+        <pre id="state"></pre>
+        <error-toast-sk></error-toast-sk>
+      </section>
+    </div>
   </body>
 </html>

@@ -124,6 +124,7 @@ export class AlertConfigSk extends ElementSk {
       display_name: 'Name',
       query: '',
       alert: '',
+      issue_tracker_component: '',
       interesting: 0,
       bug_uri_template: '',
       algo: 'kmeans',
@@ -291,9 +292,8 @@ export class AlertConfigSk extends ElementSk {
       label="Data is sparse, so only include commits that have data."
     ></checkbox-sk>
 
-    ${window.perf.notifications !== 'html_email'
-      ? html``
-      : html`
+    ${window.perf.notifications === 'html_email'
+      ? html`
           <h3>Where are alerts sent</h3>
           <label for="sent">
             Alert Destination: Comma separated list of email addresses.
@@ -306,20 +306,53 @@ export class AlertConfigSk extends ElementSk {
           />
           <button @click=${ele.testAlert}>Test</button>
           <spinner-sk id="alertSpinner"></spinner-sk>
-        `}
-
-    <h3>Where are bugs filed</h3>
-    <label for="template">
-      Bug URI Template: {cluster_url}, {commit_url}, and {message}.
-    </label>
-    <input
-      id="template"
-      .value=${ele._config.bug_uri_template}
-      @input=${(e: InputEvent) =>
-        (ele._config.bug_uri_template = (e.target! as HTMLInputElement).value)}
-    />
-    <button @click=${ele.testBugTemplate}>Test</button>
-    <spinner-sk id="bugSpinner"></spinner-sk>
+        `
+      : html``}
+    ${window.perf.notifications === 'markdown_issuetracker'
+      ? html`
+          <h3>
+            Which component should receive issues for regressions that are
+            found.
+          </h3>
+          <label for="component"> Issue Tracker Component ID. </label>
+          <input
+            type="text"
+            id="component"
+            inputmode="numeric"
+            pattern="\\d+"
+            .value=${ele._config.issue_tracker_component}
+            @input=${(e: InputEvent) => {
+              const valMsg = (e.target! as HTMLInputElement).validationMessage;
+              if (valMsg !== '') {
+                errorMessage(valMsg, 3000);
+                return;
+              }
+              ele._config.issue_tracker_component = (
+                e.target! as HTMLInputElement
+              ).value;
+            }}
+          />
+          <button @click=${ele.testAlert}>Test</button>
+          <spinner-sk id="alertSpinner"></spinner-sk>
+        `
+      : html``}
+    <!-- No bug template if alerts are already going to the issue tracker. -->
+    ${window.perf.notifications === 'markdown_issuetracker'
+      ? html``
+      : html`<h3>Where are bugs filed</h3>
+          <label for="template">
+            Bug URI Template: {cluster_url}, {commit_url}, and {message}.
+          </label>
+          <input
+            id="template"
+            .value=${ele._config.bug_uri_template}
+            @input=${(e: InputEvent) =>
+              (ele._config.bug_uri_template = (
+                e.target! as HTMLInputElement
+              ).value)}
+          />
+          <button @click=${ele.testBugTemplate}>Test</button>
+          <spinner-sk id="bugSpinner"></spinner-sk> `}
 
     <h3>Who owns this alert</h3>
     <label for="owner">Email address of owner.</label>

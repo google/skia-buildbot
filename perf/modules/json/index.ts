@@ -16,6 +16,7 @@ export interface Alert {
 	display_name: string;
 	query: string;
 	alert: string;
+	issue_tracker_component: string;
 	interesting: number;
 	bug_uri_template: string;
 	algo: ClusterAlgo;
@@ -396,7 +397,7 @@ export type RequestType = 0 | 1;
 
 export type Subset = 'all' | 'regressions' | 'untriaged';
 
-export type NotifierTypes = 'html_email' | 'none';
+export type NotifierTypes = 'html_email' | 'markdown_issuetracker' | 'none';
 
 export type TryBotRequestKind = 'trybot' | 'commit';
 

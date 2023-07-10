@@ -59,6 +59,7 @@ const alert: Alert = {
   id_as_string: '-1',
   sparse: false,
   step_up_only: false,
+  issue_tracker_component: '',
   display_name: 'A name',
   direction: 'BOTH',
   query: '',

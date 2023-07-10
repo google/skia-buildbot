@@ -316,6 +316,7 @@ export class ClusterPageSk extends ElementSk {
         k: +this.state.k,
         algo: this.state.algo,
         interesting: +this.state.interesting,
+        issue_tracker_component: '',
         sparse: this.state.sparse,
         step: '',
         alert: '',

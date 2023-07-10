@@ -129,10 +129,10 @@
       "required": [
         "URL",
         "contact",
-        "notifications",
         "data_store_config",
         "ingestion_config",
-        "git_repo_config"
+        "git_repo_config",
+        "notify_config"
       ],
       "properties": {
         "URL": {
@@ -156,9 +156,6 @@
         "trace_sample_proportion": {
           "type": "number"
         },
-        "notifications": {
-          "type": "string"
-        },
         "auth_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/AuthConfig"
@@ -174,6 +171,28 @@
         "git_repo_config": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/GitRepoConfig"
+        },
+        "notify_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NotifyConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NotifyConfig": {
+      "required": [
+        "notifications"
+      ],
+      "properties": {
+        "notifications": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_project": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_name": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

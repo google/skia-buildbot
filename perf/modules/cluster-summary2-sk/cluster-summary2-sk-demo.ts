@@ -44,6 +44,7 @@ const alert: Alert = {
   id_as_string: '-1',
   display_name: '',
   radius: 6,
+  issue_tracker_component: '',
   query: 'config=565',
   k: 0,
   algo: 'stepfit',

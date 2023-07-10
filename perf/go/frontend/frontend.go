@@ -232,6 +232,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			CommitRangeURL:             f.flags.CommitRangeURL,
 			DisplayGroupBy:             f.flags.DisplayGroupBy,
 			HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
+			Notifications:              config.Config.NotifyConfig.Notifications,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -409,11 +410,10 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
-	notifierType := config.Config.Notifications
 	if f.flags.NoEmail {
-		notifierType = notifytypes.None
+		config.Config.NotifyConfig.Notifications = notifytypes.None
 	}
-	f.notifier, err = notify.New(notifierType, config.Config.URL)
+	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, config.Config.URL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -917,7 +917,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := &TriageResponse{}
 
-	if tr.Triage.Status == regression.Negative {
+	if tr.Triage.Status == regression.Negative && config.Config.NotifyConfig.Notifications != notifytypes.MarkdownIssueTracker {
 		cfgs, err := f.configProvider()
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
@@ -1357,6 +1357,10 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !f.isEditor(w, r, "alert-update", cfg) {
 		return
+	}
+
+	if err := cfg.Validate(); err != nil {
+		httputils.ReportError(w, err, "Invalid Alert", http.StatusInternalServerError)
 	}
 
 	if err := f.alertStore.Save(r.Context(), cfg); err != nil {

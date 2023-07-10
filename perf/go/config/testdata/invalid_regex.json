@@ -3,7 +3,6 @@
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "(?=.*[^a-zA-Z0-9])",
-    "notifications": "none",
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },
@@ -25,6 +24,9 @@
         },
         "branches": [],
         "file_ingestion_pubsub_topic_name": ""
+    },
+    "notify_config": {
+        "notifications": "html_email"
     },
     "git_repo_config": {
         "provider": "gitiles",

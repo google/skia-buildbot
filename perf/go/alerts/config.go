@@ -77,19 +77,22 @@ func ConfigStateToInt(c ConfigState) int {
 	return 0
 }
 
+const InvalidIssueTrackerComponent = 0
+
 // Alert represents the configuration for one alert.
 type Alert struct {
 	// We need to keep the int64 version of the ID around to support Cloud
 	// Datastore. Once everyone migrates to SQL backed datastores it can be
 	// removed.
-	IDAsString     string                            `json:"id_as_string"    `
-	DisplayName    string                            `json:"display_name"    `
-	Query          string                            `json:"query"           ` // The query to perform on the trace store to select the traces to alert on.
-	Alert          string                            `json:"alert"           ` // Email address to send alerts to.
-	Interesting    float32                           `json:"interesting"     ` // The regression interestingness threshold.
-	BugURITemplate string                            `json:"bug_uri_template"` // URI Template used for reporting bugs. Format TBD.
-	Algo           types.RegressionDetectionGrouping `json:"algo"            ` // Which clustering algorithm to use.
-	Step           types.StepDetection               `json:"step"            `
+	IDAsString            string                            `json:"id_as_string"    `
+	DisplayName           string                            `json:"display_name"    `
+	Query                 string                            `json:"query"           `               // The query to perform on the trace store to select the traces to alert on.
+	Alert                 string                            `json:"alert"           `               // Email address to send alerts to.
+	IssueTrackerComponent int64                             `json:"issue_tracker_component,string"` // The issue tracker component to send alerts to. Is really an int64, but that doesn't serialize to JSON.
+	Interesting           float32                           `json:"interesting"     `               // The regression interestingness threshold.
+	BugURITemplate        string                            `json:"bug_uri_template"`               // URI Template used for reporting bugs. Format TBD.
+	Algo                  types.RegressionDetectionGrouping `json:"algo"            `               // Which clustering algorithm to use.
+	Step                  types.StepDetection               `json:"step"            `
 
 	// Which algorithm to use to detect steps.
 	StateAsString ConfigState `json:"state"       ` // The state of the config.
@@ -207,7 +210,7 @@ func newCombinationFromParams(keys []string, p paramtools.Params) Combination {
 //	}
 func (c *Alert) GroupCombinations(ps paramtools.ReadOnlyParamSet) ([]Combination, error) {
 	keys := c.GroupedBy()
-	keys = sort.StringSlice(keys)
+	sort.Strings(keys)
 	paramsCh, err := ps.CartesianProduct(keys)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "invalid GroupBy")

@@ -1,11 +1,12 @@
-import './index';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { AlertConfigSk } from './alert-config-sk';
 import { Alert } from '../json';
+import '../../../elements-sk/modules/error-toast-sk';
 
 window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.display_group_by = true;
+window.perf.notifications = 'none';
 
 // Force all the alert-config-sk controls on the page to re-render.
 const refreshControls = () => {
@@ -14,23 +15,6 @@ const refreshControls = () => {
     ele.paramset = ele.paramset;
   });
 };
-
-$$('#display_group_by')!.addEventListener('click', () => {
-  window.perf.display_group_by = true;
-  refreshControls();
-});
-$$('#hide_group_by')!.addEventListener('click', () => {
-  window.perf.display_group_by = false;
-  refreshControls();
-});
-$$('#display_email')!.addEventListener('click', () => {
-  window.perf.notifications = 'html_email';
-  refreshControls();
-});
-$$('#hide_email')!.addEventListener('click', () => {
-  window.perf.notifications = 'none';
-  refreshControls();
-});
 
 const paramset = {
   config: ['565', '8888'],
@@ -63,6 +47,7 @@ const config: Alert = {
   direction: 'BOTH',
   query: 'config=565',
   alert: 'alerts@example.com',
+  issue_tracker_component: '1113162',
   interesting: 25,
   step: 'cohen',
   bug_uri_template: 'http://example.com/{description}/{url}',
@@ -75,6 +60,37 @@ const config: Alert = {
   radius: 7,
   k: 50,
 };
+
+$$('#display_group_by')!.addEventListener('click', () => {
+  window.perf.display_group_by = true;
+  config.issue_tracker_component = '1113162';
+  refreshControls();
+});
+$$('#hide_group_by')!.addEventListener('click', () => {
+  window.perf.display_group_by = false;
+  config.issue_tracker_component = '1113162';
+  refreshControls();
+});
+$$('#display_email')!.addEventListener('click', () => {
+  window.perf.notifications = 'html_email';
+  config.issue_tracker_component = '1113162';
+  refreshControls();
+});
+$$('#display_issue')!.addEventListener('click', () => {
+  window.perf.notifications = 'markdown_issuetracker';
+  config.issue_tracker_component = '1113162';
+  refreshControls();
+});
+$$('#hide_notification')!.addEventListener('click', () => {
+  window.perf.notifications = 'none';
+  config.issue_tracker_component = '1113162';
+  refreshControls();
+});
+$$('#invalid_component')!.addEventListener('click', () => {
+  window.perf.notifications = 'markdown_issuetracker';
+  config.issue_tracker_component = 'abcdef';
+  refreshControls();
+});
 
 const keyOrder = ['test', 'units'];
 
@@ -92,3 +108,6 @@ const ele = document.querySelector<AlertConfigSk>('alert-config-sk')!;
 window.setInterval(() => {
   state.textContent = JSON.stringify(ele.config, null, '  ');
 }, 100);
+
+// eslint-disable-next-line import/first
+import './index';

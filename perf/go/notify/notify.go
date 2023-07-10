@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -47,8 +48,8 @@ type Notifier struct {
 	url string
 }
 
-// new returns a new Notifier.
-func new(formatter Formatter, transport Transport, url string) *Notifier {
+// newNotifier returns a newNotifier Notifier.
+func newNotifier(formatter Formatter, transport Transport, url string) *Notifier {
 	return &Notifier{
 		formatter: formatter,
 		transport: transport,
@@ -111,13 +112,20 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 }
 
 // New returns a Notifier of the selected type.
-func New(t notifytypes.Type, URL string) (*Notifier, error) {
-	switch t {
+func New(ctx context.Context, cfg *config.NotifyConfig, URL string) (*Notifier, error) {
+	switch cfg.Notifications {
 	case notifytypes.None:
-		return new(NewHTMLFormatter(), NewNoopTransport(), URL), nil
+		return newNotifier(NewHTMLFormatter(), NewNoopTransport(), URL), nil
 	case notifytypes.HTMLEmail:
-		return new(NewHTMLFormatter(), NewEmailTransport(), URL), nil
+		return newNotifier(NewHTMLFormatter(), NewEmailTransport(), URL), nil
+	case notifytypes.MarkdownIssueTracker:
+		tracker, err := NewIssueTrackerTransport(ctx, cfg)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return newNotifier(NewMarkdownFormatter(), tracker, URL), nil
+
 	default:
-		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", t, notifytypes.AllNotifierTypes)
+		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)
 	}
 }

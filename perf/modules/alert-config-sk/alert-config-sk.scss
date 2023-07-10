@@ -5,6 +5,10 @@ alert-config-sk {
   algo-select-sk {
     display: block;
   }
+
+  input[pattern]:invalid {
+    color: var(--error);
+  }
 }
 
 alert-config-sk > h3 {

@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "email.go",
         "html.go",
+        "issuetracker.go",
         "markdown.go",
         "noop.go",
         "notify.go",
@@ -14,13 +15,19 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//email/go/emailclient",
+        "//go/issuetracker/v1:issuetracker",
+        "//go/metrics2",
         "//go/now",
+        "//go/secret",
         "//go/skerr",
         "//perf/go/alerts",
         "//perf/go/clustering2",
+        "//perf/go/config",
         "//perf/go/git/provider",
         "//perf/go/notifytypes",
         "//perf/go/stepfit",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
