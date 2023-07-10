@@ -1440,7 +1440,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := f.notifier.ExampleSend(r.Context(), req); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to send notification: Have you given the service account for this instance Issue Editor permissions on the component?", http.StatusInternalServerError)
 	}
 }
 

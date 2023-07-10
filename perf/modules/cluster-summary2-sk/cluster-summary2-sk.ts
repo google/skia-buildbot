@@ -238,6 +238,14 @@ export class ClusterSummary2Sk extends ElementSk {
           )}</span
         >
       </div>
+      ${ele.summary.notification_id
+        ? html` <div>
+            Bug:
+            <a href="http://b/${ele.summary.notification_id}"
+              >b/${ele.summary.notification_id}</a
+            >
+          </div>`
+        : html``}
     </div>
     <plot-simple-sk
       class="plot"

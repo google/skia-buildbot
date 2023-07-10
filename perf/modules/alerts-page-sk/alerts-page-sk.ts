@@ -72,6 +72,14 @@ class AlertsPageSk extends ElementSk {
         <button @click=${ele.accept}>Accept</button>
       </div>
     </dialog>
+    <button
+      class="action"
+      @click=${ele.add}
+      ?disabled=${!ele.isEditor}
+      title="Create a new alert."
+    >
+      New
+    </button>
     <table>
       <tr>
         <th></th>
@@ -89,7 +97,6 @@ class AlertsPageSk extends ElementSk {
     <div class="warning" ?hidden=${!!ele.alerts.length}>
       No alerts have been configured.
     </div>
-    <button class="fab" @click=${ele.add} ?disabled=${!ele.isEditor}>+</button>
     <checkbox-sk
       ?checked=${ele.showDeleted}
       @change=${ele.showChanged}

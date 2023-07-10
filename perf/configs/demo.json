@@ -3,8 +3,14 @@
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
     "fetch_chrome_perf_anomalies": true,
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
     "notify_config": {
-        "notifications": "none"
+        "notifications": "markdown_issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",

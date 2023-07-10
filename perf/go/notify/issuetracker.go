@@ -17,9 +17,11 @@ import (
 
 // IssueTrackerTransport implements Transport using the issue tracker API.
 type IssueTrackerTransport struct {
-	client                *issuetracker.Service
-	sendNewRegression     metrics2.Counter
-	sendRegressionMissing metrics2.Counter
+	client                    *issuetracker.Service
+	sendNewRegression         metrics2.Counter
+	sendNewRegressionFail     metrics2.Counter
+	sendRegressionMissing     metrics2.Counter
+	sendRegressionMissingFail metrics2.Counter
 }
 
 // NewIssueTrackerTransport returns a new IssueTrackerTransport.
@@ -44,9 +46,11 @@ func NewIssueTrackerTransport(ctx context.Context, cfg *config.NotifyConfig) (*I
 	c.BasePath = "https://issuetracker.googleapis.com"
 
 	return &IssueTrackerTransport{
-		client:                c,
-		sendNewRegression:     metrics2.GetCounter("perf_issue_tracker_sent_new_regression"),
-		sendRegressionMissing: metrics2.GetCounter("perf_issue_tracker_sent_regression_missing"),
+		client:                    c,
+		sendNewRegression:         metrics2.GetCounter("perf_issue_tracker_sent_new_regression"),
+		sendNewRegressionFail:     metrics2.GetCounter("perf_issue_tracker_sent_new_regression_fail"),
+		sendRegressionMissing:     metrics2.GetCounter("perf_issue_tracker_sent_regression_missing"),
+		sendRegressionMissingFail: metrics2.GetCounter("perf_issue_tracker_sent_regression_missing_fail"),
 	}, nil
 }
 
@@ -71,8 +75,9 @@ func (t *IssueTrackerTransport) SendNewRegression(ctx context.Context, alert *al
 			Title:  subject,
 		},
 	}
-	resp, err := t.client.Issues.Create(newIssue).Do()
+	resp, err := t.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
+		t.sendNewRegressionFail.Inc(1)
 		return "", skerr.Wrapf(err, "creating issue")
 	}
 	t.sendNewRegression.Inc(1)
@@ -96,6 +101,7 @@ func (t *IssueTrackerTransport) SendRegressionMissing(ctx context.Context, threa
 		AddMask: "status",
 	}).Do()
 	if err != nil {
+		t.sendRegressionMissingFail.Inc(1)
 		return skerr.Wrapf(err, "updating existing issue: %d", issueID)
 	}
 	t.sendRegressionMissing.Inc(1)

@@ -483,23 +483,25 @@ export class AlertConfigSk extends ElementSk {
       });
   }
 
-  private testAlert() {
+  private async testAlert(): Promise<void> {
     this.alertSpinner!.active = true;
     const body: Alert = this.config;
-    fetch('/_/alert/notify/try', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(() => {
-        this.alertSpinner!.active = false;
-      })
-      .catch((msg) => {
-        this.alertSpinner!.active = false;
-        errorMessage(msg);
+
+    try {
+      const resp = await fetch('/_/alert/notify/try', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      if (!resp.ok) {
+        const msg = await resp.text();
+        errorMessage(`${resp.statusText}: ${msg}`);
+      }
+    } finally {
+      this.alertSpinner!.active = false;
+    }
   }
 
   /** @prop paramset {string} A serialized paramtools.ParamSet. */

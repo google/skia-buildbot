@@ -190,11 +190,21 @@ run-demo-instance:
 		--do_clustering=false \
 		--port=:8002 \
 		--prom_port=:20001 \
-		--noemail \
 		--config_filename=./configs/demo.json \
 		--display_group_by=false \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
+
+
+run-auth-proxy-before-demo-instance:
+	bazelisk run //kube/cmd/auth-proxy -- \
+		--prom-port=:20003 \
+		--role=editor=google.com \
+		--authtype=mocked \
+		--mock_user=$(USER)@google.com \
+		--port=:8003 \
+		--target_port=http://127.0.0.1:8002 \
+		--local
 
 # Used to test chrome-perf-public ingestion into a local CDB instance.
 #

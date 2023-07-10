@@ -88,6 +88,7 @@ const summary: ClusterSummary = {
   },
   num: 4,
   ts: new Date().toISOString(),
+  notification_id: '290665987',
 };
 
 const frame: FrameResponse = {
