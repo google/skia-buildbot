@@ -1,5 +1,5 @@
 {
-  "URL": "https://androidx-perf.skia.org/",
+  "URL": "https://androidx-perf.skia.org",
   "contact": "http://go/androidx-discuss",
   "trace_sample_proportion": 0.01,
   "notify_config": {
