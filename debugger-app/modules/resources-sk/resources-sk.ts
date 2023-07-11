@@ -68,8 +68,7 @@ export class ResourcesSk extends ElementDocSk {
         () => {
           ele.selectItem(item.index);
         } /* makes it easier to select 1x1 images */
-      }
-    >
+      }>
       ${displayName(item)} </span
     ><br />
     <img
@@ -80,8 +79,7 @@ export class ResourcesSk extends ElementDocSk {
         : ''}"
       @click=${() => {
         ele.selectItem(item.index);
-      }}
-    />
+      }} />
   </div>`;
 
   private static templateSelectionDetail = (
@@ -220,8 +218,7 @@ export class ResourcesSk extends ElementDocSk {
             class="clickable-cell"
             @click=${() => {
               this.jump(f, key, nodeId);
-            }}
-          >
+            }}>
             ${f}
           </td>`
         )}

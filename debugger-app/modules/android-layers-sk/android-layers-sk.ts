@@ -47,8 +47,7 @@ export class AndroidLayersSk extends ElementDocSk {
     <div
       class="androidlayerbox ${item.nodeId === ele._inspectedLayer
         ? 'selected'
-        : ''}"
-    >
+        : ''}">
       <span class="layername"><b>${item.nodeId}</b>: ${item.name}</span><br />
       Layer size = <b>(${item.layerWidth}, ${item.layerHeight})</b><br />
       Uses this frame = <b>${item.usesThisFrame.length}</b>
@@ -58,14 +57,12 @@ export class AndroidLayersSk extends ElementDocSk {
         .text=${'Show Use'}
         .list=${item.usesThisFrame}
         @next-item=${ele._jumpCommand}
-        title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source."
-      >
+        title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source.">
       </cycler-button-sk>
       <button
         @click=${() => ele._inspectLayer(item.nodeId, item.frameOfLastUpdate)}
         class="${item.nodeId === ele._inspectedLayer ? 'buttonselected' : ''}"
-        title="Open the SkPicture representing the update on frame ${item.frameOfLastUpdate}."
-      >
+        title="Open the SkPicture representing the update on frame ${item.frameOfLastUpdate}.">
         ${item.nodeId === ele._inspectedLayer ? 'Exit' : 'Inspector'}
       </button>
     </div>

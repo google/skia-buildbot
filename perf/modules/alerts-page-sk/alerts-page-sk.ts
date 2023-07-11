@@ -65,8 +65,7 @@ class AlertsPageSk extends ElementSk {
       <alert-config-sk
         id="alertconfig"
         .paramset=${ele.paramset}
-        .config=${ele.cfg}
-      ></alert-config-sk>
+        .config=${ele.cfg}></alert-config-sk>
       <div class="dialogButtons">
         <button @click=${ele.cancel}>Cancel</button>
         <button @click=${ele.accept}>Accept</button>
@@ -76,8 +75,7 @@ class AlertsPageSk extends ElementSk {
       class="action"
       @click=${ele.add}
       ?disabled=${!ele.isEditor}
-      title="Create a new alert."
-    >
+      title="Create a new alert.">
       New
     </button>
     <table>
@@ -101,8 +99,7 @@ class AlertsPageSk extends ElementSk {
       ?checked=${ele.showDeleted}
       @change=${ele.showChanged}
       label="Show deleted configs."
-      id="showDeletedConfigs"
-    ></checkbox-sk>
+      id="showDeletedConfigs"></checkbox-sk>
   `;
 
   private static displayIfAlertIsInvalid(item: Alert) {
@@ -122,8 +119,7 @@ class AlertsPageSk extends ElementSk {
               title="Edit"
               @click=${ele.edit}
               .__config=${item}
-              ?disabled=${!ele.isEditor}
-            ></create-icon-sk>
+              ?disabled=${!ele.isEditor}></create-icon-sk>
           </td>
           <td>${item.display_name}</td>
           <td>
@@ -137,8 +133,7 @@ class AlertsPageSk extends ElementSk {
               title="Delete"
               @click=${ele.delete}
               .__config=${item}
-              ?disabled=${!ele.isEditor}
-            ></delete-icon-sk>
+              ?disabled=${!ele.isEditor}></delete-icon-sk>
           </td>
           <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
           <td>${AlertsPageSk.ifNotActive(item.state)}</td>

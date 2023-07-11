@@ -104,8 +104,7 @@ export class BinaryPageSk extends ElementSk {
           ${el.metadata?.author},
           <human-date-sk
             .date=${el.metadata?.timestamp}
-            .diff=${true}
-          ></human-date-sk>
+            .diff=${true}></human-date-sk>
           ago.
         </span>
       </p>
@@ -131,14 +130,12 @@ export class BinaryPageSk extends ElementSk {
           aria-label="Search for node..."
           autocomplete="on"
           @input=${el.onSearchInput}
-          @keyup=${el.onSearchKeyUp}
-        />
+          @keyup=${el.onSearchKeyUp} />
         <ol
           id="searchSuggestions"
           class="search-match-list"
           ?hidden=${!el.listOfSearchResults.length}
-          @mouseover=${el.clearDefaultSelected}
-        >
+          @mouseover=${el.clearDefaultSelected}>
           ${el.listOfSearchResults.map((result, i) =>
             el.searchResult(result, i)
           )}
@@ -157,8 +154,7 @@ export class BinaryPageSk extends ElementSk {
   ): TemplateResult => html`
     <li
       class=${`search-match-list-item ${idx === 0 ? 'selected' : ''}`}
-      @click=${() => this.showElement(match)}
-    >
+      @click=${() => this.showElement(match)}>
       ${match.item}
     </li>
   `;

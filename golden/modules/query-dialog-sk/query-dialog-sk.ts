@@ -34,14 +34,12 @@ export class QueryDialogSk extends ElementSk {
       <query-sk
         @query-change=${el.queryChange}
         hide_invert
-        hide_regex
-      ></query-sk>
+        hide_regex></query-sk>
       <div class="selection-summary">
         ${el.isSelectionEmpty()
           ? html`<p class="empty-selection">No items selected.</p>`
           : html`<paramset-sk
-              .paramsets=${[el.currentSelection]}
-            ></paramset-sk>`}
+              .paramsets=${[el.currentSelection]}></paramset-sk>`}
       </div>
     </div>
 

@@ -83,8 +83,7 @@ export class SkottieTextSamplerSk extends ElementSk {
         }}
         type="outline"
         .content=${sample.language}
-        .classes=${['sample__button']}
-      >
+        .classes=${['sample__button']}>
       </skottie-button-sk>
     `;
   }

@@ -78,8 +78,7 @@ export class TaskQueueSk extends ElementSk {
         title="Delete this task"
         alt="Delete"
         ?hidden=${!task.can_delete}
-        @click=${() => el.confirmDeleteTask(index)}
-      ></delete-icon-sk>
+        @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
     </td>
     <td>
       ${getFormattedTimestamp(task.ts_added)}
@@ -112,8 +111,7 @@ export class TaskQueueSk extends ElementSk {
     <div
       id=${`detailsDialog${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${formatTask(task)}</pre>
       </div>

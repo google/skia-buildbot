@@ -57,8 +57,7 @@ export class PatchSk extends ElementSk {
         <td>
           <input-sk
             @input=${ele._clChanged}
-            label="Please paste a complete Gerrit URL"
-          ></input-sk>
+            label="Please paste a complete Gerrit URL"></input-sk>
         </td>
         <td>
           <div class="cl-detail-container">
@@ -78,8 +77,7 @@ export class PatchSk extends ElementSk {
         <td colspan="3" class="patch-manual">
           <expandable-textarea-sk
             displaytext="Specify Patch Manually"
-            @input=${ele._patchChanged}
-          >
+            @input=${ele._patchChanged}>
           </expandable-textarea-sk>
         </td>
       </tr>

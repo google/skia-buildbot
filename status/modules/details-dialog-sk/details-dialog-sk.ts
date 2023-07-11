@@ -72,8 +72,7 @@ export class DetailsDialogSk extends ElementSk {
           .allowDelete=${true}
           .showIgnoreFailure=${el.showCommentsIgnoreFailure}
           .showFlaky=${el.showCommentsFlaky}
-          .editRights=${el.canEditComments}
-        ></comments-sk>
+          .editRights=${el.canEditComments}></comments-sk>
       </div>
     </div>
   `;
@@ -159,8 +158,7 @@ export class DetailsDialogSk extends ElementSk {
           html`<br /><task-driver-sk
               id="tdStatus"
               .data=${td}
-              embedded
-            ></task-driver-sk>`
+              embedded></task-driver-sk>`
       );
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
@@ -190,8 +188,7 @@ export class DetailsDialogSk extends ElementSk {
                 <a
                   href=${this.taskUrl(task)}
                   target="_blank"
-                  rel="noopener noreferrer"
-                >
+                  rel="noopener noreferrer">
                   View on Task Scheduler
                 </a>
               </td>
@@ -202,8 +199,7 @@ export class DetailsDialogSk extends ElementSk {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="${swarmingUrl()}/task?id=${task.swarmingTaskId}"
-                >
+                  href="${swarmingUrl()}/task?id=${task.swarmingTaskId}">
                   View on Swarming
                 </a>
               </td>
@@ -214,8 +210,7 @@ export class DetailsDialogSk extends ElementSk {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href=${this.swarmingUrl(task.name)}
-                >
+                  href=${this.swarmingUrl(task.name)}>
                   View on Swarming
                 </a>
               </td>
@@ -267,8 +262,7 @@ export class DetailsDialogSk extends ElementSk {
       <a
         href="${this.swarmingUrl(taskspec)}"
         target="_blank"
-        rel="noopener noreferrer"
-      >
+        rel="noopener noreferrer">
         ${taskspec}
       </a>
     </h3>`;
@@ -290,16 +284,14 @@ export class DetailsDialogSk extends ElementSk {
         <a
           href="${revisionUrlTemplate(this.repo)}${commit.hash}"
           target="_blank"
-          rel="noopener noreferrer"
-        >
+          rel="noopener noreferrer">
           ${commit.hash}
         </a>
         <content-copy-icon-sk
           class="small-icon clickable"
           @click=${() => {
             navigator.clipboard.writeText(commit.hash);
-          }}
-        ></content-copy-icon-sk>
+          }}></content-copy-icon-sk>
         <br />
         ${commit.author}
         <br />

@@ -109,8 +109,7 @@ export class IndexPageSk extends ElementSk {
                 <td>
                   <a
                     href="https://task-scheduler.skia.org/task/${output.metadata
-                      .task_id}"
-                  >
+                      .task_id}">
                     ${output.metadata.compile_task_name}
                   </a>
                 </td>

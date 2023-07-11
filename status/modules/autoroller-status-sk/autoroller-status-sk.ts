@@ -60,8 +60,7 @@ export class AutorollerStatusSk extends ElementSk {
             class="tr roller ${colorClass(roller)}"
             href=${roller.url}
             target="_blank"
-            rel="noopener noreferrer"
-          >
+            rel="noopener noreferrer">
             <div class="td">${roller.name}</div>
             <div class="td">${roller.mode}</div>
             <div class="td number">${roller.numFailed}</div>

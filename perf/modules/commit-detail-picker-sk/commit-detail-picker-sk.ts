@@ -64,8 +64,7 @@ export class CommitDetailPickerSk extends ElementSk {
         @commit-selected="${ele.panelSelect}"
         .details="${ele.details}"
         selectable
-        selected=${ele.selected}
-      ></commit-detail-panel-sk>
+        selected=${ele.selected}></commit-detail-panel-sk>
       <button @click=${ele.close}>Close</button>
 
       <hr />
@@ -76,8 +75,7 @@ export class CommitDetailPickerSk extends ElementSk {
           id="range"
           @day-range-change=${ele.rangeChange}
           begin=${ele.range.begin}
-          end=${ele.range.end}
-        ></day-range-sk>
+          end=${ele.range.end}></day-range-sk>
         <spinner-sk ?active=${ele.updatingCommits}></spinner-sk>
       </details>
     </dialog>

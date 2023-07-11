@@ -86,23 +86,20 @@ export class CommentsSk extends ElementSk {
                 <input-sk
                   value=""
                   class="commentField"
-                  label="Comment"
-                ></input-sk>
+                  label="Comment"></input-sk>
               </td>
               ${el.showFlaky
                 ? html`<td>
                     <checkbox-sk
                       class="commentFlaky"
-                      label="Flaky"
-                    ></checkbox-sk>
+                      label="Flaky"></checkbox-sk>
                   </td>`
                 : html``}
               ${el.showIgnoreFailure
                 ? html`<td>
                     <checkbox-sk
                       class="commentIgnoreFailure"
-                      label="IgnoreFailure"
-                    ></checkbox-sk>
+                      label="IgnoreFailure"></checkbox-sk>
                   </td>`
                 : html``}
               <td>

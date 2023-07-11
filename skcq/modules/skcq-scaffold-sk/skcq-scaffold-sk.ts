@@ -63,8 +63,7 @@ export class SkCQScaffold extends ElementSk {
           <a
             href="https://github.com/google/skia-buildbot/tree/master/skcq"
             target="_blank"
-            tab-index="0"
-          >
+            tab-index="0">
             <folder-icon-sk></folder-icon-sk><span>Code</span>
           </a>
         </nav>

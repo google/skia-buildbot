@@ -135,22 +135,19 @@ export class TriagePageSk extends ElementSk {
           <option
             ?selected=${ele.state.subset === 'all'}
             value="all"
-            title="Show results for all commits in the time range."
-          >
+            title="Show results for all commits in the time range.">
             All
           </option>
           <option
             ?selected=${ele.state.subset === 'regressions'}
             value="regressions"
-            title="Show only the commits with regressions in the given time range regardless of triage status."
-          >
+            title="Show only the commits with regressions in the given time range regardless of triage status.">
             Regressions
           </option>
           <option
             ?selected=${ele.state.subset === 'untriaged'}
             value="untriaged"
-            title="Show only commits with untriaged regressions in the given time range."
-          >
+            title="Show only commits with untriaged regressions in the given time range.">
             Untriaged
           </option>
         </select>
@@ -166,8 +163,7 @@ export class TriagePageSk extends ElementSk {
         <day-range-sk
           @day-range-change=${ele.rangeChange}
           begin=${ele.state.begin}
-          end=${ele.state.end}
-        ></day-range-sk>
+          end=${ele.state.end}></day-range-sk>
       </details>
       <details @toggle=${ele.toggleStatus}>
         <summary>Status</summary>
@@ -178,8 +174,8 @@ export class TriagePageSk extends ElementSk {
       </details>
     </header>
     <spinner-sk
-      ?active=${ele.triageInProgress || ele.refreshRangeInProgress}
-    ></spinner-sk>
+      ?active=${ele.triageInProgress ||
+      ele.refreshRangeInProgress}></spinner-sk>
 
     <dialog>
       <cluster-summary2-sk
@@ -187,8 +183,7 @@ export class TriagePageSk extends ElementSk {
         @triaged=${ele.triaged}
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
-        .alert=${ele.dialogState!.alert}
-      ></cluster-summary2-sk>
+        .alert=${ele.dialogState!.alert}></cluster-summary2-sk>
       <div class="buttons">
         <button @click=${ele.close}>Close</button>
       </div>
@@ -261,8 +256,7 @@ export class TriagePageSk extends ElementSk {
           .alert=${ele.alertAt(colIndex)}
           .cluster_type=${'low'}
           .full_summary=${_full_summary(col.frame!, col.low)}
-          .triage=${col.low_status}
-        ></triage-status-sk>
+          .triage=${col.low_status}></triage-status-sk>
       `;
     }
     return html`
@@ -270,8 +264,7 @@ export class TriagePageSk extends ElementSk {
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
           colIndex
-        )}"
-      >
+        )}">
         ∅
       </a>
     `;
@@ -289,8 +282,7 @@ export class TriagePageSk extends ElementSk {
           .alert=${ele.alertAt(colIndex)}
           .cluster_type=${'high'}
           .full_summary=${_full_summary(col.frame!, col.high)}
-          .triage=${col.high_status}
-        ></triage-status-sk>
+          .triage=${col.high_status}></triage-status-sk>
       `;
     }
     return html`
@@ -298,8 +290,7 @@ export class TriagePageSk extends ElementSk {
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
           colIndex
-        )}"
-      >
+        )}">
         ∅
       </a>
     `;
@@ -367,8 +358,7 @@ export class TriagePageSk extends ElementSk {
         <option
           ?selected=${ele.state.alert_filter === o.value}
           value=${o.value}
-          title=${o.title}
-        >
+          title=${o.title}>
           ${o.display}
         </option>
       `

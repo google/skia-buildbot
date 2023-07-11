@@ -36,8 +36,7 @@ export class ByBlamePageSk extends ElementSk {
         .corpora=${ele.corpora}
         .selectedCorpus=${ele.corpora.find((c) => c.name === ele.corpus)}
         .corpusRendererFn=${corpusRendererFn}
-        @corpus-selected=${ele.handleCorpusChange}
-      >
+        @corpus-selected=${ele.handleCorpusChange}>
       </corpus-selector-sk>
     </div>
 

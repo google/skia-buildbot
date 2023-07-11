@@ -64,8 +64,7 @@ export class ARBScaffoldSk extends ElementSk {
           </a>
           <a
             href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md"
-            tab-index="0"
-          >
+            tab-index="0">
             <help-icon-sk></help-icon-sk><span>Docs</span>
           </a>
         </nav>

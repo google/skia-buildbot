@@ -38,37 +38,31 @@ export class PlaySk extends ElementSk {
   };
 
   private static fullTemplate = (ele: PlaySk) => html` <div
-    class="horizontal-flex"
-  >
+    class="horizontal-flex">
     <div class="filler"></div>
     <skip-previous-icon-sk
       title="Go to first"
-      @click=${ele.begin}
-    ></skip-previous-icon-sk>
+      @click=${ele.begin}></skip-previous-icon-sk>
     <keyboard-arrow-left-icon-sk
       title="Step back one (,)"
-      @click=${ele.prev}
-    ></keyboard-arrow-left-icon-sk>
+      @click=${ele.prev}></keyboard-arrow-left-icon-sk>
     ${ele._playPauseIcon(ele)}
     <keyboard-arrow-right-icon-sk
       title="Step forward one (.)"
-      @click=${ele.next}
-    ></keyboard-arrow-right-icon-sk>
+      @click=${ele.next}></keyboard-arrow-right-icon-sk>
     <skip-next-icon-sk title="Go to last" @click=${ele.end}></skip-next-icon-sk>
     <div class="filler"></div>
     <label>Delay in ms</label>
     <input
       value="${ele._playbackDelay}"
       class="delay-input"
-      @change=${ele._delayChanged}
-    />
+      @change=${ele._delayChanged} />
   </div>`;
 
   private static simpleTemplate = (ele: PlaySk) => html`<video-library-icon-sk
     title="Play/Pause"
     @click=${ele.togglePlay}
-    id="play-button-v"
-  ></video-library-icon-sk>`;
+    id="play-button-v"></video-library-icon-sk>`;
 
   private _mode: PlayMode = 'pause';
 
@@ -164,13 +158,11 @@ export class PlaySk extends ElementSk {
       return html`<play-arrow-icon-sk
         title="Play/Pause"
         @click=${ele.togglePlay}
-        id="play-button"
-      ></play-arrow-icon-sk>`;
+        id="play-button"></play-arrow-icon-sk>`;
     }
     return html`<pause-icon-sk
       title="Play/Pause"
-      @click=${ele.togglePlay}
-    ></pause-icon-sk>`;
+      @click=${ele.togglePlay}></pause-icon-sk>`;
   }
 
   togglePlay(): void {

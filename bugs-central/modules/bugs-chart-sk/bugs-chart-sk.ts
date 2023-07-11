@@ -70,8 +70,7 @@ export class BugsChartSk extends ElementSk {
     <google-chart
       id="${el.chart_type}-chart"
       options="${getChartOptions(el.chart_type)}"
-      data="${el.data}"
-    >
+      data="${el.data}">
     </google-chart>
   `;
 

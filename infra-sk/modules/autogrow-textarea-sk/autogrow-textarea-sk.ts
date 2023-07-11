@@ -23,8 +23,7 @@ export class AutogrowTextareaSk extends ElementSk {
   private static template = (ele: AutogrowTextareaSk) => html`
     <textarea
       placeholder=${ele.placeholder}
-      @input=${ele.computeResize}
-    ></textarea>
+      @input=${ele.computeResize}></textarea>
   `;
 
   private textarea: HTMLTextAreaElement | null = null;

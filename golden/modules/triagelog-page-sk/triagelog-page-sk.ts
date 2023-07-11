@@ -44,8 +44,7 @@ export class TriagelogPageSk extends ElementSk {
       offset=${el.pageOffset}
       page_size=${el.pageSize}
       total=${el.totalEntries}
-      @page-changed=${el.pageChanged}
-    >
+      @page-changed=${el.pageChanged}>
     </pagination-sk>
   `;
 
@@ -103,8 +102,7 @@ export class TriagelogPageSk extends ElementSk {
             el.crs
           )}
           target="_blank"
-          rel="noopener"
-        >
+          rel="noopener">
           ${delta.digest}
         </a>
       </td>

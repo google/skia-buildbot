@@ -40,14 +40,12 @@ export class SkottieColorInputSk extends ElementSk {
       <label
         class="wrapper--color ${ele._withOpacity
           ? ' wrapper--color__withOpacity'
-          : ''}"
-      >
+          : ''}">
         <input
           type="color"
           value=${ele._color}
           @change=${ele.onColorChange}
-          class="wrapper--color--input"
-        />
+          class="wrapper--color--input" />
         <span>${ele._color}</span>
       </label>
       ${ele.renderOpacity()}
@@ -75,8 +73,7 @@ export class SkottieColorInputSk extends ElementSk {
           type="number"
           class="wrapper--opacity"
           .value=${this._opacity}
-          @change=${this.onOpacityChange}
-        />
+          @change=${this.onOpacityChange} />
       `;
     }
     return null;

@@ -104,8 +104,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
           type="text"
           .value=${this._downloadFileName}
           class="export-form__filename"
-          @change=${this.onNameChange}
-        />
+          @change=${this.onNameChange} />
         <div class="export-form__label">Quality</div>
         <skottie-dropdown-sk
           .name=${'png-quality'}
@@ -127,8 +126,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
             },
           ]}
           @select=${this.qualitySelectHandler}
-          full
-        >
+          full>
         </skottie-dropdown-sk>
         <div class="separator"></div>
         ${this.renderDetails()}
@@ -138,28 +136,24 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
           .name=${'range-start'}
           .options=${this.buildRangeStartOptions()}
           @select=${this.rangeStartHandler}
-          full
-        ></skottie-dropdown-sk>
+          full></skottie-dropdown-sk>
         <div class="label">Select range end</div>
         <skottie-dropdown-sk
           .name=${'range-end'}
           .options=${this.buildRangeEndOptions()}
           @select=${this.rangeEndHandler}
-          full
-        ></skottie-dropdown-sk>
+          full></skottie-dropdown-sk>
         <div class="navigation">
           <skottie-button-sk
             type="plain"
             @select=${this.cancel}
             .content=${'Cancel'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
           <skottie-button-sk
             type="filled"
             @select=${this.start}
             .content=${'Export'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
         </div>
       </form>
     `;
@@ -226,8 +220,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
             type="filled"
             @select=${this.stop}
             .content=${'Stop'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
         </div>
       </div>
     `;

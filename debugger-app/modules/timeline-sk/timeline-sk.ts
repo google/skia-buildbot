@@ -26,8 +26,7 @@ export class TimelineSk extends ElementSk {
               class="room ${ele._item === i ? 'selected' : 'not-selected'}"
               @click=${() => {
                 ele._roomClick(i);
-              }}
-            >
+              }}>
               ${i % ele._modulo === 0
                 ? html`<div class="rel-point">
                     <span class="label">${i}<span>

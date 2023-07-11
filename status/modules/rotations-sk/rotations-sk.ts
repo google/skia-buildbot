@@ -21,8 +21,7 @@ export class RotationsSk extends ElementSk {
             class="tr"
             href=${rotation.docLink}
             target="_blank"
-            rel="noopener noreferrer"
-          >
+            rel="noopener noreferrer">
             <div class="td">
               ${unsafeHTML(
                 `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`

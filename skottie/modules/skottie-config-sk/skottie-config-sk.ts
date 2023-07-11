@@ -96,13 +96,11 @@ export class SkottieConfigSk extends ElementSk {
         type="file"
         name="folder"
         id="folder"
-        @change=${ele.onFolderChange}
-      />
+        @change=${ele.onFolderChange} />
     </label>
     <div
       class="filename input-like ${ele._state.assetsFilename ? '' : 'empty'}"
-      ?hidden=${!allowZips}
-    >
+      ?hidden=${!allowZips}>
       ${ele._state.assetsFilename
         ? ele._state.assetsFilename
         : 'No asset folder selected.'}
@@ -112,20 +110,17 @@ export class SkottieConfigSk extends ElementSk {
       <select id="backgroundColor">
         <option
           value=${BACKGROUND_VALUES.TRANSPARENT}
-          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.TRANSPARENT}
-        >
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.TRANSPARENT}>
           Transparent
         </option>
         <option
           value=${BACKGROUND_VALUES.LIGHT}
-          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.LIGHT}
-        >
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.LIGHT}>
           Light
         </option>
         <option
           value=${BACKGROUND_VALUES.DARK}
-          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}
-        >
+          ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}>
           Dark
         </option>
       </select>
@@ -133,8 +128,7 @@ export class SkottieConfigSk extends ElementSk {
     <checkbox-sk
       label="Lock aspect ratio"
       ?checked=${ele._isRatioLocked}
-      @click=${ele.toggleRatioLock}
-    >
+      @click=${ele.toggleRatioLock}>
     </checkbox-sk>
     <label class="number">
       <input
@@ -142,8 +136,7 @@ export class SkottieConfigSk extends ElementSk {
         id="width"
         @change=${ele.onWidthInput}
         .value=${ele._width}
-        required
-      />
+        required />
       Width (px)
     </label>
     <label class="number">
@@ -152,8 +145,7 @@ export class SkottieConfigSk extends ElementSk {
         id="height"
         @change=${ele.onHeightInput}
         .value=${ele._height}
-        required
-      />
+        required />
       Height (px)
     </label>
     <label class="number">

@@ -39,24 +39,21 @@ export class PaginationSk extends ElementSk {
         class="action"
         data-page="0"
         ?disabled=${el._onFirstPage()}
-        @click=${el._update}
-      >
+        @click=${el._update}>
         <first-page-icon-sk></first-page-icon-sk>
       </button>
       <button
         class="action"
         data-page=${el._page - 1}
         ?disabled=${el._onFirstPage()}
-        @click=${el._update}
-      >
+        @click=${el._update}>
         <chevron-left-icon-sk></chevron-left-icon-sk>
       </button>
       ${el._pageButtons.map(
         (page) => html` <button
           data-page=${page}
           @click=${el._update}
-          ?disabled=${page === el._page}
-        >
+          ?disabled=${page === el._page}>
           ${page + 1}
         </button>`
       )}
@@ -64,16 +61,14 @@ export class PaginationSk extends ElementSk {
         class="action"
         data-page=${el._page + 1}
         ?disabled=${el._onLastPage()}
-        @click=${el._update}
-      >
+        @click=${el._update}>
         <chevron-right-icon-sk></chevron-right-icon-sk>
       </button>
       <button
         class="action"
         data-page=${el._allPages - 1}
         ?disabled=${el._onLastPage()}
-        @click=${el._update}
-      >
+        @click=${el._update}>
         <last-page-icon-sk></last-page-icon-sk>(${el._allPages})
       </button>
     </div>

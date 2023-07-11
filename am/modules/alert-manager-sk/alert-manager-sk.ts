@@ -227,8 +227,7 @@ export class AlertManagerSk extends HTMLElement {
         .map(
           (i: Silence) => html` <h2
             class=${ele.classOfSilenceH2(i)}
-            @click=${() => ele.silenceClick(i)}
-          >
+            @click=${() => ele.silenceClick(i)}>
             <span> ${displaySilence(i.param_set)} </span>
             <span>
               <span title="Expires in"
@@ -236,8 +235,7 @@ export class AlertManagerSk extends HTMLElement {
               >
               <comment-icon-sk
                 title="This silence has notes."
-                class=${ele.hasNotes(i)}
-              ></comment-icon-sk>
+                class=${ele.hasNotes(i)}></comment-icon-sk>
               <span title="The number of active alerts that match this silence."
                 >${ele.numMatchSilence(i)}</span
               >
@@ -528,8 +526,7 @@ export class AlertManagerSk extends HTMLElement {
     if (this.selected) {
       return html`<incident-sk
         .incident_silences=${this.silences}
-        .incident_state=${this.selected}
-      ></incident-sk>`;
+        .incident_state=${this.selected}></incident-sk>`;
     }
     return html``;
   }
@@ -537,8 +534,7 @@ export class AlertManagerSk extends HTMLElement {
   private editSilence(): TemplateResult {
     return html`<silence-sk
       .silence_state=${this.current_silence}
-      .silence_incidents=${this.incidents}
-    ></silence-sk>`;
+      .silence_incidents=${this.incidents}></silence-sk>`;
   }
 
   private viewStats(): TemplateResult[] {
@@ -547,8 +543,7 @@ export class AlertManagerSk extends HTMLElement {
         html`<incident-sk
           .incident_state=${i}
           minimized
-          params=${index === 0}
-        ></incident-sk>`
+          params=${index === 0}></incident-sk>`
     );
   }
 
@@ -594,8 +589,7 @@ export class AlertManagerSk extends HTMLElement {
   private infraGardener(): TemplateResult {
     if (this.infra_gardener === this.user) {
       return html`<notifications-icon-sk
-        title="You are the Infra Gardener, awesome!"
-      ></notifications-icon-sk>`;
+        title="You are the Infra Gardener, awesome!"></notifications-icon-sk>`;
     }
     return html``;
   }
@@ -603,8 +597,7 @@ export class AlertManagerSk extends HTMLElement {
   private assignedTo(incident: Incident): TemplateResult {
     if (incident.params.assigned_to === this.user) {
       return html`<person-icon-sk
-        title="This item is assigned to you."
-      ></person-icon-sk>`;
+        title="This item is assigned to you."></person-icon-sk>`;
     }
     if (incident.params.assigned_to) {
       return html`<span
@@ -652,8 +645,7 @@ export class AlertManagerSk extends HTMLElement {
               ?checked=${this.isBotChecked(this.bots_to_incidents[botName])}
               @change=${this.check_selected}
               @click=${this.clickHandler}
-              id=${botName}
-            ></checkbox-sk>
+              id=${botName}></checkbox-sk>
             <span class="bot-alert">
               ${botName}
               <span class="bot-incident-list">
@@ -698,26 +690,22 @@ export class AlertManagerSk extends HTMLElement {
         <h2
           class=${this.classOfH2(i)}
           @click=${() => this.select(i)}
-          id="container-${i.key}"
-        >
+          id="container-${i.key}">
           <span class="noselect">
             <checkbox-sk
               ?checked=${this.checked.has(i.key)}
               @change=${this.check_selected}
               @click=${this.clickHandler}
-              id=${i.key}
-            ></checkbox-sk>
+              id=${i.key}></checkbox-sk>
             ${this.assignedTo(i)} ${this.displayIncident(i)}
           </span>
           <span>
             <alarm-off-icon-sk
               title="This incident has a recently expired silence"
-              class=${this.hasRecentlyExpiredSilence(i)}
-            ></alarm-off-icon-sk>
+              class=${this.hasRecentlyExpiredSilence(i)}></alarm-off-icon-sk>
             <comment-icon-sk
               title="This incident has notes."
-              class=${this.hasNotes(i)}
-            ></comment-icon-sk>
+              class=${this.hasNotes(i)}></comment-icon-sk>
           </span>
         </h2>
       `
@@ -771,8 +759,7 @@ export class AlertManagerSk extends HTMLElement {
     return html`<button
       class="selection"
       ?disabled=${this.checked.size === 0}
-      @click=${this.clearSelections}
-    >
+      @click=${this.clearSelections}>
       Clear selections
     </button>`;
   }
@@ -799,8 +786,7 @@ export class AlertManagerSk extends HTMLElement {
     return html`<button
       class="selection"
       ?disabled=${autoAssignIncidents.length === 0}
-      @click=${this.autoAssign}
-    >
+      @click=${this.autoAssign}>
       Auto-Assign
     </button>`;
   }
@@ -881,8 +867,7 @@ export class AlertManagerSk extends HTMLElement {
     return html`<button
       class="selection"
       ?disabled=${this.checked.size === 0}
-      @click=${this.assignMultiple}
-    >
+      @click=${this.assignMultiple}>
       Assign ${this.checked.size} alerts
     </button>`;
   }

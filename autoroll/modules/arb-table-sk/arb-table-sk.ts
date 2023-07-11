@@ -68,8 +68,7 @@ export class ARBTableSk extends ElementSk {
                   (last rolled
                   <human-date-sk
                     .date="${st.lastSuccessfulRollTimestamp!}"
-                    .diff="${true}"
-                  ></human-date-sk
+                    .diff="${true}"></human-date-sk
                   >)
                 `}
           </td>

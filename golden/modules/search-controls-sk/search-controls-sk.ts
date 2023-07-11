@@ -129,8 +129,7 @@ export class SearchControlsSk extends ElementSk {
   private static _template = (el: SearchControlsSk) => html` <corpus-selector-sk
       .corpora=${el._corpora}
       .selectedCorpus=${live(el._searchCriteria.corpus)}
-      @corpus-selected=${el._onCorpusSelected}
-    >
+      @corpus-selected=${el._onCorpusSelected}>
     </corpus-selector-sk>
 
     <div class="digests">
@@ -177,8 +176,7 @@ export class SearchControlsSk extends ElementSk {
       <trace-filter-sk
         .selection=${el._searchCriteria.leftHandTraceFilter}
         .paramSet=${el._paramSet}
-        @trace-filter-sk-change=${el._onTraceFilterSkChange}
-      >
+        @trace-filter-sk-change=${el._onTraceFilterSkChange}>
       </trace-filter-sk>
     </div>
 
@@ -200,8 +198,7 @@ export class SearchControlsSk extends ElementSk {
       label="${label}"
       class="${cssClass}"
       ?checked=${live(el.searchCriteria[fieldName])}
-      @change=${onChange}
-    >
+      @change=${onChange}>
     </checkbox-sk>`;
   };
 

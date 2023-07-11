@@ -162,8 +162,7 @@ export class SkottieSk extends ElementSk {
           <span>
             <a
               href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
-              class="header__skia-version"
-            >
+              class="header__skia-version">
               ${SKIA_VERSION.slice(0, 7)}
             </a>
 
@@ -178,24 +177,21 @@ export class SkottieSk extends ElementSk {
               ]}
               reset
               @select=${ele.exportSelectHandler}
-              border
-            >
+              border>
             </skottie-dropdown-sk>
             <skottie-button-sk
               id="view-perf-chart"
               @select=${ele.togglePerformanceChart}
               type="outline"
               .content=${'Performance chart'}
-              .classes=${['header__button']}
-            >
+              .classes=${['header__button']}>
             </skottie-button-sk>
             <skottie-button-sk
               id="view-json-layers"
               @select=${ele.toggleEditor}
               type="outline"
               .content=${'View JSON code'}
-              .classes=${['header__button']}
-            >
+              .classes=${['header__button']}>
             </skottie-button-sk>
 
             <theme-chooser-sk></theme-chooser-sk>
@@ -234,8 +230,7 @@ export class SkottieSk extends ElementSk {
       .fps=${this.fps}
       .backgroundColor=${this.backgroundColor}
       @skottie-selected=${this.skottieFileSelected}
-      @cancelled=${this.selectionCancelled}
-    ></skottie-config-sk>
+      @cancelled=${this.selectionCancelled}></skottie-config-sk>
   `;
 
   private displayIdle = () => html`
@@ -266,12 +261,10 @@ export class SkottieSk extends ElementSk {
         <skottie-button-sk
           id="playpause"
           .content=${html`<play-arrow-icon-sk
-              id="playpause-play"
-            ></play-arrow-icon-sk>
+              id="playpause-play"></play-arrow-icon-sk>
             <pause-icon-sk id="playpause-pause"></pause-icon-sk>`}
           .classes=${['playback-content__button']}
-          @select=${this.playpause}
-        ></skottie-button-sk>
+          @select=${this.playpause}></skottie-button-sk>
         <div class="scrub">
           <input
             id="scrub"
@@ -280,8 +273,7 @@ export class SkottieSk extends ElementSk {
             max=${SCRUBBER_RANGE}
             step="0.1"
             @input=${this.onScrub}
-            @change=${this.onScrubEnd}
-          />
+            @change=${this.onScrubEnd} />
           <label class="number">
             Frame:
             <input
@@ -289,8 +281,7 @@ export class SkottieSk extends ElementSk {
               id="frameInput"
               class="playback-content-frameInput"
               @focus=${this.onFrameFocus}
-              @change=${this.onFrameChange}
-            /><!--
+              @change=${this.onFrameChange} /><!--
             --><span class="playback-content-frameTotal" id="frameTotal"
               >of 0</span
             >
@@ -300,8 +291,7 @@ export class SkottieSk extends ElementSk {
           id="rewind"
           .content=${html`<replay-icon-sk></replay-icon-sk>`}
           .classes=${['playback-content__button']}
-          @select=${this.rewind}
-        ></skottie-button-sk>
+          @select=${this.rewind}></skottie-button-sk>
       </div>
     </div>
 
@@ -317,8 +307,7 @@ export class SkottieSk extends ElementSk {
         max="1"
         step=".05"
         value="1"
-        @input=${this.onVolumeChange}
-      />
+        @input=${this.onVolumeChange} />
     </collapse-sk>
   `;
 
@@ -350,8 +339,7 @@ export class SkottieSk extends ElementSk {
         </summary>
         <skottie-text-sampler-sk
           @animation-updated=${this.onAnimationUpdated}
-          .animation=${this.state.lottie}
-        ></skottie-text-sampler-sk>
+          .animation=${this.state.lottie}></skottie-text-sampler-sk>
       </details>
     `;
   }
@@ -365,8 +353,7 @@ export class SkottieSk extends ElementSk {
         </summary>
         <skottie-font-selector-sk
           @animation-updated=${this.onAnimationUpdated}
-          .animation=${this.state.lottie}
-        ></skottie-font-selector-sk>
+          .animation=${this.state.lottie}></skottie-font-selector-sk>
       </details>
     `;
   }
@@ -393,8 +380,7 @@ export class SkottieSk extends ElementSk {
         <div class="title">JSON File</div>
         ${this.renderDownload()}
         <skottie-file-form-sk
-          @files-selected=${this.skottieFilesSelected}
-        ></skottie-file-form-sk>
+          @files-selected=${this.skottieFilesSelected}></skottie-file-form-sk>
       </div>
 
       ${this.fileSettingsDialog()} ${this.backgroundDialog()}
@@ -403,8 +389,7 @@ export class SkottieSk extends ElementSk {
       <button
         class="apply-button"
         ?hidden=${!this.hasEdits}
-        @click=${this.applyEdits}
-      >
+        @click=${this.applyEdits}>
         Apply Edits
       </button>
     `;
@@ -426,8 +411,7 @@ export class SkottieSk extends ElementSk {
             <a
               target="_blank"
               download=${this.state.filename}
-              href=${this.downloadURL}
-            >
+              href=${this.downloadURL}>
               <file-download-icon-sk></file-download-icon-sk>
             </a>
             ${this.hasEdits ? '(without edits)' : ''}
@@ -448,8 +432,7 @@ export class SkottieSk extends ElementSk {
         <checkbox-sk
           label="Show lottie-web"
           ?checked=${this.showLottie}
-          @click=${this.toggleLottie}
-        >
+          @click=${this.toggleLottie}>
         </checkbox-sk>
       </div>
     </details>
@@ -462,8 +445,7 @@ export class SkottieSk extends ElementSk {
           class="expando"
           ?open=${this.showAudio}
           @toggle=${(e: Event) =>
-            this.toggleAudio((e.target! as HTMLDetailsElement).open)}
-        >
+            this.toggleAudio((e.target! as HTMLDetailsElement).open)}>
           <summary id="audio-open">
             <span>Audio</span><expand-less-icon-sk></expand-less-icon-sk>
             <expand-more-icon-sk></expand-more-icon-sk>
@@ -471,8 +453,7 @@ export class SkottieSk extends ElementSk {
 
           <skottie-audio-sk
             .animation=${this.state.lottie}
-            @apply=${this.applyAudioSync}
-          >
+            @apply=${this.applyAudioSync}>
           </skottie-audio-sk>
         </details>
       `,
@@ -485,8 +466,7 @@ export class SkottieSk extends ElementSk {
         class="expando"
         ?open=${this.showFileSettings}
         @toggle=${(e: Event) =>
-          this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}
-      >
+          this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}>
         <summary id="fileSettings-open">
           <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk>
           <expand-more-icon-sk></expand-more-icon-sk>
@@ -495,8 +475,8 @@ export class SkottieSk extends ElementSk {
           .width=${this.width}
           .height=${this.height}
           .fps=${this.fps}
-          @settings-change=${this.skottieFileSettingsUpdated}
-        ></skottie-file-settings-sk>
+          @settings-change=${this
+            .skottieFileSettingsUpdated}></skottie-file-settings-sk>
       </details>
     `;
 
@@ -506,16 +486,17 @@ export class SkottieSk extends ElementSk {
         class="expando"
         ?open=${this.showBackgroundSettings}
         @toggle=${(e: Event) =>
-          this.toggleBackgroundSettings((e.target! as HTMLDetailsElement).open)}
-      >
+          this.toggleBackgroundSettings(
+            (e.target! as HTMLDetailsElement).open
+          )}>
         <summary>
           <span>Background color</span>
           <expand-less-icon-sk></expand-less-icon-sk>
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <skottie-background-settings-sk
-          @background-change=${this.skottieBackgroundUpdated}
-        ></skottie-background-settings-sk>
+          @background-change=${this
+            .skottieBackgroundUpdated}></skottie-background-settings-sk>
       </details>
     `;
 
@@ -529,8 +510,8 @@ export class SkottieSk extends ElementSk {
         </summary>
         <skottie-color-manager-sk
           .animation=${this.state.lottie}
-          @animation-updated=${this.onAnimationUpdated}
-        ></skottie-color-manager-sk>
+          @animation-updated=${this
+            .onAnimationUpdated}></skottie-color-manager-sk>
       </details>
     `;
 
@@ -541,8 +522,7 @@ export class SkottieSk extends ElementSk {
     `<skottie-inline-sk width="${this.width}" height="${this.height}" src="${window.location.origin}/_/j/${this.hash}"></skottie-inline-sk>`;
 
   private skottiePlayerTemplate = () => html` <figure
-    class="players-container-player"
-  >
+    class="players-container-player">
     <skottie-player-sk paused width=${this.width} height=${this.height}>
     </skottie-player-sk>
     ${this.wasmCaption()}
@@ -557,8 +537,7 @@ export class SkottieSk extends ElementSk {
         id="container"
         title="lottie-web"
         style="width: 100%; aspect-ratio: ${this.width /
-        this.height}; background-color: ${this.backgroundColor}"
-      ></div>
+        this.height}; background-color: ${this.backgroundColor}"></div>
       ${caption('lottie-web', this.viewMode)}
     </figure>`;
   };
@@ -567,8 +546,7 @@ export class SkottieSk extends ElementSk {
     class="expando"
     ?open=${this.showLibrary}
     @toggle=${(e: Event) =>
-      this.toggleLibrary((e.target! as HTMLDetailsElement).open)}
-  >
+      this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
     <summary id="library-open">
       <span>Library</span><expand-less-icon-sk></expand-less-icon-sk>
       <expand-more-icon-sk></expand-more-icon-sk>
@@ -587,8 +565,7 @@ export class SkottieSk extends ElementSk {
         <div
           id="live"
           title="live-preview"
-          style="width: ${this.width}px; height: ${this.height}px"
-        ></div>
+          style="width: ${this.width}px; height: ${this.height}px"></div>
         <figcaption>Preview [lottie-web]</figcaption>
       </figure>`;
     }
@@ -597,8 +574,7 @@ export class SkottieSk extends ElementSk {
 
   private jsonEditor = (): TemplateResult => html` <dialog
     class="editor"
-    ?open=${this.showJSONEditor}
-  >
+    ?open=${this.showJSONEditor}>
     <div class="top-ribbon">
       <span>Layer Information</span>
       <button @click=${this.toggleEditor}>Close</button>
@@ -622,8 +598,7 @@ export class SkottieSk extends ElementSk {
       class="expando"
       ?open=${this.showTextEditor}
       @toggle=${(e: Event) =>
-        this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}
-    >
+        this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}>
       <summary id="edit-text-open">
         <span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk>
         <expand-more-icon-sk></expand-more-icon-sk>
@@ -632,8 +607,7 @@ export class SkottieSk extends ElementSk {
       <skottie-text-editor-sk
         .animation=${this.state.lottie}
         .mode=${this.viewMode}
-        @apply=${this.applyTextEdits}
-      >
+        @apply=${this.applyTextEdits}>
       </skottie-text-editor-sk>
     </details>
   `;
@@ -643,8 +617,7 @@ export class SkottieSk extends ElementSk {
       class="expando"
       ?open=${this.showShaderEditor}
       @toggle=${(e: Event) =>
-        this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}
-    >
+        this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}>
       <summary>
         <span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk>
         <expand-more-icon-sk></expand-more-icon-sk>
@@ -653,8 +626,7 @@ export class SkottieSk extends ElementSk {
       <skottie-shader-editor-sk
         .animation=${this.state.lottie}
         .mode=${this.viewMode}
-        @apply=${this.applyShaderEdits}
-      >
+        @apply=${this.applyShaderEdits}>
       </skottie-shader-editor-sk>
     </details>
   `;

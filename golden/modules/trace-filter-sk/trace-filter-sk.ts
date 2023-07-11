@@ -35,8 +35,7 @@ export class TraceFilterSk extends ElementSk {
 
     <query-dialog-sk
       .submitButtonLabel=${'Select'}
-      @edit=${el._onQueryDialogEdit}
-    >
+      @edit=${el._onQueryDialogEdit}>
     </query-dialog-sk>`;
 
   private _paramSet: ParamSet = {};

@@ -41,15 +41,13 @@ export class AlgoSelectSk extends ElementSk {
       <div
         value="kmeans"
         ?selected=${ele.algo === 'kmeans'}
-        title="Use k-means clustering on the trace shapes and look for a step on the cluster centroid."
-      >
+        title="Use k-means clustering on the trace shapes and look for a step on the cluster centroid.">
         K-Means
       </div>
       <div
         value="stepfit"
         ?selected=${ele.algo === 'stepfit'}
-        title="Look for a step in each individual trace."
-      >
+        title="Look for a step in each individual trace.">
         Individual
       </div>
     </select-sk>

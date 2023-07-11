@@ -31,14 +31,12 @@ import {
 export class HistogramSk extends ElementDocSk {
   private static template = (ele: HistogramSk) => html` <details
     title="A table of the number of occurrences of each command."
-    open
-  >
+    open>
     <summary><b>Histogram</b></summary>
     <table>
       <tr>
         <td
-          title="Occurrences of command in current frame (or single frame skp file)."
-        >
+          title="Occurrences of command in current frame (or single frame skp file).">
           frame
         </td>
         <td title="Occurrences of command within the current range filter.">
@@ -64,8 +62,7 @@ export class HistogramSk extends ElementDocSk {
       ele._toggle(item.name);
     }}
     id="hist-row-${item.name.toLowerCase()}"
-    class="${ele._incl.has(item.name.toLowerCase()) ? '' : 'pinkBackground'}"
-  >
+    class="${ele._incl.has(item.name.toLowerCase()) ? '' : 'pinkBackground'}">
     <td class="countCol">${item.countInFrame}</td>
     <td class="countCol">${item.countInRange}</td>
     <td>${item.name}</td>

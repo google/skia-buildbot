@@ -43,8 +43,7 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   ) => html` <li
     class=${el._selectedCorpus === corpus ? 'selected' : ''}
     title="${el._corpusRendererFn(corpus)}"
-    @click=${() => el._handleCorpusClick(corpus)}
-  >
+    @click=${() => el._handleCorpusClick(corpus)}>
     ${el._corpusRendererFn(corpus)}
   </li>`;
 

@@ -58,8 +58,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}Metrics Analysis Runs</h2>
       <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}
-      ></pagination-sk>
+        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
@@ -68,8 +67,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
       <br />
       <table
         class="surface-themes-sk secondary-links runssummary"
-        id="runssummary"
-      >
+        id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -112,19 +110,16 @@ export class MetricsAnalysisRunsSk extends ElementSk {
         title="Delete this task"
         alt="Delete"
         ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}
-      ></delete-icon-sk>
+        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
       <redo-icon-sk
         title="Redo this task"
         alt="Redo"
         ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}
-      ></redo-icon-sk>
+        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
       <mode-edit-icon-sk
         title="Edit and redo this task"
         alt="Edit"
-        @click=${() => el._confirmEditTask(index)}
-      ></mode-edit-icon-sk>
+        @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
     </td>
     <!-- User col -->
     <td>${task.username}</td>
@@ -210,8 +205,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
         ? html` <a
             href="${task.raw_output}"
             target="_blank"
-            rel="noopener noreferrer"
-          >
+            rel="noopener noreferrer">
             Output
           </a>`
         : ''}
@@ -220,8 +214,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
             <a
               href="${task.swarming_logs}"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               Swarming Logs
             </a>`
         : ''}
@@ -233,8 +226,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
         ? html` <a
               href="javascript:;"
               class="details"
-              @click=${() => el._showDialog('benchmarkArgs', index)}
-            >
+              @click=${() => el._showDialog('benchmarkArgs', index)}>
               Benchmark Args
             </a>
             <br />`
@@ -274,8 +266,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
     <div
       id=${`benchmarkArgs${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${task.benchmark_args}</pre>
       </div>

@@ -42,8 +42,7 @@ export class GoldStatusSk extends ElementSk {
                 href="${el.getGoldURL()}${`/?corpus=${c!.name}`}"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Skia Gold: Untriaged ${c!.name} image count"
-              >
+                title="Skia Gold: Untriaged ${c!.name} image count">
                 <div class="td">${c!.name}</div>
                 <div class="td number">
                   <span class="value">${c!.untriagedCount}</span>

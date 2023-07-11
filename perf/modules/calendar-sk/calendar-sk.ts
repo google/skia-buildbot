@@ -100,8 +100,7 @@ export class CalendarSk extends ElementSk {
             @click=${ele.decYear}
             aria-label="Previous year"
             title="Previous year"
-            id="previous-year"
-          >
+            id="previous-year">
             <navigate-before-icon-sk></navigate-before-icon-sk>
           </button>
         </th>
@@ -117,8 +116,7 @@ export class CalendarSk extends ElementSk {
             @click=${ele.incYear}
             aria-label="Next year"
             title="Next year"
-            id="next-year"
-          >
+            id="next-year">
             <navigate-next-icon-sk></navigate-next-icon-sk>
           </button>
         </th>
@@ -129,8 +127,7 @@ export class CalendarSk extends ElementSk {
             @click=${ele.decMonth}
             aria-label="Previous month"
             title="Previous month"
-            id="previous-month"
-          >
+            id="previous-month">
             <navigate-before-icon-sk></navigate-before-icon-sk>
           </button>
         </th>
@@ -146,8 +143,7 @@ export class CalendarSk extends ElementSk {
             @click=${ele.incMonth}
             aria-label="Next month"
             title="Next month"
-            id="next-month"
-          >
+            id="next-month">
             <navigate-next-icon-sk></navigate-next-icon-sk>
           </button>
         </th>
@@ -172,8 +168,7 @@ export class CalendarSk extends ElementSk {
         @click=${ele.dateClick}
         data-date=${date}
         tabindex=${selected ? 0 : -1}
-        aria-selected=${selected}
-      >
+        aria-selected=${selected}>
         ${date}
       </button>
     `;
@@ -202,8 +197,7 @@ export class CalendarSk extends ElementSk {
               class="
             ${currentDate.equal(today) ? 'today' : ''}
             ${selected ? 'selected' : ''}
-          "
-            >
+          ">
               ${CalendarSk.buttonForDateTemplate(
                 ele,
                 date,

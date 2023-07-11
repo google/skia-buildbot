@@ -110,27 +110,23 @@ export class SkottiePlayerSk extends ElementSk {
         width=${this.width * window.devicePixelRatio}
         height=${this.height * window.devicePixelRatio}
         style="max-width: 100%;max-height:100%;aspect-ratio: ${this.width /
-        this.height}; background-color: ${this.bgColor}"
-      >
+        this.height}; background-color: ${this.bgColor}">
         Your browser does not support the canvas tag.
       </canvas>
       <div class="controls" ?hidden=${!this.showControls}>
         <play-arrow-icon-sk
           @click=${this.onPlay}
-          ?hidden=${!this.paused}
-        ></play-arrow-icon-sk>
+          ?hidden=${!this.paused}></play-arrow-icon-sk>
         <pause-icon-sk
           @click=${this.onPause}
-          ?hidden=${this.paused}
-        ></pause-icon-sk>
+          ?hidden=${this.paused}></pause-icon-sk>
         <input
           type="range"
           min="0"
           max="100"
           @input=${this.onScrub}
           @change=${this.onScrubEnd}
-          class="skottie-player-scrubber"
-        />
+          class="skottie-player-scrubber" />
         <settings-icon-sk @click=${this.onSettings}></settings-icon-sk>
       </div>
     </div>
@@ -200,8 +196,7 @@ export class SkottiePlayerSk extends ElementSk {
   private loadingTemplate = () => html` <div
     class="player-loading"
     title="Loading animation and engine."
-    style="aspect-ratio: ${this.width / this.height};"
-  >
+    style="aspect-ratio: ${this.width / this.height};">
     <div>Loading</div>
     <spinner-sk active></spinner-sk>
   </div>`;

@@ -74,8 +74,7 @@ export class SkottieBackgroundSettingsSk extends ElementSk {
           },
         ]}
         @select=${ele.backgroundSelectHandler}
-        border
-      ></skottie-dropdown-sk>
+        border></skottie-dropdown-sk>
       ${ele.renderColorInput()}
     </div>
   `;
@@ -118,16 +117,14 @@ export class SkottieBackgroundSettingsSk extends ElementSk {
             <input
               type="color"
               value=${this._color}
-              @change=${this.onColorChange}
-            />
+              @change=${this.onColorChange} />
             <span>${this._color}</span>
           </label>
           <input
             type="number"
             class="color-form--opacity"
             .value=${this._opacity}
-            @change=${this.onOpacityChange}
-          />
+            @change=${this.onOpacityChange} />
         </div>
       `;
     }

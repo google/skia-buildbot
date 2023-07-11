@@ -46,14 +46,12 @@ export class ListAutorollersSk extends ElementSk {
         label="Caution"
         name="tree_state"
         ?checked=${ele.selectedTreeStatus === 'Caution'}
-        @change=${() => ele.radioHandler('Caution')}
-      ></radio-sk>
+        @change=${() => ele.radioHandler('Caution')}></radio-sk>
       <radio-sk
         label="Closed"
         name="tree_state"
         ?checked=${ele.selectedTreeStatus === 'Closed'}
-        @change=${() => ele.radioHandler('Closed')}
-      ></radio-sk>
+        @change=${() => ele.radioHandler('Closed')}></radio-sk>
       <br /><br />
       Choose rollers to wait for:
       <hr />
@@ -95,8 +93,7 @@ export class ListAutorollersSk extends ElementSk {
             <checkbox-sk
               ?checked=${this.checkedAutorollers.has(autoroller.name)}
               @change=${this.clickHandler}
-              id=${autoroller.name}
-            ></checkbox-sk>
+              id=${autoroller.name}></checkbox-sk>
           </td>
           <td>
             <a href="${autoroller.url}" target="_blank">${autoroller.name}</a>

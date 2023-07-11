@@ -37,8 +37,7 @@ export class BugsStatusSk extends ElementSk {
           href="${this.resp!.clients_to_status_data![client].link}"
           target="_blank"
           rel="noopener noreferrer"
-          title="Untriaged ${client!} bugs count"
-        >
+          title="Untriaged ${client!} bugs count">
           <div class="td">${client!}</div>
           <div class="td number">
             <span class="value"

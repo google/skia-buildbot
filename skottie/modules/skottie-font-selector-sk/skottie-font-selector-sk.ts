@@ -334,8 +334,7 @@ export class SkottieFontSelectorSk extends ElementSk {
         .options=${ele.buildFontOptions()}
         @select=${ele.fontTypeSelectHandler}
         border
-        full
-      >
+        full>
       </skottie-dropdown-sk>
     </div>
   `;

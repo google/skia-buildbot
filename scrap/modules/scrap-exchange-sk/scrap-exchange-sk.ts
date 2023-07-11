@@ -18,8 +18,7 @@ export class ScrapExchangeSk extends ElementSk {
   private static template = (ele: ScrapExchangeSk) => html` <header>
       <h2>Scrap Exchange</h2>
       <theme-chooser-sk
-        title="Toggle between light and dark mode."
-      ></theme-chooser-sk>
+        title="Toggle between light and dark mode."></theme-chooser-sk>
     </header>
     <main></main>
     <error-toast-sk></error-toast-sk>`;

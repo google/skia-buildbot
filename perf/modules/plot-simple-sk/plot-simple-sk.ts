@@ -735,15 +735,13 @@ export class PlotSimpleSk extends ElementSk {
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
       style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
-    ></canvas>
+      window.devicePixelRatio});"></canvas>
     <canvas
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
       style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
-    ></canvas>
+      window.devicePixelRatio});"></canvas>
   `;
 
   connectedCallback(): void {

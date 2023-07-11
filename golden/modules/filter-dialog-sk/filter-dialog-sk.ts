@@ -66,16 +66,14 @@ const numericParamTemplate = (
         min=${min}
         max=${max}
         step=${step}
-        @input=${onInput}
-      />
+        @input=${onInput} />
       <input
         type="number"
         .value=${live(value.toString())}
         min=${min}
         max=${max}
         step=${step}
-        @input=${onInput}
-      />
+        @input=${onInput} />
     </div>`;
 };
 
@@ -88,15 +86,13 @@ export class FilterDialogSk extends ElementSk {
   // cancels and reopens the dialog, the user will see their previous input, when the expected
   // behavior is for their previous input to be discarded.
   private static _template = (el: FilterDialogSk) => html` <dialog
-    class="filter-dialog"
-  >
+    class="filter-dialog">
     <div class="content">
       <span class="label">Right-hand traces:</span>
       <trace-filter-sk
         .paramSet=${el._paramSet!}
         .selection=${live(el._filters?.diffConfig || {})}
-        @trace-filter-sk-change=${el._onTraceFilterSkChange}
-      >
+        @trace-filter-sk-change=${el._onTraceFilterSkChange}>
       </trace-filter-sk>
 
       ${numericParamTemplate(
@@ -122,8 +118,7 @@ export class FilterDialogSk extends ElementSk {
       <select
         id="sort-order"
         .value=${live(el._filters?.sortOrder)}
-        @change=${el._sortOrderChanged}
-      >
+        @change=${el._sortOrderChanged}>
         <option value="ascending">Ascending</option>
         <option value="descending">Descending</option>
       </select>
@@ -132,8 +127,7 @@ export class FilterDialogSk extends ElementSk {
         id="must-have-reference-image"
         label="Must have a reference image."
         ?checked=${live(el._filters?.mustHaveReferenceImage)}
-        @change=${el._mustHaveReferenceImageChanged}
-      >
+        @change=${el._mustHaveReferenceImageChanged}>
       </checkbox-sk>
     </div>
 

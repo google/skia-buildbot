@@ -73,8 +73,7 @@ export class DomainPickerSk extends ElementSk {
         <span class="prefix">End:</span>
         <calendar-input-sk
           @input=${ele.endChange}
-          .displayDate=${toDate(ele._state.end)}
-        ></calendar-input-sk>
+          .displayDate=${toDate(ele._state.end)}></calendar-input-sk>
       </label>
     </div>
   `;
@@ -86,14 +85,12 @@ export class DomainPickerSk extends ElementSk {
           @change=${ele.typeRange}
           ?checked=${ele._state.request_type === RANGE}
           label="Date Range"
-          name="daterange"
-        ></radio-sk>
+          name="daterange"></radio-sk>
         <radio-sk
           @change=${ele.typeDense}
           ?checked=${ele._state.request_type === DENSE}
           label="Dense"
-          name="daterange"
-        ></radio-sk>
+          name="daterange"></radio-sk>
       `;
     }
     return html``;
@@ -107,8 +104,7 @@ export class DomainPickerSk extends ElementSk {
           <span class="prefix">Begin:</span>
           <calendar-input-sk
             @input=${ele.beginChange}
-            .displayDate=${toDate(ele._state.begin)}
-          ></calendar-input-sk>
+            .displayDate=${toDate(ele._state.begin)}></calendar-input-sk>
         </label>
       `;
     }
@@ -123,8 +119,7 @@ export class DomainPickerSk extends ElementSk {
           min="1"
           max="5000"
           list="defaultNumbers"
-          title="The number of points."
-        />
+          title="The number of points." />
       </label>
       <datalist id="defaultNumbers">
         <option value="50"></option>

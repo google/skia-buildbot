@@ -252,16 +252,14 @@ export class ClusterSummary2Sk extends ElementSk {
       width="800"
       height="250"
       specialevents
-      @trace_selected=${ele.traceSelected}
-    ></plot-simple-sk>
+      @trace_selected=${ele.traceSelected}></plot-simple-sk>
     <div id="status" class=${ele.hiddenClass()}>
       <p class="disabledMessage">You must be logged in to change the status.</p>
       <triage2-sk
         value=${ele.triageStatus.status}
         @change=${(e: CustomEvent<Status>) => {
           ele.triageStatus.status = e.detail;
-        }}
-      ></triage2-sk>
+        }}></triage2-sk>
       <input
         type="text"
         .value=${ele.triageStatus.message}
@@ -270,8 +268,7 @@ export class ClusterSummary2Sk extends ElementSk {
             e.currentTarget! as HTMLInputElement
           ).value;
         }}
-        label="Message"
-      />
+        label="Message" />
       <button class="action" @click=${ele.update}>Update</button>
     </div>
     <commit-detail-panel-sk id="commits" selectable></commit-detail-panel-sk>
@@ -286,8 +283,7 @@ export class ClusterSummary2Sk extends ElementSk {
       <commit-range-sk
         .trace=${ele.summary.centroid}
         .commitIndex=${ele.graph?.xbar || -1}
-        .header=${ele.frame?.dataframe?.header || null}
-      ></commit-range-sk>
+        .header=${ele.frame?.dataframe?.header || null}></commit-range-sk>
     </div>
     <collapse-sk class="wordCloudCollapse" closed>
       <word-cloud-sk .items=${ele.summary.param_summaries2}></word-cloud-sk>

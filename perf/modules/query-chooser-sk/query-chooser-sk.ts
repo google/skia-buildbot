@@ -43,22 +43,19 @@ export class QueryChooserSk extends ElementSk {
       <button @click=${ele._editClick}>Edit</button>
       <paramset-sk
         id="summary"
-        .paramsets=${[toParamSet(ele.current_query)]}
-      ></paramset-sk>
+        .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
     </div>
     <div id="dialog">
       <query-sk
         current_query=${ele.current_query}
         .paramset=${ele.paramset}
         .key_order=${ele.key_order}
-        @query-change=${ele._queryChange}
-      ></query-sk>
+        @query-change=${ele._queryChange}></query-sk>
       <div class="matches">
         Matches:
         <query-count-sk
           url=${ele.count_url}
-          current_query=${ele.current_query}
-        ></query-count-sk>
+          current_query=${ele.current_query}></query-count-sk>
       </div>
       <button @click=${ele._closeClick}>Close</button>
     </div>

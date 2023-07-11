@@ -55,8 +55,7 @@ export class SkottieLibrarySk extends ElementSk {
           title="If selected, all animations will play at the same time as the main animation.
 If not selected, the animations will be paused and not respond to scrubbing of the timeline."
           ?checked=${ele.syncAnimations}
-          @click=${ele.toggleSync}
-        >
+          @click=${ele.toggleSync}>
         </checkbox-sk>
         <label class="size">
           <input
@@ -64,8 +63,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
             id=${THUMBNAIL_SIZE_ID}
             .value=${ele.thumbnailSize}
             @change=${ele.onThumbnailSizeChange}
-            required
-          />
+            required />
           Thumbnail Size (px)
         </label>
       </div>
@@ -117,8 +115,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
         paused
         width=${this.thumbnailSize}
         height=${this.thumbnailSize}
-        @click=${() => this.onThumbSelected(index)}
-      >
+        @click=${() => this.onThumbSelected(index)}>
       </skottie-player-sk>
     </li>
   `;

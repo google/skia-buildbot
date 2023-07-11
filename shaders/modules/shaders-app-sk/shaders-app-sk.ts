@@ -229,13 +229,11 @@ const domIDFromHashOrName = (hashOrName: string): string => {
  */
 const shaderEntry = (ele: ShadersAppSk, i: shaderExample) => html` <li
   class="thumbnails"
-  id="${domIDFromHashOrName(i.hash)}"
->
+  id="${domIDFromHashOrName(i.hash)}">
   <a href="/?id=${i.hash}">
     <img
       src=${cdnImage(i)}
-      alt=${`Clickable thumbnail of ${i.imageName} shader example`}
-    />
+      alt=${`Clickable thumbnail of ${i.imageName} shader example`} />
   </a>
 </li>`;
 
@@ -325,8 +323,7 @@ export class ShadersAppSk extends ElementSk {
       <button
         class="deleteButton"
         title="Delete child shader."
-        @click=${(e: Event) => ele.removeChildShader(e, parentNode, index)}
-      >
+        @click=${(e: Event) => ele.removeChildShader(e, parentNode, index)}>
         <delete-icon-sk></delete-icon-sk>
       </button>
     `;
@@ -345,8 +342,7 @@ export class ShadersAppSk extends ElementSk {
       <button
         class="editButton"
         title="Edit child shader uniform name."
-        @click=${(e: Event) => ele.editChildShader(e, parentNode, index)}
-      >
+        @click=${(e: Event) => ele.editChildShader(e, parentNode, index)}>
         <edit-icon-sk></edit-icon-sk>
       </button>
     `;
@@ -366,8 +362,7 @@ export class ShadersAppSk extends ElementSk {
     const prefix = new Array(depth).fill('&numsp;&numsp;').join('');
     ret.push(html` <p
       class="childShader"
-      @click=${() => ele.childShaderClick(node)}
-    >
+      @click=${() => ele.childShaderClick(node)}>
       <span>
         ${unsafeHTML(prefix)}
         <span class="linkish">${name}</span>
@@ -381,8 +376,7 @@ export class ShadersAppSk extends ElementSk {
         <button
           class="addButton"
           title="Append a new child shader."
-          @click=${(e: Event) => ele.appendChildShader(e, node)}
-        >
+          @click=${(e: Event) => ele.appendChildShader(e, node)}>
           <add-icon-sk></add-icon-sk>
         </button>
       </span>
@@ -436,16 +430,14 @@ export class ShadersAppSk extends ElementSk {
           ret.push(
             html`<uniform-mouse-sk
               .uniform=${uniform}
-              .elementToMonitor=${ele.canvasEle}
-            ></uniform-mouse-sk>`
+              .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`
           );
           break;
         case 'iResolution':
           ele.numPredefinedUniformControls++;
           ret.push(html` <uniform-dimensions-sk
             .uniform=${uniform}
-            @dimensions-changed=${ele.dimensionsChanged}
-          ></uniform-dimensions-sk>`);
+            @dimensions-changed=${ele.dimensionsChanged}></uniform-dimensions-sk>`);
           break;
         case 'iImageResolution':
           // No-op. This is no longer handled via uniform control, the
@@ -464,8 +456,7 @@ export class ShadersAppSk extends ElementSk {
           } else {
             ret.push(
               html`<uniform-generic-sk
-                .uniform=${uniform}
-              ></uniform-generic-sk>`
+                .uniform=${uniform}></uniform-generic-sk>`
             );
           }
           break;
@@ -481,8 +472,7 @@ export class ShadersAppSk extends ElementSk {
         <span>
           <a
             id="githash"
-            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
-          >
+            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
             ${SKIA_VERSION.slice(0, 7)}
           </a>
           <theme-chooser-sk class="theme-chooser"></theme-chooser-sk>
@@ -505,8 +495,7 @@ export class ShadersAppSk extends ElementSk {
               rows=${numPredefinedUniformLines}
               cols="75"
               readonly
-              id="predefinedShaderInputs"
-            >
+              id="predefinedShaderInputs">
 ${predefinedUniforms}</textarea
             >
             <div id="imageSources">
@@ -525,8 +514,7 @@ ${predefinedUniforms}</textarea
                       type="url"
                       id="image_url"
                       placeholder="URL of image to use."
-                      .value="${ele.currentNode?.getSafeImageURL() || ''}"
-                    />
+                      .value="${ele.currentNode?.getSafeImageURL() || ''}" />
                     <button @click=${ele.imageURLChanged}>Use</button>
                   </div>
                   <label for="image_upload">
@@ -538,8 +526,7 @@ ${predefinedUniforms}</textarea
                       @change=${ele.imageUploaded}
                       type="file"
                       id="image_upload"
-                      accept="image/*"
-                    />
+                      accept="image/*" />
                   </div>
                 </div>
               </details>
@@ -550,15 +537,13 @@ ${predefinedUniforms}</textarea
               ? 'block'
               : 'none'}"
             rows=${ele.currentNode?.children.length || 0}
-            cols="75"
-          >
+            cols="75">
 ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
           >
           <div id="codeEditor"></div>
           <div
             ?hidden=${!ele.currentNode?.compileErrorMessage}
-            id="compileErrors"
-          >
+            id="compileErrors">
             <h3>Errors</h3>
             <pre>${ele.currentNode?.compileErrorMessage}</pre>
           </div>
@@ -567,44 +552,38 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
           <div
             id="uniformControls"
             @input=${ele.uniformControlsChange}
-            @change=${ele.uniformControlsChange}
-          >
+            @change=${ele.uniformControlsChange}>
             ${ShadersAppSk.uniformControls(ele)}
           </div>
           <button
             ?hidden=${!ele.rootShaderNode?.needsCompile()}
             @click=${ele.runClick}
-            class="action"
-          >
+            class="action">
             Run
           </button>
           <button
             ?hidden=${!ele.rootShaderNode?.needsSave()}
             @click=${ele.saveClick}
-            class="action"
-          >
+            class="action">
             Save
           </button>
           <button
             ?hidden=${ele.currentNode?.compileErrorMessage ||
             ele.rootShaderNode?.needsCompile()}
             @click=${ele.createDebugTrace}
-            class="action"
-          >
+            class="action">
             Debug
           </button>
           <button
             ?hidden=${ele.rootShaderNode?.needsSave()}
             @click=${ele.viewInFiddle}
-            class="action"
-          >
+            class="action">
             View in fiddle
           </button>
           <button
             ?hidden=${ele.rootShaderNode?.needsSave()}
             @click=${ele.viewInJsFiddle}
-            class="action"
-          >
+            class="action">
             View in jsfiddle
           </button>
         </div>

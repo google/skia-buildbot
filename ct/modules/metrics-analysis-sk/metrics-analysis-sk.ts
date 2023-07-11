@@ -76,8 +76,7 @@ export class MetricsAnalysisSk extends ElementSk {
           <input-sk
             id="metric_name"
             label="The metric to parse the provided traces with. Eg: loadingMetric"
-            class="medium-field"
-          ></input-sk>
+            class="medium-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -86,15 +85,13 @@ export class MetricsAnalysisSk extends ElementSk {
           <input-sk
             id="analysis_task_id"
             label="Analysis Task Id"
-            class="medium-field"
-          ></input-sk>
+            class="medium-field"></input-sk>
           <expandable-textarea-sk
             id="custom_traces"
             minRows="5"
             displaytext="Specify custom list of traces"
             placeholder="Eg: trace1,trace2,trace3"
-            @click=${el._toggleAnalysisTaskId}
-          >
+            @click=${el._toggleAnalysisTaskId}>
           </expandable-textarea-sk>
         </td>
       </tr>
@@ -104,8 +101,7 @@ export class MetricsAnalysisSk extends ElementSk {
           <input-sk
             value="--output-format=csv"
             id="benchmark_args"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
           <span class="smaller-font"
             >These will be the arguments to the analysis_metrics_ct
             benchmark.</span
@@ -126,8 +122,7 @@ export class MetricsAnalysisSk extends ElementSk {
           <input-sk
             value="avg"
             id="value_column_name"
-            class="medium-field"
-          ></input-sk>
+            class="medium-field"></input-sk>
           <span class="smaller-font"
             >Which column's entries to use as field values.</span
           >
@@ -142,8 +137,7 @@ export class MetricsAnalysisSk extends ElementSk {
           <patch-sk
             id="chromium_patch"
             patchType="chromium"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -160,8 +154,7 @@ export class MetricsAnalysisSk extends ElementSk {
           <patch-sk
             id="catapult_patch"
             patchType="catapult"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -187,8 +180,7 @@ export class MetricsAnalysisSk extends ElementSk {
             value=""
             id="cc_list"
             label="email1,email2,email3"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -198,8 +190,7 @@ export class MetricsAnalysisSk extends ElementSk {
             value=""
             id="description"
             label="Description is required"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -207,14 +198,12 @@ export class MetricsAnalysisSk extends ElementSk {
           <div class="triggering-spinner">
             <spinner-sk
               .active=${el._triggeringTask}
-              alt="Trigger task"
-            ></spinner-sk>
+              alt="Trigger task"></spinner-sk>
           </div>
           <button
             id="submit"
             ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}
-          >
+            @click=${el._validateTask}>
             Queue Task
           </button>
         </td>

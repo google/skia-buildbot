@@ -571,16 +571,14 @@ export class CommitsTableSk extends ElementSk {
   private data: Data = new Data();
 
   private static template = (el: CommitsTableSk) => html`<div
-    class="commitsTableContainer"
-  >
+    class="commitsTableContainer">
     <div
       class="legend"
       style=${el.gridLocation(
         CATEGORY_START_ROW,
         COMMIT_START_COL,
         COMMIT_START_ROW
-      )}
-    >
+      )}>
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
       <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -594,16 +592,14 @@ export class CommitsTableSk extends ElementSk {
         CONTROL_START_ROW,
         BRANCH_START_COL,
         COMMIT_START_ROW
-      )}
-    >
+      )}>
       <div id="repoContainer">
         <div id="repoLabel">Repo:</div>
         <select
           id="repoSelector"
           @change=${(e: Event) => {
             el.repo = (e.target as any).value;
-          }}
-        >
+          }}>
           ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
         </select>
       </div>
@@ -612,14 +608,12 @@ export class CommitsTableSk extends ElementSk {
           type="number"
           textPrefix="Reload (s):&nbsp"
           id="reloadInput"
-          @change=${() => el.update()}
-        ></input-sk>
+          @change=${() => el.update()}></input-sk>
         <input-sk
           type="number"
           textPrefix="Commits:&nbsp&nbsp&nbsp"
           id="commitsInput"
-          @change=${() => el.update()}
-        >
+          @change=${() => el.update()}>
         </input-sk>
         <div class="lastLoaded">
           ${el.data.lastLoaded
@@ -633,8 +627,7 @@ export class CommitsTableSk extends ElementSk {
         COMMIT_START_ROW,
         BRANCH_START_COL,
         COMMIT_START_ROW + el.data.commits.length
-      )}
-    ></branches-sk>
+      )}></branches-sk>
     <div
       class="controls"
       style=${el.gridLocation(
@@ -643,8 +636,7 @@ export class CommitsTableSk extends ElementSk {
         CONTROL_START_ROW + 1,
         // We render this after the table so we know our last column.
         el.lastColumn
-      )}
-    >
+      )}>
       <div class="horizontal">
         <div class="commitLabelSelector">
           ${['Author', 'Subject'].map(
@@ -653,23 +645,20 @@ export class CommitsTableSk extends ElementSk {
               label=${label}
               name="commitLabel"
               ?checked=${!!i === el.displayCommitSubject}
-              @change=${el.toggleCommitLabel}
-            ></radio-sk>`
+              @change=${el.toggleCommitLabel}></radio-sk>`
           )}
         </div>
 
         <div class="horizontal">
           <tabs-sk
             @tab-selected-sk=${(e: CustomEvent) =>
-              (el.filter = FILTER_INDEX[e.detail.index])}
-          >
+              (el.filter = FILTER_INDEX[e.detail.index])}>
             ${Array.from(FILTER_INFO).map(([filter, info]) =>
               filter === 'Search'
                 ? html``
                 : html`<button
                     title=${info.title}
-                    class=${el._filter === filter ? 'selected' : ''}
-                  >
+                    class=${el._filter === filter ? 'selected' : ''}>
                     ${info.text}
                     <help-icon-sk class="tiny"></help-icon-sk>
                   </button> `
@@ -679,14 +668,12 @@ export class CommitsTableSk extends ElementSk {
             id="searchInput"
             class=${el.filter === 'Search' ? 'selected' : ''}
             label="Filter task spec"
-            @change=${el.searchFilter}
-          >
+            @change=${el.searchFilter}>
           </input-sk>
           <a
             href="${taskSchedulerUrl()}/trigger"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             <button>
               <add-icon-sk></add-icon-sk>
               Trigger a Job
@@ -970,8 +957,7 @@ export class CommitsTableSk extends ElementSk {
         @mouseenter=${() =>
           this.highlightAssociatedCommit(relanded.hash, false)}
         @mouseleave=${() =>
-          this.highlightAssociatedCommit(relanded.hash, false)}
-      >
+          this.highlightAssociatedCommit(relanded.hash, false)}>
       </redo-icon-sk>`);
     }
     const reverted = this.data.revertedMap.get(commit.hash);
@@ -979,8 +965,8 @@ export class CommitsTableSk extends ElementSk {
       res.push(html`<undo-icon-sk
         class="tiny fill-red"
         @mouseenter=${() => this.highlightAssociatedCommit(reverted.hash, true)}
-        @mouseleave=${() => this.highlightAssociatedCommit(reverted.hash, true)}
-      >
+        @mouseleave=${() =>
+          this.highlightAssociatedCommit(reverted.hash, true)}>
       </undo-icon-sk>`);
     }
     if (commit.ignoreFailure) {
@@ -1038,8 +1024,7 @@ export class CommitsTableSk extends ElementSk {
                       TASKSPEC_START_ROW,
                       taskSpecStartCol++
                     )}
-                    title=${taskSpec}
-                  >
+                    title=${taskSpec}>
                     ${this.taskSpecIcons(taskSpec)}
                   </div>`
                 );
@@ -1055,8 +1040,7 @@ export class CommitsTableSk extends ElementSk {
                     subcategoryStartCol,
                     SUBCATEGORY_START_ROW + 1,
                     subcategoryEndCol
-                  )}
-                >
+                  )}>
                   ${subcategoryName}
                 </div>`
               );
@@ -1075,8 +1059,7 @@ export class CommitsTableSk extends ElementSk {
                 categoryStartCol,
                 CATEGORY_START_ROW + 1,
                 categoryEndCol
-              )}
-            >
+              )}>
               ${categoryName}
             </div>`
           );
@@ -1106,8 +1089,7 @@ export class CommitsTableSk extends ElementSk {
               ...this.getDashedBorderClasses(displayTaskRows, index)
             )}
             style=${this.gridLocation(currRow - rowStart + 1, 1)}
-            data-task-id=${task.id}
-          >
+            data-task-id=${task.id}>
             ${index === 0 ? this.taskIcon(task) : ''}
           </div>`
         : // On holes we just drop a hidden div.
@@ -1115,8 +1097,7 @@ export class CommitsTableSk extends ElementSk {
           // styling for an empty template, or reduce z index.
           html`<div
             class="hidden ${taskClasses(task)}"
-            style=${this.gridLocation(currRow - rowStart + 1, 1)}
-          ></div>`;
+            style=${this.gridLocation(currRow - rowStart + 1, 1)}></div>`;
       currRow++;
       return ret;
     });
@@ -1161,8 +1142,7 @@ export class CommitsTableSk extends ElementSk {
               title=${taskTitle(task)}
               data-task-id=${task.id}
               @mouseenter=${() => this.taskMouseInOut(task)}
-              @mouseleave=${() => this.taskMouseInOut(task)}
-            >
+              @mouseleave=${() => this.taskMouseInOut(task)}>
               ${this.taskIcon(task)}
             </div>`
           );
@@ -1179,8 +1159,7 @@ export class CommitsTableSk extends ElementSk {
                 rowStart,
                 colStart,
                 rowStart + displayTaskRows.length
-              )}
-            >
+              )}>
               ${this.multiCommitTaskSlots(displayTaskRows, rowStart, task)}
             </div>`
           );
@@ -1281,14 +1260,12 @@ export class CommitsTableSk extends ElementSk {
         html`
           <div
             class="commit-container"
-            style=${this.gridLocation(rowStart, COMMIT_START_COL)}
-          >
+            style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
             <div class="time-spacer">${timeLabel}</div>
             <div
               class="commit ${this.attributeStringFromHash(commit.hash)}"
               title=${title}
-              data-commit-index=${i}
-            >
+              data-commit-index=${i}>
               <span class="nowrap commit-text">${text}</span>
               <span class="nowrap icons">${this.commitIcons(commit)}</span>
             </div>
@@ -1301,16 +1278,14 @@ export class CommitsTableSk extends ElementSk {
               COMMIT_START_COL + 1,
               rowStart + 1,
               this.lastColumn
-            )}
-          ></span>
+            )}></span>
         `
       );
     }
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
     let row = taskStartRow;
     const nextRowDiv = () => html` <div
-      style=${this.gridLocation(row, 1, ++row, this.lastColumn)}
-    ></div>`;
+      style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
     res.push(html` <div class="rowUnderlay">
       ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
     </div>`);

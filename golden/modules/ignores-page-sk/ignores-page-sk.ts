@@ -46,8 +46,7 @@ export class IgnoresPageSk extends ElementSk {
       <checkbox-sk
         label="Only count traces with untriaged digests"
         ?checked=${!ele.countAllTraces}
-        @click=${ele.toggleCountAll}
-      ></checkbox-sk>
+        @click=${ele.toggleCountAll}></checkbox-sk>
 
       <button @click=${ele.newIgnoreRule} class="create">
         Create new ignore rule
@@ -75,8 +74,7 @@ export class IgnoresPageSk extends ElementSk {
             exclusive/all
             <info-outline-icon-sk
               class="small-icon"
-              title="'all' is the number of traces that a given ignore rule applies to.     'exclusive' is the number of traces which are matched by the given ignore rule and no other     ignore rule of the rules in this list. If the checkbox is checked to only count traces with     untriaged digests, it means 'untriaged digests at head', which is typically an indication of     a flaky test/config."
-            >
+              title="'all' is the number of traces that a given ignore rule applies to.     'exclusive' is the number of traces which are matched by the given ignore rule and no other     ignore rule of the rules in this list. If the checkbox is checked to only count traces with     untriaged digests, it means 'untriaged digests at head', which is typically an indication of     a flaky test/config.">
             </info-outline-icon-sk>
           </th>
           <th>Expires in</th>
@@ -97,12 +95,10 @@ export class IgnoresPageSk extends ElementSk {
         <td class="mutate-icons">
           <mode-edit-icon-sk
             title="Edit this rule."
-            @click=${() => ele.editIgnoreRule(r)}
-          ></mode-edit-icon-sk>
+            @click=${() => ele.editIgnoreRule(r)}></mode-edit-icon-sk>
           <delete-icon-sk
             title="Delete this rule."
-            @click=${() => ele.deleteIgnoreRule(r)}
-          ></delete-icon-sk>
+            @click=${() => ele.deleteIgnoreRule(r)}></delete-icon-sk>
         </td>
         <td class="query">
           <a href=${`/list?include=true&query=${encodeURIComponent(r.query)}`}
@@ -112,8 +108,7 @@ export class IgnoresPageSk extends ElementSk {
         <td>${escapeAndLinkify(r.note) || '--'}</td>
         <td
           class="matches"
-          title="These counts are recomputed every few minutes."
-        >
+          title="These counts are recomputed every few minutes.">
           ${ele.countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
           ${ele.countAllTraces ? r.countAll : r.count}
         </td>

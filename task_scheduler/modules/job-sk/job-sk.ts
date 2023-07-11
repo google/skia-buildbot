@@ -75,8 +75,7 @@ export class JobSk extends ElementSk {
           <td>
             <a
               href="/jobs/search?name=${encodeURIComponent(ele.job!.name)}"
-              target="_blank"
-            >
+              target="_blank">
               <button><search-icon-sk></search-icon-sk>Search Jobs</button>
             </a>
           </td>
@@ -138,8 +137,7 @@ export class JobSk extends ElementSk {
               href="/jobs/search?revision=${encodeURIComponent(
                 ele.job!.repoState!.revision
               )}"
-              target="_blank"
-            >
+              target="_blank">
               <button><search-icon-sk></search-icon-sk>Search Jobs</button>
             </a>
           </td>
@@ -162,8 +160,7 @@ export class JobSk extends ElementSk {
                     )}&patchset=${encodeURIComponent(
                       ele.job!.repoState!.patch!.patchset
                     )}"
-                    target="_blank"
-                  >
+                    target="_blank">
                     <button>
                       <search-icon-sk></search-icon-sk>Search Jobs
                     </button>

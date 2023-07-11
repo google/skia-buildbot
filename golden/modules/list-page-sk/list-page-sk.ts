@@ -53,8 +53,7 @@ export class ListPageSk extends ElementSk {
       <corpus-selector-sk
         .corpora=${ele.corpora}
         .selectedCorpus=${ele.currentCorpus}
-        @corpus-selected=${ele.currentCorpusChanged}
-      >
+        @corpus-selected=${ele.currentCorpusChanged}>
       </corpus-selector-sk>
 
       <div class="query_params">
@@ -66,8 +65,7 @@ export class ListPageSk extends ElementSk {
           label="Disregard Ignore Rules"
           class="ignore_rules"
           ?checked=${ele.disregardIgnoreRules}
-          @click=${ele.toggleIgnoreRules}
-        ></checkbox-sk>
+          @click=${ele.toggleIgnoreRules}></checkbox-sk>
       </div>
     </div>
 
@@ -75,8 +73,7 @@ export class ListPageSk extends ElementSk {
     <sort-toggle-sk
       id="sort_table"
       .data=${ele.byTestCounts}
-      @sort-changed=${ele._render}
-    >
+      @sort-changed=${ele._render}>
       <table>
         <thead>
           <tr>
@@ -146,8 +143,7 @@ export class ListPageSk extends ElementSk {
               untriaged: true,
             })}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             ${row.name}
           </a>
         </td>
@@ -159,8 +155,7 @@ export class ListPageSk extends ElementSk {
               untriaged: false,
             })}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             ${row.positive_digests}
           </a>
         </td>
@@ -172,8 +167,7 @@ export class ListPageSk extends ElementSk {
               untriaged: false,
             })}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             ${row.negative_digests}
           </a>
         </td>
@@ -185,8 +179,7 @@ export class ListPageSk extends ElementSk {
               untriaged: true,
             })}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             ${row.untriaged_digests}
           </a>
         </td>
@@ -198,8 +191,7 @@ export class ListPageSk extends ElementSk {
               untriaged: true,
             })}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             ${row.total_digests}
           </a>
         </td>
@@ -207,8 +199,7 @@ export class ListPageSk extends ElementSk {
           <a
             href="${clusterPageHref(row.grouping, clusterPageSearchCriteria)}"
             target="_blank"
-            rel="noopener"
-          >
+            rel="noopener">
             <group-work-icon-sk></group-work-icon-sk>
           </a>
         </td>

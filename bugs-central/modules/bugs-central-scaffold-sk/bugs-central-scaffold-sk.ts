@@ -83,8 +83,7 @@ export class BugsCentralScaffoldSk extends ElementSk {
           <a
             href="https://estado.googleplex.com/dashboard/140965800253573027/buganizer"
             target="_blank"
-            tab-index="0"
-          >
+            tab-index="0">
             <insert-chart-icon-sk></insert-chart-icon-sk
             ><span>Estado Dashboard</span>
           </a>
@@ -94,8 +93,7 @@ export class BugsCentralScaffoldSk extends ElementSk {
           <a
             href="https://github.com/google/skia-buildbot/tree/master/bugs-central"
             target="_blank"
-            tab-index="0"
-          >
+            tab-index="0">
             <folder-icon-sk></folder-icon-sk><span>Code</span>
           </a>
         </nav>

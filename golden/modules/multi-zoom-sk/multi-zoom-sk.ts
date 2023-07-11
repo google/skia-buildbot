@@ -96,8 +96,7 @@ export class MultiZoomSk extends ElementSk {
       <canvas
         class="zoomed"
         width=${zoomedCanvasSize}
-        height=${zoomedCanvasSize}
-      ></canvas>
+        height=${zoomedCanvasSize}></canvas>
     </div>
     <!-- This scratch canvas is not displayed, but is used to get the pixel data from the
          loaded images-->
@@ -119,25 +118,22 @@ export class MultiZoomSk extends ElementSk {
           class="thumbnail idx_${idx}"
           src=${ele.srcs[idx]}
           alt=${label}
-          @load=${() => ele.imageLoaded(idx)}
-        />
+          @load=${() => ele.imageLoaded(idx)} />
         <canvas
           class="crosshair idx_${idx}"
           width=${previewCanvasSize}
           height=${previewCanvasSize}
-          @click=${(e: MouseEvent) => ele.previewCanvasClicked(e, idx)}
-        ></canvas>
+          @click=${(e: MouseEvent) =>
+            ele.previewCanvasClicked(e, idx)}></canvas>
         <figcaption>
           <checkbox-sk
             label=${label}
-            class="displayed for_spacing"
-          ></checkbox-sk>
+            class="displayed for_spacing"></checkbox-sk>
           <checkbox-sk
             label=${label}
             class="idx_${idx} ${idx === ele.zoomedIndex ? 'displayed' : ''}"
             ?checked=${ele.cycleThrough[idx]}
-            @change=${() => ele.cycleBoxChanged(idx)}
-          >
+            @change=${() => ele.cycleBoxChanged(idx)}>
           </checkbox-sk>
         </figcaption>
       </figure>

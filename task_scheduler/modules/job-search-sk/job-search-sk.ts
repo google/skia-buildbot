@@ -104,8 +104,7 @@ export class JobSearchSk extends ElementSk {
                           ([status, labelAndClass]) => html`
                             <option
                               value="${status}"
-                              ?selected="${term.value == status}"
-                            >
+                              ?selected="${term.value == status}">
                               ${labelAndClass.label}
                             </option>
                           `
@@ -141,8 +140,7 @@ export class JobSearchSk extends ElementSk {
                     ele.searchTerms.delete(term.key);
                     ele._render();
                     ele.updateQuery();
-                  }}"
-                >
+                  }}">
                   <delete-icon-sk></delete-icon-sk>
                 </button>
               </td>
@@ -165,8 +163,7 @@ export class JobSearchSk extends ElementSk {
                 // Auto-focus the new input field.
                 const inp = $$<HTMLInputElement>(`#${selected}`, ele)!;
                 inp?.focus();
-              }}"
-            >
+              }}">
               <option disabled selected>Add Search Term</option>
               ${Object.entries(searchTerms)
                 .filter(([key, _]) => !ele.searchTerms.get(key))
@@ -221,8 +218,7 @@ export class JobSearchSk extends ElementSk {
                       <a
                         href="${job.repoState!.repo}/+show/${job.repoState!
                           .revision}"
-                        target="_blank"
-                      >
+                        target="_blank">
                         ${job.repoState!.revision.substring(0, 12)}
                       </a>
                     </td>
@@ -253,8 +249,7 @@ export class JobSearchSk extends ElementSk {
                         ? html`
                             <button
                               class="cancel"
-                              @click="${() => ele.cancel(job)}"
-                            >
+                              @click="${() => ele.cancel(job)}">
                               <delete-icon-sk></delete-icon-sk>
                               Cancel
                             </button>

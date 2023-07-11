@@ -348,19 +348,18 @@ export class PivotTableSk extends ElementSk {
         if (firstSortSelection.dir === 'up') {
           return html`<arrow-drop-up-icon-sk
             title="Change sort order to descending."
-            @click=${() => this.changeSort(column, kind)}
-          ></arrow-drop-up-icon-sk>`;
+            @click=${() =>
+              this.changeSort(column, kind)}></arrow-drop-up-icon-sk>`;
         }
         return html`<arrow-drop-down-icon-sk
           title="Change sort order to ascending."
-          @click=${() => this.changeSort(column, kind)}
-        ></arrow-drop-down-icon-sk>`;
+          @click=${() =>
+            this.changeSort(column, kind)}></arrow-drop-down-icon-sk>`;
       }
     }
     return html`<sort-icon-sk
       title="Sort this column."
-      @click=${() => this.changeSort(column, kind)}
-    ></sort-icon-sk>`;
+      @click=${() => this.changeSort(column, kind)}></sort-icon-sk>`;
   }
 
   private changeSort(column: number, kind: columnKind) {

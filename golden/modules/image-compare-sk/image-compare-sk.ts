@@ -30,8 +30,7 @@ export class ImageCompareSk extends ElementSk {
           class="thumbnail ${ele._fullSizeLeftImage ? 'fullsize' : ''}"
           alt="left image"
           src=${digestImagePath(ele.left.digest)}
-          @click=${ele.toggleFullSizeLeftImage}
-        />
+          @click=${ele.toggleFullSizeLeftImage} />
         <figcaption>
           <span class="legend_dot"></span>
           <a target="_blank" rel="noopener" href=${ele.left.detail}
@@ -42,8 +41,7 @@ export class ImageCompareSk extends ElementSk {
       <a
         target="_blank"
         rel="noopener"
-        href=${digestImagePath(ele.left.digest)}
-      >
+        href=${digestImagePath(ele.left.digest)}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
       ${ImageCompareSk.comparison(ele)}
@@ -74,8 +72,7 @@ export class ImageCompareSk extends ElementSk {
         class="thumbnail diff ${ele._fullSizeDiffImage ? 'fullsize' : ''}"
         alt="diff between left and right image"
         src=${diffSrc}
-        @click=${ele.toggleFullSizeDiffImage}
-      />
+        @click=${ele.toggleFullSizeDiffImage} />
       <a target="_blank" rel="noopener" href=${diffSrc}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
@@ -85,8 +82,7 @@ export class ImageCompareSk extends ElementSk {
           class="thumbnail ${ele._fullSizeRightImage ? 'fullsize' : ''}"
           alt="right image"
           src=${digestImagePath(ele.right.digest)}
-          @click=${ele.toggleFullSizeRightImage}
-        />
+          @click=${ele.toggleFullSizeRightImage} />
         <figcaption>
           <a target="_blank" rel="noopener" href=${ele.right.detail}
             >${ele.right.title}</a
@@ -96,8 +92,7 @@ export class ImageCompareSk extends ElementSk {
       <a
         target="_blank"
         rel="noopener"
-        href=${digestImagePath(ele.right.digest)}
-      >
+        href=${digestImagePath(ele.right.digest)}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
     `;

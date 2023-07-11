@@ -49,16 +49,14 @@ export class ChangelistControlsSk extends ElementSk {
             class="exclude-master"
             name="include_master"
             ?checked=${!ele.include_master}
-            @change=${() => ele.onIncludeDigestsFromPrimaryChange(false)}
-          >
+            @change=${() => ele.onIncludeDigestsFromPrimaryChange(false)}>
           </radio-sk>
           <radio-sk
             label="show all results"
             class="include-master"
             name="include_master"
             ?checked=${ele.include_master}
-            @change=${() => ele.onIncludeDigestsFromPrimaryChange(true)}
-          >
+            @change=${() => ele.onIncludeDigestsFromPrimaryChange(true)}>
           </radio-sk>
         </div>
       </div>

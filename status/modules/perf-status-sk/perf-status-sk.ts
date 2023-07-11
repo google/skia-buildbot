@@ -21,8 +21,7 @@ export class PerfStatusSk extends ElementSk {
         href="https://perf.skia.org/t/?filter=cat%3AProd"
         target="_blank"
         rel="noopener noreferrer"
-        title="Active Perf Alerts"
-      >
+        title="Active Perf Alerts">
         <div class="td">regressions</div>
         <div class="td number">
           <span class="value">${el.resp.alerts}</span>

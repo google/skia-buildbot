@@ -73,13 +73,11 @@ export class ClusterPageSk extends ElementSk {
           .corpora=${ele.corpora}
           .paramSet=${ele.paramset}
           .searchCriteria=${ele.searchCriteria}
-          @search-controls-sk-change=${ele.searchControlsChanged}
-        >
+          @search-controls-sk-change=${ele.searchControlsChanged}>
         </search-controls-sk>
 
         <cluster-digests-sk
-          @selection-changed=${ele.selectionChanged}
-        ></cluster-digests-sk>
+          @selection-changed=${ele.selectionChanged}></cluster-digests-sk>
 
         ${ClusterPageSk.infoPanel(ele)}
       </div>
@@ -99,8 +97,7 @@ export class ClusterPageSk extends ElementSk {
           clickable
           .paramsets=${[ele.paramsetOfAllDigests]}
           @paramset-key-click=${ele.paramKeyClicked}
-          @paramset-key-value-click=${ele.paramValueClicked}
-        >
+          @paramset-key-value-click=${ele.paramValueClicked}>
         </paramset-sk>
       `;
     }
@@ -110,8 +107,7 @@ export class ClusterPageSk extends ElementSk {
           <digest-details-sk
             .details=${ele.digestDetails.digest}
             .commits=${ele.digestDetails.commits}
-            .groupings=${ele.groupings}
-          >
+            .groupings=${ele.groupings}>
           </digest-details-sk>
         `;
       }
@@ -122,8 +118,7 @@ export class ClusterPageSk extends ElementSk {
         return html` <digest-details-sk
           .details=${ele.diffDetails.left}
           .right=${ele.diffDetails.right}
-          .groupings=${ele.groupings}
-        >
+          .groupings=${ele.groupings}>
         </digest-details-sk>`;
       }
       return html`<h2>Loading diff details</h2>`;
@@ -142,8 +137,7 @@ export class ClusterPageSk extends ElementSk {
         clickable
         .paramsets=${[selectedDigestParamset]}
         @paramset-key-click=${ele.paramKeyClicked}
-        @paramset-key-value-click=${ele.paramValueClicked}
-      >
+        @paramset-key-value-click=${ele.paramValueClicked}>
       </paramset-sk>
     `;
   };

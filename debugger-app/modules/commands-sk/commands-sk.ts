@@ -146,12 +146,10 @@ export class CommandsSk extends ElementDocSk {
     id="op-${op.index}"
     @click=${(e: MouseEvent) => {
       ele._clickItem(e, filtpos);
-    }}
-  >
+    }}>
     <details>
       <summary
-        class="command-summary ${ele.position === op.index ? 'selected' : ''}"
-      >
+        class="command-summary ${ele.position === op.index ? 'selected' : ''}">
         <div class="command-icons-group">
           <span class="index">${op.index}</span>
           ${op.prefixes.map((pre: PrefixItem) =>
@@ -165,8 +163,7 @@ export class CommandsSk extends ElementDocSk {
               @click=${() => {
                 ele.range = op.range!;
               }}
-              title="Range-filter the command list to this save/restore pair"
-            >
+              title="Range-filter the command list to this save/restore pair">
               Zoom
             </button>`
           : ''}
@@ -175,8 +172,7 @@ export class CommandsSk extends ElementDocSk {
               @click=${() => {
                 ele._jumpToImage(op.imageIndex!);
               }}
-              title="Show the image referenced by this command in the resource viewer"
-            >
+              title="Show the image referenced by this command in the resource viewer">
               Image
             </button>`
           : ''}
@@ -192,8 +188,7 @@ export class CommandsSk extends ElementDocSk {
         <checkbox-sk
           title="Toggle command visibility"
           checked=${op.visible}
-          @change=${() => ele._toggleVisible(op.index)}
-        ></checkbox-sk>
+          @change=${() => ele._toggleVisible(op.index)}></checkbox-sk>
         <strong>Index: </strong> <span class="index">${op.index}</span>
       </div>
       ${ele._renderRullOpRepresentation(ele, op)}
@@ -221,8 +216,7 @@ export class CommandsSk extends ElementDocSk {
   >`;
 
   private static filterTemplate = (ele: CommandsSk) => html` <div
-    class="horizontal-flex"
-  >
+    class="horizontal-flex">
     <label
       title="Filter command names (Single leading ! negates entire filter).
 Command types can also be filted by clicking on their names in the histogram"
@@ -231,22 +225,19 @@ Command types can also be filted by clicking on their names in the histogram"
     <input
       @change=${ele._textFilter}
       value="!DrawAnnotation"
-      id="text-filter"
-    />&nbsp;
+      id="text-filter" />&nbsp;
     <label>Range</label>
     <input
       @change=${ele._rangeInputHandler}
       class="range-input"
       value="${ele._range[0]}"
-      id="rangelo"
-    />
+      id="rangelo" />
     <b>:</b>
     <input
       @change=${ele._rangeInputHandler}
       class="range-input"
       value="${ele._range[1]}"
-      id="rangehi"
-    />
+      id="rangehi" />
     <button @click=${ele.clearFilter} id="clear-filter-button">Clear</button>
   </div>`;
 
@@ -543,8 +534,7 @@ Command types can also be filted by clicking on their names in the histogram"
             @click=${() => {
               ele._jumpToImage(value);
             }}
-            title="Show the image referenced by this command in the resource viewer"
-          >
+            title="Show the image referenced by this command in the resource viewer">
             Image
           </button>`);
         return magic;
@@ -587,8 +577,7 @@ Command types can also be filted by clicking on their names in the histogram"
     if (item.icon === 'content-copy-icon-sk') {
       return html`<content-copy-icon-sk
         style="fill: ${item.color};"
-        class="icon"
-      >
+        class="icon">
       </content-copy-icon-sk>`;
     }
     if (item.icon === 'image-icon-sk') {

@@ -113,8 +113,7 @@ export class PivotQuerySk extends ElementSk {
       (key: pivot.Operation): TemplateResult =>
         html`<option
           value="${key}"
-          .selected=${this._pivotRequest?.operation === key}
-        >
+          .selected=${this._pivotRequest?.operation === key}>
           ${operationDescriptions[key]}
         </option>`
     );

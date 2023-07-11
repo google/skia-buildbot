@@ -21,8 +21,7 @@ export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
 export class DebugViewSk extends ElementDocSk {
   private static template = (ele: DebugViewSk) => html` <div
-      class="horizontal-flex"
-    >
+      class="horizontal-flex">
       <button title="Original size." @click=${() => (ele.fitStyle = 'natural')}>
         <img src="/dist/image.png" />
       </button>
@@ -42,8 +41,7 @@ export class DebugViewSk extends ElementDocSk {
             id="main-canvas"
             class=${ele._fitStyle}
             width=${ele._width}
-            height=${ele._height}
-          ></canvas>`
+            height=${ele._height}></canvas>`
         : ''}
       <canvas
         id="crosshair-canvas"
@@ -51,8 +49,7 @@ export class DebugViewSk extends ElementDocSk {
         width=${ele._width}
         height=${ele._height}
         @click=${ele._canvasClicked}
-        @mousemove=${ele._canvasMouseMove}
-      ></canvas>
+        @mousemove=${ele._canvasMouseMove}></canvas>
     </div>`;
 
   // the native width and height of the main canvas, before css is applied

@@ -61,8 +61,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}Chromium Perf Runs</h2>
       <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}
-      ></pagination-sk>
+        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
@@ -75,8 +74,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
       <br />
       <table
         class="surface-themes-sk secondary-links runssummary"
-        id="runssummary"
-      >
+        id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -119,19 +117,16 @@ export class ChromiumPerfRunsSk extends ElementSk {
         title="Delete this task"
         alt="Delete"
         ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}
-      ></delete-icon-sk>
+        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
       <redo-icon-sk
         title="Redo this task"
         alt="Redo"
         ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}
-      ></redo-icon-sk>
+        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
       <mode-edit-icon-sk
         title="Edit and redo this task"
         alt="Edit"
-        @click=${() => el._confirmEditTask(index)}
-      ></mode-edit-icon-sk>
+        @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
     </td>
     <!-- User col -->
     <td>${task.username}</td>
@@ -237,24 +232,21 @@ export class ChromiumPerfRunsSk extends ElementSk {
         ? html`<a
               href="${task.results}"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               Overall Result
             </a>
             <br />
             <a
               href="${task.no_patch_raw_output}"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               NoPatch Raw Output
             </a>
             <br />
             <a
               href="${task.with_patch_raw_output}"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               WithPatch Raw Output
             </a>`
         : ''}
@@ -275,8 +267,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
         ? html`<a
               href="javascript:;"
               class="details"
-              @click=${() => el._showDialog('gnArgs', index)}
-            >
+              @click=${() => el._showDialog('gnArgs', index)}>
               GN Args
             </a>
             <br />`
@@ -285,8 +276,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
         ? html`<a
               href="javascript:;"
               class="details"
-              @click=${() => el._showDialog('benchmarkArgs', index)}
-            >
+              @click=${() => el._showDialog('benchmarkArgs', index)}>
               Benchmark Args
             </a>
             <br />`
@@ -295,8 +285,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
         ? html`<a
               href="javascript:;"
               class="details"
-              @click=${() => el._showDialog('browserArgsNoPatch', index)}
-            >
+              @click=${() => el._showDialog('browserArgsNoPatch', index)}>
               NoPatch Browser Args
             </a>
             <br />`
@@ -305,8 +294,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
         ? html`<a
               href="javascript:;"
               class="details"
-              @click=${() => el._showDialog('browserArgsWithPatch', index)}
-            >
+              @click=${() => el._showDialog('browserArgsWithPatch', index)}>
               WithPatch Browser Args
             </a>
             <br />`
@@ -391,8 +379,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <div
       id=${`gnArgs${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${task.gn_args}</pre>
       </div>
@@ -400,8 +387,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <div
       id=${`benchmarkArgs${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${task.benchmark_args}</pre>
       </div>
@@ -409,8 +395,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <div
       id=${`browserArgsNoPatch${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${task.browser_args_no_patch}</pre>
       </div>
@@ -418,8 +403,7 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <div
       id=${`browserArgsWithPatch${index}`}
       class="dialog-background hidden overlay-themes-sk"
-      @click=${hideDialog}
-    >
+      @click=${hideDialog}>
       <div class="dialog-content surface-themes-sk">
         <pre>${task.browser_args_with_patch}</pre>
       </div>

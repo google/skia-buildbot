@@ -142,8 +142,7 @@ export class WasmFiddle extends HTMLElement {
         min="0"
         max="1"
         step="0.00001"
-        type="range"
-      />
+        type="range" />
       <label for=${`slider${i}`}>${name}</label>
     </div>`;
   };

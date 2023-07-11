@@ -267,16 +267,14 @@ export class SilenceSk extends HTMLElement {
         <textarea
           rows="2"
           cols="80"
-          placeholder="Add description for the silence"
-        ></textarea>
+          placeholder="Add description for the silence"></textarea>
         <button @click=${this.addNote}>Submit</button>
       `;
     }
     return html`<textarea
       rows="2"
       cols="80"
-      placeholder="Add description for the silence"
-    ></textarea>`;
+      placeholder="Add description for the silence"></textarea>`;
   }
 
   private gotoIncident(incident: Incident): void {
@@ -316,8 +314,7 @@ export class SilenceSk extends HTMLElement {
     return html`<button @click=${this.reactivate}>Reactivate</button>
       <delete-icon-sk
         title="Delete silence."
-        @click=${this.delete}
-      ></delete-icon-sk>`;
+        @click=${this.delete}></delete-icon-sk>`;
   }
 
   private headerClick(): void {

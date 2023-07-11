@@ -58,8 +58,7 @@ export class StatusSk extends ElementSk {
             .baseURL=${treeStatusBaseUrl()}
             .repo=${el.repo}
             @tree-status-update=${(e: CustomEvent<TreeStatus>) =>
-              el.updateTreeStatus(e.detail)}
-          ></tree-status-sk>
+              el.updateTreeStatus(e.detail)}></tree-status-sk>
         </div>
         <alogin-sk></alogin-sk>
         <theme-chooser-sk></theme-chooser-sk>
@@ -71,8 +70,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.navOpen = !el.navOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.navOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -88,8 +86,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.autorollersOpen = !el.autorollersOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.autorollersOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -98,8 +95,7 @@ export class StatusSk extends ElementSk {
           <collapse-sk>
             <autoroller-status-sk
               @rollers-update=${(e: CustomEvent) =>
-                el.updateRollerLabels(e.detail)}
-            ></autoroller-status-sk>
+                el.updateRollerLabels(e.detail)}></autoroller-status-sk>
           </collapse-sk>
         </div>
         <div>
@@ -108,8 +104,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.perfOpen = !el.perfOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.perfOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -125,8 +120,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.goldOpen = !el.goldOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.goldOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -142,8 +136,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.bugsOpen = !el.bugsOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.bugsOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -159,8 +152,7 @@ export class StatusSk extends ElementSk {
             @click=${(e: Event) => {
               el.rotationsOpen = !el.rotationsOpen;
               el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-            }}
-          >
+            }}>
             ${el.rotationsOpen
               ? html`<expand-less-icon-sk></expand-less-icon-sk>`
               : html`<expand-more-icon-sk></expand-more-icon-sk>`}
@@ -174,8 +166,8 @@ export class StatusSk extends ElementSk {
 
       <main>
         <commits-table-sk
-          @repo-changed=${(e: CustomEvent) => el.updateRepo(e.detail)}
-        ></commits-table-sk>
+          @repo-changed=${(e: CustomEvent) =>
+            el.updateRepo(e.detail)}></commits-table-sk>
         <error-toast-sk></error-toast-sk>
       </main>
 

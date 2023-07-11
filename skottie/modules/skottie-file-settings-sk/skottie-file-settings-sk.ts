@@ -48,8 +48,7 @@ export class SkottieFileSettingsSk extends ElementSk {
             id="file-settings-width"
             @change=${ele.onWidthChange}
             value=${ele._width}
-            required
-          />
+            required />
         </div>
         <div class="text-box text-box__right">
           <div class="text-box--label">H</div>
@@ -59,15 +58,13 @@ export class SkottieFileSettingsSk extends ElementSk {
             id="file-settings-height"
             @change=${ele.onHeightChange}
             value=${ele._height}
-            required
-          />
+            required />
         </div>
         <skottie-button-sk
           class="aspect-ratio"
           type="outline"
           @select=${ele.toggleAspectRatio}
-          .content=${ele.renderAspectRatioButton()}
-        >
+          .content=${ele.renderAspectRatioButton()}>
         </skottie-button-sk>
         <div class="text-box">
           <div class="text-box--label">FPS</div>
@@ -77,16 +74,14 @@ export class SkottieFileSettingsSk extends ElementSk {
             id="file-settings-fps"
             @change=${ele.onFrameChange}
             value=${ele._fps}
-            required
-          />
+            required />
         </div>
       </div>
       <div class="toolbar">
         <skottie-button-sk
           type="filled"
           @select=${ele.applySettings}
-          .content=${'Apply'}
-        >
+          .content=${'Apply'}>
         </skottie-button-sk>
       </div>
     </div>

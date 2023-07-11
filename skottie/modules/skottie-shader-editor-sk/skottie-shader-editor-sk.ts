@@ -59,8 +59,7 @@ export class ShaderEditorSk extends ElementSk {
             class="shader-element-input"
             @change=${(ev: Event) => this.onChange(ev, item)}
             @input=${(ev: Event) => this.onChange(ev, item)}
-            .value=${item.shader}
-          ></textarea>
+            .value=${item.shader}></textarea>
         </div>
       </div>
     </li>

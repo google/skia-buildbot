@@ -60,8 +60,7 @@ export class PagesetSelectorSk extends ElementSk {
       minRows="5"
       displaytext="Specify custom list of web pages"
       placeholder=${PagesetSelectorSk.customFormPlaceholder}
-      @click=${ele._updatePageSetHidden}
-    >
+      @click=${ele._updatePageSetHidden}>
     </expandable-textarea-sk>
   `;
 

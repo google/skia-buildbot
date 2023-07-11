@@ -270,8 +270,7 @@ export class TrybotPageSk extends ElementSk {
           <td>${r.stddevRatio}</td>
           <td
             class="link"
-            @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}
-          >
+            @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}>
             <timeline-icon-sk></timeline-icon-sk>
           </td>
           ${keyValueDelta}
@@ -299,8 +298,7 @@ export class TrybotPageSk extends ElementSk {
         <td>${i + 1}</td>
         <td
           class="link"
-          @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}
-        >
+          @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}>
           <timeline-icon-sk></timeline-icon-sk>
         </td>
         <td>${b.keyValue}</td>

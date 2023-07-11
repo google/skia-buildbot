@@ -189,8 +189,7 @@ const examples: example[] = [
 const template = (context: example[]): TemplateResult => html`
   ${context.map(
     (ex: example): TemplateResult => html` <tr
-      style="background: var(${ex.background})"
-    >
+      style="background: var(${ex.background})">
       <td style="color: var(${ex.color})">
         background: var(${ex.background});
       </td>

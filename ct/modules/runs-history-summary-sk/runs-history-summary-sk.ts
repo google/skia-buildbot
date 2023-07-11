@@ -32,8 +32,7 @@ export class RunsHistorySummarySk extends ElementSk {
       <h4>CT Runs Summary</h4>
       <tabs-sk
         @tab-selected-sk=${(e: CustomEvent) =>
-          (el.period = [7, 30, 365, 0][e.detail.index])}
-      >
+          (el.period = [7, 30, 365, 0][e.detail.index])}>
         <button>Last Week</button>
         <button>Last Month</button>
         <button>Last Year</button>
@@ -47,8 +46,7 @@ export class RunsHistorySummarySk extends ElementSk {
       <br />
       <table
         class="queue surface-themes-sk secondary-links runssummary"
-        id="runssummary"
-      >
+        id="runssummary">
         <tr>
           <th>Type</th>
           <th>User</th>

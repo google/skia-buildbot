@@ -95,8 +95,7 @@ export class ClusterLastNPageSk extends ElementSk {
       <alert-config-sk
         .config=${ele.state}
         .paramset=${ele.paramset}
-        .key_order=${window.perf.key_order}
-      ></alert-config-sk>
+        .key_order=${window.perf.key_order}></alert-config-sk>
       <div class="buttons">
         <button @click=${ele.alertClose}>Cancel</button>
         <button @click=${ele.alertAccept}>Accept</button>
@@ -119,8 +118,7 @@ export class ClusterLastNPageSk extends ElementSk {
         <domain-picker-sk
           id="range"
           .state=${ele.domain}
-          force_request_type="dense"
-        ></domain-picker-sk>
+          force_request_type="dense"></domain-picker-sk>
       </details>
       <p>
         Once configured, you can run the Alert and see the regressions it
@@ -130,8 +128,7 @@ export class ClusterLastNPageSk extends ElementSk {
         <button
           class="action"
           ?disabled=${!ele.state!.query || !!ele.requestId}
-          @click=${ele.run}
-        >
+          @click=${ele.run}>
           Run
         </button>
         <spinner-sk id="run-spinner"></spinner-sk>
@@ -146,8 +143,7 @@ ${ele.runningStatus}</pre
         <button
           @click=${ele.writeAlert}
           class="action"
-          ?disabled=${!ele.state!.query}
-        >
+          ?disabled=${!ele.state!.query}>
           ${ClusterLastNPageSk.writeAlertTitle(ele)}
         </button>
         <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
@@ -160,8 +156,7 @@ ${ele.runningStatus}</pre
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
         .alert=${ele.state}
-        notriage
-      ></cluster-summary2-sk>
+        notriage></cluster-summary2-sk>
       <div class="buttons">
         <button @click=${ele.triageClose}>Close</button>
       </div>
@@ -222,8 +217,7 @@ ${ele.runningStatus}</pre
               reg.regression!.frame!,
               reg.regression!.low
             )}
-            .triage=${reg.regression!.low_status}
-          ></triage-status-sk>
+            .triage=${reg.regression!.low_status}></triage-status-sk>
         </td>
       `;
     }
@@ -244,8 +238,7 @@ ${ele.runningStatus}</pre
               reg.regression!.frame!,
               reg.regression!.high
             )}
-            .triage=${reg.regression!.high_status}
-          ></triage-status-sk>
+            .triage=${reg.regression!.high_status}></triage-status-sk>
         </td>
       `;
     }

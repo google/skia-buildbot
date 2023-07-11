@@ -131,8 +131,7 @@ export class SkottieAudioSk extends ElementSk {
     <li class="bpm-options-item">
       <button
         class="bpm-options-item-button"
-        @click=${() => onClick(option.tempo)}
-      >
+        @click=${() => onClick(option.tempo)}>
         ${option.tempo}
       </button>
     </li>

@@ -38,22 +38,19 @@ export class TriageSk extends ElementSk {
     <button
       class="positive"
       @click=${() => (ele.value = 'positive')}
-      ?selected=${TriageSk._match(ele.value, 'positive')}
-    >
+      ?selected=${TriageSk._match(ele.value, 'positive')}>
       <check-circle-icon-sk title="Positive"></check-circle-icon-sk>
     </button>
     <button
       class="negative"
       @click=${() => (ele.value = 'negative')}
-      ?selected=${TriageSk._match(ele.value, 'negative')}
-    >
+      ?selected=${TriageSk._match(ele.value, 'negative')}>
       <cancel-icon-sk title="Negative"></cancel-icon-sk>
     </button>
     <button
       class="untriaged"
       @click=${() => (ele.value = 'untriaged')}
-      ?selected=${TriageSk._match(ele.value, 'untriaged')}
-    >
+      ?selected=${TriageSk._match(ele.value, 'untriaged')}>
       <help-icon-sk title="Untriaged"></help-icon-sk>
     </button>
   `;

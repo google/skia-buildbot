@@ -55,8 +55,7 @@ export class SkottieButtonSk extends ElementSk {
       class=${ele.buildButtonClass()}
       id=${ele._id}
       ?disabled=${ele._isDisabled}
-      @click=${ele.onClick}
-    >
+      @click=${ele.onClick}>
       ${ele._content}
     </button>
   `;

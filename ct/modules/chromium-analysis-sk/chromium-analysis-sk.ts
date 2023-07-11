@@ -115,16 +115,14 @@ export class ChromiumAnalysisSk extends ElementSk {
             .options=${el._benchmarks}
             .label=${'Hit <enter> at end if entering custom benchmark'}
             accept-custom-value
-            @value-changed=${el._benchmarkChanged}
-          ></suggest-input-sk>
+            @value-changed=${el._benchmarkChanged}></suggest-input-sk>
           <div>
             <a
               hidden
               id="benchmark_doc"
               href="#"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               Documentation
             </a>
           </div>
@@ -135,8 +133,7 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           <select-sk
             id="platform_selector"
-            @selection-changed=${el._platformChanged}
-          >
+            @selection-changed=${el._platformChanged}>
             ${el._platforms.map(
               (p, i) => html`<div ?selected=${i === 1}>${p[1]}</div>`
             )}
@@ -170,8 +167,7 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           <select-sk
             id="run_in_parallel"
-            @selection-changed=${el._updatePageSets}
-          >
+            @selection-changed=${el._updatePageSets}>
             <div selected>True</div>
             <div>False</div>
           </select-sk>
@@ -183,8 +179,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <input-sk
             value=""
             id="match_stdout_txt"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
           <span class="smaller-font"
             ><b>Note:</b> All lines that contain this field in stdout will show
             up under CT_stdout_lines in the output CSV.</span
@@ -202,8 +197,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <input-sk
             value="is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1"
             id="gn_args"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
           <span class="smaller-font"
             ><b>Note:</b> Android runs will automatically include
             target_os="android".</span
@@ -216,8 +210,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <input-sk
             value="--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format"
             id="benchmark_args"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
           <span class="smaller-font"
             ><b>Note:</b> Use --num-analysis-retries=[num] to specify how many
             times run_benchmark should be retried. 2 is the default. 0 calls
@@ -245,8 +238,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <input-sk
             value="avg"
             id="value_column_name"
-            class="medium-field"
-          ></input-sk>
+            class="medium-field"></input-sk>
           <span class="smaller-font"
             >Which column's entries to use as field values.</span
           >
@@ -262,8 +254,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <patch-sk
             id="chromium_patch"
             patchType="chromium"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -281,8 +272,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             value=""
             id="apk_gs_path"
             label="Eg: gs://chrome-unsigned/android-B0urB0N/73.0.3655.0/arm_64/ChromeModern.apk"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -299,8 +289,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             value=""
             id="chrome_build_gs_path"
             label="Eg: gs://chromium-browser-snapshots/Linux_x64/805044/chrome-linux.zip"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -316,8 +305,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             value=""
             label="Eg: 704a0dfa6e4d24599dc362fb8db5ffb918d806959ace1e75066ea6ed4f55a50a/652"
             id="telemetry_isolate_hash"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -339,8 +327,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <patch-sk
             id="skia_patch"
             patchType="skia"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -357,8 +344,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <patch-sk
             id="v8_patch"
             patchType="v8"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -375,8 +361,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           <patch-sk
             id="catapult_patch"
             patchType="catapult"
-            @cl-description-changed=${el._patchChanged}
-          >
+            @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -402,8 +387,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             value=""
             id="cc_list"
             label="email1,email2,email3"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -422,8 +406,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             value=""
             id="description"
             label="Description is required"
-            class="long-field"
-          ></input-sk>
+            class="long-field"></input-sk>
         </td>
       </tr>
       <tr>
@@ -431,14 +414,12 @@ export class ChromiumAnalysisSk extends ElementSk {
           <div class="triggering-spinner">
             <spinner-sk
               .active=${el._triggeringTask}
-              alt="Trigger task"
-            ></spinner-sk>
+              alt="Trigger task"></spinner-sk>
           </div>
           <button
             id="submit"
             ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}
-          >
+            @click=${el._validateTask}>
             Queue Task
           </button>
         </td>

@@ -112,8 +112,7 @@ export class CapacitySk extends ElementSk {
           <a class="tr" href="/capacity">
             <span class="td">
               <battery-charging-80-icon-sk
-                class="icon"
-              ></battery-charging-80-icon-sk>
+                class="icon"></battery-charging-80-icon-sk>
               Capacity Stats
             </span>
           </a>
@@ -126,30 +125,25 @@ export class CapacitySk extends ElementSk {
         <input-sk
           @change=${() => el.refresh()}
           id="commits"
-          label="Commits Per Day (typically 15-35)"
-        ></input-sk>
+          label="Commits Per Day (typically 15-35)"></input-sk>
         <input-sk
           @change=${() => el.refresh()}
           id="cq"
-          label="CQ attempts per commit"
-        ></input-sk>
+          label="CQ attempts per commit"></input-sk>
         <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
           reference.-->
         <input-sk
           @change=${() => el.refresh()}
           id="optimistic"
-          label="Optimistic Utilization % Estimate"
-        ></input-sk>
+          label="Optimistic Utilization % Estimate"></input-sk>
         <input-sk
           @change=${() => el.refresh()}
           id="pessimistic"
-          label="Pessimistic Utilization % Estimate"
-        ></input-sk>
+          label="Pessimistic Utilization % Estimate"></input-sk>
         <input-sk
           @change=${() => el.refresh()}
           id="backfill"
-          label="Target Backfill %"
-        ></input-sk>
+          label="Target Backfill %"></input-sk>
       </div>
 
       <table>

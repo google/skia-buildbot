@@ -66,8 +66,7 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
       ${choices.map(
         (choice, index) => html` <option
           value=${index}
-          ?selected=${index === ele._choice}
-        >
+          ?selected=${index === ele._choice}>
           ${choice.width} x ${choice.height}
         </option>`
       )}

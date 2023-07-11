@@ -31,15 +31,13 @@ export class ChangelistsPageSk extends ElementSk {
         page_size=${ele.pageSize}
         offset=${ele.offset}
         total=${ele.total}
-        @page-changed=${ele.pageChanged}
-      >
+        @page-changed=${ele.pageChanged}>
       </pagination-sk>
 
       <checkbox-sk
         label="show all"
         ?checked=${ele.showAll}
-        @click=${ele.toggleShowAll}
-      ></checkbox-sk>
+        @click=${ele.toggleShowAll}></checkbox-sk>
     </div>
 
     <table>
@@ -89,8 +87,7 @@ export class ChangelistsPageSk extends ElementSk {
       return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
     }
     return html`<block-icon-sk
-      title="ChangeList was abandoned"
-    ></block-icon-sk>`;
+      title="ChangeList was abandoned"></block-icon-sk>`;
   };
 
   // Set empty values to allow empty rendering while we wait for

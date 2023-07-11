@@ -50,8 +50,7 @@ export class BinaryDiffPageSk extends ElementSk {
           ${el.metadata?.author},
           <human-date-sk
             .date=${el.metadata?.timestamp}
-            .diff=${true}
-          ></human-date-sk>
+            .diff=${true}></human-date-sk>
           ago.
         </span>
       </p>

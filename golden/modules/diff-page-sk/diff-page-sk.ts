@@ -35,8 +35,7 @@ export class DiffPageSk extends ElementSk {
         .right=${ele.rightDetails}
         .groupings=${ele.groupings}
         .changeListID=${ele.changeListID}
-        .crs=${ele.crs}
-      >
+        .crs=${ele.crs}>
       </digest-details-sk>
     `;
   };

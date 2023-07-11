@@ -33,8 +33,7 @@ export class ExpandableTextareaSk extends ElementSk {
     <collapse-sk ?closed=${!ele.open}>
       <autogrow-textarea-sk
         placeholder=${ele.placeholder}
-        minRows=${ele.minRows}
-      ></autogrow-textarea-sk>
+        minRows=${ele.minRows}></autogrow-textarea-sk>
     </collapse-sk>
   `;
 

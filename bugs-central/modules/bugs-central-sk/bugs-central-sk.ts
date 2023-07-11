@@ -119,24 +119,21 @@ export class BugsCentralSk extends ElementSk {
         <bugs-chart-sk
           chart_type="open"
           chart_title="Bug Count"
-          data=${el.open_chart_data}
-        >
+          data=${el.open_chart_data}>
         </bugs-chart-sk>
       </div>
       <div class="chart-div">
         <bugs-chart-sk
           chart_type="slo"
           chart_title="SLO Violations"
-          data=${el.slo_chart_data}
-        >
+          data=${el.slo_chart_data}>
         </bugs-chart-sk>
       </div>
       <div class="chart-div">
         <bugs-chart-sk
           chart_type="untriaged"
           chart_title="Untriaged Bugs"
-          data=${el.untriaged_chart_data}
-        >
+          data=${el.untriaged_chart_data}>
         </bugs-chart-sk>
       </div>
     </div>
@@ -249,8 +246,7 @@ export class BugsCentralSk extends ElementSk {
                 clientKeyTokens.client,
                 clientKeyTokens.source,
                 clientKeyTokens.query
-              )}
-          >
+              )}>
             <span class="client-link">${clientKey}</span>
           </td>
           <td>

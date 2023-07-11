@@ -48,8 +48,7 @@ export class DetailsPageSk extends ElementSk {
         .commits=${ele.commits}
         .changeListID=${ele.changeListID}
         .crs=${ele.crs}
-        .details=${ele.details}
-      >
+        .details=${ele.details}>
       </digest-details-sk>
     `;
   };

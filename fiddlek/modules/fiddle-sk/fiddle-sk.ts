@@ -132,8 +132,7 @@ export class FiddleSk extends ElementSk {
                   max="2048"
                   placeholder="128"
                   .value=${ele._options.width}
-                  @change=${ele.widthChange}
-                />
+                  @change=${ele.widthChange} />
                 Width
               </label>
 
@@ -144,8 +143,7 @@ export class FiddleSk extends ElementSk {
                   max="2048"
                   placeholder="128"
                   .value=${ele._options.height}
-                  @change=${ele.heightChange}
-                />
+                  @change=${ele.heightChange} />
                 Height
               </label>
 
@@ -154,8 +152,7 @@ export class FiddleSk extends ElementSk {
                 label="Text Only [Use SkDebugf()]"
                 ?checked=${ele._options.textOnly}
                 ?hidden=${ele._config.basic_mode}
-                @change=${ele.textOnlyChange}
-              ></checkbox-sk>
+                @change=${ele.textOnlyChange}></checkbox-sk>
 
               <checkbox-sk
                 id="srgb"
@@ -163,8 +160,7 @@ export class FiddleSk extends ElementSk {
                 ?checked=${ele._options.srgb}
                 ?disabled=${ele._options.f16}
                 ?hidden=${ele._config.basic_mode}
-                @change=${ele.srgbChange}
-              ></checkbox-sk>
+                @change=${ele.srgbChange}></checkbox-sk>
 
               <checkbox-sk
                 id="f16"
@@ -173,16 +169,14 @@ export class FiddleSk extends ElementSk {
                 ?checked=${ele._options.f16}
                 ?disabled=${!ele._options.srgb}
                 ?hidden=${ele._config.basic_mode}
-                @change=${ele.f16Change}
-              >
+                @change=${ele.f16Change}>
               </checkbox-sk>
 
               <checkbox-sk
                 id="animated"
                 label="Animation"
                 ?checked=${ele._options.animated}
-                @change=${ele.animatedChange}
-              ></checkbox-sk>
+                @change=${ele.animatedChange}></checkbox-sk>
 
               <div ?hidden=${!ele._options.animated} id="animated-options">
                 <label>
@@ -192,8 +186,7 @@ export class FiddleSk extends ElementSk {
                     max="300"
                     .value=${ele._options.duration}
                     ?disabled=${!ele._options.animated}
-                    @change=${ele.durationChange}
-                  />
+                    @change=${ele.durationChange} />
                   Duration (seconds)
                 </label>
 
@@ -213,8 +206,7 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                 label="Offscreen Render Target"
                 ?checked=${ele._options.offscreen}
                 @change=${ele.offscreenChange}
-                ?hidden=${ele._config.basic_mode}
-              >
+                ?hidden=${ele._config.basic_mode}>
               </checkbox-sk>
               <div ?hidden=${!ele._options.offscreen} id="offscreen-options">
                 <label>
@@ -223,8 +215,7 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                     min="4"
                     max="2048"
                     value=${ele._options.offscreen_width}
-                    @change=${ele.offscreenWidthChange}
-                  />
+                    @change=${ele.offscreenWidthChange} />
                   Width
                 </label>
                 <label>
@@ -233,16 +224,14 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                     min="4"
                     max="2048"
                     value=${ele._options.offscreen_height}
-                    @change=${ele.offscreenHeightChange}
-                  />
+                    @change=${ele.offscreenHeightChange} />
                   Height
                 </label>
                 <label>
                   <input
                     type="number"
                     value=${ele._options.offscreen_sample_count}
-                    @change=${ele.offscreenSampleCountChange}
-                  />
+                    @change=${ele.offscreenSampleCountChange} />
                   Sample Count
                 </label>
                 <checkbox-sk
@@ -250,8 +239,7 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                   label="Texturable"
                   title="The offscreen render target can be used as a texture."
                   ?checked=${ele._options.offscreen_texturable}
-                  @change=${ele.offscreenTexturableChange}
-                ></checkbox-sk>
+                  @change=${ele.offscreenTexturableChange}></checkbox-sk>
 
                 <div class="indent">
                   <checkbox-sk
@@ -260,21 +248,18 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                     title="The offscreen render target can be used as a texture that is mipmapped."
                     ?checked=${ele._options.offscreen_mipmap}
                     ?disabled=${!ele._options.offscreen_texturable}
-                    @change=${ele.offscreenMipMapChange}
-                  ></checkbox-sk>
+                    @change=${ele.offscreenMipMapChange}></checkbox-sk>
                 </div>
 
                 <h4>This global is now defined:</h4>
                 <pre
                   class="source-select"
-                  ?hidden=${ele._options.offscreen_texturable}
-                >
+                  ?hidden=${ele._options.offscreen_texturable}>
 GrBackendRenderTarget backEndRenderTarget;</pre
                 >
                 <pre
                   class="source-select"
-                  ?hidden=${!ele._options.offscreen_texturable}
-                >
+                  ?hidden=${!ele._options.offscreen_texturable}>
 GrBackendTexture backEndTextureRenderTarget;</pre
                 >
               </div>
@@ -289,8 +274,7 @@ GrBackendTexture backEndTextureRenderTarget;</pre
                       ?selected=${source === ele._options.source}
                       name=${source}
                       src="${ele._config.domain}/s/${source}"
-                      class="imgsrc"
-                    />
+                      class="imgsrc" />
                   `
                 )}
               </select-sk>
@@ -299,8 +283,7 @@ GrBackendTexture backEndTextureRenderTarget;</pre
                   label="MipMap"
                   title="The backEndTexture is mipmapped."
                   ?checked=${ele._options.source_mipmap}
-                  @change=${ele.sourceMipMapChange}
-                ></checkbox-sk>
+                  @change=${ele.sourceMipMapChange}></checkbox-sk>
                 <h4>These globals are now defined:</h4>
                 <pre class="source-select">
 SkBitmap source;
@@ -351,16 +334,14 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
           size="150"
           value="&lt;a href='https://fiddle.skia.org/c/${ele._runResults
             .fiddleHash}'>&lt;img src='https://fiddle.skia.org/i/${ele
-            ._runResults.fiddleHash}_raster.png'>&lt;/a>"
-        />
+            ._runResults.fiddleHash}_raster.png'>&lt;/a>" />
         <h3>Embed as custom element (skia.org only):</h3>
         <input
           type="text"
           readonly
           size="150"
           value="&lt;fiddle-embed name='${ele._runResults
-            .fiddleHash}'>&lt;/fiddle-embed> "
-        />
+            .fiddleHash}'>&lt;/fiddle-embed> " />
       </details>
     </div>
   `;
@@ -501,8 +482,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
         (err) => html`<pre
           class="compile-error ${err.line > 0 ? 'clickable' : ''}"
           data-line=${err.line}
-          data-col=${err.col}
-        >
+          data-col=${err.col}>
 ${err.text}</pre
         >`
       )}

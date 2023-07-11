@@ -65,15 +65,12 @@ export class MachineAppSk extends ElementSk {
           id="filter-input"
           @input=${ele.filterChanged}
           type="text"
-          placeholder="Filter (SHIFT-CTRL-S)"
-        />
+          placeholder="Filter (SHIFT-CTRL-S)" />
         <span id="header-rhs">
           <more-vert-icon-sk
-            @click=${ele.editHiddenColumns}
-          ></more-vert-icon-sk>
+            @click=${ele.editHiddenColumns}></more-vert-icon-sk>
           <theme-chooser-sk
-            title="Toggle between light and dark mode."
-          ></theme-chooser-sk>
+            title="Toggle between light and dark mode."></theme-chooser-sk>
         </span>
       </header>
       <main>

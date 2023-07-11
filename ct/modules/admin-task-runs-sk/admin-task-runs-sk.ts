@@ -50,8 +50,7 @@ export class AdminTaskRunsSk extends ElementSk {
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}${el.taskType}</h2>
       <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}
-      ></pagination-sk>
+        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
@@ -64,8 +63,7 @@ export class AdminTaskRunsSk extends ElementSk {
       <br />
       <table
         class="surface-themes-sk secondary-links runssummary"
-        id="runssummary"
-      >
+        id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -93,14 +91,12 @@ export class AdminTaskRunsSk extends ElementSk {
         title="Delete this task"
         alt="Delete"
         ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}
-      ></delete-icon-sk>
+        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
       <redo-icon-sk
         title="Redo this task"
         alt="Redo"
         ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}
-      ></redo-icon-sk>
+        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
     </td>
     <!-- User col -->
     <td>${task.username}</td>
@@ -140,8 +136,7 @@ export class AdminTaskRunsSk extends ElementSk {
             <a
               href="${task.swarming_logs}"
               target="_blank"
-              rel="noopener noreferrer"
-            >
+              rel="noopener noreferrer">
               Swarming Logs
             </a>`
         : ''}

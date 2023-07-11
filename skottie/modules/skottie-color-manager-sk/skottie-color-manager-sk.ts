@@ -183,22 +183,19 @@ export class SkottieColorManagerSk extends ElementSk {
           <span>Map Black to</span>
           <skottie-color-input-sk
             .color=${blackColor}
-            @color-change=${this.onMapBlackChange}
-          ></skottie-color-input-sk>
+            @color-change=${this.onMapBlackChange}></skottie-color-input-sk>
         </div>
         <div class="color-form--color">
           <span>Map White to</span>
           <skottie-color-input-sk
             .color=${whiteColor}
-            @color-change=${this.onMapWhiteChange}
-          ></skottie-color-input-sk>
+            @color-change=${this.onMapWhiteChange}></skottie-color-input-sk>
         </div>
         <label class="color-form--original-color">
           <input
             type="checkbox"
             @change=${this.onToggleOriginal}
-            ?checked=${blendValue === 0}
-          />
+            ?checked=${blendValue === 0} />
           <span class="box"></span>
           <span class="label">Show original color scheme</span>
         </label>
@@ -220,8 +217,7 @@ export class SkottieColorManagerSk extends ElementSk {
           id="view-perf-chart"
           @select=${this.applyColorManager}
           .content=${'Apply color manager'}
-          .classes=${['apply-btn']}
-        >
+          .classes=${['apply-btn']}>
         </skottie-button-sk>
       </div>
     `;

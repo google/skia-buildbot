@@ -43,8 +43,7 @@ export class CalendarInputSk extends ElementSk {
         title="Date in YYYY-MM-DD format."
         placeholder="yyyy-mm-dd"
         .value="${ele._displayDate.getFullYear()}-${ele._displayDate.getMonth() +
-        1}-${ele._displayDate.getDate()}"
-      />
+        1}-${ele._displayDate.getDate()}" />
       <span class="invalid" aria-live="polite" title="Date is invalid.">
         &cross;
       </span>
@@ -53,15 +52,13 @@ export class CalendarInputSk extends ElementSk {
       id="cal-button"
       class="action"
       @click=${ele.openHandler}
-      title="Open calendar dialog to choose the date."
-    >
+      title="Open calendar dialog to choose the date.">
       <date-range-icon-sk></date-range-icon-sk>
     </button>
     <dialog @cancel=${ele.dialogCancelHandler}>
       <calendar-sk
         @change=${ele.calendarChangeHandler}
-        .displayDate=${ele.displayDate}
-      ></calendar-sk>
+        .displayDate=${ele.displayDate}></calendar-sk>
       <button @click=${ele.dialogCancelHandler}>Cancel</button>
     </dialog>
   `;

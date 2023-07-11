@@ -144,8 +144,7 @@ export class IncidentSk extends HTMLElement {
           <checkbox-sk
             ?checked=${ele.displaySilencesWithComments}
             @click=${ele.toggleSilencesWithComments}
-            label="Show only silences with comments"
-          >
+            label="Show only silences with comments">
           </checkbox-sk>
         </span>
         ${ele.matchingSilences()}
@@ -277,8 +276,7 @@ export class IncidentSk extends HTMLElement {
           html`<silence-sk
             .silence_state=${silence}
             collapsable
-            collapsed
-          ></silence-sk>`
+            collapsed></silence-sk>`
       );
     if (!ret.length) {
       ret.push(html`<div class="nosilences">None</div>`);
@@ -359,8 +357,7 @@ export class IncidentSk extends HTMLElement {
   ): TemplateResult {
     if (recentlyExpiredSilence) {
       return html`<alarm-off-icon-sk
-        title="This alert has a recently expired silence"
-      ></alarm-off-icon-sk>`;
+        title="This alert has a recently expired silence"></alarm-off-icon-sk>`;
     }
     return html``;
   }
@@ -368,8 +365,7 @@ export class IncidentSk extends HTMLElement {
   private displayFlakiness(flaky: boolean): TemplateResult {
     if (flaky) {
       return html`<thumbs-up-down-icon-sk
-        title="This alert is possibly flaky"
-      ></thumbs-up-down-icon-sk>`;
+        title="This alert is possibly flaky"></thumbs-up-down-icon-sk>`;
     }
     return html``;
   }

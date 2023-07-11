@@ -113,8 +113,7 @@ export class ParamSetSk extends ElementSk {
     return html` <td>
       <add-icon-sk
         data-key=${key}
-        data-values=${JSON.stringify(p[key])}
-      ></add-icon-sk>
+        data-values=${JSON.stringify(p[key])}></add-icon-sk>
     </td>`;
   };
 
@@ -127,8 +126,7 @@ export class ParamSetSk extends ElementSk {
       (value) => html`<div
         class=${ele._highlighted(key, value)}
         data-key=${key}
-        data-value=${value}
-      >
+        data-value=${value}>
         ${value}
       </div>`
     );

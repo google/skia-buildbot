@@ -126,8 +126,7 @@ export class SkottieGifExporterSk extends ElementSk {
           step="1"
           @input=${this.updateQuality}
           @change=${this.updateQuality}
-          .value=${this.quality}
-        />
+          .value=${this.quality} />
       </div>
       <div class="form-elem">
         <label class="number">
@@ -137,8 +136,7 @@ export class SkottieGifExporterSk extends ElementSk {
             .value=${this.repeat}
             min="-1"
             @input=${this.onRepeatChange}
-            @change=${this.onRepeatChange}
-          />
+            @change=${this.onRepeatChange} />
           Repeats (${renderRepeatsLabel(this.repeat)})
         </label>
       </div>
@@ -146,8 +144,7 @@ export class SkottieGifExporterSk extends ElementSk {
         <checkbox-sk
           label="Dither"
           ?checked=${this.dither}
-          @click=${this.toggleDither}
-        >
+          @click=${this.toggleDither}>
         </checkbox-sk>
         ${this.renderDither()}
       </div>
@@ -155,8 +152,7 @@ export class SkottieGifExporterSk extends ElementSk {
         <checkbox-sk
           label="Include Transparent Background"
           ?checked=${this.transparent}
-          @click=${this.toggleTransparent}
-        >
+          @click=${this.toggleTransparent}>
         </checkbox-sk>
       </div>
       <div class="form-elem">
@@ -194,8 +190,7 @@ export class SkottieGifExporterSk extends ElementSk {
       <a
         class="download"
         href=${this.blobURL}
-        download=${this.getDownloadFileName()}
-      >
+        download=${this.getDownloadFileName()}>
         Download
       </a>
     </section>

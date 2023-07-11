@@ -251,8 +251,7 @@ const launchedSwarming = (machine: Description): TemplateResult => {
   }
   return html`
     <launch-icon-sk
-      title="Swarming was launched by test_machine_monitor."
-    ></launch-icon-sk>
+      title="Swarming was launched by test_machine_monitor."></launch-icon-sk>
   `;
 };
 
@@ -370,8 +369,7 @@ class Column {
       return html``;
     }
     return html`&nbsp;<clipboard-sk
-        .calculatedValue=${this.computedClipValue}
-      ></clipboard-sk>`;
+        .calculatedValue=${this.computedClipValue}></clipboard-sk>`;
   }
 
   rowValue(machine: Description): TemplateResult {
@@ -539,8 +537,7 @@ export class MachinesTableSk extends ElementSk {
       <button
         class="mode"
         @click=${() => this.toggleMode(machine.Dimensions!.id![0])}
-        title="${machine.MaintenanceMode || 'Put machine in maintenance mode'}"
-      >
+        title="${machine.MaintenanceMode || 'Put machine in maintenance mode'}">
         ${machine.MaintenanceMode === '' ? 'available' : 'maintenance'}
       </button>
     `;
@@ -556,12 +553,11 @@ export class MachinesTableSk extends ElementSk {
         title="Powercycle the host"
         class="clickable"
         @click=${() => this.togglePowerCycle(machine.Dimensions!.id![0])}
-        ?hidden=${machine.PowerCycleState !== 'available'}
-      ></power-settings-new-icon-sk>
+        ?hidden=${machine.PowerCycleState !==
+        'available'}></power-settings-new-icon-sk>
       <warning-icon-sk
         ?hidden=${machine.PowerCycleState !== 'in_error'}
-        title="Controller failed to connect."
-      ></warning-icon-sk>
+        title="Controller failed to connect."></warning-icon-sk>
       <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
     `;
   }
@@ -572,8 +568,7 @@ export class MachinesTableSk extends ElementSk {
         title="Clear the quarantine"
         class="clickable"
         @click=${() => this.clearQuarantineAction(machine.Dimensions!.id![0])}
-        ?hidden=${!machine.IsQuarantined}
-      ></block-icon-sk>
+        ?hidden=${!machine.IsQuarantined}></block-icon-sk>
     `;
   }
 
@@ -585,8 +580,10 @@ export class MachinesTableSk extends ElementSk {
             title="Edit/clear the dimensions for the bot"
             class="edit_device"
             @click=${() =>
-              this.deviceEditor!.show(machine.Dimensions, machine.SSHUserIP)}
-          ></edit-icon-sk>
+              this.deviceEditor!.show(
+                machine.Dimensions,
+                machine.SSHUserIP
+              )}></edit-icon-sk>
         `;
   }
 
@@ -594,8 +591,8 @@ export class MachinesTableSk extends ElementSk {
     return html`
       <edit-icon-sk
         class="edit_note clickable"
-        @click=${() => this.editNote(machine.Dimensions!.id![0], machine)}
-      ></edit-icon-sk
+        @click=${() =>
+          this.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk
       >${annotation(machine.Note)}
     `;
   }
@@ -605,8 +602,8 @@ export class MachinesTableSk extends ElementSk {
       <delete-icon-sk
         title="Remove the machine from the database."
         class="clickable"
-        @click=${() => this.deleteDevice(machine.Dimensions!.id![0])}
-      ></delete-icon-sk>
+        @click=${() =>
+          this.deleteDevice(machine.Dimensions!.id![0])}></delete-icon-sk>
     `;
   }
 
@@ -618,8 +615,7 @@ export class MachinesTableSk extends ElementSk {
       <div class="dimensions">
         <clear-all-icon-sk
           title="Clear all dimensions from the datastore"
-          @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}
-        >
+          @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}>
         </clear-all-icon-sk>
         <details class="dimensions">
           <summary>Dimensions</summary>
@@ -697,8 +693,7 @@ export class MachinesTableSk extends ElementSk {
     return attachedDeviceDisplayNamesOrder.map(
       (key: string) => html` <option
         value=${attachedDeviceDisplayName[key]}
-        ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}
-      >
+        ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>
         ${key}
       </option>`
     );
@@ -708,8 +703,7 @@ export class MachinesTableSk extends ElementSk {
     return html`
       <a
         href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!
-          .id}"
-      >
+          .id}">
         ${machine.Dimensions!.id}
       </a>
       <clipboard-sk value="${machine.Dimensions!.id![0]}"></clipboard-sk>
@@ -719,8 +713,7 @@ export class MachinesTableSk extends ElementSk {
   private attachedDevice(machine: Description): TemplateResult {
     return html` <select
       @input=${(e: InputEvent) =>
-        this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}
-    >
+        this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
       ${this.attachedDeviceOptions(machine)}
     </select>`;
   }
@@ -736,18 +729,15 @@ export class MachinesTableSk extends ElementSk {
       if (firstSortSelection.dir === up) {
         return html`<arrow-drop-up-icon-sk
           title="Change sort order to descending."
-          @click=${() => this.changeSort(column)}
-        ></arrow-drop-up-icon-sk>`;
+          @click=${() => this.changeSort(column)}></arrow-drop-up-icon-sk>`;
       }
       return html`<arrow-drop-down-icon-sk
         title="Change sort order to ascending."
-        @click=${() => this.changeSort(column)}
-      ></arrow-drop-down-icon-sk>`;
+        @click=${() => this.changeSort(column)}></arrow-drop-down-icon-sk>`;
     }
     return html`<sort-icon-sk
       title="Sort this column."
-      @click=${() => this.changeSort(column)}
-    ></sort-icon-sk>`;
+      @click=${() => this.changeSort(column)}></sort-icon-sk>`;
   }
 
   private changeSort(column: number) {

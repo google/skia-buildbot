@@ -71,14 +71,12 @@ export class AdminTasksSk extends ElementSk {
           <div class="triggering-spinner">
             <spinner-sk
               .active=${el._triggeringTask}
-              alt="Trigger task"
-            ></spinner-sk>
+              alt="Trigger task"></spinner-sk>
           </div>
           <button
             id="submit"
             ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}
-          >
+            @click=${el._validateTask}>
             Queue Task
           </button>
         </td>

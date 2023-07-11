@@ -42,15 +42,13 @@ export class DayRangeSk extends ElementSk {
       Begin
       <calendar-input-sk
         @input=${ele._beginChanged}
-        .displayDate=${dateFromTimestamp(ele.begin)}
-      ></calendar-input-sk>
+        .displayDate=${dateFromTimestamp(ele.begin)}></calendar-input-sk>
     </label>
     <label class="end">
       End
       <calendar-input-sk
         @input=${ele._endChanged}
-        .displayDate=${dateFromTimestamp(ele.end)}
-      ></calendar-input-sk>
+        .displayDate=${dateFromTimestamp(ele.end)}></calendar-input-sk>
     </label>
   `;
 

@@ -43,8 +43,7 @@ export class SkottieDropdownSk extends ElementSk {
     <select
       name="${ele._name}"
       @change=${ele.onChange}
-      class=${ele.buildSelectClass()}
-    >
+      class=${ele.buildSelectClass()}>
       ${ele.buildOptions()}
     </select>
   `;

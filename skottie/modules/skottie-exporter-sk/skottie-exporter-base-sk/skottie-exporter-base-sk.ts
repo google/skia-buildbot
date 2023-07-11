@@ -120,8 +120,7 @@ export class SkottieExporterBaseSk extends ElementSk {
         <a
           id="asset-download"
           href=${this._blobData}
-          download=${this._downloadFileName}
-        >
+          download=${this._downloadFileName}>
           Click here if your download didn't start automatically
         </a>
         <div class="navigation">
@@ -129,8 +128,7 @@ export class SkottieExporterBaseSk extends ElementSk {
             type="filled"
             @select=${this.cancel}
             .content=${'Close'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
         </div>
       </div>
     `;

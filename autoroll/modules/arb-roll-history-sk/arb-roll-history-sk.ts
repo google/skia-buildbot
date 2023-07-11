@@ -47,8 +47,7 @@ export class ARBRollHistorySk extends ElementSk {
             <td>
               <human-date-sk
                 .date="${roll.created}"
-                .diff="${true}"
-              ></human-date-sk>
+                .diff="${true}"></human-date-sk>
             </td>
             <td>
               <span class="${ele.rollClass(roll)}">${roll.result}</span>
@@ -62,16 +61,14 @@ export class ARBRollHistorySk extends ElementSk {
       @click="${() => {
         ele.loadPrevious();
       }}"
-      ?disabled="${!ele.canLoadPrevious}"
-    >
+      ?disabled="${!ele.canLoadPrevious}">
       Previous
     </button>
     <button
       @click="${() => {
         ele.loadNext();
       }}"
-      ?disabled="${!ele.canLoadNext}"
-    >
+      ?disabled="${!ele.canLoadNext}">
       Next
     </button>
   `;

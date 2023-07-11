@@ -103,8 +103,7 @@ export class ARBStatusSk extends ElementSk {
                     <span>
                       <a
                         href="${ele.status.config.parentWaterfall}"
-                        target="_blank"
-                      >
+                        target="_blank">
                         ${ele.status.config.parentWaterfall}
                       </a>
                     </span>
@@ -125,8 +124,7 @@ export class ARBStatusSk extends ElementSk {
               ele.status.mode
                 ? html`(<human-date-sk
                       .date="${ele.status.mode?.time}"
-                      .diff="${true}"
-                    ></human-date-sk
+                      .diff="${true}"></human-date-sk
                     >)`
                 : html``
             }
@@ -165,8 +163,7 @@ export class ARBStatusSk extends ElementSk {
                       ?disabled="${!ele.editRights}"
                       title="${ele.editRights
                         ? 'Unthrottle the roller.'
-                        : ele.pleaseLoginMsg}"
-                    >
+                        : ele.pleaseLoginMsg}">
                       Force Unthrottle
                     </button>
                   `
@@ -201,8 +198,7 @@ export class ARBStatusSk extends ElementSk {
                     <a
                       href="${ele.status.config.childBugLink}"
                       target="_blank"
-                      class="small"
-                    >
+                      class="small">
                       file bug
                     </a>
                   </td>
@@ -221,8 +217,7 @@ export class ARBStatusSk extends ElementSk {
                     <a
                       href="${ele.status.config.parentBugLink}"
                       target="_blank"
-                      class="small"
-                    >
+                      class="small">
                       file bug
                     </a>
                   </td>
@@ -243,8 +238,7 @@ export class ARBStatusSk extends ElementSk {
                           ele.status.currentRoll
                         )}"
                         class="big"
-                        target="_blank"
-                      >
+                        target="_blank">
                         ${ele.status.currentRoll.subject}
                       </a>
                     `
@@ -262,16 +256,14 @@ export class ARBStatusSk extends ElementSk {
                                 <a
                                   href="${tryResult.url}"
                                   class="${ele.trybotClass(tryResult)}"
-                                  target="_blank"
-                                >
+                                  target="_blank">
                                   ${tryResult.name}
                                 </a>
                               `
                             : html`
                                 <span
                                   class="nowrap"
-                                  class="${ele.trybotClass(tryResult)}"
-                                >
+                                  class="${ele.trybotClass(tryResult)}">
                                   ${tryResult.name}
                                 </span>
                               `}
@@ -302,8 +294,7 @@ export class ARBStatusSk extends ElementSk {
                     <a
                       href="${ele.issueURL(ele.status, ele.status.lastRoll)}"
                       target="_blank"
-                      class="small"
-                    >
+                      class="small">
                       (detail)
                     </a>
                   </td>
@@ -335,8 +326,7 @@ export class ARBStatusSk extends ElementSk {
                     <td>
                       <human-date-sk
                         .date="${roll.timestamp}"
-                        .diff="${true}"
-                      ></human-date-sk>
+                        .diff="${true}"></human-date-sk>
                     </td>
                     <td>
                       <span class="${roll.class}">${roll.result}</span>
@@ -370,8 +360,7 @@ export class ARBStatusSk extends ElementSk {
               ele.status.mode
                 ? html`(<human-date-sk
                       .date="${ele.status.strategy?.time}"
-                      .diff="${true}"
-                    ></human-date-sk
+                      .diff="${true}"></human-date-sk
                     >)`
                 : html``
             }
@@ -469,8 +458,7 @@ export class ARBStatusSk extends ElementSk {
                     ?disabled=${!ele.editRights}
                     title="${ele.editRights
                       ? 'Request a dry-run to this revision.'
-                      : ele.pleaseLoginMsg}"
-                  >
+                      : ele.pleaseLoginMsg}">
                     Request Dry-Run
                   </button>
                   <button
@@ -481,8 +469,7 @@ export class ARBStatusSk extends ElementSk {
                     ?disabled=${!ele.editRights}
                     title="${ele.editRights
                       ? 'Request a roll to this revision.'
-                      : ele.pleaseLoginMsg}"
-                  >
+                      : ele.pleaseLoginMsg}">
                     Request Roll
                   </button>
                   ${!!rollCandidate.roll && !!rollCandidate.roll.result
@@ -490,8 +477,7 @@ export class ARBStatusSk extends ElementSk {
                         <span
                           class="${ele.manualRollResultClass(
                             rollCandidate.roll
-                          )}"
-                        >
+                          )}">
                           ${rollCandidate.roll.result ==
                           ManualRoll_Result.UNKNOWN
                             ? html``
@@ -577,8 +563,7 @@ export class ARBStatusSk extends ElementSk {
                 <option
                   value="${mode}"
                   ?selected="${mode === ele.status?.mode?.mode}"
-                  title="${ele.modeTooltip(Mode[<keyof typeof Mode>mode])}"
-                >
+                  title="${ele.modeTooltip(Mode[<keyof typeof Mode>mode])}">
                   ${mode.toLowerCase().replace('_', ' ')}
                 </option>
               `
@@ -614,8 +599,7 @@ export class ARBStatusSk extends ElementSk {
                   ?selected="${strategy === ele.status?.strategy?.strategy}"
                   title="${ele.strategyTooltip(
                     Strategy[<keyof typeof Strategy>strategy]
-                  )}"
-                >
+                  )}">
                   ${strategy.toLowerCase().replace('_', ' ')}
                 </option>
               `

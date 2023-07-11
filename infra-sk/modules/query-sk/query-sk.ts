@@ -61,8 +61,7 @@ export class QuerySk extends ElementSk {
       <input
         id="fast"
         @input=${ele._fastFilter}
-        placeholder="Filter Parameters and Values"
-      />
+        placeholder="Filter Parameters and Values" />
       ${QuerySk.clearFilterButton(ele)}
     </div>
     <div class="bottom">
@@ -79,8 +78,7 @@ export class QuerySk extends ElementSk {
         class=${ele._keySelect?.selection === -1 ? 'hidden' : ''}
         @query-values-changed=${ele._valuesChanged}
         ?hide_invert=${ele.hide_invert}
-        ?hide_regex=${ele.hide_regex}
-      ></query-values-sk>
+        ?hide_regex=${ele.hide_regex}></query-values-sk>
     </div>
   `;
 
@@ -92,8 +90,7 @@ export class QuerySk extends ElementSk {
       <button
         @click=${ele._clearFilter}
         class="clear_filters"
-        title="Clear filter"
-      >
+        title="Clear filter">
         &cross;
       </button>
     `;

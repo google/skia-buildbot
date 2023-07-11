@@ -15,8 +15,7 @@ export class ScreenshotsViewerSk extends ElementSk {
           type="text"
           placeholder="Filter screenshots by name (fuzzy)"
           .value=${el.filter}
-          @input=${(e: Event) => el.onFilterInput(e)}
-        />
+          @input=${(e: Event) => el.onFilterInput(e)} />
         <button @click=${() => el.onClearClick()}>Clear</button>
       </div>
 

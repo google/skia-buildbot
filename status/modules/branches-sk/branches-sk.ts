@@ -299,8 +299,7 @@ export class BranchesSk extends ElementSk {
     <canvas
       id="commitCanvas"
       @click=${(e: MouseEvent) => el.handleClick(e)}
-      @mousemove=${(e: MouseEvent) => el.handleMousemove(e)}
-    ></canvas>
+      @mousemove=${(e: MouseEvent) => el.handleMousemove(e)}></canvas>
   `;
 
   constructor() {

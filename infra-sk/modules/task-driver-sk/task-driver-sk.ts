@@ -218,8 +218,7 @@ export class TaskDriverSk extends HTMLElement {
         <a
           class="horiz"
           id="button_props_${s.id}"
-          @click=${() => ele.toggleProps(s)}
-        >
+          @click=${() => ele.toggleProps(s)}>
           ${expando(s.expandProps)}
         </a>
         <div class="${ele.stepNameClass(s)}">${s.name}</div>
@@ -229,8 +228,7 @@ export class TaskDriverSk extends HTMLElement {
               <div class="horiz">
                 <a
                   href="https://task-driver.skia.org/td/${s.id}"
-                  target="_blank"
-                >
+                  target="_blank">
                   <launch-icon-sk></launch-icon-sk>
                 </a>
               </div>

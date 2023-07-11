@@ -115,8 +115,9 @@ export class VerifiersDetailSk extends ElementSk {
     return this.changeAttempts!.attempts.reverse().map(
       (attempt, index) => html`
         <span
-          class="attempt-section ${this.getStateClass(attempt!.overall_status)}"
-        >
+          class="attempt-section ${this.getStateClass(
+            attempt!.overall_status
+          )}">
           <table class="attempt-table">
             <tr>
               <th width="33%">

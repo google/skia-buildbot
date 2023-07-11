@@ -111,8 +111,7 @@ export class DebuggerPageSk extends ElementDocSk {
           <a
             class="version-link"
             href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
-            title="The skia commit at which the debugger WASM module was built"
-          >
+            title="The skia commit at which the debugger WASM module was built">
             ${ele._skiaVersionShort}
           </a>
           &nbsp;
@@ -126,8 +125,7 @@ export class DebuggerPageSk extends ElementDocSk {
           <input
             type="file"
             @change=${ele._fileInputChanged}
-            ?disabled=${ele._debugger === null}
-          />
+            ?disabled=${ele._debugger === null} />
           <a href="https://skia.org/docs/dev/tools/debugger">User Guide</a>
           <p class="file-version">File version: ${ele._fileContext?.version}</p>
           <p class="file-version">
@@ -160,8 +158,7 @@ export class DebuggerPageSk extends ElementDocSk {
               <button
                 @click=${() => {
                   ele._jumpToCommand(ele._pointCommandIndex);
-                }}
-              >
+                }}>
                 Jump
               </button>
             </div>
@@ -184,16 +181,14 @@ export class DebuggerPageSk extends ElementDocSk {
             label="GPU"
             ?checked=${ele._gpuMode}
             title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and copying the buffer into a Canvas2D element."
-            @change=${ele._gpuHandler}
-          ></checkbox-sk>
+            @change=${ele._gpuHandler}></checkbox-sk>
         </td>
         <td>
           <checkbox-sk
             label="Display GPU Op Bounds"
             ?disabled=${!ele._gpuMode}
             title="Show a visual representation of the GPU operations recorded in each command's audit trail."
-            @change=${ele._opBoundsHandler}
-          ></checkbox-sk>
+            @change=${ele._opBoundsHandler}></checkbox-sk>
         </td>
       </tr>
       <tr>
@@ -201,15 +196,13 @@ export class DebuggerPageSk extends ElementDocSk {
           <checkbox-sk
             label="Light/Dark"
             title="Show transparency backrounds as light or dark"
-            @change=${ele._lightDarkHandler}
-          ></checkbox-sk>
+            @change=${ele._lightDarkHandler}></checkbox-sk>
         </td>
         <td>
           <checkbox-sk
             label="Display Overdraw Viz"
             title="Shades pixels redder in proportion to how many times they were written to in the current frame."
-            @change=${ele._overdrawHandler}
-          ></checkbox-sk>
+            @change=${ele._overdrawHandler}></checkbox-sk>
         </td>
       </tr>
     </table>
@@ -240,21 +233,18 @@ export class DebuggerPageSk extends ElementDocSk {
         label="Show Clip"
         title="Show a semi-transparent teal overlay on the areas within the current clip."
         id="clip"
-        @change=${ele._clipHandler}
-      ></checkbox-sk>
+        @change=${ele._clipHandler}></checkbox-sk>
       <checkbox-sk
         label="Show Android Device Clip Restriction"
         title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction.
                      This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction"
         id="androidclip"
-        @change=${ele._androidClipHandler}
-      ></checkbox-sk>
+        @change=${ele._androidClipHandler}></checkbox-sk>
       <checkbox-sk
         label="Show Origin"
         title="Show the origin of the coordinate space defined by the current matrix."
         id="origin"
-        @change=${ele._originHandler}
-      ></checkbox-sk>
+        @change=${ele._originHandler}></checkbox-sk>
       <div class="horizontal-flex">
         <div class="matrixClipBox">
           <h3 class="compact">Clip</h3>

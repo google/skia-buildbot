@@ -86,11 +86,9 @@ export class DigestDetailsSk extends ElementSk {
           href=${ele.clusterHref()}
           target="_blank"
           rel="noopener"
-          class="cluster_link"
-        >
+          class="cluster_link">
           <group-work-icon-sk
-            title="Cluster view of this digest and all others for this test."
-          >
+            title="Cluster view of this digest and all others for this test.">
           </group-work-icon-sk>
         </a>
       </div>
@@ -112,14 +110,12 @@ export class DigestDetailsSk extends ElementSk {
               ?disabled=${!ele.canToggle()}
               class="toggle_ref"
               ?hidden=${ele.overrideRight || !ele.right}
-              title=${toggleButtonMouseover(ele.canToggle())}
-            >
+              title=${toggleButtonMouseover(ele.canToggle())}>
               Toggle Reference
             </button>
             <div
               ?hidden=${!ele.right || ele.right.status !== 'negative'}
-              class="negative_warning"
-            >
+              class="negative_warning">
               Closest image is negative!
             </div>
             <!-- TODO(kjlubick) Comments would go here -->
@@ -174,8 +170,7 @@ export class DigestDetailsSk extends ElementSk {
           <triage-sk
             @change=${ele.triageChangeHandler}
             .value=${ele._details.status}
-            .readOnly=${disallowTriaging}
-          >
+            .readOnly=${disallowTriaging}>
           </triage-sk>
           ${DigestDetailsSk.triageHistoryTemplate(ele)}
           ${disallowTriagingMessage}
@@ -210,8 +205,7 @@ export class DigestDetailsSk extends ElementSk {
               )}
               target="_blank"
               rel="noopener"
-              class="diffpage_link"
-            >
+              class="diffpage_link">
               Diff Details
             </a>
           </div>
@@ -243,8 +237,7 @@ export class DigestDetailsSk extends ElementSk {
         <triage-sk
           @change=${ele.triageChangeHandler}
           .value=${ele._details.status}
-          .readOnly=${disallowTriaging}
-        >
+          .readOnly=${disallowTriaging}>
         </triage-sk>
         ${DigestDetailsSk.triageHistoryTemplate(ele)} ${disallowTriagingMessage}
       </div>
@@ -262,8 +255,7 @@ export class DigestDetailsSk extends ElementSk {
     return html`
       <div
         class="triage-history"
-        title="Last triaged on ${mostRecent.ts} by ${mostRecent.user}"
-      >
+        title="Last triaged on ${mostRecent.ts} by ${mostRecent.user}">
         ${diffDate(mostRecent.ts)} ago by
         ${mostRecent.user.includes('@')
           ? mostRecent.user.substring(0, mostRecent.user.indexOf('@') + 1)
@@ -301,8 +293,7 @@ export class DigestDetailsSk extends ElementSk {
         <image-compare-sk
           .left=${left}
           .isComputingDiffs=${hasOtherDigests}
-          .fullSizeImages=${ele._fullSizeImages}
-        >
+          .fullSizeImages=${ele._fullSizeImages}>
         </image-compare-sk>
       `;
     }
@@ -330,8 +321,7 @@ export class DigestDetailsSk extends ElementSk {
       <image-compare-sk
         .left=${left}
         .right=${right}
-        .fullSizeImages=${ele._fullSizeImages}
-      >
+        .fullSizeImages=${ele._fullSizeImages}>
       </image-compare-sk>
     `;
   };
@@ -351,16 +341,14 @@ export class DigestDetailsSk extends ElementSk {
           .commits=${ele._commits}
           @hover=${ele.hoverOverTrace}
           @mouseleave=${ele.clearTraceHighlights}
-          @showblamelist=${ele.showBlamelist}
-        >
+          @showblamelist=${ele.showBlamelist}>
         </dots-sk>
         <dots-legend-sk
           .grouping=${ele.getGrouping()}
           .digests=${ele._details.traces.digests}
           .changeListID=${ele._changeListID}
           .crs=${ele._crs}
-          .totalDigests=${ele._details.traces.total_digests || 0}
-        >
+          .totalDigests=${ele._details.traces.total_digests || 0}>
         </dots-legend-sk>
       </div>
     `;
@@ -383,8 +371,7 @@ export class DigestDetailsSk extends ElementSk {
       <paramset-sk
         .titles=${titles}
         .paramsets=${paramsets}
-        .highlight=${ele.highlightedParams}
-      >
+        .highlight=${ele.highlightedParams}>
       </paramset-sk>
     `;
   };

@@ -41,8 +41,7 @@ export class AutoRefreshSk extends ElementSk {
   private static template = (ele: AutoRefreshSk) => html` <span
     id="refresh"
     @click=${() => ele.toggleRefresh()}
-    title="Start/Stop the automatic refreshing of data on the page."
-  >
+    title="Start/Stop the automatic refreshing of data on the page.">
     ${AutoRefreshSk.refreshButtonDisplayValue(ele)}
   </span>`;
 

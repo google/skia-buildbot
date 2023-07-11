@@ -37,8 +37,7 @@ ${ele._note}</textarea
       .current_query=${ele.query}
       hide_invert
       hide_regex
-      @query-change=${ele.queryChanged}
-    ></query-sk>
+      @query-change=${ele.queryChanged}></query-sk>
 
     <div>
       <input class="custom_key" placeholder="specify a key" />
@@ -48,8 +47,7 @@ ${ele._note}</textarea
         @click=${ele.addCustomParam}
         title="Add a custom key/value pair to ignore. For example, if adding a new test/corpus and
           you want to avoid spurious comments about untriaged digests, use this to add a rule
-          before the CL lands."
-      >
+          before the CL lands.">
         Add Custom Param
       </button>
     </div>

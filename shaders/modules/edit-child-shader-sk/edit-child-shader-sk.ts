@@ -46,8 +46,7 @@ export class EditChildShaderSk extends ElementSk {
       <button
         @click=${ele.okClick}
         id="ok"
-        ?disabled=${ele.input?.validity.patternMismatch}
-      >
+        ?disabled=${ele.input?.validity.patternMismatch}>
         OK
       </button>
     </div>

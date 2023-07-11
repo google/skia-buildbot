@@ -77,8 +77,7 @@ export class MachineTableColumnsDialogSk extends ElementSk {
         (name: ColumnTitles) =>
           html`<checkbox-sk
             label=${name}
-            ?checked=${!ele.hiddenColumns.includes(name)}
-          ></checkbox-sk>`
+            ?checked=${!ele.hiddenColumns.includes(name)}></checkbox-sk>`
       )}
     </div>
 

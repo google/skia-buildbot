@@ -370,8 +370,7 @@ export class DebuggerAppSk extends ElementSk {
         <span>
           <a
             id="githash"
-            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
-          >
+            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
             ${SKIA_VERSION.slice(0, 7)}
           </a>
           <theme-chooser-sk></theme-chooser-sk>

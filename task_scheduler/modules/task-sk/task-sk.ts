@@ -77,8 +77,7 @@ export class TaskSk extends ElementSk {
                 <td>Finished</td>
                 <td>
                   <human-date-sk
-                    .date="${ele.task!.finishedAt!}"
-                  ></human-date-sk>
+                    .date="${ele.task!.finishedAt!}"></human-date-sk>
                 </td>
               </tr>
             `

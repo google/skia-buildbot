@@ -12,8 +12,7 @@ class IconsDemoSk extends ElementSk {
       <input
         type="text"
         placeholder="Filter icons by name"
-        @input=${(e: Event) => el.onFilterInput(e)}
-      />
+        @input=${(e: Event) => el.onFilterInput(e)} />
       <button @click=${() => el.onClearClick()}>Clear</button>
     </div>
 

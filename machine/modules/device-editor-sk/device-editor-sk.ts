@@ -54,8 +54,7 @@ export class DeviceEditorSk extends ElementSk {
               placeholder="e.g. root@skia-pixelbook-01"
               type="text"
               id="user_ip"
-              .value=${ele.sshUserIP}
-            />
+              .value=${ele.sshUserIP} />
           </td>
         </tr>
         <tr>
@@ -64,8 +63,7 @@ export class DeviceEditorSk extends ElementSk {
             <input
               type="text"
               id="chromeos_gpu"
-              .value=${ele.displayDimensions('gpu')}
-            />
+              .value=${ele.displayDimensions('gpu')} />
           </td>
         </tr>
         <tr>
@@ -76,8 +74,7 @@ export class DeviceEditorSk extends ElementSk {
             <input
               type="text"
               id="chromeos_cpu"
-              .value=${ele.displayDimensions('cpu')}
-            />
+              .value=${ele.displayDimensions('cpu')} />
           </td>
         </tr>
       </table>
@@ -86,22 +83,19 @@ export class DeviceEditorSk extends ElementSk {
         <button
           title="Make the machine forget it had any device attached."
           @click=${ele.confirmClearClick}
-          class="clear"
-        >
+          class="clear">
           Clear Device Dimensions
         </button>
         <button
           title="Apply the above dimensions and user ip"
           @click=${ele.applyUpdates}
-          class="apply"
-        >
+          class="apply">
           Apply Updates
         </button>
         <button
           title="Do nothing except close the dialog box. The machine remains unchanged."
           @click=${ele.cancelClick}
-          class="cancel"
-        >
+          class="cancel">
           Cancel
         </button>
       </div>
@@ -119,15 +113,13 @@ export class DeviceEditorSk extends ElementSk {
         <button
           title="Do nothing except close the dialog box. The machine remains unchanged."
           @click=${ele.cancelClick}
-          class="cancel"
-        >
+          class="cancel">
           Cancel
         </button>
         <button
           title="Make the machine forget it had any device attached."
           @click=${ele.clearClick}
-          class="clear_yes_im_sure"
-        >
+          class="clear_yes_im_sure">
           Yes, clear the dimensions
         </button>
       </div>

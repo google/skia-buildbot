@@ -46,8 +46,7 @@ export class ZoomSk extends ElementDocSk {
         <div
           class="color-preview"
           id="prevColor"
-          style="background-color: ${ele._rgb}"
-        ></div>
+          style="background-color: ${ele._rgb}"></div>
         ${ele._rgb}
       </dd>
       <dd>${ele._hex}</dd>
@@ -59,8 +58,7 @@ export class ZoomSk extends ElementDocSk {
           class="zoom-canvas"
           width="228"
           height="228"
-          @click=${ele._canvasClicked}
-        ></canvas>
+          @click=${ele._canvasClicked}></canvas>
       </div>
     </div>
     <details>

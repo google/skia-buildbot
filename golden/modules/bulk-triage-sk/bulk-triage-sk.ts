@@ -44,29 +44,25 @@ export class BulkTriageSk extends ElementSk {
       <button
         class="positive ${el.label === 'positive' ? 'selected' : ''}"
         @click=${() => el.onTriageLabelBtnClick('positive')}
-        title="Triage all the left-hand images as positive."
-      >
+        title="Triage all the left-hand images as positive.">
         <check-circle-icon-sk></check-circle-icon-sk>
       </button>
       <button
         class="negative ${el.label === 'negative' ? 'selected' : ''}"
         @click=${() => el.onTriageLabelBtnClick('negative')}
-        title="Triage all the left-hand images as negative."
-      >
+        title="Triage all the left-hand images as negative.">
         <cancel-icon-sk></cancel-icon-sk>
       </button>
       <button
         class="untriaged ${el.label === 'untriaged' ? 'selected' : ''}"
         @click=${() => el.onTriageLabelBtnClick('untriaged')}
-        title="Unset the triage status of all left-hand images."
-      >
+        title="Unset the triage status of all left-hand images.">
         <help-icon-sk></help-icon-sk>
       </button>
       <button
         class="closest ${el.label === 'closest' ? 'selected' : ''}"
         @click=${() => el.onTriageLabelBtnClick('closest')}
-        title="Triage all the left-hand images the same as the closest image."
-      >
+        title="Triage all the left-hand images the same as the closest image.">
         <view-agenda-icon-sk></view-agenda-icon-sk>
       </button>
     </div>
@@ -78,8 +74,7 @@ export class BulkTriageSk extends ElementSk {
         title="${'Choose whether to triage just the digests on this page ' +
         'or all that match the query.'}"
         ?checked=${el.triageAll}
-        class="triage_all"
-      >
+        class="triage_all">
       </checkbox-sk>
     </div>
 

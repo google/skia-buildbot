@@ -105,14 +105,12 @@ export class ClusterPageSk extends ElementSk {
     <commit-detail-picker-sk
       @commit-selected=${ele.commitSelected}
       .selection=${ele.state.offset}
-      id="commit"
-    ></commit-detail-picker-sk>
+      id="commit"></commit-detail-picker-sk>
 
     <h2>Algorithm</h2>
     <algo-select-sk
       algo=${ele.state.algo}
-      @algo-change=${ele.algoChange}
-    ></algo-select-sk>
+      @algo-change=${ele.algoChange}></algo-select-sk>
 
     <h2>Query</h2>
     <div class="query-action">
@@ -120,28 +118,24 @@ export class ClusterPageSk extends ElementSk {
         @query-change=${ele.queryChanged}
         .key_order=${window.perf.key_order}
         .paramset=${ele.paramset}
-        current_query=${ele.state.query}
-      ></query-sk>
+        current_query=${ele.state.query}></query-sk>
       <div id="selections">
         <h3>Selections</h3>
         <paramset-sk
           id="summary"
-          .paramsets=${[toParamSet(ele.state.query)]}
-        ></paramset-sk>
+          .paramsets=${[toParamSet(ele.state.query)]}></paramset-sk>
         <div>
           Matches:
           <query-count-sk
             url="/_/count/"
             current_query=${ele.state.query}
-            @paramset-changed=${ele.paramsetChanged}
-          ></query-count-sk>
+            @paramset-changed=${ele.paramsetChanged}></query-count-sk>
         </div>
         <button
           @click=${ele.start}
           class="action"
           id="start"
-          ?disabled=${!!ele.requestId || ele.state.offset === -1}
-        >
+          ?disabled=${!!ele.requestId || ele.state.offset === -1}>
           Run
         </button>
         <div>
@@ -162,21 +156,18 @@ export class ClusterPageSk extends ElementSk {
           Number of commits to include on either side.
           <input
             .value=${ele.state.radius.toString()}
-            @input=${ele.radiusChange}
-          />
+            @input=${ele.radiusChange} />
         </label>
         <label>
           Clusters are interesting if regression score &gt;= this.
           <input
             .value=${ele.state.interesting.toString()}
-            @input=${ele.interestingChange}
-          />
+            @input=${ele.interestingChange} />
         </label>
         <checkbox-sk
           ?checked=${ele.state.sparse}
           label="Data is sparse, so only include commits that have data."
-          @input=${ele.sparseChange}
-        ></checkbox-sk>
+          @input=${ele.sparseChange}></checkbox-sk>
       </div>
     </details>
 
@@ -198,8 +189,7 @@ export class ClusterPageSk extends ElementSk {
       (summary) => html`
         <cluster-summary2-sk
           .full_summary=${summary}
-          notriage
-        ></cluster-summary2-sk>
+          notriage></cluster-summary2-sk>
       `
     );
     if (!ret.length) {

@@ -59,8 +59,7 @@ export class SkottieTextEditorSk extends ElementSk {
     }
     return html` <button
       class="editor-header-save-button"
-      @click=${this.toggleTextsCollapse}
-    >
+      @click=${this.toggleTextsCollapse}>
       ${this.areTextsCollapsed ? 'Ungroup Texts' : 'Group Texts'}
     </button>`;
   };
@@ -76,8 +75,7 @@ export class SkottieTextEditorSk extends ElementSk {
             @change=${(ev: Event) => this.onChange(ev, item)}
             @input=${(ev: Event) => this.onChange(ev, item)}
             maxlength=${ifDefined(item.maxChars)}
-            .value=${item.text}
-          ></textarea>
+            .value=${item.text}></textarea>
         </div>
         <div>${this.originTemplate(item)}</div>
       </div>

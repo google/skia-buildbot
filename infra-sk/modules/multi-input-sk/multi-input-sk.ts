@@ -23,8 +23,7 @@ export class MultiInputSk extends ElementSk {
                 ele._values.splice(index, 1);
                 ele._render();
                 ele.dispatchEvent(new Event('change', { bubbles: true }));
-              }}
-            >
+              }}>
               <close-icon-sk></close-icon-sk>
             </a>
           </div>

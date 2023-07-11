@@ -91,26 +91,22 @@ export interface SearchRequest {
 
 export class SearchPageSk extends ElementSk {
   private static template = (el: SearchPageSk) => html` <div
-      class="top-controls"
-    >
+      class="top-controls">
       <search-controls-sk
         .corpora=${el.corpora}
         .searchCriteria=${el.searchCriteria}
         .paramSet=${el.paramSet}
-        @search-controls-sk-change=${el.onSearchControlsChange}
-      >
+        @search-controls-sk-change=${el.onSearchControlsChange}>
       </search-controls-sk>
       <div class="buttons">
         <button
           class="bulk-triage"
-          @click=${() => el.bulkTriageDialog?.showModal()}
-        >
+          @click=${() => el.bulkTriageDialog?.showModal()}>
           Bulk Triage
         </button>
         <button
           class="full-size-images"
-          @click=${() => el.toggleFullSizeImages()}
-        >
+          @click=${() => el.toggleFullSizeImages()}>
           Toggle Full Size Images
         </button>
         <button class="help" @click=${() => el.helpDialog?.showModal()}>
@@ -124,8 +120,7 @@ export class SearchPageSk extends ElementSk {
       .ps_order=${el.patchset}
       .include_master=${el.includeDigestsFromPrimary}
       .summary=${el.changeListSummaryResponse}
-      @cl-control-change=${el.onChangelistControlsChange}
-    >
+      @cl-control-change=${el.onChangelistControlsChange}>
     </changelist-controls-sk>
 
     <p class="summary">${SearchPageSk.summary(el)}</p>
@@ -153,8 +148,7 @@ export class SearchPageSk extends ElementSk {
         .changeListID=${el.changelistId || ''}
         @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
         @bulk_triage_finished=${() => el.fetchSearchResults()}
-        @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}
-      >
+        @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
       </bulk-triage-sk>
     </dialog>
 
@@ -219,8 +213,7 @@ export class SearchPageSk extends ElementSk {
         .crs=${el.crs}
         .fullSizeImages=${el.fullSizeImages}
         @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
-        class="${selected ? 'selected' : ''}"
-      >
+        class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
   };
@@ -236,8 +229,7 @@ export class SearchPageSk extends ElementSk {
         offset="${el.offset || 0}"
         page_size="${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}"
         total="${el.searchResponse?.size || 0}"
-        @page-changed=${el.onPageChange}
-      >
+        @page-changed=${el.onPageChange}>
       </pagination-sk>
     `;
   };

@@ -51,8 +51,7 @@ export class TriageStatusSk extends ElementSk {
     <button
       title=${ele.triage.message}
       @click=${ele._start_triage}
-      class=${ele.triage.status}
-    >
+      class=${ele.triage.status}>
       <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
     </button>
   `;

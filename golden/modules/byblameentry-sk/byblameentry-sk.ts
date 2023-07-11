@@ -104,8 +104,7 @@ export class ByBlameEntrySk extends ElementSk {
                   href=${detailHref(test.grouping, test.sample_digest)}
                   class="example-link"
                   target="_blank"
-                  rel="noopener"
-                >
+                  rel="noopener">
                   ${test.sample_digest}
                 </a>
               </td>

@@ -150,8 +150,7 @@ export class AlertConfigSk extends ElementSk {
       type="text"
       .value=${ele._config.display_name}
       @change=${(e: InputEvent) =>
-        (ele._config.display_name = (e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.display_name = (e.target! as HTMLInputElement).value)} />
 
     <h3>Category</h3>
     <label for="category">Alerts will be grouped by category.</label>
@@ -160,8 +159,7 @@ export class AlertConfigSk extends ElementSk {
       type="text"
       .value=${ele._config.category}
       @input=${(e: InputEvent) =>
-        (ele._config.category = (e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.category = (e.target! as HTMLInputElement).value)} />
 
     <h3>Which traces should be monitored</h3>
     <query-chooser-sk
@@ -171,14 +169,12 @@ export class AlertConfigSk extends ElementSk {
       current_query=${ele._config.query}
       count_url="/_/count/"
       @query-change=${(e: CustomEvent<QuerySkQueryChangeEventDetail>) =>
-        (ele._config.query = e.detail.q)}
-    ></query-chooser-sk>
+        (ele._config.query = e.detail.q)}></query-chooser-sk>
 
     <div>
       <a
         href="/e/?queries=${encodeURIComponent(ele._config.query)}"
-        target="_blank"
-      >
+        target="_blank">
         Preview traces that match the query
       </a>
     </div>
@@ -193,8 +189,7 @@ export class AlertConfigSk extends ElementSk {
       id="grouping"
       algo=${ele._config.algo}
       @algo-change=${(e: CustomEvent<AlgoSelectAlgoChangeEventDetail>) =>
-        (ele._config.algo = e.detail.algo)}
-    ></algo-select-sk>
+        (ele._config.algo = e.detail.algo)}></algo-select-sk>
 
     <h4>Step Detection</h4>
     <label for="step">
@@ -204,8 +199,7 @@ export class AlertConfigSk extends ElementSk {
     <select-sk
       id="step"
       @selection-changed=${ele.stepSelectionChanged}
-      .selection=${ele.indexFromStep()}
-    >
+      .selection=${ele.indexFromStep()}>
       <div value="">Original Regression Factor</div>
       <div value="absolute">Absolute</div>
       <div value="const">Const</div>
@@ -221,8 +215,7 @@ export class AlertConfigSk extends ElementSk {
       id="threshold"
       .value=${ele._config.interesting.toString()}
       @input=${(e: InputEvent) =>
-        (ele._config.interesting = +(e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.interesting = +(e.target! as HTMLInputElement).value)} />
     ${thresholdDescriptors[ele._config.step].units}
 
     <h4>K</h4>
@@ -236,8 +229,7 @@ export class AlertConfigSk extends ElementSk {
       min="0"
       .value=${ele._config.k.toString()}
       @input=${(e: InputEvent) =>
-        (ele._config.k = +(e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.k = +(e.target! as HTMLInputElement).value)} />
 
     <h4>Radius</h4>
     <label for="radius"> Number of commits on either side to consider. </label>
@@ -247,8 +239,7 @@ export class AlertConfigSk extends ElementSk {
       min="0"
       .value=${ele._config.radius.toString()}
       @input=${(e: InputEvent) =>
-        (ele._config.radius = +(e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.radius = +(e.target! as HTMLInputElement).value)} />
 
     <h4>Step Direction</h4>
     <select-sk
@@ -259,8 +250,7 @@ export class AlertConfigSk extends ElementSk {
           (e.target! as HTMLDivElement).children[
             e.detail.selection
           ].getAttribute('value')
-        ))}
-    >
+        ))}>
       <div value="BOTH" ?selected=${ele._config.direction === 'BOTH'}>
         Either step up or step down trigger an alert.
       </div>
@@ -281,16 +271,14 @@ export class AlertConfigSk extends ElementSk {
       type="number"
       .value=${ele._config.minimum_num.toString()}
       @input=${(e: InputEvent) =>
-        (ele._config.minimum_num = +(e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.minimum_num = +(e.target! as HTMLInputElement).value)} />
 
     <h4>Sparse</h4>
     <checkbox-sk
       ?checked=${ele._config.sparse}
       @input=${(e: InputEvent) =>
         (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
-      label="Data is sparse, so only include commits that have data."
-    ></checkbox-sk>
+      label="Data is sparse, so only include commits that have data."></checkbox-sk>
 
     ${window.perf.notifications === 'html_email'
       ? html`
@@ -302,8 +290,7 @@ export class AlertConfigSk extends ElementSk {
             id="sent"
             .value=${ele._config.alert}
             @input=${(e: InputEvent) =>
-              (ele._config.alert = (e.target! as HTMLInputElement).value)}
-          />
+              (ele._config.alert = (e.target! as HTMLInputElement).value)} />
           <button @click=${ele.testAlert}>Test</button>
           <spinner-sk id="alertSpinner"></spinner-sk>
         `
@@ -330,8 +317,7 @@ export class AlertConfigSk extends ElementSk {
               ele._config.issue_tracker_component = (
                 e.target! as HTMLInputElement
               ).value;
-            }}
-          />
+            }} />
           <button @click=${ele.testAlert}>Test</button>
           <spinner-sk id="alertSpinner"></spinner-sk>
         `
@@ -349,8 +335,7 @@ export class AlertConfigSk extends ElementSk {
             @input=${(e: InputEvent) =>
               (ele._config.bug_uri_template = (
                 e.target! as HTMLInputElement
-              ).value)}
-          />
+              ).value)} />
           <button @click=${ele.testBugTemplate}>Test</button>
           <spinner-sk id="bugSpinner"></spinner-sk> `}
 
@@ -360,8 +345,7 @@ export class AlertConfigSk extends ElementSk {
       id="owner"
       .value=${ele._config.owner}
       @input=${(e: InputEvent) =>
-        (ele._config.owner = (e.target! as HTMLInputElement).value)}
-    />
+        (ele._config.owner = (e.target! as HTMLInputElement).value)} />
 
     ${AlertConfigSk._groupBy(ele)}
 
@@ -375,12 +359,10 @@ export class AlertConfigSk extends ElementSk {
           (e.target! as HTMLDivElement).children[
             e.detail.selection
           ].getAttribute('value')
-        ))}
-    >
+        ))}>
       <div
         value="ACTIVE"
-        title="Clusters that match this will generate alerts."
-      >
+        title="Clusters that match this will generate alerts.">
         Active
       </div>
       <div value="DELETED" title="Currently inactive.">Deleted</div>
@@ -403,8 +385,7 @@ export class AlertConfigSk extends ElementSk {
           (ele._config.group_by = e.detail.selection
             .map((i) => ele.paramkeys[i])
             .join(','))}
-        id="groupby"
-      >
+        id="groupby">
         ${AlertConfigSk._groupByChoices(ele)}
       </multi-select-sk>
     `;

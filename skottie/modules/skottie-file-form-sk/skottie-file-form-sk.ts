@@ -69,8 +69,7 @@ export class SkottieFileFormSk extends ElementSk {
             name="file"
             id="upload-file"
             class="upload-file--input"
-            @change=${this.onFileChange}
-          />
+            @change=${this.onFileChange} />
         </label>
         <label class="upload-file--label">
           ${this._state.assetsFilename || '+ Optional Asset Folder (.zip)'}
@@ -80,8 +79,7 @@ export class SkottieFileFormSk extends ElementSk {
             name="file"
             id="upload-assets"
             class="upload-file--input"
-            @change=${this.onFolderChange}
-          />
+            @change=${this.onFolderChange} />
         </label>
       </form>
     `;
@@ -96,14 +94,12 @@ export class SkottieFileFormSk extends ElementSk {
         <skottie-button-sk
           type="plain"
           @select=${this.clear}
-          .content=${'Clear'}
-        >
+          .content=${'Clear'}>
         </skottie-button-sk>
         <skottie-button-sk
           type="filled"
           @select=${this.apply}
-          .content=${'Upload'}
-        >
+          .content=${'Upload'}>
         </skottie-button-sk>
       </div>
     `;

@@ -35,8 +35,7 @@ const template = (ele: WasmFiddle) => html`
         <div class="buttons">
           <button
             class="action ${ele.hasRun || !ele.loadedWasm ? '' : 'prompt'}"
-            @click=${ele.run}
-          >
+            @click=${ele.run}>
             Run
           </button>
           <button @click=${ele.save}>Save</button>

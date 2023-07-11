@@ -123,8 +123,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
           type="text"
           .value=${this._downloadFileName}
           class="export-form__filename"
-          @change=${this.onNameChange}
-        />
+          @change=${this.onNameChange} />
         <div class="export-form__label">Quality</div>
         <skottie-dropdown-sk
           .name=${'gif-quality'}
@@ -134,8 +133,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
             { id: 'high', value: 'High' },
           ]}
           @select=${this.qualitySelectHandler}
-          full
-        >
+          full>
         </skottie-dropdown-sk>
         <div class="separator"></div>
         ${this.renderDetails()}
@@ -144,14 +142,12 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
             type="plain"
             @select=${this.cancel}
             .content=${'Cancel'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
           <skottie-button-sk
             type="filled"
             @select=${this.start}
             .content=${'Export'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
         </div>
       </form>
     `;
@@ -177,8 +173,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
             type="filled"
             @select=${this.stop}
             .content=${'Stop'}
-            .classes=${['navigation__button']}
-          ></skottie-button-sk>
+            .classes=${['navigation__button']}></skottie-button-sk>
         </div>
       </div>
     `;

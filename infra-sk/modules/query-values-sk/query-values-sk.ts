@@ -38,21 +38,18 @@ export class QueryValuesSk extends ElementSk {
       @change=${ele._invertChange}
       title="Match items not selected below."
       label="Invert"
-      ?hidden=${ele.hide_invert}
-    ></checkbox-sk>
+      ?hidden=${ele.hide_invert}></checkbox-sk>
     <checkbox-sk
       id="regex"
       @change=${ele._regexChange}
       title="Match items via regular expression."
       label="Regex"
-      ?hidden=${ele.hide_regex}
-    ></checkbox-sk>
+      ?hidden=${ele.hide_regex}></checkbox-sk>
     <input
       type="text"
       id="regexValue"
       class="hidden"
-      @input=${ele._regexInputChange}
-    />
+      @input=${ele._regexInputChange} />
     <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
       ${QueryValuesSk.valuesTemplate(ele)}
     </multi-select-sk>

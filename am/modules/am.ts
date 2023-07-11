@@ -74,8 +74,8 @@ export function displayNotes(
         <span class="date">${diffDate(note.ts * 1000)}</span>
         <delete-icon-sk
           title="Delete comment."
-          @click=${(e: Event) => deleteNote(index, stateKey, eventName, e)}
-        ></delete-icon-sk>
+          @click=${(e: Event) =>
+            deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
       </div>
     </section>`
   );

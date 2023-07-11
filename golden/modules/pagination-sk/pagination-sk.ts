@@ -37,8 +37,7 @@ export class PaginationSk extends ElementSk {
       ?disabled=${ele._currPage() <= 1}
       title="Go to previous page of results."
       @click=${() => ele._page(-1)}
-      class="prev"
-    >
+      class="prev">
       Prev
     </button>
     <div class="counter">page ${ele._currPage()}</div>
@@ -46,16 +45,14 @@ export class PaginationSk extends ElementSk {
       ?disabled=${!ele._canGoNext(ele.offset + ele.page_size)}
       title="Go to next page of results."
       @click=${() => ele._page(1)}
-      class="next"
-    >
+      class="next">
       Next
     </button>
     <button
       ?disabled=${!ele._canGoNext(ele.offset + 5 * ele.page_size)}
       title="Skip forward 5 pages of results."
       @click=${() => ele._page(5)}
-      class="skip"
-    >
+      class="skip">
       +5
     </button>
   `;
