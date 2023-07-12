@@ -268,11 +268,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 	for gk, tcps := range aggregateOverReplicas {
 		ctrls, trts := []float64{}, []float64{}
 
-		for i := 0; i < len(tcps); i++ {
-			tcp, ok := tcps[i]
-			if !ok {
-				return res, fmt.Errorf("missing replica from aggregates: %d", i)
-			}
+		for _, tcp := range tcps {
 			ctrls = append(ctrls, tcp.control)
 			trts = append(trts, tcp.treatment)
 		}
@@ -348,7 +344,12 @@ func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
 func (a *Analyzer) inferExperimentSpec(pairs []pairedTasks) (*cpb.ExperimentSpec, error) {
 	controlTaskResults, treatmentTaskResults := []map[string]perfresults.PerfResults{}, []map[string]perfresults.PerfResults{}
 	controlArmSpecs, treatmentArmSpecs := []*cpb.ArmSpec{}, []*cpb.ArmSpec{}
-	for _, pair := range pairs {
+	for replicaNumber, pair := range pairs {
+		if pair.hasTaskFailures() {
+			sklog.Infof("excluding replica %d from spec inference because it contains failures", replicaNumber)
+			continue
+		}
+
 		controlTaskResults = append(controlTaskResults, pair.control.parsedResults)
 		treatmentTaskResults = append(treatmentTaskResults, pair.treatment.parsedResults)
 		cSpec, err := inferArmSpec(pair.control.taskInfo)
