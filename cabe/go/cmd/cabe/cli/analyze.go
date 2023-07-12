@@ -65,7 +65,7 @@ var (
 
 func printAnalysisResultsTable(a []analyzer.Results) {
 	w := tablewriter.NewWriter(os.Stdout)
-	headers := []string{"Benchmark", "Workload", "CI Lower", "CI Upper", "P Value"}
+	headers := []string{"Benchmark", "Workload", "Control median", "Treatment median", "CI Lower", "CI Upper", "P Value"}
 	w.SetHeader(headers)
 	headerColors := []tablewriter.Colors{}
 	for range headers {
@@ -104,6 +104,8 @@ func printAnalysisResultsTable(a []analyzer.Results) {
 		row := []string{
 			bmark,
 			workload,
+			fmt.Sprintf("%10.6f", s.YMedian),
+			fmt.Sprintf("%10.6f", s.XMedian),
 			fmt.Sprintf("%10.6f", s.LowerCi),
 			fmt.Sprintf("%10.6f", s.UpperCi),
 			fmt.Sprintf("%10.6f", s.PValue),
