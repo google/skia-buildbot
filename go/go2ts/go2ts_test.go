@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/jsonutils"
 )
 
 func TestRender_ComplexStruct_Success(t *testing.T) {
@@ -42,11 +43,12 @@ func TestRender_ComplexStruct_Success(t *testing.T) {
 	}
 
 	type StructWithSomeFieldsForcedToStrings struct {
-		BoolAsString                              bool  `json:",string"`
-		IntAsString                               int   `json:",string"`
-		Int64AsStringOmitEmpty                    int   `json:"id_string_omitempty,string,omitempty"`
-		Int64AsStringOmitEmptyReversedOptionOrder int   `json:"id_omitempty_string,omitempty,string"`
-		Uint8NotAsAString                         uint8 `json:"string,"` // Ensure we don't mistakenly use the tag name.
+		BoolAsString                              bool             `json:",string"`
+		IntAsString                               int              `json:",string"`
+		Int64AsStringOmitEmpty                    int              `json:"id_string_omitempty,string,omitempty"`
+		Int64AsStringOmitEmptyReversedOptionOrder int              `json:"id_omitempty_string,omitempty,string"`
+		Uint8NotAsAString                         uint8            `json:"string,"` // Ensure we don't mistakenly use the tag name.
+		SerializesToString                        jsonutils.Number `go2ts:"string"`
 	}
 
 	// This struct shows that the outermost fields in embedded structs always take precedence,
@@ -220,6 +222,7 @@ export interface StructWithSomeFieldsForcedToStrings {
 	id_string_omitempty?: string;
 	id_omitempty_string?: string;
 	string: number;
+	SerializesToString: Number;
 }
 
 export interface StructWithOverlappingEmbeddedStructs {
@@ -304,6 +307,8 @@ export interface ComplexStruct {
 export namespace apple { export type YearlyYield = { [key: number]: number } | null; }
 
 export namespace apple { export type Variety = 'honeycrisp' | 'gala'; }
+
+export type Number = string;
 
 export type Data = { [key: string]: any } | null;
 

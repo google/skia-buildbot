@@ -1,6 +1,7 @@
 package alerts
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"sort"
@@ -77,6 +78,42 @@ func ConfigStateToInt(c ConfigState) int {
 	return 0
 }
 
+// SerializesToString adds custom JSON marshalling to an int64 so it serializes
+// to/from a string, which is needed when sending int64's to the browser,
+// including serializing int64(0) to the empty string "".
+//
+// Needed because: https://github.com/golang/go/issues/47102
+type SerializesToString int64
+
+// UnmarshalJSON implements json.Unmarshaler
+func (s *SerializesToString) UnmarshalJSON(b []byte) error {
+	var asString string
+	if err := json.Unmarshal(b, &asString); err != nil {
+		return skerr.Wrap(err)
+	}
+	if asString == "" {
+		*s = 0
+		return nil
+	}
+	i, err := strconv.ParseInt(asString, 10, 64)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	*s = SerializesToString(i)
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (s SerializesToString) MarshalJSON() ([]byte, error) {
+	if s == InvalidIssueTrackerComponent {
+		return json.Marshal("")
+	}
+	return json.Marshal(fmt.Sprintf("%d", s))
+}
+
+// InvalidIssueTrackerComponent indicates the issue tracker component hasn't
+// been set.
 const InvalidIssueTrackerComponent = 0
 
 // Alert represents the configuration for one alert.
@@ -86,12 +123,12 @@ type Alert struct {
 	// removed.
 	IDAsString            string                            `json:"id_as_string"    `
 	DisplayName           string                            `json:"display_name"    `
-	Query                 string                            `json:"query"           `               // The query to perform on the trace store to select the traces to alert on.
-	Alert                 string                            `json:"alert"           `               // Email address to send alerts to.
-	IssueTrackerComponent int64                             `json:"issue_tracker_component,string"` // The issue tracker component to send alerts to. Is really an int64, but that doesn't serialize to JSON.
-	Interesting           float32                           `json:"interesting"     `               // The regression interestingness threshold.
-	BugURITemplate        string                            `json:"bug_uri_template"`               // URI Template used for reporting bugs. Format TBD.
-	Algo                  types.RegressionDetectionGrouping `json:"algo"            `               // Which clustering algorithm to use.
+	Query                 string                            `json:"query"           `                       // The query to perform on the trace store to select the traces to alert on.
+	Alert                 string                            `json:"alert"           `                       // Email address to send alerts to.
+	IssueTrackerComponent SerializesToString                `json:"issue_tracker_component" go2ts:"string"` // The issue tracker component to send alerts to.
+	Interesting           float32                           `json:"interesting"     `                       // The regression interestingness threshold.
+	BugURITemplate        string                            `json:"bug_uri_template"`                       // URI Template used for reporting bugs. Format TBD.
+	Algo                  types.RegressionDetectionGrouping `json:"algo"            `                       // Which clustering algorithm to use.
 	Step                  types.StepDetection               `json:"step"            `
 
 	// Which algorithm to use to detect steps.

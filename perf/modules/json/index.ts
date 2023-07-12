@@ -16,7 +16,7 @@ export interface Alert {
 	display_name: string;
 	query: string;
 	alert: string;
-	issue_tracker_component: string;
+	issue_tracker_component: SerializesToString;
 	interesting: number;
 	bug_uri_template: string;
 	algo: ClusterAlgo;
@@ -372,6 +372,8 @@ export type Trace = number[];
 export type TraceSet = { [key: string]: Trace };
 
 export namespace pivot { export type Operation = 'sum' | 'avg' | 'geo' | 'std' | 'count' | 'min' | 'max'; }
+
+export type SerializesToString = string;
 
 export type ClusterAlgo = 'kmeans' | 'stepfit';
 

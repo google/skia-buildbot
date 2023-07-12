@@ -1,6 +1,7 @@
 package alerts
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,41 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, "-1", a.IDAsString)
 	a.SetIDFromString("2")
 	assert.Equal(t, "2", a.IDAsString)
+}
+
+func TestConfig_IssueTrackerComponentIsEmptyString_DeserializesToZero(t *testing.T) {
+	var cfg Alert
+	err := json.Unmarshal([]byte(`{"issue_tracker_component": ""}`), &cfg)
+	require.NoError(t, err)
+	require.Equal(t, SerializesToString(0), cfg.IssueTrackerComponent)
+}
+
+func TestConfig_IssueTrackerComponentIsValidInt_DeserializesToInt(t *testing.T) {
+	var cfg Alert
+	err := json.Unmarshal([]byte(`{"issue_tracker_component": "12"}`), &cfg)
+	require.NoError(t, err)
+	require.Equal(t, SerializesToString(12), cfg.IssueTrackerComponent)
+}
+
+func TestConfig_IssueTrackerComponentIsZero_IssueTrackerComponentSerializesToEmptyString(t *testing.T) {
+	var cfg Alert
+	b, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	require.Contains(t, string(b), `issue_tracker_component":""`)
+}
+
+func TestConfig_IssueTrackerComponentIsNonZero_IssueTrackerComponentSerializesToIntAsString(t *testing.T) {
+	var cfg Alert
+	cfg.IssueTrackerComponent = 12
+	b, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	require.Contains(t, string(b), `issue_tracker_component":"12"`)
+}
+
+func TestConfig_IssueTrackerComponentIsNotValidInt_ReturnsError(t *testing.T) {
+	var cfg Alert
+	err := json.Unmarshal([]byte(`{"issue_tracker_component": "this-is-not-a-valid-int"}`), &cfg)
+	require.Error(t, err)
 }
 
 func TestStringToID(t *testing.T) {

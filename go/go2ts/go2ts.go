@@ -503,6 +503,16 @@ func (g *Go2TS) populateInterfaceDeclarationProperties(interfaceDeclaration *typ
 		// "type Foo = string[] | null".
 		hasIgnoreNilTag := structField.Tag.Get("go2ts") == "ignorenil"
 
+		// A `go2ts:"string"` tag means that the field is serialized as a
+		// string. Use this if a custom JSON Marshaler has been defined for the
+		// type. Note that this is different from just adding ",string" for the
+		// json options of a int, float, or bool type, which is also supported
+		// by the go2ts program but which presumes a custom Marshaler has not
+		// been provided.
+		if structField.Tag.Get("go2ts") == "string" {
+			forceString = forceToString
+		}
+
 		// Recursively compute the property's TypeScript type.
 		propertyIgnoreNilPolicy := doNotIgnoreNil
 		if ignoreNilPolicy == ignoreNil || hasIgnoreNilTag {

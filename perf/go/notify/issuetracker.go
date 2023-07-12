@@ -65,7 +65,7 @@ func (t *IssueTrackerTransport) SendNewRegression(ctx context.Context, alert *al
 			Comment: body,
 		},
 		IssueState: &issuetracker.IssueState{
-			ComponentId: alert.IssueTrackerComponent,
+			ComponentId: int64(alert.IssueTrackerComponent),
 			Priority:    "P2",
 			Severity:    "S2",
 			Reporter: &issuetracker.User{
