@@ -281,7 +281,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, skerr.Fmt("Invalid value for --authtype flag: %q", ret.authType)
 	}
 
-	err = authInstance.Init(ctx, ret.port, ret.local)
+	err = authInstance.Init(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

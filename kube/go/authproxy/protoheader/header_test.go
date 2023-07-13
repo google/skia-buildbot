@@ -108,7 +108,7 @@ func TestLoginURL_Always_ReturnsTheSameLoginURL(t *testing.T) {
 }
 
 func TestProtoHeaderInit_AlwaysReturnsNil(t *testing.T) {
-	require.Nil(t, ProtoHeader{}.Init(context.Background(), "port-is-ignored", true))
+	require.Nil(t, ProtoHeader{}.Init(context.Background()))
 }
 
 func TestNew_HappyPath(t *testing.T) {

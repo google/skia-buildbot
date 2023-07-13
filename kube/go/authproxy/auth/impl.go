@@ -2,10 +2,11 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"net/url"
 
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/netutils"
 )
 
 // authImpl implements Auth using the login package.
@@ -23,18 +24,18 @@ func (l authImpl) LoggedInAs(r *http.Request) string {
 
 // LoggedInAs implements Auth.
 func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
-	return login.LoginURL(w, r)
+	var u url.URL
+	u.Host = netutils.RootDomain(r.Host)
+	u.Scheme = "https"
+	u.Path = login.LoginPath
+
+	return u.String()
 }
 
-func (l authImpl) Init(ctx context.Context, port string, local bool) error {
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
-	if !local {
-		redirectURL = login.GetDefaultRedirectURL()
-	}
-
+func (l authImpl) Init(ctx context.Context) error {
 	return login.Init(
 		ctx,
-		redirectURL,
+		"",
 	)
 }
 

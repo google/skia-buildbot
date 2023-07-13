@@ -1,8 +1,9 @@
-// Package netutils contains utilities to work with ports.
+// Package netutils contains utilities to work with ports and URLs.
 package netutils
 
 import (
 	"net"
+	"strings"
 
 	"go.skia.org/infra/go/skerr"
 )
@@ -24,4 +25,19 @@ func FindUnusedTCPPort() int {
 		panic(skerr.Wrap(err))
 	}
 	return port
+}
+
+// RootDomain returns the root domain, i.e. "perf.skia.org" => "skia.org".
+func RootDomain(url string) string {
+	// Strip off port.
+	host := strings.Split(url, ":")[0]
+
+	// Break apart the domain.
+	parts := strings.Split(host, ".")
+
+	rootDomain := parts[0]
+	if len(parts) > 1 {
+		rootDomain = strings.Join(parts[len(parts)-2:], ".")
+	}
+	return rootDomain
 }

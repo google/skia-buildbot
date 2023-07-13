@@ -16,13 +16,13 @@ type Auth struct {
 	mock.Mock
 }
 
-// Init provides a mock function with given fields: ctx, port, local
-func (_m *Auth) Init(ctx context.Context, port string, local bool) error {
-	ret := _m.Called(ctx, port, local)
+// Init provides a mock function with given fields: ctx
+func (_m *Auth) Init(ctx context.Context) error {
+	ret := _m.Called(ctx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
-		r0 = rf(ctx, port, local)
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
 	} else {
 		r0 = ret.Error(0)
 	}
