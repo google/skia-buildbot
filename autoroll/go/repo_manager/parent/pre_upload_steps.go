@@ -176,10 +176,10 @@ func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Cl
 
 // FlutterLicenseScriptsForDart runs the flutter license scripts for dart.
 func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
-	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party")
+	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_dart", "licenses_third_party")
 }
 
-func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName string) error {
+func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFileNames ...string) error {
 	licenseScriptFailure := int64(1)
 	defer func() {
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
@@ -215,20 +215,27 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 		return fmt.Errorf("Error when running dart license script: %s", err)
 	}
 
-	// Step4: Check to see if the target license file was created in the out dir.
-	//        It will be created if the hash changes.
-	if _, err := os.Stat(filepath.Join(licensesOutDir, licenseFileName)); err == nil {
-		sklog.Infof("Found %s", licenseFileName)
+	// Step4: Check to see if one of the target license files was created in the
+	//        out dir. It will be created if the hash changes.
+	var foundLicenseFileName string
+	for _, licenseFileName := range licenseFileNames {
+		if _, err := os.Stat(filepath.Join(licensesOutDir, licenseFileName)); err == nil {
+			foundLicenseFileName = licenseFileName
+			break
+		}
+	}
+	if foundLicenseFileName != "" {
+		sklog.Infof("Found %s", foundLicenseFileName)
 
 		// Step5: Copy from out dir to goldens dir. This is required for updating
 		//        the release file in sky_engine/LICENSE.
-		if _, err := exec.RunCwd(ctx, licenseToolsDir, "cp", filepath.Join(licensesOutDir, licenseFileName), filepath.Join(licensesGoldenDir, licenseFileName)); err != nil {
-			return fmt.Errorf("Error when copying %s from out to golden dir: %s", licenseFileName, err)
+		if _, err := exec.RunCwd(ctx, licenseToolsDir, "cp", filepath.Join(licensesOutDir, foundLicenseFileName), filepath.Join(licensesGoldenDir, foundLicenseFileName)); err != nil {
+			return fmt.Errorf("Error when copying %s from out to golden dir: %s", foundLicenseFileName, err)
 		}
 		// Step6: Capture diff of licenses_golden/${licenseFileName}.
-		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, licenseFileName))
+		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, foundLicenseFileName))
 		if err != nil {
-			return fmt.Errorf("Error when seeing diff of golden %s: %s", licenseFileName, err)
+			return fmt.Errorf("Error when seeing diff of golden %s: %s", foundLicenseFileName, err)
 		}
 		sklog.Infof("The licenses diff output is:\n%s", licensesDiffOutput)
 
