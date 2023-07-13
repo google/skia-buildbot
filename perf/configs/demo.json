@@ -7,7 +7,7 @@
         "header_name": "X-WEBAUTH-USER"
     },
     "notify_config": {
-        "notifications": "markdown_issuetracker",
+        "notifications": "none",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
 

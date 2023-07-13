@@ -1066,9 +1066,9 @@ export class PlotSimpleSk extends ElementSk {
 
     this.Y_AXIS_TICK_LENGTH = this.MARGIN / 4; // px
 
-    this.ANOMALY_RADIUS = 14 * this.scale; // px
+    this.ANOMALY_RADIUS = 12 * this.scale; // px
 
-    this.ANOMALY_FONT_SIZE = 30 * this.scale;
+    this.ANOMALY_FONT_SIZE = 26 * this.scale;
 
     this.ANOMALY_FONT = `${this.ANOMALY_FONT_SIZE}px Material Icons`;
 
