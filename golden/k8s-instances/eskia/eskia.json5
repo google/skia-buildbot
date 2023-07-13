@@ -15,7 +15,7 @@
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "eskia",
   known_hashes_gcs_path: "skia-gold-eskia/hash_files/gold-eskia-hashes.txt",
-  window_size: 200,
+  window_size: 20,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false
