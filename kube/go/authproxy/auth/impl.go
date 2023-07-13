@@ -33,7 +33,7 @@ func (l authImpl) LoginURL(w http.ResponseWriter, r *http.Request) string {
 }
 
 func (l authImpl) Init(ctx context.Context) error {
-	return login.Init(
+	return login.InitVerifyOnly(
 		ctx,
 		"",
 	)

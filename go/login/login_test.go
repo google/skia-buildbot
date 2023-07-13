@@ -140,16 +140,25 @@ func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
 	ctx := context.Background()
 	client := &mocks.Client{}
 	secretValue := `{
-  "salt": "fake-salt",
   "client_id": "fake-client-id",
   "client_secret": "fake-client-secret"
 }`
-	client.On("Get", ctx, loginSecretProject, loginSecretName, secret.VersionLatest).Return(secretValue, nil)
+	client.On("Get", ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest).Return(secretValue, nil)
+	client.On("Get", ctx, loginSecretProject, saltSecretName, secret.VersionLatest).Return("fake-salt", nil)
 	cookieSalt, clientID, clientSecret, err := TryLoadingFromGCPSecret(ctx, client)
 	require.NoError(t, err)
 	require.Equal(t, "fake-salt", cookieSalt)
 	require.Equal(t, "fake-client-id", clientID)
 	require.Equal(t, "fake-client-secret", clientSecret)
+}
+
+func TestLoadSaltFromGCPSecret_Success(t *testing.T) {
+	ctx := context.Background()
+	client := &mocks.Client{}
+	client.On("Get", ctx, loginSecretProject, saltSecretName, secret.VersionLatest).Return("fake-salt", nil)
+	cookieSalt, err := loadSaltFromGCPSecret(ctx, client)
+	require.NoError(t, err)
+	require.Equal(t, "fake-salt", cookieSalt)
 }
 
 func TestStateFromPartsAndPartsFromStateRoundTrip_Success(t *testing.T) {

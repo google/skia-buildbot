@@ -102,8 +102,13 @@ var (
 	// cookieDomain is the domain to use when setting Cookies.
 	cookieDomain = "skia.org"
 
-	// loginSecretName is the name of the GCP secret for login.
-	loginSecretName = "login-oauth2-secrets"
+	// clientIDandSecretName is the name of the GCP secret for the Client ID and
+	// Client Secret.
+	clientIDandSecretName = "login-oauth2-secrets"
+
+	// saltSecretName is the name of the GCP secret for the salt used to encrypt
+	// the Cookie.
+	saltSecretName = "login-oauth2-salt"
 
 	errMalformedState = errors.New("malformed state value")
 )
@@ -173,7 +178,7 @@ func setDomain(d DomainName) error {
 	}
 	defaultRedirectURL = fmt.Sprintf("https://%s%s", cfg.CookieDomain, DefaultOAuth2Callback)
 	cookieDomain = cfg.CookieDomain
-	loginSecretName = cfg.LoginSecretName
+	clientIDandSecretName = cfg.LoginSecretName
 	return nil
 }
 
@@ -232,7 +237,7 @@ type Session struct {
 	Token     *oauth2.Token
 }
 
-// Init must be called before any other login methods.
+// Init or InitVerifyOnly must be called before any other login methods.
 //
 // The function first tries to load the cookie salt, client id, and client
 // secret from a file provided by Kubernetes secrets. If that fails, it tries to
@@ -253,6 +258,29 @@ func Init(ctx context.Context, redirectURL string, opts ...InitOption) error {
 		}
 	}
 	return initLogin(ctx, clientID, clientSecret, redirectURL, cookieSalt, opts...)
+}
+
+// InitVerifyOnly or Init must be called before any other login methods.
+//
+// The function only loads the cookie salt. This use be used by auth-proxy
+// instead of Init, since auth-proxy only needs the salt to decrypt the login
+// Cookie, it doesn't need access to the Client ID or Client Secret since
+// auth-proxy doesn't handle the login itself, it just redirects to an
+// oauth2redirect instance that does the actual login.
+func InitVerifyOnly(ctx context.Context, redirectURL string, opts ...InitOption) error {
+	cookieSalt := defaultCookieSalt
+	if !skipLoadingSecrets(opts...) {
+		secretClient, err := secret.NewClient(ctx)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
+		cookieSalt, err = loadSaltFromGCPSecret(ctx, secretClient)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return initLogin(ctx, "", "", redirectURL, cookieSalt, opts...)
 }
 
 // Returns true if SkipLoadingSecrets has been passed in as an option.
@@ -288,6 +316,11 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 	}
 
 	sklog.Infof("cookieSalt: %q salt: %q clientID: %q", abbrev(cookieSalt), abbrev(salt), abbrev(clientID))
+
+	// TODO(jcgregorio) We should actually load the last two cookieSalts and try
+	// to decrypt with either of them, while only encoding Cookies with the
+	// latest salt. Also, the two cookieSalts should be periodically re-loaded
+	// in case a new cookieSalt has been uploaded to the secret mananger.
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 	cookieSalt = salt
@@ -697,15 +730,30 @@ func TryLoadingFromAllSources(ctx context.Context) (string, string, string, erro
 //
 // Returns salt, clientID, clientSecret.
 func TryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, string, string, error) {
-	contents, err := secretClient.Get(ctx, loginSecretProject, loginSecretName, secret.VersionLatest)
+	contents, err := secretClient.Get(ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest)
 	if err != nil {
-		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", loginSecretName)
+		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", clientIDandSecretName)
 	}
 	var info loginInfo
 	if err := json.Unmarshal([]byte(contents), &info); err != nil {
 		return "", "", "", skerr.Wrapf(err, "successfully retrieved login secret from GCP secrets but failed to decode it as JSON")
 	}
-	return info.Salt, info.ClientID, info.ClientSecret, nil
+
+	salt, err := loadSaltFromGCPSecret(ctx, secretClient)
+	if err != nil {
+		return "", "", "", skerr.Wrap(err)
+	}
+
+	return salt, info.ClientID, info.ClientSecret, nil
+}
+
+func loadSaltFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, error) {
+	salt, err := secretClient.Get(ctx, loginSecretProject, saltSecretName, secret.VersionLatest)
+	if err != nil {
+		return "", skerr.Wrapf(err, "loading login secret salt from GCP secret manager; failed to retrieve secret %q", saltSecretName)
+	}
+	return salt, nil
+
 }
 
 // ViaBearerToken tries to load an OAuth 2.0 Bearer token from the request and
