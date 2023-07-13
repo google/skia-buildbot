@@ -5,7 +5,7 @@ option go_package = "go.skia.org/infra/autoroll/go/config";
 // Config provides configuration for one AutoRoller.
 message Config {
     // roller_name is the name for this roller. It is used as the unique ID for
-    // the roller.
+    // the roller and must be non-empty.
     // TODO(borenet): Use an actual DB-generated ID for the roller.
     string roller_name = 1;
     // child_bug_link is a link to file a bug for the child project.
@@ -23,7 +23,7 @@ message Config {
     // owner_secondary is the secondary owner of this roller.
     string owner_secondary = 6;
     // contacts is a list of email addresses of contacts for this roller, used
-    // for sending PSAs, asking questions, etc.
+    // for sending PSAs, asking questions, etc. At least one contact is required.
     repeated string contacts = 7;
     // service_account is the full email address of the service account for this
     // roller.
@@ -33,7 +33,7 @@ message Config {
     // TODO(borenet): Is this necessary?
     bool is_internal = 9;
     // reviewer are the email addresses to add as reviewers on rolls, or URL(s)
-    // from which to obtain those email addresses.
+    // from which to obtain those email addresses. At least one reviewer is required.
     repeated string reviewer = 10;
     // reviewer_backup are backup email addresses to add as reviewers on rolls,
     // in case obtaining the email addresses from the URL fails. Only required
@@ -70,7 +70,7 @@ message Config {
         FuchsiaSDKAndroidRepoManagerConfig fuchsia_sdk_android_repo_manager = 24;
         Google3RepoManagerConfig google3_repo_manager = 25;
     }
-    // notifiers configures any extra notifications used by this roller.
+    // notifiers configures any extra notifications used by this roller. Optional.
     repeated NotifierConfig notifiers = 26;
     // safety_throttle provides configuration for safety-throttling the roller
     // in case of persistent errors.

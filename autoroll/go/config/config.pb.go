@@ -432,7 +432,7 @@ type Config struct {
 	unknownFields protoimpl.UnknownFields
 
 	// roller_name is the name for this roller. It is used as the unique ID for
-	// the roller.
+	// the roller and must be non-empty.
 	// TODO(borenet): Use an actual DB-generated ID for the roller.
 	RollerName string `protobuf:"bytes,1,opt,name=roller_name,json=rollerName,proto3" json:"roller_name,omitempty"`
 	// child_bug_link is a link to file a bug for the child project.
@@ -450,7 +450,7 @@ type Config struct {
 	// owner_secondary is the secondary owner of this roller.
 	OwnerSecondary string `protobuf:"bytes,6,opt,name=owner_secondary,json=ownerSecondary,proto3" json:"owner_secondary,omitempty"`
 	// contacts is a list of email addresses of contacts for this roller, used
-	// for sending PSAs, asking questions, etc.
+	// for sending PSAs, asking questions, etc. At least one contact is required.
 	Contacts []string `protobuf:"bytes,7,rep,name=contacts,proto3" json:"contacts,omitempty"`
 	// service_account is the full email address of the service account for this
 	// roller.
@@ -460,7 +460,7 @@ type Config struct {
 	// TODO(borenet): Is this necessary?
 	IsInternal bool `protobuf:"varint,9,opt,name=is_internal,json=isInternal,proto3" json:"is_internal,omitempty"`
 	// reviewer are the email addresses to add as reviewers on rolls, or URL(s)
-	// from which to obtain those email addresses.
+	// from which to obtain those email addresses. At least one reviewer is required.
 	Reviewer []string `protobuf:"bytes,10,rep,name=reviewer,proto3" json:"reviewer,omitempty"`
 	// reviewer_backup are backup email addresses to add as reviewers on rolls,
 	// in case obtaining the email addresses from the URL fails. Only required
@@ -498,7 +498,7 @@ type Config struct {
 	//	*Config_FuchsiaSdkAndroidRepoManager
 	//	*Config_Google3RepoManager
 	RepoManager isConfig_RepoManager `protobuf_oneof:"repo_manager"`
-	// notifiers configures any extra notifications used by this roller.
+	// notifiers configures any extra notifications used by this roller. Optional.
 	Notifiers []*NotifierConfig `protobuf:"bytes,26,rep,name=notifiers,proto3" json:"notifiers,omitempty"`
 	// safety_throttle provides configuration for safety-throttling the roller
 	// in case of persistent errors.

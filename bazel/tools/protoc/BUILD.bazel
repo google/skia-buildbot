@@ -71,10 +71,13 @@ sh_binary(
     srcs = select({
         "//bazel/constraints:linux_x64": ["protoc_linux_x64.sh"],
         "//bazel/constraints:mac_x64": ["protoc_mac_x64.sh"],
+        "//bazel/constraints:mac_arm64": ["protoc_mac_x64.sh"],
     }),
     data = select({
         "//bazel/constraints:linux_x64": ["@protoc_linux_x64//:bin/protoc"],
         "//bazel/constraints:mac_x64": ["@protoc_mac_x64//:bin/protoc"],
+        # The M1 Mac can run the x64 version of the binary in emulation mode.
+        "//bazel/constraints:mac_arm64": ["@protoc_mac_x64//:bin/protoc"],
     }) +
     # These Go binaries will be compiled for the correct execution platform.
     [
