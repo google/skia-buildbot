@@ -25,7 +25,7 @@ const (
   For:
 </p>
 <p style="padding: 1em;">
-  <a href="{{.Commit.URL}}">{{.Commit.URL}}</a>
+  <a href="{{ .CommitURL }}">{{ .CommitURL }}</a>
 </p>
 <p>
 	With {{.Cluster.Num}} matching traces.
@@ -48,7 +48,7 @@ const (
 	For:
 </p>
 <p style="padding: 1em;">
-	<a href="{{.Commit.URL}}">{{.Commit.URL}}</a>
+	<a href="{{ .CommitURL }}">{{ .CommitURL }}</a>
 </p>
 <p>
 	With {{.Cluster.Num}} matching traces.
@@ -68,45 +68,51 @@ var (
 )
 
 // HTMLFormatter implements Formatter.
-type HTMLFormatter struct{}
+type HTMLFormatter struct {
+	commitRangeURITemplate string
+}
 
 // NewHTMLFormatter returns a new HTMLFormatter.
-func NewHTMLFormatter() HTMLFormatter {
-	return HTMLFormatter{}
+func NewHTMLFormatter(commitRangeURITemplate string) HTMLFormatter {
+	return HTMLFormatter{
+		commitRangeURITemplate: commitRangeURITemplate,
+	}
 }
 
 // FormatNewRegression implements Formatter.
-func (h HTMLFormatter) FormatNewRegression(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
 	templateContext := &templateContext{
-		URL:     URL,
-		Commit:  c,
-		Alert:   alert,
-		Cluster: cl,
+		URL:       URL,
+		Commit:    commit,
+		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:     alert,
+		Cluster:   cl,
 	}
 
 	var b bytes.Buffer
 	if err := htmlTemplateNewRegression.Execute(&b, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format HTML body for a new regression")
 	}
-	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, c.Display(now.Now(ctx)))
+	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, commit.Display(now.Now(ctx)))
 
 	return b.String(), subject, nil
 }
 
 // FormatRegressionMissing implements Formatter.
-func (h HTMLFormatter) FormatRegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h HTMLFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
 	templateContext := &templateContext{
-		URL:     URL,
-		Commit:  c,
-		Alert:   alert,
-		Cluster: cl,
+		URL:       URL,
+		Commit:    commit,
+		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:     alert,
+		Cluster:   cl,
 	}
 
 	var b bytes.Buffer
 	if err := htmlTemplateRegressionMissing.Execute(&b, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format HTML body for a regression that has gone missing")
 	}
-	subject := fmt.Sprintf("%s - Regression no longer found for %s", alert.DisplayName, c.Display(now.Now(ctx)))
+	subject := fmt.Sprintf("%s - Regression no longer found for %s", alert.DisplayName, commit.Display(now.Now(ctx)))
 	return b.String(), subject, nil
 }
 

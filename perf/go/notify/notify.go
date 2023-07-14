@@ -16,8 +16,8 @@ import (
 // Formatter has implementations for both HTML and Markdown.
 type Formatter interface {
 	// Return body and subject.
-	FormatNewRegression(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
-	FormatRegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
+	FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
+	FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
 }
 
 // Transport has implementations for email, issuetracker, and the noop implementation.
@@ -32,10 +32,11 @@ const (
 
 // context is used in expanding the message templates.
 type templateContext struct {
-	URL     string
-	Commit  provider.Commit
-	Alert   *alerts.Alert
-	Cluster *clustering2.ClusterSummary
+	URL       string
+	Commit    provider.Commit
+	CommitURL string
+	Alert     *alerts.Alert
+	Cluster   *clustering2.ClusterSummary
 }
 
 // Notifier sends notifications.
@@ -58,8 +59,8 @@ func newNotifier(formatter Formatter, transport Transport, url string) *Notifier
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionFound(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
-	body, subject, err := n.formatter.FormatNewRegression(ctx, c, alert, cl, n.url)
+func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
+	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url)
 	if err != nil {
 		return "", err
 	}
@@ -74,8 +75,8 @@ func (n *Notifier) RegressionFound(ctx context.Context, c provider.Commit, alert
 // RegressionMissing sends a notification that a previous regression found for
 // the given cluster found at the given commit has disappeared after more data
 // has arrived. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, threadingReference string) error {
-	body, subject, err := n.formatter.FormatRegressionMissing(ctx, c, alert, cl, n.url)
+func (n *Notifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, threadingReference string) error {
+	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url)
 	if err != nil {
 		return err
 	}
@@ -88,23 +89,31 @@ func (n *Notifier) RegressionMissing(ctx context.Context, c provider.Commit, ale
 
 // ExampleSend sends an example for dummy data for the given alerts.Config.
 func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
-	c := provider.Commit{
+	commit := provider.Commit{
 		Subject:   "An example commit use for testing.",
 		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 		GitHash:   "d261e1075a93677442fdf7fe72aba7e583863664",
 		Timestamp: 1498176000,
 	}
+
+	previousCommit := provider.Commit{
+		Subject:   "An example previous commit to use for testing.",
+		URL:       "https://skia.googlesource.com/skia/+/fb49909acafba5e031b90a265a6ce059cda85019",
+		GitHash:   "fb49909acafba5e031b90a265a6ce059cda85019",
+		Timestamp: 1687824470,
+	}
+
 	cl := &clustering2.ClusterSummary{
 		Num: 10,
 		StepFit: &stepfit.StepFit{
 			Status: stepfit.HIGH,
 		},
 	}
-	threadingReference, err := n.RegressionFound(ctx, c, alert, cl)
+	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	err = n.RegressionMissing(ctx, c, alert, cl, threadingReference)
+	err = n.RegressionMissing(ctx, commit, previousCommit, alert, cl, threadingReference)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -112,18 +121,18 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 }
 
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, URL string) (*Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string) (*Notifier, error) {
 	switch cfg.Notifications {
 	case notifytypes.None:
-		return newNotifier(NewHTMLFormatter(), NewNoopTransport(), URL), nil
+		return newNotifier(NewHTMLFormatter(commitRangeURITemplate), NewNoopTransport(), URL), nil
 	case notifytypes.HTMLEmail:
-		return newNotifier(NewHTMLFormatter(), NewEmailTransport(), URL), nil
+		return newNotifier(NewHTMLFormatter(commitRangeURITemplate), NewEmailTransport(), URL), nil
 	case notifytypes.MarkdownIssueTracker:
 		tracker, err := NewIssueTrackerTransport(ctx, cfg)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return newNotifier(NewMarkdownFormatter(), tracker, URL), nil
+		return newNotifier(NewMarkdownFormatter(commitRangeURITemplate), tracker, URL), nil
 
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)

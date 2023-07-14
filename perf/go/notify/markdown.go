@@ -20,7 +20,7 @@ const (
 
 For:
 
-  Commit {{.Commit.URL}}
+  Commit {{.CommitURL}}
 
 With:
 
@@ -39,45 +39,51 @@ var (
 )
 
 // MarkdownFormatter implement Formatter.
-type MarkdownFormatter struct{}
+type MarkdownFormatter struct {
+	commitRangeURITemplate string
+}
 
 // NewMarkdownFormatter return a new MarkdownFormatter.
-func NewMarkdownFormatter() MarkdownFormatter {
-	return MarkdownFormatter{}
+func NewMarkdownFormatter(commitRangeURITemplate string) MarkdownFormatter {
+	return MarkdownFormatter{
+		commitRangeURITemplate: commitRangeURITemplate,
+	}
 }
 
 // FormatNewRegression implements Formatter.
-func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
 	templateContext := &templateContext{
-		URL:     URL,
-		Commit:  c,
-		Alert:   alert,
-		Cluster: cl,
+		URL:       URL,
+		Commit:    commit,
+		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:     alert,
+		Cluster:   cl,
 	}
 
 	var b bytes.Buffer
 	if err := markdownTemplateNewRegression.Execute(&b, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format Markdown body for a new regression")
 	}
-	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, c.Display(now.Now(ctx)))
+	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, commit.Display(now.Now(ctx)))
 
 	return b.String(), subject, nil
 }
 
 // FormatRegressionMissing implements Formatter.
-func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, c provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
 	templateContext := &templateContext{
-		URL:     URL,
-		Commit:  c,
-		Alert:   alert,
-		Cluster: cl,
+		URL:       URL,
+		Commit:    commit,
+		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:     alert,
+		Cluster:   cl,
 	}
 
 	var b bytes.Buffer
 	if err := markdownTemplateRegressionMissing.Execute(&b, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format Markdown body for a regression that has gone missing")
 	}
-	subject := fmt.Sprintf("%s - Regression no longer found for %s", alert.DisplayName, c.Display(now.Now(ctx)))
+	subject := fmt.Sprintf("%s - Regression no longer found for %s", alert.DisplayName, commit.Display(now.Now(ctx)))
 	return b.String(), subject, nil
 }
 

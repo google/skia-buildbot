@@ -4,6 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "notify",
     srcs = [
+        "commitrange.go",
         "email.go",
         "html.go",
         "issuetracker.go",
@@ -34,6 +35,7 @@ go_library(
 go_test(
     name = "notify_test",
     srcs = [
+        "commitrange_test.go",
         "email_test.go",
         "notify_test.go",
     ],
@@ -43,6 +45,7 @@ go_test(
         "//go/now",
         "//go/testutils",
         "//perf/go/alerts",
+        "//perf/go/git/provider",
         "//perf/go/notify/mocks",
         "@com_github_stretchr_testify//require",
     ],

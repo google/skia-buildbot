@@ -120,6 +120,19 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 			sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 			continue
 		}
+
+		// It's possible that we don't have data for every single commit, so we
+		// really need to know the range of commits that this regression
+		// represents. So we go back to the previous sample we have in the trace
+		// and find the very next commit after that. That is, the regression may
+		// have been created on any commit in [previousCommitNumber,
+		// commitNumber] (inclusive of both ends).
+		previousCommitNumber := resp.Frame.DataFrame.Header[midPoint-1].Offset
+		previousCommitDetails, err := c.perfGit.CommitFromCommitNumber(ctx, previousCommitNumber+1)
+		if err != nil {
+			sklog.Errorf("Failed to look up commit %d: %s", previousCommitNumber, err)
+			continue
+		}
 		for _, cl := range resp.Summary.Clusters {
 			// Zero out the DataFrame ParamSet since it is never used.
 			resp.Frame.DataFrame.ParamSet = paramtools.NewReadOnlyParamSet()
@@ -138,7 +151,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						notificationID, err := c.notifier.RegressionFound(ctx, details, cfg, cl)
+						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl)
 						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
@@ -160,7 +173,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						notificationID, err := c.notifier.RegressionFound(ctx, details, cfg, cl)
+						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl)
 						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
