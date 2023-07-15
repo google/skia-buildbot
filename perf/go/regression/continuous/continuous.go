@@ -124,11 +124,12 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 		// It's possible that we don't have data for every single commit, so we
 		// really need to know the range of commits that this regression
 		// represents. So we go back to the previous sample we have in the trace
-		// and find the very next commit after that. That is, the regression may
-		// have been created on any commit in [previousCommitNumber,
-		// commitNumber] (inclusive of both ends).
+		// and find that commit. That is, the regression may have been created
+		// on any commit in (previousCommitNumber, commitNumber] (inclusive of
+		// commitNumber but exclusive of previousCommitNumber). This is way that
+		// Gitiles and the Android build site work by default.
 		previousCommitNumber := resp.Frame.DataFrame.Header[midPoint-1].Offset
-		previousCommitDetails, err := c.perfGit.CommitFromCommitNumber(ctx, previousCommitNumber+1)
+		previousCommitDetails, err := c.perfGit.CommitFromCommitNumber(ctx, previousCommitNumber)
 		if err != nil {
 			sklog.Errorf("Failed to look up commit %d: %s", previousCommitNumber, err)
 			continue
