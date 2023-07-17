@@ -59,14 +59,21 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 //
 // tokenSource - An oauth2.TokenSource authorized to access the repository, with an appropriate scope set.
 // filename - The name of the git cookie file, e.g. "~/.git-credential-cache/cookie".
-// config - If true then set the http.cookiefile config globally for git and set the user name and email globally if 'email' is not the empty string.
-// email - The email address of the authorized account. Used to set the git config user.name and user.email. Can be "", in which case user.name
+// config - If true then set the http.cookiefile config globally for git and set the user name and email globally if
 //
-//	and user.email are not set.
+//	'email' is not the empty string.
 //
-// If config if false then Git must be told about the location of the Cookie file, for example:
+// email - The email address of the authorized account. Used to set the git config user.name and user.email. Can be "",
+//
+//	        in which case user.name
+//
+//		and user.email are not set.
+//
+// If config is false then Git must be told about the location of the Cookie file, for example:
 //
 //	git config --global http.cookiefile ~/.git-credential-cache/cookie
+//
+// A goroutine will be started to refresh the token. It will stop when the passed-in context is cancelled.
 func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
 	if config {
 		gitExec, err := git.Executable(ctx)
@@ -84,23 +91,23 @@ func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, c
 			CombinedOutput: &output,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("Failed to set cookie in git config %q: %s", output.String(), err)
+			return nil, skerr.Wrapf(err, "Failed to set cookie in git config %q", output.String())
 		}
 		if email != "" {
-			out, err := exec.RunSimple(ctx, fmt.Sprintf("git config --global user.email %s", email))
+			out, err := exec.RunSimple(ctx, fmt.Sprintf("%s config --global user.email %s", gitExec, email))
 			if err != nil {
-				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
+				return nil, skerr.Wrapf(err, "Failed to config user.email: %s", out)
 			}
 			name := strings.Split(email, "@")[0]
-			out, err = exec.RunSimple(ctx, fmt.Sprintf("git config --global user.name %s", name))
+			out, err = exec.RunSimple(ctx, fmt.Sprintf("%s config --global user.name %s", gitExec, name))
 			if err != nil {
-				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
+				return nil, skerr.Wrapf(err, "Failed to config user.name: %s", out)
 			}
 		}
 		// Read back gitconfig.
-		out, err := exec.RunSimple(ctx, "git config --list --show-origin")
+		out, err := exec.RunSimple(ctx, fmt.Sprintf("%s config --list --show-origin", gitExec))
 		if err != nil {
-			return nil, fmt.Errorf("Failed to read git config: %s: %s", err, out)
+			return nil, skerr.Wrapf(err, "Failed to read git config: %s", out)
 		}
 		sklog.Infof("Created git configuration:\n%s", out)
 	}
@@ -110,15 +117,19 @@ func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, c
 	}
 	refresh_in, err := g.updateCookie()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get initial git cookie: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to get initial git cookie")
 	}
 	// Set the GIT_COOKIES_PATH environment variable for Depot Tools.
 	if err := os.Setenv("GIT_COOKIES_PATH", filename); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	go func() {
 		for {
+			if err := ctx.Err(); err != nil {
+				sklog.Errorf("git update cookie goroutine exited because context error %s", err)
+				return
+			}
 			time.Sleep(refresh_in)
 			refresh_in, err = g.updateCookie()
 			if err != nil {

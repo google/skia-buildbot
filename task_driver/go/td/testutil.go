@@ -26,13 +26,15 @@ func StartTestRun(t sktest.TestingT) *TestingRun {
 	require.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
+	ctx, cancel := context.WithCancel(context.Background())
 	return &TestingRun{
 		t:      t,
-		ctx:    newRun(context.Background(), report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
+		ctx:    newRun(ctx, report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
 		wd:     wd,
 		report: report,
 		cleanup: func() {
 			require.NoError(t, os.RemoveAll(wd))
+			cancel()
 		},
 	}
 }

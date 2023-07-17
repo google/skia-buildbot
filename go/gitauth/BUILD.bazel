@@ -21,8 +21,12 @@ go_test(
     srcs = ["gitauth_test.go"],
     embed = [":gitauth"],
     deps = [
-        "//go/util",
+        "//go/exec",
+        "//go/exec/testutils",
+        "//go/git/git_common",
+        "//go/skerr",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )
