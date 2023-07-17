@@ -3,7 +3,7 @@
   "contact": "http://go/androidx-discuss",
   "trace_sample_proportion": 0.01,
   "notify_config": {
-    "notifications": "html_email"
+    "notifications": "markdown_issuetracker"
   },
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
