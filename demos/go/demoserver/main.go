@@ -197,7 +197,7 @@ func setupGit(ctx context.Context, local bool) error {
 		return err
 	}
 	if !local {
-		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, ""); err != nil {
+		if _, err := gitauth.New(ctx, ts, filepath.Join(os.TempDir(), "gitcookies"), true, ""); err != nil {
 			return skerr.Wrapf(err, "Failed to create git cookie updater")
 		}
 	}

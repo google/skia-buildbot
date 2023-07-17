@@ -343,7 +343,7 @@ func (app Application) Run(version, key string) {
 	// Authenticate to Gerrit since the perf-compui repo is private.
 	if !app.useDefaultAuth {
 		sklog.Info("Configuring git auth.")
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+		if _, err := gitauth.New(ctx, ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
 		}
 	}

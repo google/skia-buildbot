@@ -48,7 +48,7 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig) (*Impl, err
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to get tokensource perfgit.Git for config %v", *instanceConfig)
 		}
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+		if _, err := gitauth.New(ctx, ts, "/tmp/git-cookie", true, ""); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to gitauth perfgit.Git for config %v", *instanceConfig)
 		}
 	}

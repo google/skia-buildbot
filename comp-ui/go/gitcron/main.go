@@ -50,7 +50,7 @@ func main() {
 	// Gerrit, otherwise write out a git cookie that enables R/W access to the
 	// git repo.
 	if !*local {
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, *authorEmail); err != nil {
+		if _, err := gitauth.New(ctx, ts, "/tmp/git-cookie", true, *authorEmail); err != nil {
 			sklog.Fatal(err)
 		}
 	}

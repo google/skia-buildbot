@@ -196,7 +196,7 @@ func main() {
 					if err != nil {
 						return td.FailStep(ctx.Context, err)
 					}
-					if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
+					if _, err := gitauth.New(ctx.Context, ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
 						return td.FailStep(ctx.Context, err)
 					}
 					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))

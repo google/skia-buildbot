@@ -33,7 +33,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
-	if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
+	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
 		return td.FailStep(ctx, err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()

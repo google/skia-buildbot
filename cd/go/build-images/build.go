@@ -23,7 +23,7 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
-	if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
+	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
 		return td.FailStep(ctx, err)
 	}
 

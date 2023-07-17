@@ -67,14 +67,14 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 // If config if false then Git must be told about the location of the Cookie file, for example:
 //
 //	git config --global http.cookiefile ~/.git-credential-cache/cookie
-func New(tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
+func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
 	if config {
-		gitExec, err := git.Executable(context.TODO())
+		gitExec, err := git.Executable(ctx)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		output := bytes.Buffer{}
-		err = exec.Run(context.Background(), &exec.Command{
+		err = exec.Run(ctx, &exec.Command{
 			Name: gitExec,
 			Args: []string{
 				"config",
@@ -87,7 +87,6 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 			return nil, fmt.Errorf("Failed to set cookie in git config %q: %s", output.String(), err)
 		}
 		if email != "" {
-			ctx := context.Background()
 			out, err := exec.RunSimple(ctx, fmt.Sprintf("git config --global user.email %s", email))
 			if err != nil {
 				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
@@ -99,7 +98,7 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 			}
 		}
 		// Read back gitconfig.
-		out, err := exec.RunSimple(context.TODO(), "git config --list --show-origin")
+		out, err := exec.RunSimple(ctx, "git config --list --show-origin")
 		if err != nil {
 			return nil, fmt.Errorf("Failed to read git config: %s: %s", err, out)
 		}

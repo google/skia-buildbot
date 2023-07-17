@@ -310,7 +310,7 @@ func main() {
 
 	// Create git-cookie if not local.
 	if !*local {
-		_, err := gitauth.New(ts, "/tmp/git-cookie", true, "skia-docker-pushes-watcher@skia-public.iam.gserviceaccount.com")
+		_, err := gitauth.New(ctx, ts, "/tmp/git-cookie", true, "skia-docker-pushes-watcher@skia-public.iam.gserviceaccount.com")
 		if err != nil {
 			sklog.Fatal(err)
 		}

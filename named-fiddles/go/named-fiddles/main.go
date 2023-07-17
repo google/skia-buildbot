@@ -68,7 +68,7 @@ func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Se
 			sklog.Fatalf("Failed authentication: %s", err)
 		}
 		// Use the gitcookie created by the gitauth package.
-		if _, err := gitauth.New(ts, "/tmp/gitcookies", true, ""); err != nil {
+		if _, err := gitauth.New(ctx, ts, "/tmp/gitcookies", true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 		sklog.Infof("Git authentication set up successfully.")

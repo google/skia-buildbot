@@ -91,7 +91,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}
-	if _, err := gitauth.New(tokenSource, types.GitCookiesPath, true, ""); err != nil {
+	if _, err := gitauth.New(ctx, tokenSource, types.GitCookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)

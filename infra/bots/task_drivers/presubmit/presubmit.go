@@ -59,7 +59,7 @@ func main() {
 		if err != nil {
 			td.Fatal(ctx, err)
 		}
-		if _, err := gitauth.New(ts, "/tmp/.gitcookies", true, email); err != nil {
+		if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
 			td.Fatal(ctx, err)
 		}
 	}

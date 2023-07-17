@@ -1,6 +1,7 @@
 package gitauth
 
 import (
+	"context"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -35,7 +36,7 @@ func TestNew(t *testing.T) {
 	filename := filepath.Join(dir, "cookie")
 	assert.NoError(t, err)
 	defer util.RemoveAll(dir)
-	g, err := New(newTestToken(), filename, false, "")
+	g, err := New(context.Background(), newTestToken(), filename, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, g.filename)
 	b, err := ioutil.ReadFile(filename)

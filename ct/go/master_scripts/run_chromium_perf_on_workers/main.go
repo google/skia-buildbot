@@ -355,7 +355,7 @@ func runChromiumPerfOnWorkers() error {
 		if err != nil {
 			return err
 		}
-		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.CT_SERVICE_ACCOUNT); err != nil {
+		if _, err := gitauth.New(ctx, ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.CT_SERVICE_ACCOUNT); err != nil {
 			return fmt.Errorf("Failed to create git cookie updater: %s", err)
 		}
 
