@@ -118,6 +118,10 @@ func commandCollectorWithStubbedGit(ctx context.Context, extraMatchers ...comman
 			_, _ = cmd.CombinedOutput.Write([]byte("git version 3.14.15.92653"))
 			return nil
 		}
+		if len(cmd.Args) > 1 && cmd.Args[0] == "config" {
+			_, _ = cmd.CombinedOutput.Write([]byte(`"stubbed call to git config (e.g. git_auth.New)"`))
+			return nil
+		}
 		return nil
 	}))
 	mock.SetDelegateRun(func(_ context.Context, command *exec.Command) error {

@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"path"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
+
+type containerToBuild struct {
+	bazelTarget string
+	imageURI    string
+}
 
 func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, rbe bool) error {
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
@@ -27,7 +32,8 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 		return td.FailStep(ctx, err)
 	}
 
-	bazelTargetToImagePath := make(map[string]string, len(targets))
+	toBuild := make([]containerToBuild, 0, len(targets))
+nextTarget:
 	for _, target := range targets {
 		targetSplit := strings.Split(target, ":")
 		if len(targetSplit) != 3 {
@@ -35,7 +41,15 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 		}
 		bazelTarget := strings.Join(targetSplit[:2], ":")
 		imagePath := targetSplit[2]
-		bazelTargetToImagePath[bazelTarget] = imagePath
+
+		c := containerToBuild{bazelTarget: bazelTarget, imageURI: imagePath}
+		// Make sure we don't build the same target twice
+		for _, x := range toBuild {
+			if c == x {
+				continue nextTarget
+			}
+		}
+		toBuild = append(toBuild, c)
 	}
 
 	// Create a shallow clone of the repo.
@@ -45,14 +59,15 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	}
 
 	// Create the timestamped Docker image tag.
-	timestamp := time.Now().UTC().Format("2006-01-02T15_04_05Z")
+	timestamp := now.Now(ctx).UTC().Format("2006-01-02T15_04_05Z")
 	imageTag := fmt.Sprintf("%s-%s-%s-%s", timestamp, username, commit[:7], "clean")
 
 	// Perform the builds.
 	imageInfo := &buildImagesJSON{
-		Images: make([]*SingleImageInfo, 0, len(bazelTargetToImagePath)),
+		Images: make([]*SingleImageInfo, 0, len(toBuild)),
 	}
-	for bazelTarget, imagePath := range bazelTargetToImagePath {
+	for _, c := range toBuild {
+		bazelTarget, imagePath := c.bazelTarget, c.imageURI
 		tags := []string{
 			fmt.Sprintf("louhi_ws/%s:%s", imagePath, imageTag),
 			fmt.Sprintf("louhi_ws/%s:git-%s", imagePath, commit),

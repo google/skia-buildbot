@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -278,7 +277,7 @@ func shallowClone(ctx context.Context, repoURL, commit string) (string, error) {
 	ctx = td.StartStep(ctx, td.Props("Clone"))
 	defer td.EndStep(ctx)
 
-	checkoutDir, err := ioutil.TempDir("", "")
+	checkoutDir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return "", td.FailStep(ctx, err)
 	}

@@ -18,6 +18,7 @@ go_library(
         "//go/git",
         "//go/gitauth",
         "//go/httputils",
+        "//go/now",
         "//go/skerr",
         "//go/util",
         "//go/vfs",
@@ -36,6 +37,7 @@ go_binary(
 go_test(
     name = "build-images_test",
     srcs = [
+        "build_test.go",
         "main_test.go",
         "update-refs_test.go",
     ],
@@ -44,6 +46,7 @@ go_test(
         "//go/exec",
         "//go/exec/testutils",
         "//go/git/git_common",
+        "//go/now",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
