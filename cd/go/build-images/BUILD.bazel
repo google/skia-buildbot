@@ -40,5 +40,12 @@ go_test(
         "update-refs_test.go",
     ],
     embed = [":build-images_lib"],
-    deps = ["@com_github_stretchr_testify//require"],
+    deps = [
+        "//go/exec",
+        "//go/exec/testutils",
+        "//go/git/git_common",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )
