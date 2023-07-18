@@ -3,7 +3,9 @@
   "contact": "http://go/androidx-discuss",
   "trace_sample_proportion": 0.01,
   "notify_config": {
-    "notifications": "markdown_issuetracker"
+    "notifications": "markdown_issuetracker",
+    "issue_tracker_api_key_secret_project": "skia-infra-public",
+    "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
   },
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
