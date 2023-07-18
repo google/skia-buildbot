@@ -397,7 +397,7 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	if _, err := g.k8sConfigCheckout.Git(ctx, "add", "."); err != nil {
 		return false, skerr.Wrap(err)
 	}
-	message := "Push\n\n" + rubberstamper.RandomChangeID()
+	message := "Push\n\n" + rubberstamper.RandomChangeID(ctx)
 	if _, err := g.k8sConfigCheckout.Git(ctx, "commit", "-m", message); err != nil {
 		return false, skerr.Wrap(err)
 	}

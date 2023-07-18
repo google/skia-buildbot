@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -29,12 +30,12 @@ type GitAuth struct {
 	filename    string
 }
 
-func (g *GitAuth) updateCookie() (time.Duration, error) {
+func (g *GitAuth) updateCookie(ctx context.Context) (time.Duration, error) {
 	token, err := g.tokenSource.Token()
 	if err != nil {
 		return RETRY_INTERVAL, fmt.Errorf("Failed to retrieve token: %s", err)
 	}
-	refresh_in := token.Expiry.Sub(time.Now())
+	refresh_in := token.Expiry.Sub(now.Now(ctx))
 	refresh_in -= REFRESH
 	if refresh_in < 0 {
 		refresh_in = REFRESH
@@ -115,7 +116,7 @@ func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, c
 		tokenSource: tokenSource,
 		filename:    filename,
 	}
-	refresh_in, err := g.updateCookie()
+	refresh_in, err := g.updateCookie(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get initial git cookie")
 	}
@@ -131,7 +132,7 @@ func New(ctx context.Context, tokenSource oauth2.TokenSource, filename string, c
 				return
 			}
 			time.Sleep(refresh_in)
-			refresh_in, err = g.updateCookie()
+			refresh_in, err = g.updateCookie(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to update git cookie: %s", err)
 			}

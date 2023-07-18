@@ -6,9 +6,11 @@
 package rubberstamper
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 
 	"go.skia.org/infra/go/git"
 )
@@ -35,7 +37,15 @@ const (
 )
 
 // RandomChangeID generates a probabilistically unique Gerrit ChangeId from the default rand source
-func RandomChangeID() string {
+func RandomChangeID(ctx context.Context) string {
+	if id := ctx.Value(contextKey); id != nil {
+		switch v := id.(type) {
+		case string:
+			return v
+		default:
+			panic(fmt.Sprintf("Unknown value for contextKey: %v", v))
+		}
+	}
 	// In a normal flow (using depot_tools), the ChangeId is computed programmatically from many
 	// inputs and then run through a SHA-1 hash. That does not appear to be used to validate
 	// anything, rather just a way to deterministically compute something unique.
@@ -51,4 +61,28 @@ func RandomChangeID() string {
 	h := sha1.Sum(b)
 	// Gerrit prepends the generated ChangeId with an uppercase I as a convention.
 	return "Change-Id: I" + hex.EncodeToString(h[:])
+}
+
+type contextKeyType string
+
+// ContextKey is used by tests to make the time deterministic.
+//
+// That is, in a test, you can write a value into a context to use as the return
+// value of Now().
+//
+//	var mockTime = time.Unix(0, 12).UTC()
+//	ctx = context.WithValue(ctx, now.ContextKey, mockTime)
+//
+// The value set can also be a function that returns a time.Time.
+//
+//	   var monotonicTime int64 = 0
+//	   var mockTimeProvider = func() time.Time {
+//	     monotonicTime += 1
+//		    return time.Unix(monotonicTime, 0).UTC()
+//	   }
+//	   ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(mockTimeProvider))
+const contextKey contextKeyType = "deterministicChangeID"
+
+func WithDeterministicChangeID(ctx context.Context, changeID string) context.Context {
+	return context.WithValue(ctx, contextKey, changeID)
 }

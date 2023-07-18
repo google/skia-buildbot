@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,7 +23,7 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
+func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
@@ -80,10 +79,6 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 			if err != nil {
 				return err
 			}
-			dockerClient, err := docker.NewClient(ctx)
-			if err != nil {
-				return err
-			}
 			if _, ok := stageFile.Images[image.Image]; ok {
 				// Use the stagemanager to update the image references.
 				sm := stages.NewStageManager(ctx, vfs.Local(checkoutDir), dockerClient, stages.GitilesCommitResolver(httpClient))
@@ -117,7 +112,11 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 				}
 			}
 			// Read the file.
-			contents, err := ioutil.ReadFile(path)
+			contents, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			existingStats, err := os.Stat(path)
 			if err != nil {
 				return err
 			}
@@ -130,7 +129,7 @@ func updateRefs(ctx context.Context, repo, workspace, username, email, louhiPubs
 
 			// Write out the updated file.
 			contents = []byte(contentsStr)
-			if err := ioutil.WriteFile(path, contents, d.Type().Perm()); err != nil {
+			if err := os.WriteFile(path, contents, existingStats.Mode()); err != nil {
 				return err
 			}
 			return nil

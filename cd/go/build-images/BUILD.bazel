@@ -43,12 +43,18 @@ go_test(
     ],
     embed = [":build-images_lib"],
     deps = [
+        "//go/docker",
+        "//go/docker/mocks",
         "//go/exec",
         "//go/exec/testutils",
+        "//go/gerrit/rubberstamper",
         "//go/git/git_common",
         "//go/now",
+        "//go/testutils",
+        "//task_driver/go/lib/auth_steps",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )

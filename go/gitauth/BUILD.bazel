@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/exec",
         "//go/git",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

@@ -56,7 +56,7 @@ func TestNew_UsesTokenSource_WritesCookie(t *testing.T) {
 
 	// Change AccessToken and confirm of makes it into the cookie file.
 	g.tokenSource.(*testTokenSource).token.AccessToken = "bar"
-	d, err := g.updateCookie()
+	d, err := g.updateCookie(ctx)
 	assert.True(t, d.Minutes() < 11)
 	require.NoError(t, err)
 	b, err = os.ReadFile(filename)

@@ -402,7 +402,7 @@ func main() {
 			*message = "Push"
 		}
 
-		messageWithBody := *message + "\n\n" + rubberstamper.RandomChangeID()
+		messageWithBody := *message + "\n\n" + rubberstamper.RandomChangeID(ctx)
 		msg, err = checkout.Git(ctx, "commit", "-m", messageWithBody)
 		if err != nil {
 			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)

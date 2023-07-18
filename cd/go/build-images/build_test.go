@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -21,6 +21,7 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx)
 		ctx = td.WithExecRunFn(ctx, mock.Run)
 
@@ -75,6 +76,7 @@ func TestBuild_SingleTargetRBE_InvalidTargetCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx)
 		ctx = td.WithExecRunFn(ctx, mock.Run)
 
@@ -110,6 +112,7 @@ func TestBuild_SingleTargetRBE_GitFetchErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx, gitMatcher(func(cmd *exec.Command) error {
 			if len(cmd.Args) > 0 && cmd.Args[0] == "fetch" {
 				return errors.New("Host unreachable")
@@ -154,6 +157,7 @@ func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx, func(cmd *exec.Command) error {
 			if cmd.Name == "docker" {
 				return errors.New("fail whale")
@@ -203,6 +207,7 @@ func TestBuild_SingleTargetRBE_BazelErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx, func(cmd *exec.Command) error {
 			if cmd.Name == "bazelisk" {
 				return errors.New("A mirror can reflect thy fatal glare")
@@ -250,6 +255,7 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 7, 8, 9, 10, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 7, 8, 19, 1, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx)
 		ctx = td.WithExecRunFn(ctx, mock.Run)
 
@@ -269,9 +275,6 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 		}
 
 		executedCommands := mock.Commands()
-		for _, cmd := range executedCommands {
-			fmt.Printf("%s %s\n", cmd.Name, cmd.Args)
-		}
 		testutils.AssertCommandsMatch(t, [][]string{
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
@@ -315,6 +318,7 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
 		mock, ctx := commandCollectorWithStubbedGit(ctx)
 		ctx = td.WithExecRunFn(ctx, mock.Run)
 

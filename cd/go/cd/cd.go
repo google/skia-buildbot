@@ -39,62 +39,63 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 	}
 
 	// Did we change anything?
-	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "HEAD", "--exit-code"); err != nil {
-		// If so, create a CL.
+	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "HEAD", "--exit-code"); err == nil {
+		return nil // No diffs, no CL
+	}
+	// There were diffs, so create a CL.
 
-		// Build the commit message.
-		commitMsg := commitSubject
-		if srcCommit != "" {
-			shortCommit := srcCommit
-			if len(shortCommit) > 12 {
-				shortCommit = shortCommit[:12]
-			}
-			commitMsg += " for " + shortCommit
+	// Build the commit message.
+	commitMsg := commitSubject
+	if srcCommit != "" {
+		shortCommit := srcCommit
+		if len(shortCommit) > 12 {
+			shortCommit = shortCommit[:12]
 		}
-		commitMsg += "\n\n"
-		if srcRepo != "" && srcCommit != "" {
-			ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-			gitilesRepo := gitiles.NewRepo(srcRepo, client)
-			commitDetails, err := gitilesRepo.Details(ctx, srcCommit)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			commitMsg += fmt.Sprintf("%s/+/%s\n\n", srcRepo, srcCommit)
-			commitMsg += commitDetails.Subject
-			commitMsg += "\n\n"
-		}
-		commitMsg += rubberstamper.RandomChangeID()
-
-		// Commit and push.
-		if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
-			return skerr.Wrap(err)
-		}
-		output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
+		commitMsg += " for " + shortCommit
+	}
+	commitMsg += "\n\n"
+	if srcRepo != "" && srcCommit != "" {
+		ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
+		client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		gitilesRepo := gitiles.NewRepo(srcRepo, client)
+		commitDetails, err := gitilesRepo.Details(ctx, srcCommit)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		commitMsg += fmt.Sprintf("%s/+/%s\n\n", srcRepo, srcCommit)
+		commitMsg += commitDetails.Subject
+		commitMsg += "\n\n"
+	}
+	commitMsg += rubberstamper.RandomChangeID(ctx)
 
-		// Send a pub/sub message.
-		if louhiPubsubProject != "" && louhiExecutionID != "" {
-			match := uploadedCLRegex.FindString(output)
-			if match == "" {
-				return skerr.Fmt("Failed to parse CL link from:\n%s", output)
-			}
-			sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			if err := sender.Send(ctx, &louhi.Notification{
-				EventAction:         louhi.EventAction_CREATED_ARTIFACT,
-				GeneratedCls:        []string{match},
-				PipelineExecutionId: louhiExecutionID,
-			}); err != nil {
-				return skerr.Wrap(err)
-			}
+	// Commit and push.
+	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
+		return skerr.Wrap(err)
+	}
+	output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Send a pub/sub message.
+	if louhiPubsubProject != "" && louhiExecutionID != "" {
+		match := uploadedCLRegex.FindString(output)
+		if match == "" {
+			return skerr.Fmt("Failed to parse CL link from:\n%s", output)
+		}
+		sender, err := pubsub.NewPubSubSender(ctx, louhiPubsubProject)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if err := sender.Send(ctx, &louhi.Notification{
+			EventAction:         louhi.EventAction_CREATED_ARTIFACT,
+			GeneratedCls:        []string{match},
+			PipelineExecutionId: louhiExecutionID,
+		}); err != nil {
+			return skerr.Wrap(err)
 		}
 	}
 	return nil

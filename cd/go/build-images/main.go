@@ -16,6 +16,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"go.skia.org/infra/cd/go/cd"
+	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
@@ -146,7 +147,11 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return updateRefs(ctx.Context, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))
+					dc, err := docker.NewClient(ctx.Context)
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					return updateRefs(ctx.Context, dc, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))
 				},
 			},
 			{
