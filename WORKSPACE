@@ -366,10 +366,10 @@ container_pull(
     repository = "node",
 )
 
-# Pulls the cloud-builders/kubectl container, needed by apps that use kubectl.
+# Pulls the https://gcr.io/cloud-builders/kubectl container, needed by apps that use kubectl.
 container_pull(
     name = "kubectl",
-    digest = "sha256:62e9d55e3ff44fb5abfaa3ac86269f2b3484270a858d9a6e9812bb55ae13e8b2",  # 6 Jul 2023
+    digest = "sha256:8e620c67d7f1eef85d550ba4195671e7d1ac15813f64a6425d3a134efe2c56c8",  # 18 Jul 2023
     registry = "gcr.io",
     repository = "cloud-builders/kubectl",
 )
