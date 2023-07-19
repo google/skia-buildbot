@@ -4,10 +4,13 @@ package proxylogin
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
 	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/netutils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -119,6 +122,16 @@ func (p *ProxyLogin) HasRole(r *http.Request, wantedRole roles.Role) bool {
 		}
 	}
 	return false
+}
+
+// LoginURL implements alogin.Login.
+func (p *ProxyLogin) LoginURL(w http.ResponseWriter, r *http.Request) string {
+	var u url.URL
+	u.Host = netutils.RootDomain(r.Host)
+	u.Scheme = "https"
+	u.Path = login.LoginPath
+
+	return u.String()
 }
 
 // Assert proxyLogin implements alogin.Login.

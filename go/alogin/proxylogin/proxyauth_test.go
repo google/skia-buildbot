@@ -105,3 +105,21 @@ func TestHasRoles_HeaderMissingPresent_ReturnsFalse(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, login.HasRole(r, roles.Admin))
 }
+
+func testLoginURL(t *testing.T, expected, domain string) {
+	t.Helper()
+
+	login, err := New(goodHeaderName, "")
+	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Host = domain
+
+	require.Equal(t, expected, login.LoginURL(w, r))
+
+}
+
+func TestAuthImpl_LoginURL(t *testing.T) {
+	testLoginURL(t, "https://skia.org/login/", "foo.skia.org")
+	testLoginURL(t, "https://luci.app/login/", "perf.luci.app")
+}

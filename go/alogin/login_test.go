@@ -125,6 +125,8 @@ func TestForceRoleMiddleware_UserIsNotLoggedIn_HandleIsNotCalled(t *testing.T) {
 	login := mocks.NewLogin(t)
 	login.On("HasRole", r, roles.Viewer).Return(false)
 
+	login.On("LoginURL", w, r).Return("https://skia.org/login")
+
 	called := false
 	m := alogin.ForceRoleMiddleware(login, roles.Viewer)
 	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -133,5 +135,5 @@ func TestForceRoleMiddleware_UserIsNotLoggedIn_HandleIsNotCalled(t *testing.T) {
 
 	h.ServeHTTP(w, r)
 	require.False(t, called)
-	require.Equal(t, w.Code, http.StatusUnauthorized)
+	require.Equal(t, w.Code, http.StatusSeeOther)
 }

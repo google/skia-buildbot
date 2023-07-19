@@ -25,6 +25,6 @@ func TestAddHandlers_UnauthorizedGetToTaskStatusURI_DoesNotReturn401(t *testing.
 	r = httptest.NewRequest("GET", "/", nil)
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, r)
-	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
+	require.Equal(t, http.StatusSeeOther, w.Result().StatusCode)
 
 }

@@ -8,6 +8,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/alogin",
+        "//go/login",
+        "//go/netutils",
         "//go/roles",
         "//go/skerr",
         "//go/sklog",

@@ -61,6 +61,9 @@ type Login interface {
 
 	// Returns true if the currently logged in user has the given Role.
 	HasRole(r *http.Request, role roles.Role) bool
+
+	// LoginURL returns the URL to visit if the user needs to log in.
+	LoginURL(w http.ResponseWriter, r *http.Request) string
 }
 
 // LoginStatusHandler returns an http.HandlerFunc that should be used to handle
@@ -127,7 +130,7 @@ func ForceRoleMiddleware(login Login, role roles.Role) func(http.Handler) http.H
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !login.HasRole(r, role) {
-				httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
+				http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
 				return
 			}
 			next.ServeHTTP(w, r)

@@ -100,7 +100,7 @@ func TestMachineMainPageHandler_UnauthorizedRequest_Status401(t *testing.T) {
 	r := httptest.NewRequest("POST", fmt.Sprintf("/_/machine/toggle_mode/%s", machineID), nil)
 	router.ServeHTTP(w, r)
 
-	require.Equal(t, http.StatusUnauthorized, w.Code)
+	require.Equal(t, http.StatusSeeOther, w.Code)
 }
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
