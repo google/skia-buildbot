@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
@@ -399,11 +400,11 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 	loggedRouter.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 
 	// JSON endpoints.
-	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
+	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers, plogin)
 	addUnauthenticatedJSONRoutes(rootRouter, fsc, handlers)
 
 	// Routes to serve the UI, static assets, etc.
-	addUIRoutes(loggedRouter, fsc, handlers)
+	addUIRoutes(loggedRouter, fsc, handlers, plogin)
 
 	// set up the app router that might be authenticated and logs almost everything.
 	appRouter := chi.NewRouter()
@@ -418,16 +419,12 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogi
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter.Handle("/*", appHandler)
 
-	if fsc.ForceLogin {
-		appHandler = alogin.ForceRoleMiddleware(plogin, roles.Viewer)(appRouter)
-	}
-
 	return rootRouter
 }
 
 // addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
 // CSS bundles, static images (digest and diff images are handled elsewhere), etc.
-func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) {
 	// Serve static assets (JS and CSS bundles, images, etc.).
 	//
 	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
@@ -454,6 +451,10 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			if fsc.ForceLogin && !plogin.HasRole(r, roles.Viewer) {
+				http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+				return
+			}
 			w.Header().Set("Content-Type", "text/html")
 
 			// Reload the template if we are running locally.
@@ -492,7 +493,7 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 
 // addAuthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that require authentication.
-func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) {
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
 	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
@@ -501,8 +502,15 @@ func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, ha
 	pathPrefix := "/json"
 	jsonRouter := router.Route(pathPrefix, func(r chi.Router) {})
 
-	add := func(jsonRoute string, handlerFunc http.HandlerFunc, method string) {
-		addJSONRoute(method, jsonRoute, handlerFunc, jsonRouter, pathPrefix)
+	add := func(jsonRoute string, handlerToProtect http.HandlerFunc, method string) {
+		wrappedHandler := func(w http.ResponseWriter, r *http.Request) {
+			if fsc.ForceLogin && !plogin.HasRole(r, roles.Viewer) {
+				http.Error(w, "You must be logged in as a viewer to complete this action.", http.StatusUnauthorized)
+				return
+			}
+			handlerToProtect(w, r)
+		}
+		addJSONRoute(method, jsonRoute, wrappedHandler, jsonRouter, pathPrefix)
 	}
 
 	add("/json/v2/byblame", handlers.ByBlameHandler, "GET")
