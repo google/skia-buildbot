@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "ephemeral_storage",
+    srcs = ["ephemeral_storage.go"],
+    importpath = "go.skia.org/infra/go/ephemeral_storage",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "ephemeral_storage_test",
+    srcs = ["ephemeral_storage_test.go"],
+    embed = [":ephemeral_storage"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

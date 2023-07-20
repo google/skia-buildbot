@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/logging"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/ephemeral_storage"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/cloudlogging"
@@ -75,6 +76,9 @@ func (b *baseInitOpt) preinit(appName string) error {
 }
 
 func (b *baseInitOpt) init(appName string) error {
+	// Start logging ephemeral disk usage periodically.
+	go ephemeral_storage.Start(context.Background())
+
 	// Log all flags and their values.
 	FlagSet.VisitAll(func(f *flag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)

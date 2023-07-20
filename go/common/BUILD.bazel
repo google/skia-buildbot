@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/cleanup",
+        "//go/ephemeral_storage",
         "//go/metrics2",
         "//go/sklog",
         "//go/sklog/cloudlogging",
