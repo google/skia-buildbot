@@ -2264,6 +2264,12 @@ def go_repositories():
         sum = "h1:Rqcx6Sf/bWQUmmfGQhcFx3wQQEfb2UZWhAKvGRairm0=",
         version = "v0.4.0",
     )
+    go_repository(
+        name = "com_github_santhosh_tekuri_jsonschema_v5",
+        importpath = "github.com/santhosh-tekuri/jsonschema/v5",
+        sum = "h1:lEOLY2vyGIqKWUI9nzsOJRV3mb3WC9dXYORsLEUcoeY=",
+        version = "v5.1.1",
+    )
 
     go_repository(
         name = "com_github_satori_go_uuid",
@@ -2609,6 +2615,12 @@ def go_repositories():
         importpath = "github.com/xrash/smetrics",
         sum = "h1:bAn7/zixMGCfxrRTfdpNzjtPYqr8smhKouy9mxVdGPU=",
         version = "v0.0.0-20201216005158-039620a65673",
+    )
+    go_repository(
+        name = "com_github_yannh_kubeconform",
+        importpath = "github.com/yannh/kubeconform",
+        sum = "h1:lNmb/kphyzitA+GBsOxjBsagCEpjLvt3+qo3XMiEOUA=",
+        version = "v0.6.3",
     )
 
     go_repository(

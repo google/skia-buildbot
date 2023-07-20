@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/yannh/kubeconform/pkg/validator"
 	corev1 "k8s.io/api/core/v1"
 
 	"go.skia.org/infra/go/docker"
@@ -276,6 +277,32 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	if err != nil {
 		logf(ctx, "%s\n", err)
 		return false
+	}
+
+	osfile, err := os.Open(f.fileName)
+	if err != nil {
+		logf(ctx, "%s: %s", f.fileName, err)
+		return false
+	}
+
+	// Validate changed YAML files against the kubeconform validator.
+	v, err := validator.New(nil, validator.Opts{
+		Strict:               true,
+		IgnoreMissingSchemas: true,
+	})
+	if err != nil {
+		logf(ctx, "%s\n", err)
+		return false
+	}
+	for i, res := range v.Validate(f.fileName, osfile) { // A file might contain multiple resources
+		if res.Status == validator.Invalid {
+			logf(ctx, "resource %d in file %s is not valid: %s", i, f.fileName, res.Err)
+			return false
+		}
+		if res.Status == validator.Error {
+			logf(ctx, "error while processing resource %d in file %s: %s", i, f.fileName, res.Err)
+			return false
+		}
 	}
 
 	ok := true

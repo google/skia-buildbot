@@ -10,6 +10,7 @@ go_library(
         "//go/git",
         "//go/util",
         "//k8s-checker/go/k8s_config",
+        "@com_github_yannh_kubeconform//pkg/validator",
         "@io_k8s_api//core/v1:core",
     ],
 )
