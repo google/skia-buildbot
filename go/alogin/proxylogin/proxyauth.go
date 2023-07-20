@@ -125,7 +125,7 @@ func (p *ProxyLogin) HasRole(r *http.Request, wantedRole roles.Role) bool {
 }
 
 // LoginURL implements alogin.Login.
-func (p *ProxyLogin) LoginURL(w http.ResponseWriter, r *http.Request) string {
+func (p *ProxyLogin) LoginURL(r *http.Request) string {
 	var u url.URL
 	u.Host = netutils.RootDomain(r.Host)
 	u.Scheme = "https"

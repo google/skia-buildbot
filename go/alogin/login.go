@@ -63,7 +63,7 @@ type Login interface {
 	HasRole(r *http.Request, role roles.Role) bool
 
 	// LoginURL returns the URL to visit if the user needs to log in.
-	LoginURL(w http.ResponseWriter, r *http.Request) string
+	LoginURL(r *http.Request) string
 }
 
 // LoginStatusHandler returns an http.HandlerFunc that should be used to handle
@@ -130,7 +130,7 @@ func ForceRoleMiddleware(login Login, role roles.Role) func(http.Handler) http.H
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !login.HasRole(r, role) {
-				http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+				http.Redirect(w, r, login.LoginURL(r), http.StatusSeeOther)
 				return
 			}
 			next.ServeHTTP(w, r)

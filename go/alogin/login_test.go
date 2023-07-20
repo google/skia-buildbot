@@ -124,8 +124,7 @@ func TestForceRoleMiddleware_UserIsNotLoggedIn_HandleIsNotCalled(t *testing.T) {
 
 	login := mocks.NewLogin(t)
 	login.On("HasRole", r, roles.Viewer).Return(false)
-
-	login.On("LoginURL", w, r).Return("https://skia.org/login")
+	login.On("LoginURL", r).Return("https://skia.org/login")
 
 	called := false
 	m := alogin.ForceRoleMiddleware(login, roles.Viewer)

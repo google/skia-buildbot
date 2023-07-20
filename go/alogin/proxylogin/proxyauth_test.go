@@ -111,11 +111,10 @@ func testLoginURL(t *testing.T, expected, domain string) {
 
 	login, err := New(goodHeaderName, "")
 	require.NoError(t, err)
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Host = domain
 
-	require.Equal(t, expected, login.LoginURL(w, r))
+	require.Equal(t, expected, login.LoginURL(r))
 
 }
 

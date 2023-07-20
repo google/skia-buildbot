@@ -47,13 +47,13 @@ func (_m *Login) LoggedInAs(r *http.Request) alogin.EMail {
 	return r0
 }
 
-// LoginURL provides a mock function with given fields: w, r
-func (_m *Login) LoginURL(w http.ResponseWriter, r *http.Request) string {
-	ret := _m.Called(w, r)
+// LoginURL provides a mock function with given fields: r
+func (_m *Login) LoginURL(r *http.Request) string {
+	ret := _m.Called(r)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(http.ResponseWriter, *http.Request) string); ok {
-		r0 = rf(w, r)
+	if rf, ok := ret.Get(0).(func(*http.Request) string); ok {
+		r0 = rf(r)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
