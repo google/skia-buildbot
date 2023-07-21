@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/cabe/go/perfresults"
+	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/cabe/go/replaybackends"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -26,12 +27,16 @@ const (
 	pinpointJobIDFlagName = "pinpoint-job"
 	replayFromZipFlagName = "replay-from-zip"
 	recordToZipFlagName   = "record-to-zip"
+	benchmarkFlagName     = "benchmark"
+	workloadFlagName      = "workload"
 )
 
 type commonCmd struct {
 	pinpointJobID string
 	recordToZip   string
 	replayFromZip string
+	benchmark     string
+	workloads     []string
 
 	replayBackends *replaybackends.ReplayBackends
 
@@ -124,7 +129,44 @@ func (cmd *commonCmd) flags() []cli.Flag {
 			return nil
 		},
 	}
-	return []cli.Flag{pinpointJobIDFlag, replayFromZipFlag, recordToZipFlag}
+	benchmarkFlag := &cli.StringFlag{
+		Name:        benchmarkFlagName,
+		Value:       "",
+		Usage:       "name of benchmark to analyze",
+		Destination: &cmd.benchmark,
+	}
+	workloadFlag := &cli.StringSliceFlag{
+		Name:  workloadFlagName,
+		Value: nil,
+		Usage: "comma separated list of names of benchmark workload(s) to analyze",
+		Action: func(ctx *cli.Context, v []string) error {
+			if cmd.benchmark == "" {
+				return fmt.Errorf("must specify -%s with -%s", benchmarkFlagName, workloadFlagName)
+			}
+			cmd.workloads = v
+			return nil
+		},
+	}
+
+	return []cli.Flag{pinpointJobIDFlag, replayFromZipFlag, recordToZipFlag, benchmarkFlag, workloadFlag}
+}
+
+func (cmd *commonCmd) experimentSpecFromFlags() *cpb.ExperimentSpec {
+	if cmd.benchmark != "" {
+		aSpec := &cpb.AnalysisSpec{
+			Benchmark: []*cpb.Benchmark{
+				{
+					Name:     cmd.benchmark,
+					Workload: cmd.workloads,
+				},
+			},
+		}
+
+		return &cpb.ExperimentSpec{
+			Analysis: aSpec,
+		}
+	}
+	return nil
 }
 
 func (cmd *commonCmd) cleanup(cliCtx *cli.Context) error {

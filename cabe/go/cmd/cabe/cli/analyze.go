@@ -41,6 +41,7 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 	var analyzerOpts = []analyzer.Options{
 		analyzer.WithCASResultReader(cmd.casResultReader),
 		analyzer.WithSwarmingTaskReader(cmd.swarmingTaskReader),
+		analyzer.WithExperimentSpec(cmd.experimentSpecFromFlags()),
 	}
 
 	a := analyzer.New(cmd.pinpointJobID, analyzerOpts...)
