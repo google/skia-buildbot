@@ -42,6 +42,13 @@ And determine when regression detection stopped:
 
 https://prom2.skia.org/graph?g0.range_input=1d&g0.max_source_resolution=0s&g0.expr=sum(rate(perf_regression_store_found%7Bapp%3D~%22perf-clustering-android%7Cskiaperf%7Cskiaperf-android-x%22%7D%5B30m%5D))%20by%20(app)&g0.tab=0
 
+## issue_tracker_rate_high
+
+The number of issues being created in the issue tracker is too high.
+
+To quickly stop Perf from creating more issues set the `--noemail` flag on the
+offending instance.
+
 ## too_much_data
 
 There are times when a process may inject too much data into Perf.
