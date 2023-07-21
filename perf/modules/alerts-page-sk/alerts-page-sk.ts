@@ -83,7 +83,7 @@ class AlertsPageSk extends ElementSk {
         <th></th>
         <th>Name</th>
         <th>Query</th>
-        <th>Alert</th>
+        <th>${AlertsPageSk.alertOrComponentHeader()}</th>
         <th>Owner</th>
         <th></th>
         <th></th>
@@ -125,7 +125,7 @@ class AlertsPageSk extends ElementSk {
           <td>
             <paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk>
           </td>
-          <td>${item.alert}</td>
+          <td>${AlertsPageSk.alertOrComponent(item)}</td>
           <td>${item.owner}</td>
           <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
           <td>
@@ -140,6 +140,23 @@ class AlertsPageSk extends ElementSk {
         </tr>
       `
     );
+
+  private static alertOrComponent(item: Alert) {
+    if (window.perf.notifications !== 'markdown_issuetracker') {
+      return item.alert;
+    }
+    return html`<a
+      href="https://issuetracker.google.com/issues?q=status:open%20componentid:${item.issue_tracker_component}&s=created_time:desc"
+      >${item.issue_tracker_component}</a
+    >`;
+  }
+
+  private static alertOrComponentHeader() {
+    if (window.perf.notifications !== 'markdown_issuetracker') {
+      return 'Alert';
+    }
+    return 'Component';
+  }
 
   private static dryrunUrl = (config: Alert) =>
     `/d/?${fromObject(config as unknown as HintableObject)}`;

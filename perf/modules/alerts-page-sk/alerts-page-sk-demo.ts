@@ -5,7 +5,7 @@ import { Alert } from '../json';
 window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.display_group_by = true;
-window.perf.notifications = 'none';
+window.perf.notifications = 'markdown_issuetracker';
 
 fetchMock.get('/_/login/status', {
   email: 'someone@example.org',
@@ -29,7 +29,7 @@ fetchMock.get('/_/alert/list/false', (): Alert[] => [
     id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '',
+    issue_tracker_component: '720614',
     alert: '',
     step: 'cohen',
     interesting: 50,
@@ -54,7 +54,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '',
+    issue_tracker_component: '720614',
     alert: '',
     interesting: 50,
     bug_uri_template: '',
@@ -75,7 +75,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     id_as_string: '2',
     display_name: 'Foo',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '',
+    issue_tracker_component: '720614',
     alert: '',
     interesting: 50,
     bug_uri_template: '',
