@@ -703,8 +703,11 @@ func (c *ParentChildRepoManagerConfig) Validate() error {
 	if c.GetSemverGcsChild() != nil {
 		children = append(children, c.GetSemverGcsChild())
 	}
+	if c.GetDockerChild() != nil {
+		children = append(children, c.GetDockerChild())
+	}
 	if len(children) != 1 {
-		return skerr.Fmt("Exactly one Child is required.")
+		return skerr.Fmt("Exactly one Child is required, config has %d.", len(children))
 	}
 	if err := children[0].Validate(); err != nil {
 		return skerr.Wrap(err)
