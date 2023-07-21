@@ -33,7 +33,8 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const useRBE = true
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE)
+		const extraArg = "--config=extra"
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArg)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -52,7 +53,7 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "--config=remote", "--google_default_credentials",
-				"--remote_download_toplevel", "//skfe:skfe_container"},
+				"--remote_download_toplevel", "--config=extra", "//skfe:skfe_container"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
@@ -88,7 +89,8 @@ func TestBuild_SingleTargetRBE_InvalidTargetCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "This is an invalid target"
 		const useRBE = true
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArg)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Invalid target")
 
@@ -129,7 +131,8 @@ func TestBuild_SingleTargetRBE_GitFetchErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const useRBE = true
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArg)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Host unreachable")
 
@@ -174,7 +177,8 @@ func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const useRBE = true
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArg)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "fail whale")
 
@@ -224,7 +228,8 @@ func TestBuild_SingleTargetRBE_BazelErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const useRBE = true
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArg)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "reflect thy")
 
@@ -268,7 +273,8 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 		const target1 = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const target2 = "//prober:proberk_container:gcr.io/skia-public/proberk"
 		const useRBE = false
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, useRBE, extraArg)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -330,7 +336,8 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const useRBE = false
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, useRBE)
+		const extraArg = ""
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, useRBE, extraArg)
 		assert.NoError(t, err)
 		if err != nil {
 			return err

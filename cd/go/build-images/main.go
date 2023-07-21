@@ -40,6 +40,7 @@ func main() {
 		flagTarget             = "target"
 		flagUser               = "user"
 		flagWorkspace          = "workspace"
+		flagExtraBazelArg      = "extra-bazel-arg"
 	)
 	app := &cli.App{
 		Name:        "build-images",
@@ -76,6 +77,11 @@ func main() {
 						Value: false,
 					},
 					&cli.StringFlag{
+						Name:     flagExtraBazelArg,
+						Usage:    "Extra argument to pass to Bazel.",
+						Required: false,
+					},
+					&cli.StringFlag{
 						Name:     flagSourceCommit,
 						Usage:    "Commit hash which triggered the build.",
 						Required: false,
@@ -97,7 +103,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.Bool(flagRBE))
+					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.Bool(flagRBE), ctx.String(flagExtraBazelArg))
 				},
 			},
 			{
