@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"regexp"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/jsonschema"
@@ -553,6 +554,33 @@ type InstanceConfig struct {
 	NotifyConfig    NotifyConfig    `json:"notify_config"`
 }
 
+// Validate the config.
+func (i InstanceConfig) Validate() error {
+	if i.NotifyConfig.Notifications == notifytypes.MarkdownIssueTracker {
+		if i.NotifyConfig.IssueTrackerAPIKeySecretProject == "" {
+			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
+		}
+		if i.NotifyConfig.IssueTrackerAPIKeySecretName == "" {
+			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
+		}
+	}
+
+	if i.InvalidParamCharRegex != "" {
+		re, err := regexp.Compile(i.InvalidParamCharRegex)
+		if err != nil {
+			return skerr.Wrapf(err, "compiling invalid_param_char_regex: %q", i.InvalidParamCharRegex)
+		}
+		if !re.MatchString(",") {
+			return skerr.Fmt("invalid_param_char_regex must match ',' (comma).")
+		}
+		if !re.MatchString("=") {
+			return skerr.Fmt("invalid_param_char_regex must match '=' (equals).")
+		}
+	}
+
+	return nil
+}
+
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig
 // found in filename.
 //
@@ -577,6 +605,10 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, []string, error) 
 	})
 	if err != nil {
 		return nil, schemaViolations, skerr.Wrapf(err, "Filename: %s", filename)
+	}
+	err = instanceConfig.Validate()
+	if err != nil {
+		return nil, nil, skerr.Wrapf(err, "Filename: %s", filename)
 	}
 	return &instanceConfig, nil, nil
 }

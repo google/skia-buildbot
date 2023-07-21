@@ -23,6 +23,7 @@ go_test(
     data = glob(["testdata/**"]) + ["//perf:configs"],
     embed = [":config"],
     deps = [
+        "//perf/go/notifytypes",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -1,13 +1,14 @@
 package config
 
 import (
+	_ "embed"
 	"path/filepath"
 	"regexp"
-
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/perf/go/notifytypes"
 )
 
 func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
@@ -40,12 +41,40 @@ func TestInstanceConfigBytes_EmptyJSONObject_ShouldBeInValid(t *testing.T) {
 }
 
 func TestInstanceConfig_WithInvalidRegex_CauseError(t *testing.T) {
-	instanceConfig, schemaErrors, err := InstanceConfigFromFile("./testdata/invalid_regex.json")
+	_, schemaErrors, err := InstanceConfigFromFile("./testdata/invalid_regex.json")
 	require.Len(t, schemaErrors, 0)
-	require.NoError(t, err)
+	require.Contains(t, err.Error(), "compiling invalid_param_char_regex")
+}
 
-	if instanceConfig.InvalidParamCharRegex != "" {
-		_, err := regexp.Compile(instanceConfig.InvalidParamCharRegex)
-		require.Error(t, err)
+func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretProjectNotSet_ReturnsError(t *testing.T) {
+	i := InstanceConfig{
+		NotifyConfig: NotifyConfig{
+			Notifications: notifytypes.MarkdownIssueTracker,
+		},
 	}
+	require.Contains(t, i.Validate().Error(), "issue_tracker_api_key_secret_project must be supplied")
+}
+
+func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretNameNotSet_ReturnsError(t *testing.T) {
+	i := InstanceConfig{
+		NotifyConfig: NotifyConfig{
+			Notifications:                   notifytypes.MarkdownIssueTracker,
+			IssueTrackerAPIKeySecretProject: "skia-public",
+		},
+	}
+	require.Contains(t, i.Validate().Error(), "issue_tracker_api_key_secret_name must be supplied")
+}
+
+func TestInstanceConfigValidate_InvalidParamCharRegexMatchesComma_ReturnsError(t *testing.T) {
+	i := InstanceConfig{
+		InvalidParamCharRegex: ",",
+	}
+	require.Contains(t, i.Validate().Error(), "invalid_param_char_regex must match")
+}
+
+func TestInstanceConfigValidate_InvalidParamCharRegexMatchesEqual_ReturnsError(t *testing.T) {
+	i := InstanceConfig{
+		InvalidParamCharRegex: "=",
+	}
+	require.Contains(t, i.Validate().Error(), "invalid_param_char_regex must match")
 }
