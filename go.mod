@@ -56,7 +56,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/r3labs/sse/v2 v2.8.1
 	github.com/rs/cors v1.6.0
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
@@ -78,13 +78,13 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
 	go.opencensus.io v0.23.0
-	golang.org/x/net v0.0.0-20220325170049-de3da57026de
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
 	golang.org/x/sync v0.2.0
-	golang.org/x/sys v0.0.0-20220405210540-1e041c57c461
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+	golang.org/x/sys v0.5.0
+	golang.org/x/term v0.5.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
-	golang.org/x/tools v0.1.10
+	golang.org/x/tools v0.1.12
 	google.golang.org/api v0.74.0
 	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
 	google.golang.org/grpc v1.45.0
@@ -107,7 +107,7 @@ require (
 	cloud.google.com/go/container v1.2.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
-	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -191,8 +191,8 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yannh/kubeconform v0.6.3 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
