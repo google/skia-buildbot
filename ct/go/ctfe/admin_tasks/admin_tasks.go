@@ -146,6 +146,7 @@ func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Contex
 	emailSubject := fmt.Sprintf("Create pagesets Cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
 	failureHtml := ""
 	if !completedSuccessfully {
+		emails = task_common.GetFailureEmailRecipients(task.Username, nil)
 		emailSubject += " with failures"
 		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 	}
@@ -263,6 +264,7 @@ func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context
 	emailSubject := fmt.Sprintf("Capture archives Cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
 	failureHtml := ""
 	if !completedSuccessfully {
+		emails = task_common.GetFailureEmailRecipients(task.Username, nil)
 		emailSubject += " with failures"
 		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 	}

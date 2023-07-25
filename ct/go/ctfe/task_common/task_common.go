@@ -821,6 +821,15 @@ func GetEmailRecipients(runOwner string, ccList []string) []string {
 	if ccList != nil {
 		emails = append(emails, ccList...)
 	}
+	return emails
+}
+
+// Additionally adds CtAdmins to the email list.
+func GetFailureEmailRecipients(runOwner string, ccList []string) []string {
+	emails := []string{runOwner}
+	if ccList != nil {
+		emails = append(emails, ccList...)
+	}
 	emails = append(emails, ctutil.CtAdmins...)
 	return emails
 }

@@ -182,6 +182,7 @@ func (task MetricsAnalysisDatastoreTask) SendCompletionEmail(ctx context.Context
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
 	} else {
+		emails = task_common.GetFailureEmailRecipients(task.Username, task.CCList)
 		emailSubject += " with failures"
 		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), "View Failure", "Direct link to the swarming logs"); err != nil {
