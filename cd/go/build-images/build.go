@@ -19,7 +19,7 @@ type containerToBuild struct {
 	imageURI    string
 }
 
-func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, rbe bool, extraArg string) error {
+func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, rbe bool, extraArgs []string) error {
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
 	defer td.EndStep(ctx)
 
@@ -77,7 +77,7 @@ nextTarget:
 			Image: imagePath,
 			Tag:   imageTag,
 		})
-		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, rbe, extraArg); err != nil {
+		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, rbe, extraArgs); err != nil {
 			return td.FailStep(ctx, err)
 		}
 	}
@@ -92,7 +92,7 @@ func bazelTargetToDockerTag(target string) string {
 
 // bazelRun executes `bazel run` for the given target and applies the given tag
 // to the resulting image.
-func bazelRun(ctx context.Context, cwd, target string, tags []string, rbe bool, extraArg string) error {
+func bazelRun(ctx context.Context, cwd, target string, tags []string, rbe bool, extraArgs []string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Build %s", target)))
 	defer td.EndStep(ctx)
 
@@ -100,8 +100,8 @@ func bazelRun(ctx context.Context, cwd, target string, tags []string, rbe bool, 
 	if rbe {
 		cmd = append(cmd, "--config=remote", "--google_default_credentials", "--remote_download_toplevel")
 	}
-	if len(extraArg) > 0 {
-		cmd = append(cmd, extraArg)
+	if extraArgs != nil {
+		cmd = append(cmd, extraArgs...)
 	}
 	cmd = append(cmd, target)
 	if _, err := exec.RunCwd(ctx, cwd, cmd...); err != nil {

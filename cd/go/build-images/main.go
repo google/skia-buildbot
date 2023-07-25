@@ -76,10 +76,11 @@ func main() {
 						Usage: "Whether or not to use Bazel RBE",
 						Value: false,
 					},
-					&cli.StringFlag{
-						Name:     flagExtraBazelArg,
-						Usage:    "Extra argument to pass to Bazel.",
-						Required: false,
+					&cli.MultiStringFlag{
+						Target: &cli.StringSliceFlag{
+							Name:  flagExtraBazelArg,
+							Usage: "Extra argument(s) to pass to Bazel.",
+						},
 					},
 					&cli.StringFlag{
 						Name:     flagSourceCommit,
@@ -103,7 +104,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.Bool(flagRBE), ctx.String(flagExtraBazelArg))
+					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.Bool(flagRBE), ctx.StringSlice(flagExtraBazelArg))
 				},
 			},
 			{
