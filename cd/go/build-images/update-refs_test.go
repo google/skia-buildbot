@@ -257,8 +257,12 @@ func TestUpdateRefs_NoDiffs_NoCLUploaded(t *testing.T) {
 
 func assertFileMatches(t *testing.T, fpath string, expectedMode os.FileMode, expectedContents string) {
 	stat, err := os.Stat(fpath)
+	// The "other" mode mids aren't preserved on all platforms - probably related to umask.
+	// Checking only the user/group bits seems to work around this issue.
+	expectedUserGroupModeBits := expectedMode & 0770
+	actualUserGroupModeBits := stat.Mode() & 0770
 	require.NoError(t, err)
-	assert.Equalf(t, expectedMode, stat.Mode(), "%o != %o", expectedMode, stat.Mode())
+	assert.Equalf(t, expectedUserGroupModeBits, actualUserGroupModeBits, "file mode mismatch for %q: %o != %o", fpath, expectedUserGroupModeBits, actualUserGroupModeBits)
 	b, err := os.ReadFile(fpath)
 	require.NoError(t, err)
 	assert.Equal(t, expectedContents, string(b))
