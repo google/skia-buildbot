@@ -33,7 +33,6 @@ func main() {
 		flagEmail              = "email"
 		flagLouhiExecutionID   = "louhi-execution-id"
 		flagLouhiPubSubProject = "louhi-pubsub-project"
-		flagRBE                = "rbe"
 		flagRepo               = "repo"
 		flagSourceRepo         = "source-repo"
 		flagSourceCommit       = "source-commit"
@@ -71,11 +70,6 @@ func main() {
 						Usage:    "Bazel target + image path pairs in the form \"//bazel-package:bazel-target:gcr.io/image/path\".",
 						Required: true,
 					},
-					&cli.BoolFlag{
-						Name:  flagRBE,
-						Usage: "Whether or not to use Bazel RBE",
-						Value: false,
-					},
 					&cli.MultiStringFlag{
 						Target: &cli.StringSliceFlag{
 							Name:  flagExtraBazelArg,
@@ -104,7 +98,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.Bool(flagRBE), ctx.StringSlice(flagExtraBazelArg))
+					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.StringSlice(flagExtraBazelArg))
 				},
 			},
 			{

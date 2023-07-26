@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
+func TestBuild_SingleTarget_OutputJSONFileCreated(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
@@ -32,9 +32,8 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = true
 		extraArgs := []string{"--config=extra"}
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -52,8 +51,7 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
-			{"bazelisk", "run", "--config=remote", "--google_default_credentials",
-				"--remote_download_toplevel", "--config=extra", "//skfe:skfe_container"},
+			{"bazelisk", "run", "--config=extra", "//skfe:skfe_container"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
@@ -73,7 +71,7 @@ func TestBuild_SingleTargetRBE_OutputJSONFileCreated(t *testing.T) {
 	require.Empty(t, res.Exceptions)
 }
 
-func TestBuild_SingleTargetRBE_InvalidTargetCausesFailure(t *testing.T) {
+func TestBuild_SingleTarget_InvalidTargetCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
@@ -88,9 +86,8 @@ func TestBuild_SingleTargetRBE_InvalidTargetCausesFailure(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "This is an invalid target"
-		const useRBE = true
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Invalid target")
 
@@ -110,7 +107,7 @@ func TestBuild_SingleTargetRBE_InvalidTargetCausesFailure(t *testing.T) {
 	require.Empty(t, res.Exceptions)
 }
 
-func TestBuild_SingleTargetRBE_GitFetchErrorCausesFailure(t *testing.T) {
+func TestBuild_SingleTarget_GitFetchErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
@@ -130,9 +127,8 @@ func TestBuild_SingleTargetRBE_GitFetchErrorCausesFailure(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = true
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Host unreachable")
 
@@ -156,7 +152,7 @@ func TestBuild_SingleTargetRBE_GitFetchErrorCausesFailure(t *testing.T) {
 	require.Empty(t, res.Exceptions)
 }
 
-func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
+func TestBuild_SingleTarget_DockerErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
@@ -176,9 +172,8 @@ func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = true
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "fail whale")
 
@@ -194,8 +189,7 @@ func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
-			{"bazelisk", "run", "--config=remote", "--google_default_credentials",
-				"--remote_download_toplevel", "//skfe:skfe_container"},
+			{"bazelisk", "run", "//skfe:skfe_container"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
 		}, executedCommands)
@@ -207,7 +201,7 @@ func TestBuild_SingleTargetRBE_DockerErrorCausesFailure(t *testing.T) {
 	require.Empty(t, res.Exceptions)
 }
 
-func TestBuild_SingleTargetRBE_BazelErrorCausesFailure(t *testing.T) {
+func TestBuild_SingleTarget_BazelErrorCausesFailure(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
 		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
@@ -227,9 +221,8 @@ func TestBuild_SingleTargetRBE_BazelErrorCausesFailure(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = true
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "reflect thy")
 
@@ -245,8 +238,7 @@ func TestBuild_SingleTargetRBE_BazelErrorCausesFailure(t *testing.T) {
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
-			{"bazelisk", "run", "--config=remote", "--google_default_credentials",
-				"--remote_download_toplevel", "//skfe:skfe_container"},
+			{"bazelisk", "run", "//skfe:skfe_container"},
 		}, executedCommands)
 
 		assertFileDoesNotExist(t, filepath.Join(workspace, "build-images.json"))
@@ -272,9 +264,8 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target1 = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const target2 = "//prober:proberk_container:gcr.io/skia-public/proberk"
-		const useRBE = false
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, extraArgs)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -335,9 +326,8 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = false
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, extraArgs)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -396,9 +386,8 @@ func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 		const username = "louhi"
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
-		const useRBE = true
 		extraArgs := []string{"--config=one", "--config=two", "--verbose"}
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, useRBE, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -416,8 +405,7 @@ func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
-			{"bazelisk", "run", "--config=remote", "--google_default_credentials",
-				"--remote_download_toplevel", "--config=one", "--config=two", "--verbose", "//skfe:skfe_container"},
+			{"bazelisk", "run", "--config=one", "--config=two", "--verbose", "//skfe:skfe_container"},
 			{"docker", "tag", "bazel/skfe:skfe_container",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
 			{"docker", "tag", "bazel/skfe:skfe_container",

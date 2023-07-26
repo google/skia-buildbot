@@ -19,7 +19,7 @@ type containerToBuild struct {
 	imageURI    string
 }
 
-func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, rbe bool, extraArgs []string) error {
+func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, extraArgs []string) error {
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
 	defer td.EndStep(ctx)
 
@@ -77,7 +77,7 @@ nextTarget:
 			Image: imagePath,
 			Tag:   imageTag,
 		})
-		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, rbe, extraArgs); err != nil {
+		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, extraArgs); err != nil {
 			return td.FailStep(ctx, err)
 		}
 	}
@@ -92,14 +92,11 @@ func bazelTargetToDockerTag(target string) string {
 
 // bazelRun executes `bazel run` for the given target and applies the given tag
 // to the resulting image.
-func bazelRun(ctx context.Context, cwd, target string, tags []string, rbe bool, extraArgs []string) error {
+func bazelRun(ctx context.Context, cwd, target string, tags []string, extraArgs []string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Build %s", target)))
 	defer td.EndStep(ctx)
 
 	cmd := []string{"bazelisk", "run"}
-	if rbe {
-		cmd = append(cmd, "--config=remote", "--google_default_credentials", "--remote_download_toplevel")
-	}
 	if extraArgs != nil {
 		cmd = append(cmd, extraArgs...)
 	}
