@@ -1,0 +1,25 @@
+- when: linux_package_src is undefined
+  block:
+    - name: Make temp directory for gs://skia-buildbots/skolo/linux/linux_package_src and trigger
+            `clean_up_tempdir` handler for cleanup.
+      delegate_to: 127.0.0.1
+      tempfile:
+        state: directory
+      register: linux_package_src_dir
+      notify: clean_up_tempdir
+
+    - name: Download gs://skia-buildbots/skolo/linux/linux_package_src (this can take a
+            few minutes; call with --extra-vars linux_package_src=path/to/local/copy to skip
+            download).
+      delegate_to: 127.0.0.1
+      command:
+        argv:
+          - gsutil
+          - -m
+          - rsync
+          - gs://skia-buildbots/skolo/linux/linux_package_src
+          - '{{ linux_package_src_dir.path }}'
+
+    - name: Set linux_package_src variable.
+      set_fact:
+        linux_package_src: '{{ linux_package_src_dir.path }}'

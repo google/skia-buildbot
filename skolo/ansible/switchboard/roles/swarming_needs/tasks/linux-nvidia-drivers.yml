@@ -1,0 +1,61 @@
+# As of 2023-07-26, the Nvidia driver available via apt for Debian 11 "Bullseye" is version
+# 470.129.06 (see https://wiki.debian.org/NvidiaGraphicsDrivers#Debian_11_.22Bullseye.22). This
+# version is old and makes some tests fail (see e.g. b/40045524). The tasks in this file delete the
+# drivers installed via apt, if present, and install more recent drivers using the official Nvidia
+# installer.
+- name: Delete old Nvidia drivers installed via apt.
+  become: true
+  apt:
+    pkg:
+      # By removing the below packages and their unused dependencies, command
+      # "apt list --installed | grep nvidia" should show no packages.
+      - xserver-xorg-video-all
+      - nvidia-alternative
+    state: absent
+    autoremove: yes
+
+# If we already installed older Nvidia drivers via the official installer (as opposed to apt),
+# delete them. If we don't do this, the official Nvidia installer will fail when we run it later
+# in this role.
+- name: Delete old Nvidia drivers installed via the official installer.
+  become: true
+  # The nvidia-installer command will not be found if we haven't installed drivers via the official
+  # Nvidia installer before, which is fine.
+  ignore_errors: true
+  command:
+    argv:
+      - nvidia-installer
+      - --uninstall
+      - --ui=none  # Disables the ncurses UI.
+      - --no-questions  # Assumes the default answer to all questions (defaults are sensible).
+
+# The Nvidia installer fails if "lsmod | grep nvidia" is non-empty.
+- name: Reboot to ensure no Nvidia kernel modules are loaded.
+  become: true
+  reboot:
+
+- name: Copy Nvidia driver installer.
+  copy:
+    src: '{{ linux_package_src }}/NVIDIA-Linux-x86_64-535.86.05.run'
+    dest: /tmp/NVIDIA-Linux-x86_64-535.86.05.run
+    mode: 0755
+
+- name: Install Nvidia driver.
+  become: yes
+  command:
+    argv:
+      # The installer lists these commands when invoked with --help. They are also listed in the
+      # installer's README file.
+      - /tmp/NVIDIA-Linux-x86_64-535.86.05.run
+      - --ui=none  # Disables the ncurses UI.
+      - --no-questions  # Assumes the default answer to all questions (defaults are sensible).
+
+# This might not be strictly necessary.
+- name: Reboot to ensure the new Nvidia kernel modules are loaded.
+  become: true
+  reboot:
+
+- name: Clean up Nvidia driver installer.
+  file:
+    path: /tmp/NVIDIA-Linux-x86_64-535.86.05.run
+    state: absent

@@ -284,7 +284,25 @@
   # register the facts, so we ignore errors.
   ignore_errors: true
 
-- name: Install the latest NVIDIA drivers.
+# Turns out the latest Nvidia drivers (535.86.05 at the time of writing) have a memory leak that
+# makes task Test-Debian11-Clang-NUC9i7QN-GPU-RTX3060-x86_64-Debug-All-ASAN fail (see
+# https://skia-review.googlesource.com/c/skia/+/729801/2).
+#
+# For this reason @lovisolo has commented out the steps to install the new drivers, and has
+# reverted to the previous way of installing Nvidia drivers using Debian 11's packages. These
+# packages install the Nvidia drivers version 470.141.03.
+#
+# We should uncomment this block and delete the block below once Nvidia releases new drivers with
+# a fix for that leak.
+#
+# - name: Install the latest NVIDIA drivers using Nvidia's official installer (rather than via
+#         apt).
+#   import_tasks: linux-nvidia-drivers.yml
+#   when: has_recent_nvidia_gpu.rc == 0
+
+# TODO(lovisolo): Delete this block and uncomment the block above once Nvidia fixes the
+#                 aforementioned memory leaks.
+- name: Install NVIDIA drivers via apt (note that these drivers are old, at version 470.141.03).
   when: has_recent_nvidia_gpu.rc == 0
   become: true
   apt:
