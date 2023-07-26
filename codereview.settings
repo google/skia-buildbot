@@ -2,6 +2,6 @@
 CODE_REVIEW_SERVER: codereview.chromium.org
 VIEW_VC: https://skia.googlesource.com/buildbot/+show/
 CC_LIST: reviews@skia.org
-BUG_PREFIX: skia:
+BUG_PREFIX: b/
 PROJECT: skiabuildbot
 GERRIT_HOST: True
