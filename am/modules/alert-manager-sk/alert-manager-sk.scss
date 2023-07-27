@@ -32,6 +32,19 @@ alert-manager-sk {
     user-select: none;
   }
 
+  .selection-mode {
+    // The checkbox-sk element uses material design icons to render the checkbox part of its UI.
+    // These icons look like this in the DOM: <span class="icon-sk">check_box</span>.
+    //
+    // When selection mode is enabled, if we select a checkbox-sk and copy it, the text in the
+    // clipboard will include the icon name, e.g. "check_box". This clutters the result and makes
+    // the "selection mode" feature less useful. We fix this by making the icon part of checkbox-sk
+    // unselectable when selection mode is enabled, while allowing selecting everything else.
+    checkbox-sk .icon-sk {
+      user-select: none;
+    }
+  }
+
   .bot-alert {
     display: inline-block;
   }
@@ -109,6 +122,26 @@ alert-manager-sk {
       background: var(--surface);
       color: var(--on-surface);
       fill: var(--on-surface);
+    }
+  }
+
+  checkbox-sk.selection-mode-toggle {
+    border-top: solid var(--on-background) 1px;
+    margin-top: auto; // Push the toggle to the bottom of the sidebar.
+
+    // Remove other margins around the toggle so that the top border line will span the entire
+    // length of the sidebar.
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+
+    // This restores the visual padding around the toggle, which we eliminated by setting the
+    // margins to 0.
+    padding: 0.4em; // Matches the checkbox-sk default margin.
+
+    // Make the entire checkbox look clicky on hover.
+    label {
+      cursor: pointer;
     }
   }
 

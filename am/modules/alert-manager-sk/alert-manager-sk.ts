@@ -145,6 +145,10 @@ export class AlertManagerSk extends HTMLElement {
 
   private helpDialog: HTMLDialogElement | null = null;
 
+  // When enabled, text in the sidebar will be selectable, and alert titles will be displayed in
+  // full length. Useful for copying and pasting alerts into the Skia Infra Gardener Handoff doc.
+  private inSelectionMode = false;
+
   constructor() {
     super();
 
@@ -252,6 +256,16 @@ export class AlertManagerSk extends HTMLElement {
       }" @input=${(e: Event) => ele.filterAuditLogsEvent(e)}></input>
     </section>
   </tabs-panel-sk>
+  <checkbox-sk
+    class="selection-mode-toggle"
+    ?checked=${ele.inSelectionMode}
+    @change=${ele.selectionModeChange}
+    label="Selection mode"
+    title="${
+      'Allows selecting text in the sidebar. Useful for copying and pasting into the ' +
+      'Skia Gardener Handoff Doc.'
+    }"
+  ></checkbox-sk>
 </section>
 <section class=edit>
   ${ele.rightHandSide()}
@@ -580,7 +594,7 @@ export class AlertManagerSk extends HTMLElement {
     }
     const fullIncident = ret.join(' ');
     let displayIncident = fullIncident;
-    if (displayIncident.length > 33) {
+    if (!this.inSelectionMode && displayIncident.length > 33) {
       displayIncident = `${displayIncident.slice(0, 30)}...`;
     }
     return html`<span title="${fullIncident}">${displayIncident}</span>`;
@@ -639,7 +653,7 @@ export class AlertManagerSk extends HTMLElement {
     Object.keys(this.bots_to_incidents).forEach((botName) => {
       botsHTML.push(html`
         <h2 class="bot-centric">
-          <span class="noselect">
+          <span class="${this.inSelectionMode ? 'selection-mode' : 'noselect'}">
             <checkbox-sk
               class="bot-alert-checkbox"
               ?checked=${this.isBotChecked(this.bots_to_incidents[botName])}
@@ -691,7 +705,7 @@ export class AlertManagerSk extends HTMLElement {
           class=${this.classOfH2(i)}
           @click=${() => this.select(i)}
           id="container-${i.key}">
-          <span class="noselect">
+          <span class="${this.inSelectionMode ? 'selection-mode' : 'noselect'}">
             <checkbox-sk
               ?checked=${this.checked.has(i.key)}
               @change=${this.check_selected}
@@ -1008,6 +1022,11 @@ export class AlertManagerSk extends HTMLElement {
     this.selected = incident;
     this.incidentStats();
     this.rhs_state = VIEW_STATS;
+  }
+
+  private selectionModeChange(): void {
+    this.inSelectionMode = !this.inSelectionMode;
+    this._render();
   }
 
   // Update the paramset for a silence as Incidents are checked and unchecked.
