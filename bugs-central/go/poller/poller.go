@@ -174,7 +174,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 
 	//////////////////// Skia - Buganizer ////////////////////
 	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
-		Query:                 "componentid:1363359 status:open",
+		Query:                 "componentid:1363359+ status:open -componentid:1389238+",
 		Client:                types.SkiaClient,
 		UntriagedPriorities:   []string{},
 		UntriagedAliases:      []string{"none"},
