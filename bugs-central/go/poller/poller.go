@@ -158,20 +158,6 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	}
 	bugFrameworks = append(bugFrameworks, crMonorail3)
 
-	//////////////////// Skia - Monorail ////////////////////
-	skQueryConfig := &monorail.MonorailQueryConfig{
-		Instance:              "skia",
-		Query:                 "is:open -component:AutoRoll",
-		Client:                types.SkiaClient,
-		UntriagedStatuses:     []string{"Untriaged"},
-		UnassignedIsUntriaged: true,
-	}
-	skMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, skQueryConfig)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to init monorail for skia")
-	}
-	bugFrameworks = append(bugFrameworks, skMonorail)
-
 	//////////////////// Skia - Buganizer ////////////////////
 	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
 		Query:                 "componentid:1363359+ status:open -componentid:1389238+",
