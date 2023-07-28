@@ -18,6 +18,10 @@
   known_hashes_gcs_path: "skia-gold-flutter-engine/hash_files/gold-flutter-engine-hashes.txt",
   window_size: 200,
 
+  grouping_param_keys_by_corpus: {
+    "flutter-engine": ["name", "source_type"],
+  },
+
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: true
 }
