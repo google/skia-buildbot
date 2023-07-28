@@ -1,9 +1,9 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2023-03-20T21_32_50Z-lovisolo-3e57248-clean",
-    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2023-03-20T21_34_47Z-lovisolo-3e57248-clean",
-    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2023-04-27T18_43_14Z-kjlubick-9af1eb3-clean",
-    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2023-03-20T21_34_22Z-lovisolo-3e57248-clean",
-    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2023-03-20T21_33_44Z-lovisolo-3e57248-clean",
-    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2023-03-20T21_33_18Z-lovisolo-3e57248-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2023-07-28T20_11_18Z-kjlubick-f970473-dirty",
+    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2023-07-28T17_51_23Z-kjlubick-f970473-clean",
+    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2023-07-28T17_50_49Z-kjlubick-f970473-clean",
+    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2023-07-28T17_52_19Z-kjlubick-f970473-clean",
+    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2023-07-28T17_52_42Z-kjlubick-f970473-clean",
+    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2023-07-28T17_53_09Z-kjlubick-f970473-clean",
     "AUTH_PROXY_IMAGE":      "gcr.io/skia-public/auth-proxy:2023-04-27T18_21_24Z-jcgregorio-9af1eb3-clean",
 }

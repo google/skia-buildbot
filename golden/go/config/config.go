@@ -64,6 +64,15 @@ type Common struct {
 
 	// If running locally (not in production).
 	Local bool `json:"local"`
+
+	// GroupingParamKeysByCorpus is a map from corpus name to the list of keys that comprise the
+	// corpus' grouping.
+	//
+	// TODO(lovisolo): Should this be mandatory? Pros: speedups (see the /json/v1/groupings RPC
+	//                 handler), consistency across instances, inches us closer towards supporting
+	//                 heterogeneous groupings. Cons: harder to define new corpora (requires
+	//                 redeploying Gold), sensitive corpus names.
+	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus" optional:"true"`
 }
 
 // CodeReviewSystem represents the details needed to interact with a CodeReviewSystem (e.g.

@@ -101,9 +101,10 @@ func main() {
 	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		DB:            db,
-		GCSClient:     gsClient,
-		ReviewSystems: reviewSystems,
+		DB:                        db,
+		GCSClient:                 gsClient,
+		ReviewSystems:             reviewSystems,
+		GroupingParamKeysByCorpus: bsc.GroupingParamKeysByCorpus,
 	}, web.BaselineSubset, proxylogin.NewWithDefaults())
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
