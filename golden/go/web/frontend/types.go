@@ -43,6 +43,8 @@ const (
 	// KnownHashesRoute serves the list of known hashes.
 	KnownHashesRoute   = "/json/hashes"
 	KnownHashesRouteV1 = "/json/v1/hashes"
+
+	GroupingsRouteV1 = "/json/v1/groupings"
 )
 
 // Changelist encapsulates how the frontend expects to get information
