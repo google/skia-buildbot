@@ -43,7 +43,7 @@ type ChromePerfClient struct {
 
 // New returns a new ChromePerf instance.
 func New(ctx context.Context) (*ChromePerfClient, error) {
-	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeAllCloudAPIs)
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf client.")
 	}
