@@ -157,7 +157,7 @@ func main() {
 	v1("GET", frontend.KnownHashesRouteV1, handlers.KnownHashesHandler)
 	// Serve the expectations for the primary branch and for CLs in progress.
 	v2("GET", frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2)
-	v2("GET", frontend.GroupingsRouteV1, handlers.GroupingsHandler)
+	v1("GET", frontend.GroupingsRouteV1, handlers.GroupingsHandler)
 
 	// Only log and compress the app routes, but not the health check.
 	router := chi.NewRouter()
