@@ -50,6 +50,7 @@ cabe                     300      IN A 34.110.212.89
 perf-infra-public-cdb    300      IN A 34.110.212.89
 envoy-admin-panel-public 300      IN A 34.110.212.89
 debugger2                300      IN A 34.110.212.89
+scrap2                   300      IN A 34.110.212.89
 
 ;;; Master A record. Hosted in the GCP project skia-public.
 @         300      IN A 35.201.76.220
