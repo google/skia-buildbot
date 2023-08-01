@@ -482,6 +482,7 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read row in range %s-%s", begin, end)
 		}
+		c.URL = urlFromParts(g.instanceConfig, c)
 		ret = append(ret, c)
 	}
 	return ret, nil

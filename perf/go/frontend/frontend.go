@@ -842,7 +842,7 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not convert indices to hashes.", http.StatusInternalServerError)
 		return
 	}
-	// Always back up on second since we had an issue with duplicate times for
+	// Always back up one second since we had an issue with duplicate times for
 	// commits: skbug.com/10698.
 	beginTime := details[0].Timestamp - 1
 	endTime := details[1].Timestamp + 1

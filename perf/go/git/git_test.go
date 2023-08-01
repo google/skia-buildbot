@@ -251,6 +251,7 @@ func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *
 	assert.Equal(t, types.CommitNumber(1), commits[0].CommitNumber)
 	assert.Equal(t, int64(1680000120), commits[1].Timestamp)
 	assert.Equal(t, types.CommitNumber(2), commits[1].CommitNumber)
+	assert.Contains(t, commits[1].URL, "+show/497e33d39ae58fa3339f67b9366f887a4c72871c")
 }
 
 func testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
