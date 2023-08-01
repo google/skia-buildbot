@@ -96,6 +96,7 @@ interface BodymovinPlayer {
   goToAndPlay(t: number): void;
   pause(): void;
   play(): void;
+  destroy(): void;
 }
 
 interface LottieLibrary {
@@ -127,7 +128,20 @@ const AUDIO_SUPPORTED_DOMAINS = [
   supportedDomains.LOCALHOST,
 ];
 
-type UIMode = 'dialog' | 'loading' | 'loaded' | 'idle';
+type UIMode = 'loading' | 'loaded' | 'idle' | 'draft' | 'unsynced' | 'synced';
+
+type ToolType =
+  | 'none'
+  | 'skottie-library'
+  | 'text-edits'
+  | 'shader-edits'
+  | 'background-color'
+  | 'json-editor'
+  | 'color-manager'
+  | 'skottie-font'
+  | 'text-sample'
+  | 'skottie-player'
+  | 'lottie-player';
 
 const caption = (text: string, mode: ViewMode) => {
   if (mode === 'presentation') {
@@ -193,6 +207,7 @@ export class SkottieSk extends ElementSk {
               .content=${'View JSON code'}
               .classes=${['header__button']}>
             </skottie-button-sk>
+            ${ele.renderApplyChanges()}
 
             <theme-chooser-sk></theme-chooser-sk>
           </span>
@@ -211,15 +226,29 @@ export class SkottieSk extends ElementSk {
   private pick = () => {
     switch (this.ui) {
       default:
-      case 'dialog':
-        return this.displayDialog();
       case 'idle':
         return this.displayIdle();
       case 'loading':
         return displayLoading();
       case 'loaded':
+      case 'unsynced':
+      case 'synced':
+      case 'draft':
         return this.displayLoaded();
     }
+  };
+
+  private renderApplyChanges = (): TemplateResult | null => {
+    if (!this.areChangesUploaded()) {
+      return html`<skottie-button-sk
+        id="view-json-layers"
+        @select=${this.applyEdits}
+        type="outline"
+        .content=${'Save all changes'}
+        .classes=${['header__button']}>
+      </skottie-button-sk>`;
+    }
+    return null;
   };
 
   private displayDialog = () => html`
@@ -254,7 +283,6 @@ export class SkottieSk extends ElementSk {
       <figure class="players-container">
         ${this.skottiePlayerTemplate()} ${this.lottiePlayerTemplate()}
       </figure>
-      ${this.livePreview()}
     </div>
     <div class="playback">
       <div class="playback-content">
@@ -338,7 +366,7 @@ export class SkottieSk extends ElementSk {
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <skottie-text-sampler-sk
-          @animation-updated=${this.onAnimationUpdated}
+          @animation-updated=${this.onTextSampleUpdated}
           .animation=${this.state.lottie}></skottie-text-sampler-sk>
       </details>
     `;
@@ -352,7 +380,7 @@ export class SkottieSk extends ElementSk {
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <skottie-font-selector-sk
-          @animation-updated=${this.onAnimationUpdated}
+          @animation-updated=${this.onSkottieFontUpdated}
           .animation=${this.state.lottie}></skottie-font-selector-sk>
       </details>
     `;
@@ -375,8 +403,7 @@ export class SkottieSk extends ElementSk {
       return null;
     }
 
-    return html`
-      <div class="json-chooser">
+    return html` <div class="json-chooser">
         <div class="title">JSON File</div>
         ${this.renderDownload()}
         <skottie-file-form-sk
@@ -384,15 +411,7 @@ export class SkottieSk extends ElementSk {
       </div>
 
       ${this.fileSettingsDialog()} ${this.backgroundDialog()}
-      ${this.audioDialog()} ${this.optionsDialog()} ${this.colorManager()}
-
-      <button
-        class="apply-button"
-        ?hidden=${!this.hasEdits}
-        @click=${this.applyEdits}>
-        Apply Edits
-      </button>
-    `;
+      ${this.audioDialog()} ${this.optionsDialog()} ${this.colorManager()}`;
   };
 
   private rightControls = () => html`
@@ -414,7 +433,7 @@ export class SkottieSk extends ElementSk {
               href=${this.downloadURL}>
               <file-download-icon-sk></file-download-icon-sk>
             </a>
-            ${this.hasEdits ? '(without edits)' : ''}
+            ${!this.areChangesUploaded() ? '(without edits)' : ''}
           </div>
         </div>
       `;
@@ -511,7 +530,7 @@ export class SkottieSk extends ElementSk {
         <skottie-color-manager-sk
           .animation=${this.state.lottie}
           @animation-updated=${this
-            .onAnimationUpdated}></skottie-color-manager-sk>
+            .onColorManagerUpdated}></skottie-color-manager-sk>
       </details>
     `;
 
@@ -554,23 +573,6 @@ export class SkottieSk extends ElementSk {
 
     <skottie-library-sk @select=${this.updateAnimation}> </skottie-library-sk>
   </details>`;
-
-  // TODO(kjlubick): Make the live preview use skottie
-  private livePreview = () => {
-    if (!this.hasEdits || !this.showLottie) {
-      return '';
-    }
-    if (this.hasEdits) {
-      return html` <figure>
-        <div
-          id="live"
-          title="live-preview"
-          style="width: ${this.width}px; height: ${this.height}px"></div>
-        <figcaption>Preview [lottie-web]</figcaption>
-      </figure>`;
-    }
-    return '';
-  };
 
   private jsonEditor = (): TemplateResult => html` <dialog
     class="editor"
@@ -668,13 +670,9 @@ export class SkottieSk extends ElementSk {
 
   private fps: number = 0;
 
-  private hasEdits: boolean = false;
-
   private hash: string = '';
 
   private height: number = 0;
-
-  private live: BodymovinPlayer | null = null;
 
   private lottiePlayer: BodymovinPlayer | null = null;
 
@@ -723,6 +721,10 @@ export class SkottieSk extends ElementSk {
   private ui: UIMode = 'idle';
 
   private viewMode: ViewMode = 'default';
+
+  // This attribute will keep a reference to the tool that generated the last json change
+  // It will be used to prevent reloading the tool if it's the one affecting the animation
+  private changingTool: ToolType = 'none';
 
   private width: number = 0;
 
@@ -817,7 +819,6 @@ export class SkottieSk extends ElementSk {
 
         // lottie player takes the milliseconds from the beginning of the animation.
         this.lottiePlayer?.goToAndStop(progress);
-        this.live?.goToAndStop(progress);
         this.updateScrubber();
         this.updateFrameLabel();
       }
@@ -838,15 +839,18 @@ export class SkottieSk extends ElementSk {
   private updateAnimation(e: CustomEvent<LottieAnimation>): void {
     this.state.lottie = e.detail;
     this.state.filename = e.detail.metadata?.filename || this.state.filename;
-    this.upload();
+    this.changingTool = 'skottie-library';
+    this.ui = 'draft';
+    this.render();
   }
 
   private applyTextEdits(e: CustomEvent<TextEditApplyEventDetail>): void {
     const texts = e.detail.texts;
     this.state.lottie = replaceTexts(texts, this.state.lottie!);
     this.skottieLibrary?.replaceTexts(texts);
-
-    this.upload();
+    this.changingTool = 'text-edits';
+    this.ui = 'draft';
+    this.render();
   }
 
   private applyShaderEdits(e: CustomEvent<ShaderEditApplyEventDetail>): void {
@@ -855,7 +859,9 @@ export class SkottieSk extends ElementSk {
     // TODO(jmbetancourt): support skottieLibrary
     // this.skottieLibrary?.replaceShaders(shaders);
 
-    this.upload();
+    this.changingTool = 'shader-edits';
+    this.ui = 'draft';
+    this.render();
   }
 
   private applyAudioSync(e: CustomEvent<AudioStartEventDetail>): void {
@@ -875,10 +881,9 @@ export class SkottieSk extends ElementSk {
   }
 
   private applyEdits(): void {
-    if (!this.editor || !this.editorLoaded || !this.hasEdits) {
+    if (this.areChangesUploaded()) {
       return;
     }
-    this.state.lottie = this.editor.get();
     this.upload();
   }
 
@@ -916,7 +921,6 @@ export class SkottieSk extends ElementSk {
     } else {
       this.ui = 'loaded';
       this.render();
-      this.initializePlayer();
       // Re-sync all players
       this.rewind();
     }
@@ -931,10 +935,8 @@ export class SkottieSk extends ElementSk {
     this.stateChanged();
     if (this.state.lottie) {
       this.autoSize();
-      this.initializePlayer();
-      // Re-sync all players
-      this.rewind();
     }
+    this.ui = 'loaded';
     this.render();
   }
 
@@ -958,10 +960,11 @@ export class SkottieSk extends ElementSk {
   ) {
     const background = e.detail;
     this.backgroundColor = background.color;
+    this.changingTool = 'background-color';
+    this.ui = 'draft';
     this.stateChanged();
     if (this.state.lottie) {
       this.autoSize();
-      this.initializePlayer();
       // Re-sync all players
       this.rewind();
     }
@@ -972,10 +975,12 @@ export class SkottieSk extends ElementSk {
   private selectionCancelled() {
     this.ui = 'loaded';
     this.render();
-    this.initializePlayer();
   }
 
   private initializePlayer(): Promise<void> {
+    if (!this.isToolUnsynced('skottie-player')) {
+      return Promise.resolve();
+    }
     return this.skottiePlayer!.initialize({
       width: this.width,
       height: this.height,
@@ -1046,17 +1051,9 @@ export class SkottieSk extends ElementSk {
         this.state.assets = loadedAssets;
         this.state.soundMap = sounds;
         this.render();
-        return this.initializePlayer().then(() => {
-          // Re-sync all players
-          this.rewind();
-        });
       })
       .catch(() => {
         this.render();
-        return this.initializePlayer().then(() => {
-          // Re-sync all players
-          this.rewind();
-        });
       });
   }
 
@@ -1159,14 +1156,12 @@ export class SkottieSk extends ElementSk {
     const audioManager = $$<SkottieAudioSk>('skottie-audio-sk');
     if (this.playing) {
       this.lottiePlayer?.pause();
-      this.live?.pause();
       this.state.soundMap?.pause();
       $$<HTMLElement>('#playpause-pause')!.style.display = 'none';
       $$<HTMLElement>('#playpause-play')!.style.display = 'inherit';
       audioManager?.pause();
     } else {
       this.lottiePlayer?.play();
-      this.live?.play();
       this.previousFrameTime = Date.now();
       // There is no need call a soundMap.play() function here.
       // Skottie invokes the play by calling seek on the needed audio track.
@@ -1248,7 +1243,7 @@ export class SkottieSk extends ElementSk {
       skottieGifExporter.player = this.skottiePlayer;
     }
 
-    if (this.ui === 'loaded') {
+    if (this.isPlayerView()) {
       if (this.state.soundMap && this.state.soundMap.map.size > 0) {
         this.hideVolumeSlider(false);
         // Stop any audio assets that start playing on frame 0
@@ -1262,6 +1257,7 @@ export class SkottieSk extends ElementSk {
         this.hideVolumeSlider(true);
       }
       try {
+        this.initializePlayer().then(() => this.rewind());
         this.renderLottieWeb();
         this.renderJSONEditor();
         this.renderTextEditor();
@@ -1271,6 +1267,12 @@ export class SkottieSk extends ElementSk {
         console.warn('caught error while rendering third party code', e);
       }
     }
+    if (this.ui === 'draft') {
+      this.ui = 'unsynced';
+    } else if (this.ui === 'loaded') {
+      this.ui = 'synced';
+    }
+    this.changingTool = 'none';
   }
 
   private renderAudioManager(): void {
@@ -1322,21 +1324,23 @@ export class SkottieSk extends ElementSk {
         if (!this.editorLoaded) {
           return;
         }
-        this.hasEdits = true;
+        this.changingTool = 'json-editor';
+        this.ui = 'draft';
+        this.state.lottie = this.editor!.get();
         this.render();
       },
     };
 
+    // Only set the JSON when it is loaded, either because it's
+    // the first time we got it from the server or because the user
+    // made changes.
     if (!this.editor) {
       this.editorLoaded = false;
       editorContainer.innerHTML = '';
       this.editor = new JSONEditor(editorContainer, editorOptions);
-    }
-    if (!this.hasEdits) {
+      this.editor.set(this.state.lottie);
+    } else if (this.isToolUnsynced('json-editor')) {
       this.editorLoaded = false;
-      // Only set the JSON when it is loaded, either because it's
-      // the first time we got it from the server or because the user
-      // hit applyEdits.
       this.editor.set(this.state.lottie);
     }
     // We are now pretty confident that the onChange events will only be
@@ -1346,10 +1350,17 @@ export class SkottieSk extends ElementSk {
 
   private renderLottieWeb(): void {
     if (!this.showLottie) {
+      if (this.lottiePlayer) {
+        this.lottiePlayer.destroy();
+        this.lottiePlayer = null;
+      }
       return;
     }
     // Don't re-start the animation while the user edits.
-    if (!this.hasEdits) {
+    if (this.isToolUnsynced('lottie-player') || !this.lottiePlayer) {
+      if (this.lottiePlayer) {
+        this.lottiePlayer.destroy();
+      }
       $$<HTMLDivElement>('#container')!.innerHTML = '';
       this.lottiePlayer = LottiePlayer.loadAnimation({
         container: $$('#container')!,
@@ -1360,26 +1371,6 @@ export class SkottieSk extends ElementSk {
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(
           JSON.stringify(this.state.lottie)
-        ) as LottieAnimation,
-        rendererSettings: {
-          preserveAspectRatio: 'xMidYMid meet',
-        },
-      });
-      this.live = null;
-    } else {
-      // we have edits, update the live preview version.
-      // It will re-start from the very beginning, but the user can
-      // hit "rewind" to re-sync them.
-      $$<HTMLDivElement>('#live')!.innerHTML = '';
-      this.live = LottiePlayer.loadAnimation({
-        container: $$('#live')!,
-        renderer: 'svg',
-        loop: true,
-        autoplay: this.playing,
-        assetsPath: `${this.assetsPath}/${this.hash}/`,
-        // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(
-          JSON.stringify(this.editor!.get())
         ) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
@@ -1478,7 +1469,6 @@ export class SkottieSk extends ElementSk {
     // catch case where t = 1
     t = Math.min(t, 0.9999);
     this.elapsedTime = t * this.duration;
-    this.live?.goToAndStop(t);
     this.lottiePlayer?.goToAndStop(t * this.duration);
     this.skottiePlayer?.seek(t);
     this.skottieLibrary?.seek(t);
@@ -1495,24 +1485,17 @@ export class SkottieSk extends ElementSk {
       this.skottiePlayer!.seek(0);
       this.skottieLibrary?.seek(0);
       this.previousFrameTime = 0;
-      this.live?.goToAndStop(0);
       this.lottiePlayer?.goToAndStop(0);
       const scrubber = $$<HTMLInputElement>('#scrub', this);
       if (scrubber) {
         scrubber.value = '0';
       }
     } else {
-      this.live?.goToAndPlay(0);
       this.lottiePlayer?.goToAndPlay(0);
       this.previousFrameTime = 0;
       const audioManager = $$<SkottieAudioSk>('skottie-audio-sk', this);
       audioManager?.rewind();
     }
-  }
-
-  private startEdit(): void {
-    this.ui = 'dialog';
-    this.render();
   }
 
   private toggleEditor(e: Event): void {
@@ -1604,7 +1587,7 @@ export class SkottieSk extends ElementSk {
   private upload(): void {
     // POST the JSON to /_/upload
     this.hash = '';
-    this.hasEdits = false;
+    this.ui = 'draft';
     this.editorLoaded = false;
     this.editor = null;
     // Clean up the old animation and other wasm objects
@@ -1647,6 +1630,21 @@ export class SkottieSk extends ElementSk {
     }
   }
 
+  private onColorManagerUpdated(ev: CustomEvent<SkottieTemplateEventDetail>) {
+    this.changingTool = 'color-manager';
+    this.onAnimationUpdated(ev);
+  }
+
+  private onSkottieFontUpdated(ev: CustomEvent<SkottieFontEventDetail>) {
+    this.changingTool = 'skottie-font';
+    this.onAnimationUpdated(ev);
+  }
+
+  private onTextSampleUpdated(ev: CustomEvent<SkottieTextSampleEventDetail>) {
+    this.changingTool = 'text-sample';
+    this.onAnimationUpdated(ev);
+  }
+
   private onAnimationUpdated(
     ev: CustomEvent<
       | SkottieFontEventDetail
@@ -1655,11 +1653,22 @@ export class SkottieSk extends ElementSk {
     >
   ): void {
     this.state.lottie = ev.detail.animation;
-    this.upload();
+    this.ui = 'draft';
+    this.render();
   }
 
   overrideAssetsPathForTesting(p: string): void {
     this.assetsPath = p;
+  }
+
+  private isToolUnsynced(tool: ToolType): boolean {
+    return ['draft', 'loaded'].includes(this.ui) && this.changingTool !== tool;
+  }
+  private areChangesUploaded(): boolean {
+    return !['draft', 'unsynced'].includes(this.ui);
+  }
+  private isPlayerView(): boolean {
+    return ['draft', 'unsynced', 'synced', 'loaded'].includes(this.ui);
   }
 }
 
