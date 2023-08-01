@@ -8,7 +8,7 @@ document.querySelectorAll<CommitDetailSk>('commit-detail-sk').forEach((ele) => {
     hash: 'e699a3a2373bc4c2a4bfa93c7af8602cb15f2d1d',
     url: 'https://skia.googlesource.com/skia/+show/e699a3a2373bc4c2a4bfa93c7af8602cb15f2d1d',
     message: 'Roll third_party/externals/swiftshader 522d5121905',
-    author: '',
+    author: 'jcgregorio@google.com',
     ts: 0,
     offset: 0,
     body: '',

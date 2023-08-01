@@ -33,7 +33,7 @@ export class CommitDetailSk extends ElementSk {
     <div @click=${() => ele._click()} class="linkish">
       <pre>
 ${ele.cid.hash.slice(0, 8)} - ${diffDate(ele.cid.ts * 1000)} - ${ele.cid
-          .message}</pre
+          .message} - ${ele.cid.author}</pre
       >
     </div>
     <div class="tip hidden">
