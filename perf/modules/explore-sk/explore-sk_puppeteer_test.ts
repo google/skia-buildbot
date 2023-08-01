@@ -12,8 +12,12 @@ describe('explore-sk', () => {
   });
 
   beforeEach(async () => {
+    testBed.page.on('dialog', async (dialog) => {
+      await dialog.accept();
+    });
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1600, height: 1600 });
+    await testBed.page.click('#close_query_dialog');
   });
 
   it('should render the demo page', async () => {

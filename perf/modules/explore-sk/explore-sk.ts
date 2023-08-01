@@ -598,7 +598,9 @@ export class ExploreSk extends ElementSk {
         </div>
       </tabs-panel-sk>
       <div class=footer>
-        <button @click=${ele.closeQueryDialog}>Close</button>
+        <button @click=${
+          ele.closeQueryDialog
+        } id='close_query_dialog'>Close</button>
       </div>
     </dialog>
 
@@ -1370,6 +1372,8 @@ export class ExploreSk extends ElementSk {
           this.summary!.paramsets = [
             toParamSet(this.state.queries[numQueries - 1]),
           ];
+        } else {
+          this.openQuery();
         }
         this.zeroChanged();
         this.autoRefreshChanged();
