@@ -171,3 +171,10 @@ ts_library(
         ":query_ts_lib",
     ],
 )
+
+ts_library(
+    name = "gentheme_ts_lib",
+    srcs = ["gentheme.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["@npm//@material/material-color-utilities"],
+)

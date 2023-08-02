@@ -15,331 +15,360 @@
       </header>
       <aside>Example aside section.</aside>
       <main>
-        <section>
-          <h1>Semantic colors</h1>
-          <table id="demotable">
-            <tr>
-              <th>color</th>
-              <th>background</th>
-            </tr>
-            <tr
-              style="color: var(--on-background); background: var(--background)"
-            >
-              <td>--on-background</td>
-              <td>--background</td>
-            </tr>
-          </table>
-        </section>
-        <section>
-          <h1>Example Controls</h1>
-          <section class="group">
-            <h2 id="Buttons">Buttons</h2>
-            <button data-show="1" >Plain</button>
-            <button class="hover" >Plain Hover</button>
-            <button class="focus" >Plain Focus</button>
-            <button disabled>Plain Disabled</button>
-
-            <button data-show="1" class="action">Action</button>
-            <button class="action hover">Action Hover</button>
-            <button class="action focus">Action Focus</button>
-            <button class="action" disabled>Action Disabled</button>
-
-            <h3>With Icons</h3>
-            <button><span class=icon-sk>menu</span> Icon</button>
-            <button class="action"><span class=icon-sk>link</span>Action</button>
-
-            <h3 id="Large">Large Button Styles</h2>
-            <button data-show="1" class="large">Plain</button>
-            <button class="large action">Action</button>
-          </section>
-
-          <section class="group">
-            <h2 id="Icons">Icons</h2>
-            <span data-show=1 class=icon-sk>menu</span>
-            <span class=icon-sk>link</span>
-            <span class=icon-sk>link_off</span>
-
-            <h2 id="LargeIcons">Large Icons</h2>
-            <span data-show=1 class=large-icon-sk>menu</span>
-            <span class=large-icon-sk>link</span>
-            <span class=large-icon-sk>link_off</span>
-            <p>
-              <a href="https://fonts.google.com/icons?selected=Material+Symbols+Outlined:link_off:FILL@0;wght@400;GRAD@0;opsz@20">Full List</a>
-            </p>
-          </section>
-
-
-          <section class="group">
-            <h2 id="Select">Select</h2>
-
-<select data-show="1" multiple size="3">
-  <option>option1</option>
-  <option>option2</option>
-  <option>option3</option>
-</select>
-<select data-show="1" size="1">
-  <option>option1</option>
-  <option>option2</option>
-  <option>option3</option>
-</select>
-
-<pre>
-&lt;select-sk>
-  &lt;div>select&lt;/div>
-  &lt;div>any&lt;/div>
-  &lt;div selected>one&lt;/div>
-&lt;/select-sk>
-</pre>
-
-<select-sk>
-  <div>select</div>
-  <div>any</div>
-  <div selected>one</div>
-</select-sk>
-
-<pre>
-&lt;multi-select-sk>
-  &lt;div>select&lt;/div>
-  &lt;div selected>any&lt;/div>
-  &lt;div>ones&lt;/div>
-  &lt;div>you&lt;/div>
-  &lt;div selected>like&lt;/div>
-&lt;/multi-select-sk>
-</pre>
-
-<multi-select-sk>
-  <div>select</div>
-  <div selected>any</div>
-  <div>ones</div>
-  <div>you</div>
-  <div selected>like</div>
-</multi-select-sk>
-
-          </section>
-
-          <section class="group">
-            <h2>Details/Summary</h2>
-<details data-show="1">
-  <summary>Summary appears as button</summary>
-  <ul>
-    <li>Details</li>
-    <li>appear</li>
-    <li>here</li>
-  </ul>
-</details>
-
-<pre>
-&lt;details class="expando">
-  &lt;summary id="options-open">
-    &lt;span>Summary with class `expando`&lt;/span>&lt;expand-less-icon-sk>&lt;/expand-less-icon-sk
-    >&lt;expand-more-icon-sk>&lt;/expand-more-icon-sk>
-  &lt;/summary>
-  &lt;ul>
-    &lt;li>Details&lt;/li>
-    &lt;li>appear&lt;/li>
-    &lt;li>here&lt;/li>
-  &lt;/ul>
-&lt;/details>
-</pre>
-
-<details class="expando">
-  <summary id="options-open">
-    <span>Summary with class `expando`</span><expand-less-icon-sk></expand-less-icon-sk
-    ><expand-more-icon-sk></expand-more-icon-sk>
-  </summary>
-  <ul>
-    <li>Details</li>
-    <li>appear</li>
-    <li>here</li>
-  </ul>
-</details>
-</section>
-
-          <section class="group">
-            <h2>Calendar</h2>
-            <pre>&lt;calendar-input-sk>&lt;/calendar-input-sk></pre>
-
-            <calendar-input-sk></calendar-input-sk>
-          </section>
-
-
-          <section class="group">
-            <h2 id="Checkboxes">Check/Radio Buttons</h2>
-<pre>
-  &lt;checkbox-sk label="Unchecked"          >&lt;/checkbox-sk>
-  &lt;checkbox-sk label="Checked"            checked>&lt;/checkbox-sk>
-  &lt;checkbox-sk label="Disabled Checked"   disabled checked>&lt;/checkbox-sk>
-  &lt;checkbox-sk label="Disabled Unchecked" disabled>&lt;/checkbox-sk>
-</pre>
-          <checkbox-sk label="Unchecked"></checkbox-sk>
-          <checkbox-sk label="Checked" checked></checkbox-sk>
-          <checkbox-sk label="Disabled Checked" disabled checked></checkbox-sk>
-          <checkbox-sk label="Disabled Unchecked" disabled></checkbox-sk>
-<pre>
-  &lt;radiogroup>
-    &lt;radio-sk          label="Unchecked">&lt;/radio-sk>
-    &lt;radio-sk checked  label="Checked">&lt;/radio-sk>
-    &lt;radio-sk disabled label="Disabled Unchecked">&lt;/radio-sk>
-  &lt;/radiogroup>
-</pre>
-          <radiogroup>
-            <radio-sk          label="Unchecked"></radio-sk>
-            <radio-sk checked  label="Checked"></radio-sk>
-            <radio-sk disabled label="Disabled Unchecked"></radio-sk>
-          </radiogroup>
-        </section>
-
-      <section class="group">
-        <h2 id="Tabs">tabs-sk and tabs-panel-sk</h2>
-<pre>
-  &lt;tabs-sk>
-    &lt;button class=selected>Query&lt;/button>
-    &lt;button>Results&lt;/button>
-    &lt;button>Details&lt;/button>
-  &lt;/tabs-sk>
-  &lt;tabs-panel-sk>
-    &lt;div>
-      This is the query tab.
-    &lt;/div>
-    &lt;div>
-      This is the results tab.
-    &lt;/div>
-    &lt;div>
-      This is the details tab.
-    &lt;/div>
-  &lt;/tabs-panel-sk>
-</pre>
-
-                  <tabs-sk>
-                    <button class=selected>Query</button>
-                    <button>Results</button>
-                    <button>Details</button>
-                  </tabs-sk>
-                  <tabs-panel-sk>
-                    <div>
-                      This is the query tab.
-                    </div>
-                    <div>
-                      This is the results tab.
-                    </div>
-                    <div>
-                      This is the details tab.
-                    </div>
-                  </tabs-panel-sk>
-      </section>
-
-      <section class="group">
-        <h2 id="Spinner">spinner-sk</h2>
-        <spinner-sk data-show="1" active></spinner-sk>
-      </section>
-
-      <section class="group">
-        <h2>Scrollbars</h2>
-        <div style="width: 200px; height: 100px; overflow: auto">
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-            quis nisi nec velit rhoncus ultrices et ac augue. Morbi malesuada
-            augue at est imperdiet luctus. Pellentesque condimentum mi eget
-            lorem luctus facilisis. Mauris vitae tempor dolor, eu finibus
-            orci. Etiam risus justo, mollis eu neque ut, suscipit vehicula
-            sapien. Integer convallis, sem non lobortis congue, risus lacus
-            sodales massa, vitae dignissim odio arcu a mi. Nulla accumsan
-            dolor id congue pharetra.
-          </p>
-          <p>
-            Nunc mattis consequat faucibus. Aliquam ut leo lorem. Morbi
-            dignissim sem id sem dapibus, nec mattis sem congue. Nunc sodales
-            scelerisque enim, at consectetur nisi tincidunt ut. Sed tempus
-            orci et nulla pellentesque efficitur. Ut sollicitudin finibus est
-            et accumsan. Vestibulum elit justo, interdum nec nisl id, eleifend
-            egestas augue. Curabitur blandit nisl est, consectetur
-            pellentesque orci finibus at. Cras porta leo mi, vel iaculis quam
-            finibus eget. Etiam rutrum tempus ullamcorper. Maecenas mattis,
-            enim ac gravida ullamcorper, purus purus varius mauris, eget
-            tempor turpis ante nec leo. Pellentesque habitant morbi tristique
-            senectus et netus et malesuada fames ac turpis egestas.
-          </p>
+        <div>
+          <span>
+            <input type="color" id="primary" name="primary"
+                   value="#005db7">
+            <label for="primary">Primary</label>
+          </span>
+          <span>
+            <input type="color" id="secondary" name="secondary"
+                    value="#006e1c">
+            <label for="secondary">Secondary</label>
+          </span>
+          <pre><code id="generate-cmd"></code></pre>
         </div>
-      </section>
+        <div class="columns">
+          <section>
+            <h1>Semantic colors</h1>
+            <table id="demotable">
+              <tr>
+                <th>color</th>
+                <th>background</th>
+              </tr>
+              <tr
+                style="color: var(--on-background); background: var(--background)"
+              >
+                <td>--on-background</td>
+                <td>--background</td>
+              </tr>
+            </table>
+            <h1>Specialty colors</h1>
+            <table id="demotable2">
+              <tr>
+                <th>color</th>
+                <th>background</th>
+              </tr>
+              <tr
+                style="color: var(--on-background); background: var(--background)"
+              >
+                <td>--on-background</td>
+                <td>--background</td>
+              </tr>
+            </table>
+
+          </section>
+          <section>
+            <h1>Example Controls</h1>
+            <section class="group">
+              <h2 id="Buttons">Buttons</h2>
+              <button data-show="1" >Plain</button>
+              <button class="hover" >Plain Hover</button>
+              <button class="focus" >Plain Focus</button>
+              <button disabled>Plain Disabled</button>
+
+              <button data-show="1" class="action">Action</button>
+              <button class="action hover">Action Hover</button>
+              <button class="action focus">Action Focus</button>
+              <button class="action" disabled>Action Disabled</button>
+
+              <h3>With Icons</h3>
+              <button><span class=icon-sk>menu</span> Icon</button>
+              <button class="action"><span class=icon-sk>link</span>Action</button>
+
+              <h3 id="Large">Large Button Styles</h2>
+              <button data-show="1" class="large">Plain</button>
+              <button class="large action">Action</button>
+            </section>
+
+            <section class="group">
+              <h2 id="Icons">Icons</h2>
+              <span data-show=1 class=icon-sk>menu</span>
+              <span class=icon-sk>link</span>
+              <span class=icon-sk>link_off</span>
+
+              <h2 id="LargeIcons">Large Icons</h2>
+              <span data-show=1 class=large-icon-sk>menu</span>
+              <span class=large-icon-sk>link</span>
+              <span class=large-icon-sk>link_off</span>
+              <p>
+                <a href="https://fonts.google.com/icons?selected=Material+Symbols+Outlined:link_off:FILL@0;wght@400;GRAD@0;opsz@20">Full List</a>
+              </p>
+            </section>
+
+
+            <section class="group">
+              <h2 id="Select">Select</h2>
+
+  <select data-show="1" multiple size="3">
+    <option>option1</option>
+    <option>option2</option>
+    <option>option3</option>
+  </select>
+  <select data-show="1" size="1">
+    <option>option1</option>
+    <option>option2</option>
+    <option>option3</option>
+  </select>
+
+  <pre>
+  &lt;select-sk>
+    &lt;div>select&lt;/div>
+    &lt;div>any&lt;/div>
+    &lt;div selected>one&lt;/div>
+  &lt;/select-sk>
+  </pre>
+
+  <select-sk>
+    <div>select</div>
+    <div>any</div>
+    <div selected>one</div>
+  </select-sk>
+
+  <pre>
+  &lt;multi-select-sk>
+    &lt;div>select&lt;/div>
+    &lt;div selected>any&lt;/div>
+    &lt;div>ones&lt;/div>
+    &lt;div>you&lt;/div>
+    &lt;div selected>like&lt;/div>
+  &lt;/multi-select-sk>
+  </pre>
+
+  <multi-select-sk>
+    <div>select</div>
+    <div selected>any</div>
+    <div>ones</div>
+    <div>you</div>
+    <div selected>like</div>
+  </multi-select-sk>
+
+            </section>
+
+            <section class="group">
+              <h2>Details/Summary</h2>
+  <details data-show="1">
+    <summary>Summary appears as button</summary>
+    <ul>
+      <li>Details</li>
+      <li>appear</li>
+      <li>here</li>
+    </ul>
+  </details>
+
+  <pre>
+  &lt;details class="expando">
+    &lt;summary id="options-open">
+      &lt;span>Summary with class `expando`&lt;/span>&lt;expand-less-icon-sk>&lt;/expand-less-icon-sk
+      >&lt;expand-more-icon-sk>&lt;/expand-more-icon-sk>
+    &lt;/summary>
+    &lt;ul>
+      &lt;li>Details&lt;/li>
+      &lt;li>appear&lt;/li>
+      &lt;li>here&lt;/li>
+    &lt;/ul>
+  &lt;/details>
+  </pre>
+
+  <details class="expando">
+    <summary id="options-open">
+      <span>Summary with class `expando`</span><expand-less-icon-sk></expand-less-icon-sk
+      ><expand-more-icon-sk></expand-more-icon-sk>
+    </summary>
+    <ul>
+      <li>Details</li>
+      <li>appear</li>
+      <li>here</li>
+    </ul>
+  </details>
+  </section>
+
+            <section class="group">
+              <h2>Calendar</h2>
+              <pre>&lt;calendar-input-sk>&lt;/calendar-input-sk></pre>
+
+              <calendar-input-sk></calendar-input-sk>
+            </section>
+
+
+            <section class="group">
+              <h2 id="Checkboxes">Check/Radio Buttons</h2>
+  <pre>
+    &lt;checkbox-sk label="Unchecked"          >&lt;/checkbox-sk>
+    &lt;checkbox-sk label="Checked"            checked>&lt;/checkbox-sk>
+    &lt;checkbox-sk label="Disabled Checked"   disabled checked>&lt;/checkbox-sk>
+    &lt;checkbox-sk label="Disabled Unchecked" disabled>&lt;/checkbox-sk>
+  </pre>
+            <checkbox-sk label="Unchecked"></checkbox-sk>
+            <checkbox-sk label="Checked" checked></checkbox-sk>
+            <checkbox-sk label="Disabled Checked" disabled checked></checkbox-sk>
+            <checkbox-sk label="Disabled Unchecked" disabled></checkbox-sk>
+  <pre>
+    &lt;radiogroup>
+      &lt;radio-sk          label="Unchecked">&lt;/radio-sk>
+      &lt;radio-sk checked  label="Checked">&lt;/radio-sk>
+      &lt;radio-sk disabled label="Disabled Unchecked">&lt;/radio-sk>
+    &lt;/radiogroup>
+  </pre>
+            <radiogroup>
+              <radio-sk          label="Unchecked"></radio-sk>
+              <radio-sk checked  label="Checked"></radio-sk>
+              <radio-sk disabled label="Disabled Unchecked"></radio-sk>
+            </radiogroup>
+          </section>
 
         <section class="group">
-          <h2>Tables</h2>
-<table data-show="1">
-  <tr>
-    <th>Fruit</th>
-    <th>Color</th>
-  </tr>
-  <tr>
-    <td>Apple</td>
-    <td>Red</td>
-  </tr>
-  <tr>
-    <td>Grape</td>
-    <td>Green</td>
-  </tr>
-</table>
+          <h2 id="Tabs">tabs-sk and tabs-panel-sk</h2>
+  <pre>
+    &lt;tabs-sk>
+      &lt;button class=selected>Query&lt;/button>
+      &lt;button>Results&lt;/button>
+      &lt;button>Details&lt;/button>
+    &lt;/tabs-sk>
+    &lt;tabs-panel-sk>
+      &lt;div>
+        This is the query tab.
+      &lt;/div>
+      &lt;div>
+        This is the results tab.
+      &lt;/div>
+      &lt;div>
+        This is the details tab.
+      &lt;/div>
+    &lt;/tabs-panel-sk>
+  </pre>
+
+                    <tabs-sk>
+                      <button class=selected>Query</button>
+                      <button>Results</button>
+                      <button>Details</button>
+                    </tabs-sk>
+                    <tabs-panel-sk>
+                      <div>
+                        This is the query tab.
+                      </div>
+                      <div>
+                        This is the results tab.
+                      </div>
+                      <div>
+                        This is the details tab.
+                      </div>
+                    </tabs-panel-sk>
         </section>
 
         <section class="group">
-          <h2>Nav Buttons</h2>
-<pre>
-&lt;nav-button-sk>&lt;/nav-button-sk>
-&lt;nav-links-sk closed>
-  &lt;a href="">Main&lt;/a>
-  &lt;a href="">Triage&lt;/a>
-  &lt;a href="">Alerts&lt;/a>
-&lt;/nav-links-sk>
-</pre>
-          <nav-button-sk></nav-button-sk>
-          <nav-links-sk closed>
-            <a href="">Main</a>
-            <a href="">Triage</a>
-            <a href="">Alerts</a>
-          </nav-links-sk>
+          <h2 id="Spinner">spinner-sk</h2>
+          <spinner-sk data-show="1" active></spinner-sk>
         </section>
-
 
         <section class="group">
-          <h2 id="Toast">toast-sk</h2>
-          <button id="make-toast">Make toast</button>
-<toast-sk data-show="1">
-  This will disappear in 5s (the default), unless you click the Close
-  button.
-  <button id="hide-toast" class="action">Close</button>
-</toast-sk>
-        </section>
-
-
-        <section class="group">
-          <h2 id="Error-Toast">error-toast-sk</h2>
-          <button id="show-error-toast">Simulate an error</button>
-          <pre>&lt;error-toast-sk>&lt;/error-toast-sk></pre>
-          <error-toast-sk></error-toast-sk>
-        </section>
-
-        </section>
-
-        <section>
-          <h1>Container classes</h1>
-          <div class="container-example primary-container-themes-sk">
-            primary-container-themes-sk
+          <h2>Scrollbars</h2>
+          <div style="width: 200px; height: 100px; overflow: auto">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
+              quis nisi nec velit rhoncus ultrices et ac augue. Morbi malesuada
+              augue at est imperdiet luctus. Pellentesque condimentum mi eget
+              lorem luctus facilisis. Mauris vitae tempor dolor, eu finibus
+              orci. Etiam risus justo, mollis eu neque ut, suscipit vehicula
+              sapien. Integer convallis, sem non lobortis congue, risus lacus
+              sodales massa, vitae dignissim odio arcu a mi. Nulla accumsan
+              dolor id congue pharetra.
+            </p>
+            <p>
+              Nunc mattis consequat faucibus. Aliquam ut leo lorem. Morbi
+              dignissim sem id sem dapibus, nec mattis sem congue. Nunc sodales
+              scelerisque enim, at consectetur nisi tincidunt ut. Sed tempus
+              orci et nulla pellentesque efficitur. Ut sollicitudin finibus est
+              et accumsan. Vestibulum elit justo, interdum nec nisl id, eleifend
+              egestas augue. Curabitur blandit nisl est, consectetur
+              pellentesque orci finibus at. Cras porta leo mi, vel iaculis quam
+              finibus eget. Etiam rutrum tempus ullamcorper. Maecenas mattis,
+              enim ac gravida ullamcorper, purus purus varius mauris, eget
+              tempor turpis ante nec leo. Pellentesque habitant morbi tristique
+              senectus et netus et malesuada fames ac turpis egestas.
+            </p>
           </div>
-          <div class="container-example secondary-container-themes-sk">
-            secondary-container-themes-sk
-          </div>
-          <div class="container-example primary-variant-container-themes-sk">
-            primary-variant-container-themes-sk
-          </div>
-          <div class="container-example error-container-themes-sk">error-container-themes-sk</div>
         </section>
-        <section>
-          <h1>Headings</h1>
-          <h1>H1 Heading</h1>
-          <h2>H2 Heading</h2>
-          <h3>H3 Heading</h3>
-          <h4>H4 Heading</h4>
-          <h5>H5 Heading</h5>
-        </section>
+
+          <section class="group">
+            <h2>Tables</h2>
+  <table data-show="1">
+    <tr>
+      <th>Fruit</th>
+      <th>Color</th>
+    </tr>
+    <tr>
+      <td>Apple</td>
+      <td>Red</td>
+    </tr>
+    <tr>
+      <td>Grape</td>
+      <td>Green</td>
+    </tr>
+  </table>
+          </section>
+
+          <section class="group">
+            <h2>Nav Buttons</h2>
+  <pre>
+  &lt;nav-button-sk>&lt;/nav-button-sk>
+  &lt;nav-links-sk closed>
+    &lt;a href="">Main&lt;/a>
+    &lt;a href="">Triage&lt;/a>
+    &lt;a href="">Alerts&lt;/a>
+  &lt;/nav-links-sk>
+  </pre>
+            <nav-button-sk></nav-button-sk>
+            <nav-links-sk closed>
+              <a href="">Main</a>
+              <a href="">Triage</a>
+              <a href="">Alerts</a>
+            </nav-links-sk>
+          </section>
+
+
+          <section class="group">
+            <h2 id="Toast">toast-sk</h2>
+            <button id="make-toast">Make toast</button>
+  <toast-sk data-show="1">
+    This will disappear in 5s (the default), unless you click the Close
+    button.
+    <button id="hide-toast" class="action">Close</button>
+  </toast-sk>
+          </section>
+
+
+          <section class="group">
+            <h2 id="Error-Toast">error-toast-sk</h2>
+            <button id="show-error-toast">Simulate an error</button>
+            <pre>&lt;error-toast-sk>&lt;/error-toast-sk></pre>
+            <error-toast-sk></error-toast-sk>
+          </section>
+
+          </section>
+
+          <section>
+            <h1>Container classes</h1>
+            <div class="container-example primary-container-themes-sk">
+              primary-container-themes-sk
+            </div>
+            <div class="container-example secondary-container-themes-sk">
+              secondary-container-themes-sk
+            </div>
+            <div class="container-example primary-variant-container-themes-sk">
+              primary-variant-container-themes-sk
+            </div>
+            <div class="container-example error-container-themes-sk">error-container-themes-sk</div>
+          </section>
+          <section>
+            <h1>Headings</h1>
+            <h1>H1 Heading</h1>
+            <h2>H2 Heading</h2>
+            <h3>H3 Heading</h3>
+            <h4>H4 Heading</h4>
+            <h5>H5 Heading</h5>
+          </section>
+        </div>
       </main>
     </app-sk>
   </body>

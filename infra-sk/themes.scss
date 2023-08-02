@@ -84,6 +84,8 @@ to see how these styles apply to title bars and sidebars.
 @import '../elements-sk/modules/styles/select';
 @import '../elements-sk/modules/styles/table';
 
+@import 'tokens';
+
 .body-sk {
   &.font-sk,
   & .font-sk {
@@ -158,32 +160,7 @@ to see how these styles apply to title bars and sidebars.
     overflow: hidden;
   }
 
-  /* Semantic colors defined by elements-sk. */
-  --background: #fdfbff;
-  --disabled: #c4c6cf;
-  --error: #ba1a1a;
-  --error-container: #ffdad6;
-  --on-error-container: #410002;
-  --on-background: #1a1b1e;
-  --on-disabled: #74777f;
-  --on-error: #ffffff;
-  --on-primary-variant: #001b3d;
-  --on-primary: #ffffff;
-  --on-secondary: #ffffff;
-  --on-surface: #1a1b1e;
-  --primary-variant: #a9c7ff;
-  --primary: #005db7;
-  --secondary: #006e1c;
-  --surface: #f4f3f7;
-  --surface-1dp: #efedf1;
-  --surface-2dp: #e9e7ec;
-  --outline: #74777f;
   --transparent-overlay: rgba(0, 0, 0, 0.5);
-
-  /* Additional semantic colors. */
-  --primary-highlight: #d6e3ff;
-  --secondary-highlight: #94f990;
-  --on-hightlight: var(--on-background);
 
   --failure-alpha: rgba(217, 95, 2, 0.8);
   --failure: rgb(217, 95, 2);
@@ -203,33 +180,7 @@ to see how these styles apply to title bars and sidebars.
 
   &.darkmode,
   & .darkmode {
-    /* Semantic colors defined by elements-sk. */
-    --background: #000000;
-    --disabled: #44474e;
-    --error: #ffb4ab;
-    --on-error: #690005;
-    --error-container: #93000a;
-    --on-error-container: #ffdad6;
-    --on-background: #e3e2e6;
-    --on-disabled: #c4c6cf;
-    --on-primary-variant: #00468c;
-    --on-primary: #003063;
-    --on-secondary: #00390a;
-    --on-surface: #c7c6ca;
-    --primary-variant: #d6e3ff;
-    --primary: #a9c7ff; // #98b3f500
-    --secondary: #78dc77;
-    --surface: #1a1b1e;
-    --surface-1dp: #1e2023;
-    --surface-2dp: #292a2d;
-    --outline: #8e9099;
     --transparent-overlay: rgba(255, 255, 255, 0.5);
-
-    /* Additional semantic colors. */
-    --primary-highlight: #00468c;
-    --secondary-highlight: #005313;
-    --on-hightlight: #d6e3ff;
-    --on-secondary-highlight: #94f990;
 
     --on-failure: var(--on-surface);
     --on-success: var(--on-surface);
@@ -338,37 +289,6 @@ to see how these styles apply to title bars and sidebars.
   button.action.disabled,
   button.action:disabled {
     @extend .button-like-action;
-    opacity: 0.85;
-    background: var(--on-disabled);
-    color: var(--disabled);
-    fill: var(--disabled);
-  }
-
-  .button-like-fab,
-  .button-like.fab,
-  button.fab {
-    @extend .button-like;
-    background-color: var(--primary-highlight);
-    border-radius: 24px;
-    border: none;
-    color: var(--on-hightlight);
-    fill: var(--on-hightlight);
-    font-size: 22px;
-    height: 48px;
-    min-width: 48px;
-    padding: 10px;
-    width: auto;
-  }
-
-  .button-like.fab:hover,
-  button.fab:hover {
-    @extend .button-like-fab;
-    opacity: 0.85;
-  }
-
-  .button-like.fab:disabled,
-  button.fab:disabled {
-    @extend .button-like-fab;
     opacity: 0.85;
     background: var(--on-disabled);
     color: var(--disabled);

@@ -1,6 +1,6 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_binary = "nodejs_binary", _nodejs_test = "nodejs_test")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
@@ -222,6 +222,56 @@ def nodejs_test(
             "--colors",
             "$(rootpath %s)" % "%s_js_entry_point.js" % name,
         ] + (["--inspect-brk"] if wait_for_debugger else []),
+        env = env,
+        tags = tags,
+        visibility = visibility,
+    )
+
+def nodejs_binary(
+        name,
+        entry_point,
+        src_lib = None,
+        data = [],
+        deps = [],
+        tags = [],
+        visibility = None,
+        env = {}):
+    """Runs a Node script written in TS.
+
+    Wraps the nodejs_binary rule so that we can first compile the TS to JS.
+
+    Args:
+      name: Name of the target.
+      entry_point: A single TypeScript source file.
+      src_lib: A ts_library containing src. If none is provided, one will be generated from the entry_point.
+      data: Any data dependencies.
+      deps: Any ts_library or NPM dependencies of src. Ignored if src_lib is provided.
+      tags: Tags for the generated nodejs_binary rule.
+      visibility: Visibility of the generated nodejs_binary rule.
+      env: A dictionary of additional environment variables to set when the target is executed.
+    """
+
+    if not src_lib:
+        src_lib = "%s_ts_lib" % name
+        ts_library(
+            name = src_lib,
+            srcs = [entry_point],
+            deps = deps,
+        )
+
+    esbuild_node_bundle(
+        name = "%s_js_entry_point" % name,
+        entry_point = entry_point,
+        deps = [src_lib],
+        output = "%s_js_entry_point.js" % name,
+    )
+
+    _nodejs_binary(
+        name = name,
+        entry_point = "%s_js_entry_point.js" % name,
+        data = data + [
+            src_lib,
+        ],
         env = env,
         tags = tags,
         visibility = visibility,

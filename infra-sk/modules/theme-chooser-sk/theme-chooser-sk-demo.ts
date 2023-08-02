@@ -3,6 +3,7 @@ import { DARKMODE_LOCALSTORAGE_KEY } from './theme-chooser-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
+import { gentheme } from '../gentheme';
 
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
@@ -27,11 +28,12 @@ import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import '../../../perf/modules/calendar-input-sk';
 import '../app-sk';
 
-// Force the element to use the default mode set in the elements attribute.
-window.localStorage.removeItem(DARKMODE_LOCALSTORAGE_KEY);
-
 // eslint-disable-next-line import/first
 import './theme-chooser-sk';
+import { $, $$ } from '../dom';
+
+// Force the element to use the default mode set in the elements attribute.
+window.localStorage.removeItem(DARKMODE_LOCALSTORAGE_KEY);
 
 interface example {
   background: string;
@@ -48,28 +50,12 @@ const examples: example[] = [
     color: '--on-primary',
   },
   {
-    background: '--on-primary',
-    color: '--primary',
-  },
-  {
-    background: '--primary-variant',
-    color: '--on-primary',
-  },
-  {
-    background: '--on-primary',
-    color: '--primary-variant',
+    background: '--primary-highlight',
+    color: '--on-primary-highlight',
   },
   {
     background: '--secondary',
     color: '--on-secondary',
-  },
-  {
-    background: '--on-secondary',
-    color: '--secondary',
-  },
-  {
-    background: '--primary-highlight',
-    color: '--on-highlight',
   },
   {
     background: '--secondary-highlight',
@@ -78,10 +64,6 @@ const examples: example[] = [
   {
     background: '--surface',
     color: '--on-surface',
-  },
-  {
-    background: '--surface',
-    color: '--outline',
   },
   {
     background: '--surface-1dp',
@@ -127,6 +109,9 @@ const examples: example[] = [
     background: '--error-container',
     color: '--on-error-container',
   },
+];
+
+const specialty: example[] = [
   {
     background: '--failure',
     color: '--on-failure',
@@ -175,7 +160,6 @@ const examples: example[] = [
     background: '--surface',
     color: '--positive',
   },
-
   {
     background: '--negative',
     color: '--surface',
@@ -199,6 +183,8 @@ const template = (context: example[]): TemplateResult => html`
 `;
 
 render(template(examples), document.querySelector('#demotable')!);
+
+render(template(specialty), document.querySelector('#demotable2')!);
 
 document.querySelector('#toggle-collapse-sk')?.addEventListener('click', () => {
   const collapseSk = document.querySelector<CollapseSk>('collapse-sk')!;
@@ -226,3 +212,29 @@ document.querySelectorAll("[data-show='1']").forEach((ele) => {
   pre.innerText = dup.outerHTML.replace('=""', '');
   ele.parentElement?.insertBefore(pre, ele);
 });
+
+// Handle dynamic updates to the theme.
+const primary = document.querySelector<HTMLInputElement>('#primary')!;
+const secondary = document.querySelector<HTMLInputElement>('#secondary')!;
+
+const updateTokens = () => {
+  // Remove all existing style elements in head.
+  $('head style').forEach((ele) => ele.remove());
+
+  // Create a style element.
+  const style = document.createElement('style');
+
+  // Add the CSS as a string.
+  style.innerHTML = gentheme(primary.value, secondary.value);
+
+  // Add element to the head.
+  $$('head')!.appendChild(style);
+  $$(
+    '#generate-cmd'
+  )!.textContent = `//go:generate bazelisk run --config=mayberemote //infra-sk/modules/gentheme/cmd:gentheme -- ${primary.value.slice(
+    1
+  )} ${secondary.value.slice(1)} $\{PWD}/tokens.scss`;
+};
+
+document.querySelector('#primary')!.addEventListener('input', updateTokens);
+document.querySelector('#secondary')!.addEventListener('input', updateTokens);

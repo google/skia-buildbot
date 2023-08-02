@@ -15,8 +15,11 @@
   }
 
   main {
-    display: flex;
     background-color: var(--background);
+  }
+
+  .columns {
+    display: flex;
   }
 
   section {

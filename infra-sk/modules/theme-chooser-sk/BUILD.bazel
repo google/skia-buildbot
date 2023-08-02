@@ -60,6 +60,8 @@ sk_page(
     ts_deps = [
         "@npm//lit-html",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:gentheme_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "theme-chooser-sk-demo.ts",
 )
