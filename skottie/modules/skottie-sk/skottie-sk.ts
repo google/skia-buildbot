@@ -410,8 +410,8 @@ export class SkottieSk extends ElementSk {
           @files-selected=${this.skottieFilesSelected}></skottie-file-form-sk>
       </div>
 
-      ${this.fileSettingsDialog()} ${this.backgroundDialog()}
-      ${this.audioDialog()} ${this.optionsDialog()} ${this.colorManager()}`;
+      ${this.fileSettingsDialog()} ${this.colorManager()}
+      ${this.backgroundDialog()} ${this.audioDialog()} ${this.optionsDialog()}`;
   };
 
   private rightControls = () => html`

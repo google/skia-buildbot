@@ -22,9 +22,10 @@ skottie-file-form-sk {
       margin: 8px 0;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    &--input {
-      display: none;
+
+      .upload-file--input {
+        display: none;
+      }
     }
   }
 }
