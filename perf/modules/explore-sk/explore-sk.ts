@@ -1372,7 +1372,9 @@ export class ExploreSk extends ElementSk {
           this.summary!.paramsets = [
             toParamSet(this.state.queries[numQueries - 1]),
           ];
-        } else {
+        }
+
+        if (numQueries === 0 && this.state.keys === '') {
           this.openQuery();
         }
         this.zeroChanged();
