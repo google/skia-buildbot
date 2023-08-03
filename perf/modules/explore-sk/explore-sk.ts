@@ -207,7 +207,7 @@ class State {
 
   autoRefresh: boolean = false;
 
-  numCommits: number = 50;
+  numCommits: number = 250;
 
   requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
 
