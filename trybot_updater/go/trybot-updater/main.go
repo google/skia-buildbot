@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"net/http"
 	"sort"
 	"strings"
 	"text/template"
@@ -16,6 +17,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/rotations"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -106,7 +108,7 @@ func getCurrentBuildbucketCfg(ctx context.Context, repo *gitiles.Repo) (string, 
 
 // updateBuildbucketCfg creates a Gerrit CL to update buildbucket.config. If submit flag is true then that CL
 // is automatically self-approved and submitted.
-func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.Repo, cfgContents string) error {
+func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.Repo, cfgContents string, httpClient *http.Client) error {
 	commitMsg := `Update buildbucket.config
 
 Update is done by the trybot-updater bot.
@@ -138,9 +140,11 @@ Please contact the Skia Infra Gardener if this bot causes problems.
 	sklog.Infof("Uploaded change https://skia-review.googlesource.com/c/%s/+/%d", project, ci.Issue)
 
 	if *submit {
-		// TODO(rmistry): Change reviewer to be the Infra Gardener after verifying that things work.
-		reviewers := []string{"rmistry@google.com"}
-		if err := g.SetReview(ctx, ci, "", gerrit.ConfigChromiumBotCommit.SelfApproveLabels, reviewers, "", nil, "", 0, nil); err != nil {
+		gardeners, err := rotations.FromURL(httpClient, rotations.InfraGardenerURL)
+		if err != nil {
+			return skerr.Fmt("Could not get infra gardener email: %s", err)
+		}
+		if err := g.SetReview(ctx, ci, "", gerrit.ConfigChromiumBotCommit.SelfApproveLabels, gardeners, "", nil, "", 0, nil); err != nil {
 			return abandonGerritChange(ctx, g, ci, err)
 		}
 		if err := g.Submit(ctx, ci); err != nil {
@@ -203,7 +207,7 @@ func main() {
 
 		// Only update buildbucket.config if the config is different.
 		if newCfg != existingCfg {
-			if err := updateBuildbucketCfg(ctx, g, repo, newCfg); err != nil {
+			if err := updateBuildbucketCfg(ctx, g, repo, newCfg, httpClient); err != nil {
 				sklog.Errorf("Could not update buildbucket.config: %s", err)
 				sklog.Info("Sleep for 10 mins since there was a error with Gerrit to give it time to recover.")
 				time.Sleep(10 * time.Minute)

@@ -12,6 +12,7 @@ go_library(
         "//go/git",
         "//go/gitiles",
         "//go/httputils",
+        "//go/rotations",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
