@@ -54,7 +54,6 @@ export class CommitDetailPanelSk extends ElementSk {
     return ele._details.map(
       (item, index) => html`
         <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
-          <td>${ele._trim(item.author)}</td>
           <td>
             <commit-detail-sk .cid=${item}></commit-detail-sk>
           </td>
@@ -123,11 +122,6 @@ export class CommitDetailPanelSk extends ElementSk {
         { detail, bubbles: true }
       )
     );
-  }
-
-  private _trim(s: string) {
-    s = s.slice(0, 72);
-    return s;
   }
 
   static get observedAttributes(): string[] {
