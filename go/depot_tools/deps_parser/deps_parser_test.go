@@ -163,3 +163,17 @@ func TestSetDep(t *testing.T) {
 	testSetDep("package1", "newrev")
 	testSetDep("package2", "newrev")
 }
+
+func TestHasGitSubmodules(t *testing.T) {
+	testHasSubmodule := func(testName, depsContent string, expected bool) {
+		t.Run(testName, func(t *testing.T) {
+			hasSubmodules, err := HasGitSubmodules(depsContent)
+			require.Nil(t, err)
+			require.Equal(t, expected, hasSubmodules)
+		})
+	}
+	testHasSubmodule("not defined", fakeDepsContent, false)
+	testHasSubmodule("explicit DEPS", `git_dependencies = "DEPS"`, false)
+	testHasSubmodule("in sync", `git_dependencies = "SYNC"`, true)
+	testHasSubmodule("just submodules", `git_dependencies = "SUBMODULES"`, true)
+}

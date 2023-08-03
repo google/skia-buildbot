@@ -149,6 +149,34 @@ func SetDep(depsContent, depId, version string) (string, error) {
 	return strings.Join(depsLines, "\n"), nil
 }
 
+// HasGitSubmodules
+func HasGitSubmodules(depsContent string) (bool, error) {
+	parsed, err := parser.ParseString(depsContent, "exec")
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	for _, stmt := range parsed.(*ast.Module).Body {
+		// We only care about assignment statements.
+		if stmt.Type().Name != ast.AssignType.Name {
+			continue
+		}
+		assign := stmt.(*ast.Assign)
+		for _, target := range assign.Targets {
+			// We only care about assignments to global variables,
+			// by name.
+			if target.Type().Name != ast.NameType.Name {
+				continue
+			}
+			name := target.(*ast.Name)
+			if name.Id == "git_dependencies" {
+				v := string(assign.Value.(*ast.Str).S)
+				return v == "SYNC" || v == "SUBMODULES", nil
+			}
+		}
+	}
+	return false, nil
+}
+
 // exprToString resolves the given expression to a string. The returned
 // ast.Pos attempts to reflect the location of the version definition, if any,
 // within the Expr.

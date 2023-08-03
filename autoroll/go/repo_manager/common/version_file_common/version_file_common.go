@@ -151,6 +151,29 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newRev 
 			return "", skerr.Fmt("Failed to update dependency %s from %s to %s in %s; new contents identical to old contents:\n%s", dep.Id, oldVersion, newRev.Id, dep.Path, oldContents)
 		}
 		changes[dep.Path] = newContents
+
+		// Update gitlink if it exists.
+		if dep.Path == deps_parser.DepsFileName {
+			hasSubmodules, err := deps_parser.HasGitSubmodules(oldContents)
+			if err != nil {
+				return "", skerr.Wrap(err)
+			}
+			if hasSubmodules {
+				depsEntry, err := deps_parser.GetDep(oldContents, dep.Id)
+				if err != nil {
+					return "", skerr.Wrap(err)
+				}
+				oldContents, err = getFile(ctx, depsEntry.Path)
+				if err == nil {
+					// Path found
+					newContents = strings.ReplaceAll(oldContents, oldVersion, newRev.Id)
+					if oldContents != newContents {
+						changes[depsEntry.Path] = newContents
+					}
+				}
+			}
+		}
+
 	}
 	return oldVersion, nil
 }

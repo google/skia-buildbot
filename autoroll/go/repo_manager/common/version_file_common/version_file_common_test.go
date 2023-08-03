@@ -216,6 +216,63 @@ func TestUpdateSingleDep(t *testing.T) {
 	}
 }
 
+func TestUpdateSingleDepSubmodule(t *testing.T) {
+	oldDepsContent := `
+git_dependencies = "SYNC"
+deps = {
+	"foo": "with-submodule@old-rev1",
+	"bar": "without-submodule@old-rev2",
+}`
+
+	getFile := func(ctx context.Context, path string) (string, error) {
+		if path == deps_parser.DepsFileName {
+			return oldDepsContent, nil
+		}
+		if path == "foo" {
+			return "old-rev1", nil
+		}
+		return "", fmt.Errorf("Unknown file path %s", path)
+	}
+	t.Run("change with submodule", func(t *testing.T) {
+		changes := map[string]string{}
+		newDepsContent := `
+git_dependencies = "SYNC"
+deps = {
+	"foo": "with-submodule@new-rev1",
+	"bar": "without-submodule@old-rev2",
+}`
+		oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+			Id:   "with-submodule",
+			Path: deps_parser.DepsFileName,
+		}, &revision.Revision{Id: "new-rev1"}, changes, getFile)
+		require.NoError(t, err)
+		require.Equal(t, "old-rev1", oldRev)
+		actualNewContents := changes[deps_parser.DepsFileName]
+		require.Equal(t, newDepsContent, actualNewContents)
+
+		require.Equal(t, "new-rev1", changes["foo"])
+	})
+	t.Run("change without submodule", func(t *testing.T) {
+		changes := map[string]string{}
+		newDepsContent := `
+git_dependencies = "SYNC"
+deps = {
+	"foo": "with-submodule@old-rev1",
+	"bar": "without-submodule@new-rev2",
+}`
+		oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+			Id:   "without-submodule",
+			Path: deps_parser.DepsFileName,
+		}, &revision.Revision{Id: "new-rev2"}, changes, getFile)
+		require.NoError(t, err)
+		require.Equal(t, "old-rev2", oldRev)
+		actualNewContents := changes[deps_parser.DepsFileName]
+		require.Equal(t, newDepsContent, actualNewContents)
+
+		require.Equal(t, "", changes["bar"])
+	})
+}
+
 func TestUpdateDep(t *testing.T) {
 
 	oldContents := map[string]string{
