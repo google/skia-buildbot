@@ -175,7 +175,7 @@ func TestUpdateRefs_NoStageFileNoGitilesNoPubsub_ReplacementsMadeCLUploaded(t *t
 			{fakeGitPath, "commit", "-a", "-m", `Update envoy_skia_org
 
 Change-Id: Ib5e0a9a6f10910d8514b800252f106edd314dec3`}, // fakeChangeID
-			{fakeGitPath, "push", "origin", "HEAD:refs/for/main%notify=OWNER_REVIEWERS,l=Auto-Submit+1,r=rubber-stamper@appspot.gserviceaccount.com"},
+			{fakeGitPath, "push", "origin", "HEAD:refs/for/main%ready,notify=OWNER_REVIEWERS,l=Auto-Submit+1,r=rubber-stamper@appspot.gserviceaccount.com"},
 		}, executedCommands)
 
 		require.NotEmpty(t, gitCheckoutDir)

@@ -26,7 +26,7 @@ const (
 		// after a percent sign. We want to have the rubber stamper service be the one reviewer and
 		// Auto Submit enabled so it can land the commit automatically.
 		// https://gerrit-review.googlesource.com/Documentation/user-upload.html#push_options
-		"notify=OWNER_REVIEWERS,l=Auto-Submit+1,r=" + RubberStamperUser
+		"ready,notify=OWNER_REVIEWERS,l=Auto-Submit+1,r=" + RubberStamperUser
 
 	// See skbug.com/12124 and go/rubber-stamper-user-guide for more on this user.
 	RubberStamperUser = "rubber-stamper@appspot.gserviceaccount.com"
