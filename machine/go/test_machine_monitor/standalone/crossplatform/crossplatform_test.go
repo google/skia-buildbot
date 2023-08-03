@@ -46,6 +46,12 @@ func TestCPUModel(t *testing.T) {
 		"i7-9750H v2")
 
 	test(
+		"Newer Intel model numbers are extracted",
+		"GenuineIntel",
+		"11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+		"i5-1135G7")
+
+	test(
 		"Non-Intel vendors result in the brand string",
 		"Wackadoo Inc.",
 		"Wackadoo ALU i5-9600",

@@ -57,6 +57,7 @@ func intelModel(brandString string) string {
 	regexes := []*regexp.Regexp{
 		regexp.MustCompile(` ([a-zA-Z]\d-\d{4}[A-Z]{0,2} [vV]\d) `),
 		regexp.MustCompile(` ([a-zA-Z]\d-\d{4}[A-Z]{0,2}) `),
+		regexp.MustCompile(` ([a-zA-Z]\d-\d{4}[A-Z]\d) `),
 		regexp.MustCompile(` ([A-Z]\d{4}[A-Z]{0,2}) `),
 		regexp.MustCompile(` ((:?[A-Z][a-z]+ )+GCE)`),
 	}
