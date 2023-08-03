@@ -58,7 +58,7 @@ func GetDep(content string, dep DependencyID) (Dependency, error) {
 	if !ok {
 		b, err := json.MarshalIndent(entries, "", "  ")
 		if err == nil {
-			return Dependency{}, skerr.Fmt("Unable to find %q! Entries:\n%s", dep, string(b))
+			return Dependency{}, skerr.Fmt("Cannot find item with id=%q from these entries:\n%s", dep, string(b))
 		} else {
 			return Dependency{}, skerr.Fmt("Unable to find %q! Failed to encode entries with: %s", dep, err)
 		}
