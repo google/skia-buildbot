@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
@@ -443,7 +442,7 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if fsc.ForceLogin && !plogin.HasRole(r, roles.Viewer) {
-				http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+				http.Redirect(w, r, plogin.LoginURL(r), http.StatusSeeOther)
 				return
 			}
 			w.Header().Set("Content-Type", "text/html")

@@ -315,8 +315,6 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 		redirectURL = defaultRedirectURL
 	}
 
-	sklog.Infof("cookieSalt: %q salt: %q clientID: %q", abbrev(cookieSalt), abbrev(salt), abbrev(clientID))
-
 	// TODO(jcgregorio) We should actually load the last two cookieSalts and try
 	// to decrypt with either of them, while only encoding Cookies with the
 	// latest salt. Also, the two cookieSalts should be periodically re-loaded
@@ -324,6 +322,8 @@ func initLogin(ctx context.Context, clientID, clientSecret, redirectURL, salt st
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig = activeOAuth2ConfigConstructor(clientID, clientSecret, redirectURL)
 	cookieSalt = salt
+
+	sklog.Infof("cookieSalt: %q clientID: %q", abbrev(cookieSalt), abbrev(clientID))
 
 	var err error
 	tokenValidatorService, err = oauth2_api.NewService(ctx, option.WithHTTPClient(httputils.NewTimeoutClient()))

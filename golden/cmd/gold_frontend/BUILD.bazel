@@ -13,7 +13,6 @@ go_library(
         "//go/common",
         "//go/gerrit",
         "//go/httputils",
-        "//go/login",
         "//go/metrics2",
         "//go/roles",
         "//go/sklog",
