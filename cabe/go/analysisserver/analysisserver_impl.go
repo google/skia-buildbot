@@ -39,6 +39,13 @@ func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalys
 		analyzer.WithCASResultReader(s.casResultReader),
 		analyzer.WithExperimentSpec(req.ExperimentSpec),
 	)
+	sklog.Infof("Pinpoint job %v GetAnalysis", req.GetPinpointJobId())
+
+	c := analyzer.NewChecker(analyzer.DefaultCheckerOpts...)
+	if err := a.RunChecker(ctx, c); err != nil {
+		sklog.Errorf("run checker error: %v", err)
+	}
+	sklog.Infof("checker findings: %v", c.Findings())
 
 	if _, err := a.Run(ctx); err != nil {
 		sklog.Errorf("running analyzer: %#v", err)
