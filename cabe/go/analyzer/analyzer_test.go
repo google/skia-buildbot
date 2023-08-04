@@ -345,3 +345,56 @@ func TestRun_withReplayBackends(t *testing.T) {
 
 	assert.Equal(t, "", diff)
 }
+
+func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
+	ctx := context.Background()
+
+	path := filepath.Join(
+		bazel.RunfilesDir(),
+		"external/cabe_replay_data",
+		// https://pinpoint-dot-chromeperf.appspot.com/job/17e73187160000
+		"pinpoint_17e73187160000.zip")
+
+	replayer := replaybackends.FromZipFile(
+		path,
+		fakeBenchmarkName,
+	)
+	a := New(
+		"17e73187160000",
+		WithExperimentSpec(
+			&cpb.ExperimentSpec{
+				Analysis: &cpb.AnalysisSpec{
+					Benchmark: []*cpb.Benchmark{
+						{
+							Name:     fakeBenchmarkName,
+							Workload: []string{"Compile:duration"},
+						},
+					},
+				},
+			},
+		),
+		WithCASResultReader(replayer.CASResultReader),
+		WithSwarmingTaskReader(replayer.SwarmingTaskReader),
+	)
+
+	res, err := a.Run(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), 1)
+
+	expectedResults := &cpb.Statistic{
+		Upper:           54.891271,
+		Lower:           27.297663,
+		PValue:          0.007812,
+		ControlMedian:   5502.464000,
+		TreatmentMedian: 7824.926500,
+	}
+	gotAnalysisResults := a.AnalysisResults()
+	assert.Equal(t, len(gotAnalysisResults), 1)
+
+	diff := cmp.Diff(expectedResults, gotAnalysisResults[0].Statistic,
+		cmpopts.EquateEmpty(),
+		cmpopts.EquateApprox(0, 0.03),
+		protocmp.Transform())
+
+	assert.Equal(t, "", diff)
+}

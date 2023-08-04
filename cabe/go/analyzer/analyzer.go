@@ -147,6 +147,18 @@ func (a *Analyzer) ExperimentSpec() *cpb.ExperimentSpec {
 	return a.experimentSpec
 }
 
+func (a *Analyzer) filterCompleteSwarmingTasks(taskInfos []*swarming.SwarmingRpcsTaskRequestMetadata) []*swarming.SwarmingRpcsTaskRequestMetadata {
+	ret := []*swarming.SwarmingRpcsTaskRequestMetadata{}
+	for _, taskInfo := range taskInfos {
+		if taskInfo.TaskResult.State == taskCompletedState {
+			ret = append(ret, taskInfo)
+		} else {
+			sklog.Warningf("ignoring swarming task %s because it is in state %q rather than %q", taskInfo.TaskId, taskInfo.TaskResult.State, taskCompletedState)
+		}
+	}
+	return ret
+}
+
 // Run executes the whole Analyzer process for a single, complete experiment.
 // TODO(seanmccullough): break this up into distinct, testable stages with one function per stage.
 func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
@@ -160,6 +172,8 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 	if err != nil {
 		return res, err
 	}
+
+	allTaskInfos = a.filterCompleteSwarmingTasks(allTaskInfos)
 
 	// TODO(seanmccullough): choose different process<Foo>Tasks implementations based on AnalysisSpec values.
 	processedArms, err := processPinpointTryjobTasks(allTaskInfos)
