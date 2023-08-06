@@ -13,6 +13,7 @@ sk_element(
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//skottie/modules/helpers:animation_ts_lib",
+        "//skottie/modules/skottie-text-editor-sk/text-box:text-box_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -29,4 +30,10 @@ ts_library(
         "//skottie/modules:types_ts_lib",
         "//skottie/modules/helpers:animation_ts_lib",
     ],
+)
+
+ts_library(
+    name = "text-sanizite_ts_lib",
+    srcs = ["text-sanizite.ts"],
+    visibility = ["//visibility:public"],
 )

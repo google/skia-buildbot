@@ -53,15 +53,6 @@ describe('skottie-sk', () => {
       await takeScreenshot(testBed.page, 'skottie', 'gif_exporter');
     });
 
-    it('shows text editor when the details is expanded', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}?test=withText`);
-      // Focus in a little to see better.
-      await testBed.page.setViewport({ width: 1300, height: 1200 });
-      await testBed.page.click('#edit-text-open');
-      await takeScreenshot(testBed.page, 'skottie', 'text_editor');
-      expect(testBed.page.url()).contains('t=true');
-    });
-
     it('shows performance chart when the button is clicked', async () => {
       await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.

@@ -63,7 +63,6 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules/helpers:domains_ts_lib",
         "//skottie/modules/helpers:templates_ts_lib",
-        "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
         "@npm//@types/jsoneditor",

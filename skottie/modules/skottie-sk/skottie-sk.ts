@@ -24,7 +24,6 @@ import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk
 import { SkottieGifExporterSk } from '../skottie-gif-exporter-sk/skottie-gif-exporter-sk';
 import '../skottie-gif-exporter-sk';
 import '../skottie-text-editor-sk';
-import { replaceTexts } from '../skottie-text-editor-sk/text-replace';
 import '../skottie-library-sk';
 import { SoundMap, AudioPlayer } from '../audio';
 import '../skottie-performance-sk';
@@ -596,22 +595,11 @@ export class SkottieSk extends ElementSk {
   `;
 
   private jsonTextEditor = () => html`
-    <details
-      class="expando"
-      ?open=${this.showTextEditor}
-      @toggle=${(e: Event) =>
-        this.toggleTextEditor((e.target! as HTMLDetailsElement).open)}>
-      <summary id="edit-text-open">
-        <span>Edit Text</span><expand-less-icon-sk></expand-less-icon-sk>
-        <expand-more-icon-sk></expand-more-icon-sk>
-      </summary>
-
-      <skottie-text-editor-sk
-        .animation=${this.state.lottie}
-        .mode=${this.viewMode}
-        @apply=${this.applyTextEdits}>
-      </skottie-text-editor-sk>
-    </details>
+    <skottie-text-editor-sk
+      .animation=${this.state.lottie}
+      .mode=${this.viewMode}
+      @apply=${this.applyTextEdits}>
+    </skottie-text-editor-sk>
   `;
 
   private shaderEditor = () => html`
@@ -844,13 +832,9 @@ export class SkottieSk extends ElementSk {
     this.render();
   }
 
-  private applyTextEdits(e: CustomEvent<TextEditApplyEventDetail>): void {
-    const texts = e.detail.texts;
-    this.state.lottie = replaceTexts(texts, this.state.lottie!);
-    this.skottieLibrary?.replaceTexts(texts);
+  private applyTextEdits(ev: CustomEvent<TextEditApplyEventDetail>): void {
     this.changingTool = 'text-edits';
-    this.ui = 'draft';
-    this.render();
+    this.onAnimationUpdated(ev);
   }
 
   private applyShaderEdits(e: CustomEvent<ShaderEditApplyEventDetail>): void {
@@ -1531,13 +1515,6 @@ export class SkottieSk extends ElementSk {
     this.render();
   }
 
-  private toggleTextEditor(open: boolean): void {
-    this.showJSONEditor = false;
-    this.showTextEditor = open;
-    this.stateChanged();
-    this.render();
-  }
-
   private toggleShaderEditor(open: boolean): void {
     this.showJSONEditor = false;
     this.showShaderEditor = open;
@@ -1650,6 +1627,7 @@ export class SkottieSk extends ElementSk {
       | SkottieFontEventDetail
       | SkottieTextSampleEventDetail
       | SkottieTemplateEventDetail
+      | TextEditApplyEventDetail
     >
   ): void {
     this.state.lottie = ev.detail.animation;

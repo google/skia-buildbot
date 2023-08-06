@@ -18,102 +18,35 @@
  *
  */
 import { html } from 'lit-html';
-import { ifDefined } from 'lit-html/directives/if-defined';
 import { define } from '../../../elements-sk/modules/define';
-import { ExtraLayerData, TextData } from './text-replace';
+import { ExtraLayerData, replaceTexts, TextData } from './text-replace';
 import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isCompAsset } from '../helpers/animation';
+import './text-box/text-box';
 
 export interface TextEditApplyEventDetail {
-  texts: TextData[];
+  animation: LottieAnimation;
 }
 
 const LAYER_TEXT_TYPE = 5;
 const COMP_ROOT_NAME = 'Root';
-const LINE_FEED = 10;
-const FORM_FEED = 13;
 
 export class SkottieTextEditorSk extends ElementSk {
   private static template = (ele: SkottieTextEditorSk) => html`
-   <div>
-     <header class="editor-header">
-       <div class="editor-header-title">Text Editor</div>
-       <div class="editor-header-separator"></div>
-       ${ele.ungroupButton()}
-       <button class="editor-header-save-button" @click=${
-         ele.save
-       }>Save</button>
-     </header>
-     <section>
-       <ul class="text-container">
-          ${ele.texts.map((item: TextData) => ele.textElement(item))}
-       </ul>
-     <section>
-   </div>
- `;
-
-  private ungroupButton = () => {
-    if (this.mode === 'presentation') {
-      return null;
-    }
-    return html` <button
-      class="editor-header-save-button"
-      @click=${this.toggleTextsCollapse}>
-      ${this.areTextsCollapsed ? 'Ungroup Texts' : 'Group Texts'}
-    </button>`;
-  };
-
-  private textElement = (item: TextData) => html`
-    <li class="text-element">
-      <div class="text-element-wrapper">
-        ${this.textElementTitle(item.name)}
-        <div class="text-element-item">
-          <div class="text-element-label">Layer text:</div>
-          <textarea
-            class="text-element-input"
-            @change=${(ev: Event) => this.onChange(ev, item)}
-            @input=${(ev: Event) => this.onChange(ev, item)}
-            maxlength=${ifDefined(item.maxChars)}
-            .value=${item.text}></textarea>
-        </div>
-        <div>${this.originTemplate(item)}</div>
-      </div>
-    </li>
+    <div>
+      <ul class="text-container">
+        ${ele.texts.map((item: TextData) => ele.textElement(item))}
+      </ul>
+    </div>
   `;
 
-  private textElementTitle = (name: string) => {
-    if (this.mode === 'presentation') {
-      return null;
-    }
-    return html`
-      <div class="text-element-item">
-        <div class="text-element-label">Layer name:</div>
-        <div>${name}</div>
-      </div>
-    `;
-  };
-
-  private originTemplate = (group: TextData) => {
-    if (this.mode === 'presentation') {
-      return null;
-    }
-    return html`
-      <div class="text-element-item">
-        <div class="text-element-label">
-          Origin${group.items.length > 1 ? 's' : ''}:
-        </div>
-        <ul>
-          ${group.items.map(SkottieTextEditorSk.originTemplateElement)}
-        </ul>
-      </div>
-    `;
-  };
-
-  private static originTemplateElement = (item: ExtraLayerData) => html`
-    <li class="text-element-origin">
-      <b>${item.precompName}</b> > Layer ${item.layer.ind}
-    </li>
+  private textElement = (item: TextData) => html`
+    <skottie-text-editor-box-sk
+      .textData=${item}
+      .mode=${this.mode}
+      @change=${this.save}>
+    </skottie-text-editor-box-sk>
   `;
 
   private _animation: LottieAnimation | null = null;
@@ -216,44 +149,14 @@ export class SkottieTextEditorSk extends ElementSk {
   }
 
   private save() {
+    const animation = replaceTexts(this.texts, this._animation!);
     this.dispatchEvent(
       new CustomEvent<TextEditApplyEventDetail>('apply', {
         detail: {
-          texts: this.texts,
+          animation: animation,
         },
       })
     );
-  }
-
-  private toggleTextsCollapse(): void {
-    this.areTextsCollapsed = !this.areTextsCollapsed;
-    this.buildTexts(this._animation!);
-    this._render();
-  }
-
-  private static sanitizeText(text: string): string {
-    let sanitizedText = '';
-    for (let i = 0; i < text.length; i += 1) {
-      if (text.charCodeAt(i) === LINE_FEED) {
-        sanitizedText += String.fromCharCode(FORM_FEED);
-      } else {
-        sanitizedText += text.charAt(i);
-      }
-    }
-    return sanitizedText;
-  }
-
-  private onChange(e: Event, textData: TextData): void {
-    const target = e.target as HTMLTextAreaElement;
-    const text = SkottieTextEditorSk.sanitizeText(target.value);
-    textData.text = text;
-    textData.items.forEach((item: ExtraLayerData) => {
-      // this property is the text string of a text layer.
-      // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
-      if (item.layer.t) {
-        item.layer.t.d.k[0].s.t = text;
-      }
-    });
   }
 
   private updateAnimation(animation: LottieAnimation): void {

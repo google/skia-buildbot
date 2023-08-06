@@ -23,43 +23,6 @@ skottie-text-editor-sk {
   }
 
   .text-container {
-    margin-left: 10px;
     padding: 0;
-  }
-
-  .text-element {
-    display: inline-block;
-    list-style: none;
-    margin-bottom: 10px;
-    vertical-align: top;
-
-    &-item {
-      margin-bottom: 8px;
-    }
-
-    &-wrapper {
-      border: 4px solid var(--primary);
-      display: inline-block;
-      padding: 6px 80px 6px 20px;
-    }
-
-    &-label {
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-
-    &-input {
-      border: solid 1px var(--on-surface);
-      color: var(--on-surface);
-      background: var(--surface);
-      border-radius: 4px;
-      font-size: 14px;
-      padding: 4px 2px 2px 2px;
-    }
-
-    &-origin {
-      font-size: 12px;
-    }
   }
 }
