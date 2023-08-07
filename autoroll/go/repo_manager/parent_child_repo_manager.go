@@ -77,9 +77,14 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		childRM, err = child.NewGitCheckoutGithub(ctx, c.GetGitCheckoutGithubChild(), reg, workdir, cr, childCheckout)
 	} else if c.GetSemverGcsChild() != nil {
 		childRM, err = child.NewSemVerGCS(ctx, c.GetSemverGcsChild(), reg, client)
+	} else if c.GetDockerChild() != nil {
+		childRM, err = child.NewDocker(ctx, c.GetDockerChild())
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	if childRM == nil {
+		return nil, skerr.Fmt("missing child")
 	}
 
 	// Some Parent implementations require a Child to be passed in.
@@ -88,6 +93,9 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	if parentRM == nil {
+		return nil, skerr.Fmt("missing parent")
 	}
 
 	// Revision filter.
