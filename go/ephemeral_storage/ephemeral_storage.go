@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -27,6 +28,7 @@ type file struct {
 type report struct {
 	// Type is a const to make it easier to filter these structured log entries.
 	Type       string
+	TempDir    string // Usually "/tmp", or os.TempDir() if "/tmp" does not exist (e.g. on Windows).
 	TotalBytes int64
 	TotalFiles int64
 	Files      []file
@@ -36,9 +38,24 @@ type report struct {
 //
 // The JSON emitted on a single line will be picked up by StackDriver as a structured log.
 func UsageViaStructuredLogging(ctx context.Context) error {
+	// Note we use "/tmp" and not $TMPDIR, because if $TMPDIR is set then it's
+	// probably not using ephemeral storage.
+	//
+	// Other potential directories to walk are listed here:
+	//
+	// https://cloud.google.com/container-optimized-os/docs/concepts/disks-and-filesystem#working_with_the_file_system
+	//
+	// If /tmp does not exist, we fall back to os.TempDir(). This has the benefit of being compatible
+	// with Windows.
+	tempDir := "/tmp"
+	if fileInfo, err := os.Stat(tempDir); err != nil || !fileInfo.IsDir() {
+		tempDir = os.TempDir()
+	}
+
 	report := report{
-		Type:  typeTag,
-		Files: []file{}, // Serialize to at least [] in JSON.
+		Type:    typeTag,
+		TempDir: tempDir,
+		Files:   []file{}, // Serialize to at least [] in JSON.
 	}
 
 	var totalSize int64
@@ -48,13 +65,10 @@ func UsageViaStructuredLogging(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	// Note we use "/tmp" and not $TMPDIR, because if $TMPDIR is set then it's
-	// probably not using ephemeral storage.
-	//
-	// Other potential directories to walk are listed here:
-	//
-	// https://cloud.google.com/container-optimized-os/docs/concepts/disks-and-filesystem#working_with_the_file_system
-	err := filepath.Walk("/tmp", func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(tempDir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return skerr.Wrap(err)
+		}
 		if info.IsDir() {
 			return nil
 		}
