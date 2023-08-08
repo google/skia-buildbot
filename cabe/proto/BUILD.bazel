@@ -1,0 +1,35 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+proto_library(
+    name = "spec_proto",
+    srcs = [
+        "spec.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+proto_library(
+    name = "analysis_proto",
+    srcs = [
+        "analysis.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":spec_proto",
+    ],
+)
+
+proto_library(
+    name = "service_proto",
+    srcs = [
+        "service.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":analysis_proto",
+        ":spec_proto",
+    ],
+)

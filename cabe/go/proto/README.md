@@ -1,14 +1,13 @@
 # CABE Protocol buffer definitions
 
-This directory contains both the hand-editable `.proto` files and the
-not-to-be-hand-edited `.pb.go` and `_grpc.pb.go` files generated from
-the `.proto` files.
+This directory contains `.pb.go` and `_grpc.pb.go` files generated from
+the `.proto` files in //cabe/proto/...
 
 # How to update cabe's protos
 
 To update any of cabe's protobuf definitions:
 
-- make your edits to the `.proto` files(s)
+- make your edits to the `.proto` files(s) in //cabe/proto/...
 - run `go generate` from this directory to update the generated `.go` files
 - test and send your changes for review
 
