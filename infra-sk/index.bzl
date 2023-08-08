@@ -507,7 +507,7 @@ def sk_page(
     #    known issue with sass_binary. For more details please see
     #    https://github.com/bazelbuild/rules_sass/issues/96.
 
-    # Generates file <name>_unoptimized_dev.css.
+    # Generates files <name>_unoptimized_dev.css and <name>_unoptimized_dev.css.map.
     #
     # Produces sourcemaps with embedded sources. Produces CSS in "expanded" style, see
     # https://sass-lang.com/documentation/cli/dart-sass/#style.
@@ -542,7 +542,7 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-    # Generates file development/<name>.css.
+    # Generates files development/<name>.css and development/<name>.css.map.
     #
     # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
     # so the output can contain many copies of the CSS rules like "colors.scss".
