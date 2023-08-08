@@ -49,12 +49,19 @@ The number of issues being created in the issue tracker is too high.
 To quickly stop Perf from creating more issues set the `--noemail` flag on the
 offending instance.
 
+## querying_wedged
+
+This alert is raised when the number of long running queries remains high. It
+might just be high traffic, but if `perf_progress_tracker_num_entries_in_cache`
+looks constant over time then the querying might be wedged. Check for Go routine
+leaks or contents that time out in the logs.
+
 ## too_much_data
 
 There are times when a process may inject too much data into Perf.
 
 These may be useful queries to run against the database to find where the data
-it coming from:
+is coming from:
 
 # Sample a subset of param_values.
 
