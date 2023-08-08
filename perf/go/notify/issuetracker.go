@@ -62,7 +62,8 @@ func (t *IssueTrackerTransport) SendNewRegression(ctx context.Context, alert *al
 
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
-			Comment: body,
+			Comment:        body,
+			FormattingMode: "MARKDOWN",
 		},
 		IssueState: &issuetracker.IssueState{
 			ComponentId: int64(alert.IssueTrackerComponent),
@@ -96,7 +97,8 @@ func (t *IssueTrackerTransport) SendRegressionMissing(ctx context.Context, threa
 			Status: "OBSOLETE",
 		},
 		IssueComment: &issuetracker.IssueComment{
-			Comment: body,
+			Comment:        body,
+			FormattingMode: "MARKDOWN",
 		},
 		AddMask: "status",
 	}).Do()
