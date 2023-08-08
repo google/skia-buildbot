@@ -9,8 +9,9 @@ build:
 release: build
 	${BAZEL} run //scrap:push_scrapexchange_container
 
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout scrapexchange
+# Review section in README.md before running this target
+push_I_am_really_sure: release
+	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --override-sha256-digests --use-temp-checkout scrapexchange
 
 testgo:
 	go test ./go/...

@@ -40,3 +40,22 @@ originally created in `//infra/am`, to talk to the Chrome Infra Auth API.
 We use the following buckets for each instance:
 
     skia-public: gs://skia-public-scrap-exchange
+
+## Deployment
+
+Scrap Exchange is automatically built by a
+[Louhi flow](https://louhi.dev/6316342352543744/flow-detail/dee997a6-0306-49f9-b902-dd8a7e7aab9b?branch=main)
+whenever a change merges anywhere in this repository. If this results in a new
+Docker image in
+[gcr.io/skia-public/scrapexchange](https://console.cloud.google.com/gcr/images/skia-public/global/scrapexchange)
+then Louhi will automatically update references in k8s-config whereby
+k8s-deployer will automatically deploy that new image. Deployment is fully
+automatic.
+
+A Docker image can be manually pushed to GCR by running
+`make push_I_am_really_sure`. In addition to pushing, this target will also
+update k8s-config references. This will prevent Louhi from updating future
+scrapexchange references in k8s-config. To re-enable updating, a manual change
+in k8s-config will need to be landed that returns the image reference from
+tag-style (e.g. `gcr.io/skia-public/scrapexchange:{tagname}`)
+to digest style (e.g. `cr.io/skia-public/scrapexchange@sha256:{digest}`).
