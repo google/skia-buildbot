@@ -13,6 +13,7 @@ export interface TextData {
   text: string;
   maxChars?: number; // If not defined, we don't constrain the <textarea>
   precompName: string;
+  fontName: string;
   items: ExtraLayerData[];
 }
 

@@ -1,0 +1,21 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "text-box-sk",
+    sass_deps = ["//infra-sk:themes_sass_lib"],
+    sass_srcs = ["text-box-sk.scss"],
+    sk_element_deps = ["//skottie/modules/skottie-font-selector-sk"],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
+        "//skottie/modules/skottie-text-editor-sk:text-sanizite_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "text-box-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

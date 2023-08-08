@@ -16,10 +16,8 @@ import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
-import { LottieAnimation, LottieLayer, LottieAsset } from '../types';
-import { isCompAsset } from '../helpers/animation';
 
-type FontType = {
+export type FontType = {
   fName: string;
   fStyle: string;
   fFamily: string;
@@ -30,8 +28,6 @@ type OptionType = {
   id: string;
   selected?: boolean;
 };
-
-const LAYER_TYPE_TEXT = 5;
 
 const availableFonts: FontType[] = [
   {
@@ -318,11 +314,11 @@ availableFonts.sort(function (a, b) {
 });
 
 export interface SkottieFontEventDetail {
-  animation: LottieAnimation;
+  font: FontType;
 }
 
 export class SkottieFontSelectorSk extends ElementSk {
-  private _animation: LottieAnimation | null = null;
+  private _fontName: string = '';
 
   private static template = (
     ele: SkottieFontSelectorSk
@@ -354,9 +350,7 @@ export class SkottieFontSelectorSk extends ElementSk {
 
   private buildFontOptions(): OptionType[] {
     const fontOptions: OptionType[] = availableFonts.map((font) => {
-      const isSelected =
-        this._animation?.fonts?.list &&
-        this._animation?.fonts?.list[0].fName === font.fName;
+      const isSelected = this._fontName === font.fName;
       return { id: font.fName, value: font.fName, selected: isSelected };
     });
     fontOptions.unshift({
@@ -366,64 +360,19 @@ export class SkottieFontSelectorSk extends ElementSk {
     return fontOptions;
   }
 
-  private updateFontInLayers(
-    layers: LottieLayer[],
-    targetFont: string,
-    replacingFont: string
-  ): void {
-    layers.forEach((layer) => {
-      if (layer.ty === LAYER_TYPE_TEXT) {
-        if (layer.t?.d.k[0].s.f === targetFont) {
-          layer.t.d.k[0].s.f = replacingFont;
-        }
-      }
-    });
-  }
-
-  private updateFontInAssets(
-    assets: LottieAsset[],
-    targetFont: string,
-    replacingFont: string
-  ): void {
-    assets.forEach((asset) => {
-      if (isCompAsset(asset)) {
-        this.updateFontInLayers(asset.layers, targetFont, replacingFont);
-      }
-    });
-  }
-
   private fontTypeSelectHandler(ev: CustomEvent<DropdownSelectEvent>): void {
     // This event handler replaces the animation in place
     // instead of creating a copy of the lottie animation.
     // If there is a reason why it should create a copy, this can be updated
-    if (ev.detail.value && this._animation) {
-      if (this._animation.fonts?.list?.length) {
-        // We're changing a single font for the time being.
-        // If we need to change multiple fonts, we probably will want to add a dropdown per font.
-        const currentFontName = this._animation.fonts.list[0].fName;
-        const newFontData = availableFonts.find(
-          (font) => font.fName === ev.detail.value
-        );
-        if (newFontData) {
-          this._animation.fonts.list[0].fName = newFontData.fName;
-          this._animation.fonts.list[0].fFamily = newFontData.fFamily;
-          this._animation.fonts.list[0].fStyle = newFontData.fStyle;
-          this.updateFontInLayers(
-            this._animation.layers,
-            currentFontName,
-            newFontData.fName
-          );
-          this.updateFontInAssets(
-            this._animation.assets,
-            currentFontName,
-            newFontData.fName
-          );
-        }
-
+    if (ev.detail.value) {
+      const newFontData = availableFonts.find(
+        (font) => font.fName === ev.detail.value
+      );
+      if (newFontData) {
         this.dispatchEvent(
-          new CustomEvent<SkottieFontEventDetail>('animation-updated', {
+          new CustomEvent<SkottieFontEventDetail>('select-font', {
             detail: {
-              animation: this._animation,
+              font: newFontData,
             },
             bubbles: true,
           })
@@ -432,8 +381,8 @@ export class SkottieFontSelectorSk extends ElementSk {
     }
   }
 
-  set animation(value: LottieAnimation) {
-    this._animation = value;
+  set fontName(value: string) {
+    this._fontName = value;
     this._render();
   }
 }

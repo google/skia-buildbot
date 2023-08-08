@@ -45,7 +45,7 @@ import {
 } from '../skottie-audio-sk/skottie-audio-sk';
 import {
   SkottieTextEditorSk,
-  TextEditApplyEventDetail,
+  TextEditEventDetail,
 } from '../skottie-text-editor-sk/skottie-text-editor-sk';
 import '../skottie-shader-editor-sk';
 import {
@@ -80,8 +80,6 @@ import '../skottie-background-settings-sk';
 import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
 import '../skottie-text-sampler-sk';
 import { SkottieTextSampleEventDetail } from '../skottie-text-sampler-sk/skottie-text-sampler-sk';
-import '../skottie-font-selector-sk';
-import { SkottieFontEventDetail } from '../skottie-font-selector-sk/skottie-font-selector-sk';
 import '../skottie-color-manager-sk';
 import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
 import { isBinaryAsset } from '../helpers/animation';
@@ -371,20 +369,6 @@ export class SkottieSk extends ElementSk {
     `;
   }
 
-  private fontSelector() {
-    return html`
-      <details class="embed expando">
-        <summary id="embed-open">
-          <span>Font selector</span><expand-less-icon-sk></expand-less-icon-sk>
-          <expand-more-icon-sk></expand-more-icon-sk>
-        </summary>
-        <skottie-font-selector-sk
-          @animation-updated=${this.onSkottieFontUpdated}
-          .animation=${this.state.lottie}></skottie-font-selector-sk>
-      </details>
-    `;
-  }
-
   private performanceChartTemplate() {
     return html`
       <dialog class="perf-chart" ?open=${this.showPerformanceChart}>
@@ -414,8 +398,8 @@ export class SkottieSk extends ElementSk {
   };
 
   private rightControls = () => html`
-    ${this.jsonTextEditor()} ${this.fontSelector()} ${this.renderTextSampler()}
-    ${this.library()} ${this.embedDialog()}
+    ${this.jsonTextEditor()} ${this.renderTextSampler()} ${this.library()}
+    ${this.embedDialog()}
   `;
 
   private renderDownload() {
@@ -598,7 +582,7 @@ export class SkottieSk extends ElementSk {
     <skottie-text-editor-sk
       .animation=${this.state.lottie}
       .mode=${this.viewMode}
-      @apply=${this.applyTextEdits}>
+      @text-change=${this.onTextChange}>
     </skottie-text-editor-sk>
   `;
 
@@ -832,9 +816,10 @@ export class SkottieSk extends ElementSk {
     this.render();
   }
 
-  private applyTextEdits(ev: CustomEvent<TextEditApplyEventDetail>): void {
+  private onTextChange(ev: CustomEvent<TextEditEventDetail>): void {
     this.changingTool = 'text-edits';
     this.onAnimationUpdated(ev);
+    this.loadAssetsAndRender();
   }
 
   private applyShaderEdits(e: CustomEvent<ShaderEditApplyEventDetail>): void {
@@ -1034,6 +1019,11 @@ export class SkottieSk extends ElementSk {
 
         this.state.assets = loadedAssets;
         this.state.soundMap = sounds;
+        if (this.ui === 'synced') {
+          this.ui = 'loaded';
+        } else if (this.ui === 'unsynced') {
+          this.ui = 'draft';
+        }
         this.render();
       })
       .catch(() => {
@@ -1612,11 +1602,6 @@ export class SkottieSk extends ElementSk {
     this.onAnimationUpdated(ev);
   }
 
-  private onSkottieFontUpdated(ev: CustomEvent<SkottieFontEventDetail>) {
-    this.changingTool = 'skottie-font';
-    this.onAnimationUpdated(ev);
-  }
-
   private onTextSampleUpdated(ev: CustomEvent<SkottieTextSampleEventDetail>) {
     this.changingTool = 'text-sample';
     this.onAnimationUpdated(ev);
@@ -1624,10 +1609,9 @@ export class SkottieSk extends ElementSk {
 
   private onAnimationUpdated(
     ev: CustomEvent<
-      | SkottieFontEventDetail
       | SkottieTextSampleEventDetail
       | SkottieTemplateEventDetail
-      | TextEditApplyEventDetail
+      | TextEditEventDetail
     >
   ): void {
     this.state.lottie = ev.detail.animation;

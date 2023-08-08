@@ -7,7 +7,7 @@
  * </p>
  *
  *
- * @evt apply - This event is generated when the user presses Apply.
+ * @evt text-change - This event is generated when the user presses Apply.
  *         The updated json is available in the event detail.
  *
  * @attr animation the animation json.
@@ -23,9 +23,10 @@ import { ExtraLayerData, replaceTexts, TextData } from './text-replace';
 import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isCompAsset } from '../helpers/animation';
-import './text-box/text-box';
+import './text-box-sk';
+import { SkottieFontChangeEventDetail } from './text-box-sk/text-box-sk';
 
-export interface TextEditApplyEventDetail {
+export interface TextEditEventDetail {
   animation: LottieAnimation;
 }
 
@@ -45,7 +46,8 @@ export class SkottieTextEditorSk extends ElementSk {
     <skottie-text-editor-box-sk
       .textData=${item}
       .mode=${this.mode}
-      @change=${this.save}>
+      @change=${this.save}
+      @font-change=${this.updateFont}>
     </skottie-text-editor-box-sk>
   `;
 
@@ -61,6 +63,32 @@ export class SkottieTextEditorSk extends ElementSk {
 
   constructor() {
     super(SkottieTextEditorSk.template);
+  }
+
+  private updateFontInLayers(
+    layers: LottieLayer[],
+    targetFont: string,
+    replacingFont: string
+  ): void {
+    layers.forEach((layer) => {
+      if (layer.ty === LAYER_TEXT_TYPE) {
+        if (layer.t?.d.k[0].s.f === targetFont) {
+          layer.t.d.k[0].s.f = replacingFont;
+        }
+      }
+    });
+  }
+
+  private updateFontInAssets(
+    assets: LottieAsset[],
+    targetFont: string,
+    replacingFont: string
+  ): void {
+    assets.forEach((asset) => {
+      if (isCompAsset(asset)) {
+        this.updateFontInLayers(asset.layers, targetFont, replacingFont);
+      }
+    });
   }
 
   findPrecompName(animation: LottieAnimation, precompId: string): string {
@@ -136,6 +164,7 @@ export class SkottieTextEditorSk extends ElementSk {
               text: item.layer.t?.d.k[0].s.t || 'unnamed layer',
               maxChars: item.layer.t?.d.k[0].s.mc, // Max characters text document attribute
               precompName: item.precompName,
+              fontName: item.layer.t?.d.k[0].s.f || '', // font name
             };
           }
 
@@ -148,15 +177,47 @@ export class SkottieTextEditorSk extends ElementSk {
     this.texts = Object.keys(textsData).map((key: string) => textsData[key]);
   }
 
-  private save() {
+  private save(): void {
     const animation = replaceTexts(this.texts, this._animation!);
     this.dispatchEvent(
-      new CustomEvent<TextEditApplyEventDetail>('apply', {
+      new CustomEvent<TextEditEventDetail>('text-change', {
         detail: {
           animation: animation,
         },
       })
     );
+  }
+
+  private updateFont(ev: CustomEvent<SkottieFontChangeEventDetail>): void {
+    if (this._animation) {
+      const fontData = ev.detail.font;
+      if (this._animation.fonts && this._animation.fonts.list) {
+        this._animation.fonts.list.forEach((font) => {
+          if (font.fName === ev.detail.fontName) {
+            font.fName = fontData.fName;
+            font.fFamily = fontData.fFamily;
+            font.fStyle = fontData.fStyle;
+          }
+        });
+      }
+      this.updateFontInLayers(
+        this._animation.layers,
+        ev.detail.fontName,
+        fontData.fName
+      );
+      this.updateFontInAssets(
+        this._animation.assets,
+        ev.detail.fontName,
+        fontData.fName
+      );
+      this.dispatchEvent(
+        new CustomEvent<TextEditEventDetail>('text-change', {
+          detail: {
+            animation: this._animation,
+          },
+        })
+      );
+    }
   }
 
   private updateAnimation(animation: LottieAnimation): void {

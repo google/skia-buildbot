@@ -9,6 +9,8 @@
  *
  * @evt change - This event is generated when the text changes.
  *
+ * @evt font-change - This event is generated when the font changes.
+ *
  * @attr textData the text data.
  *         At the moment it only reads it at load time.
  *
@@ -23,7 +25,16 @@ import { ViewMode } from '../../types';
 import { ExtraLayerData, TextData } from '../text-replace';
 import sanitizeText from '../text-sanizite';
 import { ifDefined } from 'lit-html/directives/if-defined';
-import { setTimeout } from 'timers';
+import '../../skottie-font-selector-sk';
+import {
+  FontType,
+  SkottieFontEventDetail,
+} from '../../skottie-font-selector-sk/skottie-font-selector-sk';
+
+export interface SkottieFontChangeEventDetail {
+  font: FontType;
+  fontName: string;
+}
 
 export class SkottieTextEditorBoxSk extends ElementSk {
   private static template = (ele: SkottieTextEditorBoxSk) => html`
@@ -45,6 +56,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
             maxlength=${ifDefined(ele._textData?.maxChars)}
             .value=${ele._textData?.text || ''}></textarea>
           <div>${ele.originTemplate()}</div>
+          <div>${ele.fontSelector()}</div>
         </div>
       </details>
     </li>
@@ -125,14 +137,30 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     }
     const { items } = this._textData;
     return html`
-      <div class="text-element-item">
-        <div class="text-element-label">
+      <div class="text-element-section">
+        <div class="text-element-section--title">
           Origin${items.length > 1 ? 's' : ''}:
         </div>
         <ul>
           ${items.map(SkottieTextEditorBoxSk.originTemplateElement)}
         </ul>
       </div>
+    `;
+  }
+
+  private fontSelector(): TemplateResult | null {
+    if (this.mode === 'presentation' || !this._textData) {
+      return null;
+    }
+    const { items, fontName } = this._textData;
+    return html`
+      <section class="text-element-section">
+        <div class="text-element-section--title">Font manager</div>
+        <skottie-font-selector-sk
+          .fontName=${fontName}
+          @select-font=${this.onFontSelected}>
+        </skottie-font-selector-sk>
+      </section>
     `;
   }
 
@@ -144,6 +172,20 @@ export class SkottieTextEditorBoxSk extends ElementSk {
         <b>${item.precompName}</b> > Layer ${item.layer.ind}
       </li>
     `;
+  }
+
+  private onFontSelected(ev: CustomEvent<SkottieFontEventDetail>): void {
+    if (this._textData) {
+      this.dispatchEvent(
+        new CustomEvent<SkottieFontChangeEventDetail>('font-change', {
+          detail: {
+            font: ev.detail.font,
+            fontName: this._textData?.fontName || '',
+          },
+        })
+      );
+      this._textData.fontName = ev.detail.font.fName;
+    }
   }
 
   set textData(val: TextData) {

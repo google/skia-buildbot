@@ -1,18 +1,17 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../../infra-sk/themes.scss';
 
 skottie-text-editor-box-sk {
   .wrapper {
-    display: inline-block;
+    display: block;
     list-style: none;
     margin-bottom: 10px;
-    vertical-align: top;
     width: 100%;
   }
 
   .text-element {
-    border: 4px solid var(--primary);
-    display: inline-block;
-    padding: 6px 80px 6px 20px;
+    display: block;
+    width: 100%;
+    padding: 6px 0px 6px 0px;
 
     &-item {
       margin-bottom: 8px;
@@ -31,10 +30,20 @@ skottie-text-editor-box-sk {
       border-radius: 4px;
       font-size: 14px;
       padding: 4px 2px 2px 2px;
+      width: 100%;
+      min-height: 70px;
     }
 
     &-origin {
       font-size: 12px;
+    }
+
+    .text-element-section {
+      .text-element-section--title {
+        color: var(--on-surface);
+        font-size: 14px;
+        padding: 16px 0 8px 0;
+      }
     }
   }
 }
