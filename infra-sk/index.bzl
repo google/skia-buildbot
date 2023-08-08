@@ -507,14 +507,17 @@ def sk_page(
     #    known issue with sass_binary. For more details please see
     #    https://github.com/bazelbuild/rules_sass/issues/96.
 
-    # Generates file development/<name>.css.
+    # Generates file <name>_unoptimized_dev.css.
+    #
+    # Produces sourcemaps with embedded sources. Produces CSS in "expanded" style, see
+    # https://sass-lang.com/documentation/cli/dart-sass/#style.
     sass_binary(
-        name = "%s_css_dev" % name,
+        name = "%s_css_unoptimized_dev" % name,
         src = name + "_ghost_entrypoint_scss",
-        output_name = "%s/%s.css" % (DEV_OUT_DIR, name),
+        output_name = "%s_unoptimized_dev.css" % name,
         deps = [name + "_styles"],
         include_paths = [
-            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
+            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work.
         ],
         output_style = "expanded",
         sourcemap = True,
@@ -522,24 +525,55 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-    # Generates file <name>_unoptimized.css.
+    # Generates file <name>_unoptimized_prod.css.
+    #
+    # Does not produce sourcemaps. Produces CSS in "compressed" style, see
+    # https://sass-lang.com/documentation/cli/dart-sass/#style.
     sass_binary(
         name = "%s_css_unoptimized_prod" % name,
         src = name + "_ghost_entrypoint_scss",
-        output_name = "%s_unoptimized.css" % name,
+        output_name = "%s_unoptimized_prod.css" % name,
         deps = [name + "_styles"],
         include_paths = [
-            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
+            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work.
         ],
         output_style = "compressed",
         sourcemap = False,
         visibility = ["//visibility:public"],
     )
 
+    # Generates file development/<name>.css.
+    #
+    # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
+    # so the output can contain many copies of the CSS rules like "colors.scss".
+    # We pass the CSS through csso to remove duplicate CSS rules, which can
+    # reduce a file to 1/10 its unoptimized size.
+    npm_package_bin(
+        name = "%s_css_dev" % name,
+        tool = "@npm//csso-cli/bin:csso",
+        chdir = "$(RULEDIR)",
+        data = [":%s_css_unoptimized_dev" % name],
+        outs = [
+            "%s/%s.css" % (DEV_OUT_DIR, name),
+            "%s/%s.css.map" % (DEV_OUT_DIR, name),
+        ],
+        args = [
+            "--input",
+            "%s_unoptimized_dev.css" % name,
+            "--input-source-map",
+            "%s_unoptimized_dev.css.map" % name,
+            "--output",
+            "%s/%s.css" % (DEV_OUT_DIR, name),
+            "--source-map",
+            "%s/%s.css.map" % (DEV_OUT_DIR, name),
+        ],
+        visibility = ["//visibility:public"],
+    )
+
     # Generates file production/<name>.css.
     #
     # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
-    # so the output can contain many copies of the CSS rules like 'colors.scss'.
+    # so the output can contain many copies of the CSS rules like "colors.scss".
     # We pass the CSS through csso to remove duplicate CSS rules, which can
     # reduce a file to 1/10 its unoptimized size.
     npm_package_bin(
@@ -547,8 +581,13 @@ def sk_page(
         tool = "@npm//csso-cli/bin:csso",
         chdir = "$(RULEDIR)",
         data = [":%s_css_unoptimized_prod" % name],
-        stdout = "%s/%s.css" % (PROD_OUT_DIR, name),
-        args = ["%s_unoptimized.css" % name],
+        outs = ["%s/%s.css" % (PROD_OUT_DIR, name)],
+        args = [
+            "--input",
+            "%s_unoptimized_prod.css" % name,
+            "--output",
+            "%s/%s.css" % (PROD_OUT_DIR, name),
+        ],
         visibility = ["//visibility:public"],
     )
 
