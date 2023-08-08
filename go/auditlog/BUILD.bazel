@@ -5,8 +5,5 @@ go_library(
     srcs = ["auditlog.go"],
     importpath = "go.skia.org/infra/go/auditlog",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/login",
-        "//go/sklog",
-    ],
+    deps = ["//go/sklog"],
 )

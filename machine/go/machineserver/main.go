@@ -562,7 +562,6 @@ func (s *server) apiPowerCycleCompleteHandler(w http.ResponseWriter, r *http.Req
 	s.audit(w, r, "powercycle-complete", id)
 
 	err = s.store.Update(r.Context(), id, setPowerCycleFalse)
-	auditlog.Log(r, "powercycle-complete", id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
