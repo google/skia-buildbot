@@ -100,6 +100,7 @@ func New(client *http.Client) (*Service, error) {
 		return nil, errors.New("client is nil")
 	}
 	s := &Service{client: client, BasePath: basePath}
+	s.Hotlists = NewHotlistsService(s)
 	s.Issues = NewIssuesService(s)
 	s.Media = NewMediaService(s)
 	return s, nil
@@ -109,6 +110,8 @@ type Service struct {
 	client    *http.Client
 	BasePath  string // API endpoint base URL
 	UserAgent string // optional additional User-Agent fragment
+
+	Hotlists *HotlistsService
 
 	Issues *IssuesService
 
@@ -122,10 +125,32 @@ func (s *Service) userAgent() string {
 	return googleapi.UserAgent + " " + s.UserAgent
 }
 
+func NewHotlistsService(s *Service) *HotlistsService {
+	rs := &HotlistsService{s: s}
+	rs.Entries = NewHotlistsEntriesService(s)
+	return rs
+}
+
+type HotlistsService struct {
+	s *Service
+
+	Entries *HotlistsEntriesService
+}
+
+func NewHotlistsEntriesService(s *Service) *HotlistsEntriesService {
+	rs := &HotlistsEntriesService{s: s}
+	return rs
+}
+
+type HotlistsEntriesService struct {
+	s *Service
+}
+
 func NewIssuesService(s *Service) *IssuesService {
 	rs := &IssuesService{s: s}
 	rs.Attachments = NewIssuesAttachmentsService(s)
 	rs.Comments = NewIssuesCommentsService(s)
+	rs.IssueUpdates = NewIssuesIssueUpdatesService(s)
 	return rs
 }
 
@@ -135,6 +160,8 @@ type IssuesService struct {
 	Attachments *IssuesAttachmentsService
 
 	Comments *IssuesCommentsService
+
+	IssueUpdates *IssuesIssueUpdatesService
 }
 
 func NewIssuesAttachmentsService(s *Service) *IssuesAttachmentsService {
@@ -155,6 +182,15 @@ type IssuesCommentsService struct {
 	s *Service
 }
 
+func NewIssuesIssueUpdatesService(s *Service) *IssuesIssueUpdatesService {
+	rs := &IssuesIssueUpdatesService{s: s}
+	return rs
+}
+
+type IssuesIssueUpdatesService struct {
+	s *Service
+}
+
 func NewMediaService(s *Service) *MediaService {
 	rs := &MediaService{s: s}
 	return rs
@@ -172,7 +208,7 @@ type Attachment struct {
 	// reading/writing its data.
 	AttachmentDataRef *AttachmentDataRef `json:"attachmentDataRef,omitempty"`
 
-	// AttachmentId: Immutable unique ID.
+	// AttachmentId: Output only. Unique ID.
 	AttachmentId int64 `json:"attachmentId,omitempty,string"`
 
 	// ContentType: MIME type of the data.
@@ -240,6 +276,84 @@ func (s *AttachmentDataRef) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// CollectionUpdate: Representation of a change to a collection.
+type CollectionUpdate struct {
+	// AddedValues: Output only. Values added to the collection.
+	AddedValues []googleapi.RawMessage `json:"addedValues,omitempty"`
+
+	// RemovedValues: Output only. Values removed from the collection.
+	RemovedValues []googleapi.RawMessage `json:"removedValues,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "AddedValues") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "AddedValues") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *CollectionUpdate) MarshalJSON() ([]byte, error) {
+	type NoMethod CollectionUpdate
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// CreateHotlistEntryRequest: Request object for
+// IssueTracker.CreateHotlistEntry Used to add an issue to a hotlist
+type CreateHotlistEntryRequest struct {
+	// HotlistEntry: HotlistEntry position will not be taken into account.
+	// Issues are always prepended to the hotlist and have position = 1. If
+	// the issue is already present on the hotlist it will be moved to
+	// position = 1.
+	HotlistEntry *HotlistEntry `json:"hotlistEntry,omitempty"`
+
+	// SignificanceOverride: Significance to assign to this hotlist entry
+	// creation.
+	//
+	// Possible values:
+	//   "EDIT_SIGNIFICANCE_UNSPECIFIED" - Default value. Let the API decide
+	// the significance of an edit.
+	//   "MINOR" - Describes an edit that should only send notifications to
+	// users that are closely-involved with an issue or have expressed a
+	// high level of interest in the issue.
+	//   "MAJOR" - Describes an edit that should send notifications to all
+	// users involved or interested in the issue.
+	//   "BULK" - Describes an edit that was part of a bulk edit and should
+	// notify users in digest form.
+	SignificanceOverride string `json:"significanceOverride,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "HotlistEntry") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "HotlistEntry") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *CreateHotlistEntryRequest) MarshalJSON() ([]byte, error) {
+	type NoMethod CreateHotlistEntryRequest
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // CustomField: Represents the definition of a custom field. Exists as
 // part of a Component.
 type CustomField struct {
@@ -247,8 +361,8 @@ type CustomField struct {
 	// be changed after creation.
 	ComponentId int64 `json:"componentId,omitempty,string"`
 
-	// CustomFieldId: Immutable unique ID. Assigned at creation time by the
-	// API backend.
+	// CustomFieldId: Output only. Unique ID. Assigned at creation time by
+	// the API backend.
 	CustomFieldId int64 `json:"customFieldId,omitempty,string"`
 
 	// Description: An optional description of the custom field.
@@ -314,8 +428,8 @@ func (s *CustomField) MarshalJSON() ([]byte, error) {
 // CustomFieldValue: Represents a value in an instance of a custom
 // field. Exists as a part of an issue.
 type CustomFieldValue struct {
-	// CustomFieldId: The numeric ID of the custom field that describes this
-	// value. *Required.*
+	// CustomFieldId: Required. The numeric ID of the custom field that
+	// describes this value.
 	CustomFieldId int64 `json:"customFieldId,omitempty,string"`
 
 	// DateValue: Corresponds to CustomFieldType.DATE.
@@ -431,6 +545,17 @@ func (s *Date) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// Empty: A generic empty message that you can re-use to avoid defining
+// duplicated empty messages in your APIs. A typical example is to use
+// it as the request or the response type of an API method. For
+// instance: service Foo { rpc Bar(google.protobuf.Empty) returns
+// (google.protobuf.Empty); }
+type Empty struct {
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+}
+
 // FieldId: Represents an identifier that can be used to uniquely
 // identify either a standard or custom field.
 type FieldId struct {
@@ -474,6 +599,91 @@ type FieldId struct {
 
 func (s *FieldId) MarshalJSON() ([]byte, error) {
 	type NoMethod FieldId
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// FieldUpdate: Represents an update to a single field in an issue.
+type FieldUpdate struct {
+	// CollectionUpdate: Output only. Set if the field edited is a
+	// collection.
+	CollectionUpdate *CollectionUpdate `json:"collectionUpdate,omitempty"`
+
+	// Field: Output only. The name of the field this diff represents. The
+	// value of field will match a name from the fields of IssueState. A
+	// change in a custom field value will be named 'custom_fields', and is
+	// treated as changes to a single field, rather than a collection. There
+	// may be more than one custom field change in an IssueUpdate.
+	Field string `json:"field,omitempty"`
+
+	// SingleValueUpdate: Set if the field edited has a single value.
+	SingleValueUpdate *SingleValueUpdate `json:"singleValueUpdate,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "CollectionUpdate") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "CollectionUpdate") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *FieldUpdate) MarshalJSON() ([]byte, error) {
+	type NoMethod FieldUpdate
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// HotlistEntry: An issue present in a hotlist. A collection of
+// HotlistEntry's can be ordered or un-ordered. The HotlistEntry
+// collection is added to or removed from by calling the
+// CreateHotlistEntry and DeleteHotlistEntry methods. Although these
+// methods only require view permission on the issue, the act of adding
+// or removing a hotlist entry for an issue is reflected in the issue's
+// change history and touches the issue modification date.
+type HotlistEntry struct {
+	// Issue: Output only. The actual issue, for convenience.
+	Issue *Issue `json:"issue,omitempty"`
+
+	// IssueId: Required. Numeric ID of an issue contained in a hotlist.
+	IssueId int64 `json:"issueId,omitempty,string"`
+
+	// Position: Position values for an ordered collection begin at 1 and
+	// increment to the end of the collection.
+	Position int64 `json:"position,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "Issue") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Issue") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *HotlistEntry) MarshalJSON() ([]byte, error) {
+	type NoMethod HotlistEntry
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -535,6 +745,10 @@ type Issue struct {
 	// the Custom Field values, see IssueState.custom_fields.
 	CustomFields []*CustomField `json:"customFields,omitempty"`
 
+	// Description: Output only. The description of this issue. This field
+	// is set only when the issue is the FULL view.
+	Description *IssueComment `json:"description,omitempty"`
+
 	// Etag: Output only. The fingerprint of the issue.
 	Etag string `json:"etag,omitempty"`
 
@@ -552,7 +766,7 @@ type Issue struct {
 	// field is left unset.
 	IssueComment *IssueComment `json:"issueComment,omitempty"`
 
-	// IssueId: Immutable unique ID. Assigned at creation time by the API
+	// IssueId: Output only. Unique ID. Assigned at creation time by the API
 	// backend.
 	IssueId int64 `json:"issueId,omitempty,string"`
 
@@ -642,6 +856,45 @@ func (s *Issue) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// IssueAccessLimit: Represents the access limit set on an issue.
+type IssueAccessLimit struct {
+	// AccessLevel: The access level set on an issue.
+	//
+	// Possible values:
+	//   "ACCESS_LEVEL_UNSPECIFIED" - API will reject all access limits that
+	// are unspecified.
+	//   "LIMIT_NONE" - There are no access limits set on this issue.
+	//   "LIMIT_VIEW" - Only actors on the issue retain view access.
+	//   "LIMIT_APPEND" - Only actors on the issue retain append (e.g.
+	// comment) access. Issue admins also retain access
+	//   "LIMIT_VIEW_TRUSTED" - Only actors on the issue or trusted
+	// (Full-time Googlers + Common tools by default) users retain view
+	// access.
+	AccessLevel string `json:"accessLevel,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "AccessLevel") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "AccessLevel") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *IssueAccessLimit) MarshalJSON() ([]byte, error) {
+	type NoMethod IssueAccessLimit
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // IssueComment: A container for user-entered text and attachments
 // provided as a part of an update to an issue or issue creation. All
 // fields in this message are optional. It could have been named
@@ -657,9 +910,38 @@ type IssueComment struct {
 	// associated with the issue.
 	CommentNumber int64 `json:"commentNumber,omitempty"`
 
+	// FormattingMode: The intended formatting mode of the comment.
+	//
+	// Possible values:
+	//   "UNSPECIFIED_FORMATTING_MODE" - Unspecified mode. If unspecified,
+	// will be treated as PLAIN mode for backwards compatibility.
+	//   "PLAIN" - Plain formatting is to treat the source text without much
+	// formatting, but with automatic linkification of entities and
+	// collapsible quoted sections. This is the historical formatting, and
+	// the default.
+	//   "MARKDOWN" - Treats the source text as a Markdown document.
+	//   "LITERAL" - For special cases where even the linkification does in
+	// a PLAIN formatting mode might be hazardous, this treats the source
+	// text literally. It does not perform any linkification or quoted
+	// section treatment.
+	FormattingMode string `json:"formattingMode,omitempty"`
+
 	// IssueId: Output only. Issue ID for this issue comment. It uniquely
 	// identifies the issue this comment belongs to.
 	IssueId int64 `json:"issueId,omitempty,string"`
+
+	// LastEditor: Output only. The user that last modified the comment. In
+	// the context of ListIssueCommentHistory, this is the user that edited
+	// the comment at any given version.
+	LastEditor *User `json:"lastEditor,omitempty"`
+
+	// ModifiedTime: Output only. The time of the last modification
+	ModifiedTime string `json:"modifiedTime,omitempty"`
+
+	// Version: Output only. Version of this issue comment. This is 0-based:
+	// version 0 is the original comment, version 1 is the first change to
+	// the comment, etc.
+	Version int64 `json:"version,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
 	// server.
@@ -722,6 +1004,9 @@ func (s *IssueReference) MarshalJSON() ([]byte, error) {
 
 // IssueState: Contains the current state of an issue.
 type IssueState struct {
+	// AccessLimit: The access limit set on this issue.
+	AccessLimit *IssueAccessLimit `json:"accessLimit,omitempty"`
+
 	// Assignee: The current assignee of the issue.
 	Assignee *User `json:"assignee,omitempty"`
 
@@ -740,7 +1025,7 @@ type IssueState struct {
 	// Ccs: CCed users and list addresses on this issue.
 	Ccs []*User `json:"ccs,omitempty"`
 
-	// ComponentId: *Required.* Component this issue belongs to.
+	// ComponentId: Required. Component this issue belongs to.
 	ComponentId int64 `json:"componentId,omitempty,string"`
 
 	// CustomFields: The custom field values currently set on the issue.
@@ -754,6 +1039,9 @@ type IssueState struct {
 	// issue.
 	FoundInVersions []string `json:"foundInVersions,omitempty"`
 
+	// HotlistIds: All of the hotlists currently applied to the issue.
+	HotlistIds googleapi.Int64s `json:"hotlistIds,omitempty"`
+
 	// InProd: Whether or not the behavior of this issue is exhibited in
 	// production.
 	InProd bool `json:"inProd,omitempty"`
@@ -764,7 +1052,7 @@ type IssueState struct {
 	// through component.
 	IsArchived bool `json:"isArchived,omitempty"`
 
-	// Priority: *Required.* The current priority of the issue.
+	// Priority: Required. The current priority of the issue.
 	//
 	// Possible values:
 	//   "PRIORITY_UNSPECIFIED" - Unspecified. Invalid state.
@@ -775,12 +1063,12 @@ type IssueState struct {
 	//   "P4" - P4
 	Priority string `json:"priority,omitempty"`
 
-	// Reporter: *Required.* The reporter of the issue. On CreateIssue calls
-	// only, if not set or if set to a blank email address, will be set to
-	// the id of the requesting user.
+	// Reporter: *Required except for CreateIssue calls.* The reporter of
+	// the issue. On CreateIssue calls only, if not set or if set to a blank
+	// email address, will be set to the id of the requesting user.
 	Reporter *User `json:"reporter,omitempty"`
 
-	// Severity: *Required.* The current severity of the issue.
+	// Severity: Required. The current severity of the issue.
 	//
 	// Possible values:
 	//   "SEVERITY_UNSPECIFIED" - Unspecified. Invalid state.
@@ -791,7 +1079,7 @@ type IssueState struct {
 	//   "S4" - S4
 	Severity string `json:"severity,omitempty"`
 
-	// Status: *Required.* The current state of the issue.
+	// Status: Required. The current state of the issue.
 	//
 	// Possible values:
 	//   "STATUS_UNSPECIFIED" - Unspecified. Invalid state.
@@ -814,10 +1102,10 @@ type IssueState struct {
 	// the fix for this issue.
 	TargetedToVersions []string `json:"targetedToVersions,omitempty"`
 
-	// Title: *Required.* Short summary of the issue.
+	// Title: Required. Short summary of the issue.
 	Title string `json:"title,omitempty"`
 
-	// Type: *Required.* The current type of the issue.
+	// Type: Required. The current type of the issue.
 	//
 	// Possible values:
 	//   "TYPE_UNSPECIFIED" - Unspecified. Invalid state.
@@ -845,7 +1133,7 @@ type IssueState struct {
 	// Verifier: The current verifier of the issue.
 	Verifier *User `json:"verifier,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "Assignee") to
+	// ForceSendFields is a list of field names (e.g. "AccessLimit") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -853,10 +1141,10 @@ type IssueState struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "Assignee") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
+	// NullFields is a list of field names (e.g. "AccessLimit") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
 	// null. It is an error if a field in this list has a non-empty value.
 	// This may be used to include null fields in Patch requests.
 	NullFields []string `json:"-"`
@@ -868,16 +1156,43 @@ func (s *IssueState) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// IssueUserData: Represents issue-related data private to a requesting
-// user.
-type IssueUserData struct {
-	// HasStarred: True if the user has starred the issue.
-	HasStarred bool `json:"hasStarred,omitempty"`
+// IssueUpdate: A set of changes made to an issue, represented as a
+// collection of diffs. A collection of IssueUpdate messages can
+// represent the full change history of an issue.
+type IssueUpdate struct {
+	// Attachments: Output only. Attachments entered by user.
+	Attachments []*Attachment `json:"attachments,omitempty"`
 
-	// HasUpvoted: True if the user has upvoted the issue.
-	HasUpvoted bool `json:"hasUpvoted,omitempty"`
+	// Author: Output only. Author of the update.
+	Author *User `json:"author,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "HasStarred") to
+	// CommentNumber: Output only. If this update has a comment, this will
+	// represent the relative index of the comment. Index begins at 1.
+	CommentNumber int64 `json:"commentNumber,omitempty"`
+
+	// FieldUpdates: Output only. The set of updates representing this
+	// particular Issue update.
+	FieldUpdates []*FieldUpdate `json:"fieldUpdates,omitempty"`
+
+	// IssueComment: Output only. Comment entered by the user.
+	IssueComment *IssueComment `json:"issueComment,omitempty"`
+
+	// IssueId: Output only. Issue ID for this issue update. It uniquely
+	// identifies the issue this update belongs to.
+	IssueId int64 `json:"issueId,omitempty,string"`
+
+	// StatusUpdate: Output only. The StatusUpdate entered by a user.
+	StatusUpdate *StatusUpdate `json:"statusUpdate,omitempty"`
+
+	// Timestamp: Output only. Time that the Issue update occurred.
+	Timestamp string `json:"timestamp,omitempty"`
+
+	// Version: Output only. The version number of this IssueUpdate, starts
+	// at 0. The version of an Issue is equal to the version of its most
+	// recent IssueUpdate.
+	Version int64 `json:"version,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Attachments") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -885,12 +1200,50 @@ type IssueUserData struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "HasStarred") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
+	// NullFields is a list of field names (e.g. "Attachments") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
 	// null. It is an error if a field in this list has a non-empty value.
 	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *IssueUpdate) MarshalJSON() ([]byte, error) {
+	type NoMethod IssueUpdate
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// IssueUserData: Represents issue-related data private to a requesting
+// user.
+type IssueUserData struct {
+	// EditableCommentNumbers: Output only. ID's of the comments the user
+	// can edit.
+	EditableCommentNumbers []int64 `json:"editableCommentNumbers,omitempty"`
+
+	// HasStarred: True if the user has starred the issue.
+	HasStarred bool `json:"hasStarred,omitempty"`
+
+	// HasUpvoted: True if the user has upvoted the issue.
+	HasUpvoted bool `json:"hasUpvoted,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g.
+	// "EditableCommentNumbers") to unconditionally include in API requests.
+	// By default, fields with empty values are omitted from API requests.
+	// However, any non-pointer, non-interface field appearing in
+	// ForceSendFields will be sent to the server regardless of whether the
+	// field is empty or not. This may be used to include empty fields in
+	// Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "EditableCommentNumbers")
+	// to include in API requests with the JSON null value. By default,
+	// fields with empty values are omitted from API requests. However, any
+	// field with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
 	NullFields []string `json:"-"`
 }
 
@@ -968,6 +1321,45 @@ type ListIssueCommentsResponse struct {
 
 func (s *ListIssueCommentsResponse) MarshalJSON() ([]byte, error) {
 	type NoMethod ListIssueCommentsResponse
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// ListIssueUpdatesResponse: Response object for
+// IssueTracker.ListIssueUpdates.
+type ListIssueUpdatesResponse struct {
+	// IssueUpdates: The current page of IssueUpdates.
+	IssueUpdates []*IssueUpdate `json:"issueUpdates,omitempty"`
+
+	// NextPageToken: Pagination token for next page of results.
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	// TotalSize: Total number of results.
+	TotalSize int64 `json:"totalSize,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "IssueUpdates") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "IssueUpdates") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *ListIssueUpdatesResponse) MarshalJSON() ([]byte, error) {
+	type NoMethod ListIssueUpdatesResponse
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -1070,6 +1462,21 @@ type ModifyIssueRequest struct {
 	// required. If it is not provided, the remove IssueState will be
 	// ignored.
 	RemoveMask string `json:"removeMask,omitempty"`
+
+	// SignificanceOverride: Significance to assign to this issue
+	// modification.
+	//
+	// Possible values:
+	//   "EDIT_SIGNIFICANCE_UNSPECIFIED" - Default value. Let the API decide
+	// the significance of an edit.
+	//   "MINOR" - Describes an edit that should only send notifications to
+	// users that are closely-involved with an issue or have expressed a
+	// high level of interest in the issue.
+	//   "MAJOR" - Describes an edit that should send notifications to all
+	// users involved or interested in the issue.
+	//   "BULK" - Describes an edit that was part of a bulk edit and should
+	// notify users in digest form.
+	SignificanceOverride string `json:"significanceOverride,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Add") to
 	// unconditionally include in API requests. By default, fields with
@@ -1214,6 +1621,40 @@ func (s *RepeatedString) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// SingleValueUpdate: If both old and new values are set, they will
+// always be of the same type.
+type SingleValueUpdate struct {
+	// NewValue: Output only. May be null. The new value set by this
+	// IssueUpdate.
+	NewValue googleapi.RawMessage `json:"newValue,omitempty"`
+
+	// OldValue: Output only. May be null. The value previous to this
+	// IssueUpdate.
+	OldValue googleapi.RawMessage `json:"oldValue,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "NewValue") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "NewValue") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *SingleValueUpdate) MarshalJSON() ([]byte, error) {
+	type NoMethod SingleValueUpdate
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // SourceIssues: Source issue IDs to store ancestor cache.
 type SourceIssues struct {
 	// SourceIssueIds: Parent issue IDs for parent/child relationships.
@@ -1245,6 +1686,22 @@ func (s *SourceIssues) MarshalJSON() ([]byte, error) {
 
 // StatusUpdate: The StatusUpdate field on an issue.
 type StatusUpdate struct {
+	// FormattingMode: The intended formatting mode of the update text.
+	//
+	// Possible values:
+	//   "UNSPECIFIED_FORMATTING_MODE" - Unspecified mode. If unspecified,
+	// will be treated as PLAIN mode for backwards compatibility.
+	//   "PLAIN" - Plain formatting is to treat the source text without much
+	// formatting, but with automatic linkification of entities and
+	// collapsible quoted sections. This is the historical formatting, and
+	// the default.
+	//   "MARKDOWN" - Treats the source text as a Markdown document.
+	//   "LITERAL" - For special cases where even the linkification does in
+	// a PLAIN formatting mode might be hazardous, this treats the source
+	// text literally. It does not perform any linkification or quoted
+	// section treatment.
+	FormattingMode string `json:"formattingMode,omitempty"`
+
 	// IssueId: Output only. Uniquely identifies the issue this statusUpdate
 	// belongs to.
 	IssueId int64 `json:"issueId,omitempty,string"`
@@ -1252,7 +1709,7 @@ type StatusUpdate struct {
 	// UpdateText: StatusUpdate entered by the user.
 	UpdateText string `json:"updateText,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "IssueId") to
+	// ForceSendFields is a list of field names (e.g. "FormattingMode") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -1260,12 +1717,13 @@ type StatusUpdate struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "IssueId") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
+	// NullFields is a list of field names (e.g. "FormattingMode") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
 	NullFields []string `json:"-"`
 }
 
@@ -1313,6 +1771,332 @@ func (s *User) MarshalJSON() ([]byte, error) {
 	type NoMethod User
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// method id "issuetracker.hotlists.createEntries":
+
+type HotlistsCreateEntriesCall struct {
+	s                         *Service
+	hotlistId                 int64
+	createhotlistentryrequest *CreateHotlistEntryRequest
+	urlParams_                gensupport.URLParams
+	ctx_                      context.Context
+	header_                   http.Header
+}
+
+// CreateEntries: Adds an issue to a hotlist by creating a HotlistEntry.
+// Returns the created HotlistEntry. Requires hotlist APPEND and issue
+// VIEW permission
+func (r *HotlistsService) CreateEntries(hotlistId int64, createhotlistentryrequest *CreateHotlistEntryRequest) *HotlistsCreateEntriesCall {
+	c := &HotlistsCreateEntriesCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.hotlistId = hotlistId
+	c.createhotlistentryrequest = createhotlistentryrequest
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *HotlistsCreateEntriesCall) Fields(s ...googleapi.Field) *HotlistsCreateEntriesCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *HotlistsCreateEntriesCall) Context(ctx context.Context) *HotlistsCreateEntriesCall {
+	c.ctx_ = ctx
+	return c
+}
+
+// Header returns an http.Header that can be modified by the caller to
+// add HTTP headers to the request.
+func (c *HotlistsCreateEntriesCall) Header() http.Header {
+	if c.header_ == nil {
+		c.header_ = make(http.Header)
+	}
+	return c.header_
+}
+
+func (c *HotlistsCreateEntriesCall) doRequest(alt string) (*http.Response, error) {
+	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
+	for k, v := range c.header_ {
+		reqHeaders[k] = v
+	}
+	reqHeaders.Set("User-Agent", c.s.userAgent())
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.createhotlistentryrequest)
+	if err != nil {
+		return nil, err
+	}
+	reqHeaders.Set("Content-Type", "application/json")
+	c.urlParams_.Set("alt", alt)
+	c.urlParams_.Set("prettyPrint", "false")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "v1/hotlists/{+hotlistId}/entries")
+	urls += "?" + c.urlParams_.Encode()
+	req, err := http.NewRequest("PUT", urls, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = reqHeaders
+	googleapi.Expand(req.URL, map[string]string{
+		"hotlistId": strconv.FormatInt(c.hotlistId, 10),
+	})
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
+}
+
+// Do executes the "issuetracker.hotlists.createEntries" call.
+// Exactly one of *HotlistEntry or error will be non-nil. Any non-2xx
+// status code is an error. Response headers are in either
+// *HotlistEntry.ServerResponse.Header or (if a response was returned at
+// all) in error.(*googleapi.Error).Header. Use googleapi.IsNotModified
+// to check whether the returned error was because
+// http.StatusNotModified was returned.
+func (c *HotlistsCreateEntriesCall) Do(opts ...googleapi.CallOption) (*HotlistEntry, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &HotlistEntry{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	target := &ret
+	if err := gensupport.DecodeResponse(target, res); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Adds an issue to a hotlist by creating a HotlistEntry. Returns the created HotlistEntry. Requires hotlist APPEND and issue VIEW permission",
+	//   "flatPath": "v1/hotlists/{hotlistsId}/entries",
+	//   "httpMethod": "PUT",
+	//   "id": "issuetracker.hotlists.createEntries",
+	//   "parameterOrder": [
+	//     "hotlistId"
+	//   ],
+	//   "parameters": {
+	//     "hotlistId": {
+	//       "description": "Numeric ID of the hotlist.",
+	//       "format": "int64",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "v1/hotlists/{+hotlistId}/entries",
+	//   "request": {
+	//     "$ref": "CreateHotlistEntryRequest"
+	//   },
+	//   "response": {
+	//     "$ref": "HotlistEntry"
+	//   }
+	// }
+
+}
+
+// method id "issuetracker.hotlists.entries.delete":
+
+type HotlistsEntriesDeleteCall struct {
+	s          *Service
+	hotlistId  int64
+	issueId    int64
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+	header_    http.Header
+}
+
+// Delete: Removes an issue from a hotlist by deleting hotlistEntry.
+// Removing an issue from a hotlist it does not belong to will do
+// nothing and return. Requires hotlist APPEND and issue VIEW permission
+func (r *HotlistsEntriesService) Delete(hotlistId int64, issueId int64) *HotlistsEntriesDeleteCall {
+	c := &HotlistsEntriesDeleteCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.hotlistId = hotlistId
+	c.issueId = issueId
+	return c
+}
+
+// SignificanceOverride sets the optional parameter
+// "significanceOverride": Significance to assign to this hotlist entry
+// deletion.
+//
+// Possible values:
+//
+//	"EDIT_SIGNIFICANCE_UNSPECIFIED" - Default value. Let the API decide
+//
+// the significance of an edit.
+//
+//	"MINOR" - Describes an edit that should only send notifications to
+//
+// users that are closely-involved with an issue or have expressed a
+// high level of interest in the issue.
+//
+//	"MAJOR" - Describes an edit that should send notifications to all
+//
+// users involved or interested in the issue.
+//
+//	"BULK" - Describes an edit that was part of a bulk edit and should
+//
+// notify users in digest form.
+func (c *HotlistsEntriesDeleteCall) SignificanceOverride(significanceOverride string) *HotlistsEntriesDeleteCall {
+	c.urlParams_.Set("significanceOverride", significanceOverride)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *HotlistsEntriesDeleteCall) Fields(s ...googleapi.Field) *HotlistsEntriesDeleteCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *HotlistsEntriesDeleteCall) Context(ctx context.Context) *HotlistsEntriesDeleteCall {
+	c.ctx_ = ctx
+	return c
+}
+
+// Header returns an http.Header that can be modified by the caller to
+// add HTTP headers to the request.
+func (c *HotlistsEntriesDeleteCall) Header() http.Header {
+	if c.header_ == nil {
+		c.header_ = make(http.Header)
+	}
+	return c.header_
+}
+
+func (c *HotlistsEntriesDeleteCall) doRequest(alt string) (*http.Response, error) {
+	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
+	for k, v := range c.header_ {
+		reqHeaders[k] = v
+	}
+	reqHeaders.Set("User-Agent", c.s.userAgent())
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	c.urlParams_.Set("prettyPrint", "false")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "v1/hotlists/{+hotlistId}/entries/{+issueId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, err := http.NewRequest("DELETE", urls, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = reqHeaders
+	googleapi.Expand(req.URL, map[string]string{
+		"hotlistId": strconv.FormatInt(c.hotlistId, 10),
+		"issueId":   strconv.FormatInt(c.issueId, 10),
+	})
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
+}
+
+// Do executes the "issuetracker.hotlists.entries.delete" call.
+// Exactly one of *Empty or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Empty.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *HotlistsEntriesDeleteCall) Do(opts ...googleapi.CallOption) (*Empty, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Empty{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	target := &ret
+	if err := gensupport.DecodeResponse(target, res); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Removes an issue from a hotlist by deleting hotlistEntry. Removing an issue from a hotlist it does not belong to will do nothing and return. Requires hotlist APPEND and issue VIEW permission",
+	//   "flatPath": "v1/hotlists/{hotlistsId}/entries/{entriesId}",
+	//   "httpMethod": "DELETE",
+	//   "id": "issuetracker.hotlists.entries.delete",
+	//   "parameterOrder": [
+	//     "hotlistId",
+	//     "issueId"
+	//   ],
+	//   "parameters": {
+	//     "hotlistId": {
+	//       "description": "Numeric ID of the hotlist.",
+	//       "format": "int64",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "issueId": {
+	//       "description": "Numeric ID of the issue to remove from hotlist",
+	//       "format": "int64",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "significanceOverride": {
+	//       "description": "Significance to assign to this hotlist entry deletion.",
+	//       "enum": [
+	//         "EDIT_SIGNIFICANCE_UNSPECIFIED",
+	//         "MINOR",
+	//         "MAJOR",
+	//         "BULK"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Default value. Let the API decide the significance of an edit.",
+	//         "Describes an edit that should only send notifications to users that are closely-involved with an issue or have expressed a high level of interest in the issue.",
+	//         "Describes an edit that should send notifications to all users involved or interested in the issue.",
+	//         "Describes an edit that was part of a bulk edit and should notify users in digest form."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "v1/hotlists/{+hotlistId}/entries/{+issueId}",
+	//   "response": {
+	//     "$ref": "Empty"
+	//   }
+	// }
+
 }
 
 // method id "issuetracker.issues.create":
@@ -1404,7 +2188,7 @@ func (c *IssuesCreateCall) Header() http.Header {
 
 func (c *IssuesCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1579,7 +2363,7 @@ func (c *IssuesGetCall) Header() http.Header {
 
 func (c *IssuesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1726,10 +2510,9 @@ func (c *IssuesListCall) PageToken(pageToken string) *IssuesListCall {
 	return c
 }
 
-// Query sets the optional parameter "query": Query language for issues
-// requests is defined at:
+// Query sets the optional parameter "query": Required. Query language
+// for issues requests is defined at:
 // https://developers.google.com/issue-tracker/concepts/search-query-language
-// *Required.*
 func (c *IssuesListCall) Query(query string) *IssuesListCall {
 	c.urlParams_.Set("query", query)
 	return c
@@ -1785,7 +2568,7 @@ func (c *IssuesListCall) Header() http.Header {
 
 func (c *IssuesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1862,12 +2645,12 @@ func (c *IssuesListCall) Do(opts ...googleapi.CallOption) (*ListIssuesResponse, 
 	//       "type": "integer"
 	//     },
 	//     "pageToken": {
-	//       "description": "Pagination token. Optional.",
+	//       "description": "Optional. Pagination token.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "query": {
-	//       "description": "Query language for issues requests is defined at: https://developers.google.com/issue-tracker/concepts/search-query-language *Required.*",
+	//       "description": "Required. Query language for issues requests is defined at: https://developers.google.com/issue-tracker/concepts/search-query-language",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -1963,7 +2746,7 @@ func (c *IssuesModifyCall) Header() http.Header {
 
 func (c *IssuesModifyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2111,7 +2894,7 @@ func (c *IssuesAttachmentsListCall) Header() http.Header {
 
 func (c *IssuesAttachmentsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2244,7 +3027,7 @@ func (c *IssuesCommentsCreateCall) Header() http.Header {
 
 func (c *IssuesCommentsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2412,7 +3195,7 @@ func (c *IssuesCommentsListCall) Header() http.Header {
 
 func (c *IssuesCommentsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2497,7 +3280,7 @@ func (c *IssuesCommentsListCall) Do(opts ...googleapi.CallOption) (*ListIssueCom
 	//       "type": "integer"
 	//     },
 	//     "pageToken": {
-	//       "description": "Pagination token. Optional.",
+	//       "description": "Optional. Pagination token.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -2519,6 +3302,357 @@ func (c *IssuesCommentsListCall) Do(opts ...googleapi.CallOption) (*ListIssueCom
 // A non-nil error returned from f will halt the iteration.
 // The provided context supersedes any context provided to the Context method.
 func (c *IssuesCommentsListCall) Pages(ctx context.Context, f func(*ListIssueCommentsResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
+}
+
+// method id "issuetracker.issues.comments.update":
+
+type IssuesCommentsUpdateCall struct {
+	s             *Service
+	issueId       int64
+	commentNumber int64
+	issuecomment  *IssueComment
+	urlParams_    gensupport.URLParams
+	ctx_          context.Context
+	header_       http.Header
+}
+
+// Update: Updates an issue comment. NB: The comment manipulation
+// methods does not use the attachment field in IssueComment.
+func (r *IssuesCommentsService) Update(issueId int64, commentNumber int64, issuecomment *IssueComment) *IssuesCommentsUpdateCall {
+	c := &IssuesCommentsUpdateCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.issueId = issueId
+	c.commentNumber = commentNumber
+	c.issuecomment = issuecomment
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *IssuesCommentsUpdateCall) Fields(s ...googleapi.Field) *IssuesCommentsUpdateCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *IssuesCommentsUpdateCall) Context(ctx context.Context) *IssuesCommentsUpdateCall {
+	c.ctx_ = ctx
+	return c
+}
+
+// Header returns an http.Header that can be modified by the caller to
+// add HTTP headers to the request.
+func (c *IssuesCommentsUpdateCall) Header() http.Header {
+	if c.header_ == nil {
+		c.header_ = make(http.Header)
+	}
+	return c.header_
+}
+
+func (c *IssuesCommentsUpdateCall) doRequest(alt string) (*http.Response, error) {
+	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
+	for k, v := range c.header_ {
+		reqHeaders[k] = v
+	}
+	reqHeaders.Set("User-Agent", c.s.userAgent())
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.issuecomment)
+	if err != nil {
+		return nil, err
+	}
+	reqHeaders.Set("Content-Type", "application/json")
+	c.urlParams_.Set("alt", alt)
+	c.urlParams_.Set("prettyPrint", "false")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "v1/issues/{+issueId}/comments/{+commentNumber}")
+	urls += "?" + c.urlParams_.Encode()
+	req, err := http.NewRequest("PUT", urls, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = reqHeaders
+	googleapi.Expand(req.URL, map[string]string{
+		"issueId":       strconv.FormatInt(c.issueId, 10),
+		"commentNumber": strconv.FormatInt(c.commentNumber, 10),
+	})
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
+}
+
+// Do executes the "issuetracker.issues.comments.update" call.
+// Exactly one of *IssueComment or error will be non-nil. Any non-2xx
+// status code is an error. Response headers are in either
+// *IssueComment.ServerResponse.Header or (if a response was returned at
+// all) in error.(*googleapi.Error).Header. Use googleapi.IsNotModified
+// to check whether the returned error was because
+// http.StatusNotModified was returned.
+func (c *IssuesCommentsUpdateCall) Do(opts ...googleapi.CallOption) (*IssueComment, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &IssueComment{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	target := &ret
+	if err := gensupport.DecodeResponse(target, res); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Updates an issue comment. NB: The comment manipulation methods does not use the attachment field in IssueComment.",
+	//   "flatPath": "v1/issues/{issuesId}/comments/{commentsId}",
+	//   "httpMethod": "PUT",
+	//   "id": "issuetracker.issues.comments.update",
+	//   "parameterOrder": [
+	//     "issueId",
+	//     "commentNumber"
+	//   ],
+	//   "parameters": {
+	//     "commentNumber": {
+	//       "description": "The comment index of the particular issue, must match an existing number",
+	//       "format": "int32",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "integer"
+	//     },
+	//     "issueId": {
+	//       "description": "Numeric ID of the issue.",
+	//       "format": "int64",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "v1/issues/{+issueId}/comments/{+commentNumber}",
+	//   "request": {
+	//     "$ref": "IssueComment"
+	//   },
+	//   "response": {
+	//     "$ref": "IssueComment"
+	//   }
+	// }
+
+}
+
+// method id "issuetracker.issues.issueUpdates.list":
+
+type IssuesIssueUpdatesListCall struct {
+	s            *Service
+	issueId      int64
+	urlParams_   gensupport.URLParams
+	ifNoneMatch_ string
+	ctx_         context.Context
+	header_      http.Header
+}
+
+// List: Fetch a collection of IssueUpdate objects representing the
+// change history of an issue, ordered by IssueUpdate.version.
+func (r *IssuesIssueUpdatesService) List(issueId int64) *IssuesIssueUpdatesListCall {
+	c := &IssuesIssueUpdatesListCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.issueId = issueId
+	return c
+}
+
+// PageSize sets the optional parameter "pageSize": If 0, the full set
+// of IssueUpdates will be returned. Default 0.
+func (c *IssuesIssueUpdatesListCall) PageSize(pageSize int64) *IssuesIssueUpdatesListCall {
+	c.urlParams_.Set("pageSize", fmt.Sprint(pageSize))
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": Pagination token.
+func (c *IssuesIssueUpdatesListCall) PageToken(pageToken string) *IssuesIssueUpdatesListCall {
+	c.urlParams_.Set("pageToken", pageToken)
+	return c
+}
+
+// SortBy sets the optional parameter "sortBy": Updates are sorted by
+// version. Can be specified as either ASC or DESC. Default is DESC.
+func (c *IssuesIssueUpdatesListCall) SortBy(sortBy string) *IssuesIssueUpdatesListCall {
+	c.urlParams_.Set("sortBy", sortBy)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *IssuesIssueUpdatesListCall) Fields(s ...googleapi.Field) *IssuesIssueUpdatesListCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// IfNoneMatch sets the optional parameter which makes the operation
+// fail if the object's ETag matches the given value. This is useful for
+// getting updates only after the object has changed since the last
+// request. Use googleapi.IsNotModified to check whether the response
+// error from Do is the result of In-None-Match.
+func (c *IssuesIssueUpdatesListCall) IfNoneMatch(entityTag string) *IssuesIssueUpdatesListCall {
+	c.ifNoneMatch_ = entityTag
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *IssuesIssueUpdatesListCall) Context(ctx context.Context) *IssuesIssueUpdatesListCall {
+	c.ctx_ = ctx
+	return c
+}
+
+// Header returns an http.Header that can be modified by the caller to
+// add HTTP headers to the request.
+func (c *IssuesIssueUpdatesListCall) Header() http.Header {
+	if c.header_ == nil {
+		c.header_ = make(http.Header)
+	}
+	return c.header_
+}
+
+func (c *IssuesIssueUpdatesListCall) doRequest(alt string) (*http.Response, error) {
+	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
+	for k, v := range c.header_ {
+		reqHeaders[k] = v
+	}
+	reqHeaders.Set("User-Agent", c.s.userAgent())
+	if c.ifNoneMatch_ != "" {
+		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
+	}
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	c.urlParams_.Set("prettyPrint", "false")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "v1/issues/{+issueId}/issueUpdates")
+	urls += "?" + c.urlParams_.Encode()
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = reqHeaders
+	googleapi.Expand(req.URL, map[string]string{
+		"issueId": strconv.FormatInt(c.issueId, 10),
+	})
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
+}
+
+// Do executes the "issuetracker.issues.issueUpdates.list" call.
+// Exactly one of *ListIssueUpdatesResponse or error will be non-nil.
+// Any non-2xx status code is an error. Response headers are in either
+// *ListIssueUpdatesResponse.ServerResponse.Header or (if a response was
+// returned at all) in error.(*googleapi.Error).Header. Use
+// googleapi.IsNotModified to check whether the returned error was
+// because http.StatusNotModified was returned.
+func (c *IssuesIssueUpdatesListCall) Do(opts ...googleapi.CallOption) (*ListIssueUpdatesResponse, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &ListIssueUpdatesResponse{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	target := &ret
+	if err := gensupport.DecodeResponse(target, res); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Fetch a collection of IssueUpdate objects representing the change history of an issue, ordered by IssueUpdate.version.",
+	//   "flatPath": "v1/issues/{issuesId}/issueUpdates",
+	//   "httpMethod": "GET",
+	//   "id": "issuetracker.issues.issueUpdates.list",
+	//   "parameterOrder": [
+	//     "issueId"
+	//   ],
+	//   "parameters": {
+	//     "issueId": {
+	//       "description": "Numeric ID of the issue.",
+	//       "format": "int64",
+	//       "location": "path",
+	//       "pattern": "^[^/]+$",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "pageSize": {
+	//       "description": "If 0, the full set of IssueUpdates will be returned. Default 0.",
+	//       "format": "int32",
+	//       "location": "query",
+	//       "type": "integer"
+	//     },
+	//     "pageToken": {
+	//       "description": "Optional. Pagination token.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "sortBy": {
+	//       "description": "Updates are sorted by version. Can be specified as either ASC or DESC. Default is DESC.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "v1/issues/{+issueId}/issueUpdates",
+	//   "response": {
+	//     "$ref": "ListIssueUpdatesResponse"
+	//   }
+	// }
+
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *IssuesIssueUpdatesListCall) Pages(ctx context.Context, f func(*ListIssueUpdatesResponse) error) error {
 	c.ctx_ = ctx
 	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
 	for {
@@ -2592,7 +3726,7 @@ func (c *MediaDownloadCall) Header() http.Header {
 
 func (c *MediaDownloadCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2782,7 +3916,7 @@ func (c *MediaUploadCall) Header() http.Header {
 
 func (c *MediaUploadCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.7 gdcl/20190905")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.19.5 gdcl/20190905")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
