@@ -78,8 +78,6 @@ import '../skottie-file-form-sk';
 import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-form-sk';
 import '../skottie-background-settings-sk';
 import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
-import '../skottie-text-sampler-sk';
-import { SkottieTextSampleEventDetail } from '../skottie-text-sampler-sk/skottie-text-sampler-sk';
 import '../skottie-color-manager-sk';
 import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
 import { isBinaryAsset } from '../helpers/animation';
@@ -136,7 +134,6 @@ type ToolType =
   | 'json-editor'
   | 'color-manager'
   | 'skottie-font'
-  | 'text-sample'
   | 'skottie-player'
   | 'lottie-player';
 
@@ -355,20 +352,6 @@ export class SkottieSk extends ElementSk {
     `;
   }
 
-  private renderTextSampler(): TemplateResult {
-    return html`
-      <details class="expando">
-        <summary id="sampler-open">
-          <span>Text Samples</span><expand-less-icon-sk></expand-less-icon-sk>
-          <expand-more-icon-sk></expand-more-icon-sk>
-        </summary>
-        <skottie-text-sampler-sk
-          @animation-updated=${this.onTextSampleUpdated}
-          .animation=${this.state.lottie}></skottie-text-sampler-sk>
-      </details>
-    `;
-  }
-
   private performanceChartTemplate() {
     return html`
       <dialog class="perf-chart" ?open=${this.showPerformanceChart}>
@@ -398,8 +381,7 @@ export class SkottieSk extends ElementSk {
   };
 
   private rightControls = () => html`
-    ${this.jsonTextEditor()} ${this.renderTextSampler()} ${this.library()}
-    ${this.embedDialog()}
+    ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
   `;
 
   private renderDownload() {
@@ -1602,17 +1584,8 @@ export class SkottieSk extends ElementSk {
     this.onAnimationUpdated(ev);
   }
 
-  private onTextSampleUpdated(ev: CustomEvent<SkottieTextSampleEventDetail>) {
-    this.changingTool = 'text-sample';
-    this.onAnimationUpdated(ev);
-  }
-
   private onAnimationUpdated(
-    ev: CustomEvent<
-      | SkottieTextSampleEventDetail
-      | SkottieTemplateEventDetail
-      | TextEditEventDetail
-    >
+    ev: CustomEvent<SkottieTemplateEventDetail | TextEditEventDetail>
   ): void {
     this.state.lottie = ev.detail.animation;
     this.ui = 'draft';

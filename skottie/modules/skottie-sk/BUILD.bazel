@@ -55,7 +55,6 @@ sk_element(
         "//elements-sk/modules/icons/file-download-icon-sk",
         "//skottie/modules/skottie-file-form-sk",
         "//skottie/modules/skottie-background-settings-sk",
-        "//skottie/modules/skottie-text-sampler-sk",
         "//skottie/modules/skottie-color-manager-sk",
     ],
     ts_deps = [

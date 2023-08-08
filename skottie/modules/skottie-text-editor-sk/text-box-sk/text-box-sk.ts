@@ -26,10 +26,12 @@ import { ExtraLayerData, TextData } from '../text-replace';
 import sanitizeText from '../text-sanizite';
 import { ifDefined } from 'lit-html/directives/if-defined';
 import '../../skottie-font-selector-sk';
+import '../../skottie-text-sampler-sk';
 import {
   FontType,
   SkottieFontEventDetail,
 } from '../../skottie-font-selector-sk/skottie-font-selector-sk';
+import { SkTextSampleEventDetail } from '../../skottie-text-sampler-sk/skottie-text-sampler-sk';
 
 export interface SkottieFontChangeEventDetail {
   font: FontType;
@@ -41,7 +43,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     <li class="wrapper">
       <details class="expando" ?open=${ele._isOpen} @toggle=${ele.toggle}>
         <summary>
-          <span>Text layer: ${ele._textData?.text || ''}</span>
+          <span>Text layer: ${ele._textData?.name || ''}</span>
           <expand-less-icon-sk></expand-less-icon-sk>
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
@@ -57,6 +59,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
             .value=${ele._textData?.text || ''}></textarea>
           <div>${ele.originTemplate()}</div>
           <div>${ele.fontSelector()}</div>
+          <div>${ele.fontTextSampler()}</div>
         </div>
       </details>
     </li>
@@ -164,6 +167,22 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     `;
   }
 
+  private fontTextSampler(): TemplateResult | null {
+    if (this.mode === 'presentation' || !this._textData) {
+      return null;
+    }
+    const { fontName } = this._textData;
+    return html`
+      <section class="text-element-section">
+        <div class="text-element-section--title">Text samples</div>
+        <skottie-text-sampler-sk
+          .fontName=${fontName}
+          @select-text=${this.onTextSelected}>
+        </skottie-text-sampler-sk>
+      </section>
+    `;
+  }
+
   private static originTemplateElement(
     item: ExtraLayerData
   ): TemplateResult | null {
@@ -185,6 +204,20 @@ export class SkottieTextEditorBoxSk extends ElementSk {
         })
       );
       this._textData.fontName = ev.detail.font.fName;
+    }
+  }
+
+  private onTextSelected(ev: CustomEvent<SkTextSampleEventDetail>): void {
+    if (this._textData) {
+      this._textData.text = ev.detail.text;
+      this._textData.items.forEach((item: ExtraLayerData) => {
+        // this property is the text string of a text layer.
+        // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
+        if (item.layer.t) {
+          item.layer.t.d.k[0].s.t = ev.detail.text;
+        }
+      });
+      this.scheduleChangeEvent(0);
     }
   }
 

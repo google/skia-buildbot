@@ -4,7 +4,10 @@ sk_element(
     name = "text-box-sk",
     sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["text-box-sk.scss"],
-    sk_element_deps = ["//skottie/modules/skottie-font-selector-sk"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-font-selector-sk",
+        "//skottie/modules/skottie-text-sampler-sk",
+    ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",

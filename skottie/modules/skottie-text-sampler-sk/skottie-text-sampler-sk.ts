@@ -13,8 +13,6 @@ import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-button-sk';
-import { LottieAnimation, LottieAsset, LottieLayer } from '../types';
-import { isCompAsset } from '../helpers/animation';
 
 type SampleText = {
   id: string;
@@ -50,15 +48,11 @@ const samples: SampleText[] = [
   },
 ];
 
-const LAYER_TYPE_TEXT = 5;
-
-export interface SkottieTextSampleEventDetail {
-  animation: LottieAnimation;
+export interface SkTextSampleEventDetail {
+  text: string;
 }
 
 export class SkottieTextSamplerSk extends ElementSk {
-  private _animation: LottieAnimation | null = null;
-
   private static template = (ele: SkottieTextSamplerSk) => html`
     <div class="wrapper">${ele.renderSamples()}</div>
   `;
@@ -94,45 +88,19 @@ export class SkottieTextSamplerSk extends ElementSk {
     });
   }
 
-  private updateTextInLayers(layers: LottieLayer[], text: string): void {
-    layers.forEach((layer) => {
-      if (layer.ty === LAYER_TYPE_TEXT) {
-        if (layer.t) {
-          layer.t.d.k[0].s.t = text;
-        }
-      }
-    });
-  }
-
-  private updateTextInAssets(assets: LottieAsset[], text: string): void {
-    assets.forEach((asset) => {
-      if (isCompAsset(asset)) {
-        this.updateTextInLayers(asset.layers, text);
-      }
-    });
-  }
-
   private updateText(text: string): void {
     // This event handler replaces the animation in place
     // instead of creating a copy of the lottie animation.
     // If there is a reason why it should create a copy, this can be updated.
-    if (text && this._animation) {
-      this.updateTextInLayers(this._animation.layers, text);
-      this.updateTextInAssets(this._animation.assets, text);
+    if (text) {
       this.dispatchEvent(
-        new CustomEvent<SkottieTextSampleEventDetail>('animation-updated', {
+        new CustomEvent<SkTextSampleEventDetail>('select-text', {
           detail: {
-            animation: this._animation,
+            text: text,
           },
-          bubbles: true,
         })
       );
     }
-  }
-
-  set animation(value: LottieAnimation) {
-    this._animation = value;
-    this._render();
   }
 }
 
