@@ -46,4 +46,40 @@ skottie-text-editor-box-sk {
       }
     }
   }
+
+  .text-box {
+    display: inline-flex;
+    width: 110px;
+    align-items: center;
+    background-color: var(--skottie-secondary-main);
+    border-radius: 4px;
+    gap: 8px;
+    padding: 4px;
+    margin-top: 8px;
+
+    &__left {
+      border-radius: 4px 0 0 4px;
+    }
+
+    &__right {
+      border-radius: 0 4px 4px 0;
+    }
+
+    &--label {
+      display: inline-block;
+      font-size: 22px;
+    }
+
+    &--input {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: none;
+    }
+
+    .text-box--label {
+      .text-box--label--icon {
+        font-size: 22px;
+      }
+    }
+  }
 }

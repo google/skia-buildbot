@@ -2,6 +2,8 @@ export interface TextInfo extends Record<string, unknown> {
   t: string; // text
   mc?: number; // max characters
   f: string; // font name
+  tr: number; // tracking
+  lh: number; // lineHeight
 }
 
 export interface TextKeyFrame {

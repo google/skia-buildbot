@@ -46,7 +46,7 @@ export class SkottieTextEditorSk extends ElementSk {
     <skottie-text-editor-box-sk
       .textData=${item}
       .mode=${this.mode}
-      @change=${this.save}
+      @text-data-change=${this.save}
       @font-change=${this.updateFont}>
     </skottie-text-editor-box-sk>
   `;
@@ -165,6 +165,8 @@ export class SkottieTextEditorSk extends ElementSk {
               maxChars: item.layer.t?.d.k[0].s.mc, // Max characters text document attribute
               precompName: item.precompName,
               fontName: item.layer.t?.d.k[0].s.f || '', // font name
+              tracking: item.layer.t?.d.k[0].s.tr || 0,
+              lineHeight: item.layer.t?.d.k[0].s.lh || 0,
             };
           }
 

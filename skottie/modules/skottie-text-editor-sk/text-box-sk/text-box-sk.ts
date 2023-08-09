@@ -59,6 +59,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
             .value=${ele._textData?.text || ''}></textarea>
           <div>${ele.originTemplate()}</div>
           <div>${ele.fontSelector()}</div>
+          <div>${ele.fontSettings()}</div>
           <div>${ele.fontTextSampler()}</div>
         </div>
       </details>
@@ -109,7 +110,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     window.clearTimeout(this._timeoutId);
     this._timeoutId = window.setTimeout(() => {
       this.dispatchEvent(
-        new CustomEvent('change', {
+        new CustomEvent('text-data-change', {
           detail: {},
         })
       );
@@ -167,6 +168,43 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     `;
   }
 
+  private fontSettings(): TemplateResult | null {
+    if (this.mode === 'presentation' || !this._textData) {
+      return null;
+    }
+    return html`
+      <section class="text-element-section">
+        <div class="text-element-section--title">Font settings</div>
+        <div class="text-box text-box__left">
+          <div class="text-box--label">
+            <span class="icon-sk text-box--label--icon">
+              format_line_spacing
+            </span>
+          </div>
+          <input
+            type="number"
+            class="text-box--input"
+            @change=${this.onLineHeightChange}
+            value=${this._textData.lineHeight}
+            required />
+        </div>
+        <div class="text-box text-box__left">
+          <div class="text-box--label">
+            <span class="icon-sk text-box--label--icon">
+              format_letter_spacing_wide
+            </span>
+          </div>
+          <input
+            type="number"
+            class="text-box--input"
+            @change=${this.onTrackingChange}
+            value=${this._textData.tracking}
+            required />
+        </div>
+      </section>
+    `;
+  }
+
   private fontTextSampler(): TemplateResult | null {
     if (this.mode === 'presentation' || !this._textData) {
       return null;
@@ -215,6 +253,36 @@ export class SkottieTextEditorBoxSk extends ElementSk {
         // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
         if (item.layer.t) {
           item.layer.t.d.k[0].s.t = ev.detail.text;
+        }
+      });
+      this.scheduleChangeEvent(0);
+    }
+  }
+
+  private onTrackingChange(ev: Event) {
+    const target = ev.target as HTMLInputElement;
+    if (this._textData) {
+      this._textData.tracking = target.valueAsNumber;
+      this._textData.items.forEach((item: ExtraLayerData) => {
+        // this property is the text tracking of a text layer.
+        // It's read as: Text Element > Text document > First Keyframe > Start Value > Tracking
+        if (item.layer.t) {
+          item.layer.t.d.k[0].s.tr = target.valueAsNumber;
+        }
+      });
+      this.scheduleChangeEvent(0);
+    }
+  }
+
+  private onLineHeightChange(ev: Event) {
+    const target = ev.target as HTMLInputElement;
+    if (this._textData) {
+      this._textData.lineHeight = target.valueAsNumber;
+      this._textData.items.forEach((item: ExtraLayerData) => {
+        // this property is the text line height of a text layer.
+        // It's read as: Text Element > Text document > First Keyframe > Start Value > Line height
+        if (item.layer.t) {
+          item.layer.t.d.k[0].s.lh = target.valueAsNumber;
         }
       });
       this.scheduleChangeEvent(0);
