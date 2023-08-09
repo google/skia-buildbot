@@ -18,7 +18,7 @@
 # Download link: https://www.nvidia.com/download/driverResults.aspx/209266/en-us/
 - name: Copy the NVIDIA driver EXE to the host
   win_copy:
-    src: "{{ win_package_src }}/NVIDIA Graphics 536.67-desktop-win10-win11-64bit-international-dch-whql.exe"
+    src: "{{ win_package_src }}/NVIDIA Graphics 536.99-desktop-win10-win11-64bit-international-dch-whql.exe"
     dest: C:\Temp\nvidia_gfx.exe
 
 - name: Install NVIDIA Graphics Driver
