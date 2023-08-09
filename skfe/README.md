@@ -24,7 +24,7 @@ A single unified web frontend for all the Skia properties.
 
 A single static IP is handled by GKE Ingress which handles SSL and then
 distributes requests to multiple envoy pods: They, in turn, distribute the calls
-to the backend as kubernetes sevices. The certs for all Skia properties are
+to the backend as kubernetes services. The certs for all Skia properties are
 handled at the GKE Ingress level, see http://go/skia-ssl-cert for more details.
 
 The configuration for the envoy server is generated in the [k8s-config](https://skia.googlesource.com/k8s-config/+/refs/heads/main/)
