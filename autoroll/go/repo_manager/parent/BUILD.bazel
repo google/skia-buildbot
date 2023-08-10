@@ -56,6 +56,7 @@ go_library(
 go_test(
     name = "parent_test",
     srcs = [
+        "git_checkout_test.go",
         "gitiles_test.go",
         "go_mod_test.go",
         "pre_upload_steps_test.go",
@@ -71,6 +72,7 @@ go_test(
         "//go/gerrit",
         "//go/gerrit/mocks",
         "//go/gerrit/testutils",
+        "//go/git",
         "//go/git/testutils",
         "//go/mockhttpclient",
         "//go/testutils",

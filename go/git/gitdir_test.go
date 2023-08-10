@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -131,4 +132,70 @@ func TestIsAncestor(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, b)
 	}
+}
+
+func TestGetFile(t *testing.T) {
+	ctx, gb, commits := setup(t)
+	defer gb.Cleanup()
+
+	tmpDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+
+	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	require.NoError(t, err)
+
+	contents, err := g.GetFile(ctx, checkedInFile, "HEAD")
+	require.NoError(t, err)
+
+	contentsAtHead, err := ioutil.ReadFile(filepath.Join(g.Dir(), checkedInFile))
+	require.NoError(t, err)
+	require.Equal(t, string(contentsAtHead), contents)
+
+	contents, err = g.GetFile(ctx, checkedInFile, commits[1])
+	require.NoError(t, err)
+	// We use rng to change file content between commits so it should be
+	// different.
+	require.NotEqual(t, string(contentsAtHead), contents)
+}
+
+func TestReadUpdateSubmodule(t *testing.T) {
+	ctx, gb, _ := setup(t)
+	defer gb.Cleanup()
+
+	tmpDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+
+	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	require.NoError(t, err)
+
+	// Create submodule
+	require.NoError(t, err)
+	_, err = g.Git(ctx, "-c", "protocol.file.allow=always", "submodule", "add", g.Dir(), "my-submodule")
+	require.NoError(t, err)
+	hash, err := g.FullHash(ctx, "HEAD")
+	require.NoError(t, err)
+	_, err = g.Git(ctx, "commit", "-m", "update submodule")
+	require.NoError(t, err)
+
+	// Test Read submodule
+	contents, err := g.ReadSubmodule(ctx, "my-submodule", "HEAD")
+	require.NoError(t, err)
+	require.Equal(t, hash, contents)
+
+	// Test Read directory
+	contents, err = g.ReadSubmodule(ctx, ".", "HEAD")
+	require.Error(t, err)
+
+	// Test Write & Read
+	newHash := "2222222222222222222222222222222222222222"
+	err = g.UpdateSubmodule(ctx, "my-submodule", newHash)
+	require.NoError(t, err)
+	_, err = g.Git(ctx, "commit", "-m", "update submodule #2")
+	require.NoError(t, err)
+
+	contents, err = g.ReadSubmodule(ctx, "my-submodule", "HEAD")
+	require.NoError(t, err)
+	require.Equal(t, newHash, contents)
 }

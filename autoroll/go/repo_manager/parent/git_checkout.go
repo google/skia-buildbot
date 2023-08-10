@@ -21,6 +21,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+const gitHeadRef = "HEAD"
+
 // GitCheckoutParent is a base for implementations of Parent which use a local
 // Git checkout.
 type GitCheckoutParent struct {
@@ -80,20 +82,17 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.CreateRollFunc {
 	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Determine what changes need to be made.
-		getFile := func(ctx context.Context, path string) (string, error) {
-			return co.GetFile(ctx, path, "HEAD")
+		getFileWrapped := func(ctx context.Context, path string) (string, error) {
+			return getFile(ctx, co, path)
 		}
-		changes, err := version_file_common.UpdateDep(ctx, dep, to, getFile)
+		changes, err := version_file_common.UpdateDep(ctx, dep, to, getFileWrapped)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		// Perform the changes.
 		for path, contents := range changes {
-			fullPath := filepath.Join(co.Dir(), path)
-			if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
-				return "", skerr.Wrap(err)
-			}
-			if _, err := co.Git(ctx, "add", path); err != nil {
+			err := writeFile(ctx, co, path, contents)
+			if err != nil {
 				return "", skerr.Wrap(err)
 			}
 		}
@@ -101,12 +100,33 @@ func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.Crea
 		if _, err := co.Git(ctx, "commit", "-m", commitMsg); err != nil {
 			return "", skerr.Wrap(err)
 		}
-		out, err := co.RevParse(ctx, "HEAD")
+		out, err := co.RevParse(ctx, gitHeadRef)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		return strings.TrimSpace(out), nil
 	}
+}
+func getFile(ctx context.Context, co *git.Checkout, path string) (string, error) {
+	if ok, err := co.IsSubmodule(ctx, path, gitHeadRef); ok && err == nil {
+		return co.ReadSubmodule(ctx, path, gitHeadRef)
+	}
+	return co.GetFile(ctx, path, gitHeadRef)
+}
+
+func writeFile(ctx context.Context, co *git.Checkout, path, contents string) error {
+	if ok, _ := co.IsSubmodule(ctx, path, gitHeadRef); ok {
+		return co.UpdateSubmodule(ctx, path, contents)
+	}
+
+	fullPath := filepath.Join(co.Dir(), path)
+	if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := co.Git(ctx, "add", path); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 var _ Parent = &GitCheckoutParent{}

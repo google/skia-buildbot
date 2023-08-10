@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,12 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 )
+
+const gitlinkMode = "160000"
+
+var ErrorNotSubmodule = skerr.Fmt("not a submodule")
+var ErrorNotFound = skerr.Fmt("file not found")
+var lsTreeRe = regexp.MustCompile(`(\d+) (\w+) ([[:xdigit:]]+)\t(.*)`)
 
 // Branch describes a Git branch.
 type Branch struct {
@@ -161,6 +168,58 @@ func (g GitDir) Branches(ctx context.Context) ([]*Branch, error) {
 // GetFile returns the contents of the given file at the given commit.
 func (g GitDir) GetFile(ctx context.Context, fileName, commit string) (string, error) {
 	return g.Git(ctx, "show", commit+":"+fileName)
+}
+
+// IsSubmodule returns true if the given path is submodule, ie contains gitlink.
+func (g GitDir) IsSubmodule(ctx context.Context, path, commit string) (bool, error) {
+	_, err := g.ReadSubmodule(ctx, path, commit)
+	switch skerr.Unwrap(err) {
+	case ErrorNotSubmodule:
+		return false, nil
+	case nil:
+		return true, nil
+	default:
+		return false, err
+	}
+}
+
+// ReadSubmodule returns commit hash of the given path, if the path is git
+// submodule. ErrorNotFound is returned if path is not found in the git
+// worktree. ErrorNotSubmodule is returned if path exists, but it's not a
+// submodule.
+func (g GitDir) ReadSubmodule(ctx context.Context, path, commit string) (string, error) {
+	// Detect if we are dealing with submodules or regular files.
+	// Expected output for submodules:
+	// <mode> SP <type> SP <object> TAB <file>
+	out, err := g.Git(ctx, "ls-tree", commit, "--", path)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	matches := lsTreeRe.FindAllStringSubmatch(out, -1)
+	if len(matches) != 1 {
+		// We expect one match. If is non one, it's either not found or
+		// it's a tree. In either case, we return not found.
+		return "", skerr.Wrap(ErrorNotFound)
+	}
+
+	if matches[0][1] != gitlinkMode {
+		return "", skerr.Wrap(ErrorNotSubmodule)
+	}
+	return matches[0][3], nil
+}
+
+// UpdateSubmodule updates git submodule of the given path to the given commit.
+// If submodule doesn't exist, it returns ErrorNotFound since it doesn't have
+// all necessary information to create a valid submodule (requires an entry in
+// .gitmodules).
+func (g GitDir) UpdateSubmodule(ctx context.Context, path, commit string) error {
+	if _, err := g.ReadSubmodule(ctx, path, "HEAD"); err != nil {
+		return err
+	}
+	cacheInfo := fmt.Sprintf("%s,%s,%s", gitlinkMode, commit, path)
+	_, err := g.Git(ctx, "update-index", "--add", "--cacheinfo", cacheInfo)
+	return err
 }
 
 // NumCommits returns the number of commits in the repo.
