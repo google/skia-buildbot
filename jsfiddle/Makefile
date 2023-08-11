@@ -16,6 +16,11 @@ release: wasm_libs
 	$(BAZEL) run --config=mayberemote //jsfiddle:push_jsfiddle_container
 	$(MAKE) build-placeholders
 
+.PHONY: release-base
+release-base:
+	$(BAZEL) run --config=mayberemote //jsfiddle:push_jsfiddle_container-base
+	$(MAKE) build-placeholders
+
 .PHONY: wasm_libs
 wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
