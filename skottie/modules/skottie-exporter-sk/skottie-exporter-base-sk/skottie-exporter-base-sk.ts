@@ -201,6 +201,17 @@ export class SkottieExporterBaseSk extends ElementSk {
     );
   }
 
+  protected handleKeyDown(ev: Event): void {
+    if ((event as KeyboardEvent).key === 'Enter') {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      if (document.activeElement) {
+        (document.activeElement as HTMLElement).blur();
+      }
+      this.start();
+    }
+  }
+
   set skottiePlayer(player: SkottiePlayerSk) {
     this.player = player;
     this._render();
@@ -208,6 +219,10 @@ export class SkottieExporterBaseSk extends ElementSk {
 
   set renderState(value: ComponentState) {
     this._renderState = value;
+  }
+
+  set downloadFileName(value: string) {
+    this._downloadFileName = value;
   }
 
   public get renderState() {

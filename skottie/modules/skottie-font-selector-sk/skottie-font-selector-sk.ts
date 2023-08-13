@@ -31,134 +31,9 @@ type OptionType = {
 
 const availableFonts: FontType[] = [
   {
-    fName: 'Righteous-Regular',
-    fStyle: 'Righteous',
-    fFamily: 'Regular',
-  },
-  {
-    fName: 'BarlowCondensed-Regular',
+    fName: 'AbrilFatface-Regular',
     fStyle: 'Regular',
-    fFamily: 'BarlowCondensed',
-  },
-  {
-    fName: 'Anton-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Anton',
-  },
-  {
-    fName: 'DMSans-Regular',
-    fStyle: 'Regular',
-    fFamily: 'DMSans',
-  },
-  {
-    fName: 'KronaOne-Regular',
-    fStyle: 'Regular',
-    fFamily: 'KronaOne',
-  },
-  {
-    fName: 'BarlowCondensed-SemiBold',
-    fStyle: 'SemiBold',
-    fFamily: 'BarlowCondensed',
-  },
-  {
-    fName: 'Archivo-BoldItalic',
-    fStyle: 'BoldItalic',
-    fFamily: 'Archivo',
-  },
-  {
-    fName: 'Montserrat-Bold',
-    fStyle: 'Bold',
-    fFamily: 'Montserrat',
-  },
-  {
-    fName: 'Syncopate-Bold',
-    fStyle: 'Bold',
-    fFamily: 'Syncopate',
-  },
-  {
-    fName: 'SairaCondensed-ExtraBold',
-    fStyle: 'ExtraBold',
-    fFamily: 'SairaCondensed',
-  },
-  {
-    fName: 'LuckiestGuy-Regular',
-    fStyle: 'Regular',
-    fFamily: 'LuckiestGuy',
-  },
-  {
-    fName: 'Tomorrow-ExtraBoldItalic',
-    fStyle: 'ExtraBoldItalic',
-    fFamily: 'Tomorrow',
-  },
-  {
-    fName: 'LondrinaSolid-Black',
-    fStyle: 'Black',
-    fFamily: 'LondrinaSolid',
-  },
-  {
-    fName: 'Montserrat-Black',
-    fStyle: 'Black',
-    fFamily: 'Montserrat',
-  },
-  {
-    fName: 'TitilliumWeb-Black',
-    fStyle: 'Black',
-    fFamily: 'TitilliumWeb',
-  },
-  {
-    fName: 'Poppins-BlackItalic',
-    fStyle: 'BlackItalic',
-    fFamily: 'Poppins',
-  },
-  {
-    fName: 'Comfortaa-Light',
-    fStyle: 'Light',
-    fFamily: 'Comfortaa',
-  },
-  {
-    fName: 'Boogaloo-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Boogaloo',
-  },
-  {
-    fName: 'Chewy-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Chewy',
-  },
-  {
-    fName: 'Overlock-BlackItalic',
-    fStyle: 'BlackItalic',
-    fFamily: 'Overlock',
-  },
-  {
-    fName: 'FredokaOne-Regular',
-    fStyle: 'Regular',
-    fFamily: 'FredokaOne',
-  },
-  {
-    fName: 'Shrikhand-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Shrikhand',
-  },
-  {
-    fName: 'SpicyRice-Regular',
-    fStyle: 'Regular',
-    fFamily: 'SpicyRice',
-  },
-  {
-    fName: 'Modak-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Modak',
-  },
-  {
-    fName: 'Chango-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Chango',
-  },
-  {
-    fName: 'Sniglet-ExtraBold',
-    fStyle: 'ExtraBold',
-    fFamily: 'Sniglet',
+    fFamily: 'AbrilFatface',
   },
   {
     fName: 'AmaticSC-Bold',
@@ -166,49 +41,19 @@ const availableFonts: FontType[] = [
     fFamily: 'AmaticSC',
   },
   {
-    fName: 'CaveatBrush-Regular',
+    fName: 'Anton-Regular',
     fStyle: 'Regular',
-    fFamily: 'CaveatBrush',
+    fFamily: 'Anton',
   },
   {
-    fName: 'CoveredByYourGrace-Regular',
-    fStyle: 'Regular',
-    fFamily: 'CoveredByYourGrace',
+    fName: 'Archivo-BoldItalic',
+    fStyle: 'BoldItalic',
+    fFamily: 'Archivo',
   },
   {
-    fName: 'Knewave-Regular',
+    fName: 'Archivo Narrow-Regular',
     fStyle: 'Regular',
-    fFamily: 'Knewave',
-  },
-  {
-    fName: 'PermanentMarker-Regular',
-    fStyle: 'Regular',
-    fFamily: 'PermanentMarker',
-  },
-  {
-    fName: 'Damion-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Damion',
-  },
-  {
-    fName: 'Neonderthaw-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Neonderthaw',
-  },
-  {
-    fName: 'Pacifico-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Pacifico',
-  },
-  {
-    fName: 'Lobster-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Lobster',
-  },
-  {
-    fName: 'Molle-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Molle',
+    fFamily: 'Archivo Narrow',
   },
   {
     fName: 'Bahiana-Regular',
@@ -216,44 +61,34 @@ const availableFonts: FontType[] = [
     fFamily: 'Bahiana',
   },
   {
-    fName: 'JollyLodger-Regular',
+    fName: 'BarlowCondensed-Regular',
     fStyle: 'Regular',
-    fFamily: 'JollyLodger',
+    fFamily: 'BarlowCondensed',
   },
   {
-    fName: 'LifeSavers-ExtraBold',
-    fStyle: 'ExtraBold',
-    fFamily: 'LifeSavers',
+    fName: 'BarlowCondensed-SemiBold',
+    fStyle: 'SemiBold',
+    fFamily: 'BarlowCondensed',
   },
   {
-    fName: 'Warnes-Regular',
+    fName: 'Boogaloo-Regular',
     fStyle: 'Regular',
-    fFamily: 'Warnes',
+    fFamily: 'Boogaloo',
   },
   {
-    fName: 'Ranchers-Regular',
+    fName: 'CaveatBrush-Regular',
     fStyle: 'Regular',
-    fFamily: 'Ranchers',
+    fFamily: 'CaveatBrush',
   },
   {
-    fName: 'Creepster-Regular',
+    fName: 'Caveat-Regular',
     fStyle: 'Regular',
-    fFamily: 'Creepster',
+    fFamily: 'Caveat',
   },
   {
-    fName: 'Slackey-Regular',
+    fName: 'Chango-Regular',
     fStyle: 'Regular',
-    fFamily: 'Slackey',
-  },
-  {
-    fName: 'Monoton-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Monoton',
-  },
-  {
-    fName: 'NewRocker-Regular',
-    fStyle: 'Regular',
-    fFamily: 'NewRocker',
+    fFamily: 'Chango',
   },
   {
     fName: 'ChelaOne-Regular',
@@ -261,19 +96,19 @@ const availableFonts: FontType[] = [
     fFamily: 'ChelaOne',
   },
   {
-    fName: 'GermaniaOne-Regular',
+    fName: 'Chewy-Regular',
     fStyle: 'Regular',
-    fFamily: 'GermaniaOne',
+    fFamily: 'Chewy',
   },
   {
-    fName: 'Metamorphous-Regular',
-    fStyle: 'Regular',
-    fFamily: 'Metamorphous',
+    fName: 'Comfortaa-Light',
+    fStyle: 'Light',
+    fFamily: 'Comfortaa',
   },
   {
-    fName: 'Spectral-BoldItalic',
-    fStyle: 'BoldItalic',
-    fFamily: 'Spectral',
+    fName: 'Comfortaa-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Comfortaa',
   },
   {
     fName: 'Corben-Bold',
@@ -281,14 +116,94 @@ const availableFonts: FontType[] = [
     fFamily: 'Corben',
   },
   {
+    fName: 'Courgette-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Courgette',
+  },
+  {
+    fName: 'CoveredByYourGrace-Regular',
+    fStyle: 'Regular',
+    fFamily: 'CoveredByYourGrace',
+  },
+  {
+    fName: 'Creepster-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Creepster',
+  },
+  {
+    fName: 'Damion-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Damion',
+  },
+  {
+    fName: 'DMSans-Regular',
+    fStyle: 'Regular',
+    fFamily: 'DMSans',
+  },
+  {
     fName: 'EBGaramond-Medium',
     fStyle: 'Medium',
     fFamily: 'EBGaramond',
   },
   {
-    fName: 'PlayfairDisplay-SemiBoldItalic',
-    fStyle: 'SemiBoldItalic',
-    fFamily: 'PlayfairDisplay',
+    fName: 'EBGaramond-Regular',
+    fStyle: 'Regular',
+    fFamily: 'EBGaramond',
+  },
+  {
+    fName: 'FredokaOne-Regular',
+    fStyle: 'Regular',
+    fFamily: 'FredokaOne',
+  },
+  {
+    fName: 'GermaniaOne-Regular',
+    fStyle: 'Regular',
+    fFamily: 'GermaniaOne',
+  },
+  {
+    fName: 'JollyLodger-Regular',
+    fStyle: 'Regular',
+    fFamily: 'JollyLodger',
+  },
+  {
+    fName: 'Knewave-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Knewave',
+  },
+  {
+    fName: 'KronaOne-Regular',
+    fStyle: 'Regular',
+    fFamily: 'KronaOne',
+  },
+  {
+    fName: 'Lexend-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Lexend',
+  },
+  {
+    fName: 'LifeSavers-ExtraBold',
+    fStyle: 'ExtraBold',
+    fFamily: 'LifeSavers',
+  },
+  {
+    fName: 'Lobster-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Lobster',
+  },
+  {
+    fName: 'LondrinaSolid-Black',
+    fStyle: 'Black',
+    fFamily: 'LondrinaSolid',
+  },
+  {
+    fName: 'Lora-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Lora',
+  },
+  {
+    fName: 'LuckiestGuy-Regular',
+    fStyle: 'Regular',
+    fFamily: 'LuckiestGuy',
   },
   {
     fName: 'Merriweather-Regular',
@@ -296,14 +211,189 @@ const availableFonts: FontType[] = [
     fFamily: 'Merriweather',
   },
   {
-    fName: 'AbrilFatface-Regular',
+    fName: 'Metamorphous-Regular',
     fStyle: 'Regular',
-    fFamily: 'AbrilFatface',
+    fFamily: 'Metamorphous',
+  },
+  {
+    fName: 'Modak-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Modak',
+  },
+  {
+    fName: 'Molle-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Molle',
+  },
+  {
+    fName: 'Monoton-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Monoton',
+  },
+  {
+    fName: 'Montserrat-Black',
+    fStyle: 'Black',
+    fFamily: 'Montserrat',
+  },
+  {
+    fName: 'Montserrat-Bold',
+    fStyle: 'Bold',
+    fFamily: 'Montserrat',
+  },
+  {
+    fName: 'Montserrat-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Montserrat',
+  },
+  {
+    fName: 'Neonderthaw-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Neonderthaw',
+  },
+  {
+    fName: 'NewRocker-Regular',
+    fStyle: 'Regular',
+    fFamily: 'NewRocker',
+  },
+  {
+    fName: 'Noto Sans-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Noto Sans',
+  },
+  {
+    fName: 'Noto Sans Mono-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Noto Sans Mono',
+  },
+  {
+    fName: 'Noto Serif-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Noto Serif',
+  },
+  {
+    fName: 'Overlock-BlackItalic',
+    fStyle: 'BlackItalic',
+    fFamily: 'Overlock',
+  },
+  {
+    fName: 'Oswald-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Oswald',
+  },
+  {
+    fName: 'Oswald-Bold',
+    fStyle: 'Bold',
+    fFamily: 'Oswald',
+  },
+  {
+    fName: 'Pacifico-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Pacifico',
+  },
+  {
+    fName: 'PermanentMarker-Regular',
+    fStyle: 'Regular',
+    fFamily: 'PermanentMarker',
+  },
+  {
+    fName: 'PlayfairDisplay-Regular',
+    fStyle: 'Regular',
+    fFamily: 'PlayfairDisplay',
+  },
+  {
+    fName: 'PlayfairDisplay-SemiBoldItalic',
+    fStyle: 'SemiBoldItalic',
+    fFamily: 'PlayfairDisplay',
+  },
+  {
+    fName: 'Poppins-BlackItalic',
+    fStyle: 'BlackItalic',
+    fFamily: 'Poppins',
+  },
+  {
+    fName: 'Ranchers-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Ranchers',
+  },
+  {
+    fName: 'Righteous-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Righteous',
+  },
+  {
+    fName: 'Roboto-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Roboto',
+  },
+  {
+    fName: 'Roboto Mono-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Roboto Mono',
+  },
+  {
+    fName: 'SairaCondensed-ExtraBold',
+    fStyle: 'ExtraBold',
+    fFamily: 'SairaCondensed',
+  },
+  {
+    fName: 'Shrikhand-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Shrikhand',
+  },
+  {
+    fName: 'Slackey-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Slackey',
+  },
+  {
+    fName: 'Sniglet-ExtraBold',
+    fStyle: 'ExtraBold',
+    fFamily: 'Sniglet',
+  },
+  {
+    fName: 'Spectral-BoldItalic',
+    fStyle: 'BoldItalic',
+    fFamily: 'Spectral',
+  },
+  {
+    fName: 'Spectral-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Spectral',
+  },
+  {
+    fName: 'SpicyRice-Regular',
+    fStyle: 'Regular',
+    fFamily: 'SpicyRice',
+  },
+  {
+    fName: 'Sriracha-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Sriracha',
+  },
+  {
+    fName: 'Syncopate-Bold',
+    fStyle: 'Bold',
+    fFamily: 'Syncopate',
   },
   {
     fName: 'TextMeOne-Regular',
     fStyle: 'Regular',
     fFamily: 'TextMeOne',
+  },
+  {
+    fName: 'TitilliumWeb-Black',
+    fStyle: 'Black',
+    fFamily: 'TitilliumWeb',
+  },
+  {
+    fName: 'Tomorrow-ExtraBoldItalic',
+    fStyle: 'ExtraBoldItalic',
+    fFamily: 'Tomorrow',
+  },
+  {
+    fName: 'Warnes-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Warnes',
   },
 ];
 

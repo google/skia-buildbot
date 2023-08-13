@@ -99,11 +99,12 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
 
   protected renderIdle(): TemplateResult {
     return html`
-      <form class="export-form">
+      <form class="export-form" @keydown=${this.handleKeyDown}>
         <input
           type="text"
           .value=${this._downloadFileName}
           class="export-form__filename"
+          @input=${this.onNameChange}
           @change=${this.onNameChange} />
         <div class="export-form__label">Quality</div>
         <skottie-dropdown-sk

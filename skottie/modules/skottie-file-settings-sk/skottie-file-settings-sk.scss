@@ -36,6 +36,35 @@ skottie-file-settings-sk {
         min-width: 0;
         border: none;
       }
+
+      &--info {
+        display: inline;
+        flex: 0 0 auto;
+        font-size: 14px;
+        width: 20px;
+        position: relative;
+
+        &--tooltip {
+          width: max-content;
+          max-width: 300px;
+          background-color: var(--skottie-secondary-dark);
+          border-radius: 6px;
+          color: var(--skottie-surface-light);
+          margin: 0 0 0 8px;
+          text-align: center;
+          padding: 8px;
+          visibility: hidden;
+          position: absolute;
+          left: 0;
+          top: 100%;
+          z-index: 1;
+          transform: translate(-50%, 6px);
+        }
+
+        &:hover .text-box--info--tooltip {
+          visibility: visible;
+        }
+      }
     }
 
     .aspect-ratio {

@@ -212,7 +212,10 @@ export class SkottieSk extends ElementSk {
           ${redir()}
         </footer>
       </div>
-      <skottie-exporter-sk @start=${ele.onExportStart}></skottie-exporter-sk>
+      <skottie-exporter-sk
+        @start=${ele.onExportStart}
+        .downloadFileName=${ele.state.filename || 'Download'}>
+      </skottie-exporter-sk>
     </app-sk>
   `;
 

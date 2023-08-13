@@ -23,6 +23,8 @@ export class SkottieExporterSk extends ElementSk {
 
   private _skottiePlayer: SkottiePlayerSk | null = null;
 
+  private _downloadFileName: string = '';
+
   private static template = (ele: SkottieExporterSk) => {
     if (ele._exportType === 'none') {
       return null;
@@ -62,7 +64,8 @@ export class SkottieExporterSk extends ElementSk {
         ${this.buildTitle('Export GIF')}
         <skottie-exporter-gif-sk
           @cancel=${ele.cancel}
-          .skottiePlayer=${ele._skottiePlayer}></skottie-exporter-gif-sk>
+          .skottiePlayer=${ele._skottiePlayer}
+          .downloadFileName=${this._downloadFileName}></skottie-exporter-gif-sk>
       </div>
     `;
   }
@@ -73,7 +76,9 @@ export class SkottieExporterSk extends ElementSk {
         ${this.buildTitle('Export WebM')}
         <skottie-exporter-webm-sk
           @cancel=${ele.cancel}
-          .skottiePlayer=${ele._skottiePlayer}></skottie-exporter-webm-sk>
+          .skottiePlayer=${ele._skottiePlayer}
+          .downloadFileName=${this._downloadFileName}>
+        </skottie-exporter-webm-sk>
       </div>
     `;
   }
@@ -84,7 +89,8 @@ export class SkottieExporterSk extends ElementSk {
         ${this.buildTitle('Export PNG Sequence')}
         <skottie-exporter-png-sk
           @cancel=${ele.cancel}
-          .skottiePlayer=${ele._skottiePlayer}></skottie-exporter-png-sk>
+          .skottiePlayer=${ele._skottiePlayer}
+          .downloadFileName=${this._downloadFileName}></skottie-exporter-png-sk>
       </div>
     `;
   }
@@ -122,6 +128,10 @@ export class SkottieExporterSk extends ElementSk {
     this._exportType = value;
     this.dispatchEvent(new CustomEvent('start'));
     this._render();
+  }
+
+  set downloadFileName(value: string) {
+    this._downloadFileName = value;
   }
 }
 

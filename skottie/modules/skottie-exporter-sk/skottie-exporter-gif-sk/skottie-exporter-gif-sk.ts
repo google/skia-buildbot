@@ -118,11 +118,15 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
 
   protected renderIdle(): TemplateResult {
     return html`
-      <form class="export-form" id="export-form-gif">
+      <form
+        class="export-form"
+        id="export-form-gif"
+        @keydown=${this.handleKeyDown}>
         <input
           type="text"
           .value=${this._downloadFileName}
           class="export-form__filename"
+          @input=${this.onNameChange}
           @change=${this.onNameChange} />
         <div class="export-form__label">Quality</div>
         <skottie-dropdown-sk

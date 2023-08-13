@@ -76,6 +76,13 @@ export class SkottieFileSettingsSk extends ElementSk {
             value=${ele._fps}
             required />
         </div>
+        <div class="text-box--info">
+          <info-icon-sk></info-icon-sk>
+          <span class="text-box--info--tooltip">
+            Frame rate "0" means "as smooth as possible" and -1 is to use the
+            default from the animation
+          </span>
+        </div>
       </div>
       <div class="toolbar">
         <skottie-button-sk
