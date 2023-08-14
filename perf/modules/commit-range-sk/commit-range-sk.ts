@@ -51,7 +51,7 @@ export class CommitRangeSk extends ElementSk {
   }
 
   private static template = (ele: CommitRangeSk) =>
-    html`<a href="${ele._url}">${ele._text}</a>`;
+    html`<a href="${ele._url}" target="_blank">${ele._text}</a>`;
 
   connectedCallback(): void {
     super.connectedCallback();
