@@ -28,6 +28,10 @@ wasm_libs:
 push: release
 	$(BAZEL) run --config=mayberemote //shaders:pushk_shader_container
 
+.PHONY: release-base
+release-base:
+	$(BAZEL) run --config=mayberemote //shaders:push_shaders_container-base
+
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/shaders/go/ts/  )
 
