@@ -26,6 +26,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/roles"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
@@ -707,6 +708,10 @@ func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to update an ignore rule.", http.StatusUnauthorized)
 		return
 	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to change ignore rules", http.StatusUnauthorized)
+		return
+	}
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
@@ -760,6 +765,10 @@ func (wh *Handlers) DeleteIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to delete an ignore rule", http.StatusUnauthorized)
 		return
 	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to change ignore rules", http.StatusUnauthorized)
+		return
+	}
 	ctx, span := trace.StartSpan(r.Context(), "web_DeleteIgnoreRule", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	id := chi.URLParam(r, "id")
@@ -781,6 +790,10 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	user := wh.alogin.LoggedInAs(r)
 	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
+		return
+	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to add ignore rules", http.StatusUnauthorized)
 		return
 	}
 	ctx, span := trace.StartSpan(r.Context(), "web_AddIgnoreRule", trace.WithSampler(trace.AlwaysSample()))
@@ -819,6 +832,10 @@ func (wh *Handlers) TriageHandlerV2(w http.ResponseWriter, r *http.Request) {
 	user := wh.alogin.LoggedInAs(r)
 	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
+		return
+	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to change expectations", http.StatusUnauthorized)
 		return
 	}
 
@@ -986,6 +1003,10 @@ func (wh *Handlers) TriageHandlerV3(w http.ResponseWriter, r *http.Request) {
 	user := wh.alogin.LoggedInAs(r)
 	if user == alogin.NotLoggedIn {
 		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
+		return
+	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to change expectations", http.StatusUnauthorized)
 		return
 	}
 
@@ -1687,6 +1708,10 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to change expectations", http.StatusUnauthorized)
 		return
 	}
+	if !wh.alogin.HasRole(r, roles.Editor) {
+		http.Error(w, "You must be logged in as an editor to change expectations", http.StatusUnauthorized)
+		return
+	}
 
 	// Extract the id to undo.
 	changeID := r.URL.Query().Get("id")
@@ -2118,7 +2143,10 @@ func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	user := wh.alogin.LoggedInAs(r)
-	sendJSONResponse(w, map[string]string{"whoami": user.String()})
+	sendJSONResponse(w, map[string]interface{}{
+		"whoami": user.String(),
+		"roles":  wh.alogin.Roles(r),
+	})
 }
 
 // LatestPositiveDigestHandler returns the most recent positive digest for the given trace.

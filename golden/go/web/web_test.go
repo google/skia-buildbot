@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	ttlcache "github.com/patrickmn/go-cache"
+	"go.skia.org/infra/go/roles"
 
 	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"
@@ -57,18 +58,33 @@ const (
 	fakeUser = alogin.EMail("user@example.com")
 )
 
-func whForTesting(t *testing.T) Handlers {
+func userIsEditor(t *testing.T) Handlers {
 	mockLogin := mock_alogin.NewLogin(t)
-	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com"))
+	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com")).Maybe()
+	mockLogin.On("HasRole", mock.Anything, roles.Editor).Return(true).Maybe()
+	mockLogin.On("Roles", mock.Anything).Return(roles.Roles{roles.Editor}).Maybe()
 
 	return Handlers{
 		alogin: mockLogin,
 	}
 }
 
-func whForTestingNotLoggedIn(t *testing.T) Handlers {
+func userIsLoggedInButNotEditor(t *testing.T) Handlers {
 	mockLogin := mock_alogin.NewLogin(t)
-	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.NotLoggedIn)
+	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com")).Maybe()
+	mockLogin.On("HasRole", mock.Anything, mock.Anything).Return(false).Maybe()
+	mockLogin.On("Roles", mock.Anything).Return(nil).Maybe()
+
+	return Handlers{
+		alogin: mockLogin,
+	}
+}
+
+func userIsNotLoggedIn(t *testing.T) Handlers {
+	mockLogin := mock_alogin.NewLogin(t)
+	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.NotLoggedIn).Maybe()
+	mockLogin.On("HasRole", mock.Anything, mock.Anything).Return(false).Maybe()
+	mockLogin.On("Roles", mock.Anything).Return(nil).Maybe()
 
 	return Handlers{
 		alogin: mockLogin,
@@ -77,12 +93,9 @@ func whForTestingNotLoggedIn(t *testing.T) Handlers {
 
 func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/does/not/matter", nil)
-	mockLogin := mock_alogin.NewLogin(t)
-	mockLogin.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com"))
-	wh := Handlers{
-		alogin: mockLogin,
-	}
+	wh := userIsEditor(t)
 	assert.Equal(t, fakeUser, wh.alogin.LoggedInAs(r))
+	assert.True(t, wh.alogin.HasRole(r, roles.Editor))
 }
 
 // TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure we can create a web.Handlers
@@ -147,7 +160,7 @@ func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 // TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError tests a list of handlers to make sure
 // they return an Unauthorized status if attempted to be used without being logged in.
 func TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError(t *testing.T) {
-	wh := whForTestingNotLoggedIn(t)
+	wh := userIsNotLoggedIn(t)
 
 	test := func(name string, endpoint http.HandlerFunc) {
 		t.Run(name, func(t *testing.T) {
@@ -162,13 +175,36 @@ func TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError(t *testing.T) {
 	test("add", wh.AddIgnoreRule)
 	test("update", wh.UpdateIgnoreRule)
 	test("delete", wh.DeleteIgnoreRule)
-	// TODO(kjlubick): check all handlers that need login, not just Ignores*
+	test("triagev2", wh.TriageHandlerV2)
+	test("triagev3", wh.TriageHandlerV3)
+	test("triageUndo", wh.TriageUndoHandler)
+}
+
+func TestHandlersThatRequireLogin_LoggedInNotEditor_UnauthorizedError(t *testing.T) {
+	wh := userIsLoggedInButNotEditor(t)
+
+	test := func(name string, endpoint http.HandlerFunc) {
+		t.Run(name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, requestURL, strings.NewReader("does not matter"))
+			endpoint(w, r)
+
+			resp := w.Result()
+			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		})
+	}
+	test("add", wh.AddIgnoreRule)
+	test("update", wh.UpdateIgnoreRule)
+	test("delete", wh.DeleteIgnoreRule)
+	test("triagev2", wh.TriageHandlerV2)
+	test("triagev3", wh.TriageHandlerV3)
+	test("triageUndo", wh.TriageUndoHandler)
 }
 
 // TestHandlersWhichTakeJSON_BadInput_BadRequestError tests a list of handlers which take JSON as an
 // input and make sure they all return a BadRequest response when given bad input.
 func TestHandlersWhichTakeJSON_BadInput_BadRequestError(t *testing.T) {
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 
 	test := func(name string, endpoint http.HandlerFunc) {
 		t.Run(name, func(t *testing.T) {
@@ -204,7 +240,7 @@ func TestAddIgnoreRule_SunnyDay_Success(t *testing.T) {
 	}
 	mis.On("Create", testutils.AnyContext, expectedRule).Return(nil)
 
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -225,7 +261,7 @@ func TestAddIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	defer mis.AssertExpectations(t)
 
 	mis.On("Create", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -306,7 +342,7 @@ func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
 	}
 	mis.On("Update", testutils.AnyContext, expectedRule).Return(nil)
 
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -323,7 +359,7 @@ func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
 // TestUpdateIgnoreRule_NoID_BadRequestError tests an exceptional case of attempting to update
 // an ignore rule without providing an id for that ignore rule.
 func TestUpdateIgnoreRule_NoID_BadRequestError(t *testing.T) {
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, strings.NewReader("doesn't matter"))
 	wh.UpdateIgnoreRule(w, r)
@@ -339,7 +375,7 @@ func TestUpdateIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	defer mis.AssertExpectations(t)
 
 	mis.On("Update", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -364,7 +400,7 @@ func TestDeleteIgnoreRule_RuleExists_SunnyDay_Success(t *testing.T) {
 
 	mis.On("Delete", testutils.AnyContext, id).Return(nil)
 
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -379,7 +415,7 @@ func TestDeleteIgnoreRule_RuleExists_SunnyDay_Success(t *testing.T) {
 // TestDeleteIgnoreRule_NoID_InternalServerError tests an exceptional case of attempting to
 // delete an ignore rule without providing an id for that ignore rule.
 func TestDeleteIgnoreRule_NoID_InternalServerError(t *testing.T) {
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, strings.NewReader("doesn't matter"))
 	wh.DeleteIgnoreRule(w, r)
@@ -399,7 +435,7 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 
 	mis.On("Delete", testutils.AnyContext, id).Return(errors.New("firestore broke"))
 
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.HandlersConfig = HandlersConfig{
 		IgnoreStore: mis,
 	}
@@ -595,23 +631,23 @@ func TestBaselineHandlerV2_CachedChangelist_ReturnsCachedBaseline(t *testing.T) 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
 // no user is logged in.
 func TestWhoami_NotLoggedIn_Success(t *testing.T) {
-	wh := whForTestingNotLoggedIn(t)
+	wh := userIsNotLoggedIn(t)
 	wh.anonymousCheapQuota = rate.NewLimiter(rate.Inf, 1)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	wh.Whoami(w, r)
-	assertJSONResponseWas(t, http.StatusOK, `{"whoami":""}`, w)
+	assertJSONResponseWas(t, http.StatusOK, `{"roles":null,"whoami":""}`, w)
 }
 
 // TestWhoami_LoggedIn_Success tests that /json/whoami returns the email of the user that is
 // currently logged in.
 func TestWhoami_LoggedIn_Success(t *testing.T) {
-	wh := whForTesting(t)
+	wh := userIsEditor(t)
 	wh.anonymousCheapQuota = rate.NewLimiter(rate.Inf, 1)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	wh.Whoami(w, r)
-	assertJSONResponseWas(t, http.StatusOK, `{"whoami":"user@example.com"}`, w)
+	assertJSONResponseWas(t, http.StatusOK, `{"roles":["editor"],"whoami":"user@example.com"}`, w)
 }
 
 func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
@@ -629,7 +665,7 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
@@ -660,7 +696,7 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
@@ -689,7 +725,7 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
@@ -716,7 +752,7 @@ func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *t
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	// Support both & and ? for the query param options (as used by Flutter)
 	w := httptest.NewRecorder()
@@ -932,7 +968,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTestingNotLoggedIn(t).alogin,
+		alogin:               userIsNotLoggedIn(t).alogin,
 	})
 
 	w := httptest.NewRecorder()
@@ -989,7 +1025,7 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	})
 
 	for i := 0; i < 10; i++ {
@@ -1056,7 +1092,7 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	})
 
 	for i := 0; i < 2; i++ {
@@ -1085,7 +1121,7 @@ func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1105,7 +1141,7 @@ func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1125,7 +1161,7 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1150,7 +1186,7 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:               whForTesting(t).alogin,
+		alogin:               userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1297,7 +1333,7 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 			Search2API: ms,
 		},
 		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:                  whForTesting(t).alogin,
+		alogin:                  userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1356,7 +1392,7 @@ func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 			Search2API: ms,
 		},
 		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:                  whForTesting(t).alogin,
+		alogin:                  userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1390,7 +1426,7 @@ func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
 			Search2API: ms,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1416,7 +1452,7 @@ func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
 			Search2API: ms,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1429,7 +1465,7 @@ func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
 func TestDigestListHandler_GroupingOmitted_Error(t *testing.T) {
 	wh := Handlers{
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1490,7 +1526,7 @@ func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1520,7 +1556,7 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1544,7 +1580,7 @@ func TestTriageLogHandler_PrimaryBranch_Success(t *testing.T) {
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1575,7 +1611,7 @@ func TestTriageLogHandler_RespectsPagination_Success(t *testing.T) {
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1600,7 +1636,7 @@ func TestTriageLogHandler_ValidChangelist_Success(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -1625,7 +1661,7 @@ func TestTriageLogHandler_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -2905,7 +2941,7 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	test := func(name string, traceID tiling.TraceIDV2, expectedDigest types.Digest) {
@@ -2939,7 +2975,7 @@ func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -2961,7 +2997,7 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 
 	w := httptest.NewRecorder()
@@ -2991,7 +3027,7 @@ func TestGetChangelistsHandler_AllChangelists_Success(t *testing.T) {
 			}},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=50", nil)
@@ -3023,7 +3059,7 @@ func TestGetChangelistsHandler_RespectsPagination_Success(t *testing.T) {
 			}},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=2&offset=1", nil)
@@ -3051,7 +3087,7 @@ func TestGetChangelistsHandler_ActiveChangelists_Success(t *testing.T) {
 			}},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?active=true", nil)
@@ -3075,7 +3111,7 @@ func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
 			IgnoreStore: sqlignorestore.New(db),
 			WindowSize:  100,
 		},
-		alogin: whForTesting(t).alogin,
+		alogin: userIsEditor(t).alogin,
 	}
 	require.NoError(t, wh.updateIgnoredTracesCache(ctx))
 
@@ -3143,7 +3179,7 @@ func TestPositiveDigestsByGroupingIDHandler_ExistingGrouping_Success(t *testing.
 			WindowSize: 100,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	// We chose the square grouping for this test because it has some traces with more than one
@@ -3177,7 +3213,7 @@ func TestPositiveDigestsByGroupingIDHandler_NonExistingGrouping_ReturnsError(t *
 			DB: db,
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-		alogin:              whForTesting(t).alogin,
+		alogin:              userIsEditor(t).alogin,
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v1/positivedigestsbygrouping/a02a02a02a02a02a02a02a02a02a02a0", nil)
@@ -3387,7 +3423,7 @@ func TestDetailsHandler_InvalidRequest_Error(t *testing.T) {
 				},
 			},
 		},
-		alogin: whForTesting(t).alogin,
+		alogin: userIsEditor(t).alogin,
 	}
 
 	test := func(name string, req frontend.DetailsRequest, expectedError string) {
@@ -3443,7 +3479,7 @@ func TestDetailsHandler_ValidRequest_Success(t *testing.T) {
 				},
 			},
 		},
-		alogin: whForTesting(t).alogin,
+		alogin: userIsEditor(t).alogin,
 	}
 
 	test := func(name string, req frontend.DetailsRequest, expectedResponse string) {

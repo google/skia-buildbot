@@ -79,8 +79,8 @@ spec:
             - '--target_port=:7000'
             - '--prom-port=:10000'
             - '--passive'
-            {{- range $viewer := .authorized_users}}
-            - '--role=viewer={{$viewer}}'
+            {{- range $editor := .authorized_users}}
+            - '--role=editor={{$editor}}'
             {{- end}}
           image: {{.AUTH_PROXY_IMAGE}}
           ports:
