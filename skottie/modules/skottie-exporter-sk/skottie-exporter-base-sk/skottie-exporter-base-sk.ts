@@ -222,7 +222,7 @@ export class SkottieExporterBaseSk extends ElementSk {
   }
 
   set downloadFileName(value: string) {
-    this._downloadFileName = value;
+    this.updateFileName(value, this._extension);
   }
 
   public get renderState() {
