@@ -43,7 +43,9 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     <li class="wrapper">
       <details class="expando" ?open=${ele._isOpen} @toggle=${ele.toggle}>
         <summary>
-          <span>Text layer: ${ele._textData?.text || ''}</span>
+          <span class="summary-label">
+            Text layer: ${ele._textData?.text || ''}
+          </span>
           <expand-less-icon-sk></expand-less-icon-sk>
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>

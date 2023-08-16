@@ -6,6 +6,12 @@ skottie-text-editor-box-sk {
     list-style: none;
     margin-bottom: 10px;
     width: 100%;
+
+    .summary-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .text-element {
