@@ -87,6 +87,7 @@ describe('applyFuncToTraces', () => {
     hide_list_of_commits_on_explore: false,
     notifications: 'none',
     fetch_chrome_perf_anomalies: false,
+    feedback_url: '',
   };
 
   // Create a common element-sk to be used by all the tests.

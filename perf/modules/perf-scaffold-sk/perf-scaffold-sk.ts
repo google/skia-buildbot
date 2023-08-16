@@ -21,6 +21,7 @@ import '../../../elements-sk/modules/icons/trending-up-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
+import '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
 // the right hand side nav bar.
@@ -40,6 +41,8 @@ export class PerfScaffoldSk extends ElementSk {
   private _main: HTMLElement | null = null;
 
   private _help: HTMLElement | null = null;
+
+  private _feedback: HTMLElement | null = null;
 
   constructor() {
     super(PerfScaffoldSk.template);
@@ -63,6 +66,8 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
       </div>
       <div id=help>
+      </div>
+      <div id=feedback>
       </div>
     </aside>
     <main>
@@ -93,6 +98,16 @@ export class PerfScaffoldSk extends ElementSk {
 
     this._main = this.querySelector('main');
     this._help = this.querySelector('#help');
+    this._feedback = this.querySelector('#feedback');
+
+    if (this._feedback != null) {
+      this._feedback.hidden = true;
+      if (window.perf.feedback_url !== '') {
+        this._feedback.innerHTML = `<a target="_blank" href="${window.perf.feedback_url}"
+          tab-index=0 id="feedback_url"><h4>Provide Feedback</h4></a>`;
+        this._feedback.hidden = false;
+      }
+    }
 
     // Move the old children back.
     this.redistributeAddedNodes(div.childNodes);

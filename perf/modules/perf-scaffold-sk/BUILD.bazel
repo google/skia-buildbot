@@ -29,6 +29,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

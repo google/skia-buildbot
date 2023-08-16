@@ -217,6 +217,7 @@ type SkPerfConfig struct {
 	HideListOfCommitsOnExplore bool             `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
 	Notifications              notifytypes.Type `json:"notifications"`                   // The type of notifications that can be sent.
 	FetchChromePerfAnomalies   bool             `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
+	FeedbackURL                string           `json:"feedback_url"`                    // The URL for the Provide Feedback link
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
@@ -235,6 +236,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
 			Notifications:              config.Config.NotifyConfig.Notifications,
 			FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
+			FeedbackURL:                config.Config.FeedbackURL,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -304,6 +306,9 @@ func (f *Frontend) initialize() {
 	}
 	if f.flags.ConnectionString != "" {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
+	}
+	if f.flags.FeedbackURL != "" {
+		config.Config.FeedbackURL = f.flags.FeedbackURL
 	}
 	cfg := config.Config
 

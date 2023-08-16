@@ -331,6 +331,7 @@ type FrontendFlags struct {
 	DisplayGroupBy                 bool
 	HideListOfCommitsOnExplore     bool
 	FetchChromePerfAnomalies       bool
+	FeedbackURL                    string
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -476,6 +477,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Value:       false,
 			Usage:       "Fetch anomalies and show the bisect button",
 		},
+		&cli.StringFlag{
+			Destination: &flags.FeedbackURL,
+			Name:        "feedback_url",
+			Value:       "",
+			Usage:       "Feedback Url to display on the page",
+		},
 	}
 }
 
@@ -542,6 +549,9 @@ type InstanceConfig struct {
 
 	// FetchChromePerfAnomalies if true means fetch anomalies from Chrome Perf
 	FetchChromePerfAnomalies bool `json:"fetch_chrome_perf_anomalies,omitempty"`
+
+	// Feedback URL to use for the "Provide Feedback" link
+	FeedbackURL string `json:"feedback_url,omitempty"`
 
 	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
 	// which percentage of traces get uploaded

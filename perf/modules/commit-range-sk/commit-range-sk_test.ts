@@ -22,6 +22,7 @@ describe('commit-range-sk', () => {
       hide_list_of_commits_on_explore: false,
       notifications: 'none',
       fetch_chrome_perf_anomalies: false,
+      feedback_url: '',
     };
 
     element = newInstance((el: CommitRangeSk) => {

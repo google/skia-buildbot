@@ -223,6 +223,7 @@ export interface SkPerfConfig {
 	hide_list_of_commits_on_explore: boolean;
 	notifications: NotifierTypes;
 	fetch_chrome_perf_anomalies: boolean;
+	feedback_url: string;
 }
 
 export interface TriageRequest {
