@@ -50,9 +50,9 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case login.DefaultOAuth2Callback:
 		login.OAuth2CallbackHandler(w, r)
 	case login.LoginPath:
-		login.LoginHandler(w, r)
+		login.AuthenticateUser(w, r)
 	case login.LogoutPath:
-		login.LogoutHandler(w, r)
+		login.UnauthenticateUser(w, r)
 	default:
 		p.reverseProxy.ServeHTTP(w, r)
 	}

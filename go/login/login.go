@@ -477,9 +477,9 @@ func getSession(r *http.Request) (*Session, error) {
 	return &s, nil
 }
 
-// LoggedInAs returns the user's email address, if they are logged in, and "" if
+// AuthenticatedAs returns the user's email address, if they are logged in, and "" if
 // they are not logged in.
-func LoggedInAs(r *http.Request) string {
+func AuthenticatedAs(r *http.Request) string {
 	var email string
 	if s, err := getSession(r); err == nil {
 		email = s.Email
@@ -554,7 +554,7 @@ func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) 
 	http.SetCookie(w, cookie)
 }
 
-// LogoutHandler logs the user out by overwriting the cookie with a blank email
+// UnauthenticateUser logs the user out by overwriting the cookie with a blank email
 // address.
 //
 // Note that this doesn't revoke the 'email' grant, so logging in later will
@@ -563,7 +563,7 @@ func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) 
 //	https://security.google.com/settings/security/permissions
 //
 // to revoke any grants they make.
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func UnauthenticateUser(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LogoutHandler")
 	setSkIDCookieValue(w, r, &Session{})
 	redirect := r.FormValue("redirect")
@@ -575,8 +575,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
-// LoginHandler kicks off the authentication flow.
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+// AuthenticateUser kicks off the authentication flow.
+func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LoginHandler")
 	http.Redirect(w, r, LoginURL(w, r), http.StatusFound)
 }
