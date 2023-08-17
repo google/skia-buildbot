@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing/loggingtracer"
 	"go.skia.org/infra/golden/go/clstore"
@@ -441,7 +440,7 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if fsc.ForceLogin && !plogin.HasRole(r, roles.Viewer) {
+			if fsc.ForceLogin && len(plogin.Roles(r)) == 0 {
 				http.Redirect(w, r, plogin.LoginURL(r), http.StatusSeeOther)
 				return
 			}
@@ -494,7 +493,8 @@ func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, ha
 
 	add := func(jsonRoute string, handlerToProtect http.HandlerFunc, method string) {
 		wrappedHandler := func(w http.ResponseWriter, r *http.Request) {
-			if fsc.ForceLogin && !plogin.HasRole(r, roles.Viewer) {
+			// Any role is >= Viewer
+			if fsc.ForceLogin && len(plogin.Roles(r)) == 0 {
 				http.Error(w, "You must be logged in as a viewer to complete this action.", http.StatusUnauthorized)
 				return
 			}
