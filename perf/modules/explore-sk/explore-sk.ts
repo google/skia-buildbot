@@ -1374,7 +1374,11 @@ export class ExploreSk extends ElementSk {
           ];
         }
 
-        if (numQueries === 0 && this.state.keys === '') {
+        if (
+          numQueries === 0 &&
+          this.state.keys === '' &&
+          this.state.formulas.length === 0
+        ) {
           this.openQuery();
         }
         this.zeroChanged();
