@@ -43,12 +43,12 @@ type store struct {
 func New(ctx context.Context, local bool) (*store, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadWrite)
 	if err != nil {
-		return nil, fmt.Errorf("problem setting up client OAuth: %s", err)
+		return nil, skerr.Wrapf(err, "problem setting up client OAuth")
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		return nil, fmt.Errorf("problem creating storage client: %s", err)
+		return nil, skerr.Wrapf(err, "problem creating storage client")
 	}
 	return &store{
 		bucket: storageClient.Bucket(JSFIDDLE_STORAGE_BUCKET),
@@ -79,11 +79,11 @@ func (s *store) GetCode(hash, fiddleType string) (string, error) {
 	o := s.bucket.Object(path)
 	r, err := o.NewReader(context.Background())
 	if err != nil {
-		return "", fmt.Errorf("failed to open source file for %s: %s", hash, err)
+		return "", skerr.Wrapf(err, "failed to open source file for %s", hash)
 	}
 	b, err := io.ReadAll(r)
 	if err != nil {
-		return "", fmt.Errorf("failed to read source file for %s: %s", hash, err)
+		return "", skerr.Wrapf(err, "failed to read source file for %s", hash)
 	}
 	return string(b), nil
 }

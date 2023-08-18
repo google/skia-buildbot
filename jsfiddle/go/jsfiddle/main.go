@@ -112,6 +112,7 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 
 	code, err := fiddleStore.GetCode(hash, fiddleType)
 	if err != nil {
+		sklog.Warningf("GetCode failed for %s: %s", hash, err)
 		http.Error(w, "Not found", http.StatusBadRequest)
 		return
 	}
@@ -202,6 +203,7 @@ func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	// Create the jsfiddle.
 	jsfiddleHash, err := fiddleStore.PutCode(b.String(), "canvaskit")
 	if err != nil {
+		sklog.Errorf("PutCode failed: %s", err)
 		httputils.ReportError(w, err, "Failed to save jsfiddle.", http.StatusInternalServerError)
 		return
 	}
