@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -27,8 +27,8 @@ type Store interface {
 	// Returns the fiddleHash.
 	PutCode(code, fiddleType string) (string, error)
 
-	// PutCode writes the code to Google Storage.
-	// Returns the fiddleHash.
+	// GetCode reads the code from Google Storage.
+	// Returns the code.
 	GetCode(hash, fiddleType string) (string, error)
 }
 
@@ -43,12 +43,12 @@ type store struct {
 func New(ctx context.Context, local bool) (*store, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadWrite)
 	if err != nil {
-		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
+		return nil, fmt.Errorf("problem setting up client OAuth: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		return nil, fmt.Errorf("Problem creating storage client: %s", err)
+		return nil, fmt.Errorf("problem creating storage client: %s", err)
 	}
 	return &store{
 		bucket: storageClient.Bucket(JSFIDDLE_STORAGE_BUCKET),
@@ -79,11 +79,11 @@ func (s *store) GetCode(hash, fiddleType string) (string, error) {
 	o := s.bucket.Object(path)
 	r, err := o.NewReader(context.Background())
 	if err != nil {
-		return "", fmt.Errorf("Failed to open source file for %s: %s", hash, err)
+		return "", fmt.Errorf("failed to open source file for %s: %s", hash, err)
 	}
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
-		return "", fmt.Errorf("Failed to read source file for %s: %s", hash, err)
+		return "", fmt.Errorf("failed to read source file for %s: %s", hash, err)
 	}
 	return string(b), nil
 }
