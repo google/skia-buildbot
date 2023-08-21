@@ -46,6 +46,11 @@ _validate_domain 3600 IN CNAME _validate_domain.pki.goog.
 ;;; CNAME all the hosts for this domain.
 *          3600    IN CNAME luci.app.
 
+;;; TXT records for site verification
+config     3600    IN TXT "google-site-verification=RQ5PG1uJSEsw-ypgV7fSHduKsVeLOAji3JIAINecC8A"
+config-dev 3600    IN TXT "google-site-verification=xhhLX2KKlm_Eq8crnrbqSkAueTKVaRKUjvqhxi8P-tw"
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; End of luci.app.zone
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
