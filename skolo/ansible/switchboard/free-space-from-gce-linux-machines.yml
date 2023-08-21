@@ -1,0 +1,24 @@
+# As of 2023-08-15, Linux GCE machines can get quarantined with "Not enough free disk space on /".
+# This playbook deletes various caches and reboots the machines. It is based on various cleanups
+# documented in the Skia Infrastructure Gardener Handoff Doc (go/skia-infra-gardener).
+
+- hosts: gce_linux
+  user: chrome-bot
+  gather_facts: true
+
+  tasks:
+    - name: Docker system prune (can be slow)
+      become: yes
+      shell: yes | docker system prune
+
+    - name: Delete /mnt/pd0/bazel_cache (can be slow)
+      become: yes
+      shell: rm -rf /mnt/pd0/bazel_cache
+
+    - name: Delete /home/chrome-bot/.cache
+      become: yes
+      shell: rm -rf /home/chrome-bot/.cache
+
+    - name: Reboot
+      become: yes
+      reboot:
