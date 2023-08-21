@@ -9,6 +9,11 @@ release: get_latest_skia
 	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container
 	$(MAKE) build-placeholders
 
+# See README.md for further information on this target.
+.PHONY: release-base
+release-base:
+	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container-base
+
 .PHONY: get_latest_skia
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
