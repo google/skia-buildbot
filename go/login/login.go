@@ -113,12 +113,6 @@ var (
 	errMalformedState = errors.New("malformed state value")
 )
 
-// GetDefaultRedirectURL returns an absolute URL that starts the 3-legged login
-// flow.
-func GetDefaultRedirectURL() string {
-	return defaultRedirectURL
-}
-
 // InitOption are options passed to Init. Note that DomainName implements
 // InitOption allowing the selection of the login domain.
 type InitOption interface {
@@ -182,8 +176,8 @@ func setDomain(d DomainName) error {
 	return nil
 }
 
-// OAuthConfigConstructor allows choosing OAuthConfig implementations.
-type OAuthConfigConstructor func(clientID, clientSecret, redirectURL string) OAuthConfig
+// oAuthConfigConstructor allows choosing OAuthConfig implementations.
+type oAuthConfigConstructor func(clientID, clientSecret, redirectURL string) OAuthConfig
 
 // OAuthConfig is an interface with the subset of the functionality we use of oauth2.Config, used for tests/mocking.
 type OAuthConfig interface {
@@ -194,7 +188,7 @@ type OAuthConfig interface {
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 }
 
-// oauth2Config implements OAuthConfigConstructor for *oauth2.Config objects.
+// oauth2Config implements oAuthConfigConstructor for *oauth2.Config objects.
 func configConstructor(clientID, clientSecret, redirectURL string) OAuthConfig {
 	return &oauth2.Config{
 		ClientID:     clientID,
@@ -221,7 +215,7 @@ var (
 
 	// activeOAuth2ConfigConstructor can be replaced with a func that returns a
 	// mock OAuthConfig for testing.
-	activeOAuth2ConfigConstructor OAuthConfigConstructor = configConstructor
+	activeOAuth2ConfigConstructor oAuthConfigConstructor = configConstructor
 
 	// validBearerTokenCache is a TTL cache for bearer tokens that have been
 	// validated, which saves an HTTP round trip for validation for every
@@ -364,8 +358,8 @@ func writeNewSessionCookie(w http.ResponseWriter, r *http.Request) (string, erro
 	return sessionID, nil
 }
 
-// LoginURL returns a URL that the user is to be directed to for login.
-func LoginURL(w http.ResponseWriter, r *http.Request) string {
+// loginURL returns a URL that the user is to be directed to for login.
+func loginURL(w http.ResponseWriter, r *http.Request) string {
 	// Check for a session id, if not there then assign one, and add it to the redirect URL.
 	session, err := r.Cookie(sessionCookieName)
 	sessionID := ""
@@ -484,7 +478,7 @@ func AuthenticatedAs(r *http.Request) string {
 	if s, err := getSession(r); err == nil {
 		email = s.Email
 	} else {
-		if e, err := ViaBearerToken(r); err == nil {
+		if e, err := viaBearerToken(r); err == nil {
 			email = e
 		}
 	}
@@ -499,8 +493,7 @@ func AuthenticatedAs(r *http.Request) string {
 // that, we only want two fields, 'email' and 'sub'.
 //
 //	{
-//	  "iss":"accounts.google.com",
-//	  "sub":"110642259984599645813",
+//	  "sub":"110...",
 //	  "email":"jcgregorio@google.com",
 //	  ...
 //	}
@@ -578,7 +571,7 @@ func UnauthenticateUser(w http.ResponseWriter, r *http.Request) {
 // AuthenticateUser kicks off the authentication flow.
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LoginHandler")
-	http.Redirect(w, r, LoginURL(w, r), http.StatusFound)
+	http.Redirect(w, r, loginURL(w, r), http.StatusFound)
 }
 
 // OAuth2CallbackHandler must be attached at a handler that matches
@@ -713,7 +706,7 @@ func TryLoadingFromAllSources(ctx context.Context) (string, string, string, erro
 	var err2 error
 	secretClient, err1 := secret.NewClient(ctx)
 	if err1 == nil {
-		cookieSalt, clientID, clientSecret, err2 := TryLoadingFromGCPSecret(ctx, secretClient)
+		cookieSalt, clientID, clientSecret, err2 := tryLoadingFromGCPSecret(ctx, secretClient)
 		if err2 == nil {
 			return cookieSalt, clientID, clientSecret, nil
 		}
@@ -724,12 +717,12 @@ func TryLoadingFromAllSources(ctx context.Context) (string, string, string, erro
 	return "", "", "", skerr.Fmt("Failed loading from metadata and GCP secrets: %s | %s", err1, err2)
 }
 
-// TryLoadingFromGCPSecret tries to load the cookie salt, client id, and client
+// tryLoadingFromGCPSecret tries to load the cookie salt, client id, and client
 // secret from GCP secrets.  If it fails, it returns the default cookie salt and
 // the client id and secret are the empty string.
 //
 // Returns salt, clientID, clientSecret.
-func TryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, string, string, error) {
+func tryLoadingFromGCPSecret(ctx context.Context, secretClient secret.Client) (string, string, string, error) {
 	contents, err := secretClient.Get(ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest)
 	if err != nil {
 		return "", "", "", skerr.Wrapf(err, "failed loading login secrets from GCP secret manager; failed to retrieve secret %q", clientIDandSecretName)
@@ -756,9 +749,9 @@ func loadSaltFromGCPSecret(ctx context.Context, secretClient secret.Client) (str
 
 }
 
-// ViaBearerToken tries to load an OAuth 2.0 Bearer token from the request and
+// viaBearerToken tries to load an OAuth 2.0 Bearer token from the request and
 // derives the login email address from it.
-func ViaBearerToken(r *http.Request) (string, error) {
+func viaBearerToken(r *http.Request) (string, error) {
 	tok := r.Header.Get("Authorization")
 	if tok == "" {
 		return "", skerr.Fmt("User is not authenticated. No Authorization header.")

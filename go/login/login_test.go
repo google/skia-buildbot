@@ -52,7 +52,7 @@ func TestLoginURL(t *testing.T) {
 	require.NoError(t, err)
 	r.Header.Set("Referer", "https://foo.org")
 
-	url := LoginURL(w, r)
+	url := loginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "SameSite=None", "SameSite should be set.")
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "Secure", "Secure should be set.")
@@ -65,7 +65,7 @@ func TestLoginURL(t *testing.T) {
 	assert.Contains(t, url, "%3Ahttps%3A%2F%2Ffoo.org")
 	r.AddCookie(cookie)
 	w = httptest.NewRecorder()
-	url = LoginURL(w, r)
+	url = loginURL(w, r)
 	assert.NotContains(t, w.HeaderMap.Get("Set-Cookie"), sessionCookieName, "Session cookie should be set.")
 	assert.Contains(t, url, "some-random-state", "Pass state in Login URL.")
 }
@@ -100,7 +100,7 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	r.AddCookie(cookie)
 	assert.Equal(t, AuthenticatedAs(r), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
-	url := LoginURL(w, r)
+	url := loginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 }
 
@@ -123,7 +123,6 @@ func TestDomainFromHost_LuciApp(t *testing.T) {
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app"))
 	assert.Equal(t, "luci.app", domainFromHost("perf.luci.app:443"))
 	assert.Equal(t, "luci.app", domainFromHost("example.com:443"))
-	assert.Equal(t, "https://luci.app/oauth2callback/", GetDefaultRedirectURL())
 	assert.Equal(t, "https://luci.app/oauth2callback/",
 		oauthConfig.(*oauth2.Config).RedirectURL)
 }
@@ -145,7 +144,7 @@ func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
 }`
 	client.On("Get", ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest).Return(secretValue, nil)
 	client.On("Get", ctx, loginSecretProject, saltSecretName, secret.VersionLatest).Return("fake-salt", nil)
-	cookieSalt, clientID, clientSecret, err := TryLoadingFromGCPSecret(ctx, client)
+	cookieSalt, clientID, clientSecret, err := tryLoadingFromGCPSecret(ctx, client)
 	require.NoError(t, err)
 	require.Equal(t, "fake-salt", cookieSalt)
 	require.Equal(t, "fake-client-id", clientID)
@@ -458,7 +457,7 @@ func TestViaBearerToken_HappyPath(t *testing.T) {
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
 
-	email, err := ViaBearerToken(r)
+	email, err := viaBearerToken(r)
 	require.NoError(t, err)
 	require.Equal(t, "user@example.org", email)
 }
