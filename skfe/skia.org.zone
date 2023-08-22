@@ -53,6 +53,7 @@ debugger2                300      IN A 34.110.212.89
 jsfiddle2                300      IN A 34.110.212.89
 scrap2                   300      IN A 34.110.212.89
 shaders2                 300      IN A 34.110.212.89
+skottie2                 300      IN A 34.110.212.89
 
 ;;; Master A record. Hosted in the GCP project skia-public.
 @         300      IN A 35.201.76.220
