@@ -190,7 +190,7 @@ func (srv *server) AddMiddleware() []func(http.Handler) http.Handler {
 }
 
 func main() {
-	baseapp.Serve(new, []string{"shaders.skia.org"}, baseapp.AllowWASM{}, baseapp.AllowAnyImage{})
+	baseapp.Serve(new, []string{"shaders.skia.org", "shaders2.skia.org"}, baseapp.AllowWASM{}, baseapp.AllowAnyImage{})
 }
 
 // This is the same shader that is the current default on shaders.skia.org (the
