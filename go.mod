@@ -2,6 +2,7 @@ module go.skia.org/infra
 
 require (
 	cloud.google.com/go/bigtable v1.6.0
+	cloud.google.com/go/compute v1.5.0
 	cloud.google.com/go/datastore v1.3.0
 	cloud.google.com/go/firestore v1.6.1
 	cloud.google.com/go/iam v0.3.0
@@ -16,7 +17,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
-	github.com/alecthomas/jsonschema v0.0.0-20210526225647-edb03dcab7bc
 	github.com/bazelbuild/bazel-gazelle v0.23.0
 	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
 	github.com/bazelbuild/remote-apis v0.0.0-20201209220655-9e72daff42c9
@@ -30,6 +30,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-python/gpython v0.0.3
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
@@ -43,6 +44,7 @@ require (
 	github.com/hako/durafmt v0.0.0-20200710122514-c0fb7b4da026
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
+	github.com/invopop/jsonschema v0.7.0
 	github.com/jackc/pgconn v1.12.1
 	github.com/jackc/pgtype v1.11.0
 	github.com/jackc/pgx/v4 v4.16.1
@@ -57,6 +59,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.11.1
+	github.com/protocolbuffers/txtpbfmt v0.0.0-20230412060525-fa9f017c0ded
 	github.com/r3labs/sse/v2 v2.8.1
 	github.com/rs/cors v1.6.0
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
@@ -74,6 +77,7 @@ require (
 	github.com/vektra/mockery/v2 v2.11.0
 	github.com/willf/bitset v1.1.11
 	github.com/xeipuuv/gojsonschema v1.2.0
+	github.com/yannh/kubeconform v0.6.3
 	github.com/yusufpapurcu/wmi v1.2.2
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
@@ -102,8 +106,6 @@ require (
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
-	cloud.google.com/go/bigquery v1.17.0 // indirect
-	cloud.google.com/go/compute v1.5.0 // indirect
 	cloud.google.com/go/container v1.2.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
@@ -116,7 +118,6 @@ require (
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-chi/chi/v5 v5.0.8 // indirect
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -167,7 +168,6 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/protocolbuffers/txtpbfmt v0.0.0-20230412060525-fa9f017c0ded // indirect
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
 	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -189,7 +189,6 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	github.com/yannh/kubeconform v0.6.3 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/text v0.7.0 // indirect

@@ -1,11 +1,9 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$ref": "#/definitions/InstanceConfig",
-  "definitions": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://go.skia.org/infra/perf/go/config/instance-config",
+  "$ref": "#/$defs/InstanceConfig",
+  "$defs": {
     "AuthConfig": {
-      "required": [
-        "header_name"
-      ],
       "properties": {
         "header_name": {
           "type": "string"
@@ -15,13 +13,12 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "header_name"
+      ]
     },
     "CacheConfig": {
-      "required": [
-        "memcached_servers",
-        "namespace"
-      ],
       "properties": {
         "memcached_servers": {
           "items": {
@@ -34,14 +31,13 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "memcached_servers",
+        "namespace"
+      ]
     },
     "DataStoreConfig": {
-      "required": [
-        "datastore_type",
-        "connection_string",
-        "tile_size"
-      ],
       "properties": {
         "datastore_type": {
           "type": "string"
@@ -53,22 +49,21 @@
           "type": "integer"
         },
         "cache": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/CacheConfig"
+          "$ref": "#/$defs/CacheConfig"
         },
         "enable_follower_reads": {
           "type": "boolean"
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "datastore_type",
+        "connection_string",
+        "tile_size"
+      ]
     },
     "GitRepoConfig": {
-      "required": [
-        "provider",
-        "url",
-        "dir"
-      ],
       "properties": {
         "git_auth_type": {
           "type": "string"
@@ -99,18 +94,17 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "provider",
+        "url",
+        "dir"
+      ]
     },
     "IngestionConfig": {
-      "required": [
-        "source_config",
-        "branches",
-        "file_ingestion_pubsub_topic_name"
-      ],
       "properties": {
         "source_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/SourceConfig"
+          "$ref": "#/$defs/SourceConfig"
         },
         "branches": {
           "items": {
@@ -123,17 +117,14 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "source_config",
+        "branches",
+        "file_ingestion_pubsub_topic_name"
+      ]
     },
     "InstanceConfig": {
-      "required": [
-        "URL",
-        "contact",
-        "data_store_config",
-        "ingestion_config",
-        "git_repo_config",
-        "notify_config"
-      ],
       "properties": {
         "URL": {
           "type": "string"
@@ -160,33 +151,33 @@
           "type": "number"
         },
         "auth_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/AuthConfig"
+          "$ref": "#/$defs/AuthConfig"
         },
         "data_store_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/DataStoreConfig"
+          "$ref": "#/$defs/DataStoreConfig"
         },
         "ingestion_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/IngestionConfig"
+          "$ref": "#/$defs/IngestionConfig"
         },
         "git_repo_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/GitRepoConfig"
+          "$ref": "#/$defs/GitRepoConfig"
         },
         "notify_config": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NotifyConfig"
+          "$ref": "#/$defs/NotifyConfig"
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "URL",
+        "contact",
+        "data_store_config",
+        "ingestion_config",
+        "git_repo_config",
+        "notify_config"
+      ]
     },
     "NotifyConfig": {
-      "required": [
-        "notifications"
-      ],
       "properties": {
         "notifications": {
           "type": "string"
@@ -199,16 +190,12 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "notifications"
+      ]
     },
     "SourceConfig": {
-      "required": [
-        "source_type",
-        "project",
-        "topic",
-        "subscription",
-        "sources"
-      ],
       "properties": {
         "source_type": {
           "type": "string"
@@ -242,7 +229,14 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "source_type",
+        "project",
+        "topic",
+        "subscription",
+        "sources"
+      ]
     }
   }
 }

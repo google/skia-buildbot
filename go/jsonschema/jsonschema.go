@@ -45,7 +45,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/alecthomas/jsonschema"
+	"github.com/invopop/jsonschema"
 	"github.com/xeipuuv/gojsonschema"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"

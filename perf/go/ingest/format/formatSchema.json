@@ -1,13 +1,9 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$ref": "#/definitions/Format",
-  "definitions": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://go.skia.org/infra/perf/go/ingest/format/format",
+  "$ref": "#/$defs/Format",
+  "$defs": {
     "Format": {
-      "required": [
-        "version",
-        "git_hash",
-        "results"
-      ],
       "properties": {
         "version": {
           "type": "integer"
@@ -31,8 +27,7 @@
         },
         "results": {
           "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/Result"
+            "$ref": "#/$defs/Result"
           },
           "type": "array"
         },
@@ -46,12 +41,14 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "version",
+        "git_hash",
+        "results"
+      ]
     },
     "Result": {
-      "required": [
-        "key"
-      ],
       "properties": {
         "key": {
           "patternProperties": {
@@ -68,8 +65,7 @@
           "patternProperties": {
             ".*": {
               "items": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "$ref": "#/definitions/SingleMeasurement"
+                "$ref": "#/$defs/SingleMeasurement"
               },
               "type": "array"
             }
@@ -78,13 +74,12 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "key"
+      ]
     },
     "SingleMeasurement": {
-      "required": [
-        "value",
-        "measurement"
-      ],
       "properties": {
         "value": {
           "type": "string"
@@ -94,7 +89,11 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "value",
+        "measurement"
+      ]
     }
   }
 }

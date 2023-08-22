@@ -1,19 +1,9 @@
 {
-  "patternProperties": {
-    ".*": {
-      "$schema": "http://json-schema.org/draft-04/schema#",
-      "$ref": "#/definitions/Probe"
-    }
-  },
-  "type": "object",
-  "definitions": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://go.skia.org/infra/proberk/go/types/probes",
+  "$ref": "#/$defs/Probes",
+  "$defs": {
     "Probe": {
-      "required": [
-        "urls",
-        "method",
-        "expected",
-        "mimetype"
-      ],
       "properties": {
         "urls": {
           "items": {
@@ -47,6 +37,20 @@
         }
       },
       "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "urls",
+        "method",
+        "expected",
+        "mimetype"
+      ]
+    },
+    "Probes": {
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/$defs/Probe"
+        }
+      },
       "type": "object"
     }
   }

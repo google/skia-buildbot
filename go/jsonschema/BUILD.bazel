@@ -10,7 +10,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_github_alecthomas_jsonschema//:jsonschema",
+        "@com_github_invopop_jsonschema//:jsonschema",
         "@com_github_xeipuuv_gojsonschema//:gojsonschema",
     ],
 )

@@ -58,12 +58,6 @@ def go_repositories():
         sum = "h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=",
         version = "v0.0.0-20161220082320-9c5fe88206d7",
     )
-    go_repository(
-        name = "com_github_alecthomas_jsonschema",
-        importpath = "github.com/alecthomas/jsonschema",
-        sum = "h1:mT8qSzuyEAkxbv4GBln7yeuQZpBnfikr3PTuiPs6Z3k=",
-        version = "v0.0.0-20210526225647-edb03dcab7bc",
-    )
 
     go_repository(
         name = "com_github_alecthomas_template",
@@ -1388,6 +1382,12 @@ def go_repositories():
         sum = "h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=",
         version = "v1.0.0",
     )
+    go_repository(
+        name = "com_github_invopop_jsonschema",
+        importpath = "github.com/invopop/jsonschema",
+        sum = "h1:2vgQcBz1n256N+FpX3Jq7Y17AjYt46Ig3zIWyy770So=",
+        version = "v0.7.0",
+    )
 
     go_repository(
         name = "com_github_jackc_chunkreader",
@@ -2660,8 +2660,8 @@ def go_repositories():
     go_repository(
         name = "com_google_cloud_go_bigquery",
         importpath = "cloud.google.com/go/bigquery",
-        sum = "h1:oq1PIpl9u1thzdsX0K9w5H8OlqH5gRu3zGc7FCk19IY=",
-        version = "v1.17.0",
+        sum = "h1:PQcPefKFdaIzjQFbiyOgAqyx8q5djaE7x9Sqe712DPA=",
+        version = "v1.8.0",
     )
 
     go_repository(

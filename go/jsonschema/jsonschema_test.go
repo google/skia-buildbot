@@ -20,20 +20,21 @@ type testStruct struct {
 }
 
 const testStructSchema = `{
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$ref": "#/definitions/testStruct",
-  "definitions": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://go.skia.org/infra/go/jsonschema/test-struct",
+  "$ref": "#/$defs/testStruct",
+  "$defs": {
     "testStruct": {
-      "required": [
-        "A"
-      ],
       "properties": {
         "A": {
           "type": "integer"
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "A"
+      ]
     }
   }
 }`
