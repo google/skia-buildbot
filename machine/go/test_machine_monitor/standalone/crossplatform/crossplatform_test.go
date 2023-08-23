@@ -126,6 +126,14 @@ func TestCPUs(t *testing.T) {
 		"AMD EPYC 7B12",
 		"AMD Rome",
 		[]string{"x86", "x86-64", "x86-64-AMD_Rome_GCE"})
+
+	test(
+		"AMD GCE example based on skia-e-win-260 on 2023-08-22",
+		"AuthenticAMD",
+		"AMD Ryzen 5 4500U with Radeon Graphics",
+		/* gceCPUPlatform= */ "",
+		[]string{"x86", "x86-64", "x86-64-AMD_Ryzen_5_4500U_with_Radeon_Graphics"})
+
 }
 
 func TestVersionsOfAllPrecisions(t *testing.T) {

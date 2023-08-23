@@ -2,7 +2,9 @@ package standalone
 
 import (
 	"context"
+	"strings"
 
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/yusufpapurcu/wmi"
 	"go.skia.org/infra/go/skerr"
@@ -23,7 +25,27 @@ func OSVersions(ctx context.Context) ([]string, error) {
 }
 
 func CPUs(ctx context.Context) ([]string, error) {
-	return crossplatform.CPUs("", "")
+	cpuStat, err := cpu.Info()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get CPU info")
+	}
+	if len(cpuStat) == 0 {
+		return nil, skerr.Fmt("cpu.Info() returned 0 entries")
+	}
+
+	// As observed by lovisolo@ on 2023-08-22, cpu.Info() returns a single entry on Windows, even if
+	// the CPU has multiple cores.
+	vendor := cpuStat[0].VendorID
+	brandString := cpuStat[0].ModelName
+
+	// For some reason, the CPU model name reported by cpu.Info() on Windows AMD machines contains
+	// trailing whitespaces, so we must trim them to prevent crossplatform.CPUs from returning
+	// dimensions such as "x86-64-AMD_Ryzen_5_4500U_with_Radeon_Graphics_________".
+	if vendor == "AuthenticAMD" {
+		brandString = strings.TrimSpace(brandString)
+	}
+
+	return crossplatform.CPUs(vendor, brandString)
 }
 
 // GPUs returns Swarming-style dimensions representing all GPUs on the host. Each GPU may yield up
