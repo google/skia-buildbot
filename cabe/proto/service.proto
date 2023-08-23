@@ -3,12 +3,16 @@ syntax = "proto3";
 package cabe.proto;
 option go_package = "go.skia.org/infra/cabe/go/proto";
 
+import "google/api/annotations.proto";
 import "cabe/proto/analysis.proto";
 import "cabe/proto/spec.proto";
 
 service Analysis {
   // Get results of a performance experiment analysis.
   rpc GetAnalysis(GetAnalysisRequest) returns (GetAnalysisResponse) {
+    option (google.api.http) = {
+      post: "/cabe.proto.Analysis/GetAnalysis"
+    };
   }
 }
 
@@ -20,9 +24,9 @@ message GetAnalysisRequest {
   // files.  If reality doesn't match the spec, CABE returns an error with
   // some information about what didn't match the provided ExperimentSpec.
   //
-  // If experiment_spec isn't set, CABE will infer one based on hueristics*
+  // If experiment_spec isn't set, CABE will infer one based on heuristics*
   // and data available from Swarming and RBE-CAS at the time of the request.
-  // Note that this is best-effort and not guarnateed to do what the caller
+  // Note that this is best-effort and not guaranteed to do what the caller
   // expects. If you have specific benchmarks and workloads that need to be
   // either analyzed or cause errors if they are missing, you should specify an
   // explicit experiment_spec value.
@@ -41,4 +45,3 @@ message GetAnalysisResponse {
   // it was able to infer the experiment to this field.
   ExperimentSpec inferred_experiment_spec = 2;
 }
-

@@ -127,6 +127,15 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 protobuf_deps()
 
+http_archive(
+    name = "com_google_googleapis",
+    sha256 = "38701e513aff81c89f0f727e925bf04ac4883913d03a60cdebb2c2a5f10beb40",
+    strip_prefix = "googleapis-86fa44cc5ee2136e87c312f153113d4dd8e9c4de",
+    urls = [
+        "https://github.com/googleapis/googleapis/archive/86fa44cc5ee2136e87c312f153113d4dd8e9c4de.tar.gz",
+    ],
+)
+
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
 http_archive(
     name = "googleapis",
@@ -138,6 +147,14 @@ http_archive(
         # b/267219467
         url = "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip",
     ),
+)
+
+load("@com_google_googleapis//:repository_rules.bzl", googleapis_imports_switched_rules_by_language = "switched_rules_by_language")
+
+googleapis_imports_switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    go = True,
+    grpc = True,
 )
 
 # Needed by @com_github_bazelbuild_remote_apis for gRPC.
