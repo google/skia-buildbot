@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
@@ -129,7 +130,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

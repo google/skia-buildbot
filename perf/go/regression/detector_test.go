@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
@@ -17,6 +18,10 @@ import (
 
 const (
 	e = vec32.MissingDataSentinel
+)
+
+var (
+	defaultAnomalyConfig = config.AnomalyConfig{}
 )
 
 func TestTooMuchMissingData(t *testing.T) {
@@ -79,7 +84,7 @@ func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError)
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError, defaultAnomalyConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Invalid query")
 	assert.Equal(t, progress.Running, req.Progress.Status())

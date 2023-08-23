@@ -13,6 +13,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//perf/go/notifytypes",
+        "@com_github_invopop_jsonschema//:jsonschema",
         "@com_github_urfave_cli_v2//:cli",
     ],
 )

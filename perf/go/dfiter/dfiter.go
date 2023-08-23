@@ -10,10 +10,12 @@ import (
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
@@ -75,6 +77,7 @@ func NewDataFrameIterator(
 	queryAsString string,
 	domain types.Domain,
 	alert *alerts.Alert,
+	anomalyConfig config.AnomalyConfig,
 ) (DataFrameIterator, error) {
 	ctx, span := trace.StartSpan(ctx, "dfiter.NewDataFrameIterator")
 	defer span.End()
@@ -91,6 +94,14 @@ func NewDataFrameIterator(
 	}
 	var df *dataframe.DataFrame
 	if domain.Offset == 0 {
+		if anomalyConfig.SettlingTime != 0 {
+			currentTime := now.Now(ctx)
+			latestAllowedPoints := currentTime.Add(-1 * time.Duration(anomalyConfig.SettlingTime))
+			if latestAllowedPoints.Before(domain.End) {
+				domain.End = latestAllowedPoints
+			}
+		}
+
 		df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
 		if err != nil {
 			if regressionStateCallback != nil {

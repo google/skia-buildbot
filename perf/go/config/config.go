@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"regexp"
+	"time"
 
+	iSchema "github.com/invopop/jsonschema"
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/skerr"
@@ -306,6 +309,57 @@ type GitRepoConfig struct {
 	CommitNumberRegex string `json:"commit_number_regex,omitempty"`
 }
 
+// DurationAsString allows serializing a Duration as a string, and also handles
+// deserializing the empty string.
+type DurationAsString time.Duration
+
+// MarshalJSON implements json.Marshaler.
+func (d DurationAsString) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Duration(d).String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (d *DurationAsString) UnmarshalJSON(b []byte) error {
+	inputAsString := string(b)
+	fmt.Println(inputAsString)
+	var asString string
+	if err := json.Unmarshal(b, &asString); err != nil {
+		return skerr.Wrap(err)
+	}
+	if asString == "" {
+		*d = 0
+		return nil
+	}
+
+	tmp, err := time.ParseDuration(asString)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	*d = DurationAsString(tmp)
+	return nil
+}
+
+// JSONSchema defines the JSON Schema that will be generated for
+// DurationAsString, forcing it to be a string instead of an int.
+func (DurationAsString) JSONSchema() *iSchema.Schema {
+	return &iSchema.Schema{
+		Type:        "string",
+		Title:       "Duration",
+		Description: "A golang time.Duration serialized as a string.",
+	}
+}
+
+// AnomalyConfig contains the settings for Anomaly detection.
+type AnomalyConfig struct {
+	// SettlingTime is the amount of time to wait before including data from a
+	// commit in Anomaly detection.
+	//
+	// For example, because of machine contention or retries for some tests, the
+	// results may arrive out of order causing Anomalies to be mis-attributed,
+	// or attributed to a series of different CLs as new data arrives.
+	SettlingTime DurationAsString `json:"settling_time,omitempty"`
+}
+
 // FrontendFlags are the command-line flags for the web UI.
 type FrontendFlags struct {
 	ConfigFilename                 string
@@ -562,6 +616,7 @@ type InstanceConfig struct {
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
 	NotifyConfig    NotifyConfig    `json:"notify_config"`
+	AnomalyConfig   AnomalyConfig   `json:"anomaly_config,omitempty"`
 }
 
 // Validate the config.

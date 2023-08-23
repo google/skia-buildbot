@@ -153,6 +153,7 @@ func ProcessRegressions(ctx context.Context,
 	ps paramtools.ReadOnlyParamSet,
 	expandBaseRequest BaseAlertHandling,
 	iteration Iteration,
+	anomalyConfig config.AnomalyConfig,
 ) error {
 	ctx, span := trace.StartSpan(ctx, "ProcessRegressions")
 	defer span.End()
@@ -172,7 +173,7 @@ func ProcessRegressions(ctx context.Context,
 		iterErrorCallback := func(msg string) {
 			req.Progress.Message("Iteration", msg)
 		}
-		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert)
+		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig)
 		if err != nil {
 			if iteration == ContinueOnError {
 				// Don't log if we just didn't get enough data.

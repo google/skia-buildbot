@@ -459,7 +459,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				// traces they matched.
 				expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
 			}
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError); err != nil {
+			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig); err != nil {
 				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 			}
 

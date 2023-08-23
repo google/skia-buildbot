@@ -3,6 +3,15 @@
   "$id": "https://go.skia.org/infra/perf/go/config/instance-config",
   "$ref": "#/$defs/InstanceConfig",
   "$defs": {
+    "AnomalyConfig": {
+      "properties": {
+        "settling_time": {
+          "$ref": "#/$defs/DurationAsString"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "AuthConfig": {
       "properties": {
         "header_name": {
@@ -62,6 +71,11 @@
         "connection_string",
         "tile_size"
       ]
+    },
+    "DurationAsString": {
+      "type": "string",
+      "title": "Duration",
+      "description": "A golang time.Duration serialized as a string."
     },
     "GitRepoConfig": {
       "properties": {
@@ -164,6 +178,9 @@
         },
         "notify_config": {
           "$ref": "#/$defs/NotifyConfig"
+        },
+        "anomaly_config": {
+          "$ref": "#/$defs/AnomalyConfig"
         }
       },
       "additionalProperties": false,
