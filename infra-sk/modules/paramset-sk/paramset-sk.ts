@@ -53,6 +53,9 @@ import { define } from '../../../elements-sk/modules/define';
 import { ParamSet } from '../query';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/add-icon-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
+import '../../../elements-sk/modules/toast-sk';
+import { $$ } from '../dom';
 
 export interface ParamSetSkClickEventDetail {
   readonly key: string;
@@ -76,6 +79,7 @@ export class ParamSetSk extends ElementSk {
         ${ParamSetSk.rowsTemplate(ele)}
       </tbody>
     </table>
+    <toast-sk duration="2000">Copied</toast-sk>
   `;
 
   private static titlesTemplate = (ele: ParamSetSk) =>
@@ -96,7 +100,8 @@ export class ParamSetSk extends ElementSk {
         html`<td>
           ${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}
         </td>`,
-        ParamSetSk.optionalPlusSign(ele, key, p)
+        ParamSetSk.optionalPlusSign(ele, key, p),
+        ParamSetSk.optionalCopyContent(ele, key, p)
       )
     );
     return ret;
@@ -114,6 +119,23 @@ export class ParamSetSk extends ElementSk {
       <add-icon-sk
         data-key=${key}
         data-values=${JSON.stringify(p[key])}></add-icon-sk>
+    </td>`;
+  };
+
+  private static optionalCopyContent = (
+    ele: ParamSetSk,
+    key: string,
+    p: ParamSet
+  ): TemplateResult => {
+    if (!ele.copy_content) {
+      return html``;
+    }
+    return html` <td>
+      <div
+        class="icon-sk copy-content"
+        @click=${() => ele.copyContent(`${key}=${p[key]}`)}>
+        content_copy
+      </div>
     </td>`;
   };
 
@@ -139,6 +161,8 @@ export class ParamSetSk extends ElementSk {
 
   private _highlight: { [key: string]: string } = {};
 
+  private toast: ToastSk | null = null;
+
   constructor() {
     super(ParamSetSk.template);
   }
@@ -150,6 +174,7 @@ export class ParamSetSk extends ElementSk {
     this._upgradeProperty('clickable');
     this._upgradeProperty('clickable_values');
     this._render();
+    this.toast = $$<ToastSk>('toast-sk', this);
   }
 
   private _computeClass() {
@@ -164,6 +189,11 @@ export class ParamSetSk extends ElementSk {
 
   private _highlighted(key: string, value: string) {
     return this._highlight[key] === value ? 'highlight' : '';
+  }
+
+  private async copyContent(body: string) {
+    await navigator.clipboard.writeText(body);
+    this.toast!.show();
   }
 
   private _click(e: MouseEvent) {
@@ -218,7 +248,7 @@ export class ParamSetSk extends ElementSk {
   }
 
   static get observedAttributes() {
-    return ['clickable', 'clickable_values', 'clickable_plus'];
+    return ['clickable', 'clickable_values', 'clickable_plus', 'copy-content'];
   }
 
   /** Mirrors the clickable attribute.  */
@@ -260,7 +290,19 @@ export class ParamSetSk extends ElementSk {
     }
   }
 
-  attributeChangedCallback() {
+  get copy_content(): boolean {
+    return this.hasAttribute('copy_content');
+  }
+
+  set copy_content(val: boolean) {
+    if (val) {
+      this.setAttribute('copy_content', '');
+    } else {
+      this.removeAttribute('copy_content');
+    }
+  }
+
+  attributeChangedCallback(): void {
     this._render();
   }
 

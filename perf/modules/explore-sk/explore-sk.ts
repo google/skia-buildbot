@@ -698,6 +698,7 @@ export class ExploreSk extends ElementSk {
               id=simple_paramset
               clickable_plus
               clickable_values
+              copy_content
               @paramset-key-value-click=${ele.paramsetKeyValueClick}
               @plus-click=${ele.plusClick}
               >

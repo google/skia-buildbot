@@ -1,4 +1,4 @@
-@import '../../../elements-sk/modules/colors';
+@import '../../../infra-sk/themes.scss';
 
 paramset-sk {
   td,
@@ -17,10 +17,15 @@ paramset-sk {
 
   .clickable tr:not(:nth-child(1)) th,
   .clickable div,
-  add-icon-sk {
+  add-icon-sk,
+  div.copy-content {
     cursor: pointer;
     color: var(--primary, var(--blue));
     fill: var(--primary, var(--blue));
+  }
+
+  div.copy-content {
+    margin: 0 2px;
   }
 
   .clickable tr:not(:nth-child(1)) th:hover,

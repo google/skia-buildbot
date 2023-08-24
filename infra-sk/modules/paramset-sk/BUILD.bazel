@@ -8,15 +8,19 @@ sk_demo_page_server(
 sk_element(
     name = "paramset-sk",
     sass_deps = [
-        "//elements-sk/modules:colors_sass_lib",
+        "//infra-sk:themes_sass_lib",
     ],
     sass_srcs = ["paramset-sk.scss"],
-    sk_element_deps = ["//elements-sk/modules/icons/add-icon-sk"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/toast-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

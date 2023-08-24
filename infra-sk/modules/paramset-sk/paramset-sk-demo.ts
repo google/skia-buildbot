@@ -62,6 +62,10 @@ paramSetSk = findParamSetSk('#clickable-plus-with-clickable-values');
 paramSetSk.paramsets = [paramSet1];
 paramSetSk.titles = [title1];
 
+paramSetSk = findParamSetSk('#copy-content');
+paramSetSk.paramsets = [paramSet1];
+paramSetSk.titles = [title1];
+
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
