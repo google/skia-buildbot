@@ -30,7 +30,6 @@ cat > config.json5 <<EOF
     title: "{title}",
     customTriagingDisallowedMsg: "{custom_triaging_disallowed_msg}",
   }},
-  grouping_param_keys_by_corpus: {grouping_param_keys_by_corpus},
   materialized_view_corpora: {materialized_view_corpora},
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
@@ -53,7 +52,7 @@ cat > common_instance_config.json5 <<EOF
   local: true,
   code_review_systems: {code_review_systems},
   gcs_bucket: "{gcs_bucket}",
-  git_repo_branch: "main",
+  git_repo_branch: "{git_repo_branch}",
   git_repo_url: "{git_repo_url}",
   pubsub_project_id: "skia-public",
   site_url: "{site_url}",
@@ -61,6 +60,7 @@ cat > common_instance_config.json5 <<EOF
   sql_database: "{sql_database}",
   known_hashes_gcs_path: "{known_hashes_gcs_path}",
   window_size: {window_size},
+  grouping_param_keys_by_corpus: {grouping_param_keys_by_corpus},
 }}
 EOF
 
@@ -104,6 +104,7 @@ def gold_launcher(
         sql_database,
         known_hashes_gcs_path,
         window_size,
+        git_repo_branch = "main",
         is_public_view = False,
         publicly_allowed_params = None,
         grouping_param_keys_by_corpus = None,
@@ -128,6 +129,7 @@ def gold_launcher(
         known_hashes_gcs_path: Path to the known hashes GCS file, e.g.
             "skia-infra-gm/hash_files/gold-prod-hashes.txt".
         window_size: Window size, e.g. 256.
+        git_repo_branch: Git repository branch. Optional.
         is_public_view: Whether this is a public mirror of a private instance.
         publicly_allowed_params: A dictionary from corpora to a dictionary from key names to an
             array of allowed values.
@@ -153,6 +155,7 @@ def gold_launcher(
         sql_database = sql_database,
         known_hashes_gcs_path = known_hashes_gcs_path,
         window_size = window_size,
+        git_repo_branch = git_repo_branch,
         is_public_view = "true" if is_public_view else "false",
         publicly_allowed_params = publicly_allowed_params if publicly_allowed_params else "null",
     )

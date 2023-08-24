@@ -238,6 +238,32 @@ gold_launcher(
     default_corpus = "android-render-tests",
     gcs_bucket = "skia-gold-chrome",
     git_repo_url = "https://chromium.googlesource.com/chromium/src",
+    grouping_param_keys_by_corpus = {
+        "android-render-tests": [
+            "name",
+            "source_type",
+        ],
+        "android-render-tests-internal": [
+            "name",
+            "source_type",
+        ],
+        "chrome-gpu": [
+            "name",
+            "source_type",
+        ],
+        "chrome-gpu-gtest": [
+            "name",
+            "source_type",
+        ],
+        "finch-smoke-tests": [
+            "name",
+            "source_type",
+        ],
+        "gtest-pixeltests": [
+            "name",
+            "source_type",
+        ],
+    },
     known_hashes_gcs_path = "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
     site_url = "https://chrome-gold.skia.org",
     sql_database = "chrome",
@@ -283,6 +309,24 @@ gold_launcher(
     default_corpus = "android-render-tests",
     gcs_bucket = "skia-gold-chrome",
     git_repo_url = "https://chromium.googlesource.com/chromium/src",
+    grouping_param_keys_by_corpus = {
+        "android-render-tests": [
+            "name",
+            "source_type",
+        ],
+        "chrome-gpu": [
+            "name",
+            "source_type",
+        ],
+        "chrome-gpu-gtest": [
+            "name",
+            "source_type",
+        ],
+        "gtest-pixeltests": [
+            "name",
+            "source_type",
+        ],
+    },
     is_public_view = True,
     known_hashes_gcs_path = "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
     publicly_allowed_params = {
@@ -377,6 +421,12 @@ gold_launcher(
     default_corpus = "flutter",
     gcs_bucket = "skia-gold-flutter",
     git_repo_url = "https://github.com/flutter/flutter",
+    grouping_param_keys_by_corpus = {
+        "flutter": [
+            "name",
+            "source_type",
+        ],
+    },
     known_hashes_gcs_path = "skia-gold-flutter/hash_files/gold-flutter-hashes.txt",
     site_url = "https://flutter-gold.skia.org",
     sql_database = "flutter",
@@ -402,6 +452,12 @@ gold_launcher(
     default_corpus = "flutter-engine",
     gcs_bucket = "skia-gold-flutter-engine",
     git_repo_url = "https://github.com/flutter/engine",
+    grouping_param_keys_by_corpus = {
+        "flutter-engine": [
+            "name",
+            "source_type",
+        ],
+    },
     known_hashes_gcs_path = "skia-gold-flutter-engine/hash_files/gold-flutter-engine-hashes.txt",
     site_url = "https://flutter-engine-gold.skia.org",
     sql_database = "flutterengine",
