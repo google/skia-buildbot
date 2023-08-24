@@ -51,7 +51,7 @@ type Client struct {
 
 // New returns a new PinpointClient instance.
 func New(ctx context.Context) (*Client, error) {
-	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeAllCloudAPIs)
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create pinpoint client.")
 	}
