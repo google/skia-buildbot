@@ -1,0 +1,65 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "explore-simple-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+    ],
+    sass_srcs = ["explore-simple-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/alogin-sk",
+        "//infra-sk/modules/paramset-sk",
+        "//infra-sk/modules/query-sk",
+        "//perf/modules/commit-detail-panel-sk",
+        "//perf/modules/domain-picker-sk",
+        "//perf/modules/json-source-sk",
+        "//perf/modules/plot-simple-sk",
+        "//perf/modules/query-count-sk",
+        "//perf/modules/ingest-file-links-sk",
+        "//perf/modules/pivot-query-sk",
+        "//perf/modules/pivot-table-sk",
+        "//perf/modules/commit-range-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/spinner-sk",
+        "//elements-sk/modules/tabs-panel-sk",
+        "//elements-sk/modules/tabs-sk",
+        "//elements-sk/modules/toast-sk",
+        "//perf/modules/anomaly-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/progress:progress_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "@npm//lit-html",
+        "//perf/modules/pivotutil:index_ts_lib",
+        "//infra-sk/modules:linkify_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
+        "//perf/modules/csv:index_ts_lib",
+        "//perf/modules/const:const_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "explore-simple-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "explore-simple-sk_test",
+    src = "explore-simple-sk_test.ts",
+    deps = [
+        ":explore-simple-sk",
+        "//perf/modules/json:index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)

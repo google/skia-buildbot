@@ -5,6 +5,7 @@ import fetchMock, { restore } from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ExploreSk } from './explore-sk';
+import { ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
 
 const status: Status = {
   email: 'user@google.com',
@@ -456,7 +457,7 @@ customElements.whenDefined('explore-sk').then(() => {
     .querySelector('h1')!
     .insertAdjacentElement('afterend', document.createElement('explore-sk'));
 
-  const explore = $$<ExploreSk>('explore-sk');
+  const explore = $$<ExploreSimpleSk>('explore-simple-sk');
 
   // Some utility functions used later.
 

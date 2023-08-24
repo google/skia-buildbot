@@ -5,11 +5,11 @@ import { ColumnHeader, progress } from '../json';
 import {
   calculateRangeChange,
   defaultPointSelected,
-  ExploreSk,
+  ExploreSimpleSk,
   isValidSelection,
   PointSelected,
   selectionToEvent,
-} from './explore-sk';
+} from './explore-simple-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -91,7 +91,9 @@ describe('applyFuncToTraces', () => {
   };
 
   // Create a common element-sk to be used by all the tests.
-  const explore = document.createElement('explore-sk') as ExploreSk;
+  const explore = document.createElement(
+    'explore-simple-sk'
+  ) as ExploreSimpleSk;
   document.body.appendChild(explore);
 
   const finishedBody: progress.SerializedProgress = {
