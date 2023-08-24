@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const gitHeadRef = "HEAD"
@@ -108,7 +109,9 @@ func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.Crea
 	}
 }
 func getFile(ctx context.Context, co *git.Checkout, path string) (string, error) {
+	sklog.Infof("Getting file \"%s\".", path)
 	if ok, err := co.IsSubmodule(ctx, path, gitHeadRef); ok && err == nil {
+		sklog.Infof("File \"%s\" is submodule.", path)
 		return co.ReadSubmodule(ctx, path, gitHeadRef)
 	}
 	return co.GetFile(ctx, path, gitHeadRef)
@@ -116,8 +119,10 @@ func getFile(ctx context.Context, co *git.Checkout, path string) (string, error)
 
 func writeFile(ctx context.Context, co *git.Checkout, path, contents string) error {
 	if ok, _ := co.IsSubmodule(ctx, path, gitHeadRef); ok {
+		sklog.Infof("Writing to submodule \"%s\".", path)
 		return co.UpdateSubmodule(ctx, path, contents)
 	}
+	sklog.Infof("Writing to file \"%s\".", path)
 
 	fullPath := filepath.Join(co.Dir(), path)
 	if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
