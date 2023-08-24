@@ -46,16 +46,27 @@ _validate_domain 3600 IN CNAME _validate_domain.pki.goog.
 ;;; CNAME all the hosts for this domain.
 *          3600    IN CNAME luci.app.
 
+;;; config subdomain A record and AAAA record. Hosted in Cloud Run service
+;;; luci-config in GCP Project luci-config.
+config     300     IN A 216.239.32.21
+config     300     IN A 216.239.34.21
+config     300     IN A 216.239.36.21
+config     300     IN A 216.239.38.21
+config     300     IN AAAA 2001:4860:4802:32::15
+config     300     IN AAAA 2001:4860:4802:34::15
+config     300     IN AAAA 2001:4860:4802:36::15
+config     300     IN AAAA 2001:4860:4802:38::15
+
 ;;; config-dev subdomain A record and AAAA record. Hosted in Cloud Run service
 ;;; luci-config-dev in GCP Project luci-config-dev.
-config-dev 300      IN A 216.239.32.21
-config-dev 300      IN A 216.239.34.21
-config-dev 300      IN A 216.239.36.21
-config-dev 300      IN A 216.239.38.21
-config-dev 300      IN AAAA 2001:4860:4802:32::15
-config-dev 300      IN AAAA 2001:4860:4802:34::15
-config-dev 300      IN AAAA 2001:4860:4802:36::15
-config-dev 300      IN AAAA 2001:4860:4802:38::15
+config-dev 300     IN A 216.239.32.21
+config-dev 300     IN A 216.239.34.21
+config-dev 300     IN A 216.239.36.21
+config-dev 300     IN A 216.239.38.21
+config-dev 300     IN AAAA 2001:4860:4802:32::15
+config-dev 300     IN AAAA 2001:4860:4802:34::15
+config-dev 300     IN AAAA 2001:4860:4802:36::15
+config-dev 300     IN AAAA 2001:4860:4802:38::15
 
 ;;; TXT records for site verification
 config     3600    IN TXT "google-site-verification=RQ5PG1uJSEsw-ypgV7fSHduKsVeLOAji3JIAINecC8A"
