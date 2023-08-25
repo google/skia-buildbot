@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
+	"go.skia.org/infra/perf/go/alertgroup"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalies/cache"
@@ -143,6 +144,8 @@ type Frontend struct {
 	anomalyStore anomalies.Store
 
 	pinpoint *pinpoint.Client
+
+	alertGroupService alertgroup.Service
 }
 
 // New returns a new Frontend instance.
@@ -399,6 +402,11 @@ func (f *Frontend) initialize() {
 		if err != nil {
 			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
 		}
+
+		f.alertGroupService, err = alertgroup.New(ctx)
+		if err != nil {
+			sklog.Fatal("Failed to build alertGroup.Store: %s", err)
+		}
 	}
 
 	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
@@ -628,6 +636,31 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := fr.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Info("Received alert group request")
+	if f.alertGroupService == nil {
+		sklog.Info("Alert Grouping is not enabled")
+		httputils.ReportError(w, nil, "Alert Grouping is not enabled", http.StatusNotFound)
+		return
+	}
+	groupId := r.URL.Query().Get("group_id")
+	sklog.Infof("Group id is %s", groupId)
+	ctx, span := trace.StartSpan(r.Context(), "alertGroupQueryRequest")
+	defer span.End()
+	alertGroupDetails, err := f.alertGroupService.GetAlertGroupDetails(ctx, groupId)
+	if err != nil {
+		sklog.Errorf("Error in retrieving alert group details: %s", err)
+	}
+
+	if alertGroupDetails != nil {
+		sklog.Infof("Retrieved %d anomalies for alert group id %s", len(alertGroupDetails.Anomalies), groupId)
+		query_url := alertGroupDetails.GetQueryUrl(ctx, f.perfGit)
+		sklog.Infof("Generated query: %s", query_url)
+		http.Redirect(w, r, "/e/?"+query_url, http.StatusSeeOther)
+		return
 	}
 }
 
@@ -1567,6 +1600,7 @@ func (f *Frontend) Serve() {
 	// Common endpoint for all long-running requests.
 	router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
 
+	router.Get("/_/alertgroup", f.alertGroupQueryHandler)
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
 	router.Post("/_/cidRange/", f.cidRangeHandler)
 	router.Post("/_/count/", f.countHandler)

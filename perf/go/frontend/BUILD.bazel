@@ -22,6 +22,7 @@ go_library(
         "//go/sklog/sklogimpl",
         "//go/util",
         "//perf/go/alertfilter",
+        "//perf/go/alertgroup",
         "//perf/go/alerts",
         "//perf/go/anomalies",
         "//perf/go/anomalies/cache",
