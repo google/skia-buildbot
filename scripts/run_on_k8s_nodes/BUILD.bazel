@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "run_on_k8s_nodes_lib",
+    srcs = ["run_on_k8s_nodes.go"],
+    importpath = "go.skia.org/infra/scripts/run_on_k8s_nodes",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "run_on_k8s_nodes",
+    embed = [":run_on_k8s_nodes_lib"],
+    visibility = ["//visibility:public"],
+)
