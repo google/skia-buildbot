@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -32,7 +33,11 @@ func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit *p
 		}
 		endCommit, _ := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(alertGroup.EndCommitNumber))
 		queryUrl["begin"] = []string{strconv.Itoa(int(startCommit.Timestamp))}
-		queryUrl["end"] = []string{strconv.Itoa(int(endCommit.Timestamp))}
+
+		// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
+		endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
+
+		queryUrl["end"] = []string{strconv.Itoa(int(endTime.Unix()))}
 	}
 
 	// We do not want duplicate params, hence create maps to use as a set datastructure for each param
