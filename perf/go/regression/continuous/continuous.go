@@ -52,7 +52,7 @@ type Current struct {
 
 // ConfigProvider is a function that's called to return a slice of
 // alerts.Config.
-type ConfigProvider func() ([]*alerts.Alert, error)
+type ConfigProvider func(ctx context.Context) ([]*alerts.Alert, error)
 
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
@@ -226,7 +226,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 // and paramset that continuous regression detection should run over. In the
 // future when Continuous.eventDriven is true this will be driven by PubSub
 // events.
-func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
+func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan configsAndParamSet {
 	ret := make(chan configsAndParamSet)
 
 	if c.flags.EventDrivenRegressionDetection {
@@ -242,8 +242,12 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 			ackCounter := metrics2.GetCounter("ack", nil)
 			go func() {
 				for {
+					if err := ctx.Err(); err != nil {
+						sklog.Info("Channel context error %s", err)
+						return
+					}
 					// Wait for PubSub events.
-					err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+					err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 						sklog.Info("Received incoming Ingestion event.")
 						// Set success to true if we should Ack the PubSub
 						// message, otherwise the message will be Nack'd, and
@@ -271,7 +275,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 						sklog.Infof("IngestEvent received for : %q", ie.Filename)
 						// Filter all the configs down to just those that match
 						// the incoming traces.
-						configs, err := c.provider()
+						configs, err := c.provider(ctx)
 						if err != nil {
 							sklog.Errorf("Failed to get list of configs: %s", err)
 							// An error not related to the event, nack so we try again later.
@@ -303,7 +307,11 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 	}
 	go func() {
 		for range time.Tick(c.pollingDelay) {
-			configs, err := c.provider()
+			if err := ctx.Err(); err != nil {
+				sklog.Info("Channel context error %s", err)
+				return
+			}
+			configs, err := c.provider(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to get list of configs: %s", err)
 				time.Sleep(time.Minute)
@@ -404,7 +412,7 @@ func (c *Continuous) Run(ctx context.Context) {
 	// and the list of configs is built by matching the full list of configs
 	// against the list of incoming trace ids.
 	//
-	for cnp := range c.buildConfigAndParamsetChannel() {
+	for cnp := range c.buildConfigAndParamsetChannel(ctx) {
 		clusteringLatency.Start()
 		sklog.Infof("Clustering over %d configs.", len(cnp.configs))
 		for _, cfg := range cnp.configs {

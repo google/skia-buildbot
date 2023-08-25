@@ -1,6 +1,7 @@
 package continuous
 
 import (
+	"context"
 	"net/url"
 	"testing"
 	"time"
@@ -13,9 +14,8 @@ import (
 )
 
 func TestBuildConfigsAndParamSet(t *testing.T) {
-
 	c := Continuous{
-		provider: func() ([]*alerts.Alert, error) {
+		provider: func(_ context.Context) ([]*alerts.Alert, error) {
 			// Only fill in ID since we are just testing if ch channel returns
 			// what we set here.
 			return []*alerts.Alert{
@@ -42,7 +42,9 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 	}
 
 	// Build channel.
-	ch := c.buildConfigAndParamsetChannel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch := c.buildConfigAndParamsetChannel(ctx)
 
 	// Read value.
 	cnp := <-ch
@@ -62,7 +64,6 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 }
 
 func TestMatchingConfigsFromTraceIDs_TraceIDSliceIsEmpty_ReturnsEmptySlice(t *testing.T) {
-
 	config := alerts.NewConfig()
 	config.Query = "foo=bar"
 	traceIDs := []string{}
@@ -71,7 +72,6 @@ func TestMatchingConfigsFromTraceIDs_TraceIDSliceIsEmpty_ReturnsEmptySlice(t *te
 }
 
 func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesZeroTraces_ReturnsEmptySlice(t *testing.T) {
-
 	config := alerts.NewConfig()
 	config.Query = "arch=some-unknown-arch"
 	traceIDs := []string{
@@ -83,7 +83,6 @@ func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesZeroTraces_ReturnsEmpty
 }
 
 func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesOneTrace_ReturnsTheOneConfig(t *testing.T) {
-
 	config := alerts.NewConfig()
 	config.Query = "arch=x86"
 	traceIDs := []string{
@@ -95,7 +94,6 @@ func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesOneTrace_ReturnsTheOneC
 }
 
 func TestMatchingConfigsFromTraceIDs_TwoConfigsThatMatchesOneTrace_ReturnsBothConfigs(t *testing.T) {
-
 	config1 := alerts.NewConfig()
 	config1.Query = "arch=x86"
 	config2 := alerts.NewConfig()
@@ -109,7 +107,6 @@ func TestMatchingConfigsFromTraceIDs_TwoConfigsThatMatchesOneTrace_ReturnsBothCo
 }
 
 func TestMatchingConfigsFromTraceIDs_GroupByMatchesTrace_ReturnsConfigWithRestrictedQuery(t *testing.T) {
-
 	config1 := alerts.NewConfig()
 	config1.Query = "arch=x86"
 	config1.GroupBy = "config"
@@ -125,7 +122,6 @@ func TestMatchingConfigsFromTraceIDs_GroupByMatchesTrace_ReturnsConfigWithRestri
 }
 
 func TestMatchingConfigsFromTraceIDs_MultipleGroupByPartsMatchTrace_ReturnsConfigWithRestrictedQueryUsingAllMatchingGroupByKeys(t *testing.T) {
-
 	config := alerts.NewConfig()
 	config.Query = "arch=x86"
 	config.GroupBy = "config,device"

@@ -224,7 +224,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		f.loadTemplates()
-		context := SkPerfConfig{
+		pc := SkPerfConfig{
 			Radius:                     f.flags.Radius,
 			KeyOrder:                   strings.Split(f.flags.KeyOrder, ","),
 			NumShift:                   f.flags.NumShift,
@@ -238,7 +238,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 			FeedbackURL:                config.Config.FeedbackURL,
 		}
-		b, err := json.MarshalIndent(context, "", "  ")
+		b, err := json.MarshalIndent(pc, "", "  ")
 		if err != nil {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
@@ -263,8 +263,8 @@ func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetPro
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
 func (f *Frontend) newAlertsConfigProvider() continuous.ConfigProvider {
-	return func() ([]*alerts.Alert, error) {
-		return f.alertStore.List(context.Background(), false)
+	return func(ctx context.Context) ([]*alerts.Alert, error) {
+		return f.alertStore.List(ctx, false)
 	}
 }
 
@@ -277,6 +277,7 @@ func (f *Frontend) initialize() {
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
 
+	ctx := context.Background()
 	// Init metrics.
 	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
@@ -287,7 +288,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize Tracker: %s", err)
 	}
-	f.progressTracker.Start(context.Background())
+	f.progressTracker.Start(ctx)
 
 	// Keep HTTP request metrics.
 	severities := sklogimpl.AllSeverities()
@@ -329,8 +330,6 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize login: %s", err)
 	}
-
-	ctx := context.Background()
 
 	// Fix up resources dir values.
 	if f.flags.ResourcesDir == "" {
@@ -484,7 +483,7 @@ func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
+func (f *Frontend) initpageHandler(w http.ResponseWriter, _ *http.Request) {
 	resp := &frame.FrameResponse{
 		DataFrame: &dataframe.DataFrame{
 			ParamSet: f.paramsetRefresher.Get(),
@@ -506,7 +505,7 @@ func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 	prog := progress.New()
 	f.progressTracker.Add(prog)
 	go func() {
-		ctx, span := trace.StartSpan(context.Background(), "trybotLoadHandler")
+		ctx, span := trace.StartSpan(r.Context(), "trybotLoadHandler")
 		defer span.End()
 
 		ctx, cancel := context.WithTimeout(ctx, longRunningRequestTimeout)
@@ -613,11 +612,12 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
-	defer span.End()
 	f.progressTracker.Add(fr.Progress)
-
 	go func() {
+		// Intentionally using a background context here because the calculation will go on in the background after
+		// the request finishes
+		ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
+		defer span.End()
 		err := frame.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore)
 		if err != nil {
 			fr.Progress.Error(err.Error())
@@ -755,6 +755,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(req.Progress)
 
 	go func() {
+		// This intentionally does not use r.Context() because we want it to outlive this request.
 		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig)
 		if err != nil {
 			sklog.Errorf("ProcessRegressions returned: %s", err)
@@ -812,8 +813,8 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not parse query parameters.", http.StatusInternalServerError)
 		return
 	}
-	ctx := context.Background()
-	query := r.Form
+	ctx := r.Context()
+	gotoQuery := r.Form
 	hash := chi.URLParam(r, "hash")
 	dest := chi.URLParam(r, "dest")
 	index, err := f.perfGit.CommitNumberFromGitHash(ctx, hash)
@@ -851,17 +852,17 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	// commits: skbug.com/10698.
 	beginTime := details[0].Timestamp - 1
 	endTime := details[1].Timestamp + 1
-	query.Set("begin", fmt.Sprintf("%d", beginTime))
-	query.Set("end", fmt.Sprintf("%d", endTime))
+	gotoQuery.Set("begin", fmt.Sprintf("%d", beginTime))
+	gotoQuery.Set("end", fmt.Sprintf("%d", endTime))
 
 	if dest == "e" {
-		http.Redirect(w, r, fmt.Sprintf("/e/?%s", query.Encode()), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/e/?%s", gotoQuery.Encode()), http.StatusFound)
 	} else if dest == "c" {
-		query.Set("offset", fmt.Sprintf("%d", index))
-		http.Redirect(w, r, fmt.Sprintf("/c/?%s", query.Encode()), http.StatusFound)
+		gotoQuery.Set("offset", fmt.Sprintf("%d", index))
+		http.Redirect(w, r, fmt.Sprintf("/c/?%s", gotoQuery.Encode()), http.StatusFound)
 	} else if dest == "t" {
-		query.Set("subset", "all")
-		http.Redirect(w, r, fmt.Sprintf("/t/?%s", query.Encode()), http.StatusFound)
+		gotoQuery.Set("subset", "all")
+		http.Redirect(w, r, fmt.Sprintf("/t/?%s", gotoQuery.Encode()), http.StatusFound)
 	}
 }
 
@@ -925,7 +926,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &TriageResponse{}
 
 	if tr.Triage.Status == regression.Negative && config.Config.NotifyConfig.Notifications != notifytypes.MarkdownIssueTracker {
-		cfgs, err := f.configProvider()
+		cfgs, err := f.configProvider(ctx)
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
 		}
@@ -964,7 +965,7 @@ func (f *Frontend) unixTimestampRangeToCommitNumberRange(ctx context.Context, be
 // regressionCount returns the number of commits that have regressions for alerts
 // in the given category. The time range of commits is REGRESSION_COUNT_DURATION.
 func (f *Frontend) regressionCount(ctx context.Context, category string) (int, error) {
-	configs, err := f.configProvider()
+	configs, err := f.configProvider(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -977,7 +978,7 @@ func (f *Frontend) regressionCount(ctx context.Context, category string) (int, e
 	if err != nil {
 		return 0, err
 	}
-	regMap, err := f.regStore.Range(context.Background(), commitNumberBegin, commitNumberEnd)
+	regMap, err := f.regStore.Range(ctx, commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		return 0, err
 	}
@@ -1066,26 +1067,26 @@ type RegressionRangeResponse struct {
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := context.Background()
+	ctx := r.Context()
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	commitNumberBegin, commitNumberEnd, err := f.unixTimestampRangeToCommitNumberRange(r.Context(), rr.Begin, rr.End)
+	commitNumberBegin, commitNumberEnd, err := f.unixTimestampRangeToCommitNumberRange(ctx, rr.Begin, rr.End)
 	if err != nil {
 		httputils.ReportError(w, err, "Invalid time range.", http.StatusInternalServerError)
 		return
 	}
 
 	// Query for Regressions in the range.
-	regMap, err := f.regStore.Range(r.Context(), commitNumberBegin, commitNumberEnd)
+	regMap, err := f.regStore.Range(ctx, commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve clusters.", http.StatusInternalServerError)
 		return
 	}
 
-	headers, err := f.configProvider()
+	headers, err := f.configProvider(ctx)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 		return
@@ -1129,7 +1130,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	// Get a list of commits for the range.
 	var commits []provider.Commit
 	if rr.Subset == SubsetAll {
-		commits, err = f.perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+		commits, err = f.perfGit.CommitSliceFromTimeRange(ctx, time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to load git info.", http.StatusInternalServerError)
 			return
@@ -1197,7 +1198,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
+func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, _ *http.Request) {
 	status := []continuous.Current{}
 	for _, c := range f.continuous {
 		status = append(status, c.CurrentStatus())
@@ -1341,7 +1342,7 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func alertNewHandler(w http.ResponseWriter, r *http.Request) {
+func alertNewHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(alerts.NewConfig()); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
