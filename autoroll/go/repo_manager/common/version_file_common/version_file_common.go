@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/bazel"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 func getUsingRegex(dep *config.VersionFileConfig, contents string) (string, string, error) {
@@ -211,7 +212,9 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 	}
 
 	// Handle find-and-replace.
+	sklog.Infof("find and replace count: \"%d\".", len(primaryDep.FindAndReplace))
 	for _, f := range primaryDep.FindAndReplace {
+		sklog.Infof("replacing: \"%s\".", f)
 		oldContents, err := getFile(ctx, f)
 		if err != nil {
 			return nil, skerr.Wrap(err)
