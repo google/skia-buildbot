@@ -38,11 +38,12 @@ import (
 
 // Flags
 var (
-	clusterConfig = flag.String("cluster_config", "", "Absolute filename of the config.json file.")
-	local         = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	project       = flag.String("project", "skia-public", "The GCE project name.")
-	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	hang          = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	clusterConfig     = flag.String("cluster_config", "", "Absolute filename of the config.json file.")
+	gcImagesThreshold = flag.Int("gc_images_threshold", 5, "After this many images have been deployed, clean up docker resources.")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	project           = flag.String("project", "skia-public", "The GCE project name.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	hang              = flag.Bool("hang", false, "If true, just hang and do nothing.")
 
 	tagProdImages = common.NewMultiStringFlag("tag_prod_image", nil, "Docker image that the docker_pushes_watcher app should tag as 'prod' if it is newer than the last hash tagged as 'prod'.")
 	deployImages  = common.NewMultiStringFlag("deploy_image", nil, "Docker image that the docker_pushes_watcher app should deploy when it's docker image is built, if it is has been tagged as 'prod' using the tag_prod_image flag.")
@@ -155,6 +156,19 @@ func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo dock
 		break
 	}
 	return err
+}
+
+// cleanupImages removes all unused images to avoid filling up the shared Docker cache and causing k8s evictions
+// b/296862664
+func cleanupImages(ctx context.Context) error {
+	pushCmd := fmt.Sprintf("%s image prune --all --force", docker)
+	sklog.Infof("Cleaning up all unused docker images")
+	if out, err := exec.RunSimple(ctx, pushCmd); err != nil {
+		sklog.Error(out)
+		return skerr.Wrap(err)
+	}
+	sklog.Infof("Docker image cleanup success")
+	return nil
 }
 
 // tagProdToImage adds the "prod" tag to docker image if:
@@ -330,6 +344,7 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	pubSubReceive := metrics2.NewLiveness("docker_watcher_pubsub_receive", nil)
+	sinceLastGC := 0
 	for {
 		err := pubSubClient.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
@@ -370,10 +385,18 @@ func main() {
 					if util.In(baseImageName(imageName), *deployImages) {
 						pushFailure := metrics2.GetCounter(pushFailureMetric, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 						fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
+						sinceLastGC++
 						if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
 							sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
 							pushFailure.Inc(1)
 							return
+						}
+						if sinceLastGC >= *gcImagesThreshold {
+							if err := cleanupImages(ctx); err != nil {
+								sklog.Errorf("Failed to clean up Docker images: %s", err)
+							} else {
+								sinceLastGC = 0
+							}
 						}
 						pushFailure.Reset()
 					} else {
