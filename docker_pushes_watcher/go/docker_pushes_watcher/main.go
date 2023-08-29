@@ -67,16 +67,16 @@ var (
 
 const (
 	// For accessing Firestore.
-	DEFAULT_ATTEMPTS      = 3
-	PUT_SINGLE_TIMEOUT    = 10 * time.Second
-	DELETE_SINGLE_TIMEOUT = 10 * time.Second
+	defaultAttempts     = 3
+	putSingleTimeout    = 10 * time.Second
+	deleteSingleTimeout = 10 * time.Second
 
 	// Docker constants.
-	PROD_TAG = "prod"
+	prodTag = "prod"
 
 	// Name of metrics.
-	TAG_FAILURE_METRIC  = "docker_watcher_tag_failure"
-	PUSH_FAILURE_METRIC = "docker_watcher_push_failure"
+	tagFailureMetric  = "docker_watcher_tag_failure"
+	pushFailureMetric = "docker_watcher_push_failure"
 )
 
 func Init() {
@@ -106,9 +106,9 @@ func baseImageName(s string) string {
 //     Example of remote repository: https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/infra
 func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) error {
 	// Retry a few times if there are errors. Sometimes the access token expires between the login and the push.
-	NUM_ATTEMPTS := 2
+	const maxNumAttempts = 2
 	var err error
-	for i := 0; i < NUM_ATTEMPTS; i++ {
+	for i := 0; i < maxNumAttempts; i++ {
 		// Do not retry on e.g. a cancelled context.
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -126,28 +126,28 @@ func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo dock
 		loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", docker, token.AccessToken, "https://gcr.io")
 		sklog.Infof("Running %s", loginCmd)
 		if _, loginErr := exec.RunSimple(ctx, loginCmd); loginErr != nil {
-			err = fmt.Errorf("Error running docker login: %s", loginErr)
+			err = skerr.Wrapf(loginErr, "running docker login")
 			continue
 		}
 
-		pullCmd := fmt.Sprintf("docker pull %s:%s", buildInfo.ImageName, buildInfo.Tag)
+		pullCmd := fmt.Sprintf("%s pull %s:%s", docker, buildInfo.ImageName, buildInfo.Tag)
 		sklog.Infof("Running %s", pullCmd)
 		if _, pullErr := exec.RunSimple(ctx, pullCmd); pullErr != nil {
-			err = fmt.Errorf("Error running docker pull: %s", pullErr)
+			err = skerr.Wrapf(pullErr, "running docker pull")
 			continue
 		}
 
-		tagCmd := fmt.Sprintf("docker tag %s:%s %s:%s", buildInfo.ImageName, buildInfo.Tag, buildInfo.ImageName, PROD_TAG)
+		tagCmd := fmt.Sprintf("%s tag %s:%s %s:%s", docker, buildInfo.ImageName, buildInfo.Tag, buildInfo.ImageName, prodTag)
 		sklog.Infof("Running %s", tagCmd)
 		if _, tagErr := exec.RunSimple(ctx, tagCmd); tagErr != nil {
-			err = fmt.Errorf("Error running docker tag: %s", tagErr)
+			err = skerr.Wrapf(tagErr, "running docker tag")
 			continue
 		}
 
-		pushCmd := fmt.Sprintf("docker push %s:%s", buildInfo.ImageName, PROD_TAG)
+		pushCmd := fmt.Sprintf("%s push %s:%s", docker, buildInfo.ImageName, prodTag)
 		sklog.Infof("Running %s", pushCmd)
 		if _, pushErr := exec.RunSimple(ctx, pushCmd); pushErr != nil {
-			err = fmt.Errorf("Error running docker push: %s", pushErr)
+			err = skerr.Wrapf(pushErr, "running docker push")
 			continue
 		}
 
@@ -184,10 +184,10 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 
 	taggedWithProd := false
 	if len(docs) > 1 {
-		return false, fmt.Errorf("For %s found %d entries in firestore. There should be only 1 entry.", baseName, len(docs))
+		return false, skerr.Fmt("For %s found %d entries in firestore. There should be only 1 entry.", baseName, len(docs))
 	} else if len(docs) == 0 {
 		// First time we have seen this image. Add it to firestore.
-		if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); createErr != nil {
+		if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, defaultAttempts, putSingleTimeout); createErr != nil {
 			return false, skerr.Wrap(createErr)
 		}
 		sklog.Infof("Going to apply the prod tag to %s:%s", buildInfo.ImageName, buildInfo.Tag)
@@ -205,7 +205,7 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 		} else {
 			log, err := gitRepo.LogLinear(ctx, fromDB.Tag, buildInfo.Tag)
 			if err != nil {
-				return false, fmt.Errorf("Could not query gitiles of %s: %s", common.REPO_SKIA, err)
+				return false, skerr.Wrapf(err, "Could not query gitiles of %s", common.REPO_SKIA)
 			}
 			if len(log) > 0 {
 				// This means that the commit hash in the received image is newer than the one in datastore.
@@ -214,10 +214,10 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 					return false, skerr.Wrap(err)
 				}
 				sklog.Infof("%s is newer than %s for %s. Replacing the entry in firestore", buildInfo.Tag, fromDB.Tag, buildInfo.ImageName)
-				if _, deleteErr := fsClient.Delete(ctx, col.Doc(id), DEFAULT_ATTEMPTS, DELETE_SINGLE_TIMEOUT); deleteErr != nil {
-					return false, fmt.Errorf("Could not delete %s in firestore: %s", buildInfo.ImageName, deleteErr)
+				if _, deleteErr := fsClient.Delete(ctx, col.Doc(id), defaultAttempts, deleteSingleTimeout); deleteErr != nil {
+					return false, skerr.Wrapf(deleteErr, "Could not delete %s in firestore", buildInfo.ImageName)
 				}
-				if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); createErr != nil {
+				if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, defaultAttempts, putSingleTimeout); createErr != nil {
 					return false, skerr.Wrap(err)
 				}
 				taggedWithProd = true
@@ -247,7 +247,7 @@ func deployImage(ctx context.Context, fullyQualifiedImageName string) error {
 	sklog.Infof("About to execute: %q", pushCmd)
 
 	// Retry pushk command if there is an error due to concurrent pushes (skbug.com/10261).
-	maxAttempts := 3
+	const maxAttempts = 3
 	var pushkErr error
 	for i := 0; i < maxAttempts; i++ {
 		if pushkErr != nil {
@@ -290,16 +290,15 @@ func main() {
 
 	if *hang {
 		sklog.Infof("--hang provided; doing nothing.")
-		for {
-		}
+		select {}
 	}
 
 	// Add dummy app metrics so that missing data alerts do not show up every time
 	// this app is restarted.
 	dummyTags := map[string]string{"image": "dummyImage", "repo": "dummyRepo"}
-	dummyTagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, dummyTags)
+	dummyTagFailure := metrics2.GetCounter(tagFailureMetric, dummyTags)
 	dummyTagFailure.Reset()
-	dummyPushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, dummyTags)
+	dummyPushFailure := metrics2.GetCounter(pushFailureMetric, dummyTags)
 	dummyPushFailure.Reset()
 
 	// Create token source.
@@ -316,7 +315,7 @@ func main() {
 		}
 	}
 
-	sub, err := sub.New(ctx, *local, *project, docker_pubsub.TOPIC, 1)
+	pubSubClient, err := sub.New(ctx, *local, *project, docker_pubsub.TOPIC, 1)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -332,7 +331,7 @@ func main() {
 
 	pubSubReceive := metrics2.NewLiveness("docker_watcher_pubsub_receive", nil)
 	for {
-		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		err := pubSubClient.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
 
 			var buildInfo docker_pubsub.BuildInfo
@@ -346,10 +345,10 @@ func main() {
 			imageName := buildInfo.ImageName
 			tag := buildInfo.Tag
 
-			// Commit tags contain the commit hash. Trybot tags are are this format: ${CHANGE_NUM}/${PATCHSET_NUM}.
-			// Ignore trybot tags and only apply prod tag to commit hashes.
+			// Commit tags contain the commit hash. Tryjob tags are in this format: ${CHANGE_NUM}/${PATCHSET_NUM}.
+			// Ignore Tryjob tags and only apply prod tag to commit hashes.
 			if strings.Index(tag, "_") != -1 {
-				sklog.Infof("Found a trybot tag %s for %s. Ignoring.", tag, imageName)
+				sklog.Infof("Found a tryjob tag %s for %s. Ignoring.", tag, imageName)
 				return
 			}
 
@@ -358,7 +357,7 @@ func main() {
 				// Instantiate gitiles using the repo.
 				gitRepo := gitiles.NewRepo(buildInfo.Repo, httpClient)
 
-				tagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
+				tagFailure := metrics2.GetCounter(tagFailureMetric, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 				taggedWithProd, err := tagProdToImage(ctx, fsClient, gitRepo, ts, buildInfo)
 				if err != nil {
 					sklog.Errorf("Failed to add the prod tag to %s: %s", buildInfo, err)
@@ -369,7 +368,7 @@ func main() {
 				if taggedWithProd {
 					// See if the image is in the list of images to be deployed by pushk.
 					if util.In(baseImageName(imageName), *deployImages) {
-						pushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
+						pushFailure := metrics2.GetCounter(pushFailureMetric, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 						fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
 						if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
 							sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
