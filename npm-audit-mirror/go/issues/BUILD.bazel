@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "issues",
+    srcs = ["issuetracker.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/issues",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/issuetracker/v1:issuetracker",
+        "//go/secret",
+        "//go/skerr",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
+)

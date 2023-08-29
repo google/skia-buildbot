@@ -11,10 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/issuetracker/v1"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/monorail/v3"
-	monorail_mocks "go.skia.org/infra/go/monorail/v3/mocks"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 	npm_mocks "go.skia.org/infra/npm-audit-mirror/go/types/mocks"
@@ -26,41 +25,40 @@ func testOneExaminationCycle(t *testing.T, trustedScopes []string, packageCreate
 	projectPackageKey := fmt.Sprintf("%s_%s", projectName, strings.Replace(packageName, "/", "_", -1))
 	ctx := context.Background()
 
-	now := time.Now().UTC()
+	now := time.Now().UTC().Truncate(time.Second)
 	closedTime := now.Add(-fileExaminerIssueAfterThreshold)
 	if examinerIssueClosedLessThanThreshold {
 		closedTime = now.Add(-5 * time.Minute)
 	}
-	testIssueName := "projects/skia/issues/11111"
-	testMonorailIssue := &monorail.MonorailIssue{
-		Name:        testIssueName,
-		CreatedTime: now,
-		ClosedTime:  closedTime,
+	testIssueId := int64(11111)
+	testIssue := &issuetracker.Issue{
+		IssueId:      testIssueId,
+		CreatedTime:  now.Format(time.RFC3339),
+		ResolvedTime: closedTime.Format(time.RFC3339),
 	}
 	retDbEntry := &types.NpmAuditData{
-		Created:   now,
-		IssueName: testIssueName,
+		Created: now,
+		IssueId: testIssueId,
 	}
 
-	updatedIssueName := "projects/skia/issues/22222"
+	updatedIssueId := int64(22222)
 	updated := now.Add(5 * time.Minute)
-	updatedMonorailIssue := &monorail.MonorailIssue{
-		Name:        updatedIssueName,
-		CreatedTime: updated,
+	updatedIssue := &issuetracker.Issue{
+		IssueId:     updatedIssueId,
+		CreatedTime: updated.Format(time.RFC3339),
 	}
 
-	monorailConfig := &config.MonorailConfig{
-		InstanceName:    "test_project_monorail",
-		Owner:           "superman@krypton.com",
-		Labels:          []string{},
-		ComponentDefIDs: []string{},
+	issueTrackerConfig := &config.IssueTrackerConfig{
+		Owner: "superman@krypton.com",
 	}
 
-	// Mock monorail service.
-	monorailServiceMock := monorail_mocks.NewIMonorailService(t)
+	// Mock issue tracker service.
+	issueTrackerServiceMock := npm_mocks.NewIIssueTrackerService(t)
+	defer issueTrackerServiceMock.AssertExpectations(t)
 
 	// Mock DB client.
 	mockDBClient := npm_mocks.NewNpmDB(t)
+	defer mockDBClient.AssertExpectations(t)
 
 	// Mock HTTP client.
 	packageCreatedTime := now.Add(-packageCreatedTimeCutoff)
@@ -80,6 +78,7 @@ func testOneExaminationCycle(t *testing.T, trustedScopes []string, packageCreate
 	mockProjectMirror := npm_mocks.NewProjectMirror(t)
 	mockProjectMirror.On("GetProjectName").Return(projectName)
 	mockProjectMirror.On("GetDownloadedPackageNames").Return([]string{packageName}, nil).Once()
+	defer mockProjectMirror.AssertExpectations(t)
 
 	packageHasTrustedScope := false
 	for _, t := range trustedScopes {
@@ -93,22 +92,22 @@ func testOneExaminationCycle(t *testing.T, trustedScopes []string, packageCreate
 		if examinerIssueNotFiledYet {
 			retDbEntry = nil
 		} else {
-			monorailServiceMock.On("GetIssue", testIssueName).Return(testMonorailIssue, nil).Once()
+			issueTrackerServiceMock.On("GetIssue", testIssueId).Return(testIssue, nil).Once()
 		}
 		mockDBClient.On("GetFromDB", ctx, projectPackageKey).Return(retDbEntry, nil).Once()
 		if !examinerIssueClosedLessThanThreshold {
-			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs, []string{defaultCCUser}).Return(updatedMonorailIssue, nil).Once()
-			mockDBClient.On("PutInDB", ctx, projectPackageKey, updatedIssueName, updated.UTC()).Return(nil).Once()
+			issueTrackerServiceMock.On("MakeIssue", issueTrackerConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(updatedIssue, nil).Once()
+			mockDBClient.On("PutInDB", ctx, projectPackageKey, updatedIssueId, updated.UTC()).Return(nil).Once()
 		}
 	}
 
 	a := &DownloadedPackagesExaminer{
-		trustedScopes:   trustedScopes,
-		httpClient:      mockHttpClient.Client(),
-		dbClient:        mockDBClient,
-		projectMirror:   mockProjectMirror,
-		monorailConfig:  monorailConfig,
-		monorailService: monorailServiceMock,
+		trustedScopes:       trustedScopes,
+		httpClient:          mockHttpClient.Client(),
+		dbClient:            mockDBClient,
+		projectMirror:       mockProjectMirror,
+		issueTrackerConfig:  issueTrackerConfig,
+		issueTrackerService: issueTrackerServiceMock,
 	}
 	a.oneExaminationCycle(ctx, metrics2.NewLiveness("test_npm_audit"))
 }

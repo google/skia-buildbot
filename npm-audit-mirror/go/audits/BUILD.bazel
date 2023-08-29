@@ -10,11 +10,11 @@ go_library(
         "//go/executil",
         "//go/gitiles",
         "//go/metrics2",
-        "//go/monorail/v3:monorail",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/issues",
         "//npm-audit-mirror/go/types",
     ],
 )
@@ -26,9 +26,8 @@ go_test(
     deps = [
         "//go/executil",
         "//go/gitiles/mocks",
+        "//go/issuetracker/v1:issuetracker",
         "//go/metrics2",
-        "//go/monorail/v3:monorail",
-        "//go/monorail/v3/mocks",
         "//go/testutils",
         "//npm-audit-mirror/go/config",
         "//npm-audit-mirror/go/types",

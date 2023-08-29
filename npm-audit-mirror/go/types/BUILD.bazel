@@ -5,4 +5,5 @@ go_library(
     srcs = ["types.go"],
     importpath = "go.skia.org/infra/npm-audit-mirror/go/types",
     visibility = ["//visibility:public"],
+    deps = ["//go/issuetracker/v1:issuetracker"],
 )

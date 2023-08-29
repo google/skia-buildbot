@@ -12,11 +12,11 @@ import (
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/monorail/v3"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
+	"go.skia.org/infra/npm-audit-mirror/go/issues"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
@@ -24,15 +24,11 @@ const (
 	packageFileName     = "package.json"
 	packageLockFileName = "package-lock.json"
 
-	highVulnerabilityKey = "high"
+	issueTitleTmpl = "npm audit found high severity issues in %s’s package.json file"
+	issueBodyTmpl  = `npm audit found high severity issues in %s’s [package.json](%s) file.
 
-	issueSummaryTmpl     = "npm audit found high severity issues in %s’s package.json file"
-	issueDescriptionTmpl = "npm audit found high severity issues in %s’s package.json file here: %s\\n\\nThis issue was automatically filed by the npm-audit-mirror framework (see go/sk-npm-audit-mirror for more information)."
-	defaultIssueType     = "Task"
-	defaultIssueStatus   = "Assigned"
-	defaultIssuePriority = "High"
-
-	defaultCCUser = "rmistry@google.com"
+This issue was automatically filed by the npm-audit-mirror framework (see [go/sk-npm-audit-mirror](http://go/sk-npm-audit-mirror) for more information).
+`
 )
 
 // File new audit issues 1 hour after the last one was closed.
@@ -40,42 +36,42 @@ var fileAuditIssueAfterThreshold = time.Hour
 
 // NpmProjectAudit implements the types.ProjectAudit interface.
 type NpmProjectAudit struct {
-	projectName     string
-	repoURL         string
-	gitBranch       string
-	packageFilesDir string
-	workDir         string
-	gitilesRepo     gitiles.GitilesRepo
-	dbClient        types.NpmDB
-	monorailConfig  *config.MonorailConfig
-	monorailService monorail.IMonorailService
+	projectName         string
+	repoURL             string
+	gitBranch           string
+	packageFilesDir     string
+	workDir             string
+	gitilesRepo         gitiles.GitilesRepo
+	dbClient            types.NpmDB
+	issueTrackerConfig  *config.IssueTrackerConfig
+	issueTrackerService types.IIssueTrackerService
 }
 
 // NewNpmProjectAudit periodically downloads package.json/package-lock.json from gitiles
 // and runs audit on it.
-func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir, serviceAccountFilePath string, httpClient *http.Client, dbClient types.NpmDB, monorailConfig *config.MonorailConfig) (types.ProjectAudit, error) {
+func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir, serviceAccountFilePath string, httpClient *http.Client, dbClient types.NpmDB, issueTrackerConfig *config.IssueTrackerConfig) (types.ProjectAudit, error) {
 	gitilesRepo := gitiles.NewRepo(repoURL, httpClient)
 
-	// Instantiate monorailService only if we have a monorailConfig.
-	var monorailService *monorail.MonorailService
+	// Instantiate issueTrackerService only if we have a issueTrackerConfig.
+	var issueTrackerService *issues.IssueTrackerService
 	var err error
-	if monorailConfig != nil {
-		monorailService, err = monorail.New(ctx, serviceAccountFilePath)
+	if issueTrackerConfig != nil {
+		issueTrackerService, err = issues.NewIssueTrackerService(ctx)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
 
 	return &NpmProjectAudit{
-		projectName:     projectName,
-		repoURL:         repoURL,
-		gitBranch:       gitBranch,
-		packageFilesDir: packageFilesDir,
-		workDir:         workDir,
-		gitilesRepo:     gitilesRepo,
-		dbClient:        dbClient,
-		monorailConfig:  monorailConfig,
-		monorailService: monorailService,
+		projectName:         projectName,
+		repoURL:             repoURL,
+		gitBranch:           gitBranch,
+		packageFilesDir:     packageFilesDir,
+		workDir:             workDir,
+		gitilesRepo:         gitilesRepo,
+		dbClient:            dbClient,
+		issueTrackerConfig:  issueTrackerConfig,
+		issueTrackerService: issueTrackerService,
 	}, nil
 }
 
@@ -144,7 +140,7 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 
 	sklog.Infof("Done with audit of %s. Found %d high severity issues.", a.projectName, highSeverityCounter)
 
-	if highSeverityCounter > 0 && a.monorailConfig != nil {
+	if highSeverityCounter > 0 && a.issueTrackerConfig != nil {
 		// Check in the DB to see if an audit issue has been filed.
 		ad, err := a.dbClient.GetFromDB(ctx, a.projectName)
 		if err != nil {
@@ -161,26 +157,31 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 			}
 		} else {
 			sklog.Infof("Found audit data in firestore for project %s: %+v", a.projectName, ad)
-			// Query monorail to see if the issue is closed.
-			existingIssue, err := a.monorailService.GetIssue(ad.IssueName)
+			// Query issue tracker to see if the issue is closed.
+			existingIssue, err := a.issueTrackerService.GetIssue(ad.IssueId)
 			if err != nil {
-				sklog.Errorf("Could not query monorail for %s: %s", ad.IssueName, err)
+				sklog.Errorf("Could not query issue tracker for %d: %s", ad.IssueId, err)
 				return // return so that the liveness is not updated
 			}
-			if !existingIssue.ClosedTime.IsZero() {
+			if existingIssue.ResolvedTime != "" {
 				// Check to see when the issue was closed.
-				closedDuration := time.Now().UTC().Sub(existingIssue.ClosedTime)
-				sklog.Infof("Previously filed audit issue %s was closed at %s which is %s ago.", existingIssue.Name, existingIssue.ClosedTime, closedDuration)
+				closedTime, err := time.Parse(time.RFC3339, existingIssue.ResolvedTime)
+				if err != nil {
+					sklog.Errorf("Could not parse resolved time %s", existingIssue.ResolvedTime)
+					return // return so that liveness is not updated
+				}
+				closedDuration := time.Now().UTC().Sub(closedTime)
+				sklog.Infof("Previously filed audit issue %d was closed at %s which is %s ago.", existingIssue.IssueId, closedTime, closedDuration)
 
 				if closedDuration > fileAuditIssueAfterThreshold {
-					sklog.Infof("Filing new audit issue since audit issue %s was closed longer than the threshold %s.", existingIssue.Name, fileAuditIssueAfterThreshold)
+					sklog.Infof("Filing new audit issue since audit issue %d was closed longer than the threshold %s.", existingIssue.IssueId, fileAuditIssueAfterThreshold)
 					if err := a.fileAndPersistAuditIssue(ctx); err != nil {
 						sklog.Errorf("Could not file and persist audit issue for %s: %s", a.projectName, err)
 						return // return so that the liveness is not updated
 					}
 				}
 			} else {
-				sklog.Infof("Previously filed audit issue %s is still open. Do nothing.", existingIssue.Name)
+				sklog.Infof("Previously filed audit issue %d is still open. Do nothing.", existingIssue.IssueId)
 			}
 		}
 	}
@@ -188,28 +189,28 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 	liveness.Reset()
 }
 
-// fileAndPersistAuditIssue calls the monorail service to file a new monorail
-// issue and then adds that issue to the DB.
+// fileAndPersistAuditIssue calls the issue tracker service to file a new issue
+// and then adds that issue to the DB.
 func (a *NpmProjectAudit) fileAndPersistAuditIssue(ctx context.Context) error {
-	mc := a.monorailConfig
+	itc := a.issueTrackerConfig
 
-	// Create a new monorail issue.
-	summary := fmt.Sprintf(issueSummaryTmpl, a.projectName)
-	description := fmt.Sprintf(issueDescriptionTmpl, a.projectName, path.Join(a.gitilesRepo.URL(), "+show", "refs/heads/"+a.gitBranch, a.packageFilesDir, packageFileName))
+	// Create a new issue.
+	title := fmt.Sprintf(issueTitleTmpl, a.projectName)
+	body := fmt.Sprintf(issueBodyTmpl, a.projectName, path.Join(a.gitilesRepo.URL(), "+show", "refs/heads/"+a.gitBranch, a.packageFilesDir, packageFileName))
 
-	// Always file issues with the Restrict-View-Google label.
-	labels := []string{monorail.RestrictViewGoogleLabelName}
-	labels = append(labels, mc.Labels...)
-
-	newIssue, err := a.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs, []string{defaultCCUser})
+	newIssue, err := a.issueTrackerService.MakeIssue(itc.Owner, title, body)
 	if err != nil {
 		return skerr.Wrapf(err, "Could not create an audit issue for project %s", a.projectName)
 	}
 	// Add new issue data to firestore.
-	if err := a.dbClient.PutInDB(ctx, a.projectName, newIssue.Name, newIssue.CreatedTime.UTC()); err != nil {
+	createdTime, err := time.Parse(time.RFC3339, newIssue.CreatedTime)
+	if err != nil {
+		return skerr.Wrapf(err, "could not parse %s", newIssue.CreatedTime)
+	}
+	if err := a.dbClient.PutInDB(ctx, a.projectName, newIssue.IssueId, createdTime.UTC()); err != nil {
 		return skerr.Wrapf(err, "Could not put issue data into firestore for project %s", a.projectName)
 	}
-	sklog.Infof("Filed new audit issue %s and put it in DB.", newIssue.Name)
+	sklog.Infof("Filed new audit issue %d for project %s and put it in DB.", newIssue.IssueId, a.projectName)
 
 	return nil
 }

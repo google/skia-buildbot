@@ -104,7 +104,7 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			sklog.Fatalf("Could not init audit DB: %s", err)
 		}
-		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, *serviceAccountFile, httpClient, auditDbClient, projectCfg.MonorailConfig)
+		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, *serviceAccountFile, httpClient, auditDbClient, projectCfg.IssueTrackerConfig)
 		if err != nil {
 			sklog.Fatalf("Could not instantiate audit: %s", err)
 		}
@@ -135,7 +135,7 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			sklog.Fatalf("Could not init examiner DB: %s", err)
 		}
-		dpe, err := examiner.NewDownloadedPackagesExaminer(ctx, projectCfg.TrustedScopes, httpClient, examinerDbClient, m, projectCfg.MonorailConfig, *serviceAccountFile)
+		dpe, err := examiner.NewDownloadedPackagesExaminer(ctx, projectCfg.TrustedScopes, httpClient, examinerDbClient, m, projectCfg.IssueTrackerConfig, *serviceAccountFile)
 		if err != nil {
 			sklog.Fatalf("Could not init downloaded packages examiner: %s", err)
 		}

@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "Check.go",
         "ChecksManager.go",
+        "IIssueTrackerService.go",
         "NpmDB.go",
         "ProjectAudit.go",
         "ProjectMirror.go",
@@ -13,6 +14,7 @@ go_library(
     importpath = "go.skia.org/infra/npm-audit-mirror/go/types/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/issuetracker/v1:issuetracker",
         "//npm-audit-mirror/go/types",
         "@com_github_stretchr_testify//mock",
     ],

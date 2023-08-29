@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"time"
+
+	"go.skia.org/infra/go/issuetracker/v1"
 )
 
 // NpmDB is the interface implemented by all DB clients.
@@ -13,7 +15,7 @@ type NpmDB interface {
 
 	// PutInDB puts NpmAuditData into the DB. If the specified key already exists
 	// then it is updated.
-	PutInDB(ctx context.Context, key, issueName string, created time.Time) error
+	PutInDB(ctx context.Context, key string, issueId int64, created time.Time) error
 }
 
 // DownloadedPackagesExaminer examines all the downloaded packages of a mirror.
@@ -117,6 +119,15 @@ type NpmAuditMetadata struct {
 type NpmAuditData struct {
 	// When the audit issue was created.
 	Created time.Time `firestore:"created"`
-	// The resource name of the Issue. Eg: "projects/skia/issues/13158".
-	IssueName string `firestore:"issue_name"`
+	// The ID of the issue tracker issue.
+	IssueId int64 `firestore:"issue_id"`
+}
+
+// IIssueTrackerService is the interface for issue tracker calls.
+type IIssueTrackerService interface {
+	// MakeIssue files a new issue using the provided parameters.
+	MakeIssue(title, body, owner string) (*issuetracker.Issue, error)
+
+	// GetIssue finds the specified issueID and returns the issue object.
+	GetIssue(issueId int64) (*issuetracker.Issue, error)
 }

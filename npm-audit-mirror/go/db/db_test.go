@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	testDBKey     = "test_key"
-	testIssueName = "projects/test_project/issues/100"
+	testDBKey   = "test_key"
+	testIssueId = int64(100)
 )
 
 // newDBClientForTesting returns a FirestoreDB client and ensures that it will
@@ -45,12 +45,12 @@ func TestPutInDB_OneEntry_ExpectedChangeNum(t *testing.T) {
 	created := time.Now().UTC()
 
 	// DB should be empty. Add one entry.
-	err := db.PutInDB(ctx, testDBKey, testIssueName, created)
+	err := db.PutInDB(ctx, testDBKey, testIssueId, created)
 	require.NoError(t, err)
 
 	// Get the added entry and assert.
 	npmAuditData, err := db.GetFromDB(ctx, testDBKey)
-	require.Equal(t, testIssueName, npmAuditData.IssueName)
+	require.Equal(t, testIssueId, npmAuditData.IssueId)
 	require.Equal(t, created.Format("2006-01-02"), npmAuditData.Created.Format("2006-01-02"))
 	require.NoError(t, err)
 }

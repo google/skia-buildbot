@@ -15,9 +15,8 @@ import (
 
 	"go.skia.org/infra/go/executil"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
+	"go.skia.org/infra/go/issuetracker/v1"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/monorail/v3"
-	monorail_mocks "go.skia.org/infra/go/monorail/v3/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
@@ -31,39 +30,36 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 	packageFilesDir := ""
 	workDir := os.TempDir()
 
-	now := time.Now().UTC()
+	now := time.Now().UTC().Truncate(time.Second)
 	closedTime := now.Add(-fileAuditIssueAfterThreshold)
 	if auditIssueClosedLessThanThreshold {
 		closedTime = now.Add(-5 * time.Minute)
 	}
-	testIssueName := "projects/skia/issues/11111"
-	testMonorailIssue := &monorail.MonorailIssue{
-		Name:        testIssueName,
-		CreatedTime: now,
-		ClosedTime:  closedTime,
+	testIssueId := int64(11111)
+	testIssue := &issuetracker.Issue{
+		IssueId:      testIssueId,
+		CreatedTime:  now.Format(time.RFC3339),
+		ResolvedTime: closedTime.Format(time.RFC3339),
 	}
 	retDbEntry := &types.NpmAuditData{
-		Created:   now,
-		IssueName: testIssueName,
+		Created: now,
+		IssueId: testIssueId,
 	}
 
-	updatedIssueName := "projects/skia/issues/22222"
+	updatedIssueId := int64(22222)
 	updated := now.Add(5 * time.Minute)
-	updatedMonorailIssue := &monorail.MonorailIssue{
-		Name:        updatedIssueName,
-		CreatedTime: updated,
+	updatedIssue := &issuetracker.Issue{
+		IssueId:     updatedIssueId,
+		CreatedTime: updated.Format(time.RFC3339),
 	}
 
-	monorailConfig := &config.MonorailConfig{
-		InstanceName:    "test_project_monorail",
-		Owner:           "superman@krypton.com",
-		Labels:          []string{},
-		ComponentDefIDs: []string{},
+	issueTrackerConfig := &config.IssueTrackerConfig{
+		Owner: "superman@krypton.com",
 	}
 
-	// Create Mocks.
-	monorailServiceMock := &monorail_mocks.IMonorailService{}
-	defer monorailServiceMock.AssertExpectations(t)
+	// Mock issue tracker service.
+	issueTrackerServiceMock := npm_mocks.NewIIssueTrackerService(t)
+	defer issueTrackerServiceMock.AssertExpectations(t)
 	mockGitilesRepo := &gitiles_mocks.GitilesRepo{}
 	defer mockGitilesRepo.AssertExpectations(t)
 	mockDBClient := &npm_mocks.NpmDB{}
@@ -73,12 +69,12 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 		if auditIssueNotFiledYet {
 			retDbEntry = nil
 		} else {
-			monorailServiceMock.On("GetIssue", testIssueName).Return(testMonorailIssue, nil).Once()
+			issueTrackerServiceMock.On("GetIssue", testIssueId).Return(testIssue, nil).Once()
 		}
 		mockDBClient.On("GetFromDB", testutils.AnyContext, projectName).Return(retDbEntry, nil).Once()
 		if !auditIssueClosedLessThanThreshold {
-			monorailServiceMock.On("MakeIssue", monorailConfig.InstanceName, monorailConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string"), defaultIssueStatus, defaultIssuePriority, defaultIssueType, []string{monorail.RestrictViewGoogleLabelName}, monorailConfig.ComponentDefIDs, []string{defaultCCUser}).Return(updatedMonorailIssue, nil).Once()
-			mockDBClient.On("PutInDB", testutils.AnyContext, projectName, updatedIssueName, updated.UTC()).Return(nil).Once()
+			issueTrackerServiceMock.On("MakeIssue", issueTrackerConfig.Owner, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(updatedIssue, nil).Once()
+			mockDBClient.On("PutInDB", testutils.AnyContext, projectName, updatedIssueId, updated.UTC()).Return(nil).Once()
 			mockGitilesRepo.On("URL").Return("mock-URL").Once()
 		}
 	}
@@ -95,15 +91,15 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 	}
 
 	a := &NpmProjectAudit{
-		projectName:     projectName,
-		repoURL:         repoURL,
-		gitBranch:       gitBranch,
-		packageFilesDir: packageFilesDir,
-		workDir:         workDir,
-		gitilesRepo:     mockGitilesRepo,
-		dbClient:        mockDBClient,
-		monorailConfig:  monorailConfig,
-		monorailService: monorailServiceMock,
+		projectName:         projectName,
+		repoURL:             repoURL,
+		gitBranch:           gitBranch,
+		packageFilesDir:     packageFilesDir,
+		workDir:             workDir,
+		gitilesRepo:         mockGitilesRepo,
+		dbClient:            mockDBClient,
+		issueTrackerConfig:  issueTrackerConfig,
+		issueTrackerService: issueTrackerServiceMock,
 	}
 	a.oneAuditCycle(ctx, metrics2.NewLiveness("test_npm_audit"))
 }

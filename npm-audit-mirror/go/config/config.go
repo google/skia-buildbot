@@ -26,15 +26,12 @@ type SupportedProject struct {
 	PackagesAllowList []PackagesAllowList `json:"packages_allow_list,omitempty"`
 	// The scopes we skip pre-download checks for.
 	TrustedScopes []string `json:"trusted_scopes,omitempty"`
-	// The monorail config used for filing audit bugs.
-	MonorailConfig *MonorailConfig `json:"monorail_config,omitempty"`
+	// The issue tracker config used for filing audit and downloaded packages bugs.
+	IssueTrackerConfig *IssueTrackerConfig `json:"issue_tracker_config,omitempty"`
 }
 
-type MonorailConfig struct {
-	InstanceName    string   `json:"instance_name"`
-	Owner           string   `json:"owner"`
-	Labels          []string `json:"labels"`
-	ComponentDefIDs []string `json:"component_def_ids"`
+type IssueTrackerConfig struct {
+	Owner string `json:"owner"`
 }
 
 type PackagesAllowList struct {

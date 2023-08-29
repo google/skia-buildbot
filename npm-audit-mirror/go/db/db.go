@@ -65,10 +65,10 @@ func (f *FirestoreDB) GetFromDB(ctx context.Context, key string) (*types.NpmAudi
 
 // PutInDB puts NpmAuditData into the DB. If the specified key already exists
 // then it is updated.
-func (f *FirestoreDB) PutInDB(ctx context.Context, key, issueName string, created time.Time) error {
+func (f *FirestoreDB) PutInDB(ctx context.Context, key string, issueId int64, created time.Time) error {
 	qd := &types.NpmAuditData{
-		Created:   created,
-		IssueName: issueName,
+		Created: created,
+		IssueId: issueId,
 	}
 
 	npmAuditCol := f.client.Collection(f.collectionName)

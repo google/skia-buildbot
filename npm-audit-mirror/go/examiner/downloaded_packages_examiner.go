@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/monorail/v3"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
+	"go.skia.org/infra/npm-audit-mirror/go/issues"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
@@ -24,44 +24,44 @@ const (
 	// File new examiner issues once a week.
 	fileExaminerIssueAfterThreshold = time.Hour * 24 * 7
 
-	issueSummaryTmpl     = "Package %s in %s’s package-lock.json was recently republished"
-	issueDescriptionTmpl = "Package %s in %s’s package-lock.json was recently republished.\\nThis could indicate that the package was deleted and maliciously republished and may pose a security risk (see skbug.com/13397 for context). Please take a look at the package and remove from your dependencies if necessary.\\n\\nThis issue was automatically filed by the npm-audit-mirror framework (see go/sk-npm-audit-mirror for more information)."
-	defaultIssueType     = "Task"
-	defaultIssueStatus   = "Assigned"
-	defaultIssuePriority = "High"
+	issueTitleTmpl = "Package %s in %s’s package-lock.json was recently republished"
+	issueBodyTmpl  = `Package %s in %s’s package-lock.json was recently republished.
+This could indicate that the package was deleted and maliciously republished and may pose a security risk (see b/40044481 for context).
+Please take a look at the package and remove from your dependencies if necessary.
 
-	defaultCCUser = "rmistry@google.com"
+This issue was automatically filed by the npm-audit-mirror framework (see [go/sk-npm-audit-mirror](http://go/sk-npm-audit-mirror) for more information).
+`
 )
 
 // DownloadedPackagesExaminer implements types.DownloadedPackagesExaminer
 type DownloadedPackagesExaminer struct {
-	trustedScopes   []string
-	httpClient      *http.Client
-	dbClient        types.NpmDB
-	projectMirror   types.ProjectMirror
-	monorailConfig  *config.MonorailConfig
-	monorailService monorail.IMonorailService
+	trustedScopes       []string
+	httpClient          *http.Client
+	dbClient            types.NpmDB
+	projectMirror       types.ProjectMirror
+	issueTrackerConfig  *config.IssueTrackerConfig
+	issueTrackerService types.IIssueTrackerService
 }
 
 // NewDownloadedPackagesExaminer returns an instance of DownloadedPackagesExaminer.
-func NewDownloadedPackagesExaminer(ctx context.Context, trustedScopes []string, httpClient *http.Client, dbClient types.NpmDB, projectMirror types.ProjectMirror, monorailConfig *config.MonorailConfig, serviceAccountFilePath string) (types.DownloadedPackagesExaminer, error) {
-	// Instantiate monorailService only if we have a monorailConfig.
-	var monorailService *monorail.MonorailService
+func NewDownloadedPackagesExaminer(ctx context.Context, trustedScopes []string, httpClient *http.Client, dbClient types.NpmDB, projectMirror types.ProjectMirror, issueTrackerConfig *config.IssueTrackerConfig, serviceAccountFilePath string) (types.DownloadedPackagesExaminer, error) {
+	// Instantiate issueTrackerService only if we have a issueTrackerConfig.
+	var issueTrackerService *issues.IssueTrackerService
 	var err error
-	if monorailConfig != nil {
-		monorailService, err = monorail.New(ctx, serviceAccountFilePath)
+	if issueTrackerConfig != nil {
+		issueTrackerService, err = issues.NewIssueTrackerService(ctx)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
 
 	return &DownloadedPackagesExaminer{
-		trustedScopes:   trustedScopes,
-		httpClient:      httpClient,
-		dbClient:        dbClient,
-		projectMirror:   projectMirror,
-		monorailConfig:  monorailConfig,
-		monorailService: monorailService,
+		trustedScopes:       trustedScopes,
+		httpClient:          httpClient,
+		dbClient:            dbClient,
+		projectMirror:       projectMirror,
+		issueTrackerConfig:  issueTrackerConfig,
+		issueTrackerService: issueTrackerService,
 	}, nil
 }
 
@@ -131,13 +131,14 @@ func (dpe *DownloadedPackagesExaminer) oneExaminationCycle(ctx context.Context, 
 		diff := time.Now().Sub(t)
 		if diff < packageCreatedTimeCutoff {
 			message := fmt.Sprintf("In project %s package %s was created %s time ago. This is less than 1 week. This could be a malicious deletion+republish.", projectName, p, diff)
-			if dpe.monorailConfig != nil {
+			if dpe.issueTrackerConfig != nil {
 				if err := dpe.runBugFilingLogic(ctx, projectName, p); err != nil {
 					sklog.Errorf("Could not run the bug filing logic for project %s and package %s: %s", projectName, p, err)
 					return // return so that the liveness is not updated
 				}
 			} else {
-				// If the monorail config was not provided this is still important enough to log as an error message.
+				// If the issue tracker config was not provided this is still
+				// important enough to log as an error message.
 				sklog.Error(message)
 			}
 		}
@@ -179,24 +180,28 @@ func (dpe *DownloadedPackagesExaminer) runBugFilingLogic(ctx context.Context, pr
 		}
 	} else {
 		sklog.Infof("Found examiner data in firestore for project+package %s: %+v", projectPackageKey, dbData)
-		// Query monorail to see if the issue is closed.
-		existingIssue, err := dpe.monorailService.GetIssue(dbData.IssueName)
+		// Query issue tracker to see if the issue is closed.
+		existingIssue, err := dpe.issueTrackerService.GetIssue(dbData.IssueId)
 		if err != nil {
-			return fmt.Errorf("Could not query monorail for %s: %s", dbData.IssueName, err)
+			return fmt.Errorf("Could not query issue tracker for %d: %s", dbData.IssueId, err)
 		}
-		if !existingIssue.ClosedTime.IsZero() {
+		if existingIssue.ResolvedTime != "" {
 			// Check to see when the issue was closed.
-			closedDuration := time.Now().UTC().Sub(existingIssue.ClosedTime)
-			sklog.Infof("Previously filed examiner issue %s was closed at %s which is %s ago.", existingIssue.Name, existingIssue.ClosedTime, closedDuration)
+			closedTime, err := time.Parse(time.RFC3339, existingIssue.ResolvedTime)
+			if err != nil {
+				return fmt.Errorf("Could not parse resolved time %s", existingIssue.ResolvedTime)
+			}
+			closedDuration := time.Now().UTC().Sub(closedTime)
+			sklog.Infof("Previously filed examiner issue %d was closed at %s which is %s ago.", existingIssue.IssueId, closedTime, closedDuration)
 
 			if closedDuration > fileExaminerIssueAfterThreshold {
-				sklog.Infof("Filing new examiner issue since last issue %s was closed longer than the threshold %s.", existingIssue.Name, fileExaminerIssueAfterThreshold)
+				sklog.Infof("Filing new examiner issue since last issue %d was closed longer than the threshold %s.", existingIssue.IssueId, fileExaminerIssueAfterThreshold)
 				if err := dpe.fileAndPersistExaminerIssue(ctx, packageName, projectPackageKey); err != nil {
 					return fmt.Errorf("Could not file and persist examiner issue for %s: %s", projectPackageKey, err)
 				}
 			}
 		} else {
-			sklog.Infof("Previously filed examiner issue %s is still open. Do nothing.", existingIssue.Name)
+			sklog.Infof("Previously filed examiner issue %d is still open. Do nothing.", existingIssue.IssueId)
 		}
 	}
 	return nil
@@ -217,29 +222,29 @@ func (dpe *DownloadedPackagesExaminer) getPackageDetailsFromGlobalRepo(packageNa
 	return &npmPackage, nil
 }
 
-// fileAndPersistExaminerIssue calls the monorail service to file a new monorail
+// fileAndPersistExaminerIssue calls the issue tracker service to file a new
 // issue and then adds that issue to the DB.
 func (dpe *DownloadedPackagesExaminer) fileAndPersistExaminerIssue(ctx context.Context, packageName, projectPackageKey string) error {
-	mc := dpe.monorailConfig
+	itc := dpe.issueTrackerConfig
 	projectName := dpe.projectMirror.GetProjectName()
 
-	// Create a new monorail issue.
-	summary := fmt.Sprintf(issueSummaryTmpl, packageName, projectName)
-	description := fmt.Sprintf(issueDescriptionTmpl, packageName, projectName)
+	// Create a new issue.
+	title := fmt.Sprintf(issueTitleTmpl, packageName, projectName)
+	body := fmt.Sprintf(issueBodyTmpl, packageName, projectName)
 
-	// Always file issues with the Restrict-View-Google label.
-	labels := []string{monorail.RestrictViewGoogleLabelName}
-	labels = append(labels, mc.Labels...)
-
-	newIssue, err := dpe.monorailService.MakeIssue(mc.InstanceName, mc.Owner, summary, description, defaultIssueStatus, defaultIssuePriority, defaultIssueType, labels, mc.ComponentDefIDs, []string{defaultCCUser})
+	newIssue, err := dpe.issueTrackerService.MakeIssue(itc.Owner, title, body)
 	if err != nil {
 		return skerr.Wrapf(err, "Could not create an issue for project %s and package %s", projectName, packageName)
 	}
 	// Add new issue data to firestore.
-	if err := dpe.dbClient.PutInDB(ctx, projectPackageKey, newIssue.Name, newIssue.CreatedTime.UTC()); err != nil {
+	createdTime, err := time.Parse(time.RFC3339, newIssue.CreatedTime)
+	if err != nil {
+		return skerr.Wrapf(err, "could not parse %s", newIssue.CreatedTime)
+	}
+	if err := dpe.dbClient.PutInDB(ctx, projectPackageKey, newIssue.IssueId, createdTime.UTC()); err != nil {
 		return skerr.Wrapf(err, "Could not put issue data into firestore for project %s and package %s", projectName, packageName)
 	}
-	sklog.Infof("Filed new monorail issue from downloaded_packages_examiner %s for project %s and package %s and put it in DB.", newIssue.Name, projectName, packageName)
+	sklog.Infof("Filed new issue from downloaded_packages_examiner %d for project %s and package %s and put it in DB.", newIssue.IssueId, projectName, packageName)
 
 	return nil
 }

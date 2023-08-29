@@ -15,12 +15,8 @@
         }
       ],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "skia",
-        "owner": "rmistry@google.com",
-        "component_def_ids": [
-          "36252097"
-        ]
+      "issue_tracker_config": {
+        "owner": "rmistry@google.com"
       }
     },
     "cert-factory": {
@@ -29,12 +25,8 @@
       "package_json_dir":"go/src/infra_internal/appengine/cert-factory/appengine/frontend/ui",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "cjacomet@google.com",
-        "component_def_ids": [
-          "36250222"
-        ]
+      "issue_tracker_config": {
+        "owner": "cjacomet@google.com"
       }
     },
     "chops-monorail": {
@@ -43,12 +35,8 @@
       "package_json_dir": "appengine/monorail",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "monorail",
-        "owner": "dtu@google.com",
-        "component_def_ids": [
-          "36250322"
-        ]
+      "issue_tracker_config": {
+        "owner": "dtu@google.com"
       }
     },
     "chops-dash": {
@@ -57,12 +45,8 @@
       "package_json_dir": "go/src/infra/appengine/dashboard/frontend",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "dtu@google.com",
-        "component_def_ids": [
-          "36250649"
-        ]
+      "issue_tracker_config": {
+        "owner": "dtu@google.com"
       }
     },
     "chromium-dash": {
@@ -71,12 +55,8 @@
       "package_json_dir": "appengine/chromiumdash",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "dtu@google.com",
-        "component_def_ids": [
-          "36250390"
-        ]
+      "issue_tracker_config": {
+        "owner": "dtu@google.com"
       }
     },
     "luci-analysis": {
@@ -85,12 +65,8 @@
       "package_json_dir": "analysis/frontend/ui",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "mdraz@google.com",
-        "component_def_ids": [
-          "36250902"
-        ]
+      "issue_tracker_config": {
+        "owner": "mdraz@google.com"
       }
     },
     "luci-bisection": {
@@ -99,12 +75,8 @@
       "package_json_dir": "bisection/frontend/ui",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "aredulla@google.com",
-        "component_def_ids": [
-          "36250204"
-        ]
+      "issue_tracker_config": {
+        "owner": "aredulla@google.com"
       }
     },
     "luci-milo": {
@@ -113,12 +85,8 @@
       "package_json_dir": "milo/ui",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "weiweilin@google.com",
-        "component_def_ids": [
-          "36252057"
-        ]
+      "issue_tracker_config": {
+        "owner": "weiweilin@google.com"
       }
     },
     "testhaus": {
@@ -127,12 +95,8 @@
       "package_json_dir": "go/src/infra_internal/appengine/testhaus/frontend/ui",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "jkusuma@google.com",
-        "component_def_ids": [
-          "36250900"
-        ]
+      "issue_tracker_config": {
+        "owner": "jkusuma@google.com"
       }
     },
     "chromiumide": {
@@ -141,10 +105,8 @@
       "package_json_dir": "ide_tooling/cros-ide",
       "packages_allow_list": [],
       "trusted_scopes": [],
-      "monorail_config": {
-        "instance_name": "chromium",
-        "owner": "oka@google.com",
-        "component_def_ids": []
+      "issue_tracker_config": {
+        "owner": "oka@google.com"
       }
     }
   }

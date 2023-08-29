@@ -41,13 +41,13 @@ func (_m *NpmDB) GetFromDB(ctx context.Context, key string) (*types.NpmAuditData
 	return r0, r1
 }
 
-// PutInDB provides a mock function with given fields: ctx, key, issueName, created
-func (_m *NpmDB) PutInDB(ctx context.Context, key string, issueName string, created time.Time) error {
-	ret := _m.Called(ctx, key, issueName, created)
+// PutInDB provides a mock function with given fields: ctx, key, issueId, created
+func (_m *NpmDB) PutInDB(ctx context.Context, key string, issueId int64, created time.Time) error {
+	ret := _m.Called(ctx, key, issueId, created)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time) error); ok {
-		r0 = rf(ctx, key, issueName, created)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64, time.Time) error); ok {
+		r0 = rf(ctx, key, issueId, created)
 	} else {
 		r0 = ret.Error(0)
 	}

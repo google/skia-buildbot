@@ -8,11 +8,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
-        "//go/monorail/v3:monorail",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/issues",
         "//npm-audit-mirror/go/types",
     ],
 )
@@ -22,10 +22,9 @@ go_test(
     srcs = ["downloaded_packages_examiner_test.go"],
     embed = [":examiner"],
     deps = [
+        "//go/issuetracker/v1:issuetracker",
         "//go/metrics2",
         "//go/mockhttpclient",
-        "//go/monorail/v3:monorail",
-        "//go/monorail/v3/mocks",
         "//npm-audit-mirror/go/config",
         "//npm-audit-mirror/go/types",
         "//npm-audit-mirror/go/types/mocks",
