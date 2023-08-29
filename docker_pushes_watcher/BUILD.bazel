@@ -26,16 +26,16 @@ skia_app_container(
     run_commands_root = [
         # Install kubectl.
         "apt-get update",
-        "apt-get upgrade -y",
-        "apt-get install -y curl bash software-properties-common gnupg2",
+        "apt-get install -y curl bash software-properties-common gnupg2 ca-certificates gnupg",
         "curl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl",
         "chmod +x /usr/local/bin/kubectl",
-
-        # Install docker.
-        "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -",
-        "echo \"deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-              \"$(. /etc/os-release && echo \"$VERSION_CODENAME\")\" stable\" | \
-            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+        # Install docker. https://docs.docker.com/engine/install/debian/
+        "install -m 0755 -d /etc/apt/keyrings",
+        "curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
+        # Escaping double quotes instead of using single quotes caused this to fail completely for unknown reasons.
+        # Single quotes to the rescue!
+        "echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable' > /etc/apt/sources.list.d/docker.list",
+        "cat /etc/apt/sources.list.d/docker.list",
         "apt-get update",
         "apt-get install -y docker-ce docker-ce-cli",
     ],
