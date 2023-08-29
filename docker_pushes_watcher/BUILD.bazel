@@ -33,7 +33,9 @@ skia_app_container(
 
         # Install docker.
         "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -",
-        "add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/debian buster stable'",
+        "echo \"deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+              \"$(. /etc/os-release && echo \"$VERSION_CODENAME\")\" stable\" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
         "apt-get update",
         "apt-get install -y docker-ce docker-ce-cli",
     ],
