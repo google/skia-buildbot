@@ -12,6 +12,7 @@ go_library(
         "//go/util",
         "//perf/go/alerts",
         "//perf/go/clustering2",
+        "//perf/go/config",
         "//perf/go/dryrun",
         "//perf/go/frontend",
         "//perf/go/git/provider",

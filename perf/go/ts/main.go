@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/git/provider"
@@ -59,6 +60,7 @@ func main() {
 		alerts.AlertsStatus{},
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
+		config.Favorites{},
 		continuous.Current{},
 		dryrun.RegressionAtCommit{},
 		frame.FrameRequest{},

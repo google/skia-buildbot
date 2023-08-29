@@ -40,5 +40,29 @@
         "file_change_marker": "",
         "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
         "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+    },
+    "favorites": {
+        "sections":[
+            {
+                "name": "Press Benchmarks",
+                "links": [
+                    {
+                        "text": "Speedometer2",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Dspeedometer2%26stat%3Dvalue%26subtest_1%3DSpeedometer2%26test%3DTotal",
+                        "description": "Performance data for the Speedometer2 benchmark"
+                    },
+                    {
+                        "text": "JetStream2",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Djetstream2%26stat%3Dvalue%26subtest_1%3DJetStream2%26test%3DScore",
+                        "description": "Performance data for the JetStream2 benchmark"
+                    },
+                    {
+                        "text": "MotionMark",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Drendering.desktop%26master%3DChromiumPerf%26stat%3Dvalue%26test%3Dmotionmark",
+                        "description": "Performance data for the MotionMark benchmark"
+                    }
+                ]
+            }
+        ]
     }
 }

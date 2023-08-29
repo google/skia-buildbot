@@ -1,0 +1,33 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "favorites-sk",
+    sass_srcs = ["favorites-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "@npm//lit-html",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "favorites-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":favorites-sk-demo",
+)
+
+sk_page(
+    name = "favorites-sk-demo",
+    html_file = "favorites-sk-demo.html",
+    scss_entry_point = "favorites-sk-demo.scss",
+    sk_element_deps = [":favorites-sk"],
+    ts_entry_point = "favorites-sk-demo.ts",
+)

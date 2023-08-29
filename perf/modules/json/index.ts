@@ -66,6 +66,21 @@ export interface ClusterSummary {
 	notification_id?: string;
 }
 
+export interface FavoritesSectionLinkConfig {
+	text: string;
+	href: string;
+	description: string;
+}
+
+export interface FavoritesSectionConfig {
+	name: string;
+	links: FavoritesSectionLinkConfig[] | null;
+}
+
+export interface Favorites {
+	sections: FavoritesSectionConfig[] | null;
+}
+
 export interface Commit {
 	offset: CommitNumber;
 	hash: string;

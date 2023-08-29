@@ -181,6 +181,7 @@ var templateFilenames = []string{
 	"help.html",
 	"dryrunalert.html",
 	"trybot.html",
+	"favorites.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -241,6 +242,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 			FeedbackURL:                config.Config.FeedbackURL,
 		}
+
 		b, err := json.MarshalIndent(pc, "", "  ")
 		if err != nil {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
@@ -1545,6 +1547,21 @@ func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// favoritesHandler returns the favorites config for the instance
+func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	fav := config.Favorites{
+		Sections: []config.FavoritesSectionConfig{},
+	}
+	if config.Config.Favorites.Sections != nil {
+		fav = config.Config.Favorites
+	}
+	if err := json.NewEncoder(w).Encode(fav); err != nil {
+		sklog.Errorf("Error writing the Favorites json to response: %s", err)
+	}
+}
+
 // Serve content on the configured endpoints.Serve.
 //
 // This method does not return.
@@ -1592,6 +1609,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/a/", f.templateHandler("alerts.html"))
 	router.HandleFunc("/d/", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
+	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 
@@ -1630,6 +1648,7 @@ func (f *Frontend) Serve() {
 
 	router.Post("/_/bisect/create", f.createBisectHandler)
 
+	router.Get("/_/favorites/", f.favoritesHandler)
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {

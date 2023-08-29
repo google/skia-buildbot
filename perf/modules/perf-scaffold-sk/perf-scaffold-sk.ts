@@ -13,6 +13,7 @@ import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/add-alert-icon-sk';
 import '../../../elements-sk/modules/icons/build-icon-sk';
 import '../../../elements-sk/modules/icons/event-icon-sk';
+import '../../../elements-sk/modules/icons/favorite-icon-sk';
 import '../../../elements-sk/modules/icons/folder-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/icons/home-icon-sk';
@@ -59,6 +60,7 @@ export class PerfScaffoldSk extends ElementSk {
     <aside id=sidebar>
       <div id=links>
         <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
+        <a href="/f/" tab-index=0 ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a>
         <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
         <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>

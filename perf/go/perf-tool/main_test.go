@@ -22,6 +22,9 @@ func createInstanceConfigFile(t *testing.T) string {
 				Sources: []string{},
 			},
 		},
+		Favorites: config.Favorites{
+			Sections: []config.FavoritesSectionConfig{},
+		},
 	}
 	f, err := ioutil.TempFile("", "perf-tool")
 	require.NoError(t, err)

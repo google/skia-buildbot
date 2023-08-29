@@ -35,5 +35,34 @@
         "url": "https://github.com/skia-dev/perf-demo-repo.git",
         "dir": "/tmp/perf-demo",
         "debounce_commit_url": false
+    },
+    "favorites": {
+        "sections":[
+            {
+                "name": "Section 1",
+                "links": [
+                    {
+                        "text": "link 1",
+                        "href": "https://google.com",
+                        "description": "Test link"
+                    },
+                    {
+                        "text": "link 2",
+                        "href": "https://google.com",
+                        "description": "Test link 2"
+                    }
+                ]
+            },
+            {
+                "name": "Section 2",
+                "links": [
+                    {
+                        "text": "Another link",
+                        "href": "https://google.com",
+                        "description": "Test link"
+                    }
+                ]
+            }
+        ]
     }
 }

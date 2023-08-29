@@ -585,6 +585,30 @@ func (flags *IngestFlags) AsCliFlags() []cli.Flag {
 	}
 }
 
+type FavoritesSectionLinkConfig struct {
+	// Text to display on the link
+	Text string `json:"text"`
+
+	// Href for the link
+	Href string `json:"href"`
+
+	// Description for the link
+	Description string `json:"description"`
+}
+
+type FavoritesSectionConfig struct {
+	// Name of the section
+	Name string `json:"name"`
+
+	// Links in the section
+	Links []FavoritesSectionLinkConfig `json:"links"`
+}
+
+type Favorites struct {
+	// Sections to display on the Favorites page
+	Sections []FavoritesSectionConfig `json:"sections"`
+}
+
 // InstanceConfig contains all the info needed by a Perf instance.
 type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
@@ -606,6 +630,9 @@ type InstanceConfig struct {
 
 	// Feedback URL to use for the "Provide Feedback" link
 	FeedbackURL string `json:"feedback_url,omitempty"`
+
+	// Favorites configuration for the instance
+	Favorites Favorites `json:"favorites,omitempty"`
 
 	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
 	// which percentage of traces get uploaded

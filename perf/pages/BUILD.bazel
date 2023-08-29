@@ -100,3 +100,17 @@ sk_page(
     ],
     ts_entry_point = "trybot.ts",
 )
+
+sk_page(
+    name = "favorites",
+    assets_serving_path = "/dist",
+    html_file = "favorites.html",
+    nonce = "{% .Nonce %}",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "favorites.scss",
+    sk_element_deps = [
+        "//perf/modules/favorites-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "favorites.ts",
+)

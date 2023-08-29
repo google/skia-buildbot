@@ -77,6 +77,60 @@
       "title": "Duration",
       "description": "A golang time.Duration serialized as a string."
     },
+    "Favorites": {
+      "properties": {
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/FavoritesSectionConfig"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "sections"
+      ]
+    },
+    "FavoritesSectionConfig": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/FavoritesSectionLinkConfig"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "links"
+      ]
+    },
+    "FavoritesSectionLinkConfig": {
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "text",
+        "href",
+        "description"
+      ]
+    },
     "GitRepoConfig": {
       "properties": {
         "git_auth_type": {
@@ -160,6 +214,9 @@
         },
         "feedback_url": {
           "type": "string"
+        },
+        "favorites": {
+          "$ref": "#/$defs/Favorites"
         },
         "trace_sample_proportion": {
           "type": "number"
