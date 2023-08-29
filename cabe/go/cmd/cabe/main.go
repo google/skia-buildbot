@@ -27,6 +27,7 @@ func main() {
 			cabecli.AnalyzeCommand(),
 			cabecli.CheckCommand(),
 			cabecli.ReadCASCommand(),
+			cabecli.SandwichCommand(),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

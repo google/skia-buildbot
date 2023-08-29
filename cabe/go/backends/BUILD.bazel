@@ -4,6 +4,7 @@ go_library(
     name = "backends",
     srcs = [
         "backends.go",
+        "cloud_workflows.go",
         "rbecas.go",
         "rbecas_helpers.go",
         "swarming.go",
@@ -21,6 +22,7 @@ go_library(
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest:go_default_library",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_api//compute/v0.beta:v0_beta",
+        "@org_golang_google_api//workflowexecutions/v1:workflowexecutions",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/oauth",
         "@org_golang_x_oauth2//:oauth2",
