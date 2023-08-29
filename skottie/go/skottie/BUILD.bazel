@@ -32,9 +32,10 @@ go_binary(
 go_test(
     name = "skottie_test",
     srcs = ["skottie_test.go"],
-    data = glob(["testdata/**"]),
+    data = glob(["testdata/**"]) + ["//skottie:configs"],
     embed = [":skottie_lib"],
     deps = [
+        "//go/config",
         "//go/gcs",
         "//go/gcs/test_gcsclient",
         "//go/testutils",

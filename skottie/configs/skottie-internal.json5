@@ -1,0 +1,8 @@
+// Configuration for skottie-internal.skia.org
+{
+	"can_upload_zips": true,
+	"client_secret_file": "/etc/skia.org/login.json",
+	"gcs_bucket": "skottie-renderer-internal",
+	"resources_path": "/usr/local/share/skottie/",
+	"site_url": "https://skottie-internal.skia.org"
+}

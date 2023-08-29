@@ -1,5 +1,14 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
+filegroup(
+    name = "configs",
+    srcs = glob(
+        ["configs/*.json5"],
+        allow_empty = False,
+    ),
+    visibility = ["//skottie:__subpackages__"],
+)
+
 skia_app_container(
     name = "skottie_container-base",
     base_image = "@base-cipd//image",
@@ -50,6 +59,12 @@ skia_app_container(
                 "html",
                 "js",
             ]
+        ],
+        "/usr/local/share/skottie/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
         ],
         "/usr/local/share/skottie/img": [
             [

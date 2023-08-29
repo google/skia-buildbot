@@ -14,6 +14,10 @@ release: get_latest_skia
 release-base:
 	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container-base
 
+.PHONY: gazelle
+gazelle:
+	$(BAZEL) run //:gazelle -- update ./
+
 .PHONY: get_latest_skia
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
@@ -30,6 +34,10 @@ get_latest_skia:
 .PHONY: push
 push: release
 	pushk skottie
+
+.PHONY: test
+test:
+	$(BAZEL) test --config=mayberemote --test_output=errors //skottie/...
 
 bazel_release_ci:
 	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.

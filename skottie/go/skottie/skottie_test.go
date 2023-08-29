@@ -8,12 +8,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
@@ -116,6 +118,18 @@ func TestUploadHandler_ValidJSONWithAssetZip_FilesInZipUploaded(t *testing.T) {
 	img, err := png.Decode(bytes.NewReader(pngBytes))
 	require.NoError(t, err)
 	assert.Equal(t, image.Rect(0, 0, 3, 3), img.Bounds())
+}
+
+func TestParseConfigFile_AllDistributedConfigs_CanBeParsed(t *testing.T) {
+	allConfigsInImage, err := filepath.Glob(filepath.Join("..", "..", "configs/*.json5"))
+	require.NoError(t, err)
+	require.Greater(t, len(allConfigsInImage), 0)
+	for _, filename := range allConfigsInImage {
+		var sc skottieConfig
+		err := config.ParseConfigFile(filename, "config", &sc)
+		assert.NoError(t, err)
+		assert.NotNil(t, sc)
+	}
 }
 
 const (
