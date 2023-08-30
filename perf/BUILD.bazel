@@ -39,6 +39,7 @@ skia_app_container(
                 "newindex",
                 "triage",
                 "trybot",
+                "favorites",
             ]
             for ext in [
                 "css",
