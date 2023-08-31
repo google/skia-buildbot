@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "validate",
+    srcs = ["validate.go"],
+    embedsrcs = ["instanceConfigSchema.json"],
+    importpath = "go.skia.org/infra/perf/go/config/validate",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/jsonschema",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//perf/go/alerts",
+        "//perf/go/clustering2",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git/provider",
+        "//perf/go/notify",
+        "//perf/go/notifytypes",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "validate_test",
+    srcs = ["validate_test.go"],
+    data = glob(["testdata/**"]) + ["//perf:configs"],
+    embed = [":validate"],
+    deps = [
+        "//go/testutils",
+        "//perf/go/config",
+        "//perf/go/notifytypes",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -47,6 +47,7 @@ import (
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/dryrun"
@@ -307,7 +308,7 @@ func (f *Frontend) initialize() {
 	sklogimpl.SetMetricsCallback(metricsCallback)
 
 	// Load the config file.
-	if err := config.Init(f.flags.ConfigFilename); err != nil {
+	if err := validate.LoadAndValidate(f.flags.ConfigFilename); err != nil {
 		sklog.Fatal(err)
 	}
 	if f.flags.ConnectionString != "" {

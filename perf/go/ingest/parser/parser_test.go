@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -418,7 +419,7 @@ func TestParseWithConfigFile_InvalidCharRegex_NoEqual_NoComma(t *testing.T) {
 	require.Greater(t, len(allExistingConfigs), 0)
 	require.NoError(t, err)
 	for _, filename := range allExistingConfigs {
-		instanceConfig, schemaErrors, err := config.InstanceConfigFromFile(filename)
+		instanceConfig, schemaErrors, err := validate.InstanceConfigFromFile(filename)
 		require.Len(t, schemaErrors, 0)
 		require.NoError(t, err, filename)
 

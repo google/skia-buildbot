@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/notify/mocks"
 )
 
@@ -24,11 +25,11 @@ const (
 	missingHTMLMessage = "<b>Alert</b><br><br>\n<p>\n\tA Perf Regression (High) can no longer be found at:\n</p>\n<p style=\"padding: 1em;\">\n\t<a href=\"https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664\">https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664</a>\n</p>\n<p>\n\tFor:\n</p>\n<p style=\"padding: 1em;\">\n\t<a href=\"https://skia.googlesource.com/skia/&#43;show/d261e1075a93677442fdf7fe72aba7e583863664\">https://skia.googlesource.com/skia/&#43;show/d261e1075a93677442fdf7fe72aba7e583863664</a>\n</p>\n<p>\n\tWith 10 matching traces.\n</p>\n<p>\n\tAnd direction High.\n</p>\n<p>\n\tFrom Alert <a href=\"https://perf.skia.org/a/?123\">MyAlert</a>\n</p>\n"
 	missingHTMLSubject = "MyAlert - Regression no longer found for d261e10 -  2y 40w - An example commit use for testing."
 
-	newMarkdownMessage = "A Perf Regression (High) has been found at:\n\n  https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664\n\nFor:\n\n  Commit https://skia.googlesource.com/skia/&#43;show/d261e1075a93677442fdf7fe72aba7e583863664\n\nWith:\n\n  - 10 matching traces.\n  - Direction High.\n\nFrom Alert [MyAlert](https://perf.skia.org/a/?123)\n"
-	newMarkdownSubject = "MyAlert - Regression found for d261e10 -  2y 40w - An example commit use for testing."
+	newMarkdownMessage = "A Perf Regression (High) has been found at:\n\n  https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664\n\nFor:\n\n  Commit https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664\n\nWith:\n\n  - 10 matching traces.\n  - Direction High.\n\nFrom Alert [MyAlert](https://perf.skia.org/a/?123)\n"
+	newMarkdownSubject = "MyAlert - Regression found for An example commit use for testing."
 
 	missingMarkdownMessage = "The Perf Regression can no longer be detected. This issue is being automatically closed.\n"
-	missingMarkdownSubject = "MyAlert - Regression no longer found for d261e10 -  2y 40w - An example commit use for testing."
+	missingMarkdownSubject = "MyAlert - Regression no longer found for An example commit use for testing."
 
 	newMarkdownMessageWithCommitRangeURLTemplate = "A Perf Regression (High) has been found at:\n\n  https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664\n\nFor:\n\n  Commit https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/\n\nWith:\n\n  - 10 matching traces.\n  - Direction High.\n\nFrom Alert [MyAlert](https://perf.skia.org/a/?123)\n"
 )
@@ -64,9 +65,11 @@ func TestExampleSendWithMarkdownFormatter_HappyPath(t *testing.T) {
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newMarkdownMessage, newMarkdownSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingMarkdownMessage, missingMarkdownSubject).Return(nil)
 
-	n := newNotifier(NewMarkdownFormatter(""), tr, instanceURL)
+	f, err := NewMarkdownFormatter("", &config.NotifyConfig{})
+	require.NoError(t, err)
+	n := newNotifier(f, tr, instanceURL)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
-	err := n.ExampleSend(ctx, alertForTest)
+	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
 }
 
@@ -75,9 +78,42 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplate_HappyPath(t 
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newMarkdownMessageWithCommitRangeURLTemplate, newMarkdownSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingMarkdownMessage, missingMarkdownSubject).Return(nil)
 
-	n := newNotifier(NewMarkdownFormatter("https://example.com/{begin}/{end}/"), tr, instanceURL)
+	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{})
+	require.NoError(t, err)
+	n := newNotifier(f, tr, instanceURL)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
-	err := n.ExampleSend(ctx, alertForTest)
+	err = n.ExampleSend(ctx, alertForTest)
+	require.NoError(t, err)
+}
+
+func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplateAndCustomizedNotifierFormats_HappyPath(t *testing.T) {
+	tr := mocks.NewTransport(t)
+	tr.On(
+		"SendNewRegression",
+		testutils.AnyContext,
+		alertForTest,
+		"body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/",
+		"subject fb49909acafba5e031b90a265a6ce059cda85019",
+	).Return(mockThreadingID, nil)
+	tr.On(
+		"SendRegressionMissing",
+		testutils.AnyContext,
+		mockThreadingID,
+		alertForTest,
+		"missing-body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/",
+		"missing-subject fb49909acafba5e031b90a265a6ce059cda85019",
+	).Return(nil)
+
+	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{
+		Subject:        "subject {{ .PreviousCommit.GitHash }}",
+		Body:           []string{"body {{ .Alert.DisplayName }} - {{ .CommitURL }}"},
+		MissingSubject: "missing-subject {{ .PreviousCommit.GitHash }}",
+		MissingBody:    []string{"missing-body {{ .Alert.DisplayName }} - {{ .CommitURL }}"},
+	})
+	require.NoError(t, err)
+	n := newNotifier(f, tr, instanceURL)
+	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
+	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
 }
 

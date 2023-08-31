@@ -9,5 +9,5 @@ import (
 )
 
 func main() {
-	jsonschema.GenerateSchema("../instanceConfigSchema.json", &config.InstanceConfig{})
+	jsonschema.GenerateSchema("../validate/instanceConfigSchema.json", &config.InstanceConfig{})
 }

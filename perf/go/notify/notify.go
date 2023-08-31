@@ -30,13 +30,30 @@ const (
 	fromAddress = "alertserver@skia.org"
 )
 
-// context is used in expanding the message templates.
-type templateContext struct {
-	URL       string
-	Commit    provider.Commit
+// TemplateContext is used in expanding the message templates.
+type TemplateContext struct {
+	// URL is the root URL of the Perf instance.
+	URL string
+
+	// PreviousCommit is the previous commit the regression was found at.
+	//
+	// All commits that might be blamed for causing the regression
+	// are in the range `(PreviousCommit, Commit]`, that is inclusive of
+	// Commit but exclusive of PreviousCommit.
+	PreviousCommit provider.Commit
+
+	// Commit is the commit the regression was found at.
+	Commit provider.Commit
+
+	// CommitURL is a URL that points to the above Commit. The value of this URL
+	// can be controlled via the `--commit_range_url` flag.
 	CommitURL string
-	Alert     *alerts.Alert
-	Cluster   *clustering2.ClusterSummary
+
+	// Alert is the configuration for the alert that found the regression.
+	Alert *alerts.Alert
+
+	// Cluster is all the information found about the regression.
+	Cluster *clustering2.ClusterSummary
 }
 
 // Notifier sends notifications.
@@ -132,7 +149,11 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return newNotifier(NewMarkdownFormatter(commitRangeURITemplate), tracker, URL), nil
+		f, err := NewMarkdownFormatter(commitRangeURITemplate, cfg)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return newNotifier(f, tracker, URL), nil
 
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)

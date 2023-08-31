@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/ingest/process"
 )
@@ -59,7 +60,7 @@ func main() {
 				Flags:       (&ingestFlags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
-					instanceConfig, schemaViolations, err := config.InstanceConfigFromFile(ingestFlags.ConfigFilename)
+					instanceConfig, schemaViolations, err := validate.InstanceConfigFromFile(ingestFlags.ConfigFilename)
 					if err != nil {
 						for _, v := range schemaViolations {
 							sklog.Error(v)

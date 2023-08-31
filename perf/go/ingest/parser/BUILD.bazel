@@ -31,6 +31,7 @@ go_test(
         "//go/query",
         "//go/testutils",
         "//perf/go/config",
+        "//perf/go/config/validate",
         "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/types",

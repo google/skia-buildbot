@@ -14,6 +14,7 @@ go_library(
         "//go/urfavecli",
         "//perf/go/builders",
         "//perf/go/config",
+        "//perf/go/config/validate",
         "//perf/go/perf-tool/application",
         "//perf/go/tracestore",
         "//perf/go/types",

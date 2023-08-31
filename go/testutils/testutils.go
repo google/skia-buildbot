@@ -47,6 +47,14 @@ func TestDataDir(t sktest.TestingT) string {
 	}
 }
 
+// TestDataFilename returns the absolute path for the given relative path to a
+// file in the local `testdata` directory.
+func TestDataFilename(t sktest.TestingT, relPathParts ...string) string {
+	pathParts := []string{TestDataDir(t)}
+	pathParts = append(pathParts, relPathParts...)
+	return filepath.Join(pathParts...)
+}
+
 // ReadFileBytes reads a file from the caller's testdata directory and returns its contents as a
 // slice of bytes.
 func ReadFileBytes(t sktest.TestingT, filename string) []byte {
@@ -66,8 +74,7 @@ func ReadFile(t sktest.TestingT, filename string) string {
 // GetReader reads a file from the caller's testdata directory and panics on
 // error.
 func GetReader(t sktest.TestingT, filename string) io.ReadCloser {
-	dir := TestDataDir(t)
-	f, err := os.Open(filepath.Join(dir, filename))
+	f, err := os.Open(TestDataFilename(t, filename))
 	require.NoError(t, err, "Reading %s from testdir", filename)
 	return f
 }

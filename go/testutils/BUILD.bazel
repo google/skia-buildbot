@@ -20,9 +20,11 @@ go_library(
 go_test(
     name = "testutils_test",
     srcs = ["testutils_test.go"],
+    data = glob(["testdata/**"]),
     embed = [":testutils"],
     deps = [
         "//go/sktest",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

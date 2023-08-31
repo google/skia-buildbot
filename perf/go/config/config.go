@@ -1,33 +1,18 @@
 package config
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"regexp"
 	"time"
 
 	iSchema "github.com/invopop/jsonschema"
 	cli "github.com/urfave/cli/v2"
-	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/notifytypes"
-
-	_ "embed" // For embed functionality.
 )
 
 var errSchemaViolation = errors.New("schema violation")
-
-// schema is a json schema for InstanceConfig, it is created by
-// running go generate on ./generate/main.go.
-//
-//go:embed instanceConfigSchema.json
-var schema []byte
 
 const (
 	// MaxSampleTracesPerCluster  is the maximum number of traces stored in a
@@ -62,6 +47,7 @@ type AuthConfig struct {
 	EmailRegex string `json:"email_regex,omitempty"`
 }
 
+// NotifyConfig controls how notifications are sent, and their format.
 type NotifyConfig struct {
 	// Notifications chooses how notifications are sent when a regression is found.
 	Notifications notifytypes.Type `json:"notifications"`
@@ -75,6 +61,25 @@ type NotifyConfig struct {
 	// manager that contains the issue tracker API key. Only required if
 	// Notifications is set to use an issue tracker.
 	IssueTrackerAPIKeySecretName string `json:"issue_tracker_api_key_secret_name,omitempty"`
+
+	// The following fields, Subject, Body, MissingSubject and MissingBody, are
+	// all golang text templates. See notify.TemplateContext for the values that
+	// are available to the templates.
+
+	// Subject is a golang template for the subject of the notfication.
+	Subject string `json:"subject,omitempty"`
+
+	// Body is a golang template for the body of the notification which is formatted as Markdown.
+	Body []string `json:"body,omitempty"`
+
+	// MissingSubject is a template for the subject of the notfication sent when
+	// a detected regression is no longer detectable.
+	MissingSubject string `json:"missing_subject,omitempty"`
+
+	// MissingBody is a golang template for the body of the notfication which is
+	// formatted as Markdow. Sent when a detected regression is no longer
+	// detectable.
+	MissingBody []string `json:"missing_body,omitempty"`
 }
 
 // DataStoreType determines what type of datastore to build. Applies to
@@ -646,80 +651,8 @@ type InstanceConfig struct {
 	AnomalyConfig   AnomalyConfig   `json:"anomaly_config,omitempty"`
 }
 
-// Validate the config.
-func (i InstanceConfig) Validate() error {
-	if i.NotifyConfig.Notifications == notifytypes.MarkdownIssueTracker {
-		if i.NotifyConfig.IssueTrackerAPIKeySecretProject == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
-		}
-		if i.NotifyConfig.IssueTrackerAPIKeySecretName == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
-		}
-	}
-
-	if i.InvalidParamCharRegex != "" {
-		re, err := regexp.Compile(i.InvalidParamCharRegex)
-		if err != nil {
-			return skerr.Wrapf(err, "compiling invalid_param_char_regex: %q", i.InvalidParamCharRegex)
-		}
-		if !re.MatchString(",") {
-			return skerr.Fmt("invalid_param_char_regex must match ',' (comma).")
-		}
-		if !re.MatchString("=") {
-			return skerr.Fmt("invalid_param_char_regex must match '=' (equals).")
-		}
-	}
-
-	return nil
-}
-
-// InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig
-// found in filename.
-//
-// If there was an error loading the file a list of schema violations may be
-// returned also.
-func InstanceConfigFromFile(filename string) (*InstanceConfig, []string, error) {
-	ctx := context.Background()
-	var instanceConfig InstanceConfig
-	var schemaViolations []string = nil
-
-	// Validate config here.
-	err := util.WithReadFile(filename, func(r io.Reader) error {
-		b, err := ioutil.ReadAll(r)
-		if err != nil {
-			return skerr.Wrapf(err, "failed to read bytes")
-		}
-		schemaViolations, err = jsonschema.Validate(ctx, b, schema)
-		if err != nil {
-			return skerr.Wrapf(err, "file does not conform to schema")
-		}
-		return json.Unmarshal(b, &instanceConfig)
-	})
-	if err != nil {
-		return nil, schemaViolations, skerr.Wrapf(err, "Filename: %s", filename)
-	}
-	err = instanceConfig.Validate()
-	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "Filename: %s", filename)
-	}
-	return &instanceConfig, nil, nil
-}
-
 // Config is the currently running config.
 var Config *InstanceConfig
-
-// Init loads the selected config by name.
-func Init(filename string) error {
-	cfg, schemaViolations, err := InstanceConfigFromFile(filename)
-	if err != nil {
-		for _, v := range schemaViolations {
-			sklog.Error(v)
-		}
-		return skerr.Wrap(err)
-	}
-	Config = cfg
-	return nil
-}
 
 func IsDeadLetterCollectionEnabled(instanceConfig *InstanceConfig) bool {
 	return instanceConfig.IngestionConfig.SourceConfig.DeadLetterTopic != ""

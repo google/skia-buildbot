@@ -81,7 +81,7 @@ func NewHTMLFormatter(commitRangeURITemplate string) HTMLFormatter {
 
 // FormatNewRegression implements Formatter.
 func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
-	templateContext := &templateContext{
+	templateContext := &TemplateContext{
 		URL:       URL,
 		Commit:    commit,
 		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
@@ -100,7 +100,7 @@ func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previous
 
 // FormatRegressionMissing implements Formatter.
 func (h HTMLFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
-	templateContext := &templateContext{
+	templateContext := &TemplateContext{
 		URL:       URL,
 		Commit:    commit,
 		CommitURL: URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),

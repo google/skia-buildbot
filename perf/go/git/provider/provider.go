@@ -29,6 +29,12 @@ func (c Commit) Display(now time.Time) string {
 	return fmt.Sprintf("%s - %s - %s", c.GitHash[:7], human.Duration(now.Sub(time.Unix(c.Timestamp, 0))), c.Subject)
 }
 
+// HumanTime returns a display string that describes the commit time relative to
+// the current time.
+func (c Commit) HumanTime() string {
+	return human.Duration(time.Since(time.Unix(c.Timestamp, 0)))
+}
+
 // CommitProcessor is a callback function that will be called with a Commit.
 // Used in GitProvider.
 type CommitProcessor func(c Commit) error

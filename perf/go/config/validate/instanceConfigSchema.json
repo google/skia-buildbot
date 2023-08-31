@@ -261,6 +261,24 @@
         },
         "issue_tracker_api_key_secret_name": {
           "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "missing_subject": {
+          "type": "string"
+        },
+        "missing_body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

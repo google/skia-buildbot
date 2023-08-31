@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/perf-tool/application"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -167,7 +168,7 @@ var verboseFlag = &cli.BoolFlag{
 // instanceConfigFromFlags returns an InstanceConfig based
 // on the flags configFilenameFlag and connectionStringFlag.
 func instanceConfigFromFlags(c *cli.Context) (*config.InstanceConfig, error) {
-	instanceConfig, schemaViolations, err := config.InstanceConfigFromFile(c.String(configFilenameFlagName))
+	instanceConfig, schemaViolations, err := validate.InstanceConfigFromFile(c.String(configFilenameFlagName))
 	if err != nil {
 		for _, v := range schemaViolations {
 			fmt.Println(v)

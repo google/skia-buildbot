@@ -30,6 +30,7 @@ go_library(
         "//perf/go/bug",
         "//perf/go/builders",
         "//perf/go/config",
+        "//perf/go/config/validate",
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
         "//perf/go/dryrun",
