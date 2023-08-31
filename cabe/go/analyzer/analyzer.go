@@ -50,6 +50,7 @@ func WithExperimentSpec(s *cpb.ExperimentSpec) Options {
 func New(pinpointJobID string, opts ...Options) *Analyzer {
 	ret := &Analyzer{
 		pinpointJobID: pinpointJobID,
+		diagnostics:   newDiagnostics(),
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -66,8 +67,13 @@ type Analyzer struct {
 	readSwarmingTasks backends.SwarmingTaskReader
 
 	experimentSpec *cpb.ExperimentSpec
+	diagnostics    *Diagnostics
 
 	results []Results
+}
+
+func (a *Analyzer) Diagnostics() *Diagnostics {
+	return a.diagnostics
 }
 
 // Results encapsulates a response from the Go statistical package after it has processed
@@ -152,8 +158,10 @@ func (a *Analyzer) filterCompleteSwarmingTasks(taskInfos []*swarming.SwarmingRpc
 	for _, taskInfo := range taskInfos {
 		if taskInfo.TaskResult.State == taskCompletedState {
 			ret = append(ret, taskInfo)
+			a.diagnostics.includeSwarmingTask(taskInfo)
 		} else {
-			sklog.Warningf("ignoring swarming task %s because it is in state %q rather than %q", taskInfo.TaskId, taskInfo.TaskResult.State, taskCompletedState)
+			msg := fmt.Sprintf("task result is in state %q, not %q", taskInfo.TaskResult.State, taskCompletedState)
+			a.diagnostics.excludeSwarmingTask(taskInfo, msg)
 		}
 	}
 	return ret
@@ -205,9 +213,10 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 	for replicaNumber, pair := range pairs {
 		// Check task result codes to identify and handle task failures (which are expected; lab hardware is inherently unreliable).
 		if pair.hasTaskFailures() {
-			sklog.Infof("excluding replica %d from analysis since one or both of its arm's swarming tasks (control: %s, treatment: %s) failed", replicaNumber, pair.control.taskID, pair.treatment.taskID)
+			a.diagnostics.excludeReplica(replicaNumber, pair, "one or both tasks failed")
 			continue
 		}
+
 		controlTask, treatmentTask := pair.control, pair.treatment
 
 		runSpecName := pair.control.runConfig
@@ -215,11 +224,15 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 		for _, benchmarkSpec := range a.experimentSpec.GetAnalysis().GetBenchmark() {
 			cRes, ok := controlTask.parsedResults[benchmarkSpec.GetName()]
 			if !ok {
-				return res, fmt.Errorf("benchmark missing from control task %v: %q", controlTask.taskID, benchmarkSpec.GetName())
+				msg := fmt.Sprintf("benchmark missing from control task %v: %q", controlTask.taskID, benchmarkSpec.GetName())
+				a.diagnostics.excludeReplica(replicaNumber, pair, msg)
+				continue
 			}
 			tRes, ok := treatmentTask.parsedResults[benchmarkSpec.GetName()]
 			if !ok {
-				return res, fmt.Errorf("benchmark missing from treatment task %s: %q", treatmentTask.taskID, benchmarkSpec.GetName())
+				msg := fmt.Sprintf("benchmark missing from treatment task %v: %q", controlTask.taskID, benchmarkSpec.GetName())
+				a.diagnostics.excludeReplica(replicaNumber, pair, msg)
+				continue
 			}
 
 			cSamples := map[string][]float64{}
@@ -232,20 +245,29 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 				tSamples[tHist.Name] = tHist.SampleValues
 			}
 			for _, workloadName := range benchmarkSpec.GetWorkload() {
+
 				cValues, ok := cSamples[workloadName]
 				if !ok {
-					return res, fmt.Errorf("replica %d control task %s is missing %q/%q", replicaNumber, pair.control.taskID, benchmarkSpec.GetName(), workloadName)
+					msg := fmt.Sprintf("control task %s is missing %q/%q", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
+					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
+					continue
 				}
 
 				tValues, ok := tSamples[workloadName]
 				if !ok {
-					return res, fmt.Errorf("replica %d treatment task %s is missing %q/%q", replicaNumber, pair.treatment.taskID, benchmarkSpec.GetName(), workloadName)
+					msg := fmt.Sprintf("treatment task %s is missing %q/%q", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
+					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
+					continue
 				}
 
 				if len(cValues) == 0 || len(tValues) == 0 {
-					sklog.Warningf("control (%s) and/or treatment (%s) task had no sample values for %q/%q: %d vs %d", pair.control.taskID, pair.treatment.taskID, benchmarkSpec.GetName(), workloadName, len(cValues), len(tValues))
+					msg := fmt.Sprintf("rcontrol and/or treatment tasks reported an empty list of values for benchmark %q, workload %q", pair.control.taskID, pair.treatment.taskID, benchmarkSpec.GetName(), workloadName)
+
+					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
 					continue
 				}
+				a.diagnostics.includeReplica(replicaNumber, pair)
+
 				cMean := stat.Mean(cValues)
 				tMean := stat.Mean(tValues)
 

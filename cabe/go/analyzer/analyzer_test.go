@@ -344,6 +344,12 @@ func TestRun_withReplayBackends(t *testing.T) {
 		protocmp.Transform())
 
 	assert.Equal(t, "", diff)
+	diag := a.Diagnostics()
+	assert.NotNil(t, diag)
+	assert.Equal(t, 0, len(diag.ExcludedSwarmingTasks))
+	assert.Equal(t, 0, len(diag.ExcludedReplicas))
+	assert.Equal(t, 130, len(diag.IncludedSwarmingTasks))
+	assert.Equal(t, 64, len(diag.IncludedReplicas))
 }
 
 func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
@@ -397,4 +403,11 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 		protocmp.Transform())
 
 	assert.Equal(t, "", diff)
+	diag := a.Diagnostics()
+	assert.NotNil(t, diag)
+	assert.Equal(t, 4, len(diag.ExcludedSwarmingTasks))
+	assert.Equal(t, 0, len(diag.ExcludedReplicas))
+	assert.Equal(t, 16, len(diag.IncludedSwarmingTasks))
+	assert.Equal(t, 8, len(diag.IncludedReplicas))
+
 }

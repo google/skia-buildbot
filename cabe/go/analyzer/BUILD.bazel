@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "analyzer.go",
         "checker.go",
+        "diagnostics.go",
         "infer_specs.go",
         "internal_types.go",
     ],
