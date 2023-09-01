@@ -327,7 +327,7 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	}
 
 	// Find the not-rolled child repo commits.
-	notRolledRevs, err := r.getCommitsNotRolled(ctx, lastRollRev, tipRev)
+	notRolledRevs, err := r.LogRevisions(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -335,24 +335,24 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
-// getCommitsNotRolled returns the list of not-yet-rolled commits.
-func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev, tipRev *revision.Revision) ([]*revision.Revision, error) {
-	if tipRev.Id == lastRollRev.Id {
+// LogRevisions implements RepoManager.
+func (r *androidRepoManager) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	if from.Id == to.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
+	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return nil, err
 	}
-	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	revs := make([]*vcsinfo.LongCommit, 0, len(commits))
 	for _, c := range commits {
 		detail, err := r.childRepo.Details(ctx, c)
 		if err != nil {
 			return nil, err
 		}
-		notRolled = append(notRolled, detail)
+		revs = append(revs, detail)
 	}
-	return revision.FromLongCommits(r.childRevLinkTmpl, r.defaultBugProject, notRolled), nil
+	return revision.FromLongCommits(r.childRevLinkTmpl, r.defaultBugProject, revs), nil
 }
 
 // getLastRollRev returns the last-completed DEPS roll Revision.

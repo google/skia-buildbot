@@ -53,6 +53,20 @@ func (c *FuchsiaSDKChild) GetRevision(ctx context.Context, id string) (*revision
 	return fuchsiaSDKVersionToRevision(id), nil
 }
 
+// LogRevisions implements Child.
+func (c *FuchsiaSDKChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	// We cannot compute LogRevisions correctly because there are things
+	// other than SDKs in the GCS dir, and because they are content-
+	// addressed, we can't tell which ones are relevant to us, so we only
+	// include the latest and don't bother loading the list of versions
+	// from GCS.
+	var revs []*revision.Revision
+	if from.Id != to.Id {
+		revs = append(revs, to)
+	}
+	return revs, nil
+}
+
 // Update implements Child.
 func (c *FuchsiaSDKChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	// Get latest SDK version.
@@ -76,14 +90,9 @@ func (c *FuchsiaSDKChild) Update(ctx context.Context, lastRollRev *revision.Revi
 		}
 	}
 
-	// We cannot compute notRolledRevs correctly because there are things
-	// other than SDKs in the GCS dir, and because they are content-
-	// addressed, we can't tell which ones are relevant to us, so we only
-	// include the latest and don't bother loading the list of versions
-	// from GCS.
-	notRolledRevs := []*revision.Revision{}
-	if tipRev.Id != lastRollRev.Id {
-		notRolledRevs = append(notRolledRevs, tipRev)
+	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, tipRev)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 	return tipRev, notRolledRevs, nil
 }

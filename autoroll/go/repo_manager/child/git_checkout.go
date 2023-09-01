@@ -35,7 +35,7 @@ func (c *GitCheckoutChild) Update(ctx context.Context, lastRollRev *revision.Rev
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	notRolledRevs, err := c.LogFirstParent(ctx, lastRollRev, tipRev)
+	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}

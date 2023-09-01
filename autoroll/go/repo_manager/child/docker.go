@@ -74,15 +74,24 @@ func (c *DockerChild) GetRevision(ctx context.Context, id string) (*revision.Rev
 	}, nil
 }
 
+// LogRevisions implements Child.
+func (c *DockerChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	var revs []*revision.Revision
+	if from.Id != to.Id {
+		revs = append(revs, to)
+	}
+	return revs, nil
+}
+
 // Update implements Child.
 func (c *DockerChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	tipRev, err := c.GetRevision(ctx, c.tag)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	var notRolledRevs []*revision.Revision
-	if tipRev.Id != lastRollRev.Id {
-		notRolledRevs = []*revision.Revision{tipRev}
+	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, tipRev)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 	return tipRev, notRolledRevs, nil
 }

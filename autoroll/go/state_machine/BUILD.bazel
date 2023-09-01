@@ -15,6 +15,7 @@ go_library(
         "//go/counters",
         "//go/exec",
         "//go/gcs",
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//go/state_machine",

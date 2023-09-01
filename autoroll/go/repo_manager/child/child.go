@@ -23,6 +23,9 @@ type Child interface {
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
 
+	// LogRevisions returns a list of Revision instances between two revisions.
+	LogRevisions(context.Context, *revision.Revision, *revision.Revision) ([]*revision.Revision, error)
+
 	// VFS returns a vfs.FS instance which reads from this Child at the given
 	// Revision.
 	VFS(context.Context, *revision.Revision) (vfs.FS, error)

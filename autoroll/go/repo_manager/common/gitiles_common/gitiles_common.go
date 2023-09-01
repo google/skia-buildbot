@@ -74,6 +74,19 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	return rev, nil
 }
 
+// LogRevisions implements the child.Child interface.
+func (r *GitilesRepo) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	hashes, err := r.LogFirstParent(ctx, from.Id, to.Id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	revs, err := r.ConvertRevisions(ctx, hashes)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return revs, nil
+}
+
 // GetTipRevision returns a revision.Revision instance associated with the
 // current tip of the branch tracked by this GitilesRepo.
 func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, error) {

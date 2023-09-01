@@ -31,6 +31,7 @@ type TestRollCLImpl struct {
 	isCommitted  bool
 	normalResult string
 	dryRunResult string
+	rollingFrom  *revision.Revision
 	rollingTo    *revision.Revision
 }
 
@@ -98,6 +99,11 @@ func (r *TestRollCLImpl) IssueID() string {
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) IssueURL() string {
 	return "http://codereview/123"
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) RollingFrom() *revision.Revision {
+	return r.rollingFrom
 }
 
 // See documentation for RollCLImpl.
@@ -300,6 +306,11 @@ func (r *TestAutoRollerImpl) GetNextRollRev() *revision.Revision {
 // Set the result of GetNextRollRev.
 func (r *TestAutoRollerImpl) SetNextRollRev(rev string) {
 	r.getNextRollRevResult = &revision.Revision{Id: rev}
+}
+
+// See documentation for GetRevisionsInRoll.
+func (r *TestAutoRollerImpl) GetRevisionsInRoll(ctx context.Context, roll RollCLImpl) []*revision.Revision {
+	return []*revision.Revision{roll.RollingTo()}
 }
 
 // See documentation for AutoRollerImpl.

@@ -126,6 +126,49 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 	return rev, nil
 }
 
+// LogRevisions implements Child.
+func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	revs := []*revision.Revision{}
+	if from.Id != to.Id {
+		revs = append(revs, to)
+	}
+	if c.gitRepo != nil {
+		// Obtain the git revisions from the backing repo.
+		_, fromHash, err := splitCIPDTag(from.Id)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		_, toHash, err := splitCIPDTag(to.Id)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		notRolledCommits, err := c.gitRepo.LogFirstParent(ctx, fromHash, toHash)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		revs, err = c.gitRepo.ConvertRevisions(ctx, notRolledCommits)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		for _, rev := range revs {
+			// Fix the IDs to be CIPD tags rather than Git commit hashes.
+			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, rev.Id)
+
+			// Make in-between revisions invalid, since we only have CIPD
+			// package instances associated with from and to.
+			if rev.Id == from.Id {
+				rev.Checksum = from.Checksum
+			} else if rev.Id == to.Id {
+				rev.Checksum = to.Checksum
+			} else {
+				rev.Checksum = ""
+				rev.InvalidReason = "No associated CIPD package."
+			}
+		}
+	}
+	return revs, nil
+}
+
 // Update implements Child.
 // Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
@@ -137,43 +180,9 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	notRolledRevs := []*revision.Revision{}
-	if lastRollRev.Id != tipRev.Id {
-		notRolledRevs = append(notRolledRevs, tipRev)
-	}
-	if c.gitRepo != nil {
-		// Obtain the git revisions from the backing repo.
-		_, lastRollRevHash, err := splitCIPDTag(lastRollRev.Id)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		_, tipRevHash, err := splitCIPDTag(tipRev.Id)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		notRolledCommits, err := c.gitRepo.LogFirstParent(ctx, lastRollRevHash, tipRevHash)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		notRolledRevs, err = c.gitRepo.ConvertRevisions(ctx, notRolledCommits)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		for _, rev := range notRolledRevs {
-			// Fix the IDs to be CIPD tags rather than Git commit hashes.
-			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, rev.Id)
-
-			// Make in-between revisions invalid, since we only have CIPD
-			// package instances associated with lastRollRev and tipRev.
-			if rev.Id == lastRollRev.Id {
-				rev.Checksum = lastRollRev.Checksum
-			} else if rev.Id == tipRev.Id {
-				rev.Checksum = tipRev.Checksum
-			} else {
-				rev.Checksum = ""
-				rev.InvalidReason = "No associated CIPD package."
-			}
-		}
+	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, tipRev)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 	return tipRev, notRolledRevs, nil
 }

@@ -134,6 +134,10 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
+	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+		afdoRevBase: afdoTimeBase,
+	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
 
 	// Initial update. Everything up to date.
@@ -244,6 +248,10 @@ func TestAFDORepoManager(t *testing.T) {
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
+	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+		afdoRevBase: afdoTimeBase,
+	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
 
 	// Update.
@@ -268,6 +276,11 @@ func TestAFDORepoManager(t *testing.T) {
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, git.MainBranch)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+		afdoRevBase: afdoTimeBase,
+		afdoRevNext: afdoTimeNext,
+	})
+	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,

@@ -267,11 +267,15 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
+		rollingFrom, err := arb.getRevision(ctx, current.RollingFrom)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		rollingTo, err := arb.getRevision(ctx, current.RollingTo)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		roll, err := arb.retrieveRoll(ctx, current, rollingTo)
+		roll, err := arb.retrieveRoll(ctx, current, rollingFrom, rollingTo)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to retrieve current roll")
 		}
@@ -289,8 +293,8 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 // into the RecentRolls DB, etc. The Issue field is required, and if the roll
 // has not yet been inserted into the DB, the RollingFrom, and RollingTo fields
 // must be set as well.
-func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue, rollingTo *revision.Revision) (codereview.RollImpl, error) {
-	return r.codereview.RetrieveRoll(ctx, roll, r.recent, rollingTo, r.rollFinished)
+func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue, rollingFrom *revision.Revision, rollingTo *revision.Revision) (codereview.RollImpl, error) {
+	return r.codereview.RetrieveRoll(ctx, roll, r.recent, rollingFrom, rollingTo, r.rollFinished)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -445,7 +449,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 	if err != nil {
 		return nil, err
 	}
-	roll, err := r.retrieveRoll(ctx, issue, to)
+	roll, err := r.retrieveRoll(ctx, issue, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -568,6 +572,16 @@ func (r *AutoRoller) RolledPast(ctx context.Context, rev *revision.Revision) (bo
 	// We don't know about this rev. Assuming the revs we do know about are
 	// valid, we must have rolled past this one.
 	return true, nil
+}
+
+// GetRevisionsInRoll returns a list of revisions in a roll.
+func (r *AutoRoller) GetRevisionsInRoll(ctx context.Context, roll state_machine.RollCLImpl) []*revision.Revision {
+	revs, err := r.rm.LogRevisions(ctx, roll.RollingFrom(), roll.RollingTo())
+	if err != nil {
+		sklog.Errorf("Failed to retrieve revisions in roll %d: %s", roll.IssueID(), err)
+		return nil
+	}
+	return revs
 }
 
 // SafetyThrottle returns a state_machine.Throttler indicating that we have
@@ -912,9 +926,9 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		if req.ExternalChangeId != "" {
 			to.ExternalChangeId = req.ExternalChangeId
 		}
+		from := r.GetCurrentRev()
 		if req.Status == manual.STATUS_PENDING {
 			// Avoid creating rolls to the current revision.
-			from := r.GetCurrentRev()
 			if to.Id == from.Id {
 				err := skerr.Fmt("Already at revision %q", from.Id)
 				req.Status = manual.STATUS_COMPLETE
@@ -966,7 +980,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			continue
 		}
 		sklog.Infof("Getting status for manual roll # %d", issue.Issue)
-		roll, err := r.retrieveRoll(ctx, issue, to)
+		roll, err := r.retrieveRoll(ctx, issue, from, to)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to retrieve manual roll %s: %s", req.Id, err)
 		}

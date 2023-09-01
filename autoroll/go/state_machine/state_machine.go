@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/counters"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
@@ -121,6 +122,9 @@ type RollCLImpl interface {
 	// Retry a dry run in the case of a failure.
 	RetryDryRun(context.Context) error
 
+	// The revision this roll is rolling from.
+	RollingFrom() *revision.Revision
+
 	// The revision this roll is rolling to.
 	RollingTo() *revision.Revision
 
@@ -153,6 +157,9 @@ type AutoRollerImpl interface {
 	// Return the next revision of the sub-project which we want to roll.
 	// This is the same as GetCurrentRev when the sub-project is up-to-date.
 	GetNextRollRev() *revision.Revision
+
+	// Return the list of revisions included in a roll.
+	GetRevisionsInRoll(context.Context, RollCLImpl) []*revision.Revision
 
 	// GetLastNRollRevs returns the revision IDs for up to N most recent rolls,
 	// sorted most recent first.
@@ -263,6 +270,10 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b := state_machine.NewBuilder()
 
 	maxRollCLsToSameRevision := s.getMaxRollCLsToSameRevision()
+
+	revUpdateLatency := metrics2.GetFloat64SummaryMetric(
+		"autoroll_revision_update_latency",
+		map[string]string{"roller": s.a.GetConfig().GetRollerName()})
 
 	// f is a wrapper around b.F which adds a transition function which
 	// requires an active roll, returning an error if none exists. The
@@ -396,6 +407,15 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		successThrottle := s.a.SuccessThrottle()
 		if successThrottle.IsThrottled() {
 			n.SendSuccessThrottled(ctx, successThrottle.ThrottledUntil())
+		}
+		// For each revision rolled, report the time it took to roll.
+		now := time.Now()
+		for _, rev := range s.a.GetRevisionsInRoll(ctx, roll) {
+			if rev.Timestamp.IsZero() {
+				continue
+			}
+			diff := now.Sub(rev.Timestamp)
+			revUpdateLatency.Observe(diff.Seconds())
 		}
 		return nil
 	})

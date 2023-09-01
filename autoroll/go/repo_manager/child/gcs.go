@@ -104,52 +104,30 @@ func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, 
 
 // See documentation for Child interface.
 func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	// Find the available versions, sorted newest to oldest.
-	versions := []gcsVersion{}
-	revisions := map[string]*revision.Revision{}
-	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
-		rev, err := c.objectAttrsToRevision(item)
-		if err != nil {
-			// We may have files in the bucket which do not match the provided
-			// regex.  Just ignore them and move on.
-			return nil
-		}
-		ver, err := c.getGCSVersion(rev)
-		if err == nil {
-			versions = append(versions, ver)
-			revisions[rev.Id] = rev
-		} else if skerr.Unwrap(err) == errInvalidGCSVersion {
-			// There are files we don't care about in this bucket. Just ignore.
-		} else {
-			sklog.Error(err)
-		}
-		return nil
-	}); err != nil {
+	allRevs, err := c.getAllRevisions(ctx)
+	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	if len(versions) == 0 {
+	if len(allRevs) == 0 {
 		sklog.Warningf("No valid revisions found in %s/%s", c.gcsBucket, c.gcsPath)
 		return lastRollRev, []*revision.Revision{}, nil
 	}
-	sort.Sort(gcsVersionSlice(versions))
-
-	lastIdx := -1
-	for idx, v := range versions {
-		rev := revisions[v.Id()]
+	found := false
+	for _, rev := range allRevs {
 		if rev.Id == lastRollRev.Id {
-			lastIdx = idx
+			found = true
 			break
 		}
 	}
-	if lastIdx == -1 {
+	if !found {
 		sklog.Errorf("Last roll rev %q not found in available versions. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Using the single most recent available version for the not-yet-rolled revisions list, and attempting to retrieve the last-rolled rev. The revisions listed in the commit message will be incorrect!", lastRollRev.Id)
-		lastIdx = 1
+		return allRevs[0], allRevs[:1], nil
 	}
 
 	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]*revision.Revision, 0, lastIdx)
-	for i := 0; i < lastIdx; i++ {
-		notRolledRevs = append(notRolledRevs, revisions[versions[i].Id()])
+	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, allRevs[0])
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 	tipRev := lastRollRev
 	if len(notRolledRevs) > 0 {
@@ -187,6 +165,67 @@ func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revisi
 		return nil, skerr.Wrapf(err, "failed to find revision %q; no matching object at path %q and found no matching objects with prefix %q", id, gcsObjectPath, c.gcsPath)
 	}
 	return rv, nil
+}
+
+// getAllRevisions returns all available revisions in the bucket, sorted newest to oldest.
+func (c *gcsChild) getAllRevisions(ctx context.Context) ([]*revision.Revision, error) {
+	versions := []gcsVersion{}
+	revisions := map[string]*revision.Revision{}
+	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
+		rev, err := c.objectAttrsToRevision(item)
+		if err != nil {
+			// We may have files in the bucket which do not match the provided
+			// regex.  Just ignore them and move on.
+			return nil
+		}
+		ver, err := c.getGCSVersion(rev)
+		if err == nil {
+			versions = append(versions, ver)
+			revisions[rev.Id] = rev
+		} else if skerr.Unwrap(err) == errInvalidGCSVersion {
+			// There are files we don't care about in this bucket. Just ignore.
+		} else {
+			sklog.Error(err)
+		}
+		return nil
+	}); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	sort.Sort(gcsVersionSlice(versions))
+	var revs []*revision.Revision
+	for _, ver := range versions {
+		revs = append(revs, revisions[ver.Id()])
+	}
+	return revs, nil
+}
+
+// LogRevisions implements Child.
+func (c *gcsChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	allRevs, err := c.getAllRevisions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	firstIdx := -1
+	lastIdx := -1
+	for idx, rev := range allRevs {
+		if rev.Id == from.Id {
+			lastIdx = idx
+		}
+		if rev.Id == to.Id {
+			firstIdx = idx
+		}
+		if firstIdx != -1 && lastIdx != -1 {
+			break
+		}
+	}
+	if firstIdx == -1 || lastIdx == -1 {
+		return nil, nil
+	}
+	var revs []*revision.Revision
+	for i := firstIdx; i < lastIdx; i++ {
+		revs = append(revs, allRevs[i])
+	}
+	return revs, nil
 }
 
 // VFS implements the Child interface.

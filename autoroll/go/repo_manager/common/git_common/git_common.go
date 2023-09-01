@@ -108,8 +108,8 @@ func (c *Checkout) Update(ctx context.Context) (*revision.Revision, string, erro
 	return tipRev, branch, nil
 }
 
-// LogFirstParent returns a slice of revision.Revision instances in the given range.
-func (c *Checkout) LogFirstParent(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+// LogRevisions implements Child.
+func (c *Checkout) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
 	hashes, err := c.RevList(ctx, "--first-parent", git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return nil, skerr.Wrap(err)

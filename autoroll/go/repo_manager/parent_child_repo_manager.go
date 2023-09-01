@@ -163,5 +163,10 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
+// See documentation for RepoManager interface.
+func (rm *parentChildRepoManager) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	return rm.Child.LogRevisions(ctx, from, to)
+}
+
 // parentChildRepoManager implements RepoManager.
 var _ RepoManager = &parentChildRepoManager{}

@@ -28,6 +28,9 @@ type RepoManager interface {
 	// GetRevision returns a revision.Revision instance from the given
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
+
+	// LogRevisions returns a list of Revision instances between two revisions.
+	LogRevisions(context.Context, *revision.Revision, *revision.Revision) ([]*revision.Revision, error)
 }
 
 // New returns a RepoManager instance based on the given RepoManagerConfig.

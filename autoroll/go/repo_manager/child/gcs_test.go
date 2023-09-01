@@ -148,6 +148,104 @@ func TestGCSChild_GetRevision_Basename(t *testing.T) {
 	require.Equal(t, expectRevision_basename, rev)
 }
 
+func TestGCSChild_LogRevisions(t *testing.T) {
+	mockGCS := &test_gcsclient.GCSClient{}
+	c := &gcsChild{
+		gcs:           mockGCS,
+		gcsPath:       gcsPath_basename,
+		getGCSVersion: func(rev *revision.Revision) (gcsVersion, error) { return &testGcsVersion{rev.Id}, nil },
+		shortRev:      getShortRev,
+	}
+
+	attrA := &storage.ObjectAttrs{
+		Name:    "path/to/123-46-blahblah.tar.gz",
+		Updated: updatedTs,
+	}
+	revA := &revision.Revision{
+		Id:        "123-46-blahblah.tar.gz",
+		Display:   "123-46",
+		Timestamp: attrA.Updated,
+	}
+	attrB := &storage.ObjectAttrs{
+		Name:    "path/to/123-47-blahblah.tar.gz",
+		Updated: updatedTs.Add(time.Duration(1)),
+	}
+	revB := &revision.Revision{
+		Id:        "123-47-blahblah.tar.gz",
+		Display:   "123-47",
+		Timestamp: attrB.Updated,
+	}
+	attrC := &storage.ObjectAttrs{
+		Name:    "path/to/123-48-blahblah.tar.gz",
+		Updated: updatedTs.Add(time.Duration(2)),
+	}
+	revC := &revision.Revision{
+		Id:        "123-48-blahblah.tar.gz",
+		Display:   "123-48",
+		Timestamp: attrC.Updated,
+	}
+
+	call := mockGCS.On("AllFilesInDirectory", testutils.AnyContext, c.gcsPath, mock.Anything).Return(nil)
+	call.RunFn = func(args mock.Arguments) {
+		fn := args.Get(2).(func(*storage.ObjectAttrs) error)
+		_ = fn(attrA)
+		_ = fn(attrB)
+		_ = fn(attrC)
+	}
+
+	revs, err := c.LogRevisions(context.Background(), revA, revA)
+	require.NoError(t, err)
+	require.Nil(t, revs)
+
+	revs, err = c.LogRevisions(context.Background(), revA, revB)
+	require.NoError(t, err)
+	require.Equal(t, revs, []*revision.Revision{revB})
+
+	revs, err = c.LogRevisions(context.Background(), revA, revC)
+	require.NoError(t, err)
+	require.Equal(t, revs, []*revision.Revision{revC, revB})
+}
+
+func TestGCSChild_GetAllRevisions(t *testing.T) {
+	mockGCS := &test_gcsclient.GCSClient{}
+	c := &gcsChild{
+		gcs:             mockGCS,
+		gcsPath:         gcsPath_regex,
+		getGCSVersion:   func(rev *revision.Revision) (gcsVersion, error) { return &testGcsVersion{rev.Id}, nil },
+		revisionIDRegex: revisionIDRegex,
+		shortRev:        getShortRev,
+	}
+
+	objectAttrs_regexOther := &storage.ObjectAttrs{
+		Name:      "path/to/123-47-blahblah/object.tar.gz",
+		Owner:     owner,
+		Updated:   updatedTs,
+		MD5:       mustDecodeHex(fakeMD5),
+		MediaLink: "https://my-bucket/path/to/123-47-blahblah/object.tar.gz",
+	}
+
+	expectRevision_regexOther := &revision.Revision{
+		Id:        "123-47-blahblah",
+		Checksum:  fakeMD5,
+		Author:    owner,
+		Display:   "123-47",
+		Timestamp: updatedTs,
+		URL:       "https://my-bucket/path/to/123-47-blahblah/object.tar.gz",
+	}
+
+	call := mockGCS.On("AllFilesInDirectory", testutils.AnyContext, c.gcsPath, mock.Anything).Return(nil)
+	call.RunFn = func(args mock.Arguments) {
+		fn := args.Get(2).(func(*storage.ObjectAttrs) error)
+		_ = fn(objectAttrs_regex)
+		_ = fn(objectAttrs_regexOther)
+	}
+	revs, err := c.getAllRevisions(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, len(revs), 2)
+	require.Contains(t, revs, expectRevision_regex)
+	require.Contains(t, revs, expectRevision_regexOther)
+}
+
 type testGcsVersion struct {
 	value string
 }

@@ -166,9 +166,9 @@ func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *
 	if err != nil {
 		return nil, nil, nil, skerr.Wrap(err)
 	}
-	var notRolledRevs []*revision.Revision
-	if lastRollRevStr != tipRevStr {
-		notRolledRevs = append(notRolledRevs, tipRev)
+	notRolledRevs, err := rm.LogRevisions(ctx, lastRollRev, tipRev)
+	if err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
@@ -188,6 +188,15 @@ func (rm *CommandRepoManager) GetRevision(ctx context.Context, id string) (*revi
 		rev.Display = shortRev
 	}
 	return rev, nil
+}
+
+// LogRevisions implements RepoManager.
+func (rm *CommandRepoManager) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	var revs []*revision.Revision
+	if from.Id != to.Id {
+		revs = append(revs, to)
+	}
+	return revs, nil
 }
 
 // CreateNewRoll implements RepoManager.

@@ -140,12 +140,13 @@ type gerritRoll struct {
 	recent           *recent_rolls.RecentRolls
 	retrieveRoll     func(context.Context) (*gerrit.ChangeInfo, error)
 	result           string
+	rollingFrom      *revision.Revision
 	rollingTo        *revision.Revision
 }
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingFrom, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
 	if err != nil {
 		return nil, err
@@ -162,7 +163,8 @@ func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autorol
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
 			return updateIssueFromGerrit(ctx, cfg, issue, g)
 		},
-		rollingTo: rollingTo,
+		rollingFrom: rollingFrom,
+		rollingTo:   rollingTo,
 	}, nil
 }
 
@@ -238,6 +240,11 @@ func (r *gerritRoll) IsDryRunSuccess() bool {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RollingTo() *revision.Revision {
 	return r.rollingTo
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) RollingFrom() *revision.Revision {
+	return r.rollingFrom
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -371,6 +378,7 @@ type githubRoll struct {
 	recent           *recent_rolls.RecentRolls
 	result           string
 	retrieveRoll     func(context.Context) (*github_api.PullRequest, error)
+	rollingFrom      *revision.Revision
 	rollingTo        *revision.Revision
 	t                *travisci.TravisCI
 }
@@ -473,7 +481,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *config.GitHubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *config.GitHubConfig, rollingFrom, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 	if err != nil {
 		return nil, err
@@ -488,7 +496,8 @@ func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github
 		retrieveRoll: func(ctx context.Context) (*github_api.PullRequest, error) {
 			return updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 		},
-		rollingTo: rollingTo,
+		rollingFrom: rollingFrom,
+		rollingTo:   rollingTo,
 	}, nil
 }
 
@@ -588,6 +597,11 @@ func (r *githubRoll) IsDryRunSuccess() bool {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RollingTo() *revision.Revision {
 	return r.rollingTo
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) RollingFrom() *revision.Revision {
+	return r.rollingFrom
 }
 
 // See documentation for state_machine.RollCLImpl interface.
