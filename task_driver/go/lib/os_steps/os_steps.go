@@ -33,12 +33,27 @@ func MkdirAll(ctx context.Context, path string) (err error) {
 	})
 }
 
-// TempDir is a wrapper for ioutil.TempDir. In swarming, this file might not be in /tmp, but in a
+type tempDirContextKeyType string
+
+// TempDirContextKey can be used to overwrite TempDir in tests.
+const TempDirContextKey = tempDirContextKeyType("overwriteTempDir")
+
+// TempDir is a wrapper for os.MkdirTemp. In swarming, this file might not be in /tmp, but in a
 // subdirectory of the swarming task work directory.
+//
+// Use the TempDirContextKey to overwrite os.MkdirTemp with another function with the same
+// signature.
 func TempDir(ctx context.Context, dir, pattern string) (string, error) {
 	var tempDir string
 	err := td.Do(ctx, td.Props("Creating TempDir").Infra(), func(context.Context) error {
-		d, err := ioutil.TempDir(dir, pattern)
+		var d string
+		var err error
+		if fn := ctx.Value(TempDirContextKey); fn != nil {
+			d, err = fn.(func(string, string) (string, error))(dir, pattern)
+		} else {
+			d, err = os.MkdirTemp(dir, pattern)
+		}
+
 		if err != nil {
 			return err
 		}

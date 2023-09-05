@@ -1,10 +1,12 @@
 package os_steps
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/task_driver/go/td"
@@ -23,7 +25,7 @@ func TestOsSteps(t *testing.T) {
 	// Stat the nonexistent dir.
 	expect = append(expect, td.StepResultException)
 	dir1 := filepath.Join(tr.Dir(), "test_dir")
-	fi, err := Stat(s, dir1)
+	_, err := Stat(s, dir1)
 	require.True(t, os.IsNotExist(err))
 
 	// Try to remove the dir.
@@ -38,7 +40,7 @@ func TestOsSteps(t *testing.T) {
 
 	// Stat the dir.
 	expect = append(expect, td.StepResultSuccess)
-	fi, err = Stat(s, dir1)
+	fi, err := Stat(s, dir1)
 	require.NoError(t, err)
 	require.True(t, fi.IsDir())
 
@@ -47,9 +49,18 @@ func TestOsSteps(t *testing.T) {
 	err = MkdirAll(s, dir1)
 	require.NoError(t, err) // os.MkdirAll doesn't return error if the dir already exists.
 
+	// Create a tempDir using a custom function.
+	withCustomTempDirFn := context.WithValue(s, TempDirContextKey, func(string, string) (string, error) {
+		return "/fake/tmp/dir", nil
+	})
+	expect = append(expect, td.StepResultSuccess)
+	tempDir, err := TempDir(withCustomTempDirFn, "does/not/matter", "this-is-ignored")
+	require.NoError(t, err)
+	assert.Equal(t, "/fake/tmp/dir", tempDir)
+
 	// Create a tempDir inside the dir.
 	expect = append(expect, td.StepResultSuccess)
-	tempDir, err := TempDir(s, dir1, "test_prefix_")
+	tempDir, err = TempDir(s, dir1, "test_prefix_")
 	require.NoError(t, err)
 
 	// Verify the tempDir exists.
@@ -99,7 +110,7 @@ func TestOsSteps(t *testing.T) {
 
 	// Stat the dir.
 	expect = append(expect, td.StepResultException)
-	fi, err = Stat(s, dir1)
+	_, err = Stat(s, dir1)
 	require.True(t, os.IsNotExist(err))
 
 	// Ensure that we got the expected step results.
