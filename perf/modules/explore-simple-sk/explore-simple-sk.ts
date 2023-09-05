@@ -381,6 +381,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceID: HTMLSpanElement | null = null;
 
+  private commitTime: HTMLSpanElement | null = null;
+
   private csvDownload: HTMLAnchorElement | null = null;
 
   private pivotControl: PivotQuerySk | null = null;
@@ -685,6 +687,10 @@ export class ExploreSimpleSk extends ElementSk {
           <p>
             <b>Trace ID</b>: <span title='Trace ID' id=trace_id></span>
           </p>
+          <p>
+            <b>Time</b>: <span title='Commit Time' id=commit_time></span>
+          </p>
+
           <paramset-sk
             id=paramset
             clickable_values
@@ -756,6 +762,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.spinner = this.querySelector('#spinner');
     this.summary = this.querySelector('#summary');
     this.traceID = this.querySelector('#trace_id');
+    this.commitTime = this.querySelector('#commit_time');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
     this.bisectDialog = this.querySelector('#bisect-dialog');
@@ -1173,6 +1180,9 @@ export class ExploreSimpleSk extends ElementSk {
   private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.paramset!.highlight = fromKey(e.detail.name);
     this.traceID!.textContent = e.detail.name;
+    this.commitTime!.textContent = new Date(
+      this._dataframe.header![e.detail.x]!.timestamp * 1000
+    ).toLocaleString();
   }
 
   /** User has zoomed in on the graph. */
@@ -1420,6 +1430,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     if (this.traceID) {
       this.traceID.textContent = '';
+      this.commitTime!.textContent = '';
     }
     const body = this.requestFrameBodyFullFromState();
     const switchToTab =
@@ -1704,6 +1715,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = {};
     this.paramset!.paramsets = [];
     this.traceID!.textContent = '';
+    this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
     this._render();
