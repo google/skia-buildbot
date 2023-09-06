@@ -61,5 +61,12 @@ func (s *analysisServerImpl) GetAnalysis(ctx context.Context, req *cpb.GetAnalys
 	if req.ExperimentSpec == nil {
 		ret.InferredExperimentSpec = a.ExperimentSpec()
 	}
+
+	diag := a.Diagnostics()
+	if diag != nil {
+		ret.Metadata = &cpb.AnalysisMetadata{
+			Diagnostics: diag.AnalysisDiagnostics(),
+		}
+	}
 	return ret, nil
 }

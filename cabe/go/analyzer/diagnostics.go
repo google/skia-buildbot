@@ -1,6 +1,10 @@
 package analyzer
 
 import (
+	"sort"
+
+	cpb "go.skia.org/infra/cabe/go/proto"
+
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
@@ -66,7 +70,9 @@ func (d *Diagnostics) excludeReplica(replicaNumber int, pair pairedTasks, msg st
 			TreatmentTaskID: pair.treatment.taskID,
 			Message:         []string{},
 		}
+		d.ExcludedReplicas[replicaNumber] = replicaDiag
 	}
+
 	replicaDiag.Message = append(replicaDiag.Message, msg)
 }
 
@@ -76,4 +82,72 @@ func (d *Diagnostics) includeReplica(replicaNumber int, pair pairedTasks) {
 		ControlTaskID:   pair.control.taskID,
 		TreatmentTaskID: pair.treatment.taskID,
 	}
+}
+
+type bySwarmingTaskId []*cpb.SwarmingTaskDiagnostics
+
+func (a bySwarmingTaskId) Len() int      { return len(a) }
+func (a bySwarmingTaskId) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a bySwarmingTaskId) Less(i, j int) bool {
+	if a[i].Id.Project != a[j].Id.Project {
+		return a[i].Id.Project < a[j].Id.Project
+	}
+	return a[i].Id.TaskId < a[j].Id.TaskId
+}
+
+type byReplicaNumber []*cpb.ReplicaDiagnostics
+
+func (a byReplicaNumber) Len() int      { return len(a) }
+func (a byReplicaNumber) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a byReplicaNumber) Less(i, j int) bool {
+	return a[i].ReplicaNumber < a[j].ReplicaNumber
+}
+
+func (d *Diagnostics) AnalysisDiagnostics() *cpb.AnalysisDiagnostics {
+	ret := &cpb.AnalysisDiagnostics{}
+	for taskId, taskDiag := range d.ExcludedSwarmingTasks {
+		ret.ExcludedSwarmingTasks = append(ret.ExcludedSwarmingTasks, &cpb.SwarmingTaskDiagnostics{
+			Id: &cpb.SwarmingTaskId{
+				TaskId: taskId,
+			},
+			Message: taskDiag.Message,
+		})
+	}
+	for replicaNumber, replicaDiag := range d.ExcludedReplicas {
+		ret.ExcludedReplicas = append(ret.ExcludedReplicas, &cpb.ReplicaDiagnostics{
+			ReplicaNumber: int32(replicaNumber),
+			ControlTask: &cpb.SwarmingTaskId{
+				TaskId: replicaDiag.ControlTaskID,
+			},
+			TreatmentTask: &cpb.SwarmingTaskId{
+				TaskId: replicaDiag.TreatmentTaskID,
+			},
+			Message: replicaDiag.Message,
+		})
+	}
+	for taskId, taskDiag := range d.IncludedSwarmingTasks {
+		ret.IncludedSwarmingTasks = append(ret.IncludedSwarmingTasks, &cpb.SwarmingTaskDiagnostics{
+			Id: &cpb.SwarmingTaskId{
+				TaskId: taskId,
+			},
+			Message: taskDiag.Message,
+		})
+	}
+	for replicaNumber, replicaDiag := range d.IncludedReplicas {
+		ret.IncludedReplicas = append(ret.IncludedReplicas, &cpb.ReplicaDiagnostics{
+			ReplicaNumber: int32(replicaNumber),
+			ControlTask: &cpb.SwarmingTaskId{
+				TaskId: replicaDiag.ControlTaskID,
+			},
+			TreatmentTask: &cpb.SwarmingTaskId{
+				TaskId: replicaDiag.TreatmentTaskID,
+			},
+			Message: replicaDiag.Message,
+		})
+	}
+	sort.Sort(bySwarmingTaskId(ret.ExcludedSwarmingTasks))
+	sort.Sort(byReplicaNumber(ret.ExcludedReplicas))
+	sort.Sort(bySwarmingTaskId(ret.IncludedSwarmingTasks))
+	sort.Sort(byReplicaNumber(ret.IncludedReplicas))
+	return ret
 }

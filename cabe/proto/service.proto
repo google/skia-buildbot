@@ -44,4 +44,8 @@ message GetAnalysisResponse {
   // output json files. The GetAnalysis method will attach whatever
   // it was able to infer the experiment to this field.
   ExperimentSpec inferred_experiment_spec = 2;
+
+  // Extra information about the analysis and/or the process of generating
+  // the results.
+  AnalysisMetadata metadata = 3;
 }

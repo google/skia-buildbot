@@ -60,7 +60,7 @@ func startTestServer(t *testing.T, casResultReader backends.CASResultReader, swa
 }
 
 func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
-	test := func(name string, request *cpb.GetAnalysisRequest, wantFirstResult *cpb.AnalysisResult, wantError bool) {
+	test := func(name string, request *cpb.GetAnalysisRequest, wantFirstResult *cpb.AnalysisResult, wantError bool, excludedTasks, excludedReplicas, includedTasks, includedReplicas int) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 			path := filepath.Join(
@@ -94,6 +94,12 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			diff := cmp.Diff(wantFirstResult, r.Results[0], cmpopts.EquateEmpty(), cmpopts.EquateApprox(0, 0.03), protocmp.Transform())
 
 			assert.Equal(t, diff, "", "diff should be empty")
+			assert.NotNil(t, r.Metadata)
+			assert.NotNil(t, r.Metadata.Diagnostics)
+			assert.Equal(t, excludedTasks, len(r.Metadata.Diagnostics.ExcludedSwarmingTasks))
+			assert.Equal(t, excludedReplicas, len(r.Metadata.Diagnostics.ExcludedReplicas))
+			assert.Equal(t, includedTasks, len(r.Metadata.Diagnostics.IncludedSwarmingTasks))
+			assert.Equal(t, includedReplicas, len(r.Metadata.Diagnostics.IncludedReplicas))
 		})
 	}
 	cabeSpec := &cpb.ExperimentSpec{
@@ -162,7 +168,7 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			},
 		},
 	}
-	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: "123"}, analysisResults[0], false)
+	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: "123"}, analysisResults[0], false, 0, 0, 130, 64)
 	test("basic request, including experiment spec", &cpb.GetAnalysisRequest{
 		PinpointJobId: "123",
 		ExperimentSpec: &cpb.ExperimentSpec{
@@ -178,6 +184,6 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 				},
 			},
 		},
-	}, analysisResults[0], false)
+	}, analysisResults[0], false, 0, 0, 130, 64)
 
 }

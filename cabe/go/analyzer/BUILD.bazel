@@ -33,6 +33,7 @@ go_test(
     srcs = [
         "analyzer_test.go",
         "checker_test.go",
+        "diagnostics_test.go",
         "infer_specs_test.go",
         "internal_types_test.go",
     ],
