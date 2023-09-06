@@ -84,6 +84,7 @@ type AutoRoller struct {
 	runningMtx         sync.Mutex
 	safetyThrottle     *state_machine.Throttler
 	serverURL          string
+	reportedRevs       map[string]time.Time
 	reviewers          []string
 	reviewersBackup    []string
 	sm                 *state_machine.AutoRollStateMachine
@@ -155,6 +156,14 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	nextRollRev := strat.GetNextRollRev(notRolledRevs)
 	if nextRollRev == nil {
 		nextRollRev = lastRollRev
+	}
+	// Adding notRolledRevs to reportedRevs here prevents double reporting
+	// of latencies across the roller going offline and starting up. This approach
+	// increases the accuracy of the revision detection latency metric at the cost
+	// of potentially missing revisions.
+	reportedRevs := make(map[string]time.Time)
+	for _, rev := range notRolledRevs {
+		reportedRevs[rev.Id] = rev.Timestamp
 	}
 
 	sklog.Info("Creating roll history")
@@ -249,6 +258,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
 		safetyThrottle:     safetyThrottle,
 		serverURL:          serverURL,
+		reportedRevs:       reportedRevs,
 		reviewers:          c.Reviewer,
 		reviewersBackup:    c.ReviewerBackup,
 		status:             statusCache,
@@ -680,6 +690,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	r.nextRollRev = nextRollRev
 	r.notRolledRevs = notRolledRevs
 	r.tipRev = tipRev
+	r.reportRevisionDetection(ctx)
 	return nil
 }
 
@@ -1033,4 +1044,35 @@ func (r *AutoRoller) getRevision(ctx context.Context, id string) (*revision.Revi
 		}
 	}
 	return r.rm.GetRevision(ctx, id)
+}
+
+// reportRevisionDetection reports the time it took for revisions to be noticed
+// by the roller.
+func (r *AutoRoller) reportRevisionDetection(ctx context.Context) {
+	now := time.Now()
+
+	// Remove older revisions from reportedRevs to stop reportedRevs from growing
+	// indefinitely. To prevent double reporting if a roll is reverted, remove
+	// once size exceeds 100. This length should be enough to cover all revisions
+	// included in a reverted roll for most rollers.
+	for id, timestamp := range r.reportedRevs {
+		if len(r.reportedRevs) <= 100 {
+			break
+		}
+		if timestamp.Before(r.lastRollRev.Timestamp) {
+			delete(r.reportedRevs, id)
+		}
+	}
+
+	m := metrics2.GetFloat64SummaryMetric(
+		"autoroll_revision_detection_latency",
+		map[string]string{"roller": r.cfg.RollerName})
+	for _, rev := range r.notRolledRevs {
+		if !r.reportedRevs[rev.Id].IsZero() || rev.Timestamp.IsZero() {
+			continue
+		}
+		r.reportedRevs[rev.Id] = rev.Timestamp
+		diff := now.Sub(rev.Timestamp)
+		m.Observe(diff.Seconds())
+	}
 }
