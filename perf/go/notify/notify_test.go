@@ -14,8 +14,11 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notify/mocks"
+	"go.skia.org/infra/perf/go/stepfit"
 )
 
 const (
@@ -47,6 +50,21 @@ var (
 	}
 
 	errMock = errors.New("my mock error")
+
+	commitForTestingBuildID = provider.Commit{
+		Subject: "https://android-build.googleplex.com/builds/jump-to-build/10768667 ",
+	}
+
+	previousCommitForTestingBuildID = provider.Commit{
+		Subject: "https://android-build.googleplex.com/builds/jump-to-build/10768666 ",
+	}
+
+	cl = &clustering2.ClusterSummary{
+		Num: 10,
+		StepFit: &stepfit.StepFit{
+			Status: stepfit.HIGH,
+		},
+	}
 )
 
 func TestExampleSendWithHTMLFormatter_HappyPath(t *testing.T) {
@@ -163,4 +181,26 @@ func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
+}
+
+func TestMarkdownFormatter_CallsBuildIDFromSubjectButSubjectDoesntContainLink_ReturnsEmptyString(t *testing.T) {
+	f, err := NewMarkdownFormatter("", &config.NotifyConfig{
+		Subject: "From {{ buildIDFromSubject .PreviousCommit.Subject}} To {{ buildIDFromSubject .Commit.Subject}}",
+	})
+	require.NoError(t, err)
+
+	_, subject, err := f.FormatNewRegression(context.Background(), commit, previousCommit, alertForTest, cl, "")
+	require.NoError(t, err)
+	require.Equal(t, "From  To ", subject)
+}
+
+func TestMarkdownFormatter_CallsBuildIDFromSubject_Success(t *testing.T) {
+	f, err := NewMarkdownFormatter("", &config.NotifyConfig{
+		Subject: "From {{ buildIDFromSubject .PreviousCommit.Subject}} To {{ buildIDFromSubject .Commit.Subject}}",
+	})
+	require.NoError(t, err)
+
+	_, subject, err := f.FormatNewRegression(context.Background(), commitForTestingBuildID, previousCommitForTestingBuildID, alertForTest, cl, "")
+	require.NoError(t, err)
+	require.Equal(t, "From 10768666 To 10768667", subject)
 }

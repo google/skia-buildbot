@@ -45,9 +45,11 @@ go_test(
         "//go/now",
         "//go/testutils",
         "//perf/go/alerts",
+        "//perf/go/clustering2",
         "//perf/go/config",
         "//perf/go/git/provider",
         "//perf/go/notify/mocks",
+        "//perf/go/stepfit",
         "@com_github_stretchr_testify//require",
     ],
 )

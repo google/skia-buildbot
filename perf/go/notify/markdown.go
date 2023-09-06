@@ -44,6 +44,26 @@ type MarkdownFormatter struct {
 	markdownTemplateRegressionMissingSubject *template.Template
 }
 
+// buildIDFromSubject is a template func for notify templates.
+//
+// Note that this is very specific to the android-x git repo where each commit
+// subject is formatted as a single URL, for example:
+//
+//	https://android-build.googleplex.com/builds/jump-to-build/10768702
+//
+//	And the template func will extract "10768702" from the above subject.
+//
+// The implementation is robust and if the subject isn't in the right format
+// then the empty string is returned.
+func buildIDFromSubject(subject string) string {
+	parts := strings.Split(strings.TrimSpace(subject), "/")
+	n := len(parts)
+	if n == 0 {
+		return ""
+	}
+	return parts[n-1]
+}
+
 // NewMarkdownFormatter return a new MarkdownFormatter.
 func NewMarkdownFormatter(commitRangeURITemplate string, notifyConfig *config.NotifyConfig) (MarkdownFormatter, error) {
 	body := strings.Join(notifyConfig.Body, "\n")
@@ -65,19 +85,23 @@ func NewMarkdownFormatter(commitRangeURITemplate string, notifyConfig *config.No
 		missingSubject = defaultRegressionMissingMarkdownSubject
 	}
 
-	markdownTemplateNewRegression, err := template.New("newRegressionMarkdown").Parse(body)
+	funcMap := template.FuncMap{
+		"buildIDFromSubject": buildIDFromSubject,
+	}
+
+	markdownTemplateNewRegression, err := template.New("newRegressionMarkdown").Funcs(funcMap).Parse(body)
 	if err != nil {
 		return MarkdownFormatter{}, skerr.Wrapf(err, "compiling markdownTemplateNewRegression")
 	}
-	markdownTemplateNewRegressionSubject, err := template.New("newRegressionMarkdown").Parse(subject)
+	markdownTemplateNewRegressionSubject, err := template.New("newRegressionMarkdown").Funcs(funcMap).Parse(subject)
 	if err != nil {
 		return MarkdownFormatter{}, skerr.Wrapf(err, "compiling markdownTemplateNewRegressionSubject")
 	}
-	markdownTemplateRegressionMissing, err := template.New("regressionMissingMarkdown").Parse(missingBody)
+	markdownTemplateRegressionMissing, err := template.New("regressionMissingMarkdown").Funcs(funcMap).Parse(missingBody)
 	if err != nil {
 		return MarkdownFormatter{}, skerr.Wrapf(err, "compiling markdownTemplateRegressionMissing")
 	}
-	markdownTemplateRegressionMissingSubject, err := template.New("regressionMissingMarkdown").Parse(missingSubject)
+	markdownTemplateRegressionMissingSubject, err := template.New("regressionMissingMarkdown").Funcs(funcMap).Parse(missingSubject)
 	if err != nil {
 		return MarkdownFormatter{}, skerr.Wrapf(err, "compiling markdownTemplateRegressionMissingSubject")
 	}
