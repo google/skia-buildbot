@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	skconf "go.skia.org/infra/skottie/go/config"
 )
 
 const (
@@ -67,12 +68,17 @@ type skottieConfig struct {
 	SiteURL string `json:"site_url"`
 }
 
+var (
+	configPath         = flag.String("config", "", "The path to the config JSON5 file.")
+	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	publicSiteDomain   = flag.String("public_site_domain", "skottie.skia.org", "The Skottie public site domain")
+	internalSiteDomain = flag.String("internal_site_domain", "skottie-internal.skia.org", "The Skottie internal site domain")
+	tenorSiteDomain    = flag.String("tenor_site_domain", "skottie-tenor.skia.org", "The Skottie tenor site domain")
+)
+
 func main() {
-	var (
-		configPath = flag.String("config", "", "The path to the config JSON5 file.")
-		port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-		promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	)
+
 	flag.Parse()
 	common.InitWithMust(
 		"skottie",
@@ -176,7 +182,19 @@ func (s *Server) templateHandler(filename string) func(http.ResponseWriter, *htt
 		if s.alwaysReloadTemplates {
 			s.loadTemplates()
 		}
-		if err := s.templates.ExecuteTemplate(w, filename, nil); err != nil {
+		context := skconf.SkSkottieConfig{
+			PublicSiteDomain:   *publicSiteDomain,
+			InternalSiteDomain: *internalSiteDomain,
+			TenorSiteDomain:    *tenorSiteDomain,
+		}
+		b, err := json.MarshalIndent(context, "", "  ")
+		if err != nil {
+			sklog.Errorf("Failed to JSON encode window.skottie context: %s", err)
+			return
+		}
+		if err := s.templates.ExecuteTemplate(w, filename, map[string]interface{}{
+			"context": template.JS(string(b)),
+		}); err != nil {
 			sklog.Errorf("Failed to expand template %s: %s", filename, err)
 		}
 	}

@@ -28,7 +28,7 @@ import '../skottie-library-sk';
 import { SoundMap, AudioPlayer } from '../audio';
 import '../skottie-performance-sk';
 import { renderByDomain } from '../helpers/templates';
-import { isDomain, supportedDomains } from '../helpers/domains';
+import { isDomain } from '../helpers/domains';
 import '../skottie-audio-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -81,6 +81,7 @@ import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-sett
 import '../skottie-color-manager-sk';
 import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
 import { isBinaryAsset } from '../helpers/animation';
+import '../window/window';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -117,10 +118,24 @@ const DEFAULT_LOTTIE_FILE = '1112d01d28a776d777cebcd0632da15b'; // gear.json
 // This is an arbitrary value, and is treated as a re-scaled duration.
 const SCRUBBER_RANGE = 1000;
 
+// window.skottie is null in tests.
+const SUPPORTED_DOMAINS = {
+  SKOTTIE_INTERNAL: window.skottie
+    ? window.skottie.internal_site_domain
+    : 'skottie-internal.corp.goog',
+  SKOTTIE_TENOR: window.skottie
+    ? window.skottie.tenor_site_domain
+    : 'skottie-tenor.corp.goog',
+  SKOTTIE: window.skottie
+    ? window.skottie.public_site_domain
+    : 'skottie.skia.org',
+  LOCALHOST: 'localhost',
+};
+
 const AUDIO_SUPPORTED_DOMAINS = [
-  supportedDomains.SKOTTIE_INTERNAL,
-  supportedDomains.SKOTTIE_TENOR,
-  supportedDomains.LOCALHOST,
+  SUPPORTED_DOMAINS.SKOTTIE_INTERNAL,
+  SUPPORTED_DOMAINS.SKOTTIE_TENOR,
+  SUPPORTED_DOMAINS.LOCALHOST,
 ];
 
 type UIMode = 'loading' | 'loaded' | 'idle' | 'draft' | 'unsynced' | 'synced';
@@ -148,10 +163,12 @@ const redir = () =>
   renderByDomain(
     html` <div>
       Googlers should use
-      <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
+      <a href="https://${SUPPORTED_DOMAINS.SKOTTIE_INTERNAL}"
+        >${SUPPORTED_DOMAINS.SKOTTIE_INTERNAL}</a
+      >.
     </div>`,
-    Object.values(supportedDomains).filter(
-      (domain: string) => domain !== supportedDomains.SKOTTIE_INTERNAL
+    Object.values(SUPPORTED_DOMAINS).filter(
+      (domain: string) => domain !== SUPPORTED_DOMAINS.SKOTTIE_INTERNAL
     )
   );
 
@@ -1137,7 +1154,7 @@ export class SkottieSk extends ElementSk {
     window.history.pushState(null, '', '/');
     // For development we recover to the loaded state to see the animation
     // even if the upload didn't work
-    this.ui = isDomain(supportedDomains.LOCALHOST) ? 'loaded' : 'idle';
+    this.ui = isDomain(SUPPORTED_DOMAINS.LOCALHOST) ? 'loaded' : 'idle';
     this.render();
   }
 

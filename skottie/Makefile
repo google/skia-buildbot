@@ -51,7 +51,8 @@ bazel_release_ci:
 .PHONY: run-local-instance
 run-local-instance: build
 	../_bazel_bin/skottie/go/skottie/skottie_/skottie \
-		--config ./local_config.json5
+		--config ./local_config.json5 \
+		--internal_site_domain skottie-internal.corp.goog
 
 .PHONY: run-with-custom
 run-with-custom:
@@ -66,3 +67,13 @@ build-placeholders:
 	touch build/canvaskit/canvaskit.js
 	touch build/canvaskit/canvaskit.wasm
 	touch build/version.js
+
+
+# First create a list of all the modules that ./go/ts depends upon.
+tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/skottie/go/ts/  )
+
+# Then use that list to find all the Go files that make up those dependent modules.
+tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}' )
+
+./modules/json/index.ts: $(tsDependentFiles) Makefile
+	go generate ./go/ts

@@ -74,6 +74,7 @@ sk_element(
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
         "//skottie/modules/helpers:animation_ts_lib",
+        "//skottie/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

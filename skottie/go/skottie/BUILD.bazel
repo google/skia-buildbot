@@ -1,5 +1,5 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "skottie_lib",
@@ -15,6 +15,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//skottie/go/config",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
