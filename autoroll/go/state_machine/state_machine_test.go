@@ -25,6 +25,7 @@ const (
 type TestRollCLImpl struct {
 	t            *testing.T
 	attempt      int
+	attemptStart time.Time
 	closedStatus string
 	closedMsg    string
 	isDryRun     bool
@@ -52,6 +53,11 @@ func (r *TestRollCLImpl) AddComment(context.Context, string) error {
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) Attempt() int {
 	return r.attempt
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) AttemptStart() time.Time {
+	return r.attemptStart
 }
 
 // See documentation for RollCLImpl.
@@ -92,6 +98,11 @@ func (r *TestRollCLImpl) IsDryRunSuccess() bool {
 }
 
 // See documentation for RollCLImpl.
+func (r *TestRollCLImpl) IsManual() bool {
+	return false
+}
+
+// See documentation for RollCLImpl.
 func (r *TestRollCLImpl) IssueID() string {
 	return "0"
 }
@@ -99,6 +110,11 @@ func (r *TestRollCLImpl) IssueID() string {
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) IssueURL() string {
 	return "http://codereview/123"
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) Result() string {
+	return autoroll.ROLL_RESULT_SUCCESS
 }
 
 // See documentation for RollCLImpl.
@@ -167,6 +183,7 @@ func (r *TestRollCLImpl) RetryDryRun(ctx context.Context) error {
 	r.isDryRun = true
 	r.dryRunResult = ""
 	r.attempt++
+	r.attemptStart = time.Now()
 	return nil
 }
 
@@ -175,6 +192,7 @@ func (r *TestRollCLImpl) RetryCQ(ctx context.Context) error {
 	r.isDryRun = false
 	r.normalResult = ""
 	r.attempt++
+	r.attemptStart = time.Now()
 	return nil
 }
 

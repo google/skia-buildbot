@@ -76,6 +76,7 @@ var (
 // AutoRoll CLs.
 type AutoRollIssue struct {
 	Attempt        int                `json:"attempts"`
+	AttemptStart   time.Time          `json:"attemptStart"`
 	Closed         bool               `json:"closed"`
 	Comments       []*comment.Comment `json:"comments"`
 	Committed      bool               `json:"committed"`
@@ -86,6 +87,7 @@ type AutoRollIssue struct {
 	CqFinished     bool               `json:"cqFinished"`
 	CqSuccess      bool               `json:"cqSuccess"`
 	Issue          int64              `json:"issue"`
+	Manual         bool               `json:"manual"`
 	Modified       time.Time          `json:"modified"`
 	Patchsets      []int64            `json:"patchSets"`
 	Result         string             `json:"result"`
@@ -141,6 +143,7 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 	}
 	return &AutoRollIssue{
 		Attempt:        i.Attempt,
+		AttemptStart:   i.AttemptStart,
 		Closed:         i.Closed,
 		Comments:       commentsCpy,
 		Committed:      i.Committed,
@@ -151,6 +154,7 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		DryRunSuccess:  i.DryRunSuccess,
 		IsDryRun:       i.IsDryRun,
 		Issue:          i.Issue,
+		Manual:         i.Manual,
 		Modified:       i.Modified,
 		Patchsets:      patchsetsCpy,
 		Result:         i.Result,

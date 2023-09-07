@@ -15,8 +15,9 @@ import (
 
 func TestAutoRollIssueCopy(t *testing.T) {
 	roll := &AutoRollIssue{
-		Attempt: 2,
-		Closed:  true,
+		Attempt:      2,
+		AttemptStart: time.Now(),
+		Closed:       true,
 		Comments: []*comment.Comment{
 			{
 				Id:        "123",
@@ -33,6 +34,7 @@ func TestAutoRollIssueCopy(t *testing.T) {
 		DryRunSuccess:  true,
 		IsDryRun:       true,
 		Issue:          123,
+		Manual:         true,
 		Modified:       time.Now(),
 		Patchsets:      []int64{1},
 		Result:         ROLL_RESULT_SUCCESS,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -87,6 +88,9 @@ type RollCLImpl interface {
 	// at zero for the first attempt.
 	Attempt() int
 
+	// AttemptStart returns the start time of the current attempt.
+	AttemptStart() time.Time
+
 	// Close the CL. The first string argument is the result of the roll,
 	// and the second is the message to add to the CL on closing.
 	Close(context.Context, string, string) error
@@ -110,6 +114,9 @@ type RollCLImpl interface {
 	// Return true iff the dry run succeeded.
 	IsDryRunSuccess() bool
 
+	// Return true iff the roll was triggered manually.
+	IsManual() bool
+
 	// Return the issue ID of the roll.
 	IssueID() string
 
@@ -121,6 +128,9 @@ type RollCLImpl interface {
 
 	// Retry a dry run in the case of a failure.
 	RetryDryRun(context.Context) error
+
+	// Return the result of the roll.
+	Result() string
 
 	// The revision this roll is rolling from.
 	RollingFrom() *revision.Revision
@@ -350,6 +360,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
+		s.reportRollDuration(ctx, roll)
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_STOPPED, func(ctx context.Context, roll RollCLImpl) error {
@@ -357,6 +368,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
+		s.reportRollDuration(ctx, roll)
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context, roll RollCLImpl) error {
@@ -364,6 +376,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
+		s.reportRollDuration(ctx, roll)
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context, roll RollCLImpl) error {
@@ -371,6 +384,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because one or more new commits have landed.")
+		s.reportRollDuration(ctx, roll)
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_SWITCH_TO_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
@@ -408,6 +422,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		if successThrottle.IsThrottled() {
 			n.SendSuccessThrottled(ctx, successThrottle.ThrottledUntil())
 		}
+		s.reportRollDuration(ctx, roll)
 		// For each revision rolled, report the time it took to roll.
 		now := time.Now()
 		for _, rev := range s.a.GetRevisionsInRoll(ctx, roll) {
@@ -429,6 +444,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the commit queue on this CL because there are no new commits.")
+		s.reportRollDuration(ctx, roll)
 		return nil
 	})
 	f(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
@@ -437,6 +453,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the CQ dry run on this CL because there are no new commits.")
+		s.reportRollDuration(ctx, roll)
 		return nil
 	})
 	f(F_NOTIFY_FAILURE_THROTTLE, func(ctx context.Context, roll RollCLImpl) error {
@@ -1003,4 +1020,18 @@ func (s *AutoRollStateMachine) getMaxRollCLsToSameRevision() int {
 		return int(rv)
 	}
 	return defaultMaxRollCLsToSameRevision
+}
+
+// reportRollDuration reports the duration of a roll attempt.
+func (s *AutoRollStateMachine) reportRollDuration(ctx context.Context, roll RollCLImpl) {
+	now := time.Now()
+	m := metrics2.GetFloat64SummaryMetric(
+		"autoroll_roll_attempt_duration",
+		map[string]string{
+			"roller": s.a.GetConfig().GetRollerName(),
+			"manual": strconv.FormatBool(roll.IsManual()),
+			"result": roll.Result(),
+		})
+	diff := now.Sub(roll.AttemptStart())
+	m.Observe(diff.Seconds())
 }

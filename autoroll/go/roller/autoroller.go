@@ -494,10 +494,12 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 		return nil, err
 	}
 	issue := &autoroll.AutoRollIssue{
-		IsDryRun:    dryRun,
-		Issue:       issueNum,
-		RollingFrom: from.Id,
-		RollingTo:   to.Id,
+		AttemptStart: time.Now(),
+		IsDryRun:     dryRun,
+		Issue:        issueNum,
+		Manual:       manualRollRequester != "",
+		RollingFrom:  from.Id,
+		RollingTo:    to.Id,
 	}
 	return issue, nil
 }
@@ -971,9 +973,11 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 				return skerr.Wrapf(err, "Failed to parse issue number from %s for %s: %s", req.Url, req.Id, err)
 			}
 			issue = &autoroll.AutoRollIssue{
-				RollingTo: req.Revision,
-				IsDryRun:  req.DryRun,
-				Issue:     int64(i),
+				AttemptStart: time.Now(),
+				RollingTo:    req.Revision,
+				IsDryRun:     req.DryRun,
+				Issue:        int64(i),
+				Manual:       true,
 			}
 		} else {
 			sklog.Errorf("Found manual roll request %s in unknown status %q", req.Id, req.Status)

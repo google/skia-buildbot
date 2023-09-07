@@ -238,6 +238,16 @@ func (r *gerritRoll) IsDryRunSuccess() bool {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) IsManual() bool {
+	return r.issue.Manual
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) Result() string {
+	return autoroll.RollResult(r.issue)
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RollingTo() *revision.Revision {
 	return r.rollingTo
 }
@@ -313,6 +323,7 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 		}
 		r.issue.IsDryRun = false
 		r.issue.Attempt++
+		r.issue.AttemptStart = time.Now()
 		return nil
 	})
 }
@@ -328,6 +339,7 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 		}
 		r.issue.IsDryRun = true
 		r.issue.Attempt++
+		r.issue.AttemptStart = time.Now()
 		return nil
 	})
 }
@@ -355,6 +367,11 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 // See documentation for state_machine.RollClImpl interface.
 func (r *gerritRoll) Attempt() int {
 	return r.issue.Attempt
+}
+
+// See documentation for state_machine.RollClImpl interface.
+func (r *gerritRoll) AttemptStart() time.Time {
+	return r.issue.AttemptStart
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -595,6 +612,16 @@ func (r *githubRoll) IsDryRunSuccess() bool {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) IsManual() bool {
+	return r.issue.Manual
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) Result() string {
+	return autoroll.RollResult(r.issue)
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RollingTo() *revision.Revision {
 	return r.rollingTo
 }
@@ -637,6 +664,7 @@ func (r *githubRoll) RetryCQ(ctx context.Context) error {
 		}
 		r.issue.IsDryRun = false
 		r.issue.Attempt++
+		r.issue.AttemptStart = time.Now()
 		return nil
 	})
 }
@@ -649,6 +677,7 @@ func (r *githubRoll) RetryDryRun(ctx context.Context) error {
 		}
 		r.issue.IsDryRun = true
 		r.issue.Attempt++
+		r.issue.AttemptStart = time.Now()
 		return nil
 	})
 }
@@ -656,6 +685,11 @@ func (r *githubRoll) RetryDryRun(ctx context.Context) error {
 // See documentation for state_machine.RollClImpl interface.
 func (r *githubRoll) Attempt() int {
 	return r.issue.Attempt
+}
+
+// See documentation for state_machine.RollClImpl interface.
+func (r *githubRoll) AttemptStart() time.Time {
+	return r.issue.AttemptStart
 }
 
 // See documentation for state_machine.RollCLImpl interface.
