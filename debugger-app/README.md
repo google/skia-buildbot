@@ -41,9 +41,10 @@ DEBUGGER_LOCAL_PORT=:8123 make run-with-custom
 
 ## Production deployment
 
-There is a task_driver that will deploy this application at ToT configured in
-`infra/bots/task_drivers/push_apps_from_skia_wasm_images/push_apps_from_skia_wasm_images.go`
-It runs `make bazel_release_ci` to use the freshly built WASM/JS files to build the container.
-
-In production, the app is served from go/debugger-app/main.go.
-See https://skia-review.googlesource.com/c/buildbot/+/334818 for the initial deployment.
+There are two Louhi flows that work to build this application.
+`debugger-app-base` runs `//debugger-app:debugger_container-base` which creates
+the application Docker image (minus CanvasKit). `debugger-app` runs
+`//infra/debugger-app:debugger_container` (in the Skia repo), which injects
+CanvasKit to create the final Docker image. Both of these flows are defined
+in
+[templates/config.yml](https://louhi-config-internal.googlesource.com/skia-infra/+/refs/heads/master/templates/config.yml).
