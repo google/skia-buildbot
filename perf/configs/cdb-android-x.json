@@ -5,7 +5,18 @@
   "notify_config": {
     "notifications": "markdown_issuetracker",
     "issue_tracker_api_key_secret_project": "skia-infra-public",
-    "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
+    "subject": "{{ .Alert.DisplayName }} - Regression found between {{ buildIDFromSubject .PreviousCommit.Subject }} and {{ buildIDFromSubject .Commit.Subject }}",
+    "body": [
+      "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
+      "",
+      "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
+      "",
+      "* [Graph on dashboard]({{ .ViewOnDashboard }})",
+      "* [Alert details]({{ .URL }}/g/t/{{ .Commit.GitHash }})",
+      "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}]({{ .Commit.URL }})",
+      "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})"
+    ]
   },
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
