@@ -16,9 +16,11 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notify/mocks"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 const (
@@ -63,6 +65,18 @@ var (
 		Num: 10,
 		StepFit: &stepfit.StepFit{
 			Status: stepfit.HIGH,
+		},
+		StepPoint: &dataframe.ColumnHeader{
+			Offset: 2,
+		},
+	}
+
+	frameResponse = &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1, Timestamp: 1687824470},
+				{Offset: 2, Timestamp: 1498176000},
+			},
 		},
 	}
 )
@@ -189,7 +203,7 @@ func TestMarkdownFormatter_CallsBuildIDFromSubjectButSubjectDoesntContainLink_Re
 	})
 	require.NoError(t, err)
 
-	_, subject, err := f.FormatNewRegression(context.Background(), commit, previousCommit, alertForTest, cl, "")
+	_, subject, err := f.FormatNewRegression(context.Background(), commit, previousCommit, alertForTest, cl, "", frameResponse)
 	require.NoError(t, err)
 	require.Equal(t, "From  To ", subject)
 }
@@ -200,7 +214,7 @@ func TestMarkdownFormatter_CallsBuildIDFromSubject_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, subject, err := f.FormatNewRegression(context.Background(), commitForTestingBuildID, previousCommitForTestingBuildID, alertForTest, cl, "")
+	_, subject, err := f.FormatNewRegression(context.Background(), commitForTestingBuildID, previousCommitForTestingBuildID, alertForTest, cl, "", frameResponse)
 	require.NoError(t, err)
 	require.Equal(t, "From 10768666 To 10768667", subject)
 }

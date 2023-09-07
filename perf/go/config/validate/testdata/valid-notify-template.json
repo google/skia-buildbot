@@ -12,6 +12,7 @@
         "subject": "",
         "body": [
             "The base URL of the instance: {{ .URL }}",
+            "{{ .ViewOnDashboard }}",
             "{{ .Commit.CommitNumber }}",
             "{{ .Commit.GitHash }}",
             "{{ .Commit.Timestamp }}",

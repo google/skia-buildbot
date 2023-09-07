@@ -152,7 +152,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl)
+						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame)
 						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
@@ -174,7 +174,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl)
+						notificationID, err := c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame)
 						if err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}

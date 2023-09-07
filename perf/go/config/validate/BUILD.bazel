@@ -21,6 +21,7 @@ go_library(
         "//perf/go/notifytypes",
         "//perf/go/stepfit",
         "//perf/go/types",
+        "//perf/go/ui/frame",
     ],
 )
 

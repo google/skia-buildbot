@@ -3,6 +3,8 @@ package notify
 import (
 	"bytes"
 	"context"
+	"net/url"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -11,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 const (
@@ -115,15 +118,45 @@ func NewMarkdownFormatter(commitRangeURITemplate string, notifyConfig *config.No
 	}, nil
 }
 
+// wiewOnDashboard is the URL to view the regressing traces on the explore page.
+func viewOnDashboard(cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) string {
+	u, err := url.Parse(URL)
+	if err != nil {
+		// Fallback to a relative URL if the base URL is invalid.
+		u = &url.URL{}
+	}
+	end := ""
+	if frame != nil && frame.DataFrame != nil && len(frame.DataFrame.Header) > 0 {
+		n := len(frame.DataFrame.Header)
+		// Expand the time range by 1s to ensure inclusion of the last commit.
+		end = strconv.Itoa(int(frame.DataFrame.Header[n-1].Timestamp + 1))
+	}
+	q := url.Values{
+		"keys":         []string{cl.Shortcut},
+		"xbaroffset":   []string{strconv.Itoa(int(cl.StepPoint.Offset))},
+		"num_commits":  []string{"250"},
+		"request_type": []string{"1"},
+	}
+	if end != "" {
+		q.Set("end", end)
+	}
+	u.Path = "/e/"
+	u.RawQuery = q.Encode()
+
+	return u.String()
+}
+
 // FormatNewRegression implements Formatter.
-func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error) {
+
 	templateContext := &TemplateContext{
-		URL:            URL,
-		PreviousCommit: previousCommit,
-		Commit:         commit,
-		CommitURL:      URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
-		Alert:          alert,
-		Cluster:        cl,
+		URL:             URL,
+		ViewOnDashboard: viewOnDashboard(cl, URL, frame),
+		PreviousCommit:  previousCommit,
+		Commit:          commit,
+		CommitURL:       URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:           alert,
+		Cluster:         cl,
 	}
 
 	var body bytes.Buffer
@@ -139,14 +172,15 @@ func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, prev
 }
 
 // FormatRegressionMissing implements Formatter.
-func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error) {
 	templateContext := &TemplateContext{
-		URL:            URL,
-		PreviousCommit: previousCommit,
-		Commit:         commit,
-		CommitURL:      URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
-		Alert:          alert,
-		Cluster:        cl,
+		URL:             URL,
+		ViewOnDashboard: viewOnDashboard(cl, URL, frame),
+		PreviousCommit:  previousCommit,
+		Commit:          commit,
+		CommitURL:       URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
+		Alert:           alert,
+		Cluster:         cl,
 	}
 
 	var body bytes.Buffer

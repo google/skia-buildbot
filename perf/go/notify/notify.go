@@ -8,16 +8,18 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 // Formatter has implementations for both HTML and Markdown.
 type Formatter interface {
 	// Return body and subject.
-	FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
-	FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error)
+	FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error)
+	FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error)
 }
 
 // Transport has implementations for email, issuetracker, and the noop implementation.
@@ -34,6 +36,10 @@ const (
 type TemplateContext struct {
 	// URL is the root URL of the Perf instance.
 	URL string
+
+	// ViewOnDashboard is the URL to view the regressing traces on the explore
+	// page.
+	ViewOnDashboard string
 
 	// PreviousCommit is the previous commit the regression was found at.
 	//
@@ -76,8 +82,8 @@ func newNotifier(formatter Formatter, transport Transport, url string) *Notifier
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
-	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url)
+func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
+	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return "", err
 	}
@@ -92,8 +98,8 @@ func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit p
 // RegressionMissing sends a notification that a previous regression found for
 // the given cluster found at the given commit has disappeared after more data
 // has arrived. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, threadingReference string) error {
-	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url)
+func (n *Notifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
+	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return err
 	}
@@ -125,12 +131,26 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 		StepFit: &stepfit.StepFit{
 			Status: stepfit.HIGH,
 		},
+		StepPoint: &dataframe.ColumnHeader{
+			Offset:    2,
+			Timestamp: 1498176000,
+		},
 	}
-	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl)
+
+	frame := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1, Timestamp: 1687824470},
+				{Offset: 2, Timestamp: 1498176000},
+			},
+		},
+	}
+
+	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl, frame)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	err = n.RegressionMissing(ctx, commit, previousCommit, alert, cl, threadingReference)
+	err = n.RegressionMissing(ctx, commit, previousCommit, alert, cl, frame, threadingReference)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

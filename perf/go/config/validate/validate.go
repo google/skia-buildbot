@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 // schema is a json schema for InstanceConfig, it is created by
@@ -151,11 +152,19 @@ func Validate(i config.InstanceConfig) error {
 			Num:       50,
 			Timestamp: time.Now(),
 		}
-		_, _, err = f.FormatNewRegression(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com")
+		frame := &frame.FrameResponse{
+			DataFrame: &dataframe.DataFrame{
+				Header: []*dataframe.ColumnHeader{
+					{Offset: 1, Timestamp: 1687824470},
+					{Offset: 2, Timestamp: 1498176000},
+				},
+			},
+		}
+		_, _, err = f.FormatNewRegression(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
 		if err != nil {
 			return skerr.Wrapf(err, "formatting regression")
 		}
-		_, _, err = f.FormatRegressionMissing(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com")
+		_, _, err = f.FormatRegressionMissing(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
 		if err != nil {
 			return skerr.Wrapf(err, "formatting regression missing")
 		}

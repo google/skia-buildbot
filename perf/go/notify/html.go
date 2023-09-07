@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 const (
@@ -80,7 +81,7 @@ func NewHTMLFormatter(commitRangeURITemplate string) HTMLFormatter {
 }
 
 // FormatNewRegression implements Formatter.
-func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error) {
 	templateContext := &TemplateContext{
 		URL:       URL,
 		Commit:    commit,
@@ -99,7 +100,7 @@ func (h HTMLFormatter) FormatNewRegression(ctx context.Context, commit, previous
 }
 
 // FormatRegressionMissing implements Formatter.
-func (h HTMLFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string) (string, string, error) {
+func (h HTMLFormatter) FormatRegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, URL string, frame *frame.FrameResponse) (string, string, error) {
 	templateContext := &TemplateContext{
 		URL:       URL,
 		Commit:    commit,
