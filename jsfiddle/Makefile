@@ -7,19 +7,9 @@ PROM_PORT?=:20000
 build: build-placeholders
 	$(BAZEL) build --config=mayberemote //jsfiddle/...
 
-.PHONY: push
-push: release
-	pushk jsfiddle
-
 .PHONY: release
-release: wasm_libs
-	$(BAZEL) run --config=mayberemote //jsfiddle:push_jsfiddle_container
-	$(MAKE) build-placeholders
-
-.PHONY: release-base
-release-base:
+release:
 	$(BAZEL) run --config=mayberemote //jsfiddle:push_jsfiddle_container-base
-	$(MAKE) build-placeholders
 
 .PHONY: wasm_libs
 wasm_libs:
