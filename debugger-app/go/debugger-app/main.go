@@ -46,7 +46,7 @@ func main() {
 	router.HandleFunc("/old", versionsHandler)
 	router.HandleFunc("/versions", versionsHandler)
 
-	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingRequestResponse(router)))
+	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingGzipRequestResponse(router)))
 	sklog.Infof("Application served at http://localhost%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
