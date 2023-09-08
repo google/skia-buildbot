@@ -14,7 +14,7 @@
       "",
       "* [Graph on dashboard]({{ .ViewOnDashboard }})",
       "* [Alert details]({{ .URL }}/g/t/{{ .Commit.GitHash }})",
-      "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}]({{ .Commit.URL }})",
+      "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}\\]](https://android-build.corp.google.com/{{ buildIDFromSubject .Commit.Subject }}/branches/aosp-androidx-main/targets/androidx/cls?end={{ buildIDFromSubject .PreviousCommit.Subject }})",
       "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})"
     ]
   },
