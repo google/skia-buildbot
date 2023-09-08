@@ -409,7 +409,7 @@ func startChangelistsDiffWork(ctx context.Context, gatherer *diffWorkGatherer, p
 	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
 		"task": "calculateChangelistsDiffWork",
 	})
-	go util.RepeatCtx(ctx, ptc.PrimaryBranchDiffPeriod.Duration, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, ptc.ChangelistDiffPeriod.Duration, func(ctx context.Context) {
 		sklog.Infof("Calculating diffs for images produced on CLs")
 		ctx, span := trace.StartSpan(ctx, "periodic_ChangelistsDiffWork")
 		defer span.End()

@@ -144,7 +144,7 @@ func beginPolling(ctx context.Context, sqlProcessor *processor) error {
 			sklog.Infof("No diffs to calculate, sleeping")
 			sqlProcessor.setBusy(false)
 			time.Sleep(sleepDuration)
-		} else if secondaryShouldSleepUntil.Before(n) && !primaryShouldSleepUntil.Before(n) {
+		} else if secondaryShouldSleepUntil.Before(n) && primaryShouldSleepUntil.Before(n) {
 			// Both primary and secondary have data, so randomly choose one. We randomly choose
 			// to avoid starving one of our "queues" if both are full.
 			if rand.Float32() < calculateCLDataProportion {
