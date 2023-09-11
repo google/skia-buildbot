@@ -157,6 +157,7 @@ func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, prev
 		CommitURL:       URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
 		Alert:           alert,
 		Cluster:         cl,
+		ParamSet:        frame.DataFrame.ParamSet,
 	}
 
 	var body bytes.Buffer
@@ -181,6 +182,7 @@ func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, commit, 
 		CommitURL:       URLFromCommitRange(commit, previousCommit, h.commitRangeURITemplate),
 		Alert:           alert,
 		Cluster:         cl,
+		ParamSet:        frame.DataFrame.ParamSet,
 	}
 
 	var body bytes.Buffer

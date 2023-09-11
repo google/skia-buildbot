@@ -55,7 +55,9 @@
             "{{ .Cluster.StepPoint.Timestamp }}",
             "{{ .Cluster.Num }}",
             "{{ .Cluster.Timestamp }}",
-            "{{ .Cluster.NotificationID }}"
+            "{{ .Cluster.NotificationID }}",
+            "{{ index .ParamSet \"device_name\" }}",
+            "{{ index .ParamSet \"unknown_key\" }}"
         ]
     },
     "auth_config": {

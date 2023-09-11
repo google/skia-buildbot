@@ -19,6 +19,7 @@ go_library(
         "//go/issuetracker/v1:issuetracker",
         "//go/metrics2",
         "//go/now",
+        "//go/paramtools",
         "//go/secret",
         "//go/skerr",
         "//perf/go/alerts",

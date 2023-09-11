@@ -4,6 +4,7 @@ package notify
 import (
 	"context"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -60,6 +61,9 @@ type TemplateContext struct {
 
 	// Cluster is all the information found about the regression.
 	Cluster *clustering2.ClusterSummary
+
+	// ParamSet for all the matching traces.
+	ParamSet paramtools.ReadOnlyParamSet
 }
 
 // Notifier sends notifications.
@@ -142,6 +146,9 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 			Header: []*dataframe.ColumnHeader{
 				{Offset: 1, Timestamp: 1687824470},
 				{Offset: 2, Timestamp: 1498176000},
+			},
+			ParamSet: paramtools.ReadOnlyParamSet{
+				"device_name": []string{"sailfish", "sargo", "wembley"},
 			},
 		},
 	}
