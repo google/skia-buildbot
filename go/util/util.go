@@ -370,6 +370,9 @@ MainLoop:
 // RepeatCtx calls the provided function 'fn' immediately and then in intervals
 // defined by 'interval'. If the given context is canceled, the iteration stops.
 func RepeatCtx(ctx context.Context, interval time.Duration, fn func(ctx context.Context)) {
+	if interval <= 0 {
+		return
+	}
 	ticker := time.NewTicker(interval)
 	done := ctx.Done()
 	defer ticker.Stop()

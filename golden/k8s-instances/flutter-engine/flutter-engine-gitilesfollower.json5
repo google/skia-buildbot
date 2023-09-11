@@ -2,14 +2,14 @@
   // Arbitrary commit from 24 Dec 2020
   initial_commit: "6c576ba3e15f0eb2437124aa2f8e0222fc62b756",
   // Need to use a gitiles mirror
-  git_repo_url: "https://chromium.googlesource.com/external/github.com/flutter/engine",
+  git_repo_url: "https://flutter.googlesource.com/mirrors/engine",
   poll_period: "1m",
 
   repos_to_monitor_cls: [{
-    repo_url: "https://chromium.googlesource.com/external/github.com/flutter/engine",
+    repo_url: "https://flutter.googlesource.com/mirrors/engine",
     extraction_technique: "FromSubject",
-    // Arbitrary commit from 1 Apr 2021
-    initial_commit: "bed3a4a7a016391fce276e71a748eea13b104ca3",
+    // Arbitrary commit from 6 Sep 2023
+    initial_commit: "bc3b855abdbd19ce4a9e780eb75e8ab48c8ef6fa",
     system_name: "github",
   }],
 

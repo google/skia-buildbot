@@ -6,10 +6,10 @@
   poll_period: "1m",
 
   repos_to_monitor_cls: [ {
-    repo_url: "https://chromium.googlesource.com/external/github.com/flutter/flutter",
+    repo_url: "https://flutter.googlesource.com/mirrors/flutter",
     extraction_technique: "FromSubject",
-    // Arbitrary commit from 1 Apr 2021
-    initial_commit: "dbcac7f177f57d84ea358a9c9b554e2c1bbc5b5f",
+    // Arbitrary commit from 6 Sep 2023
+    initial_commit: "7b0b0e2734c66a647f35ab9067102a308b5e7c08",
     system_name: "github",
   }],
 

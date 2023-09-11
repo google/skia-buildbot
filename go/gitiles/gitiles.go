@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -168,10 +167,10 @@ func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
 func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error {
 	resp, err := r.get(ctx, url)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "GET %s", url)
 	}
 	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return skerr.Fmt("Failed to read response: %s", err)
 	}
