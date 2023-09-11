@@ -109,7 +109,7 @@ const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
 
 // The default query range in seconds.
-const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
+export const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
 
 // The index of the params tab.
 const PARAMS_TAB_INDEX = 0;
@@ -1072,7 +1072,7 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /** Open the query dialog box. */
-  private openQuery() {
+  openQuery() {
     this._render();
     this._dialogOn = true;
     this.queryDialog!.showModal();
@@ -2009,13 +2009,26 @@ export class ExploreSimpleSk extends ElementSk {
     if (
       numQueries === 0 &&
       this._state.keys === '' &&
-      this._state.formulas.length === 0
+      this._state.formulas.length === 0 &&
+      this.openQueryByDefault
     ) {
       this.openQuery();
     }
     this.zeroChanged();
     this.autoRefreshChanged();
     this.rangeChangeImpl();
+  }
+
+  get openQueryByDefault(): boolean {
+    return this.hasAttribute('open-query-by-default');
+  }
+
+  set openQueryByDefault(val: boolean) {
+    if (val) {
+      this.setAttribute('open-query-by-default', '');
+    } else {
+      this.removeAttribute('open-query-by-default');
+    }
   }
 }
 

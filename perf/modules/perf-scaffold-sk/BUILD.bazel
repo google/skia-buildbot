@@ -23,6 +23,7 @@ sk_element(
         "//elements-sk/modules/icons/folder-icon-sk",
         "//elements-sk/modules/icons/help-icon-sk",
         "//elements-sk/modules/icons/home-icon-sk",
+        "//elements-sk/modules/icons/multiline-chart-icon-sk",
         "//elements-sk/modules/icons/sort-icon-sk",
         "//elements-sk/modules/icons/trending-up-icon-sk",
     ],

@@ -176,6 +176,7 @@ func fileContentsFromFileSystem(fileSystem http.FileSystem, filename string) (st
 
 var templateFilenames = []string{
 	"newindex.html",
+	"multiexplore.html",
 	"clusters2.html",
 	"triage.html",
 	"alerts.html",
@@ -1605,6 +1606,7 @@ func (f *Frontend) Serve() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/e/", f.templateHandler("newindex.html"))
+	router.HandleFunc("/m/", f.templateHandler("multiexplore.html"))
 	router.HandleFunc("/c/", f.templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", f.templateHandler("triage.html"))
 	router.HandleFunc("/a/", f.templateHandler("alerts.html"))

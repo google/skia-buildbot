@@ -1,0 +1,22 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "explore-multi-sk",
+    sass_srcs = ["explore-multi-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/explore-simple-sk",
+    ],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "explore-multi-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

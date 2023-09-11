@@ -36,6 +36,7 @@ skia_app_container(
                 "clusters2",
                 "dryrunalert",
                 "help",
+                "multiexplore",
                 "newindex",
                 "triage",
                 "trybot",

@@ -74,6 +74,20 @@ sk_page(
 )
 
 sk_page(
+    name = "multiexplore",
+    assets_serving_path = "/dist",
+    html_file = "multiexplore.html",
+    nonce = "{% .Nonce %}",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "multiexplore.scss",
+    sk_element_deps = [
+        "//perf/modules/explore-multi-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "multiexplore.ts",
+)
+
+sk_page(
     name = "triage",
     assets_serving_path = "/dist",
     html_file = "triage.html",
