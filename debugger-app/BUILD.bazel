@@ -14,10 +14,6 @@ skia_app_container(
         ],
         "/usr/local/share/debugger-app/": [
             [
-                "build/version.js",
-                "0644",
-            ],
-            [
                 "//debugger-app/pages:production/main.html",
                 "0644",
             ],
