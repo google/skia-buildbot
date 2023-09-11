@@ -7161,8 +7161,51 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
 	}, rv)
 }
 
-func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
+func TestGetDigestsDiff_UntriagedDigestOnKnownCL_ReturnsDiffAndParamset(t *testing.T) {
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
 
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC07Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 7.0776105, PixelDiffPercent: 100, NumDiffPixels: 64,
+			MaxRGBADiffs: [4]int{141, 131, 168, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC07Unt_CL,
+			Status:       expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
@@ -7211,7 +7254,7 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOn
 	}, rv)
 }
 
-func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
+func TestGetDigestsDiff_DigestsExistOnPrimaryInvalidCL_ReturnDiffAndPrimaryParamsets(t *testing.T) {
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -7256,7 +7299,7 @@ func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
 	}, rv)
 }
 
-func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
+func TestGetDigestsDiff_UntriagedDigestOnUnknownCL_ReturnsDiffButNoRightParamset(t *testing.T) {
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
@@ -7267,9 +7310,40 @@ func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
 	}
 
 	s := New(db, 100)
-	_, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, "not a real CL", dks.GerritCRS)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "could not find digest c06c06c06c06c06c06c06c06c06c06c0")
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, "not a real CL", dks.GerritCRS)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		// The right digest isn't found on primary, but it was ingested from a different CL, and
+		// therefore the left-right diff was computed at some point.
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 1.0217842, PixelDiffPercent: 6.25, NumDiffPixels: 4,
+			MaxRGBADiffs: [4]int{15, 12, 83, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC06Pos_CL,
+			Status:       expectations.Untriaged,
+			ParamSet:     paramtools.ParamSet{
+				// Empty because dks.DigestC06Pos_CL is not produced on primary, and because it's not
+				// produced by the given CL, which happens to not exist.
+				//
+				// As an alternative to this best-effort response, we could add a validation step in
+				// GetDigestsDiff to fail early if the CL is unknown or if the digest wasn't produced by
+				// the CL (e.g. by inspecting the SecondaryBranchValues table).
+			},
+		},
+	}, rv)
 }
 
 func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {

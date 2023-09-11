@@ -3815,32 +3815,52 @@ FROM DiffMetrics WHERE left_digest = $1 and right_digest = $2 LIMIT 1`
 	return rv, nil
 }
 
-// getExpectationsForDigest returns the expectations for the given digest and grouping pair.
-// If the provided digest was triaged on the given CL (and the CL is valid), the expectations
-// from that CL will be combined with those on the primary branch. If the digest does not exist
-// on the given CL and does not exist on the primary branch, an error will be returned.
+// getExpectationsForDigest returns the expectations for the given digest and grouping pair. It
+// assumes that the given digest is valid. If the provided digest was triaged on the given CL (and
+// the CL is valid), the expectation from that CL takes precedence over the expectation from the
+// primary branch. If no expectation is found, we assume that 1) the digest was ingested from a CL,
+// 2) the digest was never seen before, and 3) the digest has not yet been triaged; therefore we
+// return expectations.Untriaged. It is the caller's responsibility to detect whether the digest is
+// valid in this case, if applicable (e.g. by inspecting the SecondaryBranchValues table).
+//
+// Defaulting to expectations.Untriaged is consistent with the way CL ingestion works: we do not
+// populate the SecondaryBranchExpectations table with untriaged entries during ingestion.
 func (s *Impl) getExpectationsForDigest(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes, crs, clID string) (expectations.Label, error) {
 	ctx, span := trace.StartSpan(ctx, "getExpectationsForDigest")
 	defer span.End()
 
 	const statement = `WITH
--- If the CRS and CLID are blank here, this will return NULL, but the COALESCE will fix things up.
+-- If the CRS and CLID are blank here, this will be empty, but the COALESCE will fix things up.
 ExpectationsFromCL AS (
 	SELECT label, digest FROM SecondaryBranchExpectations
-	WHERE grouping_id = $1 AND digest = $2 AND branch_name = $3 LIMIT 1
+	WHERE grouping_id = $1
+	AND digest = $2
+	AND branch_name = $3
+	LIMIT 1
 ),
 ExpectationsFromPrimary AS (
-	SELECT label, digest FROM Expectations WHERE grouping_id = $1 AND digest = $2 LIMIT 1
+	SELECT label, digest FROM Expectations
+	WHERE grouping_id = $1
+	AND digest = $2
+	LIMIT 1
+),
+Digest AS (
+	SELECT $2 AS digest
 )
-SELECT COALESCE(ExpectationsFromCL.label, ExpectationsFromPrimary.label, 'u') FROM ExpectationsFromCL
-FULL OUTER JOIN ExpectationsFromPrimary ON ExpectationsFromCL.digest = ExpectationsFromPrimary.digest
+SELECT COALESCE(ExpectationsFromCL.label, ExpectationsFromPrimary.label, 'u') AS label
+-- This ensures that the query result is never empty, which is necessary to generate the
+-- potentially NULL expectations passed to COALESCE.
+FROM Digest
+FULL OUTER JOIN ExpectationsFromCL USING (digest)
+FULL OUTER JOIN ExpectationsFromPrimary USING (digest)
 `
+
 	qCLID := sql.Qualify(crs, clID)
 	row := s.db.QueryRow(ctx, statement, groupingID, digest, qCLID)
 	var label schema.ExpectationLabel
 	if err := row.Scan(&label); err != nil {
 		if err == pgx.ErrNoRows {
-			return "", skerr.Wrapf(err, "could not find digest %x on primary branch or cl %s for grouping %x", digest, qCLID, groupingID)
+			return "", skerr.Wrapf(err, "while querying expectations for %x on primary branch or cl %s for grouping %x: query returned 0 rows, which should never happen (this is a bug)", digest, qCLID, groupingID)
 		}
 		return "", skerr.Wrap(err)
 	}
