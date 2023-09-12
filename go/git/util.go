@@ -134,22 +134,28 @@ func NormalizeURL(inputURL string) (string, error) {
 // DeleteLockFiles finds and deletes Git lock files within the given workdir.
 func DeleteLockFiles(ctx context.Context, workdir string) error {
 	sklog.Infof("Looking for git lockfiles in %s", workdir)
-	output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", "index.lock")
-	if err != nil {
-		return err
-	}
-	output = strings.TrimSpace(output)
-	if output == "" {
-		sklog.Info("No lockfiles found.")
-		return nil
-	}
-	lockfiles := strings.Split(output, "\n")
-	for _, f := range lockfiles {
-		fp := filepath.Join(workdir, f)
-		sklog.Warningf("Removing git lockfile: %s", fp)
-		if err := os.Remove(fp); err != nil {
+	knownLockFiles := []string{"index.lock", "HEAD.lock"}
+	foundLockFiles := []string{}
+	for _, lockFile := range knownLockFiles {
+		output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", lockFile)
+		if err != nil {
 			return err
 		}
+		output = strings.TrimSpace(output)
+		if output != "" {
+			foundLockFiles = append(foundLockFiles, strings.Split(output, "\n")...)
+		}
+	}
+	if len(foundLockFiles) > 0 {
+		for _, f := range foundLockFiles {
+			fp := filepath.Join(workdir, f)
+			sklog.Warningf("Removing git lockfile: %s", fp)
+			if err := os.Remove(fp); err != nil {
+				return err
+			}
+		}
+	} else {
+		sklog.Info("No lockfiles found.")
 	}
 	return nil
 }
