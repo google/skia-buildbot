@@ -11,11 +11,8 @@ To run shaders locally with a custom build of CanvasKit, copy the js and wasm fi
 make run-with-custom
 ```
 
-Do not check in those files you copied. You may also need to copy the canvaskit.d.ts to
+Do not check in those files you copied. You may also need to copy canvaskit.d.ts to
 //shaders/wasm_libs/types/ in order to appease some IDEs.
-
-When making changes to this app that require a newer version of CanvasKit, be sure to update
-WORKSPACE, specifically the entry for container_pull_skia_wasm.
 
 ## Images
 

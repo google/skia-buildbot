@@ -4,13 +4,12 @@ PORT?=:8001
 PROM_PORT?=:20001
 
 .PHONY: build
-build: build-placeholders
+build:
 	$(BAZEL) build --config=mayberemote //shaders/...
 
 .PHONY: release
-release: wasm_libs
-	$(BAZEL) run --config=mayberemote //shaders:push_shaders_container
-	$(MAKE) build-placeholders
+release:
+	$(BAZEL) run --config=mayberemote //shaders:push_shaders_container-base
 
 .PHONY: wasm_libs
 wasm_libs:
