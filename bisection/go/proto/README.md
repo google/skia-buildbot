@@ -1,7 +1,7 @@
 # Pinpoint Protocol buffer definitions
 
 This directory contains `.pb.go` and `_grpc.pb.go` files generated from
-the `.proto` files in //pinpoint/proto/...
+the `.proto` files in //bisection/proto/...
 
 # How to update protos
 

@@ -19,13 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CulpritDetectionClient interface {
-	// GetFunctionalDifference determines whether two changes are functionally different.
-	//
-	// Functional bisections are used to find culprits for test failures or flakes.
-	// Thus, a functional difference indicates that a failure / flake based regression.
-	// See https://chromium.googlesource.com/chromium/src/+/HEAD/docs/speed/bisects.md
-	// for more details.
-	GetFunctionalDifference(ctx context.Context, in *GetFunctionalDifferenceRequest, opts ...grpc.CallOption) (*GetFunctionalDifferenceResponse, error)
 	// GetPerformanceDifference determines whether two changes are performantly different.
 	//
 	// Performance differences are used to find culprits for performance metrics.
@@ -43,15 +36,6 @@ func NewCulpritDetectionClient(cc grpc.ClientConnInterface) CulpritDetectionClie
 	return &culpritDetectionClient{cc}
 }
 
-func (c *culpritDetectionClient) GetFunctionalDifference(ctx context.Context, in *GetFunctionalDifferenceRequest, opts ...grpc.CallOption) (*GetFunctionalDifferenceResponse, error) {
-	out := new(GetFunctionalDifferenceResponse)
-	err := c.cc.Invoke(ctx, "/CulpritDetection/GetFunctionalDifference", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *culpritDetectionClient) GetPerformanceDifference(ctx context.Context, in *GetPerformanceDifferenceRequest, opts ...grpc.CallOption) (*GetPerformanceDifferenceResponse, error) {
 	out := new(GetPerformanceDifferenceResponse)
 	err := c.cc.Invoke(ctx, "/CulpritDetection/GetPerformanceDifference", in, out, opts...)
@@ -65,13 +49,6 @@ func (c *culpritDetectionClient) GetPerformanceDifference(ctx context.Context, i
 // All implementations must embed UnimplementedCulpritDetectionServer
 // for forward compatibility
 type CulpritDetectionServer interface {
-	// GetFunctionalDifference determines whether two changes are functionally different.
-	//
-	// Functional bisections are used to find culprits for test failures or flakes.
-	// Thus, a functional difference indicates that a failure / flake based regression.
-	// See https://chromium.googlesource.com/chromium/src/+/HEAD/docs/speed/bisects.md
-	// for more details.
-	GetFunctionalDifference(context.Context, *GetFunctionalDifferenceRequest) (*GetFunctionalDifferenceResponse, error)
 	// GetPerformanceDifference determines whether two changes are performantly different.
 	//
 	// Performance differences are used to find culprits for performance metrics.
@@ -86,9 +63,6 @@ type CulpritDetectionServer interface {
 type UnimplementedCulpritDetectionServer struct {
 }
 
-func (UnimplementedCulpritDetectionServer) GetFunctionalDifference(context.Context, *GetFunctionalDifferenceRequest) (*GetFunctionalDifferenceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFunctionalDifference not implemented")
-}
 func (UnimplementedCulpritDetectionServer) GetPerformanceDifference(context.Context, *GetPerformanceDifferenceRequest) (*GetPerformanceDifferenceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPerformanceDifference not implemented")
 }
@@ -103,24 +77,6 @@ type UnsafeCulpritDetectionServer interface {
 
 func RegisterCulpritDetectionServer(s grpc.ServiceRegistrar, srv CulpritDetectionServer) {
 	s.RegisterService(&CulpritDetection_ServiceDesc, srv)
-}
-
-func _CulpritDetection_GetFunctionalDifference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFunctionalDifferenceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CulpritDetectionServer).GetFunctionalDifference(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/CulpritDetection/GetFunctionalDifference",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CulpritDetectionServer).GetFunctionalDifference(ctx, req.(*GetFunctionalDifferenceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _CulpritDetection_GetPerformanceDifference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -148,10 +104,6 @@ var CulpritDetection_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "CulpritDetection",
 	HandlerType: (*CulpritDetectionServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetFunctionalDifference",
-			Handler:    _CulpritDetection_GetFunctionalDifference_Handler,
-		},
 		{
 			MethodName: "GetPerformanceDifference",
 			Handler:    _CulpritDetection_GetPerformanceDifference_Handler,

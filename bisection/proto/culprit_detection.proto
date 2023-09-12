@@ -3,15 +3,6 @@ syntax = "proto3";
 option go_package = "go.skia.org/infra/bisection/go/proto";
 
 service CulpritDetection {
-  // GetFunctionalDifference determines whether two changes are functionally different.
-  //
-  // Functional bisections are used to find culprits for test failures or flakes.
-  // Thus, a functional difference indicates that a failure / flake based regression.
-  // See https://chromium.googlesource.com/chromium/src/+/HEAD/docs/speed/bisects.md
-  // for more details.
-  rpc GetFunctionalDifference(GetFunctionalDifferenceRequest)
-      returns (GetFunctionalDifferenceResponse) {}
-
   // GetPerformanceDifference determines whether two changes are performantly different.
   //
   // Performance differences are used to find culprits for performance metrics.
@@ -38,86 +29,54 @@ enum State {
   SAME = 2;
 }
 
-message GetFunctionalDifferenceRequest {
-  repeated bool samples_a = 1;
-
-  repeated bool samples_b = 2;
-
+message RequestedDifference {
   // The estimated size of the regression to search for. Smaller magnitudes generally
   // require more samples.
   //
   // The comparsion magnitude is used to calculate the upper (high) threshold.
-  // Comparison magnitude defaults to 0.5 if undefined.
   //
   // For functional differences, the comparison magnitude refers to the failure rate, and
   // is expected to be of a value between 0.0 and 1.0.
-  float comparison_magnitude = 3;
+  // Comparison magnitude defaults to 0.5 if undefined.
+  //
+  // For performance differences, the comparison magnitude refers to the size of the
+  // performance difference, and is expected to be of a value between 0.0 and 4.0.
+  // Smaller magnitudes generally require more samples.
+  // Comparison magnitude defaults to 1.0 if undefined.
+  double comparison_magnitude = 1;
 
   // If the calculated p-value is greater than this high threshold, the two samples are
   // determined to come from the same distribution.
   //
   // Setting this will override the high threshold that's usually calculated using the
   // comparison magnitude.
-  float high_threshold = 4;
+  double high_threshold = 2;
 
   // The traditional significance threshold. If the calculated p-value is lower than this
   // lower threshold, the two samples are determined to come from different
   // distributions. This defaults to a value of 0.01.
-  float low_threshold = 5;
-}
-
-message GetFunctionalDifferenceResponse {
-  State state = 1;
-
-  // The calculated p-value used to determine the state.
-  float p_value = 2;
-
-  // The low threshold used as part of the calculation.
-  float low_threshold = 3;
-
-  // The high threshold used as part of the calculation.
-  float high_threshold = 4;
+  double low_threshold = 3;
 }
 
 message GetPerformanceDifferenceRequest {
-  // Values for performance differences are floats, which usually refer to the
+  // Values for performance differences are doubles, which usually refer to the
   // histogram sample values.
-  repeated float samples_a = 1;
+  repeated double samples_a = 1;
 
-  repeated float samples_b = 2;
+  repeated double samples_b = 2;
 
-  // The estimated size of the regression to search for. Smaller magnitudes generally
-  // require more samples.
-  //
-  // The comparsion magnitude is used to calculate the upper (high) threshold.
-  // Comparison magnitude defaults to 1.0 if undefined.
-  //
-  // For x differences, the comparison magnitude refers to x, and
-  // is expected to be of a value between 0.0 and 4.0.
-  float comparison_magnitude = 3;
-
-  // If the calculated p-value is greater than this high threshold, the two samples are
-  // determined to come from the same distribution.
-  //
-  // Setting this will override the high threshold that's usually calculated using the
-  // comparison magnitude.
-  float high_threshold = 4;
-
-  // The traditional significance threshold. If the calculated p-value is lower than this
-  // lower threshold, the two samples are determined to come from different
-  // distributions. This defaults to a value of 0.01.
-  float low_threshold = 5;
+  RequestedDifference difference = 3;
 }
 
 message GetPerformanceDifferenceResponse {
   State state = 1;
 
   // The calculated p-value used to determine the state.
-  float p_value = 2;
+  double p_value = 2;
 
   // The low threshold used as part of the calculation.
-  float low_threshold = 3;
+  double low_threshold = 3;
 
   // The high threshold used as part of the calculation.
-  float high_threshold = 4;
+  double high_threshold = 4;
 }
