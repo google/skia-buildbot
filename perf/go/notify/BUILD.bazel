@@ -47,6 +47,7 @@ go_test(
     deps = [
         "//email/go/emailclient",
         "//go/now",
+        "//go/paramtools",
         "//go/testutils",
         "//perf/go/alerts",
         "//perf/go/clustering2",

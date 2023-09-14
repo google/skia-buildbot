@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -76,6 +77,9 @@ var (
 			Header: []*dataframe.ColumnHeader{
 				{Offset: 1, Timestamp: 1687824470},
 				{Offset: 2, Timestamp: 1498176000},
+			},
+			ParamSet: paramtools.ReadOnlyParamSet{
+				"device_name": []string{"sailfish", "sargo", "wembley"},
 			},
 		},
 	}
@@ -217,4 +221,15 @@ func TestMarkdownFormatter_CallsBuildIDFromSubject_Success(t *testing.T) {
 	_, subject, err := f.FormatNewRegression(context.Background(), commitForTestingBuildID, previousCommitForTestingBuildID, alertForTest, cl, "", frameResponse)
 	require.NoError(t, err)
 	require.Equal(t, "From 10768666 To 10768667", subject)
+}
+
+func TestMarkdownFormatter_ForLoopOnParamSet_Success(t *testing.T) {
+	f, err := NewMarkdownFormatter("", &config.NotifyConfig{
+		Subject: "devices: {{ range index .ParamSet \"device_name\" }} {{ . }} | {{ end }}",
+	})
+	require.NoError(t, err)
+
+	_, subject, err := f.FormatNewRegression(context.Background(), commitForTestingBuildID, previousCommitForTestingBuildID, alertForTest, cl, "", frameResponse)
+	require.NoError(t, err)
+	require.Equal(t, "devices:  sailfish |  sargo |  wembley | ", subject)
 }
