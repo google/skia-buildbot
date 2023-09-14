@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -84,16 +85,29 @@ func main() {
 		td.Fatal(ctx, skerr.Wrap(err))
 	}
 
+	rollRevision := rs.GetPatchRef()
+	var commit *gerrit.CommitInfo
+
+	if *taskName == "Canary-Chromium" {
+		// TODO(b/297878806): chromium has been migrated to use submodule.
+		// Therefore, using patchedRef as the roll revision stops working as the
+		// gitlink is expecting a git revision instead of "refs/changes/abc/xyz".
+		// This is an temporary solution to unblock canary roll for chromium as it
+		// may break other canary jobs in Android and flutter. It can be changed
+		// to condition on a new flag meaning less hardcoding.
+		if commit, err = getPatchCommit(ctx, g, rs); err != nil {
+			td.Fatal(ctx, skerr.Wrap(err))
+		}
+		rollRevision = commit.Commit
+	}
+
 	// Read footers from Gerrit change if canaryCQKeyword is specified.
 	canaryCQKeywordValue := ""
 	if *canaryCQKeyword != "" {
-		issueNum, err := strconv.ParseInt(rs.Issue, 10, 64)
-		if err != nil {
-			td.Fatal(ctx, skerr.Wrap(err))
-		}
-		commit, err := g.GetCommit(ctx, issueNum, rs.Patchset)
-		if err != nil {
-			td.Fatal(ctx, skerr.Wrap(err))
+		if commit == nil {
+			if commit, err = getPatchCommit(ctx, g, rs); err != nil {
+				td.Fatal(ctx, skerr.Wrap(err))
+			}
 		}
 		footersMap := git.GetFootersMap(commit.Message)
 		canaryCQKeywordValue = git.GetStringFooterVal(footersMap, *canaryCQKeyword)
@@ -119,7 +133,7 @@ func main() {
 			RollerName:       *rollerName,
 			Status:           manual.STATUS_PENDING,
 			Timestamp:        firestore.FixTimestamp(time.Now()),
-			Revision:         rs.GetPatchRef(),
+			Revision:         rollRevision,
 			ExternalChangeId: canaryCQKeywordValue,
 
 			DryRun:            true,
@@ -208,4 +222,13 @@ func waitForCanaryRoll(parentCtx context.Context, manualRollDB manual.DB, rollId
 		}
 		time.Sleep(30 * time.Second)
 	}
+}
+
+// getPatchCommit gets the commit info for the patchset.
+func getPatchCommit(ctx context.Context, g *gerrit.Gerrit, rs types.RepoState) (*gerrit.CommitInfo, error) {
+	issueNum, err := strconv.ParseInt(rs.Issue, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return g.GetCommit(ctx, issueNum, rs.Patchset)
 }
