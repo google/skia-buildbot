@@ -4,14 +4,9 @@ include ../make/bazel.mk
 build: build-placeholders
 	$(BAZEL) build --config=mayberemote //skottie/...
 
-.PHONY: release
-release: get_latest_skia
-	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container
-	$(MAKE) build-placeholders
-
 # See README.md for further information on this target.
-.PHONY: release-base
-release-base:
+.PHONY: release
+release:
 	$(BAZEL) run --config=mayberemote //skottie:push_skottie_container-base
 
 .PHONY: gazelle
@@ -31,22 +26,9 @@ get_latest_skia:
 	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-.PHONY: push
-push: release
-	pushk skottie
-
 .PHONY: test
 test:
 	$(BAZEL) test --config=mayberemote --test_output=errors //skottie/...
-
-bazel_release_ci:
-	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
-	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137
-	cp -r $(COPY_FROM_DIR)/* build/
-	echo "const SKIA_VERSION = '`cat ./build/VERSION`';" > ./build/version.js
-	bazelisk run //skottie:push_skottie_container --workspace_status_command=bazel/override_container_label.sh
-
-	$(MAKE) build-placeholders
 
 .PHONY: run-local-instance
 run-local-instance: build

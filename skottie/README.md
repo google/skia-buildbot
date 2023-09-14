@@ -10,9 +10,6 @@ When running tests (`bazel test ...`) or a local instance (`make run-local-insta
 are set up to get the latest built version of CanvasKit by looking at
 `gcr.io/skia-public/skia-wasm-release:prod`. See ./wasm_libs/BUILD.bazel for more.
 
-When deploying, we look in ./build and use the files there. The files checked in to build are just
-empty placeholders. The real ones will be provided through our build pipeline.
-
 To run skottie locally with a custom build of CanvasKit, copy the files to
 //skottie/wasm_libs/local_build and run:
 
@@ -37,5 +34,5 @@ to manually build or upload either Docker image. If this is deemed necessary
 then a new base image may be built and uploaded by:
 
 ```console
-$ make release-base
+$ make release
 ```
