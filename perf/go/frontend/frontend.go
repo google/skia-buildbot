@@ -226,31 +226,43 @@ type SkPerfConfig struct {
 	FeedbackURL                string           `json:"feedback_url"`                    // The URL for the Provide Feedback link
 }
 
+// getPageContext returns the value of `window.perf` serialized as JSON.
+//
+// These are values that the JS running in the browser needs to operate and
+// should be present on every page. Returned as template.JS so that the template
+// expansion correctly renders this as executable JS.
+func (f *Frontend) getPageContext() (template.JS, error) {
+	pc := SkPerfConfig{
+		Radius:                     f.flags.Radius,
+		KeyOrder:                   strings.Split(f.flags.KeyOrder, ","),
+		NumShift:                   f.flags.NumShift,
+		Interesting:                float32(f.flags.Interesting),
+		StepUpOnly:                 f.flags.StepUpOnly,
+		CommitRangeURL:             f.flags.CommitRangeURL,
+		Demo:                       false,
+		DisplayGroupBy:             f.flags.DisplayGroupBy,
+		HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
+		Notifications:              config.Config.NotifyConfig.Notifications,
+		FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
+		FeedbackURL:                config.Config.FeedbackURL,
+	}
+	b, err := json.MarshalIndent(pc, "", "  ")
+	if err != nil {
+		sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
+	}
+	return template.JS(string(b)), nil
+}
+
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		f.loadTemplates()
-		pc := SkPerfConfig{
-			Radius:                     f.flags.Radius,
-			KeyOrder:                   strings.Split(f.flags.KeyOrder, ","),
-			NumShift:                   f.flags.NumShift,
-			Interesting:                float32(f.flags.Interesting),
-			StepUpOnly:                 f.flags.StepUpOnly,
-			CommitRangeURL:             f.flags.CommitRangeURL,
-			Demo:                       false,
-			DisplayGroupBy:             f.flags.DisplayGroupBy,
-			HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
-			Notifications:              config.Config.NotifyConfig.Notifications,
-			FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
-			FeedbackURL:                config.Config.FeedbackURL,
-		}
-
-		b, err := json.MarshalIndent(pc, "", "  ")
+		context, err := f.getPageContext()
 		if err != nil {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
 		if err := f.templates.ExecuteTemplate(w, name, map[string]interface{}{
-			"context": template.JS(string(b)),
+			"context": context,
 			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
 			"Nonce": secure.CSPNonce(r.Context()),
 		}); err != nil {
@@ -463,15 +475,22 @@ func (f *Frontend) initialize() {
 func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Help Handler: %q\n", r.URL.Path)
 	f.loadTemplates()
+	context, err := f.getPageContext()
+	if err != nil {
+		sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
+	}
+
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		calcContext := calc.NewContext(nil, nil)
 		templateContext := struct {
-			Nonce string
-			Funcs map[string]calc.Func
+			Nonce   string
+			Funcs   map[string]calc.Func
+			Context template.JS
 		}{
-			Nonce: secure.CSPNonce(r.Context()),
-			Funcs: calcContext.Funcs,
+			Nonce:   secure.CSPNonce(r.Context()),
+			Funcs:   calcContext.Funcs,
+			Context: context,
 		}
 		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
 			sklog.Error("Failed to expand template:", err)
