@@ -17,6 +17,7 @@ go_library(
         "//perf/go/dataframe",
         "//perf/go/git",
         "//perf/go/progress",
+        "//perf/go/tracefilter",
         "//perf/go/tracesetbuilder",
         "//perf/go/tracestore",
         "//perf/go/types",

@@ -218,6 +218,9 @@
         "favorites": {
           "$ref": "#/$defs/Favorites"
         },
+        "filter_parent_traces": {
+          "type": "boolean"
+        },
         "trace_sample_proportion": {
           "type": "number"
         },

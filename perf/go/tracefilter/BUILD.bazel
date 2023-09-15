@@ -1,0 +1,16 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tracefilter",
+    srcs = ["tracefilter.go"],
+    importpath = "go.skia.org/infra/perf/go/tracefilter",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "tracefilter_test",
+    srcs = ["tracefilter_test.go"],
+    embed = [":tracefilter"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

@@ -639,6 +639,9 @@ type InstanceConfig struct {
 	// Favorites configuration for the instance
 	Favorites Favorites `json:"favorites,omitempty"`
 
+	// If true, filter out parent traces if child traces satisfy query
+	FilterParentTraces bool `json:"filter_parent_traces,omitempty"`
+
 	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
 	// which percentage of traces get uploaded
 	TraceSampleProportion float32 `json:"trace_sample_proportion,omitempty"`

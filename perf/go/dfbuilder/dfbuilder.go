@@ -17,11 +17,16 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/tracefilter"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/sync/errgroup"
 )
+
+// Filtering is a custom type used to define
+// the modes for filtering parent traces
+type Filtering bool
 
 const (
 	// newNMaxSearch is the minimum number of queries to perform that returned
@@ -39,14 +44,21 @@ const (
 	// as each one hits that bad ParamSet tile we can clog the backend with these
 	// long running queries.
 	singleTileQueryTimeout = time.Minute
+
+	// Filter parent traces
+	doFilterParentTraces Filtering = true
+
+	// Do not filter parent traces
+	doNotFilterParentTraces Filtering = false
 )
 
 // builder implements DataFrameBuilder using TraceStore.
 type builder struct {
-	git               *perfgit.Git
-	store             tracestore.TraceStore
-	tileSize          int32
-	numPreflightTiles int
+	git                *perfgit.Git
+	store              tracestore.TraceStore
+	tileSize           int32
+	numPreflightTiles  int
+	filterParentTraces Filtering
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -59,12 +71,13 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore, numPreflightTiles int) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering) dataframe.DataFrameBuilder {
 	return &builder{
 		git:                           git,
 		store:                         store,
 		numPreflightTiles:             numPreflightTiles,
 		tileSize:                      store.TileSize(),
+		filterParentTraces:            filterParentTraces,
 		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
 		newFromQueryAndRangeTimer:     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
@@ -389,6 +402,9 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	}
 	ps.Normalize()
 	ret.ParamSet = ps.Freeze()
+	if b.filterParentTraces == doFilterParentTraces {
+		ret.TraceSet = filterParentTraces(ret.TraceSet)
+	}
 
 	if total < n {
 		// Trim down the traces so they are the same length as ret.Header.
@@ -520,7 +536,9 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	}
 	ps.Normalize()
 	ret.ParamSet = ps.Freeze()
-
+	if b.filterParentTraces {
+		ret.TraceSet = filterParentTraces(ret.TraceSet)
+	}
 	if total < n {
 		// Trim down the traces so they are the same length as ret.Header.
 		for key, tr := range ret.TraceSet {
@@ -638,6 +656,41 @@ func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error)
 	}
 
 	return count, nil
+}
+
+// Filters out parent traces if there are child traces present.
+// Eg: if there are two traces
+// T1 = master=m1,bot=b1,test=t1,subtest_1=s1
+// T2 = master=m1,bot=b1,test=t1
+// we will filter out T2 and only keep T1 since T2 is a parent
+// of T1
+func filterParentTraces(traceSet types.TraceSet) types.TraceSet {
+	traceFilter := tracefilter.NewTraceFilter()
+	paramSetKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "units"}
+	for key := range traceSet {
+		params, err := query.ParseKey(key)
+		if err != nil {
+			sklog.Errorf("Error parsing key: %s", err)
+		}
+
+		// Now lets get the path in the order of the keys
+		// specified in paramSetKeys
+		path := []string{}
+		for _, paramKey := range paramSetKeys {
+			path = append(path, params[paramKey])
+		}
+
+		traceFilter.AddPath(path, key)
+	}
+
+	filteredKeys := traceFilter.GetLeafNodeTraceKeys()
+	filteredTraceSet := types.TraceSet{}
+	for _, filteredKey := range filteredKeys {
+		filteredTraceSet[filteredKey] = traceSet[filteredKey]
+	}
+
+	sklog.Infof("Filtered trace set length: %d, original trace set length: %d", len(filteredTraceSet), len(traceSet))
+	return filteredTraceSet
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.

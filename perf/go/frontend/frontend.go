@@ -401,7 +401,13 @@ func (f *Frontend) initialize() {
 	}()
 
 	sklog.Info("About to build dfbuilder.")
-	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore, f.flags.NumParamSetsForQueries)
+
+	sklog.Info("Filter parent traces: %s", config.Config.FilterParentTraces)
+	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(
+		f.perfGit,
+		f.traceStore,
+		f.flags.NumParamSetsForQueries,
+		dfbuilder.Filtering(config.Config.FilterParentTraces))
 
 	if config.Config.FetchChromePerfAnomalies {
 		chromeClient, err := chrome.New(ctx)
