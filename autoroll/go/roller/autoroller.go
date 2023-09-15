@@ -501,7 +501,7 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 	sklog.Infof("Creating new roll with commit message: \n%s", commitMsg)
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, dryRun, commitMsg)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	issue := &autoroll.AutoRollIssue{
 		AttemptStart: time.Now(),

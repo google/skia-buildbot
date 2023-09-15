@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -50,13 +49,13 @@ const (
 	// AuthScope is the auth scope needed to use the Gerrit API.
 	AuthScope = auth.ScopeGerrit
 
-	// ChangeStatusAbandoned indicates the the change is abandoned.
+	// ChangeStatusAbandoned indicates the change is abandoned.
 	ChangeStatusAbandoned = "ABANDONED"
-	// ChangeStatusMerged indicates the the change is merged.
+	// ChangeStatusMerged indicates the change is merged.
 	ChangeStatusMerged = "MERGED"
-	// ChangeStatusNew indicates the the change is new.
+	// ChangeStatusNew indicates the change is new.
 	ChangeStatusNew = "NEW"
-	// ChangeStatusNew indicates the the change is open.
+	// ChangeStatusNew indicates the change is open.
 	ChangeStatusOpen = "OPEN"
 
 	// LabelCodeReview is the label used for code review.
@@ -597,7 +596,7 @@ func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
 	url := "/accounts/self/detail"
 	var account AccountDetails
 	if err := g.get(ctx, url, &account, nil); err != nil {
-		return "", fmt.Errorf("Failed to retrieve user: %s", err)
+		return "", skerr.Wrapf(err, "Failed to retrieve user")
 	}
 	return account.Email, nil
 }
@@ -671,7 +670,7 @@ func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) 
 		if err == ErrNotFound {
 			return nil, err
 		}
-		return nil, skerr.Fmt("Failed to load details for issue %q: %v", id, err)
+		return nil, skerr.Wrapf(err, "Failed to load details for issue %q: %v", id)
 	}
 	return fixupChangeInfo(fullIssue), nil
 }
@@ -690,38 +689,38 @@ func (ci *ChangeInfo) GetPatchsetIDs() []int64 {
 func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
 	// Respect the rate limit.
 	if err := g.rl.Wait(ctx); err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
+		return "", skerr.Wrapf(err, "Failed to GET %s", u)
 	}
-	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Issue not found: %s", u)
+	if resp.StatusCode == http.StatusNotFound {
+		return "", skerr.Fmt("Issue %d not found: %s", issue, u)
 	}
-	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
+	if resp.StatusCode >= http.StatusBadRequest {
+		return "", skerr.Fmt("Retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
 	}
 	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Could not read response body: %s", err)
+		return "", skerr.Wrapf(err, "Could not read response body")
 	}
 
 	data, err := base64.StdEncoding.DecodeString(string(body))
 	if err != nil {
-		return "", fmt.Errorf("Could not base64 decode response body: %s", err)
+		return "", skerr.Wrapf(err, "Could not base64 decode response body")
 	}
 	// Extract out only the patch.
 	tokens := strings.SplitN(string(data), "---", 2)
 	if len(tokens) != 2 {
-		return "", fmt.Errorf("Gerrit patch response was invalid: %s", string(data))
+		return "", skerr.Fmt("Gerrit patch response was invalid: %s", string(data))
 	}
 	patch := tokens[1]
 	return patch, nil
@@ -745,7 +744,7 @@ func (g *Gerrit) GetCommit(ctx context.Context, issue int64, revision string) (*
 	ret := &CommitInfo{}
 	err := g.get(ctx, path, ret, nil)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
 }
@@ -758,24 +757,24 @@ func (g *Gerrit) GetContent(ctx context.Context, issue int64, revision string, f
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/files/%s/content", g.apiUrl, issue, revision, filePath)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
+		return "", skerr.Wrapf(err, "Failed to GET %s", u)
 	}
-	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
+	if resp.StatusCode >= http.StatusBadRequest {
+		return "", skerr.Fmt("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
 	}
 	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Could not read response body: %s", err)
+		return "", skerr.Wrapf(err, "Could not read response body")
 	}
 
 	data, err := base64.StdEncoding.DecodeString(string(body))
 	if err != nil {
-		return "", fmt.Errorf("Could not base64 decode response body: %s", err)
+		return "", skerr.Wrapf(err, "Could not base64 decode response body")
 	}
 	return string(data), nil
 }
@@ -786,7 +785,7 @@ func (g *Gerrit) GetFilesToContent(ctx context.Context, issue int64, revision st
 	filesToContent := map[string]string{}
 	files, err := g.GetFileNames(ctx, issue, revision)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	for _, f := range files {
 		content, err := g.GetContent(ctx, issue, revision, f)
@@ -798,12 +797,12 @@ func (g *Gerrit) GetFilesToContent(ctx context.Context, issue int64, revision st
 			if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "status code 404") {
 				content = ""
 			} else {
-				return nil, err
+				return nil, skerr.Wrap(err)
 			}
 		}
 		filesToContent[f] = content
 	}
-	return filesToContent, err
+	return filesToContent, skerr.Wrap(err)
 }
 
 type Reviewer struct {
@@ -950,32 +949,32 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 	}
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
+		return skerr.Wrapf(err, "Failed to GET %s", getURL)
 	}
-	if resp.StatusCode == 404 {
+	if resp.StatusCode == http.StatusNotFound {
 		if notFoundError != nil {
 			return notFoundError
 		}
-		return fmt.Errorf("Issue not found: %s", getURL)
+		return skerr.Wrapf(err, "Resource not found: %s", getURL)
 	}
 	defer util.Close(resp.Body)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Could not read response body: %s", err)
+		return skerr.Wrapf(err, "Could not read response body")
 	}
 	body := string(bodyBytes)
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("Error retrieving %s: %d %s; response:\n%s", getURL, resp.StatusCode, resp.Status, body)
+	if resp.StatusCode >= http.StatusBadRequest {
+		return skerr.Fmt("Error retrieving %s: %d %s; response:\n%s", getURL, resp.StatusCode, resp.Status, body)
 	}
 
 	// Strip off the XSS protection chars.
 	parts := strings.SplitN(body, "\n", 2)
 
 	if len(parts) != 2 {
-		return fmt.Errorf("Reponse invalid format; response:\n%s", body)
+		return skerr.Fmt("Reponse invalid format; response:\n%s", body)
 	}
 	if err := json.Unmarshal([]byte(parts[1]), &rv); err != nil {
-		return fmt.Errorf("Failed to decode JSON: %s; response:\n%s", err, body)
+		return skerr.Wrapf(err, "Failed to decode JSON: response:\n%s", body)
 	}
 	return nil
 }
@@ -996,13 +995,13 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	defer util.Close(resp.Body)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Could not read response body: %s", err)
+		return skerr.Wrapf(err, "Could not read response body")
 	}
 	body := string(bodyBytes)
-	if resp.StatusCode < 200 || resp.StatusCode > 204 {
-		return fmt.Errorf("Got status %s (%d); response:\n%s", resp.Status, resp.StatusCode, body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > http.StatusNoContent {
+		return skerr.Fmt("Got status %s (%d); response:\n%s", resp.Status, resp.StatusCode, body)
 	}
 	return nil
 }
@@ -1030,8 +1029,8 @@ func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 204 {
-		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > http.StatusNoContent {
+		return skerr.Fmt("Got status %s (%d)", resp.Status, resp.StatusCode)
 	}
 	return nil
 }
@@ -1059,12 +1058,12 @@ func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 		return err
 	}
 	defer util.Close(resp.Body)
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 204 {
-		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > http.StatusNoContent {
+		return skerr.Fmt("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	return nil
 }
@@ -1200,8 +1199,8 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		return skerr.Fmt("Got status %s (%d)", resp.Status, resp.StatusCode)
 	}
 	return nil
 }
@@ -1212,7 +1211,7 @@ func (g *Gerrit) GetDependencies(ctx context.Context, changeNum int64, revision 
 	data := RelatedChangesInfo{}
 	err := g.get(ctx, fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data, nil)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return data.Changes, nil
 }
@@ -1221,7 +1220,7 @@ func (g *Gerrit) GetDependencies(ctx context.Context, changeNum int64, revision 
 func (g *Gerrit) HasOpenDependency(ctx context.Context, changeNum int64, revision int) (bool, error) {
 	dependencies, err := g.GetDependencies(ctx, changeNum, revision)
 	if err != nil {
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 	// Find the target change num in the chain of dependencies.
 	targetChangeIdx := 0
@@ -1255,10 +1254,10 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 		q.Add("q", queryString(terms))
 		q.Add("n", strconv.Itoa(queryLimit))
 		q.Add("S", strconv.Itoa(skip))
-		searchUrl := "/changes/?" + q.Encode()
-		err := g.get(ctx, searchUrl, &data, nil)
+		searchURL := "/changes/?" + q.Encode()
+		err := g.get(ctx, searchURL, &data, nil)
 		if err != nil {
-			return nil, fmt.Errorf("Gerrit search failed: %v", err)
+			return nil, skerr.Wrapf(err, "Gerrit search failed: %s", searchURL)
 		}
 		var moreChanges bool
 
@@ -1298,12 +1297,12 @@ func (g *Gerrit) Files(ctx context.Context, issue int64, patch string) (map[stri
 		patch = "current"
 	}
 	if !revisionRegex.MatchString(patch) {
-		return nil, fmt.Errorf("Invalid 'patch' value.")
+		return nil, skerr.Fmt("Invalid 'patch' value.")
 	}
 	url := fmt.Sprintf("/changes/%d/revisions/%s/files", issue, patch)
 	files := map[string]*FileInfo{}
 	if err := g.get(ctx, url, &files, ErrNotFound); err != nil {
-		return nil, fmt.Errorf("Failed to list files for issue %d: %v", issue, err)
+		return nil, skerr.Wrapf(err, "Failed to list files for issue %d", issue)
 	}
 	return files, nil
 }
@@ -1313,7 +1312,7 @@ func (g *Gerrit) Files(ctx context.Context, issue int64, patch string) (map[stri
 func (g *Gerrit) GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error) {
 	files, err := g.Files(ctx, issue, patch)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	// We only need the filenames.
 	ret := []string{}
@@ -1327,7 +1326,7 @@ func (g *Gerrit) GetFileNames(ctx context.Context, issue int64, patch string) ([
 func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string) (bool, error) {
 	files, err := g.Files(ctx, issue, revision)
 	if err != nil {
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 	for _, fileInfo := range files {
 		if fileInfo.Binary {
@@ -1356,7 +1355,7 @@ type SubmittedTogetherInfo struct {
 func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*ChangeInfo, int, error) {
 	var submittedTogetherInfo *SubmittedTogetherInfo
 	if err := g.get(ctx, fmt.Sprintf("/changes/%s/submitted_together?o=NON_VISIBLE_CHANGES", FullChangeId(ci)), &submittedTogetherInfo, nil); err != nil {
-		return nil, -1, fmt.Errorf("Failed to retrieve submitted_together issues: %s", err)
+		return nil, -1, skerr.Wrapf(err, "Failed to retrieve submitted_together issues")
 	}
 	return submittedTogetherInfo.Changes, submittedTogetherInfo.NonVisibleChanges, nil
 }
@@ -1376,7 +1375,7 @@ func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
 	}
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %s", url, err)
+		return skerr.Wrapf(err, "Failed to GET %s", url)
 	}
 	defer util.Close(resp.Body)
 	if err := util.WithWriteFile(dest, func(w io.Writer) error {
@@ -1477,7 +1476,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	}
 	// Respect the rate limit.
 	if err := g.rl.Wait(ctx); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	c := createChangePostData{
@@ -1502,12 +1501,12 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if resp.StatusCode != 201 {
-		return nil, fmt.Errorf("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	if resp.StatusCode != http.StatusCreated {
+		return nil, skerr.Fmt("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	var ci ChangeInfo
 	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
@@ -1528,7 +1527,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 func (g *Gerrit) CreateCherryPickChange(ctx context.Context, changeID, revisionID, msg, destBranch string) (*ChangeInfo, error) {
 	// Respect the rate limit.
 	if err := g.rl.Wait(ctx); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	c := cherryPickPostData{
 		Message:     msg,
@@ -1549,12 +1548,12 @@ func (g *Gerrit) CreateCherryPickChange(ctx context.Context, changeID, revisionI
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	if resp.StatusCode != http.StatusOK {
+		return nil, skerr.Fmt("got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	var ci ChangeInfo
 	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
@@ -1575,19 +1574,27 @@ func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content
 	u := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, strings.NewReader(content))
 	if err != nil {
-		return fmt.Errorf("Failed to create PUT request: %s", err)
+		return skerr.Wrapf(err, "Failed to create PUT request")
 	}
 	resp, err := g.doRequest(req)
 	if err != nil {
-		return fmt.Errorf("Failed to execute request: %s", err)
+		sklog.Infof("Attempted to write the following content to %s:\n%s", filepath, content)
+		// Maybe there is more information in the response body
+		if resp != nil {
+			defer util.Close(resp.Body)
+			if respBytes, err := io.ReadAll(resp.Body); err == nil {
+				sklog.Infof("Response to PUT %s was %s", u, string(respBytes))
+			}
+		}
+		return skerr.Wrapf(err, "Failed to execute EditFile request for file %s", filepath)
 	}
 	defer util.Close(resp.Body)
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Failed to read response body: %s", err)
+		return skerr.Wrapf(err, "Failed to read response body")
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 204 {
-		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > http.StatusNoContent {
+		return skerr.Fmt("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	return nil
 }
@@ -1740,5 +1747,5 @@ func (g *Gerrit) doRequest(req *http.Request) (*http.Response, error) {
 	if traceID != "" {
 		err = skerr.Wrapf(err, "trace ID %q", traceID)
 	}
-	return resp, err
+	return resp, skerr.Wrap(err)
 }
