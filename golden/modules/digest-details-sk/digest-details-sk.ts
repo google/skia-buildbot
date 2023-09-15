@@ -334,6 +334,29 @@ export class DigestDetailsSk extends ElementSk {
     ) {
       return '';
     }
+
+    // The dots-legend-sk element needs a grouping to compute the links to the details and diff
+    // pages. If the digest has no params, we'll get an exception when computing the grouping. If
+    // we don't catch the exception, this whole element will fail to render.
+    let maybeGrouping: Params | null = null;
+    try {
+      maybeGrouping = ele.getGrouping();
+    } catch {
+      // Nothing to do.
+    }
+
+    const dotsLegendSk = maybeGrouping
+      ? html`
+          <dots-legend-sk
+            .grouping=${ele.getGrouping()}
+            .digests=${ele._details.traces.digests}
+            .changeListID=${ele._changeListID}
+            .crs=${ele._crs}
+            .totalDigests=${ele._details.traces.total_digests || 0}>
+          </dots-legend-sk>
+        `
+      : html``;
+
     return html`
       <div class="trace_info">
         <dots-sk
@@ -343,13 +366,7 @@ export class DigestDetailsSk extends ElementSk {
           @mouseleave=${ele.clearTraceHighlights}
           @showblamelist=${ele.showBlamelist}>
         </dots-sk>
-        <dots-legend-sk
-          .grouping=${ele.getGrouping()}
-          .digests=${ele._details.traces.digests}
-          .changeListID=${ele._changeListID}
-          .crs=${ele._crs}
-          .totalDigests=${ele._details.traces.total_digests || 0}>
-        </dots-legend-sk>
+        ${dotsLegendSk}
       </div>
     `;
   };
