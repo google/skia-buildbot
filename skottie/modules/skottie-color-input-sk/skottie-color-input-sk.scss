@@ -4,7 +4,7 @@ skottie-color-input-sk {
   .wrapper {
     &--color {
       display: inline-block;
-      border: 1px solid var(--skottie-on-surface-white);
+      border: 1px solid var(--on-surface);
       border-radius: 4px;
       padding: 4px 6px;
 
@@ -22,7 +22,7 @@ skottie-color-input-sk {
     }
 
     &--opacity {
-      border: 1px solid var(--skottie-on-surface-white);
+      border: 1px solid var(--on-surface);
       border-radius: 0 4px 4px 0;
       padding: 4px;
       width: 80px;

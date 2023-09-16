@@ -187,7 +187,7 @@ body.body-sk.font-sk {
 
         .playback {
           padding: 24px;
-          background-color: var(--skottie-surface);
+          background-color: var(--primary);
           border-radius: 0 0 8px 8px;
 
           &-content {
@@ -196,11 +196,16 @@ body.body-sk.font-sk {
             align-items: center;
 
             &-frameTotal {
-              border: 1px solid var(--skottie-border);
+              border: 1px solid var(--surface-2dp);
               border-top-right-radius: 5px;
               border-bottom-right-radius: 5px;
+              color: var(--on-primary);
               padding: 4px 8px;
               margin: 0 0 0 -1px;
+            }
+
+            &-frameInput {
+              color: var(--on-primary);
             }
 
             &__button {
@@ -208,9 +213,13 @@ body.body-sk.font-sk {
               height: 54px;
             }
 
+            .number {
+              color: var(--on-primary);
+            }
+
             .icon-sk-svg {
-              fill: var(--skottie-on-surface-white);
-              border: 2px solid var(--skottie-on-surface-white);
+              fill: var(--on-primary);
+              border: 2px solid var(--on-primary);
               border-radius: 50%;
               width: 100%;
               height: 100%;
@@ -364,7 +373,7 @@ body.body-sk.font-sk {
         height: 7px;
         cursor: pointer;
         box-shadow: 0px 0px 0px #000000;
-        background: var(--skottie-range-slider);
+        background: var(--on-primary);
         border-radius: 4px;
         border: 0px solid #000000;
       }
@@ -374,13 +383,13 @@ body.body-sk.font-sk {
         height: 20px;
         width: 20px;
         border-radius: 10px;
-        background: var(--skottie-range-thumb);
+        background: var(--on-primary);
         cursor: pointer;
         -webkit-appearance: none;
         margin-top: -6.5px;
       }
       input[type='range']:focus::-webkit-slider-runnable-track {
-        background: var(--skottie-range-slider);
+        background: var(--on-background);
       }
     }
 
@@ -399,7 +408,7 @@ body.body-sk.font-sk {
 
     #frameInput {
       width: 4em;
-      border: 1px solid var(--skottie-border);
+      border: 1px solid var(--surface-2dp);
       border-top-left-radius: 5px;
       border-bottom-left-radius: 5px;
       padding: 4px 8px;

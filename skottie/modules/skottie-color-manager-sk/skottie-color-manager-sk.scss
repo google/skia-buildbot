@@ -5,17 +5,19 @@ skottie-color-manager-sk {
     .no-manager {
       .info-box {
         display: flex;
-        color: var(--skottie-surface-light);
+        color: var(--disabled);
         flex-direction: row;
         gap: 16px;
 
         &--icon {
+          color: var(--on-surface);
           font-size: 17px;
           padding-top: 4px;
           flex: 0 0 auto;
         }
 
         &--description {
+          color: var(--on-surface);
           font-size: 12px;
         }
       }

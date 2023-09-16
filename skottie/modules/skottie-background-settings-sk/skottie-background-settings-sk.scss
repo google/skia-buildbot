@@ -10,7 +10,7 @@ skottie-background-settings-sk {
     margin-top: 16px;
 
     &--color {
-      border: 1px solid var(--skottie-on-surface-white);
+      border: 1px solid var(--on-surface);
       border-right: none;
       border-radius: 4px 0 0 4px;
       padding: 4px;
@@ -23,7 +23,7 @@ skottie-background-settings-sk {
     }
 
     &--opacity {
-      border: 1px solid var(--skottie-on-surface-white);
+      border: 1px solid var(--on-surface);
       border-radius: 0 4px 4px 0;
       padding: 4px;
       width: 80px;

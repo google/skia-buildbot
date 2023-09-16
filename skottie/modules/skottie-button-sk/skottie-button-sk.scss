@@ -12,39 +12,40 @@ skottie-button-sk {
 
     &__outline {
       background: transparent;
-      border: 1px solid var(--skottie-on-surface-white);
-      color: var(--skottie-on-surface-white);
+      border: 1px solid var(--on-surface);
+      color: var(--on-surface);
 
       &:hover,
       &:focus {
-        background-color: var(--skottie-secondary-main);
+        background-color: var(--surface-2dp);
       }
     }
 
     &__filled {
-      background: var(--skottie-surface);
+      background: var(--primary);
       border: none;
-      color: var(--skottie-on-surface-white);
+      color: var(--on-primary);
 
       &:hover,
       &:focus {
-        background-color: var(--skottie-primary-dark);
+        background-color: var(--primary-variant);
+        color: var(--on-primary-variant);
       }
 
       &:disabled {
-        background-color: var(--skottie-surface-light);
-        color: var(--skottie-surface-main);
+        background-color: var(--disabled);
+        color: var(--background);
       }
     }
 
     &__plain {
-      color: var(--skottie-primary-light);
+      color: var(--primary-highlight);
       border: none;
       background-color: transparent;
 
       &:hover,
       &:focus {
-        background-color: var(--skottie-secondary-main);
+        background-color: var(--surface-2dp);
       }
     }
   }

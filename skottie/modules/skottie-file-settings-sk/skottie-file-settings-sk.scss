@@ -13,7 +13,7 @@ skottie-file-settings-sk {
       display: inline-flex;
       width: 110px;
       align-items: baseline;
-      background-color: var(--skottie-secondary-main);
+      background-color: var(--surface-2dp);
       border-radius: 4px;
       gap: 8px;
       padding: 4px;
@@ -47,9 +47,9 @@ skottie-file-settings-sk {
         &--tooltip {
           width: max-content;
           max-width: 300px;
-          background-color: var(--skottie-secondary-dark);
+          background-color: var(--surface);
           border-radius: 6px;
-          color: var(--skottie-surface-light);
+          color: var(--disabled);
           margin: 0 0 0 8px;
           text-align: center;
           padding: 8px;
@@ -80,8 +80,8 @@ skottie-file-settings-sk {
       svg.icon-sk-svg {
         width: 100%;
         height: 100%;
-        fill: var(--skottie-on-surface-white);
-        stroke: var(--skottie-on-surface-white);
+        fill: var(--on-surface);
+        stroke: var(--on-surface);
       }
     }
 
