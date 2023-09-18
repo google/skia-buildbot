@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -20,6 +19,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -243,7 +243,7 @@ type Response2xxOnlyTransport struct {
 func (t Response2xxOnlyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	resp, err := t.RoundTripper.RoundTrip(req)
 	if err == nil && resp != nil && (resp.StatusCode < 200 || resp.StatusCode > 299) {
-		return nil, fmt.Errorf("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+		return nil, skerr.Fmt("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 	}
 	return resp, err
 }
@@ -271,7 +271,7 @@ type Response2xxAnd3xxTransport struct {
 func (t Response2xxAnd3xxTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	resp, err := t.RoundTripper.RoundTrip(req)
 	if err == nil && resp != nil && (resp.StatusCode < 200 || resp.StatusCode > 399) {
-		return nil, fmt.Errorf("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+		return nil, skerr.Fmt("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 	}
 	return resp, err
 }
@@ -359,7 +359,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	bodyBuf := bytes.Buffer{}
 	if req.Body != nil {
 		if _, err := bodyBuf.ReadFrom(req.Body); err != nil {
-			return nil, fmt.Errorf("Failed to read request body: %v", err)
+			return nil, skerr.Wrapf(err, "Failed to read request body")
 		}
 	}
 
@@ -367,7 +367,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	var err error
 	roundTripOp := func() error {
 		if req.Body != nil {
-			req.Body = ioutil.NopCloser(bytes.NewBufferString(bodyBuf.String()))
+			req.Body = io.NopCloser(bytes.NewBufferString(bodyBuf.String()))
 		}
 		if resp != nil {
 			panic("Expected notifyFunc to be called between retries.")
@@ -425,7 +425,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 func ReadAndClose(r io.ReadCloser) string {
 	if r != nil {
 		defer util.Close(r)
-		if b, err := ioutil.ReadAll(io.LimitReader(r, MAX_BYTES_IN_RESPONSE_BODY)); err != nil {
+		if b, err := io.ReadAll(io.LimitReader(r, MAX_BYTES_IN_RESPONSE_BODY)); err != nil {
 			sklog.Warningf("There was a potential problem reading the response body: %s", err)
 		} else {
 			return fmt.Sprintf("%q", string(b))
@@ -557,7 +557,7 @@ func getPositiveInt(query url.Values, param string, defaultVal int) (int, error)
 	} else {
 		val, err = strconv.Atoi(valStr)
 		if err != nil {
-			return 0, fmt.Errorf("Not a valid integer value.")
+			return 0, skerr.Wrapf(err, "Not a valid integer value %q.", valStr)
 		}
 	}
 	if val < 0 {
