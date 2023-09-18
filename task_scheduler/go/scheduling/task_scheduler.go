@@ -1437,7 +1437,9 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 	s.queue = queue
 	s.lastScheduled = now.Now(ctx)
 
-	if len(errs) > 0 {
+	if len(errs) == 1 {
+		return skerr.Wrapf(errs[0], "Cannot schedule all tasks")
+	} else if len(errs) > 1 {
 		rvErr := "Got failures: "
 		for _, e := range errs {
 			rvErr += fmt.Sprintf("\n%s\n", e)
