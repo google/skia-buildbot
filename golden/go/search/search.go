@@ -857,7 +857,7 @@ CommitsWithData ORDER BY commit_id DESC LIMIT $1`
 	return ctx, nil
 }
 
-type stageOneResult struct {
+type digestWithTraceAndGrouping struct {
 	traceID    schema.TraceID
 	groupingID schema.GroupingID
 	digest     schema.DigestBytes
@@ -868,7 +868,7 @@ type stageOneResult struct {
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
 // The order of the result is arbitrary.
-func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResult, error) {
+func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
 	q := getQuery(ctx)
@@ -914,12 +914,12 @@ MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
 		return nil, skerr.Wrapf(err, "searching for query %v with args %v", q, arguments)
 	}
 	defer rows.Close()
-	var rv []stageOneResult
+	var rv []digestWithTraceAndGrouping
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	var traceKey schema.MD5Hash
 	for rows.Next() {
-		var row stageOneResult
+		var row digestWithTraceAndGrouping
 		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -936,7 +936,7 @@ MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
 
 // getTracesForBlame returns the traces that match the given blameID. It mirrors the behavior of
 // method GetBlamesForUntriagedDigests. See function combineIntoRanges for details.
-func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]stageOneResult, error) {
+func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesForBlame")
 	defer span.End()
 	// Find untriaged digests at head and the traces that produced them.
@@ -977,12 +977,12 @@ func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID str
 	// triaged digests to untriaged digests.
 	ranges := combineIntoRanges(ctx, histories, groupings, commits)
 
-	var rv []stageOneResult
+	var rv []digestWithTraceAndGrouping
 	for _, r := range ranges {
 		if r.CommitRange == blameID {
 			for _, ag := range r.AffectedGroupings {
 				for _, traceIDAndDigest := range ag.traceIDsAndDigests {
-					rv = append(rv, stageOneResult{
+					rv = append(rv, digestWithTraceAndGrouping{
 						traceID:    traceIDAndDigest.id,
 						groupingID: ag.groupingID[:],
 						digest:     traceIDAndDigest.digest,
@@ -1142,7 +1142,7 @@ func joinedTracesStatement(filters []filterSets, corpus string) string {
 	return statement
 }
 
-type stageTwoResult struct {
+type digestAndClosestDiffs struct {
 	leftDigest      schema.DigestBytes
 	groupingID      schema.GroupingID
 	rightDigests    []schema.DigestBytes
@@ -1170,13 +1170,13 @@ type extendedBulkTriageDeltaInfo struct {
 // information to bulk-triage all of the inputs. Note that this function does not populate the
 // LabelBefore fields of the returned extendedBulkTriageDeltaInfo structs; these need to be
 // populated by the caller.
-func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]stageTwoResult, []extendedBulkTriageDeltaInfo, error) {
+func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndGrouping) ([]digestAndClosestDiffs, []extendedBulkTriageDeltaInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
 	defer span.End()
-	byGrouping := map[schema.MD5Hash][]stageOneResult{}
+	byGrouping := map[schema.MD5Hash][]digestWithTraceAndGrouping{}
 	// Even if two groupings draw the same digest, we want those as two different results because
 	// they could be triaged differently.
-	byDigestAndGrouping := map[groupingDigestKey]stageTwoResult{}
+	byDigestAndGrouping := map[groupingDigestKey]digestAndClosestDiffs{}
 	var mutex sync.Mutex
 	for _, input := range inputs {
 		gID := sql.AsMD5Hash(input.groupingID)
@@ -1222,30 +1222,30 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 			defer mutex.Unlock()
 			for key, diffs := range resultsByDigest {
 				// combine this map with the other
-				stageTwo := byDigestAndGrouping[key]
+				digestAndClosestDiffs := byDigestAndGrouping[key]
 				for _, srdd := range diffs {
 					digestBytes, err := sql.DigestToBytes(srdd.Digest)
 					if err != nil {
 						return skerr.Wrap(err)
 					}
-					stageTwo.rightDigests = append(stageTwo.rightDigests, digestBytes)
+					digestAndClosestDiffs.rightDigests = append(digestAndClosestDiffs.rightDigests, digestBytes)
 					if srdd.Status == expectations.Positive {
-						stageTwo.closestPositive = srdd
+						digestAndClosestDiffs.closestPositive = srdd
 					} else {
-						stageTwo.closestNegative = srdd
+						digestAndClosestDiffs.closestNegative = srdd
 					}
-					if stageTwo.closestNegative != nil && stageTwo.closestPositive != nil {
-						if stageTwo.closestPositive.CombinedMetric < stageTwo.closestNegative.CombinedMetric {
-							stageTwo.closestDigest = stageTwo.closestPositive
+					if digestAndClosestDiffs.closestNegative != nil && digestAndClosestDiffs.closestPositive != nil {
+						if digestAndClosestDiffs.closestPositive.CombinedMetric < digestAndClosestDiffs.closestNegative.CombinedMetric {
+							digestAndClosestDiffs.closestDigest = digestAndClosestDiffs.closestPositive
 						} else {
-							stageTwo.closestDigest = stageTwo.closestNegative
+							digestAndClosestDiffs.closestDigest = digestAndClosestDiffs.closestNegative
 						}
 					} else {
 						// there is only one type of diff, so it defaults to the closest.
-						stageTwo.closestDigest = srdd
+						digestAndClosestDiffs.closestDigest = srdd
 					}
 				}
-				byDigestAndGrouping[key] = stageTwo
+				byDigestAndGrouping[key] = digestAndClosestDiffs
 			}
 			return nil
 		})
@@ -1256,7 +1256,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 
 	q := getQuery(ctx)
 	var extendedBulkTriageDeltaInfos []extendedBulkTriageDeltaInfo
-	results := make([]stageTwoResult, 0, len(byDigestAndGrouping))
+	results := make([]digestAndClosestDiffs, 0, len(byDigestAndGrouping))
 	for _, s2 := range byDigestAndGrouping {
 		// Filter out any results without a closest triaged digest (if that option is selected).
 		if q.MustIncludeReferenceFilter && s2.closestDigest == nil {
@@ -1517,7 +1517,7 @@ WHERE grouping_id = $1`, nil
 // getParamsetsForRightSide fetches all the traces that produced the digests in the data and
 // the keys for these traces as ParamSets. The ParamSets are mapped according to the digest
 // which produced them in the given window (or the tiles that approximate this).
-func (s *Impl) getParamsetsForRightSide(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
+func (s *Impl) getParamsetsForRightSide(ctx context.Context, inputs []digestAndClosestDiffs) (map[types.Digest]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getParamsetsForRightSide")
 	defer span.End()
 	digestToTraces, err := s.addRightTraces(ctx, inputs)
@@ -1538,7 +1538,7 @@ func (s *Impl) getParamsetsForRightSide(ctx context.Context, inputs []stageTwoRe
 // addRightTraces finds the traces that draw the given digests. We do not need to consider the
 // ignore rules or other search constraints because those only apply to the search results
 // (that is, the left side).
-func (s *Impl) addRightTraces(ctx context.Context, inputs []stageTwoResult) (map[types.Digest][]schema.TraceID, error) {
+func (s *Impl) addRightTraces(ctx context.Context, inputs []digestAndClosestDiffs) (map[types.Digest][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "addRightTraces")
 	defer span.End()
 
@@ -1732,7 +1732,7 @@ func (s *Impl) expandTraceToParams(ctx context.Context, traceID schema.TraceID) 
 
 // fillOutTraceHistory returns a slice of SearchResults that are mostly filled in, particularly
 // including the history of the traces for each result.
-func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult) ([]*frontend.SearchResult, error) {
+func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []digestAndClosestDiffs) ([]*frontend.SearchResult, error) {
 	ctx, span := trace.StartSpan(ctx, "fillOutTraceHistory")
 	span.AddAttributes(trace.Int64Attribute("results", int64(len(inputs))))
 	defer span.End()
@@ -2383,7 +2383,7 @@ WHERE changelist_id = $1`
 // branch is the fact that the "AtHead" option is meaningless. Another is that we can filter out
 // data seen on the primary branch. We have this as an in-memory cache because it is much much
 // faster than querying it live (even with good indexing).
-func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]stageOneResult, error) {
+func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTracesForCL")
 	defer span.End()
 	q := getQuery(ctx)
@@ -2436,7 +2436,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var rv []stageOneResult
+	var rv []digestWithTraceAndGrouping
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	var traceKey schema.MD5Hash
@@ -2444,7 +2444,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 	keyGrouping := key.groupingID[:]
 	keyDigest := key.digest[:]
 	for rows.Next() {
-		var row stageOneResult
+		var row digestWithTraceAndGrouping
 		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest, &row.optionsID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -3580,9 +3580,9 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		Offset: 0, Limit: 1, RGBAMaxFilter: 255,
 	})
 
-	var stageOneResults []stageOneResult
+	var digestWithTraceAndGrouping []digestWithTraceAndGrouping
 	if clID == "" {
-		stageOneResults, err = s.getTracesForGroupingAndDigest(ctx, grouping, digest)
+		digestWithTraceAndGrouping, err = s.getTracesForGroupingAndDigest(ctx, grouping, digest)
 		if err != nil {
 			return frontend.DigestDetails{}, skerr.Wrap(err)
 		}
@@ -3591,7 +3591,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 			return frontend.DigestDetails{}, skerr.Fmt("Code Review System (crs) must be specified")
 		}
 		ctx = context.WithValue(ctx, qualifiedCLIDKey, sql.Qualify(crs, clID))
-		stageOneResults, err = s.getTracesFromCLThatProduced(ctx, grouping, digest)
+		digestWithTraceAndGrouping, err = s.getTracesFromCLThatProduced(ctx, grouping, digest)
 		if err != nil {
 			return frontend.DigestDetails{}, skerr.Wrap(err)
 		}
@@ -3601,26 +3601,27 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	}
 
 	if s.isPublicView {
-		stageOneResults = s.applyPublicFilterToStageOneResults(stageOneResults)
+		digestWithTraceAndGrouping = s.applyPublicFilterToDigestWithTraceAndGrouping(digestWithTraceAndGrouping)
 	}
 
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
-	stageTwoResults, _, err := s.getClosestDiffs(ctx, stageOneResults)
+	digestAndClosestDiffs, _, err := s.getClosestDiffs(ctx, digestWithTraceAndGrouping)
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
-	if len(stageTwoResults) == 0 {
+	if len(digestAndClosestDiffs) == 0 {
 		return frontend.DigestDetails{}, skerr.Fmt("No results found")
 	}
 	// Go fetch history and paramset (within this grouping, and respecting publiclyAllowedParams).
-	paramsetsByDigest, err := s.getParamsetsForRightSide(ctx, stageTwoResults)
+	paramsetsByDigest, err := s.getParamsetsForRightSide(ctx, digestAndClosestDiffs)
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
 	// Flesh out the trace history with enough data to draw the dots diagram on the frontend.
-	// The returned slice should be length 1 because we had only 1 digest and 1 stageTwo result.
-	resultSlice, err := s.fillOutTraceHistory(ctx, stageTwoResults)
+	// The returned slice should be length 1 because we had only 1 digest and 1
+	// digestAndClosestDiffs.
+	resultSlice, err := s.fillOutTraceHistory(ctx, digestAndClosestDiffs)
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
@@ -3642,12 +3643,12 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	}, nil
 }
 
-// applyPublicFilterToStageOneResults filters out any stageOneResults for traces that are not
-// publicly visible.
-func (s *Impl) applyPublicFilterToStageOneResults(results []stageOneResult) []stageOneResult {
+// applyPublicFilterToDigestWithTraceAndGrouping filters out any digestWithTraceAndGrouping for
+// traces that are not publicly visible.
+func (s *Impl) applyPublicFilterToDigestWithTraceAndGrouping(results []digestWithTraceAndGrouping) []digestWithTraceAndGrouping {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	filteredResults := make([]stageOneResult, 0, len(results))
+	filteredResults := make([]digestWithTraceAndGrouping, 0, len(results))
 	var traceKey schema.MD5Hash
 	for _, result := range results {
 		copy(traceKey[:], result.traceID)
@@ -3661,7 +3662,7 @@ func (s *Impl) applyPublicFilterToStageOneResults(results []stageOneResult) []st
 // getTracesForGroupingAndDigest finds the traces on the primary branch which produced the given
 // digest in the provided grouping. If no such trace exists (recently), a single result will be
 // added with no trace, to all the UI to at least show the image and possible diff data.
-func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]stageOneResult, error) {
+func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesForGroupingAndDigest")
 	defer span.End()
 
@@ -3679,13 +3680,13 @@ WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var results []stageOneResult
+	var results []digestWithTraceAndGrouping
 	for rows.Next() {
 		var traceID schema.TraceID
 		if err := rows.Scan(&traceID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		results = append(results, stageOneResult{
+		results = append(results, digestWithTraceAndGrouping{
 			traceID:    traceID,
 			groupingID: groupingID,
 			digest:     digestBytes,
@@ -3695,7 +3696,7 @@ WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
 		// Add in a result that has at least the digest and groupingID. This can be helpful for
 		// when an image was produced a long time ago, but not in recent traces. It allows the UI
 		// to at least show the image and some diff information.
-		results = append(results, stageOneResult{
+		results = append(results, digestWithTraceAndGrouping{
 			groupingID: groupingID,
 			digest:     digestBytes,
 		})
@@ -3703,9 +3704,9 @@ WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
 	return results, nil
 }
 
-// getTracesFromCLThatProduced returns a stageOneResult for all traces that produced the provided
-// digest in the given grouping on the most recent PS for the given CL.
-func (s *Impl) getTracesFromCLThatProduced(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]stageOneResult, error) {
+// getTracesFromCLThatProduced returns a digestWithTraceAndGrouping for all traces that produced
+// the provided digest in the given grouping on the most recent PS for the given CL.
+func (s *Impl) getTracesFromCLThatProduced(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesFromCLThatProduced")
 	defer span.End()
 
@@ -3729,14 +3730,14 @@ WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var results []stageOneResult
+	var results []digestWithTraceAndGrouping
 	for rows.Next() {
 		var traceID schema.TraceID
 		var optionsID schema.OptionsID
 		if err := rows.Scan(&traceID, &optionsID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		results = append(results, stageOneResult{
+		results = append(results, digestWithTraceAndGrouping{
 			traceID:    traceID,
 			groupingID: groupingID,
 			digest:     digestBytes,
