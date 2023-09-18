@@ -42,7 +42,7 @@ in `//perf/go/sql/schema.go.`
 root@perf-cockroachdb-public:26257/defaultdb> CREATE TABLE ...
 ```
 
-## 3. Add the database to be backed up to `./images/backup/backup.sh`.
+## 3. Add the database to be backed up to `./backup/backup.sh`.
 
 ## 4. Push a new version of `perf-cockroachdb-backup`.
 
