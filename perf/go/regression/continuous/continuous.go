@@ -135,8 +135,6 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 			continue
 		}
 		for _, cl := range resp.Summary.Clusters {
-			// Zero out the DataFrame ParamSet since it is never used.
-			resp.Frame.DataFrame.ParamSet = paramtools.NewReadOnlyParamSet()
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
 				// TODO(jcgregorio) Also load existing stored regressions and if
