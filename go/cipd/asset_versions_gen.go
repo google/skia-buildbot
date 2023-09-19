@@ -113,11 +113,6 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",
 		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
 	},
-	"infra/tools/luci/gsutil/${platform}": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/tools/luci/gsutil/${platform}",
-		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
-	},
 	"infra/tools/luci/isolate/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/isolate/${platform}",
@@ -182,6 +177,11 @@ var PACKAGES = map[string]*Package{
 		Path:    "go_win",
 		Name:    "skia/bots/go_win",
 		Version: "version:4",
+	},
+	"skia/bots/gsutil": {
+		Path:    "cipd_bin_packages",
+		Name:    "skia/bots/gsutil",
+		Version: "version:5.24",
 	},
 	"skia/bots/node": {
 		Path:    "node",
