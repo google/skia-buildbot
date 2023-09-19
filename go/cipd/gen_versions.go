@@ -11,7 +11,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -49,7 +48,7 @@ func main() {
 
 	// List the assets.
 	assetsDir := path.Join(rootDir, "infra", "bots", "assets")
-	entries, err := ioutil.ReadDir(assetsDir)
+	entries, err := os.ReadDir(assetsDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}

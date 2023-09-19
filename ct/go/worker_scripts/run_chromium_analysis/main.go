@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -194,7 +193,7 @@ func runChromiumAnalysis() error {
 		return fmt.Errorf("Could not get path to py files: %s", err)
 	}
 
-	fileInfos, err := ioutil.ReadDir(pathToPagesets)
+	fileInfos, err := os.ReadDir(pathToPagesets)
 	if err != nil {
 		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}

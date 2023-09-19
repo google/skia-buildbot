@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -13,7 +12,7 @@ import (
 func main() {
 	common.Init()
 
-	fileInfos, err := ioutil.ReadDir(".")
+	fileInfos, err := os.ReadDir(".")
 	if err != nil {
 		sklog.Fatalf("Unable to read directory.")
 	}

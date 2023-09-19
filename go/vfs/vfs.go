@@ -104,7 +104,7 @@ func ReadFile(ctx context.Context, fs FS, path string) (rv []byte, rvErr error) 
 	return io.ReadAll(wrapFile)
 }
 
-// ReadDir is analogous to ioutil.ReadDir.
+// ReadDir is analogous to os.ReadDir.
 func ReadDir(ctx context.Context, fs FS, path string) (rv []fs.FileInfo, rvErr error) {
 	f, err := fs.Open(ctx, path)
 	if err != nil {

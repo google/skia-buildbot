@@ -16,7 +16,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	osexec "os/exec"
 	"path/filepath"
@@ -270,7 +269,7 @@ func (g *Goldpushk) copyConfigsToCheckout(configDir, checkoutDir string) error {
 	if g.disableCopyingConfigsToCheckout {
 		return nil
 	}
-	jsonFiles, err := ioutil.ReadDir(configDir)
+	jsonFiles, err := os.ReadDir(configDir)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

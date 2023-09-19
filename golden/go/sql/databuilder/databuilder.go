@@ -11,7 +11,7 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"time"
@@ -230,7 +230,7 @@ func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr strin
 	if err != nil {
 		logAndPanic("Invalid time for now: %s", err)
 	}
-	_, err = ioutil.ReadDir(imgDir)
+	_, err = os.ReadDir(imgDir)
 	if err != nil {
 		logAndPanic("Error reading directory %q: %s", imgDir, err)
 	}

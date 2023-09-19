@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -306,7 +305,7 @@ func main() {
 
 	// Optionally wipe the contents of the output directory.
 	if *wipeOutputDir {
-		files, err := ioutil.ReadDir(*outputDir)
+		files, err := os.ReadDir(*outputDir)
 		ifErrThenDie(err)
 		for _, file := range files {
 			ifErrThenDie(os.RemoveAll(filepath.Join(*outputDir, file.Name())))

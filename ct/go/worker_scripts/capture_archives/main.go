@@ -6,7 +6,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -68,7 +67,7 @@ func captureArchives() error {
 	recordWprBinary := filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RECORD_WPR)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureArchivesTimeoutSecs
 	// Loop through all pagesets.
-	fileInfos, err := ioutil.ReadDir(pathToPagesets)
+	fileInfos, err := os.ReadDir(pathToPagesets)
 	if err != nil {
 		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}

@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"math"
 	"os"
 	"path"
@@ -305,7 +305,7 @@ func ApplyPatch(ctx context.Context, patch, dir, gitExec string) error {
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to
 // generate a lot of temporary artifacts there and they take up root disk space.
 func CleanTmpDir() {
-	files, _ := ioutil.ReadDir(os.TempDir())
+	files, _ := os.ReadDir(os.TempDir())
 	for _, f := range files {
 		util.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 	}
@@ -330,7 +330,7 @@ func GetCurrentTsInt64() int64 {
 
 // Returns channel that contains all pageset file names without the timestamp
 // file and pyc files.
-func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
+func GetClosedChannelOfPagesets(fileInfos []fs.DirEntry) chan string {
 	pagesetsChannel := make(chan string, len(fileInfos))
 	for _, fileInfo := range fileInfos {
 		pagesetName := fileInfo.Name()
@@ -854,7 +854,7 @@ func GetRunBenchmarkOutput(b bytes.Buffer) (string, error) {
 
 func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir, valueColumnName string, gs *GcsUtil, startRange int, handleStrings, addRanks bool, pageRankToAdditionalFields map[string]map[string]string) error {
 	// Move all results into a single directory.
-	fileInfos, err := ioutil.ReadDir(localOutputDir)
+	fileInfos, err := os.ReadDir(localOutputDir)
 	if err != nil {
 		return fmt.Errorf("Unable to read %s: %s", localOutputDir, err)
 	}

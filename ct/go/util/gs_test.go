@@ -1,7 +1,6 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +30,7 @@ func Auth_TestDownloadSwarmingArtifacts(t *testing.T) {
 	assert.Equal(t, 1, pageSetToIndex[filepath.Join(localDir, "1.py")])
 	assert.Equal(t, 2, pageSetToIndex[filepath.Join(localDir, "2.py")])
 	// Examine contents of the local directory.
-	files, err := ioutil.ReadDir(localDir)
+	files, err := os.ReadDir(localDir)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 	assert.Equal(t, "1.py", files[0].Name())
