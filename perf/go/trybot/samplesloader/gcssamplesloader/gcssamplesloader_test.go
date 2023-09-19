@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -67,7 +67,7 @@ func TestLoad_Success(t *testing.T) {
 
 	gcsclient := &test_gcsclient.GCSClient{}
 	r := bytes.NewBufferString(sourceFileBody)
-	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(ioutil.NopCloser(r), nil)
+	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(io.NopCloser(r), nil)
 
 	g := New(gcsclient, ingestParser(t))
 	sampleSet, err := g.Load(ctx, sourceFileName)
@@ -113,7 +113,7 @@ func TestLoad_InvalidJSON_Failure(t *testing.T) {
 
 	gcsclient := &test_gcsclient.GCSClient{}
 	r := bytes.NewBufferString("}this isn't valid JSON{")
-	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(ioutil.NopCloser(r), nil)
+	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(io.NopCloser(r), nil)
 
 	g := New(gcsclient, ingestParser(t))
 	_, err := g.Load(ctx, sourceFileName)

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -71,7 +70,7 @@ func New(lookup Lookup) *Converter {
 // Convert the serialize *Incoming JSON into a JSON serialized format that Perf
 // supports. Also return the global keys and the buildID from the parsed file.
 func (c *Converter) Convert(incoming io.Reader, txLogName string) (map[string]string, string, []byte, error) {
-	b, err := ioutil.ReadAll(incoming)
+	b, err := io.ReadAll(incoming)
 	if err != nil {
 		return nil, "", nil, skerr.Wrapf(err, "Failed to read during convert %q", txLogName)
 	}

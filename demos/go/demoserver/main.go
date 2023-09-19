@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -52,7 +51,7 @@ func main() {
 		sklog.Fatalf("Failed to setup git: %s", err)
 	}
 	// Create a threadsafe checkout to serve from.
-	checkoutDir, err := ioutil.TempDir("", "demos_repo")
+	checkoutDir, err := os.MkdirTemp("", "demos_repo")
 	if err != nil {
 		sklog.Fatalf("Unable to create temporary directory for demos checkout: %s", err)
 	}
@@ -147,7 +146,7 @@ func (s *syncedDemos) writeMetadata(rev string) error {
 		return skerr.Wrap(err)
 	}
 	metadataPath := filepath.Join(s.demoPath, "metadata.json")
-	err = ioutil.WriteFile(metadataPath, obj, 0644)
+	err = os.WriteFile(metadataPath, obj, 0644)
 	if err != nil {
 		return skerr.Wrapf(err, "Unable to write json to '%s'.", metadataPath)
 	}

@@ -1,7 +1,7 @@
 package emailclient
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,7 +27,7 @@ In-Reply-To: some-thread-reference
 </html>
 `
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
+		b, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		bodyAsString := string(b)
 		require.Equal(t, expected, bodyAsString)
@@ -69,7 +69,7 @@ In-Reply-To: some-thread-reference
 </html>
 `
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
+		b, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		bodyAsString := string(b)
 		require.Equal(t, expected, bodyAsString)

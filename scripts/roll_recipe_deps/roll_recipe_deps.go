@@ -28,7 +28,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"sort"
@@ -80,7 +79,7 @@ type rollJson struct {
 // rollOnce performs a single recipe roll and returns the commits in the roll.
 // The result will be empty if the repo is up-to-date.
 func rollOnce(ctx context.Context, repoUrl, cwd string) (map[string][]string, error) {
-	tmpDir, err := ioutil.TempDir("", "recipe_roll_")
+	tmpDir, err := os.MkdirTemp("", "recipe_roll_")
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +117,7 @@ func rollOnce(ctx context.Context, repoUrl, cwd string) (map[string][]string, er
 // Returns the URL of the uploaded CL, if any.
 func rollRepo(ctx context.Context, repoUrl string) (string, error) {
 	sklog.Infof("  Creating checkout...")
-	tmpDir, err := ioutil.TempDir("", "recipe_roll_")
+	tmpDir, err := os.MkdirTemp("", "recipe_roll_")
 	if err != nil {
 		return "", err
 	}

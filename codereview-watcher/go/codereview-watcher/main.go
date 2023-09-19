@@ -8,7 +8,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -252,7 +252,7 @@ func main() {
 		}
 		pathToGithubToken = filepath.Join(usr.HomeDir, github.GITHUB_TOKEN_FILENAME)
 	}
-	gBody, err := ioutil.ReadFile(pathToGithubToken)
+	gBody, err := os.ReadFile(pathToGithubToken)
 	if err != nil {
 		sklog.Fatalf("Could not find githubToken in %s: %s", pathToGithubToken, err)
 	}

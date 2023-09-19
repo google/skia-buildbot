@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -48,7 +47,7 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 				fmt.Printf("Warning while closing HTTP response for %s: %s", url, err)
 			}
 		}()
-		returnBytes, err = ioutil.ReadAll(resp.Body)
+		returnBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return logAndReturn(skerr.Wrapf(err, "reading body from GET %s", url))
 		}
@@ -73,7 +72,7 @@ func post(ctx context.Context, url, contentType string, body io.Reader) ([]byte,
 		return nil, skerr.Fmt("POST %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
 	}
 
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, skerr.Fmt("error reading body from POST %s: %s", url, err)
 	}

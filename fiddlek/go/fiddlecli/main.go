@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -61,7 +60,7 @@ func main() {
 	}
 
 	// Read the source JSON file.
-	b, err := ioutil.ReadFile(*input)
+	b, err := os.ReadFile(*input)
 	if err != nil {
 		log.Fatalf("Failed to read %s: %s", *input, err)
 	}
@@ -70,7 +69,7 @@ func main() {
 		log.Fatalf("%s does not contain valid JSON: %s", *input, err)
 	}
 	lastWritten := types.BulkResponse{}
-	b, err = ioutil.ReadFile(*output)
+	b, err = os.ReadFile(*output)
 	if err == nil {
 		if err := json.Unmarshal(b, &lastWritten); err != nil {
 			lastWritten = nil
@@ -159,7 +158,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to encode response file: %s", err)
 	}
-	if err := ioutil.WriteFile(*output, b, 0600); err != nil {
+	if err := os.WriteFile(*output, b, 0600); err != nil {
 		log.Fatalf("Failed to write response file: %s", err)
 	}
 }

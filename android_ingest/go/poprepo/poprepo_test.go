@@ -2,7 +2,6 @@ package poprepo
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -30,7 +29,7 @@ func TestAdd(t *testing.T) {
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
-	workdir, err := ioutil.TempDir("", "poprepo")
+	workdir, err := os.MkdirTemp("", "poprepo")
 	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(workdir)

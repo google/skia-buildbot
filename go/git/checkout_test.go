@@ -1,7 +1,6 @@
 package git
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,7 +16,7 @@ func TestCheckout(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -82,21 +81,21 @@ func TestCheckout(t *testing.T) {
 	}
 
 	// 1. Local modification (no git add).
-	require.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
+	require.NoError(t, os.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
 	updateAndAssertClean()
 
 	// 2. Local modification (with git add).
-	require.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
+	require.NoError(t, os.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
 	_, err = c.Git(ctx, "add", "somefile")
 	require.NoError(t, err)
 	updateAndAssertClean()
 
 	// 3. Untracked file.
-	require.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "untracked"), []byte("contents"), os.ModePerm))
+	require.NoError(t, os.WriteFile(path.Join(c.Dir(), "untracked"), []byte("contents"), os.ModePerm))
 	updateAndAssertClean()
 
 	// 4. Committed locally.
-	require.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
+	require.NoError(t, os.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
 	_, err = c.Git(ctx, "commit", "-a", "-m", "msg")
 	require.NoError(t, err)
 	updateAndAssertClean()
@@ -108,7 +107,7 @@ func TestCheckout_IsDirty(t *testing.T) {
 
 	test := func(name string, expectDirty bool, fn func(*testing.T, *Checkout)) {
 		t.Run(name, func(t *testing.T) {
-			tmp, err := ioutil.TempDir("", "")
+			tmp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
 			defer testutils.RemoveAll(t, tmp)
 			c, err := NewCheckout(ctx, gb.Dir(), tmp)
@@ -122,13 +121,13 @@ func TestCheckout_IsDirty(t *testing.T) {
 
 	test("clean", false, func(t *testing.T, c *Checkout) {})
 	test("unstaged_changes", true, func(t *testing.T, c *Checkout) {
-		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
+		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
 	})
 	test("untracked_file", true, func(t *testing.T, c *Checkout) {
-		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), "untracked-file"), []byte("blahblah"), os.ModePerm))
+		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), "untracked-file"), []byte("blahblah"), os.ModePerm))
 	})
 	test("ahead_of_main", true, func(t *testing.T, c *Checkout) {
-		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
+		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
 		_, err := c.Git(ctx, "commit", "-a", "-m", "updated file")
 		require.NoError(t, err)
 	})

@@ -3,7 +3,6 @@ package kube_conf_gen_lib
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -136,6 +135,6 @@ func generateOutputHelper(tmpl *template.Template, strict bool, config map[strin
 				return skerr.Wrapf(err, "failed to create destination directory")
 			}
 		}
-		return skerr.Wrap(ioutil.WriteFile(outFile, buf.Bytes(), 0644))
+		return skerr.Wrap(os.WriteFile(outFile, buf.Bytes(), 0644))
 	}
 }

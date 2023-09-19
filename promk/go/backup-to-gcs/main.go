@@ -6,7 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"time"
@@ -32,7 +32,7 @@ var (
 )
 
 func step(storageClient *storage.Client) error {
-	b, err := ioutil.ReadFile(*input)
+	b, err := os.ReadFile(*input)
 	if err != nil {
 		return fmt.Errorf("Failed to read input file: %s", err)
 	}

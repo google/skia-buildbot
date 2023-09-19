@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -52,13 +52,13 @@ func main() {
 }
 
 func loadPages(resourceDir string) {
-	p, err := ioutil.ReadFile(filepath.Join(resourceDir, "main.html"))
+	p, err := os.ReadFile(filepath.Join(resourceDir, "main.html"))
 	if err != nil {
 		sklog.Fatalf("Could not find index html: %s", err)
 	}
 	indexPage = p
 
-	p, err = ioutil.ReadFile(filepath.Join(resourceDir, "versions.html"))
+	p, err = os.ReadFile(filepath.Join(resourceDir, "versions.html"))
 	if err != nil {
 		sklog.Fatalf("Could not find index html: %s", err)
 	}

@@ -2,7 +2,7 @@ package parent
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -60,7 +60,7 @@ func goModCfg() *config.GoModParentConfig {
 func setupGoModGerrit(t *testing.T) (context.Context, *goModParent, *gerrit_testutils.MockGerrit, func()) {
 	// We do actually want to call git for some commands, so we need to use the git from CIPD.
 	ctx := cipd_git.UseGitFinder(context.Background())
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	parent := git_testutils.GitInit(t, ctx)

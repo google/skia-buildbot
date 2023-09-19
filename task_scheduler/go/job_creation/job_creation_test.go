@@ -3,8 +3,8 @@ package job_creation
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"testing"
 	"time"
 
@@ -43,7 +43,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	d := memory.NewInMemoryDB()
@@ -276,7 +276,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	swarmingClient := swarming_testutils.NewTestClient()

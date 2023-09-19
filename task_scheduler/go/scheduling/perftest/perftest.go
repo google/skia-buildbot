@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
@@ -115,7 +114,7 @@ func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 	fakeFile := path.Join(repoDir, "fakefile.txt")
 	for i := 0; i < numCommits; i++ {
 		title := fmt.Sprintf("Fake #%d", i)
-		assertNoError(ioutil.WriteFile(fakeFile, []byte(title), os.ModePerm))
+		assertNoError(os.WriteFile(fakeFile, []byte(title), os.ModePerm))
 		_, err = gd.Git(ctx, "add", fakeFile)
 		assertNoError(err)
 		commit(ctx, repoDir, title)
@@ -125,7 +124,7 @@ func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 }
 
 func addFile(ctx context.Context, repoDir, subPath, contents string) {
-	assertNoError(ioutil.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
+	assertNoError(os.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
 	_, err := git.GitDir(repoDir).Git(ctx, "add", subPath)
 	assertNoError(err)
 }
@@ -153,7 +152,7 @@ func main() {
 	common.Init()
 
 	// Create a repo with one commit.
-	workdir, err := ioutil.TempDir("", "")
+	workdir, err := os.MkdirTemp("", "")
 	assertNoError(err)
 	defer func() {
 		if err := os.RemoveAll(workdir); err != nil {
@@ -174,7 +173,7 @@ func main() {
 	assertNoError(err)
 
 	// Write some files.
-	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("placeholder"), os.ModePerm))
+	assertNoError(os.WriteFile(path.Join(workdir, ".gclient"), []byte("placeholder"), os.ModePerm))
 	addFile(ctx, repoDir, "a.txt", "placeholder2")
 	addFile(ctx, repoDir, "somefile.txt", "placeholder3")
 	infraBotsSubDir := path.Join("infra", "bots")

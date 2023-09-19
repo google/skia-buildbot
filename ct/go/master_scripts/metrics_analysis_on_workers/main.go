@@ -12,7 +12,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -90,7 +89,7 @@ func metricsAnalysisOnWorkers() error {
 		// missing newlines.
 		patch = patch + "\n"
 		patchPath := filepath.Join(os.TempDir(), *runID+fileSuffix)
-		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+		if err := os.WriteFile(patchPath, []byte(patch), 0666); err != nil {
 			return fmt.Errorf("Could not write patch %s to %s: %s", patch, patchPath, err)
 		}
 		defer skutil.Remove(patchPath)
@@ -218,7 +217,7 @@ func extractTracesFromAnalysisRun(outputPath string, gs *util.GcsUtil) error {
 	if len(traceURLs) == 0 {
 		return fmt.Errorf("There were no traceURLs found for the analysis output link: %s", *analysisOutputLink)
 	}
-	if err := ioutil.WriteFile(outputPath, []byte(strings.Join(traceURLs, ",")), 0644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(strings.Join(traceURLs, ",")), 0644); err != nil {
 		return fmt.Errorf("Could not write traceURLs to %s: %s", outputPath, err)
 	}
 	return nil

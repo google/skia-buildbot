@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -415,7 +414,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 		return nil, skerr.Wrap(err)
 	}
 	baseCommit := baseCommitInfo.Hash
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -459,7 +458,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	// the CQ. Also attempt to match the whitespace of the original files, to
 	// help prevent conflicts during cherry-picks.
 	newJobsContents = jobsJSONReplaceRegex.ReplaceAll(newJobsContents, jobsJSONReplaceContents)
-	if err := ioutil.WriteFile(filepath.Join(co.Dir(), jobsJSONFile), newJobsContents, os.ModePerm); err != nil {
+	if err := os.WriteFile(filepath.Join(co.Dir(), jobsJSONFile), newJobsContents, os.ModePerm); err != nil {
 		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFile)
 	}
 

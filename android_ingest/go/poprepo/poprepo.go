@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -66,7 +66,7 @@ func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
 // The timestamp is seconds since the Unix epoch.
 func (p *PopRepo) GetLast(ctx context.Context) (int64, int64, string, error) {
 	fullpath := filepath.Join(p.checkout.Dir(), BUILDID_FILENAME)
-	b, err := ioutil.ReadFile(fullpath)
+	b, err := os.ReadFile(fullpath)
 	if err != nil {
 		return 0, 0, "", fmt.Errorf("Unable to read file %q: %s", fullpath, err)
 	}
@@ -144,7 +144,7 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	if buildid <= lastBuildID {
 		return fmt.Errorf("Error: buildid=%d <= lastBuildID=%d, buildid added in wrong order.", buildid, lastBuildID)
 	}
-	if err := ioutil.WriteFile(filepath.Join(p.checkout.Dir(), BUILDID_FILENAME), []byte(fmt.Sprintf("%d %d", buildid, ts)), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(p.checkout.Dir(), BUILDID_FILENAME), []byte(fmt.Sprintf("%d %d", buildid, ts)), 0644); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to write updated buildid: %s", err)
 	}

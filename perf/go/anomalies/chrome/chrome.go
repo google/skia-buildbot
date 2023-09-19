@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -117,7 +117,7 @@ func (cp *ChromePerfClient) callChromePerf(ctx context.Context, testPathes []str
 		return nil, skerr.Wrapf(err, "Failed to get chrome perf response.")
 	}
 
-	respBody, err := ioutil.ReadAll(httpResponse.Body)
+	respBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read body from chrome perf response.")
 	}

@@ -3,7 +3,6 @@ package shared_tests
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
@@ -235,7 +234,7 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	require.Equal(t, 3, c5.Index)
 
 	// Ensure that we can start in an empty dir and check out from scratch properly.
-	tmp2, err := ioutil.TempDir("", "")
+	tmp2, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
 	repo2, err := repograph.NewLocalGraph(ctx, g.Dir(), tmp2)
@@ -701,7 +700,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 func TestRevList(t sktest.TestingT, ctx context.Context, gb *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
 	commits := git_testutils.GitSetup(ctx, gb)
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	d1 := path.Join(tmpDir, "1")

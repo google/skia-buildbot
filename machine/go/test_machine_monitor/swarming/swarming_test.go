@@ -4,7 +4,7 @@ package swarming
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -93,7 +93,7 @@ const swarmingBotFakeContents = `Pretend this is Python code.`
 // server.
 func newBotForTest(t *testing.T, metadataHander, botCodeHandler http.HandlerFunc) (*Bot, string, cleanupFunc) {
 	// Get a temp dir.
-	dir, err := ioutil.TempDir("", "swarming")
+	dir, err := os.MkdirTemp("", "swarming")
 	require.NoError(t, err)
 
 	// Create a temp file to stand in for the python executable.
@@ -171,7 +171,7 @@ func TestBootstrap_Success(t *testing.T) {
 	require.NoError(t, bot.bootstrap(context.Background()))
 
 	// Confirm that we downloaded the swarming bot contents correctly.
-	b, err := ioutil.ReadFile(swarmingBotPath)
+	b, err := os.ReadFile(swarmingBotPath)
 	require.NoError(t, err)
 	assert.Equal(t, swarmingBotFakeContents, string(b))
 }
@@ -246,7 +246,7 @@ func TestRunSwarmingCommand_ReturnsNilOnExitCodeZero(t *testing.T) {
 	// this programs stderr output.
 
 	// First create a temp file.
-	f, err := ioutil.TempFile("", "swarming")
+	f, err := os.CreateTemp("", "swarming")
 	require.NoError(t, err)
 
 	// Now swap out os.Stderr with our file.
@@ -275,7 +275,7 @@ func TestRunSwarmingCommand_ReturnsNilOnExitCodeZero(t *testing.T) {
 	// Check the output of sklog.
 	_, err = f.Seek(0, 0)
 	require.NoError(t, err)
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 	assert.Contains(t, string(b), swarmingbotFakeStderrOutput) // See TestFakeSwarmingExecutable_ExitCodeZero
 }

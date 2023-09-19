@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -370,7 +370,7 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 
 func TestOverdueJobSpecMetrics(t *testing.T) {
 
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 

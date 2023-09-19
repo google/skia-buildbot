@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -431,7 +430,7 @@ func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash str
 		return skerr.Wrapf(err, "unziping lottie.json %s", req.Filename)
 	}
 
-	lottieBytes, err := ioutil.ReadAll(fr)
+	lottieBytes, err := io.ReadAll(fr)
 	if err := json.Unmarshal(lottieBytes, &req.Lottie); err != nil {
 		return skerr.Wrapf(err, "lottie.json was invalid JSON: %s", req.Filename)
 	}

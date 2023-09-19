@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
@@ -68,7 +67,7 @@ func (g *StorageClient) GetFileContents(ctx context.Context, path string) ([]byt
 		return nil, err
 	}
 	defer util.Close(response)
-	return ioutil.ReadAll(response)
+	return io.ReadAll(response)
 }
 
 // See the GCSClient interface for more information about SetFileContents.

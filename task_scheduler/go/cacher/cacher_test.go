@@ -2,7 +2,7 @@ package cacher
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -30,7 +30,7 @@ func setup(t *testing.T) (context.Context, *Cacher, task_cfg_cache.TaskCfgCache,
 		Revision: rev,
 	}
 
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
 	require.NoError(t, err)

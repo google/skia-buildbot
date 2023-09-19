@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -295,7 +294,7 @@ func main() {
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
-			b, err := ioutil.ReadFile(filename)
+			b, err := os.ReadFile(filename)
 			if err != nil {
 				sklog.Errorf("Failed to read %q (skipping): %s", filename, err)
 				continue

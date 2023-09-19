@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -105,7 +104,7 @@ func (b *Bot) bootstrap(ctx context.Context) error {
 	if resp.StatusCode != 200 {
 		return skerr.Fmt("Metadata bad status code: %d - %s", resp.StatusCode, resp.Status)
 	}
-	tokenBytes, err := ioutil.ReadAll(resp.Body)
+	tokenBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return skerr.Wrapf(err, "reading body of %s", b.metadataURL)
 	}

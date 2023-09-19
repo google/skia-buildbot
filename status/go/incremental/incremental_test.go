@@ -2,7 +2,7 @@ package incremental
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -26,7 +26,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repogr
 	ctx := cipd_git.UseGitFinder(context.Background())
 	gb := git_testutils.GitInit(t, ctx)
 	c0 := gb.CommitGen(ctx, "placeholder")
-	workdir, err := ioutil.TempDir("", "")
+	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), workdir)
 	require.NoError(t, err)

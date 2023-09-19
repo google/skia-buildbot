@@ -2,7 +2,6 @@ package td
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -22,7 +21,7 @@ type TestingRun struct {
 // StartTestRun returns a root-level Step to be used for testing. This is
 // an alternative so that we don't need to call Init() in testing.
 func StartTestRun(t sktest.TestingT) *TestingRun {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)

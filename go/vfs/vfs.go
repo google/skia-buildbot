@@ -9,8 +9,8 @@ may be used for things like HTTP requests.
 
 import (
 	"context"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -88,7 +88,7 @@ func WithContext(ctx context.Context, f File) *ReuseContextFile {
 	}
 }
 
-// ReadFile is analogous to ioutil.ReadFile.
+// ReadFile is analogous to os.ReadFile.
 func ReadFile(ctx context.Context, fs FS, path string) (rv []byte, rvErr error) {
 	f, err := fs.Open(ctx, path)
 	if err != nil {
@@ -101,7 +101,7 @@ func ReadFile(ctx context.Context, fs FS, path string) (rv []byte, rvErr error) 
 		}
 	}()
 	wrapFile := WithContext(ctx, f)
-	return ioutil.ReadAll(wrapFile)
+	return io.ReadAll(wrapFile)
 }
 
 // ReadDir is analogous to ioutil.ReadDir.

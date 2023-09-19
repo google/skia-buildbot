@@ -81,12 +81,12 @@ func Abs(ctx context.Context, path string) (string, error) {
 	return rv, err
 }
 
-// ReadFile is a wrapper for ioutil.ReadFile.
+// ReadFile is a wrapper for os.ReadFile.
 func ReadFile(ctx context.Context, path string) ([]byte, error) {
 	var rv []byte
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Read %s", path)).Infra(), func(context.Context) error {
 		var err error
-		rv, err = ioutil.ReadFile(path)
+		rv, err = os.ReadFile(path)
 		return err
 	})
 	return rv, err
@@ -110,10 +110,10 @@ func Rename(ctx context.Context, oldpath, newpath string) error {
 	})
 }
 
-// WriteFile is a wrapper for ioutil.WriteFile.
+// WriteFile is a wrapper for os.WriteFile.
 func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
-		return ioutil.WriteFile(path, data, perm)
+		return os.WriteFile(path, data, perm)
 	})
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -26,7 +26,7 @@ import (
 
 func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	// Create child and parent repos.

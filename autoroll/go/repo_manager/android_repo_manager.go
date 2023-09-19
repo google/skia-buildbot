@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -502,7 +501,7 @@ third_party {
 `, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitUrl, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
 
 		metadataFilePath := filepath.Join(r.workdir, r.projectMetadataFileConfig.FilePath)
-		if err := ioutil.WriteFile(metadataFilePath, []byte(metadataContents), os.ModePerm); err != nil {
+		if err := os.WriteFile(metadataFilePath, []byte(metadataContents), os.ModePerm); err != nil {
 			return 0, fmt.Errorf("Error when writing to %s: %s", metadataFilePath, err)
 		}
 		if _, addGifErr := r.childRepo.Git(ctx, "add", metadataFilePath); addGifErr != nil {

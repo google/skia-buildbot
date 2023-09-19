@@ -3,7 +3,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -26,7 +25,7 @@ func createInstanceConfigFile(t *testing.T) string {
 			Sections: []config.FavoritesSectionConfig{},
 		},
 	}
-	f, err := ioutil.TempFile("", "perf-tool")
+	f, err := os.CreateTemp("", "perf-tool")
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, os.Remove(f.Name())) })
 	err = json.NewEncoder(f).Encode(instanceConfig)

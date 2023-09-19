@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -263,7 +263,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	d := memory.NewInMemoryDB()
@@ -2301,7 +2301,7 @@ func (s *spyDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, func()) {
 
 	ctx, cancel := context.WithCancel(context.Background())
-	workdir, err := ioutil.TempDir("", "")
+	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	// Setup the scheduler.

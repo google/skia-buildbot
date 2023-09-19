@@ -3,7 +3,6 @@ package parent
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -119,7 +118,7 @@ func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg 
 // Perform a three-way merge for this header file in a temporary dir. Adds the
 // new contents to the changes map.
 func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, changes map[string]string, parentRepo *gitiles_common.GitilesRepo, localChildRepo *git.Repo) error {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -146,7 +145,7 @@ func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, chan
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := ioutil.WriteFile(dest, oldParentBytes, os.ModePerm); err != nil {
+	if err := os.WriteFile(dest, oldParentBytes, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := gd.Git(ctx, "add", dest); err != nil {
@@ -163,7 +162,7 @@ func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, chan
 		return skerr.Wrap(err)
 	}
 	oldPath := filepath.Join(wd, "old")
-	if err := ioutil.WriteFile(oldPath, []byte(oldChildContents), os.ModePerm); err != nil {
+	if err := os.WriteFile(oldPath, []byte(oldChildContents), os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -173,7 +172,7 @@ func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, chan
 		return skerr.Wrap(err)
 	}
 	newPath := filepath.Join(wd, "new")
-	if err := ioutil.WriteFile(newPath, []byte(newChildContents), os.ModePerm); err != nil {
+	if err := os.WriteFile(newPath, []byte(newChildContents), os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -183,7 +182,7 @@ func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, chan
 	}
 
 	// Read the resulting contents.
-	newParentContents, err := ioutil.ReadFile(dest)
+	newParentContents, err := os.ReadFile(dest)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

@@ -2,7 +2,6 @@ package test2json
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -75,7 +74,7 @@ type TestContent string
 // sequence of Events from above.
 func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	// Create a temporary dir with a go package to test.
-	tmpDir, err = ioutil.TempDir("", "")
+	tmpDir, err = os.MkdirTemp("", "")
 	if err != nil {
 		return
 	}
@@ -93,7 +92,7 @@ func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), []byte(content), os.ModePerm)
+	err = os.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), []byte(content), os.ModePerm)
 	if err != nil {
 		return
 	}

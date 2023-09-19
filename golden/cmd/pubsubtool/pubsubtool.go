@@ -6,7 +6,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -80,7 +79,7 @@ func publishMessage(ctx context.Context, psc *pubsub.Client, topic, jsonMessageF
 	if topic == "" || jsonMessageFile == "" {
 		return skerr.Fmt("Can't have empty topic or message file")
 	}
-	body, err := ioutil.ReadFile(jsonMessageFile)
+	body, err := os.ReadFile(jsonMessageFile)
 	if err != nil {
 		return skerr.Wrapf(err, "reading %s", jsonMessageFile)
 	}

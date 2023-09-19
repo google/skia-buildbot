@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -56,7 +55,7 @@ var yamlFileExtensions = []string{".yaml", ".yml"}
 func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 	ret := AlertTargets{}
 	err := util.WithReadFile(filename, func(f io.Reader) error {
-		b, err := ioutil.ReadAll(f)
+		b, err := io.ReadAll(f)
 		if err != nil {
 			return err
 		}

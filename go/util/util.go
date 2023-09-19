@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -634,7 +633,7 @@ func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	}
 
 	tempBase := filepath.Base(file)
-	f, err := ioutil.TempFile(dir, tempBase)
+	f, err := os.CreateTemp(dir, tempBase)
 	if err != nil {
 		return skerr.Wrapf(err, "creating temporary file %q in WithWriteFile for %q", tempBase, file)
 	}

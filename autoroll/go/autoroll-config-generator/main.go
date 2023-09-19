@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -152,7 +151,7 @@ func generate(ctx context.Context, tmplVarsFile, dir string) error {
 			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 				return skerr.Wrapf(err, "failed to create dir %s", dir)
 			}
-			if err := ioutil.WriteFile(path, cfgBytes, os.ModePerm); err != nil {
+			if err := os.WriteFile(path, cfgBytes, os.ModePerm); err != nil {
 				return skerr.Wrapf(err, "failed to write %s", path)
 			}
 		}
@@ -186,7 +185,7 @@ var rollerNameRegex = regexp.MustCompile(`(?m)^\s*roller_name:\s*"(\S+)"`)
 // processTemplate converts a single template into at least one config.
 func processTemplate(srcPath string, vars *templateVars) (map[string][]byte, error) {
 	// Read and execute the template.
-	tmplContents, err := ioutil.ReadFile(srcPath)
+	tmplContents, err := os.ReadFile(srcPath)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to read template file %s", srcPath)
 	}

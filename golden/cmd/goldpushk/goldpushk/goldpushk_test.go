@@ -2,7 +2,7 @@ package goldpushk
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -81,7 +81,7 @@ func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
 	require.NotEqual(t, g.k8sConfigCheckout.GitDir, fakeK8sConfig.Dir())
 
 	// Read README.md from the checkout.
-	k8sConfigReadmeMdBytes, err := ioutil.ReadFile(filepath.Join(string(g.k8sConfigCheckout.GitDir), "README.md"))
+	k8sConfigReadmeMdBytes, err := os.ReadFile(filepath.Join(string(g.k8sConfigCheckout.GitDir), "README.md"))
 	require.NoError(t, err)
 
 	// Assert that file README.md has the expected contents.
@@ -822,7 +822,7 @@ func addFakeK8sConfigRepoCheckout(g *Goldpushk) {
 func writeFileIntoRepo(t *testing.T, repo *git.TempCheckout, name, contents string) {
 	bytes := []byte(contents)
 	path := filepath.Join(string(repo.GitDir), name)
-	err := ioutil.WriteFile(path, bytes, os.ModePerm)
+	err := os.WriteFile(path, bytes, os.ModePerm)
 	require.NoError(t, err)
 }
 
@@ -836,7 +836,7 @@ func hideStdout(t *testing.T) (fakeStdout *os.File, cleanup func()) {
 	}
 
 	// Replace os.Stdout with a temporary file.
-	fakeStdout, err := ioutil.TempFile("", "fake-stdout")
+	fakeStdout, err := os.CreateTemp("", "fake-stdout")
 	require.NoError(t, err)
 	os.Stdout = fakeStdout
 
@@ -848,7 +848,7 @@ func readFakeStdout(t *testing.T, fakeStdout *os.File) string {
 	// Read the captured stdout.
 	_, err := fakeStdout.Seek(0, 0)
 	require.NoError(t, err)
-	stdoutBytes, err := ioutil.ReadAll(fakeStdout)
+	stdoutBytes, err := io.ReadAll(fakeStdout)
 	require.NoError(t, err)
 	return string(stdoutBytes)
 }
@@ -863,7 +863,7 @@ func fakeStdin(t *testing.T, userInput string) (cleanup func()) {
 	}
 
 	// Create new file to be used as a fake stdin.
-	fakeStdin, err := ioutil.TempFile("", "fake-stdin")
+	fakeStdin, err := os.CreateTemp("", "fake-stdin")
 	require.NoError(t, err)
 
 	// Write fake user input.

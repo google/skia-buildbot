@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/http/pprof"
@@ -337,7 +336,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []c
 				sklog.Fatal("You must specify github_repo and github_cred_path")
 				return nil
 			}
-			gBody, err := ioutil.ReadFile(cfg.GitHubCredPath)
+			gBody, err := os.ReadFile(cfg.GitHubCredPath)
 			if err != nil {
 				sklog.Fatalf("Couldn't find githubToken in %s: %s", cfg.GitHubCredPath, err)
 				return nil

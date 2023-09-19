@@ -3,7 +3,6 @@ package buildskia
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,7 +49,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	ctx = exec.NewContext(ctx, mock.Run)
 
-	checkout, err := ioutil.TempDir("", "download-test")
+	checkout, err := os.MkdirTemp("", "download-test")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(checkout)

@@ -2,7 +2,7 @@ package mockhttpclient
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -30,7 +30,7 @@ func getResponseBody(t *testing.T, resp *http.Response) []byte {
 			t.Fatalf("Mock response should not have errored on close. %s", err)
 		}
 	}()
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Problem reading response body: %s", err)
 		return nil

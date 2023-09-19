@@ -4,7 +4,7 @@ package parser
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"path/filepath"
 	"testing"
 
@@ -216,7 +216,7 @@ func (a alwaysErrReader) Read(p []byte) (n int, err error) {
 }
 
 func parseTryBot_ReadErr(t *testing.T, p *Parser, f file.File) {
-	f.Contents = ioutil.NopCloser(alwaysErrReader{})
+	f.Contents = io.NopCloser(alwaysErrReader{})
 	_, _, err := p.ParseTryBot(f)
 	require.Error(t, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
@@ -224,7 +224,7 @@ func parseTryBot_ReadErr(t *testing.T, p *Parser, f file.File) {
 }
 
 func parse_ReadErr(t *testing.T, p *Parser, f file.File) {
-	f.Contents = ioutil.NopCloser(alwaysErrReader{})
+	f.Contents = io.NopCloser(alwaysErrReader{})
 	_, _, _, err := p.Parse(context.Background(), f)
 	require.Error(t, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())

@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -66,7 +66,7 @@ func TestWhoami_ReallyPollServer_NotLoggedIn(t *testing.T) {
 func httpResponse(body, status string, statusCode int) func(string) *http.Response {
 	return func(_ string) *http.Response {
 		return &http.Response{
-			Body:       ioutil.NopCloser(strings.NewReader(body)),
+			Body:       io.NopCloser(strings.NewReader(body)),
 			Status:     status,
 			StatusCode: statusCode,
 		}

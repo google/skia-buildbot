@@ -2,7 +2,7 @@ package gcsuploader
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"path"
 	"strconv"
@@ -84,7 +84,7 @@ func readGCSFile(ctx context.Context, t *testing.T, c *storage.Client, file stri
 	r, err := c.Bucket(testBucket).Object(file).NewReader(ctx)
 	require.NoError(t, err)
 	defer util.Close(r)
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	require.NoError(t, err)
 	return b
 }

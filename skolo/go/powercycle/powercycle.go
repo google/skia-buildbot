@@ -2,7 +2,7 @@ package powercycle
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"sort"
 	"time"
 
@@ -208,7 +208,7 @@ func ControllerFromJSON5Bytes(ctx context.Context, configFileBytes []byte, conne
 
 func readConfig(path string) (config, error) {
 	conf := config{}
-	jsonBytes, err := ioutil.ReadFile(path)
+	jsonBytes, err := os.ReadFile(path)
 	if err != nil {
 		return conf, skerr.Wrapf(err, "reading %s", path)
 	}

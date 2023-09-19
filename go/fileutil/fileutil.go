@@ -5,7 +5,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -118,7 +117,7 @@ func ReadAndSha1File(path string) (contents, hash string, err error) {
 		return "", "", fmt.Errorf("Problem opening file %s: %s", path, err)
 	}
 	defer util.Close(f)
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return "", "", fmt.Errorf("Problem reading file %s: %s", path, err)
 	}
@@ -181,7 +180,7 @@ func ReadAllFilesRecursive(dir string, excludeDirs []string) (map[string][]byte,
 			}
 			return nil
 		}
-		b, err := ioutil.ReadFile(fp)
+		b, err := os.ReadFile(fp)
 		if err != nil {
 			return fmt.Errorf("Failed to read file: %s", err)
 		}

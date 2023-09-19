@@ -3,7 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"go.skia.org/infra/go/httputils"
@@ -92,7 +92,7 @@ func getUrl(url string) (string, error) {
 		return "", fmt.Errorf("HTTP response has status %d", resp.StatusCode)
 	}
 	defer util.Close(resp.Body)
-	value, err := ioutil.ReadAll(resp.Body)
+	value, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read %s from metadata server: %s", url, err)
 	}

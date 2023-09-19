@@ -6,7 +6,6 @@ package clusterconfig
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -61,7 +60,7 @@ func New(configFile string) (ClusterConfig, error) {
 		configFilename = filepath.Join(filepath.Dir(filename), "../../../kube/clusters/config.json")
 	}
 
-	b, err := ioutil.ReadFile(configFilename)
+	b, err := os.ReadFile(configFilename)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}

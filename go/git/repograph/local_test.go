@@ -2,7 +2,7 @@ package repograph_test
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func (u *localRepoRefresher) Refresh(...*vcsinfo.LongCommit) {}
 func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, shared_tests.RepoImplRefresher, func()) {
 	ctx, g, cleanup := shared_tests.CommonSetup(t)
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	repo, err := repograph.NewLocalGraph(ctx, g.Dir(), tmp)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1000,7 +999,7 @@ func getMachineWithHomeDir(t *testing.T) *Machine {
 func writeQuarantineFile(m *Machine, t *testing.T) string {
 	// Write quarantine file.
 	quarantineFile := filepath.Join(m.homeDir, fmt.Sprintf("%s.force_quarantine", machineID))
-	err := ioutil.WriteFile(quarantineFile, []byte("test"), 0666)
+	err := os.WriteFile(quarantineFile, []byte("test"), 0666)
 	require.NoError(t, err)
 
 	// Test the test, confirm the file exists.

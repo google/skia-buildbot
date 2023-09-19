@@ -1071,7 +1071,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	}
 
 	// Download CAS output of the task.
-	outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
+	outputDir, err := os.MkdirTemp("", fmt.Sprintf("download_%s", resp.TaskId))
 	if err != nil {
 		return "", fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
@@ -1080,7 +1080,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not download %s: %s", outputDigest, err)
 	}
 	outputFile := filepath.Join(outputDir, ISOLATE_TELEMETRY_FILENAME)
-	contents, err := ioutil.ReadFile(outputFile)
+	contents, err := os.ReadFile(outputFile)
 	if err != nil {
 		return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
 	}
@@ -1245,7 +1245,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 
 	// Download output of the task.
-	outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
+	outputDir, err := os.MkdirTemp("", fmt.Sprintf("download_%s", resp.TaskId))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
@@ -1254,7 +1254,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		return nil, fmt.Errorf("Could not download %s: %s", outputDigest, err)
 	}
 	outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
-	contents, err := ioutil.ReadFile(outputFile)
+	contents, err := os.ReadFile(outputFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
 	}
@@ -1447,7 +1447,7 @@ func SavePatchToStorage(patch string) (string, error) {
 	if res == nil || res.Size != uint64(len(patch)) {
 		// Patch does not exist in Google Storage yet so upload it.
 		patchPath := filepath.Join(os.TempDir(), patchFileName)
-		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+		if err := os.WriteFile(patchPath, []byte(patch), 0666); err != nil {
 			return "", err
 		}
 		defer util.Remove(patchPath)
@@ -1466,7 +1466,7 @@ func GetPatchFromStorage(patchId string) (string, error) {
 		return "", fmt.Errorf("Could not fetch %s: %s", patchId, err)
 	}
 	defer util.Close(respBody)
-	patch, err := ioutil.ReadAll(respBody)
+	patch, err := io.ReadAll(respBody)
 	if err != nil {
 		return "", fmt.Errorf("Could not read from %s: %s", patchId, err)
 	}
@@ -1497,7 +1497,7 @@ func WritePageset(filePath, userAgent, archiveFilePath, url string) error {
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filePath, b, 0644); err != nil {
+	if err := os.WriteFile(filePath, b, 0644); err != nil {
 		return err
 	}
 	return nil

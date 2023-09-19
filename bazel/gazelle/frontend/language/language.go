@@ -1,8 +1,8 @@
 package language
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -546,7 +546,7 @@ func makeRuleNameFromFileName(file, suffix string) string {
 // extractImportsFromSassFile returns the verbatim paths of the import statements found in the given
 // Sass file.
 func extractImportsFromSassFile(path string) []string {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		log.Panicf("Error reading file %q: %v", path, err)
 	}
@@ -556,7 +556,7 @@ func extractImportsFromSassFile(path string) []string {
 // extractImportsFromTypeScriptFile returns the verbatim paths of the import statements found in the
 // given TypeScript file.
 func extractImportsFromTypeScriptFile(path string) []string {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		log.Panicf("Error reading file %q: %v", path, err)
 	}

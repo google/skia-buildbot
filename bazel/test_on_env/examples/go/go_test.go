@@ -3,7 +3,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -19,7 +19,7 @@ func mustReadPort() int {
 	if envDir == "" {
 		panic(fmt.Sprintf("required environment variable ENV_DIR is unset"))
 	}
-	portFileBytes, err := ioutil.ReadFile(path.Join(envDir, envPortFileBaseName))
+	portFileBytes, err := os.ReadFile(path.Join(envDir, envPortFileBaseName))
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +70,7 @@ func TestOnEnv(t *testing.T) {
 				t.Errorf("got status code: %d, want: %d", resp.StatusCode, tc.expectedStatusCode)
 			}
 			if tc.expectedBody != "" {
-				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				bodyBytes, err := io.ReadAll(resp.Body)
 				if err != nil {
 					t.Errorf("error reading HTTP response body: %v", err)
 				}

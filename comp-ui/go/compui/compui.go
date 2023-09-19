@@ -27,7 +27,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -470,7 +469,7 @@ func populateBenchmarksWithDrivers(in map[string]*Benchmark, chromeDriverFilenam
 func readBenchMarksFromFile(ctx context.Context, filename string) (map[string]*Benchmark, error) {
 	sklog.Infof("Reading configs from %q", filename)
 	benchmarks := map[string]*Benchmark{}
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read file.")
 	}

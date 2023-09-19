@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -80,7 +79,7 @@ func (s *Syncer) Close() error {
 func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	s.queue <- func(workerId int) {
-		tmp, err2 := ioutil.TempDir("", "")
+		tmp, err2 := os.MkdirTemp("", "")
 		if err2 != nil {
 			rvErr <- err2
 			return

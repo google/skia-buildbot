@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"regexp"
 	"time"
 
@@ -44,7 +43,7 @@ func InstanceConfigFromFile(filename string) (*config.InstanceConfig, []string, 
 
 	// Validate config here.
 	err := util.WithReadFile(filename, func(r io.Reader) error {
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
 		}

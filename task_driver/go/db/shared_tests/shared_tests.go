@@ -8,8 +8,8 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"path"
 	"time"
 
@@ -99,7 +99,7 @@ func TestDB(t sktest.TestingT, d db.DB) {
 // Verify that messages can arrive in any order with the same result.
 func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	ctx := context.Background()
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	testDataFile := path.Join(wd, TEST_DATA_FILENAME)

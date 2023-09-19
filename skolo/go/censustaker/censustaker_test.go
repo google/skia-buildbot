@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"regexp"
 	"testing"
@@ -87,7 +87,7 @@ func Test_FakeExe_EdgeSwitch_ReturnsTable(t *testing.T) {
 	require.Equal(t, []string{"sshpass", "-p", fakePassword, "ssh", "power@192.168.1.117"}, args)
 
 	// We expect the command to be sent over standard in once the ssh connection is established.
-	input, err := ioutil.ReadAll(os.Stdin)
+	input, err := io.ReadAll(os.Stdin)
 	require.NoError(t, err)
 
 	assert.Equal(t, "enable\nshow mac-addr-table all\nmmmmmmmmm\n", string(input))

@@ -3,8 +3,8 @@ package repo_manager
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
@@ -67,7 +67,7 @@ func androidCfg() *config.AndroidRepoManagerConfig {
 }
 
 func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string, func()) {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	// We do not actually want to shell out to git, as that would require having an actual
 	// git checkout. Instead, we intercept the calls to all binaries...

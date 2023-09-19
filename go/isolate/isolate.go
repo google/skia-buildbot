@@ -3,7 +3,7 @@ package isolate
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
@@ -15,7 +15,7 @@ import (
 // Returns the CAS digest.
 func Upload(ctx context.Context, casInstance, baseDir, isolateFile string) (string, error) {
 	// Setup.
-	tmpDir, err := ioutil.TempDir("", "isolate")
+	tmpDir, err := os.MkdirTemp("", "isolate")
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create temporary dir")
 	}
@@ -39,7 +39,7 @@ func Upload(ctx context.Context, casInstance, baseDir, isolateFile string) (stri
 	}
 
 	// Read the JSON output file and return the hash.
-	b, err := ioutil.ReadFile(jsonOutput)
+	b, err := os.ReadFile(jsonOutput)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}

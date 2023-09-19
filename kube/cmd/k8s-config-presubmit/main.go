@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -225,7 +224,7 @@ func checkAlertRules(ctx context.Context, changedFiles []fileWithChanges) bool {
 }
 
 func ValidateAlertFile(ctx context.Context, path string) error {
-	contents, err := ioutil.ReadFile(path)
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -268,7 +267,7 @@ const podSecurityVersionLabelTmpl = "pod-security.kubernetes.io/%s-version"
 
 func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	// Read the configs from the file.
-	contents, err := ioutil.ReadFile(f.fileName)
+	contents, err := os.ReadFile(f.fileName)
 	if err != nil {
 		logf(ctx, "%s\n", err)
 		return false

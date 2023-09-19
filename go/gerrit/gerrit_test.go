@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -670,7 +670,7 @@ func TestCreateChange_WithBaseCommit(t *testing.T) {
 		require.Equal(t, "POST", r.Method)
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var data createChangePostData
 		require.NoError(t, json.Unmarshal(body, &data))
@@ -727,7 +727,7 @@ func TestCreateChange_WithBaseChangeID(t *testing.T) {
 		require.Equal(t, "POST", r.Method)
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var data createChangePostData
 		require.NoError(t, json.Unmarshal(body, &data))
@@ -786,7 +786,7 @@ func TestCreateCherryPickChange(t *testing.T) {
 			"/a/changes/myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/674ac754f91e64a0efb8087e59a176484bd534d1/cherrypick",
 			r.URL.Path)
 		w.Header().Set("Content-Type", "application/json")
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var data cherryPickPostData
 		require.NoError(t, json.Unmarshal(body, &data))

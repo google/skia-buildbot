@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -116,13 +115,13 @@ func TestProcessTemplate(t *testing.T) {
 	vars := &templateVars{
 		Vars: config_vars.FakeVars(),
 	}
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	dir := filepath.Join(tmp, "templates")
 	require.NoError(t, os.MkdirAll(dir, os.ModePerm))
 	file := filepath.Join(dir, "my-template.tmpl")
-	require.NoError(t, ioutil.WriteFile(file, []byte(fakeTmplContents), os.ModePerm))
+	require.NoError(t, os.WriteFile(file, []byte(fakeTmplContents), os.ModePerm))
 	generatedDir := filepath.Join(tmp, "generated")
 
 	actual, err := processTemplate(file, vars)

@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -73,7 +73,7 @@ func main() {
 
 	// If a configuration file was given we load it into config.
 	if *configFile != "" {
-		confBytes, err := ioutil.ReadFile(*configFile)
+		confBytes, err := os.ReadFile(*configFile)
 		if err != nil {
 			sklog.Fatalf("Error reading config file %s: %s", *configFile, err)
 		}

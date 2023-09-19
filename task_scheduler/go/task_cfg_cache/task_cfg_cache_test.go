@@ -3,7 +3,7 @@ package task_cfg_cache
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -23,7 +23,7 @@ func TestTaskSpecs(t *testing.T) {
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -100,7 +100,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -150,7 +150,7 @@ func TestTaskCfgCacheError(t *testing.T) {
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -219,7 +219,7 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 	ctx, gb, r1, _ := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

@@ -5,7 +5,6 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -25,7 +24,7 @@ func main() {
 
 	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly)
 	out := filepath.Join(cwd, *outputFile)
-	err = ioutil.WriteFile(out, []byte(generatedText), 0666)
+	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)
 	}

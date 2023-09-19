@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -177,7 +176,7 @@ func (a *secretsApp) updateSecret(ctx context.Context, project, secretName, curr
 	}
 	defer cleanup()
 	secretFile := filepath.Join(ramdisk, secretName)
-	if err := ioutil.WriteFile(secretFile, []byte(currentValue), os.ModePerm); err != nil {
+	if err := os.WriteFile(secretFile, []byte(currentValue), os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	_, _ = fmt.Fprintf(a.stdout, "Wrote secret to %s\n", secretFile)
@@ -186,7 +185,7 @@ func (a *secretsApp) updateSecret(ctx context.Context, project, secretName, curr
 	if _, err := reader.ReadString('\n'); err != nil {
 		return skerr.Wrap(err)
 	}
-	newValue, err := ioutil.ReadFile(secretFile)
+	newValue, err := os.ReadFile(secretFile)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

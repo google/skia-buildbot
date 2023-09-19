@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	_ "embed" // For embed functionality.
@@ -67,7 +66,7 @@ type Probes map[string]*Probe
 func LoadFromJSONFile(ctx context.Context, filename string) (Probes, error) {
 	var probes Probes
 	err := util.WithReadFile(filename, func(r io.Reader) error {
-		document, err := ioutil.ReadAll(r)
+		document, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrap(err)
 		}

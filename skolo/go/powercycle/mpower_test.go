@@ -2,7 +2,7 @@ package powercycle
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -47,7 +47,7 @@ func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
 	require.Equal(t, []string{"ssh", "-oKexAlgorithms=+diffie-hellman-group1-sha1", "-T", "ubnt@192.168.1.117"}, args)
 
 	// We expect the command to be sent over standard in once the ssh connection is established.
-	input, err := ioutil.ReadAll(os.Stdin)
+	input, err := io.ReadAll(os.Stdin)
 	require.NoError(t, err)
 
 	assert.Equal(t, "echo 0 > /proc/power/relay7\n", string(input))
@@ -64,7 +64,7 @@ func Test_FakeExe_MPowerSSHEnablePort7_Success(t *testing.T) {
 	require.Equal(t, []string{"ssh", "-oKexAlgorithms=+diffie-hellman-group1-sha1", "-T", "ubnt@192.168.1.117"}, args)
 
 	// We expect the command to be sent over standard in once the ssh connection is established.
-	input, err := ioutil.ReadAll(os.Stdin)
+	input, err := io.ReadAll(os.Stdin)
 	require.NoError(t, err)
 
 	assert.Equal(t, "echo 1 > /proc/power/relay7\n", string(input))

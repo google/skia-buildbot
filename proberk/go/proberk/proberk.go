@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -145,12 +144,12 @@ func skfiddleJSONBad(r io.Reader, _ http.Header) bool {
 // gobPublicReposGood confirms the response matches the file contents stored in
 // expectations/gob.json.
 func gobPublicReposGood(r io.Reader, _ http.Header) bool {
-	gobb, err := ioutil.ReadFile(filepath.Join(*expectationsDir, "gob.json"))
+	gobb, err := os.ReadFile(filepath.Join(*expectationsDir, "gob.json"))
 	if err != nil {
 		sklog.Errorf("Failed to read probe expectation: %s", err)
 		return false
 	}
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		sklog.Errorf("Failed to read probe response: %s", err)
 		return false

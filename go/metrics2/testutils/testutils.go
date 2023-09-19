@@ -2,7 +2,7 @@ package testutils
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"sort"
 	"strings"
@@ -30,7 +30,7 @@ func GetRecordedMetric(t sktest.TestingT, metricName string, tags map[string]str
 	}).ServeHTTP(rw, req)
 	resp := rw.Result()
 	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	// b at this point looks like:
 	// # HELP go_gc_duration_seconds A summary of the GC invocation durations.

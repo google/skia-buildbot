@@ -3,8 +3,8 @@ package parent
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -131,7 +131,7 @@ func (p *goModParent) getPinnedRevision() (string, error) {
 	// generalize this, we'd need a special type of Child which retrieves
 	// semantic version Git tags instead of individual commit hashes, and we'd
 	// have to distinguish between the two flows here.
-	b, err := ioutil.ReadFile(filepath.Join(p.Checkout.Dir(), goModFile))
+	b, err := os.ReadFile(filepath.Join(p.Checkout.Dir(), goModFile))
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to read %s", goModFile)
 	}

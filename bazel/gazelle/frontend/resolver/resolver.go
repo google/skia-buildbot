@@ -2,8 +2,8 @@ package resolver
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -487,7 +487,7 @@ func (rslv *Resolver) getNPMPackages(path string) map[string]bool {
 	}
 
 	// Read in and unmarshall package.json file.
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		log.Panicf("Error reading file %q: %v", path, err)
 	}

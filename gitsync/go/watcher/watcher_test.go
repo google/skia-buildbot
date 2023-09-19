@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -379,7 +379,7 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 // setupGitsync performs common setup for GitStore based Graphs.
 func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, *gitsyncRefresher, func()) {
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer util.RemoveAll(wd)
 	_, _, gs := gitstore_testutils.SetupAndLoadBTGitStore(t, ctx, wd, g.RepoUrl(), true)

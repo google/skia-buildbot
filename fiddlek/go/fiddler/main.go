@@ -10,8 +10,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -145,7 +145,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Compile draw.cpp into 'fiddle'.
-	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
 		serializeOutput(ctx, w, res)
 		return
@@ -183,7 +183,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		//   - Clean up tmp file.
 		//   - Encode resulting webm files as base64 strings and return in JSON.
 		numFrames := int(FPS * (request.Options.Duration))
-		tmpDir, err := ioutil.TempDir("", "animation")
+		tmpDir, err := os.MkdirTemp("", "animation")
 		defer util.RemoveAll(tmpDir)
 		if err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to create tmp dir for storing animation PNGs: %s", err)
@@ -272,7 +272,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 // encodeWebm encodes the webm as base64 and adds it to the results.
 func encodeWebm(prefix, tmpDir string, res *types.Result) string {
-	b, err := ioutil.ReadFile(path.Join(tmpDir, fmt.Sprintf("%s.webm", prefix)))
+	b, err := os.ReadFile(path.Join(tmpDir, fmt.Sprintf("%s.webm", prefix)))
 	if err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to read resulting video: %s", err)
 		return ""
@@ -315,7 +315,7 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 		res.Execute.Errors = fmt.Sprintf("Failed to decode frame %d of %s: %s", i, prefix, err)
 		return err
 	}
-	if err := ioutil.WriteFile(path.Join(tmpDir, fmt.Sprintf("%s_%05d.png", prefix, i)), body, 0600); err != nil {
+	if err := os.WriteFile(path.Join(tmpDir, fmt.Sprintf("%s_%05d.png", prefix, i)), body, 0600); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write frame %d of %s as a PNG: %s", i, prefix, err)
 		return err
 	}
@@ -385,7 +385,7 @@ func main() {
 		defer span.End()
 	}
 
-	b, err := ioutil.ReadFile(filepath.Join(*checkout, "VERSION"))
+	b, err := os.ReadFile(filepath.Join(*checkout, "VERSION"))
 	if err != nil {
 		sklog.Fatalf("Failed to read Skia version: %s", err)
 	}

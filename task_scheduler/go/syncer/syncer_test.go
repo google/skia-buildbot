@@ -3,7 +3,7 @@ package syncer
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -37,7 +37,7 @@ PROJECT: skia`)
 }
 
 func tempGitRepoGclientTests(ctx context.Context, t *testing.T, cases map[types.RepoState]error) {
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	// Skip download-topics in gclient calls to avoid that network call.
@@ -126,7 +126,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

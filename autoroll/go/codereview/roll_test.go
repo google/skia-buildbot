@@ -3,8 +3,8 @@ package codereview
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -85,7 +85,7 @@ Tbr: some-reviewer
 func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	t.Skip("skbug.com/12357")
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

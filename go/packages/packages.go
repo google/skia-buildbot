@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -419,7 +418,7 @@ func Install(ctx context.Context, client *http.Client, store *storage.Service, n
 		return fmt.Errorf("Failed to retrieve packages file: %s", err)
 	}
 	defer util.Close(resp.Body)
-	f, err := ioutil.TempFile("", "skia-pull")
+	f, err := os.CreateTemp("", "skia-pull")
 	if err != nil {
 		return fmt.Errorf("Failed to create tmp file: %s", err)
 	}

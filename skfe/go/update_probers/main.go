@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 
@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Rewrite the probers file.
-	if err := ioutil.WriteFile(*probersFilename, []byte(probers.StringIndent("", "  ")), 0644); err != nil {
+	if err := os.WriteFile(*probersFilename, []byte(probers.StringIndent("", "  ")), 0644); err != nil {
 		sklog.Fatal(err)
 	}
 }

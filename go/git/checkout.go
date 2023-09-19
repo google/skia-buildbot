@@ -3,7 +3,6 @@ package git
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -154,7 +153,7 @@ type TempCheckout struct {
 // directory and then clones the repoUrl into a subdirectory, based on default
 // "git clone" behavior.
 func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error) {
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, err
 	}

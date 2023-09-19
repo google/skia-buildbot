@@ -5,7 +5,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
@@ -73,7 +73,7 @@ func main() {
 	if body == "" {
 		sklog.Fatalf("Failed to find the JST service account in the metadata.")
 	}
-	if err := ioutil.WriteFile(OUTPUT_FILENAME, []byte(body), 0600); err != nil {
+	if err := os.WriteFile(OUTPUT_FILENAME, []byte(body), 0600); err != nil {
 		sklog.Fatalf("Failed to write %q: %s", OUTPUT_FILENAME, err)
 	}
 }

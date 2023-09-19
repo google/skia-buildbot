@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -91,7 +90,7 @@ func (a *App) reportSendError(w http.ResponseWriter, err error, msg string) {
 
 func convertRFC2822ToSendGrid(r io.Reader) (*mail.SGMailV3, error) {
 	// Parse the entire incoming RFC2822 body.
-	body, err := ioutil.ReadAll(r)
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read body.")
 	}
@@ -197,7 +196,7 @@ func (a *App) Run() error {
 					sklog.Infof("Echo request failed: %s", err)
 					continue
 				}
-				b, err := ioutil.ReadAll(resp.Body)
+				b, err := io.ReadAll(resp.Body)
 				if err != nil {
 					sklog.Infof("Echo Reading response body failed: %s", err)
 					continue

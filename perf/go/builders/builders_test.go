@@ -2,7 +2,6 @@ package builders
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -24,7 +23,7 @@ import (
 
 func TestNewSourceFromConfig_DirSource_Success(t *testing.T) {
 	ctx := context.Background()
-	dir, err := ioutil.TempDir("", "perf-builders")
+	dir, err := os.MkdirTemp("", "perf-builders")
 	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, os.RemoveAll(dir))
@@ -45,7 +44,7 @@ func TestNewSourceFromConfig_DirSource_Success(t *testing.T) {
 
 func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 	ctx := context.Background()
-	dir, err := ioutil.TempDir("", "perf-builders")
+	dir, err := os.MkdirTemp("", "perf-builders")
 	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, os.RemoveAll(dir))

@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -43,11 +42,11 @@ func UnZip(dest, src string) error {
 				return err
 			}
 		} else {
-			contents, err := ioutil.ReadAll(r)
+			contents, err := io.ReadAll(r)
 			if err != nil {
 				return err
 			}
-			return ioutil.WriteFile(path, contents, f.Mode())
+			return os.WriteFile(path, contents, f.Mode())
 		}
 		return nil
 	}

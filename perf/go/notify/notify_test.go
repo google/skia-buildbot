@@ -3,7 +3,7 @@ package notify
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -182,7 +182,7 @@ func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 	subjects := []string{newHTMLSubject, missingHTMLSubject}
 	subjectIndex := 0
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
+		b, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		require.Contains(t, string(b), "<b>Alert</b>")
 		require.Contains(t, string(b), subjects[subjectIndex])

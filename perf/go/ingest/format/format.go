@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 
 	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/skerr"
@@ -209,7 +208,7 @@ func Parse(r io.Reader) (Format, error) {
 // If there was an error loading the file a list of schema violations may be
 // returned also.
 func Validate(ctx context.Context, r io.Reader) ([]string, error) {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to read bytes")
 	}

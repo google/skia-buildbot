@@ -1,7 +1,6 @@
 package testutils
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -26,7 +25,7 @@ type tempRepo struct {
 // given zip file path. Unzips to a temporary directory which is stored in
 // tempRepo.Dir.
 func newTempRepoFrom(zipfile string) *tempRepo {
-	tmpdir, err := ioutil.TempDir("", "skiaperf")
+	tmpdir, err := os.MkdirTemp("", "skiaperf")
 	if err != nil {
 		sklog.Fatal("Failed to create testing Git repo:", err)
 	}

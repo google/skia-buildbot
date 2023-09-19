@@ -4,8 +4,8 @@ package process
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -65,7 +65,7 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 	_ = sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
 
 	// Get tmp dir to use for repo checkout.
-	tmpDir, err := ioutil.TempDir("", "ingest-process")
+	tmpDir, err := os.MkdirTemp("", "ingest-process")
 	require.NoError(t, err)
 	tmpDir = filepath.Join(tmpDir, "repo")
 

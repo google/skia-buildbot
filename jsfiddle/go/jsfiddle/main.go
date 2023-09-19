@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -124,13 +124,13 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadPages() {
-	if p, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "pathkit-index.html")); err != nil {
+	if p, err := os.ReadFile(filepath.Join(*resourcesDir, "pathkit-index.html")); err != nil {
 		sklog.Fatalf("Could not find pathkit html: %s", err)
 	} else {
 		pathkitPage = p
 	}
 
-	if p, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "canvaskit-index.html")); err != nil {
+	if p, err := os.ReadFile(filepath.Join(*resourcesDir, "canvaskit-index.html")); err != nil {
 		sklog.Fatalf("Could not find canvaskit html: %s", err)
 	} else {
 		canvaskitPage = p

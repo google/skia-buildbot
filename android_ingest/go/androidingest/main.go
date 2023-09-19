@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -162,7 +162,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	uploads.Inc(1)
 
 	// Parse incoming JSON.
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		badRequest(w, r, err, "Failed to read body.")
 		recentRequests.AddBad(b, "Failed to read body")

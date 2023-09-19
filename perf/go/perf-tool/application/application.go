@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"sort"
@@ -798,14 +797,14 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		return nil
 	}
 	return util.WithReadFile(inputFile, func(r io.Reader) error {
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		if err != nil {
 			return fmt.Errorf("Read Failed: %s", err)
 		}
 		reader := bytes.NewReader(b)
 		f := file.File{
 			Name:     inputFile,
-			Contents: ioutil.NopCloser(reader),
+			Contents: io.NopCloser(reader),
 		}
 		instanceConfig := &config.InstanceConfig{
 			IngestionConfig: config.IngestionConfig{

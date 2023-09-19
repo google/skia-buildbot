@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
-	"io/ioutil"
 	"strings"
 	"sync"
 
@@ -40,7 +39,7 @@ func (c *MemoryGCSClient) FileReader(ctx context.Context, path string) (io.ReadC
 	if !ok {
 		return nil, storage.ErrObjectNotExist
 	}
-	rv := ioutil.NopCloser(bytes.NewReader(contents))
+	rv := io.NopCloser(bytes.NewReader(contents))
 	// GCS automatically decodes gzip-encoded files. See
 	// https://cloud.google.com/storage/docs/transcoding. We do the same here so that tests acurately
 	// reflect what will happen when actually using GCS.
@@ -104,7 +103,7 @@ func (c *MemoryGCSClient) GetFileContents(ctx context.Context, path string) ([]b
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }
 
 // See documentation for GCSClient interface.

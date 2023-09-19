@@ -3,7 +3,7 @@ package util
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -39,7 +39,7 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
-	workdir, err := ioutil.TempDir("", "ct_perf_test_commit")
+	workdir, err := os.MkdirTemp("", "ct_perf_test_commit")
 	require.NoError(t, err)
 	defer util.RemoveAll(workdir)
 

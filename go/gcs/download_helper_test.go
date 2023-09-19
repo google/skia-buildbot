@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -17,7 +16,7 @@ import (
 func TestDownloadHelper(t *testing.T) {
 
 	// Setup.
-	workdir, err := ioutil.TempDir("", "")
+	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
@@ -35,7 +34,7 @@ func TestDownloadHelper(t *testing.T) {
 		if info.Mode() != 0755 {
 			return fmt.Errorf("Not executable")
 		}
-		contents, err := ioutil.ReadFile(fp)
+		contents, err := os.ReadFile(fp)
 		require.NoError(t, err)
 		sha1sum := fmt.Sprintf("%x", sha1.Sum(contents))
 		if sha1sum != hash {
@@ -57,13 +56,13 @@ func TestDownloadHelper(t *testing.T) {
 
 	// Modify the binary.
 	fakeContents := "blah blah blah"
-	require.NoError(t, ioutil.WriteFile(pathA, []byte(fakeContents), 0755))
+	require.NoError(t, os.WriteFile(pathA, []byte(fakeContents), 0755))
 	require.NotNil(t, check(a, hashA))
 
 	// Ensure that we end up with the right binary.
 	require.NoError(t, d.MaybeDownload(a, hashA))
 	require.NoError(t, check(a, hashA))
-	contents, err := ioutil.ReadFile(pathA)
+	contents, err := os.ReadFile(pathA)
 	require.NoError(t, err)
 	require.NotEqual(t, fakeContents, string(contents))
 

@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/draw"
 	"image/png"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -759,7 +759,7 @@ func readPngAsGray(t *testing.T, filename string) *image.Gray {
 // readPng reads a PNG image from the file system and returns it as an *image.NRGBA.
 func readPng(t *testing.T, filename string) *image.NRGBA {
 	// Read image.
-	imgBytes, err := ioutil.ReadFile(filename)
+	imgBytes, err := os.ReadFile(filename)
 	require.NoError(t, err)
 
 	// Decode image.

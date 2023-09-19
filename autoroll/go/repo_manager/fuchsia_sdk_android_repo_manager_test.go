@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -52,7 +52,7 @@ func TestFuchsiaSDKAndroidConfig(t *testing.T) {
 }
 
 func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, string, func()) {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	cfg := fuchsiaAndroidCfg(t)

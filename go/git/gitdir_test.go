@@ -2,7 +2,7 @@ package git
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,7 +41,7 @@ func TestGitBranch(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
@@ -110,7 +110,7 @@ func TestIsAncestor(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
@@ -138,7 +138,7 @@ func TestGetFile(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
@@ -148,7 +148,7 @@ func TestGetFile(t *testing.T) {
 	contents, err := g.GetFile(ctx, checkedInFile, "HEAD")
 	require.NoError(t, err)
 
-	contentsAtHead, err := ioutil.ReadFile(filepath.Join(g.Dir(), checkedInFile))
+	contentsAtHead, err := os.ReadFile(filepath.Join(g.Dir(), checkedInFile))
 	require.NoError(t, err)
 	require.Equal(t, string(contentsAtHead), contents)
 
@@ -163,7 +163,7 @@ func TestReadUpdateSubmodule(t *testing.T) {
 	ctx, gb, _ := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 

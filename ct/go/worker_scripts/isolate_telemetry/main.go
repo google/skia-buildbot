@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -90,7 +89,7 @@ func buildRepo() error {
 
 	// Record the isolate hash in the output file.
 	hashOutputFile := filepath.Join(*outDir, util.ISOLATE_TELEMETRY_FILENAME)
-	if err := ioutil.WriteFile(hashOutputFile, []byte(hash), os.ModePerm); err != nil {
+	if err := os.WriteFile(hashOutputFile, []byte(hash), os.ModePerm); err != nil {
 		return fmt.Errorf("Could not write to %s: %s", hashOutputFile, err)
 	}
 

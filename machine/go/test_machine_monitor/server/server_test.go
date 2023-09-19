@@ -2,7 +2,7 @@ package server
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -25,7 +25,7 @@ func TestGetSettings_Success(t *testing.T) {
 
 	res := w.Result()
 	assert.Equal(t, 200, res.StatusCode)
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{"caches":{"isolated":{"size":8589934592}}}`, strings.TrimSpace(string(b)))
 }

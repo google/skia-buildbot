@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -270,7 +269,7 @@ type FileStream struct {
 // writing from a test program.
 func NewFileStream(ctx context.Context, name string, severity Severity) (*FileStream, error) {
 	w := NewLogStream(ctx, name, severity)
-	f, err := ioutil.TempFile("", "log")
+	f, err := os.CreateTemp("", "log")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create file-based log stream; failed to create log file: %s", err)
 	}

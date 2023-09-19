@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"sort"
 	"time"
 
@@ -1453,7 +1453,7 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 			task.Repo = repoUrl
 			require.NoError(t, db.PutTask(ctx, task))
 		}
-		tmp, err := ioutil.TempDir("", "")
+		tmp, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
 		require.NoError(t, err)

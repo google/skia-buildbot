@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
 	"math"
 	"net/url"
 	"os"
@@ -226,7 +225,7 @@ func LoadCloudClient(workDir string) (*CloudClient, error) {
 // the bytes of the encoded image and the MD5 hash of the pixels as hex encoded string.
 func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 	// Load the image and save the bytes because we need to return them.
-	imgBytes, err := ioutil.ReadFile(fileName)
+	imgBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, "", skerr.Wrapf(err, "loading file %s", fileName)
 	}
@@ -665,7 +664,7 @@ func (c *CloudClient) Diff(ctx context.Context, grouping paramtools.Params, imgF
 	}
 
 	origFilePath := filepath.Join(outDir, fmt.Sprintf("input-%s.png", inputDigest))
-	if err := ioutil.WriteFile(origFilePath, b, 0644); err != nil {
+	if err := os.WriteFile(origFilePath, b, 0644); err != nil {
 		return skerr.Wrapf(err, "writing to %s", origFilePath)
 	}
 
@@ -724,7 +723,7 @@ func (c *CloudClient) Diff(ctx context.Context, grouping paramtools.Params, imgF
 
 	// 4) Write closest image and the diff to that image to the output directory.
 	o := filepath.Join(outDir, fmt.Sprintf("closest-%s.png", closestRightDigest))
-	if err := ioutil.WriteFile(o, closestRightImg, 0644); err != nil {
+	if err := os.WriteFile(o, closestRightImg, 0644); err != nil {
 		return skerr.Wrapf(err, "writing closest image to %s", o)
 	}
 
@@ -765,7 +764,7 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 	digestPath := filepath.Join(cachePath, string(digest)+".png")
 
 	// Try to read digest from the local cache.
-	digestBytes, err := ioutil.ReadFile(digestPath)
+	digestBytes, err := os.ReadFile(digestPath)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, nil, skerr.Wrapf(err, "reading file %s", digestPath)
 	}
@@ -782,7 +781,7 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 		}
 
 		// Cache digest.
-		if err := ioutil.WriteFile(digestPath, digestBytes, 0644); err != nil {
+		if err := os.WriteFile(digestPath, digestBytes, 0644); err != nil {
 			return nil, nil, skerr.Wrapf(err, "caching to %s", digestPath)
 		}
 	}

@@ -3,7 +3,6 @@ package vfs
 import (
 	"context"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -135,7 +134,7 @@ func (fs *TempDirFS) Dir() string {
 // TempDir returns a FS which is rooted in a temporary directory. Calling Close
 // causes the directory to be deleted.
 func TempDir(_ context.Context, dir, prefix string) (*TempDirFS, error) {
-	tmp, err := ioutil.TempDir(dir, prefix)
+	tmp, err := os.MkdirTemp(dir, prefix)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

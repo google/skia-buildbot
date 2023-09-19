@@ -164,7 +164,7 @@ func TestMD5Hash(t *testing.T) {
 }
 
 func TestIsDirEmpty(t *testing.T) {
-	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
+	d, err := os.MkdirTemp(os.TempDir(), "test_empty")
 	require.NoError(t, err)
 	defer RemoveAll(d)
 
@@ -174,7 +174,7 @@ func TestIsDirEmpty(t *testing.T) {
 	require.True(t, empty)
 
 	// Add a file in the directory.
-	f, err := ioutil.TempFile(d, "test_file")
+	f, err := os.CreateTemp(d, "test_file")
 	require.NoError(t, err)
 	_, err = f.WriteString("testing")
 	Close(f)
@@ -247,7 +247,7 @@ func TestTruncate(t *testing.T) {
 }
 
 func TestWithWriteFile(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "whatever")
+	tmp, err := os.MkdirTemp("", "whatever")
 	require.NoError(t, err)
 
 	targetFile := filepath.Join(tmp, "this", "is", "in", "a", "subdir.txt")
@@ -258,7 +258,7 @@ func TestWithWriteFile(t *testing.T) {
 	require.NoError(t, err)
 	require.FileExists(t, targetFile)
 
-	b, err := ioutil.ReadFile(targetFile)
+	b, err := os.ReadFile(targetFile)
 	require.NoError(t, err)
 	assert.Equal(t, "some words", string(b))
 }
@@ -553,7 +553,7 @@ func TestSSliceDedup(t *testing.T) {
 
 func TestCopyFile(t *testing.T) {
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, os.RemoveAll(tmp))
@@ -566,7 +566,7 @@ func TestCopyFile(t *testing.T) {
 		src := filepath.Join(tmp, fmt.Sprintf("src-%d", fileNum))
 		dst := filepath.Join(tmp, fmt.Sprintf("dst-%d", fileNum))
 		fileNum++
-		require.NoError(t, ioutil.WriteFile(src, contents, mode))
+		require.NoError(t, os.WriteFile(src, contents, mode))
 		// Set the mode again to work around umask.
 		require.NoError(t, os.Chmod(src, mode))
 		srcStat, err := os.Stat(src)
@@ -582,7 +582,7 @@ func TestCopyFile(t *testing.T) {
 		dstStat, err := os.Stat(dst)
 		require.NoError(t, err)
 		require.Equal(t, srcStat.Mode(), dstStat.Mode())
-		resultContents, err := ioutil.ReadFile(dst)
+		resultContents, err := os.ReadFile(dst)
 		require.NoError(t, err)
 		require.Equal(t, contents, resultContents)
 	}

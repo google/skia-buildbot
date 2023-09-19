@@ -5,7 +5,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -22,7 +21,7 @@ func main() {
 
 	generatedText := exporter.GenerateSQL(cdb.Tables{}, "cdb", exporter.SchemaAndColumnNames)
 	out := filepath.Join(cwd, "sql.go")
-	err = ioutil.WriteFile(out, []byte(generatedText), 0666)
+	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)
 	}

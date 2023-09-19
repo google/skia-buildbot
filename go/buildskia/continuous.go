@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -255,7 +255,7 @@ func (b *ContinuousBuilder) AvailableBuilds() ([]string, error) {
 		return nil, fmt.Errorf("Failed to open %s for reading: %s", GOOD_BUILDS_FILENAME, err)
 	}
 	defer util.Close(fi)
-	buf, err := ioutil.ReadAll(fi)
+	buf, err := io.ReadAll(fi)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read: %s", err)
 	}

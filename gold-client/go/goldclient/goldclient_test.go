@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -747,7 +746,7 @@ func TestNewReportPassFail(t *testing.T) {
 	// (and the digest is brand new)
 	assert.False(t, pass)
 
-	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	b, err := os.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
 	assert.Equal(t, "https://testing-gold.skia.org/detail?grouping=name%3DTestNotSeenBefore%26source_type%3Dtesting&digest=9d0568469d206c1aedf1b71f12f474bc&changelist_id=867&crs=gerrit\n", string(b))
 }
@@ -965,7 +964,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 	// Mock out RPC to automatically triage the new image as positive.
 	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		assert.NoError(t, err)
 		if len(b) == 0 {
 			// This matcher can get called a second time during AssertExpectations. This check makes sure
@@ -1097,7 +1096,7 @@ func TestNegativePassFail(t *testing.T) {
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
-	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	b, err := os.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
 	assert.Equal(t, `https://testing-gold.skia.org/detail?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dtesting&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
 https://testing-gold.skia.org/detail?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dtesting&digest=badbadbad1325855590527db196112e0&changelist_id=867&crs=gerrit
@@ -1185,7 +1184,7 @@ func TestCheckSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
-	baselineBytes, err := ioutil.ReadFile(goldClient.getResultStatePath())
+	baselineBytes, err := os.ReadFile(goldClient.getResultStatePath())
 	assert.NoError(t, err)
 	// spot check that the expectations were written to disk
 	assert.Contains(t, string(baselineBytes), imgHash)
@@ -1238,7 +1237,7 @@ func TestCheckIssue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
-	baselineBytes, err := ioutil.ReadFile(goldClient.getResultStatePath())
+	baselineBytes, err := os.ReadFile(goldClient.getResultStatePath())
 	assert.NoError(t, err)
 	// spot check that the expectations were written to disk
 	assert.Contains(t, string(baselineBytes), imgHash)
@@ -2277,7 +2276,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 	assert.NoError(t, err)
 
 	// Write cached digest to disk.
-	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
+	err = os.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
 	assert.NoError(t, err)
 
 	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(ctx, digest)
@@ -2305,7 +2304,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk
 	assert.NoError(t, err)
 
 	// Write cached digest to disk.
-	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
+	err = os.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
 	assert.NoError(t, err)
 
 	_, _, err = goldClient.getDigestFromCacheOrGCS(ctx, digest)
@@ -2382,7 +2381,7 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	url := "https://testing-gold.skia.org/json/v2/triage"
 	contentType := "application/json"
 	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		assert.NoError(t, err)
 		if len(b) == 0 {
 			// This matcher can get called a second time during AssertExpectations. This check makes sure
@@ -2432,7 +2431,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	url := "https://testing-gold.skia.org/json/v2/triage"
 	contentType := "application/json"
 	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		assert.NoError(t, err)
 		if len(b) == 0 {
 			// This matcher can get called a second time during AssertExpectations. This check makes sure

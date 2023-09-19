@@ -2,7 +2,7 @@ package progress
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"testing"
 	"time"
 
@@ -109,7 +109,7 @@ func TestProgressTrackingClient(t *testing.T) {
 	check(0)
 	resp, err := client.Get("fake-get")
 	require.NoError(t, err)
-	actualRespBytes, err := ioutil.ReadAll(resp.Body)
+	actualRespBytes, err := io.ReadAll(resp.Body)
 	require.Equal(t, mockRespBytes, actualRespBytes)
 	check(int64(len(mockRespBytes)))
 
@@ -124,7 +124,7 @@ func TestProgressTrackingClient(t *testing.T) {
 	check(0)
 	resp, err = client.Post("fake-post", "application/json", bytes.NewReader(mockReqBytes))
 	require.NoError(t, err)
-	actualRespBytes, err = ioutil.ReadAll(resp.Body)
+	actualRespBytes, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, mockRespBytes, actualRespBytes)
 	check(int64(len(mockReqBytes)))

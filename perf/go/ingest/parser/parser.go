@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -255,7 +254,7 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 	// Read the whole content into bytes.Reader since we may take more than one
 	// pass at the data.
 	sklog.Infof("About to read.")
-	b, err := ioutil.ReadAll(file.Contents)
+	b, err := io.ReadAll(file.Contents)
 	sklog.Infof("Finished readall.")
 	if err != nil {
 		p.parseFailCounter.Inc(1)
@@ -302,7 +301,7 @@ func (p *Parser) ParseTryBot(file file.File) (types.CL, string, error) {
 
 	// Read the whole content into bytes.Reader since we may take more than one
 	// pass at the data.
-	b, err := ioutil.ReadAll(file.Contents)
+	b, err := io.ReadAll(file.Contents)
 	if err != nil {
 		p.parseFailCounter.Inc(1)
 		return "", "", skerr.Wrap(err)

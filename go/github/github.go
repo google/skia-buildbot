@@ -18,7 +18,7 @@ package github
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -512,7 +512,7 @@ func (g *GitHub) ReadRawFile(branch, filePath string) (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("Unexpected status code %d from %s", resp.StatusCode, githubContentURL)
 	}
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("Could not read from %s: %s", githubContentURL, err)
 	}

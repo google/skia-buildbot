@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -72,7 +71,7 @@ func main() {
 	assetsStr := strings.Join(schemaLines, "")
 	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr, schema.TaskNameSep))
 	targetFile := path.Join(pkgDir, TARGET_FILE)
-	if err := ioutil.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
+	if err := os.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
 	if _, err := exec.RunCwd(context.Background(), ".", "gofmt", "-s", "-w", targetFile); err != nil {

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -164,7 +164,7 @@ func NewServer(topic *pubsub.Topic) *Server {
 func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 	liveness.Reset()
 	var incomingAlerts []Alert
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read JSON.", http.StatusInternalServerError)
 		return

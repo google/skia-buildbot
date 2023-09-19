@@ -3,7 +3,7 @@ package git_checkout
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +46,7 @@ func NewForTest(t *testing.T) (context.Context, *testutils.GitBuilder, []string,
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(7*time.Minute)))
 
 	// Get tmp dir to use for repo checkout.
-	tmpDir, err := ioutil.TempDir("", "git")
+	tmpDir, err := os.MkdirTemp("", "git")
 	require.NoError(t, err)
 
 	// Create the cleanup function.
@@ -73,7 +73,7 @@ Joe Gregorio <joe@bitworking.org>
 Change #9
 1584837783`)
 
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Equal(t, provider.Commit{
 			CommitNumber: types.BadCommitNumber,
 			GitHash:      "6079a7810530025d9877916895dd14eb8bb454c0",
@@ -92,7 +92,7 @@ Joe Gregorio <joe@bitworking.org>
 Change #9
 1584837783`)
 
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		return fmt.Errorf("This is an error.")
 	})
 	assert.Contains(t, err.Error(), "This is an error.")
@@ -110,7 +110,7 @@ Change #8
 1584837780`)
 	count := 0
 	hashes := []string{"6079a7810530025d9877916895dd14eb8bb454c0", "977e0ef44bec17659faf8c5d4025c5a068354817"}
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Equal(t, "Joe Gregorio <joe@bitworking.org>", p.Author)
 		assert.Equal(t, hashes[count], p.GitHash)
 		count++
@@ -122,7 +122,7 @@ Change #8
 
 func TestParseGitRevLogStream_EmptyFile_Success(t *testing.T) {
 	r := strings.NewReader("")
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})
@@ -134,7 +134,7 @@ func TestParseGitRevLogStream_ErrMissingTimestamp(t *testing.T) {
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>
 Change #9`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})
@@ -147,7 +147,7 @@ func TestParseGitRevLogStream_ErrFailedToParseTimestamp(t *testing.T) {
 Joe Gregorio <joe@bitworking.org>
 Change #9
 ooops 1584837780`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})
@@ -158,7 +158,7 @@ func TestParseGitRevLogStream_ErrMissingSubject(t *testing.T) {
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})
@@ -168,7 +168,7 @@ Joe Gregorio <joe@bitworking.org>`)
 func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})
@@ -178,7 +178,7 @@ func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
 func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
 	r := strings.NewReader(
 		`something_not_commit 6079a7810530025d9877916895dd14eb8bb454c0`)
-	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p provider.Commit) error {
+	err := parseGitRevLogStream(io.NopCloser(r), func(p provider.Commit) error {
 		assert.Fail(t, "Should never get here.")
 		return nil
 	})

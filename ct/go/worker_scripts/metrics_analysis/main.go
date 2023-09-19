@@ -11,7 +11,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -81,7 +80,7 @@ func metricsAnalysis() error {
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
 	util.MkdirAll(util.PagesetsDir, 0700)
-	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
+	tmpDir, err := os.MkdirTemp(util.PagesetsDir, "traces")
 	if err != nil {
 		return fmt.Errorf("Could not create tmpdir: %s", err)
 	}

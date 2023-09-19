@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -134,7 +133,7 @@ func (srv *Server) exampleStep(ctx context.Context) {
 		}
 		name = name[0 : len(name)-4]
 		filename := filepath.Join(dir, info.Name())
-		b, err := ioutil.ReadFile(filename)
+		b, err := os.ReadFile(filename)
 		if err != nil {
 			sklog.Warningf("Failed to load file: %q", filename)
 		}

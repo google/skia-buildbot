@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"regexp"
 	"sort"
@@ -382,7 +382,7 @@ func (s *store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to open source file for %s: %s", fiddleHash, err)
 	}
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to read source file for %s: %s", fiddleHash, err)
 	}
@@ -486,7 +486,7 @@ func (s *store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 		}
 	}
 	defer util.Close(r)
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("Unable to read the media file (%s, %s): %s", fiddleHash, string(media), err)
 	}
@@ -550,7 +550,7 @@ func (s *store) GetHashFromName(name string) (string, error) {
 		return "", fmt.Errorf("Failed to open reader for name %q: %s", name, err)
 	}
 	defer util.Close(r)
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read named file %q: %s", name, err)
 	}

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -59,7 +58,7 @@ func TestDataFilename(t sktest.TestingT, relPathParts ...string) string {
 // slice of bytes.
 func ReadFileBytes(t sktest.TestingT, filename string) []byte {
 	f := GetReader(t, filename)
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	require.NoError(t, err, "Could not read %s: %v", filename)
 	require.NoError(t, f.Close())
 	return b
@@ -91,7 +90,7 @@ func ReadJSONFile(t sktest.TestingT, filename string, dest interface{}) {
 // WriteFile writes the given contents to the given file path, reporting any
 // error.
 func WriteFile(t sktest.TestingT, filename, contents string) {
-	require.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
+	require.NoErrorf(t, os.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes. E.g.:
@@ -176,7 +175,7 @@ func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
 //
 // See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
 func SetUpFakeHomeDir(t sktest.TestingT, tempDirPattern string) {
-	fakeHome, err := ioutil.TempDir("", tempDirPattern)
+	fakeHome, err := os.MkdirTemp("", tempDirPattern)
 	require.NoError(t, err)
 	oldHome := os.Getenv("HOME")
 	require.NoError(t, os.Setenv("HOME", fakeHome))

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,7 +56,7 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
 		Negative("other-test", blankDigest).
@@ -78,7 +78,7 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	})
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
-	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	b, err := os.ReadFile(filepath.Join(workDir, "result-state.json"))
 	require.NoError(t, err)
 	resultState := string(b)
 	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
@@ -93,7 +93,7 @@ func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
 		Negative("other-test", blankDigest).
@@ -116,7 +116,7 @@ func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.
 	})
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
-	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	b, err := os.ReadFile(filepath.Join(workDir, "result-state.json"))
 	require.NoError(t, err)
 	resultState := string(b)
 	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
@@ -131,7 +131,7 @@ func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *tes
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
 		Negative("other-test", blankDigest).
@@ -157,7 +157,7 @@ func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *tes
 	})
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
-	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	b, err := os.ReadFile(filepath.Join(workDir, "result-state.json"))
 	require.NoError(t, err)
 	resultState := string(b)
 	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
@@ -172,7 +172,7 @@ func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	// Call imgtest init with the following flags. We expect it to fail because we need to provide
 	// a commit or CL info
@@ -198,7 +198,7 @@ func TestImgTest_Init_EmptyExpectationsReturned_EmitsWarning(t *testing.T) {
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").
 		Known("11111111111111111111111111111111").Build()
@@ -226,7 +226,7 @@ func TestImgTest_InitCheck_EmptyExpectationsReturned_ReturnsNonzeroExitCode(t *t
 	setupAuthWithGSUtil(t, workDir)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").
 		Known("11111111111111111111111111111111").Build()
@@ -325,7 +325,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	assert.Contains(t, logs, `Untriaged or negative image: https://my-instance-gold.skia.org/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000`)
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 
-	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
+	fb, err := os.ReadFile(filepath.Join(workDir, "failures.txt"))
 	require.NoError(t, err)
 	assert.Contains(t, string(fb), "https://my-instance-gold.skia.org/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000")
 }
@@ -455,7 +455,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 	assert.Contains(t, logs, `Untriaged or negative image: https://my-custom-gold-url.example.com/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000`)
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 
-	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
+	fb, err := os.ReadFile(filepath.Join(workDir, "failures.txt"))
 	require.NoError(t, err)
 	assert.Contains(t, string(fb), "https://my-custom-gold-url.example.com/detail?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus&digest=00000000000000000000000000000000")
 }
@@ -628,7 +628,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	td := testutils.TestDataDir(t)
 
 	keysFile := filepath.Join(workDir, "keys.json")
-	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+	require.NoError(t, os.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
@@ -882,7 +882,7 @@ func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
 			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
 		}).Build()
 
-	a01Bytes, err := ioutil.ReadFile(filepath.Join(td, a01Digest+".png"))
+	a01Bytes, err := os.ReadFile(filepath.Join(td, a01Digest+".png"))
 	require.NoError(t, err)
 	mi := &mocks.ImageDownloader{}
 	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a01Digest)).Return(a01Bytes, nil)
@@ -920,7 +920,7 @@ func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
 			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
 		}).BuildForCL("gerritHub", "cl_1234")
 
-	a01Bytes, err := ioutil.ReadFile(filepath.Join(td, a01Digest+".png"))
+	a01Bytes, err := os.ReadFile(filepath.Join(td, a01Digest+".png"))
 	require.NoError(t, err)
 	mi := &mocks.ImageDownloader{}
 	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a01Digest)).Return(a01Bytes, nil)
@@ -1086,13 +1086,13 @@ func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
 	require.NoError(t, err)
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, "", string(b))
 
 	resp, err = mh.Get("https://my-instance-gold.skia.org/json/v2/expectations")
 	require.NoError(t, err)
-	b, err = ioutil.ReadAll(resp.Body)
+	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{}`, string(b))
 }
@@ -1109,7 +1109,7 @@ func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
 		Build()
 	resp, err := mh.Get("http://my-custom-url.example.com/json/v1/hashes")
 	require.NoError(t, err)
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `first_digest
 second_digest
@@ -1119,7 +1119,7 @@ fifth_digest`, string(b))
 
 	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/expectations")
 	require.NoError(t, err)
-	b, err = ioutil.ReadAll(resp.Body)
+	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{"primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
 
@@ -1128,7 +1128,7 @@ fifth_digest`, string(b))
 	require.Equal(t, expectedTraceID, hex.EncodeToString(tb))
 	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/latestpositivedigest/" + expectedTraceID)
 	require.NoError(t, err)
-	b, err = ioutil.ReadAll(resp.Body)
+	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{"digest":"third_digest"}`, string(b))
 }

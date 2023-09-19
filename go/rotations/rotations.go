@@ -6,7 +6,7 @@ package rotations
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 
@@ -30,7 +30,7 @@ func FromURL(c *http.Client, url string) ([]string, error) {
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

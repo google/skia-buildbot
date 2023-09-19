@@ -2,7 +2,6 @@ package rbe
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -54,7 +53,7 @@ func readTree(t *testing.T, dir string) map[string]*node {
 			isExecutable: info.Mode()&0111 != 0,
 		}
 		if !info.IsDir() {
-			contents, err := ioutil.ReadFile(path)
+			contents, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -79,13 +78,13 @@ func AssertTreesEqual(t *testing.T, a, b string) {
 // which adds files and directories, then uploads and downloads, asserting that
 // the resulting directory is identical.
 func testUploadDownload(ctx context.Context, t *testing.T, client *Client, work func(string)) {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	work(wd)
 	digest, err := client.Upload(ctx, wd, []string{"."}, nil)
 	require.NoError(t, err)
-	dest, err := ioutil.TempDir("", "")
+	dest, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, dest)
 	require.NoError(t, client.Download(ctx, dest, digest))
@@ -105,7 +104,7 @@ func f(t *testing.T, wd, name, contents string, executable bool) {
 	if executable {
 		mode |= 0111
 	}
-	require.NoError(t, ioutil.WriteFile(filepath.Join(wd, name), []byte(contents), mode))
+	require.NoError(t, os.WriteFile(filepath.Join(wd, name), []byte(contents), mode))
 }
 
 func TestUploadDownload(t *testing.T) {
@@ -154,7 +153,7 @@ func TestMerge(t *testing.T) {
 
 	// upload is a helper function for creating and uploading a directory tree.
 	upload := func(work func(string)) (string, map[string]*node) {
-		wd, err := ioutil.TempDir("", "")
+		wd, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer testutils.RemoveAll(t, wd)
 		work(wd)
@@ -184,7 +183,7 @@ func TestMerge(t *testing.T) {
 	// Merge the digests.
 	mergeDigest, err := client.Merge(ctx, []string{digest1, digest2})
 	require.NoError(t, err)
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	require.NoError(t, client.Download(ctx, wd, mergeDigest))
@@ -212,7 +211,7 @@ func TestMerge(t *testing.T) {
 func TestUpload_Exclude(t *testing.T) {
 	ctx, client := setup(t)
 
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
@@ -221,7 +220,7 @@ func TestUpload_Exclude(t *testing.T) {
 
 	digest, err := client.Upload(ctx, wd, []string{"."}, []string{".*ipm.*"})
 	require.NoError(t, err)
-	dest, err := ioutil.TempDir("", "")
+	dest, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, dest)
 	require.NoError(t, client.Download(ctx, dest, digest))
@@ -239,7 +238,7 @@ func TestUpload_Exclude(t *testing.T) {
 	f(t, wd, "fake.git", "blahblah", false)
 	digest, err = client.Upload(ctx, wd, []string{"."}, []string{".*ipm.*", ExcludeGitDir})
 	require.NoError(t, err)
-	dest, err = ioutil.TempDir("", "")
+	dest, err = os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, dest)
 	require.NoError(t, client.Download(ctx, dest, digest))

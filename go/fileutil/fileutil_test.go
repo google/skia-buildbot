@@ -1,7 +1,6 @@
 package fileutil
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,14 +43,14 @@ func TestCountLines(t *testing.T) {
 func TestReadAllFilesRecursive(t *testing.T) {
 
 	test := func(write, expect map[string]string, excludeDirs []string) {
-		wd, err := ioutil.TempDir("", "")
+		wd, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		for k, v := range write {
 			dir := filepath.Dir(k)
 			if dir != "" {
 				require.NoError(t, os.MkdirAll(filepath.Join(wd, dir), os.ModePerm))
 			}
-			require.NoError(t, ioutil.WriteFile(filepath.Join(wd, k), []byte(v), os.ModePerm))
+			require.NoError(t, os.WriteFile(filepath.Join(wd, k), []byte(v), os.ModePerm))
 		}
 		actual, err := ReadAllFilesRecursive(wd, excludeDirs)
 		require.NoError(t, err)

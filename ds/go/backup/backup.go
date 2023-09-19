@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -98,7 +98,7 @@ func Step(client *http.Client, project, bucket string) error {
 		} else {
 			sklog.Infof("Successfully started backup: %s-%v", ns, kinds)
 		}
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			sklog.Errorf("Failed to read response: %s-%v: %s", ns, kinds, err)
 			success = false

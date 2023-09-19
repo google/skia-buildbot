@@ -3,7 +3,7 @@ package parent
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +39,7 @@ func TestReadFile(t *testing.T) {
 	ctx, gb := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
@@ -64,7 +64,7 @@ func TestWriteReadFile(t *testing.T) {
 	ctx, gb := setup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 

@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -331,7 +330,7 @@ func (c *Client) Create(ctx context.Context, name, dir string, installMode pkg.I
 	}
 
 	// Create the package file.
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	if err != nil {
 		return common.Pin{}, skerr.Wrap(err)
 	}

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -96,7 +95,7 @@ func TestSquashWriters(t *testing.T) {
 
 func TestBasic(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
@@ -111,7 +110,7 @@ func TestBasic(t *testing.T) {
 
 func TestEnv(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
@@ -133,7 +132,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestInheritPath(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
@@ -147,7 +146,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
 		InheritPath: true,
 	}))
-	contents, err := ioutil.ReadFile(file)
+	contents, err := os.ReadFile(file)
 	require.NoError(t, err)
 	// Python may append site_packages dir to PATH.
 	expect.True(t, strings.Contains(strings.TrimSpace(string(contents)), os.Getenv("PATH")))
@@ -155,7 +154,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestInheritEnv(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
@@ -174,7 +173,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 		InheritPath: false,
 		InheritEnv:  true,
 	}))
-	contents, err := ioutil.ReadFile(file)
+	contents, err := os.ReadFile(file)
 	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
 	require.Equal(t, 4, len(lines))
@@ -187,10 +186,10 @@ with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
 
 func TestDir(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir1, err := ioutil.TempDir("", "exec_test1")
+	dir1, err := os.MkdirTemp("", "exec_test1")
 	require.NoError(t, err)
 	defer RemoveAll(dir1)
-	dir2, err := ioutil.TempDir("", "exec_test2")
+	dir2, err := os.MkdirTemp("", "exec_test2")
 	require.NoError(t, err)
 	defer RemoveAll(dir2)
 	require.NoError(t, Run(context.Background(), &Command{
@@ -218,7 +217,7 @@ func TestSimpleIO(t *testing.T) {
 
 func TestError(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	output := bytes.Buffer{}
@@ -241,7 +240,7 @@ sys.exit(123)
 
 func TestCombinedOutput(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	combined := bytes.Buffer{}
@@ -281,7 +280,7 @@ func TestNilIO(t *testing.T) {
 
 func TestTimeoutNotReached(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	require.NoError(t, Run(context.Background(), &Command{
@@ -302,7 +301,7 @@ with open('ran', 'w') as f:
 
 func TestTimeoutExceeded(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	err = Run(context.Background(), &Command{
@@ -330,7 +329,7 @@ func TestInjection(t *testing.T) {
 		return nil
 	})
 
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
@@ -356,7 +355,7 @@ func TestRunSimple(t *testing.T) {
 
 func TestRunCwd(t *testing.T) {
 	unittest.BazelOnlyTest(t) // Uses the Bazel-downloaded python3 binary.
-	dir, err := ioutil.TempDir("", "exec_test")
+	dir, err := os.MkdirTemp("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	output, err := RunCwd(context.Background(), dir, findPython3(t), "-u", "-c", "import os; print(os.getcwd())")
@@ -394,7 +393,7 @@ func TestCommandCollector(t *testing.T) {
 	commands = mock.Commands()
 	require.Len(t, commands, 1)
 	expect.Equal(t, "grep -e ^ba", DebugString(commands[0]))
-	actualInput, err := ioutil.ReadAll(commands[0].Stdin)
+	actualInput, err := io.ReadAll(commands[0].Stdin)
 	require.NoError(t, err)
 	expect.Equal(t, inputString, string(actualInput))
 	expect.Equal(t, &output, commands[0].Stdout)

@@ -3,7 +3,6 @@ package docset
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -344,7 +343,7 @@ func TestFileSystem_IssueIsUpdated_NewFilesAreUpdated(t *testing.T) {
 	// Note that the old _index.md was removed and re-symlinked successfully.
 	require.FileExists(t, filepath.Join(src, "_index.md"))
 	// And we have written over an old file.
-	b, err := ioutil.ReadFile(filepath.Join(src, "users.md"))
+	b, err := os.ReadFile(filepath.Join(src, "users.md"))
 	require.NoError(t, err)
 	require.Equal(t, contents, string(b))
 }

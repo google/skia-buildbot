@@ -54,7 +54,7 @@ func TestReadFile(t *testing.T) {
 	fs.On("Open", ctx, name).Return(f, nil)
 	contents := []uint8("hello world")
 	// Note: this only works because our input is smaller than the buffer size
-	// used by ioutil.ReadAll.
+	// used by io.ReadAll.
 	f.On("Read", ctx, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
 		arg := args.Get(1).([]uint8)
 		copy(arg, contents)

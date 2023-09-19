@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -38,7 +37,7 @@ func main() {
 	}
 	comments := []*extract.GM{}
 	for _, filename := range matches {
-		b, err := ioutil.ReadFile(filename)
+		b, err := os.ReadFile(filename)
 		if err != nil {
 			sklog.Warningf("Failed to read file %s: %s", filename, err)
 		}

@@ -3,7 +3,7 @@
 package test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -23,7 +23,7 @@ func TestRunfilesDir_UsedToLocateAKnownRunfile_Success(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
 	runfile := filepath.Join(bazel.RunfilesDir(), "bazel/go/bazel/test/testdata/hello.txt")
-	bytes, err := ioutil.ReadFile(runfile)
+	bytes, err := os.ReadFile(runfile)
 	require.NoError(t, err)
 	require.Equal(t, "Hello, world!", strings.TrimSpace(string(bytes)))
 }

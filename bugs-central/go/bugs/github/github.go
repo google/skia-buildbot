@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -90,7 +90,7 @@ type GithubQueryConfig struct {
 
 // New returns an instance of the github implementation of bugs.BugFramework.
 func New(ctx context.Context, repoOwner, repoName, credPath string, openIssues *bugs.OpenIssues, queryConfig *GithubQueryConfig) (bugs.BugFramework, error) {
-	gBody, err := ioutil.ReadFile(credPath)
+	gBody, err := os.ReadFile(credPath)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not find githubToken in %s", credPath)
 	}

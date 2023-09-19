@@ -3,7 +3,7 @@ package git
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -33,7 +33,7 @@ func TestRepo(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -68,7 +68,7 @@ func TestRepo(t *testing.T) {
 
 	// Verify that we can create a Checkout from the Repo. No need to test
 	// the Checkout since that struct has its own tests.
-	tmp2, err := ioutil.TempDir("", "")
+	tmp2, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
 	_, err = r.Checkout(ctx, tmp2)

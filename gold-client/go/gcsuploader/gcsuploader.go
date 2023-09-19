@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -51,7 +51,7 @@ func (g *GsutilImpl) UploadJSON(ctx context.Context, data interface{}, tempFileN
 		return skerr.Wrapf(err, "could not marshal to JSON before uploading")
 	}
 
-	if err := ioutil.WriteFile(tempFileName, jsonBytes, 0644); err != nil {
+	if err := os.WriteFile(tempFileName, jsonBytes, 0644); err != nil {
 		return skerr.Wrapf(err, "saving json to %s", tempFileName)
 	}
 
@@ -121,7 +121,7 @@ func (h *clientImpl) UploadBytes(ctx context.Context, data []byte, fallbackSrc, 
 		}
 
 		var err error
-		data, err = ioutil.ReadFile(fallbackSrc)
+		data, err = os.ReadFile(fallbackSrc)
 		if err != nil {
 			return skerr.Wrapf(err, "reading file %s", fallbackSrc)
 		}

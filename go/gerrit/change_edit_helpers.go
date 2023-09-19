@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -148,7 +148,7 @@ func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, bra
 	changes := make(map[string]string, len(diffSplit))
 	for _, diffLine := range diffSplit {
 		if diffLine != "" {
-			contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), diffLine))
+			contents, err := os.ReadFile(filepath.Join(co.Dir(), diffLine))
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}

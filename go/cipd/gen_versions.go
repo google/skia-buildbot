@@ -55,7 +55,7 @@ func main() {
 	}
 	for _, e := range entries {
 		if e.IsDir() {
-			contents, err := ioutil.ReadFile(path.Join(assetsDir, e.Name(), "VERSION"))
+			contents, err := os.ReadFile(path.Join(assetsDir, e.Name(), "VERSION"))
 			if err == nil {
 				name := e.Name()
 				fullName := fmt.Sprintf("skia/bots/%s", name)

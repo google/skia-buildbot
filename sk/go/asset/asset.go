@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	os_exec "os/exec"
@@ -253,7 +252,7 @@ func cmdAdd(ctx context.Context, name string) error {
 
 	// Write the initial (empty) version file.
 	versionFile := filepath.Join(assetDir, versionFileBaseName)
-	if err := ioutil.WriteFile(versionFile, []byte{}, os.ModePerm); err != nil {
+	if err := os.WriteFile(versionFile, []byte{}, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -266,7 +265,7 @@ func cmdAdd(ctx context.Context, name string) error {
 	read = strings.TrimSpace(read)
 	if read == "y" {
 		creationScript := filepath.Join(assetDir, creationScriptBaseName)
-		if err := ioutil.WriteFile(creationScript, []byte(creationScriptInitialContents), os.ModePerm); err != nil {
+		if err := os.WriteFile(creationScript, []byte(creationScriptInitialContents), os.ModePerm); err != nil {
 			return skerr.Wrap(err)
 		}
 		fmt.Println(fmt.Sprintf("Created %s; you will need to add implementation before uploading the asset.", creationScript))
@@ -376,7 +375,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		if src != "" {
 			return skerr.Fmt("Target directory is not supplied when using a creation script.")
 		}
-		src, err = ioutil.TempDir("", "")
+		src, err = os.MkdirTemp("", "")
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -537,7 +536,7 @@ func getVersion(name string) (int, error) {
 	if err != nil {
 		return -1, skerr.Wrap(err)
 	}
-	b, err := ioutil.ReadFile(versionFile)
+	b, err := os.ReadFile(versionFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return -1, skerr.Wrapf(err, "unknown asset %q", name)
@@ -557,7 +556,7 @@ func setVersion(name string, version int) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := ioutil.WriteFile(versionFile, []byte(strconv.Itoa(version)), os.ModePerm); err != nil {
+	if err := os.WriteFile(versionFile, []byte(strconv.Itoa(version)), os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil

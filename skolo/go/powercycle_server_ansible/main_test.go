@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -204,7 +204,7 @@ func TestBuildPowerCycleControllerCallback_SuccessfulSend_JSONEncodedUpdatePower
 		},
 	}
 	u, called, client := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
-		actual, err := ioutil.ReadAll(r.Body)
+		actual, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		expected, err := json.Marshal(body)
 		require.NoError(t, err)

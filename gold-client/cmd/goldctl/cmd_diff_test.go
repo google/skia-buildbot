@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -29,9 +29,9 @@ func TestDiff_LegacyTestParamUsed_Success(t *testing.T) {
 	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/digests?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
 		httpResponse(string(j), "200 OK", http.StatusOK), nil)
 
-	a05Bytes, err := ioutil.ReadFile(filepath.Join(td, a05Digest+".png"))
+	a05Bytes, err := os.ReadFile(filepath.Join(td, a05Digest+".png"))
 	require.NoError(t, err)
-	a09Bytes, err := ioutil.ReadFile(filepath.Join(td, a09Digest+".png"))
+	a09Bytes, err := os.ReadFile(filepath.Join(td, a09Digest+".png"))
 	require.NoError(t, err)
 	mi := &mocks.ImageDownloader{}
 	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a05Digest)).Return(a05Bytes, nil)
@@ -70,9 +70,9 @@ func TestDiff_GroupingParamUsed_Success(t *testing.T) {
 	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/digests?grouping=color_config%3DRGBA8888%26name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
 		httpResponse(string(j), "200 OK", http.StatusOK), nil)
 
-	a05Bytes, err := ioutil.ReadFile(filepath.Join(td, a05Digest+".png"))
+	a05Bytes, err := os.ReadFile(filepath.Join(td, a05Digest+".png"))
 	require.NoError(t, err)
-	a09Bytes, err := ioutil.ReadFile(filepath.Join(td, a09Digest+".png"))
+	a09Bytes, err := os.ReadFile(filepath.Join(td, a09Digest+".png"))
 	require.NoError(t, err)
 	mi := &mocks.ImageDownloader{}
 	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a05Digest)).Return(a05Bytes, nil)

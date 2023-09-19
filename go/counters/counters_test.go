@@ -3,7 +3,7 @@ package counters
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -91,7 +91,7 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 		timeNowFunc = time.Now
 	}()
 
-	w, err := ioutil.TempDir("", "")
+	w, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, w)
 

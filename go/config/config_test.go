@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -93,7 +92,7 @@ func TestParseConfigFileDoesntExist(t *testing.T) {
 func TestParseConfigFileInvalid(t *testing.T) {
 	dir := t.TempDir()
 	configFile := filepath.Join(dir, "invalid.json5")
-	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
+	require.NoError(t, os.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "", &parsed)
 	require.Error(t, err)

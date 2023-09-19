@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -214,7 +213,7 @@ func TestForceHTTPS(t *testing.T) {
 	h.ServeHTTP(w, r)
 	require.Equal(t, 200, w.Result().StatusCode)
 	require.Equal(t, "", w.Result().Header.Get("Location"))
-	b, err := ioutil.ReadAll(w.Result().Body)
+	b, err := io.ReadAll(w.Result().Body)
 	require.NoError(t, err)
 	require.Len(t, b, 12)
 
@@ -232,7 +231,7 @@ func TestForceHTTPS(t *testing.T) {
 	h.ServeHTTP(w, r)
 	require.Equal(t, 200, w.Result().StatusCode)
 	require.Equal(t, "", w.Result().Header.Get("Location"))
-	b, err = ioutil.ReadAll(w.Result().Body)
+	b, err = io.ReadAll(w.Result().Body)
 	require.NoError(t, err)
 	require.Len(t, b, 0)
 }
@@ -246,7 +245,7 @@ func TestGetWithContextSunnyDay(t *testing.T) {
 
 	r, err := GetWithContext(context.Background(), m.Client(), "https://example.com/foo")
 	require.NoError(t, err)
-	msg, err := ioutil.ReadAll(r.Body)
+	msg, err := io.ReadAll(r.Body)
 	require.NoError(t, err)
 	assert.Equal(t, content, msg)
 	require.NoError(t, r.Body.Close())
@@ -272,7 +271,7 @@ func TestPostWithContextSunnyDay(t *testing.T) {
 
 	r, err := PostWithContext(context.Background(), m.Client(), "https://example.com/foo", mimeType, strings.NewReader(input))
 	require.NoError(t, err)
-	msg, err := ioutil.ReadAll(r.Body)
+	msg, err := io.ReadAll(r.Body)
 	require.NoError(t, err)
 	assert.Equal(t, output, msg)
 	require.NoError(t, r.Body.Close())

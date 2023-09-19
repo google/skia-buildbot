@@ -3,7 +3,6 @@ package testutils
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -28,7 +27,7 @@ type GitBuilder struct {
 
 // GitInit calls GitInitWithDefaultBranch with MainBranch.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	return GitInitWithDir(t, ctx, tmp, git_common.MainBranch)
@@ -38,7 +37,7 @@ func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 // specified default branch and returns a GitBuilder to manage it. Call Cleanup to
 // remove the temporary directory. The current branch will be the main branch.
 func GitInitWithDefaultBranch(t sktest.TestingT, ctx context.Context, defaultBranch string) *GitBuilder {
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	return GitInitWithDir(t, ctx, tmp, defaultBranch)
@@ -119,7 +118,7 @@ func (g *GitBuilder) write(filepath, contents string) {
 	if dir != "" {
 		require.NoError(g.t, os.MkdirAll(dir, os.ModePerm))
 	}
-	require.NoError(g.t, ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm))
+	require.NoError(g.t, os.WriteFile(fullPath, []byte(contents), os.ModePerm))
 }
 
 func (g *GitBuilder) push(ctx context.Context) {

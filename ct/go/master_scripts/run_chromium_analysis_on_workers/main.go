@@ -8,7 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -122,7 +121,7 @@ func runChromiumAnalysisOnWorkers() error {
 		// missing newlines.
 		patch = patch + "\n"
 		patchPath := filepath.Join(os.TempDir(), *runID+fileSuffix)
-		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+		if err := os.WriteFile(patchPath, []byte(patch), 0666); err != nil {
 			return fmt.Errorf("Could not write patch %s to %s: %s", patch, patchPath, err)
 		}
 		defer skutil.Remove(patchPath)

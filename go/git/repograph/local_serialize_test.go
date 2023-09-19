@@ -3,7 +3,7 @@ package repograph
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,7 @@ func TestSerializeLocalRepo(t *testing.T) {
 	g := git_testutils.GitInit(t, ctx)
 	defer g.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

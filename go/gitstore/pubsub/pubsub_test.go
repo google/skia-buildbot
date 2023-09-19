@@ -2,7 +2,7 @@ package pubsub
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -104,7 +104,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	gd := git.GitDir(gb.Dir())
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	graph, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)

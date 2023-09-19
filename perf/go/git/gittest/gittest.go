@@ -3,7 +3,6 @@ package gittest
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -74,7 +73,7 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 	db := sqltest.NewCockroachDBForTests(t, "dbgit")
 
 	// Get tmp dir to use for repo checkout.
-	tmpDir, err := ioutil.TempDir("", "git")
+	tmpDir, err := os.MkdirTemp("", "git_repo")
 	require.NoError(t, err)
 
 	// Create the cleanup function.

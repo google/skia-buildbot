@@ -3,7 +3,7 @@ package alertclient
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -19,7 +19,7 @@ func TestSunnyDayGetAlerts(t *testing.T) {
 	mockResponse := http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(INCIDENTS_RESPONSE)),
+		Body:       io.NopCloser(bytes.NewBufferString(INCIDENTS_RESPONSE)),
 	}
 	mc.On("Get", "http://alert-manager:9000/_/incidents").Return(&mockResponse, nil)
 
@@ -45,7 +45,7 @@ func TestSunnyDayGetSileces(t *testing.T) {
 	mockResponse := http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(SILENCES_RESPONSE)),
+		Body:       io.NopCloser(bytes.NewBufferString(SILENCES_RESPONSE)),
 	}
 	mc.On("Get", "http://alert-manager:9000/_/silences").Return(&mockResponse, nil)
 

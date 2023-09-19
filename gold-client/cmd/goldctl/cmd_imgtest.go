@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -377,7 +376,7 @@ func readKeyValuePairsFromFileOrStringSlice(ctx context.Context, filename string
 	retval := map[string]string{}
 
 	if filename != "" {
-		jsonBytes, err := ioutil.ReadFile(filename)
+		jsonBytes, err := os.ReadFile(filename)
 		if err != nil {
 			logErrf(ctx, "Could not read file %s: %s", filename, err)
 			exitProcess(ctx, 1)

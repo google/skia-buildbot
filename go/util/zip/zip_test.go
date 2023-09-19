@@ -1,7 +1,6 @@
 package zip
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,7 +10,7 @@ import (
 )
 
 func createFile(dir, prefix, content string, t *testing.T) string {
-	f, err := ioutil.TempFile(dir, prefix)
+	f, err := os.CreateTemp(dir, prefix)
 	require.NoError(t, err)
 	_, err = f.WriteString(content)
 	require.NoError(t, err)
@@ -20,7 +19,7 @@ func createFile(dir, prefix, content string, t *testing.T) string {
 }
 
 func assertFileExists(dir, path, content string, t *testing.T) {
-	c, err := ioutil.ReadFile(filepath.Join(dir, filepath.Base(path)))
+	c, err := os.ReadFile(filepath.Join(dir, filepath.Base(path)))
 	require.NoError(t, err)
 	require.Equal(t, content, string(c))
 }
@@ -28,7 +27,7 @@ func assertFileExists(dir, path, content string, t *testing.T) {
 func TestZipE2E(t *testing.T) {
 
 	// Create a directory in temp.
-	targetDir, err := ioutil.TempDir("", "zip_test")
+	targetDir, err := os.MkdirTemp("", "zip_test")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, targetDir)
 
@@ -37,16 +36,16 @@ func TestZipE2E(t *testing.T) {
 	f1 := createFile(targetDir, "temp1", "testing1", t)
 	f2 := createFile(targetDir, "temp2", "testing2", t)
 	// Create subdir.
-	subDir, err := ioutil.TempDir(targetDir, "zip_test")
+	subDir, err := os.MkdirTemp(targetDir, "zip_test")
 	require.NoError(t, err)
 	// Create one file in subdir.
 	f3 := createFile(subDir, "temp3", "testing3", t)
 	// Create an empty subdir.
-	emptySubDir, err := ioutil.TempDir(targetDir, "zip_test")
+	emptySubDir, err := os.MkdirTemp(targetDir, "zip_test")
 	require.NoError(t, err)
 
 	// Zip the directory.
-	outputDir, err := ioutil.TempDir("", "zip_location")
+	outputDir, err := os.MkdirTemp("", "zip_location")
 	defer testutils.RemoveAll(t, outputDir)
 	zipPath := filepath.Join(outputDir, "test.zip")
 	err = Directory(zipPath, targetDir)

@@ -2,7 +2,7 @@ package events
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -13,7 +13,7 @@ import (
 
 func TestAggregateMetric(t *testing.T) {
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -49,7 +49,7 @@ func TestAggregateMetric(t *testing.T) {
 
 func TestDynamicMetric(t *testing.T) {
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

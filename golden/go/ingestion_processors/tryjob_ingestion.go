@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -188,7 +188,7 @@ func codeReviewSystemFactory(ctx context.Context, crsName string, configParams m
 		if strings.TrimSpace(githubCredPath) == "" {
 			return nil, skerr.Fmt("missing credentials path for the GitHub code review system")
 		}
-		gBody, err := ioutil.ReadFile(githubCredPath)
+		gBody, err := os.ReadFile(githubCredPath)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "reading githubToken in %s", githubCredPath)
 		}

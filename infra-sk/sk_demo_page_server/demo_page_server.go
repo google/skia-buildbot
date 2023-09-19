@@ -5,7 +5,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -97,13 +96,13 @@ func main() {
 	if testOnEnv {
 		// First, we write out the TCP port number. This will be read by the test target.
 		envPortFile := path.Join(envDir, envPortFileBaseName)
-		err = ioutil.WriteFile(envPortFile, []byte(strconv.Itoa(actualPort)), 0644)
+		err = os.WriteFile(envPortFile, []byte(strconv.Itoa(actualPort)), 0644)
 		if err != nil {
 			panic(err)
 		}
 
 		// Then, we write the ready file. This signals the test_on_env runner script that we are ready.
-		err = ioutil.WriteFile(envReadyFile, []byte{}, 0644)
+		err = os.WriteFile(envReadyFile, []byte{}, 0644)
 		if err != nil {
 			panic(err)
 		}

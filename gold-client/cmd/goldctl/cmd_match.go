@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -103,7 +103,7 @@ func (m *matchEnv) Match(ctx context.Context, leftFile, rightFile string) {
 // loadPng loads a PNG image from disk.
 func loadPng(fileName string) (image.Image, error) {
 	// Load the image and save the bytes because we need to return them.
-	imgBytes, err := ioutil.ReadFile(fileName)
+	imgBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading file %s", fileName)
 	}
@@ -165,7 +165,7 @@ func printOutSampleAreaDebugInfo(ctx context.Context, matcher *sample_area.Match
 // temporary directory and prints out the resulting paths. It also prints out the stats reported by
 // the embedded fuzzy.Matcher.
 func printOutSobelDebugInfo(ctx context.Context, matcher *sobel.Matcher) error {
-	tempDir, err := ioutil.TempDir("", "goldctl-*")
+	tempDir, err := os.MkdirTemp("", "goldctl-*")
 	if err != nil {
 		return skerr.Wrap(err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -120,7 +119,7 @@ func main() {
 		}
 
 		// Copy the script to the workdir.
-		casRoot, err := ioutil.TempDir(*workdir, "run_on_swarming_bots")
+		casRoot, err := os.MkdirTemp(*workdir, "run_on_swarming_bots")
 		if err != nil {
 			sklog.Fatal(err)
 		}

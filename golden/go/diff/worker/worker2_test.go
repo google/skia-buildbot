@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -210,9 +210,9 @@ func TestWorkerImpl_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
 	// Set up an image source that can download A01 and A02, but returns error on A04
-	b01, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
+	b01, err := os.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
 	require.NoError(t, err)
-	b02, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
+	b02, err := os.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
 	require.NoError(t, err)
 	mis := &mocks.ImageSource{}
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA01Pos).Return(b01, nil)
@@ -261,9 +261,9 @@ func TestWorkerImpl_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	waitForSystemTime()
 
 	// Set up an image source that can download A01 and A02, but invalid PNG data for A04
-	b01, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
+	b01, err := os.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
 	require.NoError(t, err)
-	b02, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
+	b02, err := os.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
 	require.NoError(t, err)
 	mis := &mocks.ImageSource{}
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA01Pos).Return(b01, nil)
@@ -439,7 +439,7 @@ type fsImageSource struct {
 
 func (f fsImageSource) GetImage(_ context.Context, digest types.Digest) ([]byte, error) {
 	p := filepath.Join(f.root, string(digest)+".png")
-	return ioutil.ReadFile(p)
+	return os.ReadFile(p)
 }
 
 func kitchenSinkRoot(t *testing.T) string {

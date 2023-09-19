@@ -3,7 +3,7 @@ package swarming_metrics
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -80,7 +80,7 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 func TestLoadSwarmingTasks(t *testing.T) {
 
 	ctx := context.Background()
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
@@ -159,7 +159,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 func TestMetrics(t *testing.T) {
 
 	ctx := context.Background()
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
@@ -242,7 +242,7 @@ func TestMetrics(t *testing.T) {
 func TestPerfUpload(t *testing.T) {
 
 	ctx := context.Background()
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 

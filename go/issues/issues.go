@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -156,7 +156,7 @@ func post(client *http.Client, dst string, request interface{}) error {
 		return fmt.Errorf("Failed to retrieve issue tracker response: %s", err)
 	}
 	defer util.Close(resp.Body)
-	msg, err := ioutil.ReadAll(resp.Body)
+	msg, err := io.ReadAll(resp.Body)
 	sklog.Infof("%s\n\nErr: %v", string(msg), err)
 	return nil
 }

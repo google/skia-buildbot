@@ -8,7 +8,6 @@ package main
 import (
 	"flag"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -117,7 +116,7 @@ Pass flag --bazel-only to only generate the BUILD.bazel file for the custom elem
 		if err != nil {
 			log.Fatal(err)
 		}
-		b, err := ioutil.ReadAll(file)
+		b, err := io.ReadAll(file)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
@@ -47,7 +47,7 @@ func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	}()
 	f, err := fs.Open(ctx, srcPath)
 	require.NoError(mr.t, err)
-	contents, err := ioutil.ReadAll(vfs.WithContext(ctx, f))
+	contents, err := io.ReadAll(vfs.WithContext(ctx, f))
 	require.NoError(mr.t, err)
 	st, err := f.Stat(ctx)
 	require.NoError(mr.t, err)

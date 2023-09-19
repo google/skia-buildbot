@@ -2,9 +2,9 @@ package webhook
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 
 	expect "github.com/stretchr/testify/assert"
@@ -30,7 +30,7 @@ func TestSetRequestSaltFromBase64Corrupt(t *testing.T) {
 }
 
 func TestMustInitRequestSaltFromFileSuccess(t *testing.T) {
-	f, err := ioutil.TempFile("", "webhook_test_salt")
+	f, err := os.CreateTemp("", "webhook_test_salt")
 	require.NoError(t, err)
 	defer util.Remove(f.Name())
 	_, err = f.WriteString(TEST_SALT_BASE64)

@@ -3,7 +3,7 @@ package imagedownloader
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -35,7 +35,7 @@ func (h *httpImageDownloader) DownloadImage(_ context.Context, goldURL string, d
 		return nil, skerr.Wrapf(err, "getting digest from url %s", u)
 	}
 	defer util.Close(resp.Body)
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 type DryRunImpl struct{}

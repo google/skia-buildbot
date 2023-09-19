@@ -6,7 +6,7 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -59,7 +59,7 @@ func TestCommandRepoManager(t *testing.T) {
 	// Setup.
 	// We do actually want to call git for some commands, so we need to use the git from CIPD.
 	ctx := cipd_git.UseGitFinder(context.Background())
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	urlmock := mockhttpclient.NewURLMock()

@@ -5,7 +5,7 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"path"
@@ -236,7 +236,7 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(r)
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	return b, skerr.Wrap(err)
 }
 

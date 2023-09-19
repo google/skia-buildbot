@@ -6,9 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -107,7 +107,7 @@ func (t *ServiceAccountToken) Update() error {
 // readTokenFromFile opens the file provided to the constructor and reads a token from it.
 func (t *ServiceAccountToken) readTokenFromFile() (*oauth2.Token, error) {
 	// Read the token from the file.
-	contents, err := ioutil.ReadFile(t.filename)
+	contents, err := os.ReadFile(t.filename)
 	if err != nil {
 		return nil, err
 	}

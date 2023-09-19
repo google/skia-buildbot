@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -280,7 +279,7 @@ const TestFileContents = `{
 
 func TestReadBenchmarksFromFile_ReadCanaryJSON_ReturnsParsedFile(t *testing.T) {
 	filename := filepath.Join(t.TempDir(), "file.json")
-	err := ioutil.WriteFile(filename, []byte(TestFileContents), 0644)
+	err := os.WriteFile(filename, []byte(TestFileContents), 0644)
 	require.NoError(t, err)
 	benchmarks, err := readBenchMarksFromFile(context.Background(), filename)
 	require.NoError(t, err)

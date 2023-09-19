@@ -3,7 +3,7 @@ package syncer
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -42,7 +42,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
@@ -77,7 +77,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
 
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 

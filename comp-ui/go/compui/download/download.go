@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -86,7 +86,7 @@ func unzipBodyIntoDirectory(dir string, body []byte) (string, error) {
 		return "", err
 	}
 	defer util.Close(rc)
-	unzippedBody, err := ioutil.ReadAll(rc)
+	unzippedBody, err := io.ReadAll(rc)
 	if err != nil {
 		return "", err
 	}

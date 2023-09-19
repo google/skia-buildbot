@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -14,7 +13,7 @@ func main() {
 		log.Fatal("Specify at least one tasks.json to validate.")
 	}
 	for _, tasksJSON := range tasksJSONs {
-		contents, err := ioutil.ReadFile(tasksJSON)
+		contents, err := os.ReadFile(tasksJSON)
 		if err != nil {
 			log.Fatal(err)
 		}

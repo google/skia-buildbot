@@ -2,7 +2,7 @@ package shared_tests
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -72,7 +72,7 @@ func TestFS(ctx context.Context, t sktest.TestingT, fs vfs.FS) {
 	// Read.
 	rootFile, err := fs.Open(ctx, FakeFileName)
 	require.NoError(t, err)
-	rootFileContents, err := ioutil.ReadAll(vfs.WithContext(ctx, rootFile))
+	rootFileContents, err := io.ReadAll(vfs.WithContext(ctx, rootFile))
 	require.NoError(t, err)
 	require.Equal(t, []byte(FakeContents), rootFileContents)
 	st, err := rootFile.Stat(ctx)
@@ -103,8 +103,8 @@ func TestFS(ctx context.Context, t sktest.TestingT, fs vfs.FS) {
 func MakeTestFiles(t sktest.TestingT) string {
 	tmp := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(tmp, "subdir"), os.ModePerm))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(tmp, FakeFileName), FakeContents, os.ModePerm))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(tmp, "subdir", "subDirFile"), []byte("subDirFile contents"), os.ModePerm))
+	require.NoError(t, os.WriteFile(filepath.Join(tmp, FakeFileName), FakeContents, os.ModePerm))
+	require.NoError(t, os.WriteFile(filepath.Join(tmp, "subdir", "subDirFile"), []byte("subDirFile contents"), os.ModePerm))
 	return tmp
 }
 

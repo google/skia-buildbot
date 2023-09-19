@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -47,7 +46,7 @@ func TestUploadHandler_ValidJSONFile_Success(t *testing.T) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	// spot check the return body
 	assert.Contains(t, string(respBody), `"hash":"c54ac366e2c358cab4e6431cb47d6178"`)
@@ -101,7 +100,7 @@ func TestUploadHandler_ValidJSONWithAssetZip_FilesInZipUploaded(t *testing.T) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	// spot check the return body
 	assert.Contains(t, string(respBody), `"hash":"5f0e05cf5594b23cc98a1a31693a377c"`)

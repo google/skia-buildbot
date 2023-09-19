@@ -10,8 +10,9 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -71,7 +72,7 @@ func MustInitRequestSaltFromMetadata(metadataKey string) {
 // InitRequestSaltFromFile reads requestSalt from the given file and returns any error encountered.
 // Should be called once at startup.
 func InitRequestSaltFromFile(filename string) error {
-	saltBase64Bytes, err := ioutil.ReadFile(filename)
+	saltBase64Bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("Could not read the webhook request salt file: %s", err)
 	}
@@ -125,7 +126,7 @@ func NewRequest(method, urlStr string, body []byte) (*http.Request, error) {
 // In all cases, closes r.Body.
 func AuthenticateRequest(r *http.Request) ([]byte, error) {
 	defer skutil.Close(r.Body)
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -123,7 +122,7 @@ func main() {
 		configBytes, err = base64.StdEncoding.DecodeString(*configContents)
 	} else {
 		err = util.WithReadFile(*configFile, func(f io.Reader) error {
-			configBytes, err = ioutil.ReadAll(f)
+			configBytes, err = io.ReadAll(f)
 			return err
 		})
 	}
@@ -277,7 +276,7 @@ func main() {
 		var gToken string
 		if *local {
 			pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
-			gBody, err := ioutil.ReadFile(pathToGithubToken)
+			gBody, err := os.ReadFile(pathToGithubToken)
 			if err != nil {
 				sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
 			}
@@ -301,7 +300,7 @@ func main() {
 				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
 					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
 				}
-				if err := ioutil.WriteFile(sshKeyDest, []byte(sshKey), 0600); err != nil {
+				if err := os.WriteFile(sshKeyDest, []byte(sshKey), 0600); err != nil {
 					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
 				}
 			}

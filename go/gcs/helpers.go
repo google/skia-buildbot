@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -42,7 +41,7 @@ func FileContentsFromGCS(s *storage.Client, bucketName, fileName string) ([]byte
 		return nil, err
 	}
 	defer util.Close(response)
-	return ioutil.ReadAll(response)
+	return io.ReadAll(response)
 }
 
 // AllFilesInDir synchronously iterates through all the files in a given Google Storage folder.

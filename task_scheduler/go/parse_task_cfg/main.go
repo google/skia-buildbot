@@ -6,7 +6,7 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"os"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -20,7 +20,7 @@ var (
 func main() {
 	common.Init()
 
-	b, err := ioutil.ReadFile(*cfgFile)
+	b, err := os.ReadFile(*cfgFile)
 	if err != nil {
 		sklog.Fatal(err)
 	}

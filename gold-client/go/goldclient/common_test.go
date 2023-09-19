@@ -3,7 +3,7 @@ package goldclient
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -107,7 +107,7 @@ func TestPost_InternalServerError_ReturnsError(t *testing.T) {
 
 func httpResponse(body, status string, statusCode int) *http.Response {
 	return &http.Response{
-		Body:       ioutil.NopCloser(strings.NewReader(body)),
+		Body:       io.NopCloser(strings.NewReader(body)),
 		Status:     status,
 		StatusCode: statusCode,
 	}

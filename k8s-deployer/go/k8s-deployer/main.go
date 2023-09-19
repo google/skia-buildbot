@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -183,7 +182,7 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	}
 
 	// Write the config contents to a temporary dir.
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := os.MkdirTemp("", "")
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create temp dir")
 	}
@@ -197,7 +196,7 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 				return skerr.Wrapf(err, "failed to create %s", dir)
 			}
 		}
-		if err := ioutil.WriteFile(fullPath, fileContents, os.ModePerm); err != nil {
+		if err := os.WriteFile(fullPath, fileContents, os.ModePerm); err != nil {
 			return skerr.Wrapf(err, "failed to create %s", fullPath)
 		}
 	}

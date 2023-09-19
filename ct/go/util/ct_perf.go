@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -87,7 +86,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults,
 	defer util.RemoveAll(workdir)
 
 	// Step 1: Add a commit to CT Perf's synthetic repo in CT_PERF_REPO
-	tmpDir, err := ioutil.TempDir(workdir, uniqueID)
+	tmpDir, err := os.MkdirTemp(workdir, uniqueID)
 	if err != nil {
 		return skerr.Fmt("Could not create tmpDir in %s: %s", workdir, err)
 	}
@@ -113,7 +112,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults,
 		return skerr.Fmt("Could not convert %v to JSON: %s", ctPerfData, err)
 	}
 	jsonFile := path.Join(workdir, fmt.Sprintf("%s.json", uniqueID))
-	if err := ioutil.WriteFile(jsonFile, perfJson, 0644); err != nil {
+	if err := os.WriteFile(jsonFile, perfJson, 0644); err != nil {
 		return skerr.Fmt("Could not write to %s: %s", jsonFile, err)
 	}
 
@@ -132,7 +131,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults,
 // it into the specified repo. Returns the full hash of the commit.
 func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec string, checkout *git.Checkout) (string, error) {
 	// Create a new file using the uniqueID and commit it to the synthetic repo.
-	if err := ioutil.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
 		return "", skerr.Fmt("Failed to write %s: %s", uniqueID, err)
 	}
 	if msg, err := checkout.Git(ctx, "add", uniqueID); err != nil {

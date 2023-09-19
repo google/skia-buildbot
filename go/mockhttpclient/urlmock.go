@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"reflect"
@@ -36,18 +35,18 @@ const (
 //	m := NewURLMock()
 //	m.Mock("https://www.google.com", MockGetDialogue([]byte("Here's a response.")))
 //	res, _ := m.Client().Get("https://www.google.com")
-//	respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
+//	respBody, _ := io.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
 //
 //	// Mock out a URL to give different responses.
 //	m.MockOnce("https://www.google.com", MockGetDialogue([]byte("hi")))
 //	m.MockOnce("https://www.google.com", MockGetDialogue([]byte("Second response.")))
 //	res1, _ := m.Client().Get("https://www.google.com")
-//	body1, _ := ioutil.ReadAll(res1.Body)  // body1 == []byte("hi")
+//	body1, _ := io.ReadAll(res1.Body)  // body1 == []byte("hi")
 //	res2, _ := m.Client().Get("https://www.google.com")
-//	body2, _ := ioutil.ReadAll(res2.Body)  // body2 == []byte("Second response.")
+//	body2, _ := io.ReadAll(res2.Body)  // body2 == []byte("Second response.")
 //	// Fall back on the value previously set using Mock():
 //	res3, _ := m.Client().Get("https://www.google.com")
-//	body3, _ := ioutil.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
+//	body3, _ := io.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
 type URLMock struct {
 	mtx        sync.Mutex
 	mockAlways map[string]MockDialogue
@@ -97,7 +96,7 @@ func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 	}
 	if md.requestPayload == nil {
 		if r.Body != nil {
-			requestBody, _ := ioutil.ReadAll(r.Body)
+			requestBody, _ := io.ReadAll(r.Body)
 			return nil, fmt.Errorf("No request payload expected, but was %s (%#v) ", string(requestBody), r.Body)
 		}
 	} else {
@@ -105,7 +104,7 @@ func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 			return nil, fmt.Errorf("Content-Type was wrong, expected %q, but was %q", md.requestType, ct)
 		}
 		defer util.Close(r.Body)
-		requestBody, err := ioutil.ReadAll(r.Body)
+		requestBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Error reading request body: %s", err)
 		}

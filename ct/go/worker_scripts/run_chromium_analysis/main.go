@@ -89,7 +89,7 @@ func runChromiumAnalysis() error {
 		return err
 	}
 
-	tmpDir, err := ioutil.TempDir("", "patches")
+	tmpDir, err := os.MkdirTemp("", "patches")
 	remotePatchesDir := path.Join(util.ChromiumAnalysisRunsStorageDir, *runID)
 
 	// Download the custom webpages for this run from Google storage.

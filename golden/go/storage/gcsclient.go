@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 
@@ -171,7 +170,7 @@ func (g *ClientImpl) GetImage(ctx context.Context, digest types.Digest) ([]byte,
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(r)
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	return b, skerr.Wrap(err)
 }
 

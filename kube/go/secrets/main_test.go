@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"sync"
@@ -89,10 +88,10 @@ func TestSecretsApp_Create(t *testing.T) {
 		require.NoError(t, app.cmdCreate(ctx, testProject, testSecretName))
 	}()
 	secretFilePath := <-secretFileCh
-	secretFileContents, err := ioutil.ReadFile(secretFilePath)
+	secretFileContents, err := os.ReadFile(secretFilePath)
 	require.NoError(t, err)
 	require.Equal(t, "", string(secretFileContents))
-	require.NoError(t, ioutil.WriteFile(secretFilePath, []byte(testSecretValue), os.ModePerm))
+	require.NoError(t, os.WriteFile(secretFilePath, []byte(testSecretValue), os.ModePerm))
 	enterToContinueCh <- true
 	wg.Wait()
 }
@@ -108,10 +107,10 @@ func TestSecretsApp_Update(t *testing.T) {
 		require.NoError(t, app.cmdUpdate(ctx, testProject, testSecretName))
 	}()
 	secretFilePath := <-secretFileCh
-	secretFileContents, err := ioutil.ReadFile(secretFilePath)
+	secretFileContents, err := os.ReadFile(secretFilePath)
 	require.NoError(t, err)
 	require.Equal(t, testSecretValue, string(secretFileContents))
-	require.NoError(t, ioutil.WriteFile(secretFilePath, []byte(newSecretValue), os.ModePerm))
+	require.NoError(t, os.WriteFile(secretFilePath, []byte(newSecretValue), os.ModePerm))
 	enterToContinueCh <- true
 	wg.Wait()
 }

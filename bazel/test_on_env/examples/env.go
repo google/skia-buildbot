@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -56,13 +55,13 @@ func main() {
 	port := listener.Addr().(*net.TCPAddr).Port
 
 	// Write port file first.
-	err = ioutil.WriteFile(envPortFile, []byte(strconv.Itoa(port)), 0644)
+	err = os.WriteFile(envPortFile, []byte(strconv.Itoa(port)), 0644)
 	if err != nil {
 		panic(err)
 	}
 
 	// Write ready file second. This signals that the environment is ready for the tests to execute.
-	err = ioutil.WriteFile(envReadyFile, []byte{}, 0644)
+	err = os.WriteFile(envReadyFile, []byte{}, 0644)
 	if err != nil {
 		panic(err)
 	}

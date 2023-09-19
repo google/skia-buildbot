@@ -5,7 +5,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -80,7 +79,7 @@ func (d *DownloadHelper) MaybeDownload(name, hash string) error {
 	}
 
 	var contents []byte
-	contents, err = ioutil.ReadFile(filepath)
+	contents, err = os.ReadFile(filepath)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to read %s", filepath)
 	}

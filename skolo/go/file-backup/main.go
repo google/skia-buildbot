@@ -9,7 +9,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -44,7 +43,7 @@ func step(ctx context.Context, storageClient *storage.Client) {
 	sklog.Infof("Running backup to %s", *gceFolder)
 	if *remoteFilePath != "" {
 		// If backing up a remote file, copy it here first, then pretend it is a local file.
-		dir, err := ioutil.TempDir("", "backups")
+		dir, err := os.MkdirTemp("", "backups")
 		if err != nil {
 			sklog.Fatalf("Could not create temp directory %s: %s", dir, err)
 		}

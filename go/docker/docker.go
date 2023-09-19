@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -370,7 +369,7 @@ func (c *ClientImpl) SetTag(ctx context.Context, registry, repository, reference
 			return skerr.Wrap(err)
 		}
 		defer util.Close(resp.Body)
-		manifestBytes, err = ioutil.ReadAll(resp.Body)
+		manifestBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return skerr.Wrap(err)
 		}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"sort"
@@ -152,7 +151,7 @@ func EncodeTasksCfg(cfg *TasksCfg) ([]byte, error) {
 
 // ReadTasksCfg reads the task cfg file from the given dir and returns it.
 func ReadTasksCfg(repoDir string) (*TasksCfg, error) {
-	contents, err := ioutil.ReadFile(path.Join(repoDir, TASKS_CFG_FILE))
+	contents, err := os.ReadFile(path.Join(repoDir, TASKS_CFG_FILE))
 	if err != nil {
 		// A nonexistent tasks.json file is valid; return an empty config.
 		if os.IsNotExist(err) {
@@ -169,7 +168,7 @@ func WriteTasksCfg(cfg *TasksCfg, repoDir string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join(repoDir, TASKS_CFG_FILE), enc, os.ModePerm)
+	return os.WriteFile(path.Join(repoDir, TASKS_CFG_FILE), enc, os.ModePerm)
 }
 
 // CommitQueueJobConfig describes how a job should run on the Commit Queue.

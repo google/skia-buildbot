@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
+	"os"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -48,7 +48,7 @@ func Decode(content []byte) (*StageFile, error) {
 
 // DecodeFile parses the given file as a StageFile.
 func DecodeFile(filepath string) (*StageFile, error) {
-	b, err := ioutil.ReadFile(filepath)
+	b, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

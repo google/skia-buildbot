@@ -3,7 +3,7 @@ package cq
 import (
 	"context"
 	"io"
-	"io/ioutil"
+	"os"
 	osexec "os/exec"
 	"path/filepath"
 	"regexp"
@@ -38,7 +38,7 @@ func WithUpdateCQConfig(ctx context.Context, starlarkConfigFile, generatedDir st
 	}
 
 	// Read the config file.
-	oldCfgBytes, err := ioutil.ReadFile(starlarkConfigFile)
+	oldCfgBytes, err := os.ReadFile(starlarkConfigFile)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to read %s", starlarkConfigFile)
 	}

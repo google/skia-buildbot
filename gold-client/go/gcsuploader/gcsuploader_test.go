@@ -3,7 +3,7 @@ package gcsuploader
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -44,7 +44,7 @@ func TestGSutil_UploadJSON_Success(t *testing.T) {
 	expectedCmd := fmt.Sprintf("gsutil cp %s gs://gs://bucket/foo/bar.json", tf)
 	assert.Equal(t, expectedCmd, exec.DebugString(cc.Commands()[0]))
 
-	b, err := ioutil.ReadFile(tf)
+	b, err := os.ReadFile(tf)
 	require.NoError(t, err)
 	assert.Equal(t, `{"One":"alpha"}`, string(b))
 }

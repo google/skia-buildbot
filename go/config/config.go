@@ -3,7 +3,7 @@ package config
 import (
 	"encoding"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/flynn/json5"
@@ -41,7 +41,7 @@ func ParseConfigFile(path, flagName string, out interface{}) error {
 	if flagName != "" {
 		flagName = flagName + " "
 	}
-	if data, err := ioutil.ReadFile(path); err != nil {
+	if data, err := os.ReadFile(path); err != nil {
 		return fmt.Errorf("Unable to read %sfile %q: %s", flagName, path, err)
 	} else if err := json5.Unmarshal(data, out); err != nil {
 		return fmt.Errorf("Unable to parse %sfile %q: %s", flagName, path, err)

@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"sync"
 	"time"
@@ -121,7 +120,7 @@ func doRecord(ctx context.Context, client *pubsub.Client, file string) {
 func doPlayback(ctx context.Context, client *pubsub.Client, file string) {
 	topic := client.Topic(*topicName)
 	defer topic.Stop()
-	b, err := ioutil.ReadFile(file)
+	b, err := os.ReadFile(file)
 	if err != nil {
 		sklog.Fatal(err)
 	}

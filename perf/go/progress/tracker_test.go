@@ -3,7 +3,7 @@ package progress
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -95,7 +95,7 @@ func TestTracker_RequestForProgress_ReturnsSerializedProgress(t *testing.T) {
 	assert.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	var expectedBody bytes.Buffer
 	require.NoError(t, p.JSON(&expectedBody))
-	actualBody, err := ioutil.ReadAll(w.Result().Body)
+	actualBody, err := io.ReadAll(w.Result().Body)
 	require.NoError(t, err)
 	assert.Equal(t, expectedBody.String(), string(actualBody))
 }
@@ -112,6 +112,6 @@ func TestTracker_RequestForProgressWithUnSerializableResult_ReturnsError(t *test
 	w := httptest.NewRecorder()
 	tr.Handler(w, r)
 	assert.Equal(t, 500, w.Result().StatusCode)
-	actualBody, err := ioutil.ReadAll(w.Result().Body)
+	actualBody, err := io.ReadAll(w.Result().Body)
 	assert.Contains(t, string(actualBody), "Failed to serialize JSON")
 }

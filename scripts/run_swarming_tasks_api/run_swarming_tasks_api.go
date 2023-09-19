@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -206,7 +205,7 @@ func main() {
 							continue
 						}
 						destFile := filepath.Join(outDir, fmt.Sprintf("%s-%s.txt", t.Request.Name, t.TaskId))
-						if err := ioutil.WriteFile(destFile, []byte(stdout.Output), 0644); err != nil {
+						if err := os.WriteFile(destFile, []byte(stdout.Output), 0644); err != nil {
 							sklog.Errorf("Could not write log to %s: %s", destFile, err)
 							continue
 						}

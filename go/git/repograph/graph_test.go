@@ -3,7 +3,6 @@ package repograph_test
 import (
 	"context"
 	"errors"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -131,7 +130,7 @@ func checkTopoSortGraph(t *testing.T, g *repograph.Graph) {
 // checkTopoSortGitBuilder creates a Graph from the given GitBuilder and
 // performs topological sorting tests on it.
 func checkTopoSortGitBuilder(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, expect []string) {
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	g, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmpDir)
@@ -169,7 +168,7 @@ func TestTopoSortDefault(t *testing.T) {
 	// timestamps might be equal. Adjust the expectations
 	// accordingly.
 	expect := []string{commits[4], commits[3], commits[2], commits[1], commits[0]}
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	g, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmpDir)
@@ -268,7 +267,7 @@ func TestIsAncestor(t *testing.T) {
 	defer gb.Cleanup()
 	commits := git_testutils.GitSetup(ctx, gb)
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	d1 := path.Join(tmpDir, "1")

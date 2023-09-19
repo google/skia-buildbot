@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -78,7 +78,7 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 	}
 	sklog.Debugf("Got response from Pinpoint service: %+v", *httpResponse)
 
-	respBody, err := ioutil.ReadAll(httpResponse.Body)
+	respBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		pc.createBisectFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to read body from pinpoint response.")

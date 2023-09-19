@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -29,7 +29,7 @@ func TestAuth_NoMethodSpecified_FallsBackToGsutil(t *testing.T) {
 	logs := output.String()
 	assert.Contains(t, logs, `Falling back to gsutil implementation
 This should not be used in production.`)
-	b, err := ioutil.ReadFile(filepath.Join(workDir, "auth_opt.json"))
+	b, err := os.ReadFile(filepath.Join(workDir, "auth_opt.json"))
 	require.NoError(t, err)
 	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":true,"NoAuth":false}`, strings.TrimSpace(string(b)))
 }
@@ -49,7 +49,7 @@ func TestAuth_NoAuthenticationSpecified_Success(t *testing.T) {
 		env.Auth(ctx)
 	})
 	exit.AssertWasCalledWithCode(t, 0, output.String())
-	b, err := ioutil.ReadFile(filepath.Join(workDir, "auth_opt.json"))
+	b, err := os.ReadFile(filepath.Join(workDir, "auth_opt.json"))
 	require.NoError(t, err)
 	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":false,"NoAuth":true}`, strings.TrimSpace(string(b)))
 }

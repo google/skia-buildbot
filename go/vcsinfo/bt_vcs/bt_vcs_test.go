@@ -2,8 +2,8 @@ package bt_vcs
 
 import (
 	"context"
-	"io/ioutil"
 	"math"
+	"os"
 	"testing"
 	"time"
 
@@ -166,7 +166,7 @@ func TestDetailsMultiCaching(t *testing.T) {
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (context.Context, vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo(t)
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	ctx := cipd_git.UseGitFinder(context.Background())
 	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)

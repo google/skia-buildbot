@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
@@ -86,7 +86,7 @@ func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
 }
 
 func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
-	wd, err := ioutil.TempDir("", "")
+	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	ctx := cipd_git.UseGitFinder(context.Background())

@@ -3,7 +3,7 @@ package gcssource
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"testing"
 	"time"
@@ -145,7 +145,7 @@ func TestStart_ReceiveOneFileFilterOneFileViaSources(t *testing.T) {
 	// Load the one file sendPubSubMessages should have sent.
 	file := <-ch
 	assert.Equal(t, testFile, file.Name)
-	b, err := ioutil.ReadAll(file.Contents)
+	b, err := io.ReadAll(file.Contents)
 	assert.NoError(t, err)
 	assert.NoError(t, file.Contents.Close())
 	assert.Equal(t, "{\n  \"status\": \"Success\"\n}\n", string(b))
@@ -172,7 +172,7 @@ func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
 	// Load the one file sendPubSubMessages should have sent.
 	file := <-ch
 	assert.Equal(t, testFile, file.Name)
-	b, err := ioutil.ReadAll(file.Contents)
+	b, err := io.ReadAll(file.Contents)
 	assert.NoError(t, err)
 	assert.NoError(t, file.Contents.Close())
 	assert.Equal(t, "{\n  \"status\": \"Success\"\n}\n", string(b))
@@ -224,7 +224,7 @@ func TestReceiveSingleEvent_Success(t *testing.T) {
 	// Confirm the correct file.File comes out of the channel.
 	file := <-ch
 	assert.Equal(t, testFile, file.Name)
-	b, err = ioutil.ReadAll(file.Contents)
+	b, err = io.ReadAll(file.Contents)
 	assert.NoError(t, err)
 	assert.NoError(t, file.Contents.Close())
 	assert.Equal(t, "{\n  \"status\": \"Success\"\n}\n", string(b))

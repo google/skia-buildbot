@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -194,7 +193,7 @@ func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackag
 		assetsDir = filepath.Join(b.root, "infra", "bots", "assets")
 	}
 	versionFile := filepath.Join(assetsDir, assetName, "VERSION")
-	contents, err := ioutil.ReadFile(versionFile)
+	contents, err := os.ReadFile(versionFile)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +266,7 @@ func (b *TasksCfgBuilder) Finish() error {
 	outFile := filepath.Join(b.root, TASKS_CFG_FILE)
 	if *test {
 		// Don't write the file; read it and compare.
-		expect, err := ioutil.ReadFile(outFile)
+		expect, err := os.ReadFile(outFile)
 		if err != nil {
 			return err
 		}
@@ -295,7 +294,7 @@ You may need to run:
 `, diff)
 		}
 	} else {
-		if err := ioutil.WriteFile(outFile, enc, os.ModePerm); err != nil {
+		if err := os.WriteFile(outFile, enc, os.ModePerm); err != nil {
 			return err
 		}
 	}

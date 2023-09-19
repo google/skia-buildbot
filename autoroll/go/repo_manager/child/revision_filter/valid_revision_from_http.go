@@ -3,7 +3,7 @@ package revision_filter
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -55,7 +55,7 @@ func NewValidRevisionFromHTTPRevisionFilter(cfg *config.ValidHttpRevisionFilterC
 			if err != nil {
 				return nil, skerr.Wrapf(err, "failed to execute HTTP request")
 			}
-			b, err := ioutil.ReadAll(resp.Body)
+			b, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "failed to read response body")
 			}

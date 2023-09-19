@@ -2,7 +2,7 @@ package jsonschema
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -42,7 +42,7 @@ const testStructSchema = `{
 func TestGenerateSchema_ValidStruct_WritesSchemaFile(t *testing.T) {
 	filename := filepath.Join(t.TempDir(), "schema.json")
 	GenerateSchema(filename, testStruct{})
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	require.NoError(t, err)
 	require.Equal(t, testStructSchema, string(b))
 }

@@ -6,8 +6,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingest/format"
@@ -70,7 +70,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if err := ioutil.WriteFile(fmt.Sprintf("./data/demo_data_commit_%d.json", i+1), b, 0644); err != nil {
+		if err := os.WriteFile(fmt.Sprintf("./data/demo_data_commit_%d.json", i+1), b, 0644); err != nil {
 			sklog.Fatal(err)
 		}
 	}

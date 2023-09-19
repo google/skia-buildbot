@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,7 +14,7 @@ import (
 func TestParseCfg(t *testing.T) {
 	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "test-config.json")
-	cfgContents, err := ioutil.ReadFile(configFile)
+	cfgContents, err := os.ReadFile(configFile)
 	require.Nil(t, err)
 
 	supportedBranchDeps, err := ParseCfg(cfgContents)

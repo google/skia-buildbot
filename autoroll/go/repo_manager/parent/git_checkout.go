@@ -6,7 +6,6 @@ package parent
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -125,7 +124,7 @@ func writeFile(ctx context.Context, co *git.Checkout, path, contents string) err
 	sklog.Infof("Writing to file \"%s\".", path)
 
 	fullPath := filepath.Join(co.Dir(), path)
-	if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
+	if err := os.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := co.Git(ctx, "add", path); err != nil {

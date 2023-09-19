@@ -2,6 +2,7 @@ package util
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +18,7 @@ func Auth_TestDownloadSwarmingArtifacts(t *testing.T) {
 	gs, err := NewGcsUtil(nil)
 	assert.NoError(t, err)
 
-	localDir, err := ioutil.TempDir("", "util_test_")
+	localDir, err := os.MkdirTemp("", "util_test_")
 	assert.NoError(t, err)
 	defer util.RemoveAll(localDir)
 	pageSetToIndex, err := gs.DownloadSwarmingArtifacts(localDir, testPagesetsDirName, "10k", 1, 2)

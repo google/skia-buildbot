@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/http/pprof"
@@ -164,7 +164,7 @@ func fileContentsFromFileSystem(fileSystem http.FileSystem, filename string) (st
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to open %q", filename)
 	}
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to read %q", filename)
 	}

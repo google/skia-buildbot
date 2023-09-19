@@ -7,7 +7,6 @@ package parent
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -357,7 +356,7 @@ func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client,
 // ANGLERollChromium runs the ANGLE roll_chromium_deps.py script.
 func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running roll_chromium_deps script...")
-	contents, err := ioutil.ReadFile(filepath.Join(parentRepoDir, deps_parser.DepsFileName))
+	contents, err := os.ReadFile(filepath.Join(parentRepoDir, deps_parser.DepsFileName))
 	if err != nil {
 		return skerr.Wrap(err)
 	}

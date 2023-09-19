@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -63,7 +63,7 @@ func main() {
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Read the roller config file.
-	cfgBytes, err := ioutil.ReadFile(*configFile)
+	cfgBytes, err := os.ReadFile(*configFile)
 	if err != nil {
 		log.Fatalf("Failed to read %s: %s", *configFile, err)
 	}
@@ -87,7 +87,7 @@ func main() {
 	if *compare {
 		// Create the working directory.
 		if *workdir == "" {
-			wd, err := ioutil.TempDir("", "")
+			wd, err := os.MkdirTemp("", "")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -127,7 +127,7 @@ func main() {
 			}
 			pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 			// Instantiate githubClient using the github token secret.
-			gBody, err := ioutil.ReadFile(pathToGithubToken)
+			gBody, err := os.ReadFile(pathToGithubToken)
 			if err != nil {
 				log.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
 			}

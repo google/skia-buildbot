@@ -283,11 +283,11 @@ func (g *Goldpushk) copyConfigsToCheckout(configDir, checkoutDir string) error {
 		// as one will overwrite the other. If it becomes a problem, we could try to detect it.
 		dstFile := filepath.Join(checkoutDir, "gold-"+jf.Name())
 		srcFile := filepath.Join(configDir, jf.Name())
-		b, err := ioutil.ReadFile(srcFile)
+		b, err := os.ReadFile(srcFile)
 		if err != nil {
 			return skerr.Wrapf(err, "reading %s", srcFile)
 		}
-		if err := ioutil.WriteFile(dstFile, b, 0644); err != nil {
+		if err := os.WriteFile(dstFile, b, 0644); err != nil {
 			return skerr.Wrapf(err, "writing %s", dstFile)
 		}
 	}

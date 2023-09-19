@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -279,7 +278,7 @@ func getJWT(ctx context.Context, metadataName, fileName, secretProject, secretNa
 		sklog.Infof("Read JWT from metadata %s", metadataName)
 		return []byte(jwt), nil
 	}
-	body, err := ioutil.ReadFile(fileName)
+	body, err := os.ReadFile(fileName)
 	if err == nil {
 		sklog.Infof("Read JWT from file %s", fileName)
 		return body, nil

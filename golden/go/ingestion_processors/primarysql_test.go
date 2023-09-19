@@ -6,7 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -1539,13 +1539,13 @@ type fakeGCSSource struct {
 
 func fakeGCSSourceFromFile(t *testing.T, file string) *fakeGCSSource {
 	fp := filepath.Join(testutils.TestDataDir(t), file)
-	b, err := ioutil.ReadFile(fp)
+	b, err := os.ReadFile(fp)
 	require.NoError(t, err)
 	return &fakeGCSSource{content: b}
 }
 
 func (f *fakeGCSSource) GetReader(_ context.Context, _ string) (io.ReadCloser, error) {
-	return ioutil.NopCloser(bytes.NewReader(f.content)), nil
+	return io.NopCloser(bytes.NewReader(f.content)), nil
 }
 
 func (f *fakeGCSSource) HandlesFile(_ string) bool {

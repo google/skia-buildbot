@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -239,7 +239,7 @@ func mustInitializeSystems(ctx context.Context, ptc periodicTasksConfig) []comme
 			if cfg.GitHubRepo == "" || cfg.GitHubCredPath == "" {
 				sklog.Fatal("You must specify github_repo and github_cred_path")
 			}
-			gBody, err := ioutil.ReadFile(cfg.GitHubCredPath)
+			gBody, err := os.ReadFile(cfg.GitHubCredPath)
 			if err != nil {
 				sklog.Fatalf("Couldn't find githubToken in %s: %s", cfg.GitHubCredPath, err)
 			}

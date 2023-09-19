@@ -3,7 +3,6 @@ package buildskia
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +16,7 @@ import (
 )
 
 func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*ContinuousBuilder, func()) {
-	tempDir, err := ioutil.TempDir("", "builder_test_")
+	tempDir, err := os.MkdirTemp("", "builder_test_")
 	assert.NoError(t, err)
 	fi, err := os.Create(filepath.Join(tempDir, GOOD_BUILDS_FILENAME))
 	assert.NoError(t, err)
