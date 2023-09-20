@@ -134,7 +134,17 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 			sklog.Errorf("Failed to look up commit %d: %s", previousCommitNumber, err)
 			continue
 		}
+		originalDataFrame := *resp.Frame.DataFrame
 		for _, cl := range resp.Summary.Clusters {
+			// Slim the DataFrame down to just the matching traces.
+			df := dataframe.NewEmpty()
+			df.Header = originalDataFrame.Header
+			for _, key := range cl.Keys {
+				df.TraceSet[key] = originalDataFrame.TraceSet[key]
+			}
+			df.BuildParamSet()
+			resp.Frame.DataFrame = df
+
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
 				// TODO(jcgregorio) Also load existing stored regressions and if
