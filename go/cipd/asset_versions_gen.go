@@ -181,7 +181,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/gsutil": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/bots/gsutil",
-		Version: "version:5.24",
+		Version: "version:6",
 	},
 	"skia/bots/node": {
 		Path:    "node",
