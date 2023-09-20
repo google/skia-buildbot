@@ -108,7 +108,11 @@ export class PerfScaffoldSk extends ElementSk {
 
     if (this._feedback != null) {
       this._feedback.hidden = true;
-      if (window.perf.feedback_url !== '') {
+      if (
+        window.perf &&
+        window.perf.feedback_url &&
+        window.perf.feedback_url !== ''
+      ) {
         this._feedback.innerHTML = `<a target="_blank" href="${window.perf.feedback_url}"
           tab-index=0 id="feedback_url"><h4>Provide Feedback</h4></a>`;
         this._feedback.hidden = false;
