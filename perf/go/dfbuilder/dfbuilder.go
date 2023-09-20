@@ -677,7 +677,10 @@ func filterParentTraces(traceSet types.TraceSet) types.TraceSet {
 		// specified in paramSetKeys
 		path := []string{}
 		for _, paramKey := range paramSetKeys {
-			path = append(path, params[paramKey])
+			paramValue, ok := params[paramKey]
+			if ok {
+				path = append(path, paramValue)
+			}
 		}
 
 		traceFilter.AddPath(path, key)
