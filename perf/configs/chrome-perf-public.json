@@ -5,6 +5,7 @@
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
+    "filter_parent_traces": true,
     "notify_config": {
         "notifications": "html_email"
     },
