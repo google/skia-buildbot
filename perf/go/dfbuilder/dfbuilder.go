@@ -54,7 +54,7 @@ const (
 
 // builder implements DataFrameBuilder using TraceStore.
 type builder struct {
-	git                *perfgit.Git
+	git                perfgit.Git
 	store              tracestore.TraceStore
 	tileSize           int32
 	numPreflightTiles  int
@@ -71,7 +71,7 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering) dataframe.DataFrameBuilder {
 	return &builder{
 		git:                           git,
 		store:                         store,
@@ -91,7 +91,7 @@ func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceS
 
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
-func fromIndexRange(ctx context.Context, git *perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
+func fromIndexRange(ctx context.Context, git perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.fromIndexRange")
 	defer span.End()
 

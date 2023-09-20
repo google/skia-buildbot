@@ -111,7 +111,7 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (*perfgit.Git, error) {
+func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (perfgit.Git, error) {
 	if instanceConfig.DataStoreConfig.ConnectionString == "" {
 		return nil, skerr.Fmt("A connection_string must always be supplied.")
 	}

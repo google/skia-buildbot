@@ -112,7 +112,7 @@ type RegressionDetectionResponse struct {
 type regressionDetectionProcess struct {
 	// These members are read-only, should not be modified.
 	request                   *RegressionDetectionRequest
-	perfGit                   *perfgit.Git
+	perfGit                   perfgit.Git
 	iter                      dfiter.DataFrameIterator
 	detectorResponseProcessor DetectorResponseProcessor
 	shortcutStore             shortcut.Store
@@ -147,7 +147,7 @@ const (
 func ProcessRegressions(ctx context.Context,
 	req *RegressionDetectionRequest,
 	detectorResponseProcessor DetectorResponseProcessor,
-	perfGit *perfgit.Git,
+	perfGit perfgit.Git,
 	shortcutStore shortcut.Store,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,

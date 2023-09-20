@@ -163,14 +163,15 @@ var statements = map[statement]string{
 		`,
 }
 
-// Git implements the minimal functionality Perf needs to interface to Git.
+// Impl implements Git, the minimal functionality Perf needs to interface to
+// a git repo.
 //
 // It stores a copy of the needed commit info in an SQL database for quicker
 // access, and runs a background Go routine that updates the database
 // periodically.
 //
 // Please see perf/sql/migrations for the database schema used.
-type Git struct {
+type Impl struct {
 	gp provider.Provider
 
 	instanceConfig *config.InstanceConfig
@@ -202,7 +203,7 @@ type Git struct {
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *config.InstanceConfig) (*Git, error) {
+func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *config.InstanceConfig) (*Impl, error) {
 	cache, err := lru.New(commitCacheSize)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -221,7 +222,7 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 		regex = regexp.MustCompile(commitNumberRegex)
 	}
 
-	ret := &Git{
+	ret := &Impl{
 		gp:                                     gp,
 		db:                                     db,
 		cache:                                  cache,
@@ -249,9 +250,8 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	return ret, nil
 }
 
-// StartBackgroundPolling starts a background process that periodically adds
-// new commits to the database.
-func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration) {
+// StartBackgroundPolling implements Git.
+func (g *Impl) StartBackgroundPolling(ctx context.Context, duration time.Duration) {
 	go func() {
 		liveness := metrics2.NewLiveness("perf_git_udpate_polling_livenes")
 		ctx := context.Background()
@@ -265,8 +265,8 @@ func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration
 	}()
 }
 
-// Update finds all the new commits added to the repo since our last Update.
-func (g *Git) Update(ctx context.Context) error {
+// Update implements Git.
+func (g *Impl) Update(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "perfgit.Update")
 	defer span.End()
 
@@ -332,7 +332,7 @@ func (g *Git) Update(ctx context.Context) error {
 // matchs[0][0] will be "Cr-Commit-Position: refs/heads/master@{#727901}"
 // matchs[0][1] will be "master"
 // matchs[0][2] will be "727901"
-func (g *Git) getCommitNumberFromCommit(body string) (types.CommitNumber, error) {
+func (g *Impl) getCommitNumberFromCommit(body string) (types.CommitNumber, error) {
 	matchs := g.commitNumberRegex.FindAllStringSubmatch(body, -1)
 	if len(matchs) <= 0 {
 		return types.BadCommitNumber, skerr.Fmt("Failed to match commit number key by regex %q from commit body: %q", g.commitNumberRegex.String(), body)
@@ -352,7 +352,7 @@ func (g *Git) getCommitNumberFromCommit(body string) (types.CommitNumber, error)
 }
 
 // getMostRecentCommit as seen in the database.
-func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumber, error) {
+func (g *Impl) getMostRecentCommit(ctx context.Context) (string, types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.getMostRecentCommit")
 	defer span.End()
 
@@ -365,8 +365,8 @@ func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumb
 	return gitHash, commitNumber, nil
 }
 
-// GetCommitNumber looks up the commit number from Commits table given a git hash or commit number
-func (g *Git) GetCommitNumber(ctx context.Context, githash string, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+// GetCommitNumber implements Git.
+func (g *Impl) GetCommitNumber(ctx context.Context, githash string, commitNumber types.CommitNumber) (types.CommitNumber, error) {
 	if g.repoSuppliedCommitNumber {
 		_, err := g.GitHashFromCommitNumber(ctx, commitNumber)
 		if err != nil {
@@ -378,8 +378,8 @@ func (g *Git) GetCommitNumber(ctx context.Context, githash string, commitNumber 
 	return g.CommitNumberFromGitHash(ctx, githash)
 }
 
-// CommitNumberFromGitHash looks up the commit number given the git hash.
-func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (types.CommitNumber, error) {
+// CommitNumberFromGitHash implements Git.
+func (g *Impl) CommitNumberFromGitHash(ctx context.Context, githash string) (types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromGitHash")
 	defer span.End()
 
@@ -404,8 +404,8 @@ func urlFromParts(instanceConfig *config.InstanceConfig, commit provider.Commit)
 	return fmt.Sprintf(format, instanceConfig.GitRepoConfig.URL, commit.GitHash)
 }
 
-// CommitFromCommitNumber returns all the stored details for a given CommitNumber.
-func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (provider.Commit, error) {
+// CommitFromCommitNumber implements Git.
+func (g *Impl) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitFromCommitNumber")
 	defer span.End()
 
@@ -424,8 +424,8 @@ func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.Com
 	return ret, nil
 }
 
-// CommitSliceFromCommitNumberSlice returns all the stored details for a given slice of CommitNumbers.
-func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]provider.Commit, error) {
+// CommitSliceFromCommitNumberSlice implements Git.
+func (g *Impl) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberSlice")
 	defer span.End()
 
@@ -442,12 +442,8 @@ func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumber
 	return ret, nil
 }
 
-// CommitNumberFromTime finds the index of the closest commit with a commit time
-// less than or equal to 't'.
-//
-// Pass in zero time, i.e. time.Time{} to indicate to just get the most recent
-// commit.
-func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.CommitNumber, error) {
+// CommitNumberFromTime implements Git.
+func (g *Impl) CommitNumberFromTime(ctx context.Context, t time.Time) (types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromTime")
 	defer span.End()
 
@@ -464,9 +460,8 @@ func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Comm
 	return ret, nil
 }
 
-// CommitSliceFromTimeRange returns a slice of Commits that fall in the range
-// [begin, end), i.e  inclusive of begin and exclusive of end.
-func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]provider.Commit, error) {
+// CommitSliceFromTimeRange implements Git.
+func (g *Impl) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromTimeRange")
 	defer span.End()
 
@@ -488,9 +483,8 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 	return ret, nil
 }
 
-// CommitSliceFromCommitNumberRange returns a slice of Commits that fall in the range
-// [begin, end], i.e  inclusive of both begin and end.
-func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]provider.Commit, error) {
+// CommitSliceFromCommitNumberRange implements Git.
+func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberRange")
 	defer span.End()
 
@@ -511,8 +505,8 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 	return ret, nil
 }
 
-// GitHashFromCommitNumber returns the git hash of the given commit number.
-func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+// GitHashFromCommitNumber implements Git.
+func (g *Impl) GitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.GitHashFromCommitNumber")
 	defer span.End()
 
@@ -525,8 +519,8 @@ func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.Co
 	return ret, nil
 }
 
-// PreviousGitHashFromCommitNumber returns the previous git hash of the given commit number.
-func (g *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+// PreviousGitHashFromCommitNumber implements Git.
+func (g *Impl) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousGitHashFromCommitNumber")
 	defer span.End()
 
@@ -538,8 +532,8 @@ func (g *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber 
 	return ret, nil
 }
 
-// PreviousCommitNumberFromCommitNumber returns the previous commit number of the given commit number.
-func (g *Git) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+// PreviousCommitNumberFromCommitNumber implements Git.
+func (g *Impl) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousCommitNumberFromCommitNumber")
 	defer span.End()
 
@@ -551,10 +545,8 @@ func (g *Git) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitNu
 	return ret, nil
 }
 
-// CommitNumbersWhenFileChangesInCommitNumberRange returns a slice of commit
-// numbers when the given file has changed between [begin, end], i.e. the given
-// range is exclusive of the begin commit and inclusive of the end commit.
-func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber, filename string) ([]types.CommitNumber, error) {
+// CommitNumbersWhenFileChangesInCommitNumberRange implements Git.
+func (g *Impl) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber, filename string) ([]types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumbersWhenFileChangesInCommitNumberRange")
 	defer span.End()
 
@@ -592,8 +584,8 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	return ret, nil
 }
 
-// LogEntry returns the full log entry of a commit (minus the diff) as a string.
-func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, error) {
+// LogEntry implements Git.
+func (g *Impl) LogEntry(ctx context.Context, commit types.CommitNumber) (string, error) {
 	hash, err := g.GitHashFromCommitNumber(ctx, commit)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -601,6 +593,7 @@ func (g *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, 
 	return g.gp.LogEntry(ctx, hash)
 }
 
-func (g *Git) RepoSuppliedCommitNumber() bool {
+// RepoSuppliedCommitNumber implements Git.
+func (g *Impl) RepoSuppliedCommitNumber() bool {
 	return g.repoSuppliedCommitNumber
 }

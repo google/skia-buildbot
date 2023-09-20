@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-// Struct to contain data received from the alert group api
+// AlertGroupDetails contains data received from the alert group api.
 type AlertGroupDetails struct {
 	GroupId           string            `json:"group_id"`
 	Anomalies         map[string]string `json:"anomalies"`
@@ -21,8 +21,8 @@ type AlertGroupDetails struct {
 	EndCommitNumber   int32             `json:"end_commit"`
 }
 
-// Get the query url corresponding to the alert group data.
-func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit *perfgit.Git) string {
+// GetQueryUrl returns the query url corresponding to the alert group data.
+func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit perfgit.Git) string {
 	sklog.Infof("Start commit: %d, End commit: %d", alertGroup.StartCommitNumber, alertGroup.EndCommitNumber)
 	queryUrl := url.Values{}
 	// Create the end and begin query params based on the start and end commit numbers in the alert group

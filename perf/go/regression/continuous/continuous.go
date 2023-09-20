@@ -57,7 +57,7 @@ type ConfigProvider func(ctx context.Context) ([]*alerts.Alert, error)
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	perfGit        *perfgit.Git
+	perfGit        perfgit.Git
 	shortcutStore  shortcut.Store
 	store          regression.Store
 	provider       ConfigProvider
@@ -78,7 +78,7 @@ type Continuous struct {
 //	numCommits - The number of commits to run the clustering over.
 //	radius - The number of commits on each side of a commit to include when clustering.
 func New(
-	perfGit *perfgit.Git,
+	perfGit perfgit.Git,
 	shortcutStore shortcut.Store,
 	provider ConfigProvider,
 	store regression.Store,

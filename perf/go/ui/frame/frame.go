@@ -112,7 +112,7 @@ type frameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
 
-	perfGit *perfgit.Git
+	perfGit perfgit.Git
 
 	// dfBuilder builds DataFrame's.
 	dfBuilder dataframe.DataFrameBuilder
@@ -129,7 +129,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -237,7 +237,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 // the ColumnHeaders.
 //
 // TODO(jcgregorio) Rename this functionality to something more generic.
-func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
+func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit perfgit.Git) ([]int, error) {
 	if perfGit == nil {
 		return []int{}, nil
 	}
@@ -264,7 +264,7 @@ func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit *pe
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}

@@ -289,7 +289,7 @@ func (d *DataFrame) Compress() *DataFrame {
 // TODO(jcgregorio) Remove downsample, it is currently ignored.
 //
 // The value for 'skip', the number of commits skipped, is also returned.
-func FromTimeRange(ctx context.Context, git *perfgit.Git, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int, error) {
+func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int, error) {
 	commits, err := git.CommitSliceFromTimeRange(ctx, begin, end)
 	if err != nil {
 		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
@@ -320,7 +320,7 @@ func NewEmpty() *DataFrame {
 //
 // If 'downsample' is true then the number of commits returned is limited
 // to MAX_SAMPLE_SIZE.
-func NewHeaderOnly(ctx context.Context, git *perfgit.Git, begin, end time.Time, downsample bool) (*DataFrame, error) {
+func NewHeaderOnly(ctx context.Context, git perfgit.Git, begin, end time.Time, downsample bool) (*DataFrame, error) {
 	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip, err := FromTimeRange(ctx, git, begin, end, downsample)
 	if err != nil {

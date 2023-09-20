@@ -31,11 +31,11 @@ var ErrQueryMustNotBeEmpty = fmt.Errorf("Query must not be empty.")
 type Loader struct {
 	dfb   dataframe.DataFrameBuilder
 	store store.TryBotStore
-	git   *perfgit.Git
+	git   perfgit.Git
 }
 
 // New returns a new Loader instance.
-func New(dfb dataframe.DataFrameBuilder, store store.TryBotStore, git *perfgit.Git) Loader {
+func New(dfb dataframe.DataFrameBuilder, store store.TryBotStore, git perfgit.Git) Loader {
 	return Loader{
 		dfb:   dfb,
 		store: store,

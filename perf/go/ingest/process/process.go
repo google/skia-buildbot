@@ -74,7 +74,7 @@ type workerInfo struct {
 	dlEnabled            bool
 	p                    *parser.Parser
 	store                tracestore.TraceStore
-	g                    *git.Git
+	g                    git.Git
 	pubSubClient         *pubsub.Client
 	instanceConfig       *config.InstanceConfig
 }
@@ -91,7 +91,7 @@ func newWorker(
 	dlEnabled bool,
 	p *parser.Parser,
 	store tracestore.TraceStore,
-	g *git.Git,
+	g git.Git,
 	pubSubClient *pubsub.Client,
 	instanceConfig *config.InstanceConfig,
 ) *workerInfo {
@@ -216,7 +216,7 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 }
 
 // worker ingests files that arrive on the given 'ch' channel.
-func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestore.TraceStore, ch <-chan file.File, pubSubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
+func worker(ctx context.Context, wg *sync.WaitGroup, g git.Git, store tracestore.TraceStore, ch <-chan file.File, pubSubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
 	// Metrics.
 	filesReceived := metrics2.GetCounter("perfserver_ingest_files_received")
 	failedToParse := metrics2.GetCounter("perfserver_ingest_failed_to_parse")

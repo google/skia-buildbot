@@ -72,7 +72,7 @@ func NewDataFrameIterator(
 	ctx context.Context,
 	progress progress.Progress,
 	dfBuilder dataframe.DataFrameBuilder,
-	perfGit *perfgit.Git,
+	perfGit perfgit.Git,
 	regressionStateCallback types.ProgressCallback,
 	queryAsString string,
 	domain types.Domain,

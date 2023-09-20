@@ -29,7 +29,7 @@ type RegressionAtCommit struct {
 
 // Requests handles HTTP request for doing dryruns.
 type Requests struct {
-	perfGit       *perfgit.Git
+	perfGit       perfgit.Git
 	shortcutStore shortcut.Store
 	dfBuilder     dataframe.DataFrameBuilder
 	tracker       progress.Tracker
@@ -37,7 +37,7 @@ type Requests struct {
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
+func New(perfGit perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
 	ret := &Requests{
 		perfGit:       perfGit,
 		shortcutStore: shortcutStore,

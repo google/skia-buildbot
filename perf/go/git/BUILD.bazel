@@ -3,7 +3,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "git",
-    srcs = ["git.go"],
+    srcs = [
+        "impl.go",
+        "interface.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/git",
     visibility = ["//visibility:public"],
     deps = [
@@ -24,7 +27,7 @@ go_library(
 
 go_test(
     name = "git_test",
-    srcs = ["git_test.go"],
+    srcs = ["impl_test.go"],
     data = ["//perf/migrations:cockroachdb"],
     embed = [":git"],
     # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests

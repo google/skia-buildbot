@@ -31,7 +31,7 @@ func TestCockroachDB(t *testing.T) {
 }
 
 // subTestFunction is a func we will call to test one aspect of *SQLTraceStore.
-type subTestFunction func(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string)
+type subTestFunction func(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string)
 
 // subTests are all the tests we have for *SQLTraceStore.
 var subTests = map[string]subTestFunction{
@@ -70,7 +70,7 @@ var subTests = map[string]subTestFunction{
 	"testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error":                         testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error,
 }
 
-func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	// Add new commit to repo, it shouldn't appear in the database.
 	newHash := gb.CommitGenAt(ctx, "foo.txt", gittest.StartTime.Add(4*time.Minute))
 	_, err := g.CommitNumberFromGitHash(ctx, newHash)
@@ -83,7 +83,7 @@ func testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate(t *testing.T, ctx conte
 	assert.Equal(t, types.CommitNumber(len(hashes)), commitNumber)
 }
 
-func testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	newHash := gb.CommitGenAt(ctx, "foo.txt", gittest.StartTime.Add(4*time.Minute))
 	_, err := g.CommitNumberFromGitHash(ctx, newHash)
 	require.Error(t, err)
@@ -96,7 +96,7 @@ func testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB(t *testing.T
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber, err := g.CommitNumberFromGitHash(ctx, hashes[0])
 	assert.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(0), commitNumber)
@@ -105,7 +105,7 @@ func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *G
 	assert.Equal(t, types.CommitNumber(2), commitNumber)
 }
 
-func testPreviousCommitNumberFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousCommitNumberFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.CommitNumber(1))
 	assert.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(0), commitNumber)
@@ -114,19 +114,19 @@ func testPreviousCommitNumberFromCommitNumber_Success(t *testing.T, ctx context.
 	assert.Equal(t, types.CommitNumber(6), commitNumber)
 }
 
-func testPreviousCommitNumberFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousCommitNumberFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.BadCommitNumber)
 	assert.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testPreviousCommitNumberFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousCommitNumberFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber, err := g.PreviousCommitNumberFromCommitNumber(ctx, types.CommitNumber(0))
 	assert.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testPreviousGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.CommitNumber(1))
 	assert.NoError(t, err)
 	assert.Equal(t, hashes[0], githash)
@@ -135,24 +135,24 @@ func testPreviousGitHashFromCommitNumber_Success(t *testing.T, ctx context.Conte
 	assert.Equal(t, hashes[5], githash)
 }
 
-func testPreviousGitHashFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousGitHashFromCommitNumber_UnknownCommit_Error(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.BadCommitNumber)
 	assert.Error(t, err)
 	assert.Equal(t, "", githash)
 }
 
-func testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testPreviousGitHashFromCommitNumber_NoPreviousCommit_Error(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	githash, err := g.PreviousGitHashFromCommitNumber(ctx, types.CommitNumber(0))
 	assert.Error(t, err)
 	assert.Equal(t, "", githash)
 }
 
-func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	_, err := g.CommitFromCommitNumber(ctx, types.BadCommitNumber)
 	require.Error(t, err)
 }
 
-func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testDetails_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber := types.CommitNumber(1)
 	assert.False(t, g.cache.Contains(commitNumber))
 	commit, err := g.CommitFromCommitNumber(ctx, commitNumber)
@@ -172,13 +172,13 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 	assert.True(t, g.cache.Contains(commitNumber))
 }
 
-func testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	resp, err := g.CommitSliceFromCommitNumberSlice(ctx, []types.CommitNumber{})
 	require.NoError(t, err)
 	assert.Empty(t, resp)
 }
 
-func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumbers := []types.CommitNumber{1, 3}
 	assert.False(t, g.cache.Contains(commitNumbers[0]))
 	assert.False(t, g.cache.Contains(commitNumbers[1]))
@@ -210,12 +210,12 @@ func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Cont
 	assert.True(t, g.cache.Contains(commitNumbers[1]))
 }
 
-func testCommitNumberFromGitHash_ErrorOnUnknownGitHash(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumberFromGitHash_ErrorOnUnknownGitHash(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	_, err := g.CommitNumberFromGitHash(ctx, hashes[0]+"obviously_not_a_valid_hash")
 	assert.Error(t, err)
 }
 
-func testCommitNumberFromTime_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumberFromTime_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	// Exact time of commit number 1. See gittest.NewForTest().
 	commitNumber, err := g.CommitNumberFromTime(ctx, gittest.StartTime.Add(1*time.Minute))
 	assert.NoError(t, err)
@@ -232,18 +232,18 @@ func testCommitNumberFromTime_Success(t *testing.T, ctx context.Context, g *Git,
 	assert.Equal(t, types.CommitNumber(0), commitNumber)
 }
 
-func testCommitNumberFromTime_SuccessOnZeroTime(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumberFromTime_SuccessOnZeroTime(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commitNumber, err := g.CommitNumberFromTime(ctx, time.Time{})
 	assert.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(len(hashes)-1), commitNumber)
 }
 
-func testCommitNumberFromTime_ErrorOnTimeTooOld(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumberFromTime_ErrorOnTimeTooOld(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	_, err := g.CommitNumberFromTime(ctx, gittest.StartTime.Add(-1*time.Minute))
 	require.Error(t, err)
 }
 
-func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromTimeRange(ctx, gittest.StartTime.Add(1*time.Minute), gittest.StartTime.Add(3*time.Minute))
 	require.NoError(t, err)
 	assert.Len(t, commits, 2)
@@ -254,19 +254,19 @@ func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *
 	assert.Contains(t, commits[1].URL, "+show/497e33d39ae58fa3339f67b9366f887a4c72871c")
 }
 
-func testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromTimeRange(ctx, gittest.StartTime.Add(1*time.Minute), gittest.StartTime.Add(1*time.Minute))
 	require.NoError(t, err)
 	assert.Empty(t, commits)
 }
 
-func testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromTimeRange(ctx, gittest.StartTime.Add(2*time.Minute), gittest.StartTime.Add(1*time.Minute))
 	require.NoError(t, err)
 	assert.Empty(t, commits)
 }
 
-func testCommitSliceFromCommitNumberRange_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromCommitNumberRange_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromCommitNumberRange(ctx, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, commits, 2)
@@ -276,7 +276,7 @@ func testCommitSliceFromCommitNumberRange_Success(t *testing.T, ctx context.Cont
 	assert.Equal(t, types.CommitNumber(2), commits[1].CommitNumber)
 }
 
-func testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromCommitNumberRange(ctx, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, commits, 1)
@@ -284,60 +284,60 @@ func testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult(t *testing.T
 	assert.Equal(t, types.CommitNumber(2), commits[0].CommitNumber)
 }
 
-func testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromCommitNumberRange(ctx, 3, 2)
 	require.NoError(t, err)
 	require.Empty(t, commits)
 }
 
-func testGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
 	require.NoError(t, err)
 	assert.Equal(t, hashes[2], gitHash)
 }
 
-func testGitHashFromCommitNumber_ErrWhenCommitDoesntExist(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testGitHashFromCommitNumber_ErrWhenCommitDoesntExist(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	_, err := g.GitHashFromCommitNumber(ctx, types.BadCommitNumber)
 	require.Error(t, err)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(1), types.CommitNumber(7), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{3, 6}, commits)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_EmptySliceIfFileDoesntExist(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_EmptySliceIfFileDoesntExist(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(1), types.CommitNumber(7), "this-file-doesnt-exist.txt")
 	require.NoError(t, err)
 	assert.Empty(t, commits)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfBegin(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfBegin(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(3), types.CommitNumber(7), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{3, 6}, commits)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfEnd(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfEnd(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(5), types.CommitNumber(6), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{6}, commits)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_ResultsWhenBeginEqualsEnd(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_ResultsWhenBeginEqualsEnd(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(6), types.CommitNumber(6), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{6}, commits)
 }
 
-func testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommitNumber(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, types.CommitNumber(0), types.CommitNumber(4), "bar.txt")
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{3}, commits)
 }
 
-func testLogEntry_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testLogEntry_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	got, err := g.LogEntry(ctx, types.CommitNumber(1))
 	require.NoError(t, err)
 	expected := `commit 881dfc43620250859549bb7e0301b6910d9b8e70
@@ -349,7 +349,7 @@ Date:   Tue Mar 28 10:41:00 2023 +0000
 	require.Equal(t, expected, got)
 }
 
-func testLogEntry_BadCommitId_ReturnsError(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string) {
+func testLogEntry_BadCommitId_ReturnsError(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	_, err := g.LogEntry(ctx, types.BadCommitNumber)
 	require.Error(t, err)
 }
@@ -425,7 +425,7 @@ func TestGetCommitNumberFromGitLog(t *testing.T) {
 }
 
 // getCommitNumberSubTestFunction is a func we will call to test one aspect of *SQLTraceStore.
-type getCommitNumberSubTestFunction func(t *testing.T, body string, g *Git)
+type getCommitNumberSubTestFunction func(t *testing.T, body string, g *Impl)
 
 // subTests are all the tests we have for *SQLTraceStore.
 var getCommitNumberSubTests = map[string]struct {
@@ -489,37 +489,37 @@ var getCommitNumberSubTests = map[string]struct {
 		`},
 }
 
-func testGetCommitNumberFromCommit_Master_Success(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_Master_Success(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(727989), commitNumber)
 }
 
-func testGetCommitNumberFromCommit_Main_Success(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_Main_Success(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(727990), commitNumber)
 }
 
-func testGetCommitNumberFromCommit_OtherBranch_ReturnsError(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_OtherBranch_ReturnsError(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testGetCommitNumberFromCommit_NoCommitNumber_ReturnsError(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_NoCommitNumber_ReturnsError(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_InvalidCommitNumber_ReturnsError(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.Error(t, err)
 	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
-func testGetCommitNumberFromCommit_MultipleCommitNumbers_GetTheLastCommitNumber(t *testing.T, body string, g *Git) {
+func testGetCommitNumberFromCommit_MultipleCommitNumbers_GetTheLastCommitNumber(t *testing.T, body string, g *Impl) {
 	commitNumber, err := g.getCommitNumberFromCommit(body)
 	require.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(1101482), commitNumber)

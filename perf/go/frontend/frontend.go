@@ -98,7 +98,7 @@ const (
 
 // Frontend is the server for the Perf web UI.
 type Frontend struct {
-	perfGit *perfgit.Git
+	perfGit perfgit.Git
 
 	templates *template.Template
 
