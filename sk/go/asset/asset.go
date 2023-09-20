@@ -41,7 +41,7 @@ const (
 	tagVersionTmpl   = tagVersionPrefix + "%d"
 
 	creationScriptBaseName        = "create.py"
-	creationScriptInitialContents = `#!/usr/bin/env python
+	creationScriptInitialContents = `#!/usr/bin/env python3
 #
 # Copyright 2017 Google Inc.
 #
@@ -384,7 +384,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 				rvErr = err
 			}
 		}()
-		cmd := os_exec.CommandContext(ctx, "python", "-u", creationScript, "-t", src)
+		cmd := os_exec.CommandContext(ctx, "python3", "-u", creationScript, "-t", src)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Path, strings.Join(cmd.Args, " ")))
