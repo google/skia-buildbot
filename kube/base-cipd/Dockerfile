@@ -50,4 +50,4 @@ FROM base AS base-cipd
 ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
 COPY --from=install_pkgs ${CIPD_ROOT} ${CIPD_ROOT}
-ENV PATH="${CIPD_ROOT}:${CIPD_ROOT}/cipd_bin_packages:${CIPD_ROOT}/cipd_bin_packages/bin:${CIPD_ROOT}/cipd_bin_packages/cpython:${CIPD_ROOT}/cipd_bin_packages/cpython/bin:${CIPD_ROOT}/cipd_bin_packages/cpython3:${CIPD_ROOT}/cipd_bin_packages/cpython3/bin:${CIPD_ROOT}/cipd_bin_packages/gsutil:${PATH}"
+ENV PATH="${CIPD_ROOT}:${CIPD_ROOT}/cipd_bin_packages/gsutil:${CIPD_ROOT}/cipd_bin_packages:${CIPD_ROOT}/cipd_bin_packages/bin:${CIPD_ROOT}/cipd_bin_packages/cpython:${CIPD_ROOT}/cipd_bin_packages/cpython/bin:${CIPD_ROOT}/cipd_bin_packages/cpython3:${CIPD_ROOT}/cipd_bin_packages/cpython3/bin:${PATH}"
