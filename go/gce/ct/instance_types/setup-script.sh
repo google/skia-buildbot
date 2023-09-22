@@ -10,7 +10,7 @@ echo "Installing packages..."
 sudo apt-get update
 sudo apt-get -y install libosmesa-dev clang-3.6 poppler-utils netpbm \
     python3-django libgif-dev lua5.2 libnss3 python-setuptools python-pip \
-    libglu1 libgtk3.0 xvfb gperf bison libglu1-mesa-dev libgbm-dev
+    libglu1 libgtk3.0 xvfb gperf bison libglu1-mesa-dev libgbm-dev pkg-config
 
 # Install Python packages.
 cat <<EOF > /tmp/ct-requirements.txt
