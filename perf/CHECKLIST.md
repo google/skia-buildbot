@@ -11,13 +11,13 @@ Port-forward the database:
 
 ```
 $ ./kube/attach.sh skia-infra-public
-kubectl port-forward --namespace=perf  perf-cockroachdb-0 26257
+kubectl port-forward --namespace=perf perf-cockroachdb-0 25000:26257
 ```
 
 From another shell on the same computer connect to the database:
 
 ```
-cockroach sql --insecure --host=127.0.0.1:26257
+cockroach sql --insecure --host=127.0.0.1:25000
 ```
 
 Create the database:
