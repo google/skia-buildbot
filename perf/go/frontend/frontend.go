@@ -117,7 +117,7 @@ type Frontend struct {
 
 	configProvider continuous.ConfigProvider
 
-	notifier *notify.Notifier
+	notifier notify.Notifier
 
 	traceStore tracestore.TraceStore
 

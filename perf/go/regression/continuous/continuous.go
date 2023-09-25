@@ -61,7 +61,7 @@ type Continuous struct {
 	shortcutStore  shortcut.Store
 	store          regression.Store
 	provider       ConfigProvider
-	notifier       *notify.Notifier
+	notifier       notify.Notifier
 	paramsProvider regression.ParamsetProvider
 	dfBuilder      dataframe.DataFrameBuilder
 	pollingDelay   time.Duration
@@ -82,7 +82,7 @@ func New(
 	shortcutStore shortcut.Store,
 	provider ConfigProvider,
 	store regression.Store,
-	notifier *notify.Notifier,
+	notifier notify.Notifier,
 	paramsProvider regression.ParamsetProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,

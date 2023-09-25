@@ -8,7 +8,7 @@
     "feedback_url": "http://go/berf-skia-feedback",
     "filter_parent_traces": true,
     "notify_config": {
-        "notifications": "html_email"
+        "notifications": "chromeperf"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

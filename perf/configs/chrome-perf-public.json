@@ -7,7 +7,7 @@
     "fetch_chrome_perf_anomalies": true,
     "filter_parent_traces": true,
     "notify_config": {
-        "notifications": "html_email"
+        "notifications": "none"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

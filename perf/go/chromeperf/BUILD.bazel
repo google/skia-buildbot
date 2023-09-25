@@ -1,0 +1,30 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "chromeperf",
+    srcs = [
+        "anomalyApi.go",
+        "chromeperfClient.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/chromeperf",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "chromeperf_test",
+    srcs = ["chromeperfClient_test.go"],
+    embed = [":chromeperf"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

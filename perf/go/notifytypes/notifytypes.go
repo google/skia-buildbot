@@ -11,6 +11,10 @@ const (
 	// issue tracker.
 	MarkdownIssueTracker Type = "markdown_issuetracker"
 
+	// ChromeperfAlerting means send the regression data to chromeperf
+	// alerting system
+	ChromeperfAlerting Type = "chromeperf"
+
 	// None means do not send any notification.
 	None Type = "none"
 )

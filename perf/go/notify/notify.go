@@ -66,8 +66,22 @@ type TemplateContext struct {
 	ParamSet paramtools.ReadOnlyParamSet
 }
 
-// Notifier sends notifications.
-type Notifier struct {
+// Notifier provides an interface for regression notification functions
+type Notifier interface {
+	// RegressionFound sends a notification for the given cluster found at the given commit.
+	RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error)
+
+	// RegressionMissing sends a notification that a previous regression found for
+	// the given cluster found at the given commit has disappeared after more data
+	// has arrived.
+	RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error
+
+	// ExampleSend sends an example for dummy data for the given alerts.Config.
+	ExampleSend(ctx context.Context, alert *alerts.Alert) error
+}
+
+// DefaultNotifier sends notifications.
+type DefaultNotifier struct {
 	formatter Formatter
 
 	transport Transport
@@ -77,8 +91,8 @@ type Notifier struct {
 }
 
 // newNotifier returns a newNotifier Notifier.
-func newNotifier(formatter Formatter, transport Transport, url string) *Notifier {
-	return &Notifier{
+func newNotifier(formatter Formatter, transport Transport, url string) Notifier {
+	return &DefaultNotifier{
 		formatter: formatter,
 		transport: transport,
 		url:       url,
@@ -86,7 +100,7 @@ func newNotifier(formatter Formatter, transport Transport, url string) *Notifier
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
+func (n *DefaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
 	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return "", err
@@ -102,7 +116,7 @@ func (n *Notifier) RegressionFound(ctx context.Context, commit, previousCommit p
 // RegressionMissing sends a notification that a previous regression found for
 // the given cluster found at the given commit has disappeared after more data
 // has arrived. Where to send it is defined in the alerts.Config.
-func (n *Notifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
+func (n *DefaultNotifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
 	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return err
@@ -115,7 +129,7 @@ func (n *Notifier) RegressionMissing(ctx context.Context, commit, previousCommit
 }
 
 // ExampleSend sends an example for dummy data for the given alerts.Config.
-func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
+func (n *DefaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 	commit := provider.Commit{
 		Subject:   "An example commit use for testing.",
 		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
@@ -165,7 +179,7 @@ func (n *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 }
 
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string) (*Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string) (Notifier, error) {
 	switch cfg.Notifications {
 	case notifytypes.None:
 		return newNotifier(NewHTMLFormatter(commitRangeURITemplate), NewNoopTransport(), URL), nil
@@ -181,7 +195,8 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 			return nil, skerr.Wrap(err)
 		}
 		return newNotifier(f, tracker, URL), nil
-
+	case notifytypes.ChromeperfAlerting:
+		return NewChromePerfNotifier(ctx, nil)
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)
 	}

@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mock",
+    srcs = [
+        "ChromePerfClient.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/chromeperf/mock",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/chromeperf",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
