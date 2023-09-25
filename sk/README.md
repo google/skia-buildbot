@@ -27,8 +27,10 @@ makes no permanent changes. It does the following:
    Example: http://review.skia.org/661361
 5. Creates a CL to merge individual release notes into the top level
    RELEASE_NOTES.md file in the **new milestone** branch.
+   Example: http://review.skia.org/751627
 6. Creates a CL to cherry-pick the RELEASE_NOTES.md merge into the **main
    branch**.
+   Example: http://review.skia.org/752136
 
 ### Running `release-branch`
 
