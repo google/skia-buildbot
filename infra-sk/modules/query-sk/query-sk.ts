@@ -61,7 +61,7 @@ export class QuerySk extends ElementSk {
       <input
         id="fast"
         @input=${ele._fastFilter}
-        placeholder="Filter Parameters and Values" />
+        placeholder="Search Parameters and Values" />
       ${QuerySk.clearFilterButton(ele)}
     </div>
     <div class="bottom">

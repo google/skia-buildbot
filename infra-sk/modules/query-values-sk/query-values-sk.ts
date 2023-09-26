@@ -50,13 +50,19 @@ export class QueryValuesSk extends ElementSk {
       id="regexValue"
       class="hidden"
       @input=${ele._regexInputChange} />
+    <div class="filtering">
+      <input
+        id="filter"
+        @input=${ele._fastFilter}
+        placeholder="Filter Values" />
+    </div>
     <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
       ${QueryValuesSk.valuesTemplate(ele)}
     </multi-select-sk>
   `;
 
   private static valuesTemplate = (ele: QueryValuesSk) =>
-    ele._options.map(
+    ele.options.map(
       (v) => html`
         <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
       `
@@ -64,13 +70,19 @@ export class QueryValuesSk extends ElementSk {
 
   private _options: string[] = [];
 
+  private _filteredOptions: string[] = [];
+
   private _selected: string[] = [];
+
+  private _filtering: boolean = false;
 
   private _invert: CheckOrRadio | null = null;
 
   private _regex: CheckOrRadio | null = null;
 
   private _regexValue: HTMLInputElement | null = null;
+
+  private _filterInput: HTMLInputElement | null = null;
 
   private _values: MultiSelectSk | null = null;
 
@@ -85,6 +97,7 @@ export class QueryValuesSk extends ElementSk {
     this._regex = this.querySelector('#regex');
     this._values = this.querySelector('#values');
     this._regexValue = this.querySelector('#regexValue');
+    this._filterInput = this.querySelector('#filter');
     this._upgradeProperty('options');
     this._upgradeProperty('selected');
     this._upgradeProperty('hide_invert');
@@ -103,8 +116,34 @@ export class QueryValuesSk extends ElementSk {
     if (this._invert!.checked) {
       this._invert!.checked = false;
     }
+
     this._render();
     this._fireEvent();
+  }
+
+  /**
+   * Filter the options displayed based on text entered in the
+   * filter text box
+   */
+  private _fastFilter(): void {
+    const filterString = this._filterInput!.value.trim();
+    const filters = filterString.toLowerCase().split(/\s+/);
+
+    if (filterString) {
+      this._filtering = true;
+      this._filteredOptions = [];
+      // Create a closure that returns true if the given label matches the filter.
+      const matches = (s: string): boolean => {
+        s = s.toLowerCase();
+        return filters.filter((f) => s.indexOf(f) > -1).length > 0;
+      };
+
+      // Only add the values that match the filter text
+      this._filteredOptions = Object.values(this._options).filter(matches);
+    } else {
+      this._filtering = false;
+    }
+    this._render();
   }
 
   private _regexInputChange() {
@@ -114,16 +153,14 @@ export class QueryValuesSk extends ElementSk {
   private _selectionChange(
     e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
   ) {
-    this._selected = e.detail.selection.map((i) => this._options[i]);
+    this._selected = e.detail.selection.map((i) => this.options[i]);
     this._render();
     this._fireEvent();
   }
 
   private _fireEvent() {
     const prefix = this._invert!.checked ? '!' : '';
-    let selected = this._values!.selection.map(
-      (i) => prefix + this._options[i]
-    );
+    let selected = this._values!.selection.map((i) => prefix + this.options[i]);
     if (this._regex!.checked) {
       selected = [`~${this._regexValue!.value}`];
     }
@@ -172,13 +209,20 @@ export class QueryValuesSk extends ElementSk {
 
   /** The available options. */
   get options() {
+    if (this._filtering) {
+      return this._filteredOptions;
+    }
+
     return this._options;
   }
 
   set options(val) {
     this._options = val;
     this._selected = [];
-    this._render();
+
+    // Perform filtering for the values when
+    // updating the options
+    this._fastFilter();
   }
 
   /** Current selections. */

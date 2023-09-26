@@ -20,6 +20,10 @@ export class QueryValuesSkPO extends PageObject {
     return this.bySelector('#regexValue');
   }
 
+  private get filterInput(): PageObjectElement {
+    return this.bySelector('#filter');
+  }
+
   private get options(): PageObjectElementList {
     return this.bySelectorAll('multi-select-sk#values div');
   }
@@ -62,6 +66,14 @@ export class QueryValuesSkPO extends PageObject {
 
   async setRegexValue(value: string) {
     await (await this.regexInput).enterValue(value);
+  }
+
+  async getFilterInputValue() {
+    return (await this.filterInput).value;
+  }
+
+  async setFilterInputValue(value: string) {
+    await (await this.filterInput).enterValue(value);
   }
 
   async clickOption(option: string) {

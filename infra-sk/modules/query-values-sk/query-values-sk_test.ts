@@ -151,6 +151,30 @@ describe('query-values-sk', () => {
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isFalse(await queryValuesSkPO.isInvertCheckboxChecked());
     });
+
+    it('checks if filtering on options is done correctly.', async () => {
+      var originalOptions = await queryValuesSkPO.getOptions();
+      await queryValuesSkPO.setFilterInputValue('ar');
+      assert.deepEqual(
+        await queryValuesSkPO.getOptions(),
+        ['arm'],
+        'Filtering not done correctly.'
+      );
+
+      await queryValuesSkPO.setFilterInputValue('');
+      assert.deepEqual(
+        await queryValuesSkPO.getOptions(),
+        originalOptions,
+        'Empty filter value should reset the options to the original list.'
+      );
+
+      await queryValuesSkPO.setFilterInputValue('returnNothing');
+      assert.deepEqual(
+        await queryValuesSkPO.getOptions(),
+        [],
+        'Query should not return any options'
+      );
+    });
   });
 
   describe('with inverted input', () => {
