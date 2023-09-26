@@ -3,8 +3,9 @@ package notify
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -47,29 +48,36 @@ func (n *ChromePerfNotifier) RegressionFound(
 	cl *clustering2.ClusterSummary,
 	frame *frame.FrameResponse) (string, error) {
 
-	sklog.Infof("Sending regression found information to Chromeperf for alert %s", alert.DisplayName)
+	sklog.Infof("%d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 
-	// frame.DataFrame.ParamSet contains all the parameters expanded from the alert.Query
-	// and this is used to get the test metadata for the regression.
-	paramset := frame.DataFrame.ParamSet
-	if !isParamSetValid(paramset) {
-		return "", skerr.Fmt("Invalid paramset %s for chromeperf", paramset)
+	anomalyIds := []string{}
+	for key := range frame.DataFrame.TraceSet {
+		paramset, err := query.ParseKey(key)
+		if err != nil {
+			return "", skerr.Wrapf(err, "Error parsing key %s", key)
+		}
+
+		if !isParamSetValid(paramset) {
+			return "", skerr.Fmt("Invalid paramset %s for chromeperf", paramset)
+		}
+
+		response, err := n.chromePerfClient.SendRegression(
+			ctx,
+			getTestPath(paramset),
+			int32(previousCommit.CommitNumber),
+			int32(commit.CommitNumber),
+			"chromium",
+			false,
+			paramset["bot"],
+			true)
+
+		if err != nil {
+			return "", err
+		}
+		anomalyIds = append(anomalyIds, response.AnomalyId)
 	}
 
-	response, err := n.chromePerfClient.SendRegression(
-		ctx,
-		getTestPath(paramset),
-		int32(previousCommit.CommitNumber),
-		int32(commit.CommitNumber),
-		"chromium",
-		false,
-		paramset["bot"][0],
-		true)
-
-	if err != nil {
-		return "", err
-	}
-	return response.AnomalyId, nil
+	return strings.Join(anomalyIds, ","), nil
 }
 
 // RegressionMissing implements notify.Notifier.
@@ -83,25 +91,32 @@ func (n *ChromePerfNotifier) RegressionMissing(
 	frame *frame.FrameResponse,
 	threadingReference string) error {
 	sklog.Info("Sending regression missing information to Chromeperf")
-	paramset := frame.DataFrame.ParamSet
-	if !isParamSetValid(paramset) {
-		const errorFormat = "Invalid paramset %s for chromeperf"
-		sklog.Debugf(errorFormat, paramset)
-		return skerr.Fmt(errorFormat, paramset)
+	for key := range frame.DataFrame.TraceSet {
+		paramset, err := query.ParseKey(key)
+		if err != nil {
+			return skerr.Wrapf(err, "Error parsing key %s", key)
+		}
+
+		if !isParamSetValid(paramset) {
+			const errorFormat = "Invalid paramset %s for chromeperf"
+			sklog.Debugf(errorFormat, paramset)
+			return skerr.Fmt(errorFormat, paramset)
+		}
+
+		_, err = n.chromePerfClient.SendRegression(
+			ctx,
+			getTestPath(paramset),
+			int32(previousCommit.CommitNumber),
+			int32(commit.CommitNumber),
+			"chromium",
+			true,
+			paramset["bot"],
+			true)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err := n.chromePerfClient.SendRegression(
-		ctx,
-		getTestPath(paramset),
-		int32(previousCommit.CommitNumber),
-		int32(commit.CommitNumber),
-		"chromium",
-		true,
-		paramset["bot"][0],
-		true)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -113,7 +128,7 @@ func (n *ChromePerfNotifier) ExampleSend(ctx context.Context, alert *alerts.Aler
 
 // isParamSetValid returns true if the paramsets contains all the
 // keys required by chromeperf api.
-func isParamSetValid(paramset paramtools.ReadOnlyParamSet) bool {
+func isParamSetValid(paramset map[string]string) bool {
 	requiredKeys := []string{"master", "bot", "benchmark", "test", "subtest_1"}
 	for _, key := range requiredKeys {
 		_, ok := paramset[key]
@@ -126,13 +141,13 @@ func isParamSetValid(paramset paramtools.ReadOnlyParamSet) bool {
 }
 
 // GetTestPath returns a test path based on the values found in the paramset.
-func getTestPath(paramset paramtools.ReadOnlyParamSet) string {
+func getTestPath(paramset map[string]string) string {
 	keys := []string{"bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3"}
-	testPath := paramset["master"][0]
+	testPath := paramset["master"]
 	for _, key := range keys {
-		vals, ok := paramset[key]
+		val, ok := paramset[key]
 		if ok {
-			testPath = fmt.Sprintf("%s/%s", testPath, vals[0])
+			testPath = fmt.Sprintf("%s/%s", testPath, val)
 		} else {
 			break
 		}
