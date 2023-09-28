@@ -69,8 +69,8 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -66.30783735699579,
-				LowerCi:  -67.77167618955136,
+				Estimate: -66.42026581108367,
+				LowerCi:  -67.81744007796827,
 				UpperCi:  -64.67566905094428,
 				PValue:   3.610001186871159e-12,
 				XMedian:  4220.841672500003,
@@ -83,9 +83,9 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -16.73062483206894,
-				LowerCi:  -21.120670031839595,
-				UpperCi:  -13.138801973339953,
+				Estimate: -16.543955983162405,
+				LowerCi:  -21.556758153745736,
+				UpperCi:  -11.235135761402926,
 				PValue:   1.3489114306741e-07,
 				XMedian:  2.8,
 				YMedian:  3.2,
@@ -97,9 +97,9 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -16.73062483206894,
-				LowerCi:  -21.120670031839595,
-				UpperCi:  -13.138801973339953,
+				Estimate: -16.543955983162405,
+				LowerCi:  -21.556758153745736,
+				UpperCi:  -11.235135761402926,
 				PValue:   1.3489114306741e-07,
 				XMedian:  2.8,
 				YMedian:  3.2,
@@ -111,8 +111,8 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -4.621028211793865,
-				LowerCi:  -10.557585442069328,
+				Estimate: -4.958510387907966,
+				LowerCi:  -10.688376235186182,
 				UpperCi:  1.7101263441554604,
 				PValue:   0.12098409484052819,
 				XMedian:  16.6,
@@ -125,8 +125,8 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -4.621028211793865,
-				LowerCi:  -10.557585442069328,
+				Estimate: -4.958510387907966,
+				LowerCi:  -10.688376235186182,
 				UpperCi:  1.7101263441554604,
 				PValue:   0.12098409484052819,
 				XMedian:  16.6,
@@ -139,9 +139,9 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: -4.247016655834912,
-				LowerCi:  -5.278978221402397,
-				UpperCi:  -3.2108781224263527,
+				Estimate: -4.132084178180195,
+				LowerCi:  -5.139127442879166,
+				UpperCi:  -3.174103971744557,
 				PValue:   1.8427925750551541e-09,
 				XMedian:  72.66666666666667,
 				YMedian:  75.33333333333333,
@@ -153,10 +153,10 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 0.8482862740345709,
-				LowerCi:  -0.2859781113841775,
-				UpperCi:  1.858087165306177,
-				PValue:   0.1592140742909307,
+				Estimate: 0.7015611255400733,
+				LowerCi:  -0.5240466122385157,
+				UpperCi:  1.7282707804197495,
+				PValue:   0.25149635438751106,
 				XMedian:  6786.875,
 				YMedian:  6709.8125,
 			},
@@ -167,9 +167,9 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 32.379285235910714,
-				LowerCi:  8.806785244533177,
-				UpperCi:  54.97965702347043,
+				Estimate: 31.15739918803897,
+				LowerCi:  6.414886823364019,
+				UpperCi:  56.170944789716515,
 				PValue:   0.008840583696913873,
 				XMedian:  420.8447767851758,
 				YMedian:  393.5,
@@ -181,9 +181,9 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 51.31135620023197,
-				LowerCi:  24.235675882547667,
-				UpperCi:  80.72348755186569,
+				Estimate: 51.174468247411006,
+				LowerCi:  20.75168162096137,
+				UpperCi:  81.03505946711454,
 				PValue:   7.632395510914769e-05,
 				XMedian:  397.89662355293524,
 				YMedian:  318,
@@ -195,10 +195,10 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 13.704720839623374,
-				LowerCi:  -6.729178442198935,
-				UpperCi:  31.114821028841778,
-				PValue:   0.18215234689722948,
+				Estimate: 13.106570392527917,
+				LowerCi:  -10.220424833044683,
+				UpperCi:  32.37324271232311,
+				PValue:   0.2123169782118901,
 				XMedian:  443.39272609936535,
 				YMedian:  497,
 			},
@@ -209,10 +209,10 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 0.68934637669682,
-				LowerCi:  -0.2584134232097246,
-				UpperCi:  1.6487635502799636,
-				PValue:   0.12043215769345683,
+				Estimate: 0.5584261246817324,
+				LowerCi:  -0.5081247375108067,
+				UpperCi:  1.5631045526682597,
+				PValue:   0.33855552600718997,
 				XMedian:  454,
 				YMedian:  449,
 			},
@@ -223,10 +223,10 @@ var (
 			BuildConfig: "",
 			RunConfig:   "Mac,arm",
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
-				Estimate: 0.8448450266459018,
-				LowerCi:  -0.36873794758962575,
-				UpperCi:  1.9245630078938092,
-				PValue:   0.1612044338739682,
+				Estimate: 0.6888594953676552,
+				LowerCi:  -0.5104040328350878,
+				UpperCi:  1.7512139378455638,
+				PValue:   0.25699089113595686,
 				XMedian:  6316.666499999999,
 				YMedian:  6247.375,
 			},
@@ -239,8 +239,8 @@ var (
 			Statistics: &cabe_stats.BerfWilcoxonSignedRankedTestResult{
 				Estimate: 0.0022244196845155884,
 				LowerCi:  -0.0018183524108428273,
-				UpperCi:  15.464824031447932,
-				PValue:   0.3329511135593646,
+				UpperCi:  9.548884656603306,
+				PValue:   0.5347774276405586,
 				XMedian:  6,
 				YMedian:  6,
 			},
@@ -348,7 +348,7 @@ func TestRun_withReplayBackends(t *testing.T) {
 	assert.NotNil(t, diag)
 	assert.Equal(t, 0, len(diag.ExcludedSwarmingTasks))
 	assert.Equal(t, 0, len(diag.ExcludedReplicas))
-	assert.Equal(t, 130, len(diag.IncludedSwarmingTasks))
+	assert.Equal(t, 128, len(diag.IncludedSwarmingTasks))
 	assert.Equal(t, 64, len(diag.IncludedReplicas))
 }
 
@@ -388,8 +388,8 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	assert.Equal(t, len(res), 1)
 
 	expectedResults := &cpb.Statistic{
-		Upper:           54.891271,
-		Lower:           27.297663,
+		Upper:           54.461149,
+		Lower:           29.047617,
 		PValue:          0.007812,
 		ControlMedian:   5502.464000,
 		TreatmentMedian: 7824.926500,
@@ -406,7 +406,7 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	diag := a.Diagnostics()
 	assert.NotNil(t, diag)
 	assert.Equal(t, 4, len(diag.ExcludedSwarmingTasks))
-	assert.Equal(t, 0, len(diag.ExcludedReplicas))
+	assert.Equal(t, 2, len(diag.ExcludedReplicas))
 	assert.Equal(t, 16, len(diag.IncludedSwarmingTasks))
 	assert.Equal(t, 8, len(diag.IncludedReplicas))
 

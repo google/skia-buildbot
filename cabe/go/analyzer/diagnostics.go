@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"sort"
+	"sync"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
 
@@ -25,6 +26,7 @@ type ReplicaDiagnostics struct {
 // Diagnostics contains diagnostic messages about the replica task pairs and individual tasks generated
 // by the Analyzer.
 type Diagnostics struct {
+	mu *sync.Mutex
 	// Bad news: things that had to be excluded from the analysis, and why.
 	ExcludedSwarmingTasks map[string]*SwarmingTaskDiagnostics `json:",omitempty"`
 	ExcludedReplicas      map[int]*ReplicaDiagnostics         `json:",omitempty"`
@@ -36,6 +38,7 @@ type Diagnostics struct {
 
 func newDiagnostics() *Diagnostics {
 	return &Diagnostics{
+		mu:                    &sync.Mutex{},
 		ExcludedSwarmingTasks: map[string]*SwarmingTaskDiagnostics{},
 		ExcludedReplicas:      map[int]*ReplicaDiagnostics{},
 		IncludedSwarmingTasks: map[string]*SwarmingTaskDiagnostics{},
@@ -44,6 +47,8 @@ func newDiagnostics() *Diagnostics {
 }
 
 func (d *Diagnostics) excludeSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata, msg string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	taskDiag := d.ExcludedSwarmingTasks[taskInfo.TaskId]
 	if taskDiag == nil {
 		taskDiag = &SwarmingTaskDiagnostics{
@@ -56,12 +61,16 @@ func (d *Diagnostics) excludeSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskReq
 }
 
 func (d *Diagnostics) includeSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	d.IncludedSwarmingTasks[taskInfo.TaskId] = &SwarmingTaskDiagnostics{
 		TaskID: taskInfo.TaskId,
 	}
 }
 
 func (d *Diagnostics) excludeReplica(replicaNumber int, pair pairedTasks, msg string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	replicaDiag := d.ExcludedReplicas[replicaNumber]
 	if replicaDiag == nil {
 		replicaDiag = &ReplicaDiagnostics{
@@ -77,6 +86,8 @@ func (d *Diagnostics) excludeReplica(replicaNumber int, pair pairedTasks, msg st
 }
 
 func (d *Diagnostics) includeReplica(replicaNumber int, pair pairedTasks) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	d.IncludedReplicas[replicaNumber] = &ReplicaDiagnostics{
 		Number:          replicaNumber,
 		ControlTaskID:   pair.control.taskID,

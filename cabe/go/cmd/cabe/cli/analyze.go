@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/cabe/go/analyzer"
+	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/sklog"
 
 	"github.com/olekukonko/tablewriter"
@@ -52,9 +53,31 @@ func (cmd *analyzeCmd) action(cliCtx *cli.Context) error {
 		return err
 	}
 
-	printAnalysisResultsTable(results)
+	diag := a.Diagnostics().AnalysisDiagnostics()
+
+	cmd.printDiagnostics(diag)
+	cmd.printAnalysisResultsTable(results)
 
 	return nil
+}
+
+func (cmd *analyzeCmd) printDiagnostics(d *cpb.AnalysisDiagnostics) {
+	if len(d.ExcludedReplicas) > 0 {
+		fmt.Printf("\nWarning: some task pairs had to be excluded due to the following problems:\n")
+		for _, r := range d.ExcludedReplicas {
+			fmt.Printf("Excluded task pair for replica %d:\n", r.ReplicaNumber)
+			fmt.Printf("\tControl task:\t%s:\n", r.ControlTask.TaskId)
+			fmt.Printf("\tTreatment task:\t%s:\n", r.TreatmentTask.TaskId)
+			fmt.Printf("\tProblems reported:\n")
+			for _, msg := range r.Message {
+				fmt.Printf("\t\t%s\n", msg)
+			}
+		}
+	}
+	fmt.Printf("\n")
+	fmt.Printf("Total task pairs included: %d\n", len(d.IncludedReplicas))
+	fmt.Printf("Total task pairs excluded: %d\n", len(d.ExcludedReplicas))
+	fmt.Printf("\n")
 }
 
 var (
@@ -64,7 +87,9 @@ var (
 	headerColor     = []int{tablewriter.Bold, tablewriter.FgWhiteColor, tablewriter.BgBlackColor}
 )
 
-func printAnalysisResultsTable(a []analyzer.Results) {
+func (cmd *analyzeCmd) printAnalysisResultsTable(a []analyzer.Results) {
+	fmt.Printf("\nAnalysis Results:\n\n")
+
 	w := tablewriter.NewWriter(os.Stdout)
 	headers := []string{"Benchmark", "Workload", "Control median", "Treatment median", "CI Lower", "CI Upper", "P Value"}
 	w.SetHeader(headers)
@@ -118,6 +143,7 @@ func printAnalysisResultsTable(a []analyzer.Results) {
 		w.Rich(row, rowColors)
 	}
 	w.Render()
+	fmt.Printf("\n")
 }
 
 /*

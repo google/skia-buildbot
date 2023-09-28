@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	stat "github.com/aclements/go-moremath/stats"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -153,20 +155,6 @@ func (a *Analyzer) ExperimentSpec() *cpb.ExperimentSpec {
 	return a.experimentSpec
 }
 
-func (a *Analyzer) filterCompleteSwarmingTasks(taskInfos []*swarming.SwarmingRpcsTaskRequestMetadata) []*swarming.SwarmingRpcsTaskRequestMetadata {
-	ret := []*swarming.SwarmingRpcsTaskRequestMetadata{}
-	for _, taskInfo := range taskInfos {
-		if taskInfo.TaskResult.State == taskCompletedState {
-			ret = append(ret, taskInfo)
-			a.diagnostics.includeSwarmingTask(taskInfo)
-		} else {
-			msg := fmt.Sprintf("task result is in state %q, not %q", taskInfo.TaskResult.State, taskCompletedState)
-			a.diagnostics.excludeSwarmingTask(taskInfo, msg)
-		}
-	}
-	return ret
-}
-
 // Run executes the whole Analyzer process for a single, complete experiment.
 // TODO(seanmccullough): break this up into distinct, testable stages with one function per stage.
 func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
@@ -181,10 +169,8 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 		return res, err
 	}
 
-	allTaskInfos = a.filterCompleteSwarmingTasks(allTaskInfos)
-
 	// TODO(seanmccullough): choose different process<Foo>Tasks implementations based on AnalysisSpec values.
-	processedArms, err := processPinpointTryjobTasks(allTaskInfos)
+	processedArms, err := a.processPinpointTryjobTasks(allTaskInfos)
 	if err != nil {
 		return res, err
 	}
@@ -216,24 +202,39 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 			a.diagnostics.excludeReplica(replicaNumber, pair, "one or both tasks failed")
 			continue
 		}
-
+		pairIsOk := true
+		for _, benchmarkSpec := range a.experimentSpec.Analysis.Benchmark {
+			controlResults, crOk := pair.control.parsedResults[benchmarkSpec.Name]
+			treatmentResults, trOk := pair.treatment.parsedResults[benchmarkSpec.Name]
+			if !crOk || !trOk {
+				a.diagnostics.excludeReplica(replicaNumber, pair, fmt.Sprintf("one or both tasks are missing output for entire benchmark %q", benchmarkSpec.Name))
+				pairIsOk = false
+				continue
+			}
+			expectedWorkloads := util.NewStringSet(benchmarkSpec.Workload)
+			missingFromCtrl := expectedWorkloads.Complement(util.NewStringSet(controlResults.NonEmptyHistogramNames()))
+			missingFromTrt := expectedWorkloads.Complement(util.NewStringSet(treatmentResults.NonEmptyHistogramNames()))
+			if len(missingFromCtrl) != 0 {
+				a.diagnostics.excludeReplica(replicaNumber, pair, fmt.Sprintf("control task %s on bot %s is missing output for benchmark %s: workload(s) %v",
+					pair.control.taskID, pair.control.taskInfo.TaskResult.BotId, benchmarkSpec.Name, missingFromCtrl))
+				pairIsOk = false
+			}
+			if len(missingFromTrt) != 0 {
+				a.diagnostics.excludeReplica(replicaNumber, pair, fmt.Sprintf("treatment task %s on bot %s is missing output for benchmark %s workload(s) %v",
+					pair.treatment.taskID, pair.treatment.taskInfo.TaskResult.BotId, benchmarkSpec.Name, missingFromTrt))
+				pairIsOk = false
+			}
+		}
+		if !pairIsOk {
+			continue
+		}
 		controlTask, treatmentTask := pair.control, pair.treatment
 
 		runSpecName := pair.control.runConfig
 		buildSpecName := pair.control.buildConfig
 		for _, benchmarkSpec := range a.experimentSpec.GetAnalysis().GetBenchmark() {
-			cRes, ok := controlTask.parsedResults[benchmarkSpec.GetName()]
-			if !ok {
-				msg := fmt.Sprintf("benchmark missing from control task %v: %q", controlTask.taskID, benchmarkSpec.GetName())
-				a.diagnostics.excludeReplica(replicaNumber, pair, msg)
-				continue
-			}
-			tRes, ok := treatmentTask.parsedResults[benchmarkSpec.GetName()]
-			if !ok {
-				msg := fmt.Sprintf("benchmark missing from treatment task %v: %q", controlTask.taskID, benchmarkSpec.GetName())
-				a.diagnostics.excludeReplica(replicaNumber, pair, msg)
-				continue
-			}
+			cRes := controlTask.parsedResults[benchmarkSpec.GetName()]
+			tRes := treatmentTask.parsedResults[benchmarkSpec.GetName()]
 
 			cSamples := map[string][]float64{}
 			for _, cHist := range cRes.Histograms {
@@ -247,25 +248,19 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 			for _, workloadName := range benchmarkSpec.GetWorkload() {
 
 				cValues, ok := cSamples[workloadName]
-				if !ok {
-					msg := fmt.Sprintf("control task %s is missing %q/%q", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
+				if !ok || len(cValues) == 0 {
+					msg := fmt.Sprintf("control task %s is missing %q/%q or reported an empty list of samples", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
 					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
 					continue
 				}
 
 				tValues, ok := tSamples[workloadName]
-				if !ok {
-					msg := fmt.Sprintf("treatment task %s is missing %q/%q", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
+				if !ok || len(tValues) == 0 {
+					msg := fmt.Sprintf("treatment task %s is missing %q/%q or reported an empty list of samples", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
 					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
 					continue
 				}
 
-				if len(cValues) == 0 || len(tValues) == 0 {
-					msg := fmt.Sprintf("rcontrol and/or treatment tasks reported an empty list of values for benchmark %q, workload %q", pair.control.taskID, pair.treatment.taskID, benchmarkSpec.GetName(), workloadName)
-
-					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
-					continue
-				}
 				a.diagnostics.includeReplica(replicaNumber, pair)
 
 				cMean := stat.Mean(cValues)
@@ -340,7 +335,7 @@ func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
 		c.CheckSwarmingTask(taskInfo)
 	}
 
-	processedTasks, err := processPinpointTryjobTasks(allTaskInfos)
+	processedTasks, err := a.processPinpointTryjobTasks(allTaskInfos)
 	if err != nil {
 		sklog.Errorf("RunChecker: processPinpointTryjobTasks returned %v", err)
 		return err
@@ -412,34 +407,41 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 	// This is currently un-sliced. As in, it lumps all runconfigs together. This is fine if you only
 	// have one runconfig (say, you only asked to analyze Mac results).
 	// TODO(seanmccullough): add slicing, which will nest the code below inside an iterator over the slices.
-	controlDigests := processedArms.control.outputDigests()
-	treatmentDigests := processedArms.treatment.outputDigests()
 
-	if len(controlDigests) != len(treatmentDigests) {
-		return fmt.Errorf("control and treatment have different numbers of task output digests: %d vs %d", len(controlDigests), len(treatmentDigests))
-	}
-
-	var controlReplicaOutputs, treatmentReplicaOutputs map[string]swarming.SwarmingRpcsTaskResult
 	// Fetch outputs from control and treatment arms in parallel since there is no data dependency between them.
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
+		controlDigests := map[int]*swarming.SwarmingRpcsCASReference{}
+		for n, t := range processedArms.control.tasks {
+			if t.taskInfo.TaskResult.State != taskCompletedState {
+				continue
+			}
+			controlDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
+		}
 		controlReplicaOutputs, err := a.fetchOutputsFromReplicas(ctx, controlDigests)
 		if err != nil {
 			return err
 		}
-		for replica := range controlReplicaOutputs {
-			processedArms.control.tasks[replica].parsedResults = controlReplicaOutputs[replica]
+		for replica, results := range controlReplicaOutputs {
+			processedArms.control.tasks[replica].parsedResults = results
 		}
 		return nil
 	})
 
 	g.Go(func() error {
+		treatmentDigests := map[int]*swarming.SwarmingRpcsCASReference{}
+		for n, t := range processedArms.treatment.tasks {
+			if t.taskInfo.TaskResult.State != taskCompletedState {
+				continue
+			}
+			treatmentDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
+		}
 		treatmentReplicaOutputs, err := a.fetchOutputsFromReplicas(ctx, treatmentDigests)
 		if err != nil {
 			return err
 		}
-		for replica := range treatmentReplicaOutputs {
-			processedArms.treatment.tasks[replica].parsedResults = treatmentReplicaOutputs[replica]
+		for replica, results := range treatmentReplicaOutputs {
+			processedArms.treatment.tasks[replica].parsedResults = results
 		}
 		return nil
 	})
@@ -448,16 +450,12 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 		return err
 	}
 
-	if len(controlReplicaOutputs) != len(treatmentReplicaOutputs) {
-		return fmt.Errorf("control and treatment have different numbers of benchmark outputs: %d vs %d", len(controlReplicaOutputs), len(treatmentReplicaOutputs))
-	}
-
 	return nil
 }
 
 // returns a slice of maps of perfresults.PerfResults files keyed by benchmark name.
-func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs []*swarming.SwarmingRpcsCASReference) ([]map[string]perfresults.PerfResults, error) {
-	ret := make([]map[string]perfresults.PerfResults, len(outputs))
+func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int]*swarming.SwarmingRpcsCASReference) (map[int]map[string]perfresults.PerfResults, error) {
+	ret := make(map[int]map[string]perfresults.PerfResults, len(outputs))
 	g, ctx := errgroup.WithContext(ctx)
 	if len(outputs) > maxReadCASPoolWorkers {
 		g.SetLimit(maxReadCASPoolWorkers)
@@ -465,19 +463,28 @@ func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs []*swar
 		g.SetLimit(len(outputs))
 	}
 
-	for replica := range outputs {
+	retMu := &sync.Mutex{}
+
+	for replica, casRef := range outputs {
 		replica := replica
+		casRef := casRef
 		g.Go(func() error {
-			casDigest, err := digest.New(outputs[replica].Digest.Hash, outputs[replica].Digest.SizeBytes)
+			if casRef.Digest == nil {
+				sklog.Error("missing CAS reference for replica %d", replica)
+				return fmt.Errorf("missing CAS reference for replica %d", replica)
+			}
+			casDigest, err := digest.New(casRef.Digest.Hash, casRef.Digest.SizeBytes)
 			if err != nil {
 				sklog.Errorf("digest.New: %v", err)
 				return err
 			}
-			res, err := a.readCAS(ctx, outputs[replica].CasInstance, casDigest.String())
+			res, err := a.readCAS(ctx, casRef.CasInstance, casDigest.String())
 			if err != nil {
 				sklog.Errorf("e.readCAS: %v", err)
 				return err
 			}
+			retMu.Lock()
+			defer retMu.Unlock()
 			ret[replica] = res
 			return nil
 		})
@@ -495,13 +502,14 @@ func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs []*swar
 // compared in the analysis/hypothesis testing phase.
 // The slice of tasks should be a complete list of all the tasks for an experiment, and they should
 // all have completed executing successfully.
-func processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) (*processedExperimentTasks, error) {
+func (a *Analyzer) processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) (*processedExperimentTasks, error) {
 	ret := &processedExperimentTasks{
 		treatment: &processedArmTasks{},
 		control:   &processedArmTasks{},
 	}
 
 	buildTasks := map[string]*buildInfo{}
+	sklog.Infof("splitting %d swarming tasks into control and treatment arms", len(tasks))
 	for _, task := range tasks {
 		// First check if we have a build task. It doesn't run any benchmarks, but it does build the
 		// binaries for running benchmarks. So we need to keep track of it for BuildSpec details later.
@@ -523,16 +531,21 @@ func processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadat
 			return nil, err
 		}
 
-		// If it's not a build task, assume it's a test runner task.
-		// Get the CAS digest for the task output so we can fetch it later.
-		if task.TaskResult.CasOutputRoot == nil || task.TaskResult.CasOutputRoot.Digest == nil {
-			return nil, fmt.Errorf("run task result missing CasOutputRoot: %+v", task)
+		if task.TaskResult.State != taskCompletedState {
+			msg := fmt.Sprintf("task result is in state %q, not %q", task.TaskResult.State, taskCompletedState)
+			a.diagnostics.excludeSwarmingTask(task, msg)
+		} else {
+			a.diagnostics.includeSwarmingTask(task)
+			// If it's not a build task, assume it's a test runner task.
+			// Get the CAS digest for the task output so we can fetch it later.
+			if task.TaskResult.CasOutputRoot == nil || task.TaskResult.CasOutputRoot.Digest == nil {
+				return nil, fmt.Errorf("run task result missing CasOutputRoot: %+v", task)
+			}
 		}
 
 		t := &armTask{
 			taskID:       task.TaskId,
 			resultOutput: task.TaskResult.CasOutputRoot,
-			runInfo:      runInfo,
 			buildInfo:    buildInfo,
 			runConfig:    runInfo.String(),
 			taskInfo:     task,
@@ -571,12 +584,6 @@ func processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadat
 		} else {
 			return nil, fmt.Errorf("unrecognized change tag: %q", change)
 		}
-	}
-
-	// Validate some basic assumptions about the data we should have at this point.
-
-	if len(ret.treatment.tasks) != len(ret.control.tasks) {
-		return nil, fmt.Errorf("unequal number of tasks for treatment and control: %d vs %d", len(ret.treatment.tasks), len(ret.control.tasks))
 	}
 
 	return ret, nil

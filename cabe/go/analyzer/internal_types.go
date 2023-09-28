@@ -126,9 +126,6 @@ func runInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*runInfo, erro
 	}
 
 	ret.botID = s.TaskResult.BotId
-	if s.TaskResult.StartedTs == "" {
-		return nil, fmt.Errorf("task %q had no StartedTs value", s.TaskId)
-	}
 	ret.startTimestamp = s.TaskResult.StartedTs
 
 	return ret, nil
@@ -189,9 +186,7 @@ type armTask struct {
 	taskID                 string
 	resultOutput           *swarming.SwarmingRpcsCASReference
 	buildConfig, runConfig string
-	botID                  string
 	buildInfo              *buildInfo
-	runInfo                *runInfo
 	parsedResults          map[string]perfresults.PerfResults
 	taskInfo               *swarming.SwarmingRpcsTaskRequestMetadata
 }
@@ -209,8 +204,8 @@ func (a *processedExperimentTasks) pairedTasks() ([]pairedTasks, error) {
 
 	for i, c := range a.control.tasks {
 		t := a.treatment.tasks[i]
-		if c.botID != t.botID {
-			return nil, fmt.Errorf("bot ID mispatch for pair %d: %q vs %q", i, c.botID, t.botID)
+		if c.taskInfo.TaskResult.BotId != t.taskInfo.TaskResult.BotId {
+			return nil, fmt.Errorf("bot ID mismatch for pair %d: %q vs %q", i, c.taskInfo.TaskResult.BotId, t.taskInfo.TaskResult.BotId)
 		}
 		if c.runConfig != t.runConfig {
 			return nil, fmt.Errorf("control/treatment runConfig mismatch: %q vs %q", c.runConfig, t.runConfig)
@@ -232,7 +227,13 @@ func (p *pairedTasks) isControlOrderFirst() bool {
 }
 
 func (p *pairedTasks) hasTaskFailures() bool {
-	return p.control.taskInfo.TaskResult.ExitCode != 0 || p.treatment.taskInfo.TaskResult.ExitCode != 0
+	if p.control.taskInfo.TaskResult.ExitCode != 0 || p.treatment.taskInfo.TaskResult.ExitCode != 0 {
+		return true
+	}
+	if p.control.parsedResults == nil || p.treatment.parsedResults == nil {
+		return true
+	}
+	return false
 }
 
 type byPairingOrder []*armTask
@@ -245,8 +246,8 @@ func (v byPairingOrder) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
 // actual run order for tasks on that bot.  Even if bots are re-used by subsequent task pairs,
 // the tasks should still be in pairing order within the given bot ID.
 func (v byPairingOrder) Less(i, j int) bool {
-	if v[i].botID == v[j].botID {
+	if v[i].taskInfo.TaskResult.BotId == v[j].taskInfo.TaskResult.BotId {
 		return v[i].taskInfo.TaskResult.StartedTs < v[j].taskInfo.TaskResult.StartedTs
 	}
-	return v[i].botID < v[j].botID
+	return v[i].taskInfo.TaskResult.BotId < v[j].taskInfo.TaskResult.BotId
 }

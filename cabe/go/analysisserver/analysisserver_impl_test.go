@@ -161,14 +161,14 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 			},
 			Statistic: &cpb.Statistic{
 				Upper:           -64.67566905094428,
-				Lower:           -67.77167618955136,
+				Lower:           -67.81744007796827,
 				PValue:          3.610001186871159e-12,
 				ControlMedian:   12861.869927307689,
 				TreatmentMedian: 4220.841672500003,
 			},
 		},
 	}
-	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: "123"}, analysisResults[0], false, 0, 0, 130, 64)
+	test("basic request, no experiment spec", &cpb.GetAnalysisRequest{PinpointJobId: "123"}, analysisResults[0], false, 0, 0, 128, 64)
 	test("basic request, including experiment spec", &cpb.GetAnalysisRequest{
 		PinpointJobId: "123",
 		ExperimentSpec: &cpb.ExperimentSpec{
@@ -184,6 +184,6 @@ func TestAnalysisServiceServer_GetAnalysis(t *testing.T) {
 				},
 			},
 		},
-	}, analysisResults[0], false, 0, 0, 130, 64)
+	}, analysisResults[0], false, 0, 0, 128, 64)
 
 }
