@@ -66,7 +66,13 @@ export const getAnomalyDataMap = (
           .forEach((cid) => {
             for (let i = 0; i < header!.length; i++) {
               const columnHeader = header![i];
-              if (columnHeader!.offset === cid) {
+              // There are scenarios where a trace is missing due to upload failure,
+              // so we may not get a perfect match for the cid in the header offset.
+              // Simply use the next available commit in this case. This way if the
+              // anomaly is specified on a trace that failed uploading to skia perf,
+              // we show the anomaly on the next available data point instead of not
+              // displaying it at all.
+              if (columnHeader!.offset >= cid) {
                 anomalyDataMap[traceId].push({
                   anomaly: cidAnomalyMap[cid],
                   x: i,

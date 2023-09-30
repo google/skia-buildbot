@@ -87,4 +87,26 @@ describe('getAnomalyDataMap', () => {
     );
     assert.deepEqual(anomalyDataMap, expectedAnomalyDataMap);
   });
+  it('maps anomaly to the next commit if exact match not available', () => {
+    const columnHeader: ColumnHeader = { offset: 103, timestamp: 0 };
+    dataframe.header?.push(columnHeader);
+    dataframe.traceset['traceA'].push(200);
+    // Add anomaly that does not have a commit in the header.
+    const anomalymap = { traceA: { 102: anomalyA } };
+    const dataMap = getAnomalyDataMap(
+      dataframe.traceset,
+      dataframe.header!,
+      anomalymap
+    );
+    const expectedAnomalyMap: { [key: string]: AnomalyData[] } = {
+      traceA: [
+        {
+          x: 3,
+          y: 200,
+          anomaly: anomalyA,
+        },
+      ],
+    };
+    assert.deepEqual(dataMap, expectedAnomalyMap);
+  });
 });
