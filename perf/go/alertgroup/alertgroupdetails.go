@@ -84,6 +84,7 @@ func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit pe
 	}
 
 	queryUrl["queries"] = []string{query_portion.Encode()}
+	queryUrl["summary"] = []string{"true"}
 	return queryUrl.Encode()
 }
 
