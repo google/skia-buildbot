@@ -35,14 +35,32 @@ Tips:
   necessary for some extensions to work correctly, such as the
   [Bazel plugin for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
-### Get your RBE credentials
+### Set up RBE access
 
-If you wish to use RBE to speed up your builds and test runs (see the `--config=remote` flag below)
-run the following command:
+[Remote Build Execution](https://bazel.build/remote/rbe) (RBE) allows faster build and test
+execution times by distributing build and test actions across multiple machines.
+
+Run the following command to get access our RBE instance:
 
 ```
 $ gcloud auth application-default login
 ```
+
+This should enable you to utilize RBE by including the flag `--config=remote` in your Bazel
+invocations. For more details on this flag, see below.
+
+Then, create a `//bazel/user/bazelrc` file in your repository checkout with the following contents:
+
+```
+build:mayberemote --config=remote
+```
+
+This will enable RBE for any Bazel invocations in scripts, Make targets, etc.
+
+**Warning:** Do not use `--config=mayberemote` in your manual Bazel invocations. The "mayberemote"
+configuration is only intended to be used from scripted actions. For manual Bazel invocations, use
+`--config=remote` instead, which will explicitly let you know if there are any problems with your
+RBE setup. For more details on the `--config=mayberemote` flag and why it is necessary, see below.
 
 ## Gazelle
 
