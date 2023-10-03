@@ -227,7 +227,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	}
 
 	ctx := context.Background()
-	return sub.New(ctx, c.flags.Local, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.SourceConfig.Topic, maxParallelReceives)
+	return sub.New(ctx, c.flags.Local, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.FileIngestionTopicName, maxParallelReceives)
 }
 
 // buildConfigAndParamsetChannel returns a channel that will feed the configs
