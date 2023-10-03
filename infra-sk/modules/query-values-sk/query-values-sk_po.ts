@@ -32,6 +32,10 @@ export class QueryValuesSkPO extends PageObject {
     return this.bySelectorAll('multi-select-sk#values div[selected]');
   }
 
+  private get clearFiltersBtn(): PageObjectElement {
+    return this.bySelector('button.clear_filters');
+  }
+
   async isInvertCheckboxChecked() {
     return (await this.invertCheckBox).applyFnToDOMNode(
       (c: Element) => (c as CheckOrRadio).checked
@@ -83,6 +87,9 @@ export class QueryValuesSkPO extends PageObject {
     await optionDiv?.click();
   }
 
+  async clickClearFilter() {
+    await this.clearFiltersBtn.click();
+  }
   getOptions() {
     return this.options.map((option) => option.innerText);
   }

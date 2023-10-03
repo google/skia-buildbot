@@ -55,6 +55,7 @@ export class QueryValuesSk extends ElementSk {
         id="filter"
         @input=${ele._fastFilter}
         placeholder="Filter Values" />
+      ${QueryValuesSk.clearFilterButton(ele)}
     </div>
     <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
       ${QueryValuesSk.valuesTemplate(ele)}
@@ -67,6 +68,26 @@ export class QueryValuesSk extends ElementSk {
         <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
       `
     );
+
+  private static clearFilterButton(ele: QueryValuesSk) {
+    if (!ele._filtering) {
+      return html``;
+    }
+    return html`
+      <button
+        @click=${ele._clearFilter}
+        class="clear_filters"
+        title="Clear filter">
+        &cross;
+      </button>
+    `;
+  }
+
+  private _clearFilter(): void {
+    this._filterInput!.value = '';
+    this._filtering = false;
+    this._render();
+  }
 
   private _options: string[] = [];
 

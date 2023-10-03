@@ -175,6 +175,23 @@ describe('query-values-sk', () => {
         'Query should not return any options'
       );
     });
+
+    it('checks if the clear filter button works correctly.', async () => {
+      var originalOptions = await queryValuesSkPO.getOptions();
+      await queryValuesSkPO.setFilterInputValue('ar');
+      assert.deepEqual(
+        await queryValuesSkPO.getOptions(),
+        ['arm'],
+        'Filtering not done correctly.'
+      );
+
+      await queryValuesSkPO.clickClearFilter();
+      assert.deepEqual(
+        await queryValuesSkPO.getOptions(),
+        originalOptions,
+        'Clear filter button expected to revert to original options.'
+      );
+    });
   });
 
   describe('with inverted input', () => {
