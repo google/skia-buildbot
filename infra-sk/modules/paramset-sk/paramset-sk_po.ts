@@ -94,6 +94,11 @@ export class ParamSetSkPO extends PageObject {
     await addIcon?.click();
   }
 
+  async removeSelectedValue(key: string, value: string): Promise<void> {
+    const cancelIcon = this.bySelector(`#${key}-${value}-remove`);
+    await cancelIcon?.click();
+  }
+
   private async _forEachParamSetKeyValue(
     fn: (
       pkv: ParamSetKeyValueTuple,

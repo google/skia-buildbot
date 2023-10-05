@@ -1,6 +1,10 @@
 import './index';
 import { ParamSet } from '../query';
-import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
+import {
+  ParamSetSk,
+  ParamSetSkClickEventDetail,
+  ParamSetSkRemoveClickEventDetail,
+} from './paramset-sk';
 
 const paramSet1: ParamSet = {
   arch: ['Arm7', 'Arm64', 'x86_64', 'x86'],
@@ -66,6 +70,9 @@ paramSetSk = findParamSetSk('#copy-content');
 paramSetSk.paramsets = [paramSet1];
 paramSetSk.titles = [title1];
 
+paramSetSk = findParamSetSk('#removable-values');
+paramSetSk.paramsets = [paramSet1];
+
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
@@ -83,6 +90,12 @@ allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('plus-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
     document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent =
+      JSON.stringify(detail, null, '  ');
+  });
+
+  paramSetSk.addEventListener('paramset-value-remove-click', (e) => {
+    const detail = (e as CustomEvent<ParamSetSkRemoveClickEventDetail>).detail;
+    document.querySelector<HTMLPreElement>('#remove-click-event')!.textContent =
       JSON.stringify(detail, null, '  ');
   });
 });

@@ -386,6 +386,22 @@ export class QuerySk extends ElementSk {
   }
 
   /**
+   * Removes the value from the paramset at the specified key
+   * @param key paramset key
+   * @param value value to remove
+   */
+  public removeKeyValue(key: string, value: string): void {
+    var paramSet = this.paramset;
+    var valIndex = paramSet[key].indexOf(value);
+    if (valIndex > -1) {
+      // Value is present in the paramset, so let's remove it
+      paramSet[key].splice(valIndex, 1);
+      this.paramset = paramSet;
+      this._queryChanged();
+    }
+  }
+
+  /**
    * The keys in the order they should appear. All keys not in the key order will be present after
    * and in alphabetical order.
    */

@@ -66,6 +66,7 @@ import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
   ParamSetSkPlusClickEventDetail,
+  ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AnomalySk, getAnomalyDataMap } from '../anomaly-sk/anomaly-sk';
 import {
@@ -538,7 +539,9 @@ export class ExploreSimpleSk extends ElementSk {
           > </query-sk>
           <div id=selections>
             <h3>Selections</h3>
-            <paramset-sk id=summary></paramset-sk>
+            <paramset-sk id=summary removable_values @paramset-value-remove-click=${
+              ele.paramsetRemoveClick
+            }></paramset-sk>
             <div class=query-counts>
               Matches: <query-count-sk url='/_/count/' @paramset-changed=${
                 ele.paramsetChanged
@@ -1375,6 +1378,17 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     return state;
+  }
+
+  /**
+   * Handler for the event when the remove paramset value button is clicked
+   * @param e Remove event
+   */
+  private paramsetRemoveClick(
+    e: CustomEvent<ParamSetSkRemoveClickEventDetail>
+  ) {
+    // Remove the specified value from the query
+    this.query?.removeKeyValue(e.detail.key, e.detail.value);
   }
 
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {

@@ -34,6 +34,15 @@
  *        values" ["x86", "risc-v"],
  *      }
  *
+ * @evt paramset-value-remove-click - Generated when one value for a paramset is
+ *     removed. The name of the key will be sent in e.detail.key, the value in
+ *     e.detail.value.
+ *
+ *      {
+ *        key: "arch",
+ *        value: "x86",
+ *      }
+ *
  * @attr {string} clickable - If true then keys and values look like they are
  *     clickable i.e. via color, text-decoration, and cursor. If clickable is
  *     false then this element won't generate the events listed below, and the
@@ -47,6 +56,9 @@
  * row in the right hand column, that when pressed emits the plus-click event
  * that contains the key and values for that row.
  *
+ * @attr {string} removable_values - If true then the cancel icon is displayed
+ * next to each value in the paramset to remove the values from the set
+ *
  */
 import { html, TemplateResult } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
@@ -54,6 +66,7 @@ import { ParamSet } from '../query';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/add-icon-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
+import '../../../elements-sk/modules/icons/cancel-icon-sk';
 import '../../../elements-sk/modules/toast-sk';
 import { $$ } from '../dom';
 
@@ -66,6 +79,11 @@ export interface ParamSetSkClickEventDetail {
 export interface ParamSetSkPlusClickEventDetail {
   readonly key: string;
   readonly values: string[];
+}
+
+export interface ParamSetSkRemoveClickEventDetail {
+  readonly key: string;
+  readonly value: string;
 }
 
 export class ParamSetSk extends ElementSk {
@@ -143,15 +161,32 @@ export class ParamSetSk extends ElementSk {
     ele: ParamSetSk,
     key: string,
     params: string[]
-  ) =>
-    params.map(
+  ) => {
+    return params.map(
       (value) => html`<div
         class=${ele._highlighted(key, value)}
         data-key=${key}
         data-value=${value}>
-        ${value}
-      </div>`
+        ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
+      </div> `
     );
+  };
+
+  private static cancelIconTemplate = (
+    ele: ParamSetSk,
+    key: string,
+    value: string
+  ): TemplateResult => {
+    if (ele.removable_values) {
+      return html`<cancel-icon-sk
+        id="${key}-${value}-remove"
+        data-key=${key}
+        data-value=${value}
+        title="Negative"></cancel-icon-sk>`;
+    } else {
+      return html``;
+    }
+  };
 
   private _titles: string[] = [];
 
@@ -197,9 +232,15 @@ export class ParamSetSk extends ElementSk {
   }
 
   private _click(e: MouseEvent) {
-    if (!this.clickable && !this.clickable_values && !this.clickable_plus) {
+    if (
+      !this.clickable &&
+      !this.clickable_values &&
+      !this.clickable_plus &&
+      !this.removable_values
+    ) {
       return;
     }
+
     const t = e.target as HTMLElement;
     if (!t.dataset.key) {
       return;
@@ -244,6 +285,8 @@ export class ParamSetSk extends ElementSk {
           bubbles: true,
         })
       );
+    } else if (t.nodeName === 'CANCEL-ICON-SK') {
+      this.removeParam(t.dataset.key, t.dataset.value!);
     }
   }
 
@@ -287,6 +330,18 @@ export class ParamSetSk extends ElementSk {
       this.setAttribute('clickable_plus', '');
     } else {
       this.removeAttribute('clickable_plus');
+    }
+  }
+
+  get removable_values(): boolean {
+    return this.hasAttribute('removable_values');
+  }
+
+  set removable_values(val: boolean) {
+    if (val) {
+      this.setAttribute('removable_values', '');
+    } else {
+      this.removeAttribute('removable_values');
     }
   }
 
@@ -355,6 +410,44 @@ export class ParamSetSk extends ElementSk {
   set highlight(val) {
     this._highlight = val;
     this._render();
+  }
+
+  removeParam(key: string, value: string) {
+    // Let's remove it from the current param set
+    var paramsets: ParamSet[] = [];
+    this.paramsets.forEach((paramset) => {
+      var values = paramset[key];
+      var valIndex = values.indexOf(value);
+      if (valIndex > -1) {
+        values.splice(valIndex, 1);
+        if (values.length == 0) {
+          delete paramset[key];
+        } else {
+          paramset[key] = values;
+        }
+        paramsets.push(paramset);
+      }
+    });
+
+    // Set the current paramsets to the updated value
+    this.paramsets = paramsets;
+    this._render();
+
+    // Now that the state of paramsets is current,
+    // let's dispatch the event to notify listeners
+    const detail: ParamSetSkRemoveClickEventDetail = {
+      key: key,
+      value: value,
+    };
+    this.dispatchEvent(
+      new CustomEvent<ParamSetSkRemoveClickEventDetail>(
+        'paramset-value-remove-click',
+        {
+          detail,
+          bubbles: true,
+        }
+      )
+    );
   }
 }
 

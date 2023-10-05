@@ -11,8 +11,10 @@ import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
   ParamSetSkPlusClickEventDetail,
+  ParamSetSkRemoveClickEventDetail,
 } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
+import { assert } from 'chai';
 
 const paramSet1: ParamSet = {
   a: ['hello', 'world'],
@@ -231,6 +233,34 @@ describe('paramset-sk', () => {
         };
         expect((await event).detail).to.deep.equal(expectedDetail);
       });
+    });
+  });
+
+  describe('Removable values', () => {
+    beforeEach(() => {
+      paramSetSk.removable_values = true;
+      paramSetSk.paramsets = [paramSet1];
+    });
+
+    it('generates the relevant event when the remove button is clicked', async () => {
+      const key = 'a';
+      const val = 'hello';
+      const event = eventPromise<CustomEvent<ParamSetSkClickEventDetail>>(
+        'paramset-value-remove-click'
+      );
+      await paramSetSkPO.clickValue({
+        paramSetIndex: 0,
+        key: key,
+        value: val,
+      });
+
+      paramSetSkPO.removeSelectedValue(key, val);
+      const expectedDetail: ParamSetSkRemoveClickEventDetail = {
+        key: key,
+        value: val,
+      };
+      expect((await event).detail).to.deep.equal(expectedDetail);
+      assert.deepEqual(paramSet1[key], ['world']);
     });
   });
 });

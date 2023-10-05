@@ -13,6 +13,7 @@ sk_element(
     sass_srcs = ["paramset-sk.scss"],
     sk_element_deps = [
         "//elements-sk/modules/icons/add-icon-sk",
+        "//elements-sk/modules/icons/cancel-icon-sk",
         "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [

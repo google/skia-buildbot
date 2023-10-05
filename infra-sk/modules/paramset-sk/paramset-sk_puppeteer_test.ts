@@ -6,7 +6,10 @@ import {
   TestBed,
   loadCachedTestBed,
 } from '../../../puppeteer-tests/util';
-import { ParamSetSkClickEventDetail } from './paramset-sk';
+import {
+  ParamSetSkClickEventDetail,
+  ParamSetSkRemoveClickEventDetail,
+} from './paramset-sk';
 import { ParamSetSkPO } from './paramset-sk_po';
 
 describe('paramset-sk', () => {
@@ -20,6 +23,7 @@ describe('paramset-sk', () => {
     eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [
       'paramset-key-click',
       'paramset-key-value-click',
+      'paramset-value-remove-click',
     ]);
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 800, height: 600 });
@@ -70,6 +74,15 @@ describe('paramset-sk', () => {
         paramSetSk!,
         'infra-sk',
         'paramset-sk_clickable-plus-with-clickable-values'
+      );
+    });
+
+    it('has one ParamSet, with removable values', async () => {
+      const paramSetSk = await testBed.page.$('#removable-values');
+      await takeScreenshot(
+        paramSetSk!,
+        'infra-sk',
+        'paramset-sk_removable-values'
       );
     });
   });
@@ -142,6 +155,35 @@ describe('paramset-sk', () => {
           key: 'arch',
           value: 'x86',
           ctrl: true,
+        };
+        expect(await event).to.deep.equal(expected);
+      });
+    });
+
+    describe('click remove value', () => {
+      beforeEach(async () => {
+        paramSetSkPO = new ParamSetSkPO(
+          (await testBed.page.$('#removable-values'))!
+        );
+      });
+      it('emits the necessary event when remove is clicked.', async () => {
+        const event = eventPromise<ParamSetSkRemoveClickEventDetail>(
+          'paramset-value-remove-click'
+        );
+        const key = 'arch';
+        const val = 'x86';
+        // Let's select a value first
+        await paramSetSkPO.clickValue({
+          paramSetIndex: 0,
+          key: key,
+          value: val,
+        });
+        // Now click on the remove icon next to the selected value
+        await paramSetSkPO.removeSelectedValue(key, val);
+
+        const expected: ParamSetSkRemoveClickEventDetail = {
+          key: 'arch',
+          value: 'x86',
         };
         expect(await event).to.deep.equal(expected);
       });
