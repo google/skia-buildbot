@@ -13,10 +13,12 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"go.skia.org/infra/go/cas"
-	"go.skia.org/infra/go/skerr"
+	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
+
+	"go.skia.org/infra/go/cas"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -94,6 +96,11 @@ func NewClient(ctx context.Context, instance string, ts oauth2.TokenSource) (*Cl
 
 // Upload the given paths to RBE-CAS.
 func (c *Client) Upload(ctx context.Context, root string, paths, excludes []string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "cas_rbe_Upload")
+	span.AddAttributes(trace.StringAttribute("root", root))
+	span.AddAttributes(trace.Int64Attribute("num_paths", int64(len(paths))))
+	span.AddAttributes(trace.Int64Attribute("num_excludes", int64(len(excludes))))
+	defer span.End()
 	ex := make([]*command.InputExclusion, 0, len(excludes))
 	for _, regex := range excludes {
 		ex = append(ex, &command.InputExclusion{
@@ -116,7 +123,9 @@ func (c *Client) Upload(ctx context.Context, root string, paths, excludes []stri
 }
 
 // Download the given digests from RBE-CAS.
-func (c *Client) Download(ctx context.Context, root string, casDigest string) error {
+func (c *Client) Download(ctx context.Context, root, casDigest string) error {
+	ctx, span := trace.StartSpan(ctx, "cas_rbe_Download")
+	defer span.End()
 	d, err := digest.NewFromString(casDigest)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -448,7 +457,9 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 	} else if len(digests) == 1 {
 		return digests[0], nil
 	}
-
+	ctx, span := trace.StartSpan(ctx, "cas_rbe_Merge")
+	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(digests))))
+	defer span.End()
 	// Build an in-memory directory tree for each of the given digests.
 	var trees []*directoryNode
 	for _, casDigest := range digests {

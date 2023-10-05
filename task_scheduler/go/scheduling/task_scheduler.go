@@ -503,7 +503,7 @@ type taskSchedulerMainLoopDiagnostics struct {
 func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*TaskCandidate, freeBots []*types.Machine, scheduleErr error) error {
 	ctx, span := trace.StartSpan(ctx, "writeMainLoopDiagnosticsToGCS")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	candidateSlice := make([]*TaskCandidate, 0, len(allCandidates))
 	for _, c := range allCandidates {
 		candidateSlice = append(candidateSlice, c)
@@ -534,7 +534,6 @@ func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end tim
 func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "findTaskCandidatesForJobs")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[types.TaskKey]*TaskCandidate{}
@@ -606,7 +605,6 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandidates map[types.TaskKey]*TaskCandidate) (map[string]map[string][]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "filterTaskCandidates")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	candidatesBySpec := map[string]map[string][]*TaskCandidate{}
 	total := 0
@@ -827,7 +825,6 @@ func (s *TaskScheduler) scoreCandidate(ctx context.Context, c *TaskCandidate, cy
 func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context, currentTime time.Time, repoUrl, name string, candidatesWithTryJobs []*TaskCandidate) ([]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "processTaskCandidatesSingleTaskSpec")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	// commitsBuf is used in blamelist computation to prevent needing repeated
 	// allocation of large blocks of commits.
@@ -955,7 +952,6 @@ func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context,
 func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*TaskCandidate) ([]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "processTaskCandidates")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	currentTime := now.Now(ctx)
 	processed := make(chan *TaskCandidate)
@@ -1029,7 +1025,6 @@ func flatten(dims map[string]string) map[string]string {
 func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates map[string]map[string][]*TaskCandidate) {
 	ctx, span := trace.StartSpan(ctx, "recordCandidateMetrics")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	// Generate counts. These maps are keyed by the MD5 hash of the
 	// candidate's TaskSpec's dimensions.
@@ -1084,7 +1079,6 @@ func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates m
 func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*TaskCandidate, map[types.TaskKey]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "regenerateTaskQueue")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
 	unfinishedJobs, err := s.jCache.UnfinishedJobs()
@@ -1122,7 +1116,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*TaskCandida
 func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks []*TaskCandidate) []*TaskCandidate {
 	ctx, span := trace.StartSpan(ctx, "getCandidatesToSchedule")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {
@@ -1237,7 +1231,7 @@ func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks [
 func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCandidate) ([]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "mergeCASInputs")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+	start := now.Now(ctx)
 
 	mergedCandidates := make([]*TaskCandidate, 0, len(candidates))
 	var errs *multierror.Error
@@ -1252,6 +1246,10 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCa
 		c.CasInput = digest
 		mergedCandidates = append(mergedCandidates, c)
 	}
+	end := now.Now(ctx)
+	if dur := end.Sub(start); dur > time.Minute {
+		sklog.Warningf("mergeCASInputs took longer than usual: %s", dur)
+	}
 
 	return mergedCandidates, errs.ErrorOrNil()
 }
@@ -1262,7 +1260,7 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCa
 func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCandidate, errCh chan<- error) <-chan *types.Task {
 	ctx, span := trace.StartSpan(ctx, "triggerTasks")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
 	for _, candidate := range candidates {
@@ -1333,7 +1331,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCand
 func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine, queue []*TaskCandidate) error {
 	ctx, span := trace.StartSpan(ctx, "scheduleTasks")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	// Match free bots with tasks.
 	candidates := getCandidatesToSchedule(ctx, bots, queue)
 
@@ -1453,7 +1451,6 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "taskscheduler_MainLoop")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	sklog.Infof("Task Scheduler MainLoop starting...")
 	diagStart := now.Now(ctx)
@@ -1635,7 +1632,6 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *busyBots, pools []string) ([]*types.Machine, error) {
 	ctx, span := trace.StartSpan(ctx, "getFreeMachines")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
 
 	// Query for free machines and pending tasks in all pools.
 	var wg sync.WaitGroup
@@ -1700,7 +1696,7 @@ func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *bus
 func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "updateUnfinishedTasks")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	// Update the TaskCache.
 	if err := s.tCache.Update(ctx); err != nil {
 		return err
@@ -1779,7 +1775,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "updateUnfinishedJobs")
 	defer span.End()
-	defer metrics2.FuncTimer().Stop()
+
 	jobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
 		return err
