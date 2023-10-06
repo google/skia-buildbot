@@ -80,8 +80,8 @@ type Notifier interface {
 	ExampleSend(ctx context.Context, alert *alerts.Alert) error
 }
 
-// DefaultNotifier sends notifications.
-type DefaultNotifier struct {
+// defaultNotifier sends notifications.
+type defaultNotifier struct {
 	formatter Formatter
 
 	transport Transport
@@ -92,7 +92,7 @@ type DefaultNotifier struct {
 
 // newNotifier returns a newNotifier Notifier.
 func newNotifier(formatter Formatter, transport Transport, url string) Notifier {
-	return &DefaultNotifier{
+	return &defaultNotifier{
 		formatter: formatter,
 		transport: transport,
 		url:       url,
@@ -100,7 +100,7 @@ func newNotifier(formatter Formatter, transport Transport, url string) Notifier 
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *DefaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
+func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
 	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return "", err
@@ -116,7 +116,7 @@ func (n *DefaultNotifier) RegressionFound(ctx context.Context, commit, previousC
 // RegressionMissing sends a notification that a previous regression found for
 // the given cluster found at the given commit has disappeared after more data
 // has arrived. Where to send it is defined in the alerts.Config.
-func (n *DefaultNotifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
+func (n *defaultNotifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
 	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (n *DefaultNotifier) RegressionMissing(ctx context.Context, commit, previou
 }
 
 // ExampleSend sends an example for dummy data for the given alerts.Config.
-func (n *DefaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
+func (n *defaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 	commit := provider.Commit{
 		Subject:   "An example commit use for testing.",
 		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",

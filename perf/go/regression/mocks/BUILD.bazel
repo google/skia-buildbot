@@ -3,16 +3,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
-        "Notifier.go",
-        "Transport.go",
+        "Store.go",
         "generate.go",
     ],
-    importpath = "go.skia.org/infra/perf/go/notify/mocks",
+    importpath = "go.skia.org/infra/perf/go/regression/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//perf/go/alerts",
         "//perf/go/clustering2",
-        "//perf/go/git/provider",
+        "//perf/go/regression",
+        "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//mock",
     ],
