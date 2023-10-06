@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import { ParamSet } from '../json';
 import {
+  addParamSet,
   addParamsToParamSet,
   fromKey,
   makeKey,
@@ -84,5 +85,35 @@ describe('validKey', () => {
 
   it('returns false for calculations', () => {
     assert.isFalse(validKey('avg(,a=b,)'));
+  });
+});
+
+describe('addParamSet', () => {
+  it('adds one param to set of two params', () => {
+    const a: ParamSet = { foo: ['a', 'b'] };
+    const b: ParamSet = { foo: ['c'] };
+    addParamSet(a, b);
+    assert.deepEqual(a, { foo: ['a', 'b', 'c'] });
+  });
+
+  it('adds one param to empty params', () => {
+    const a: ParamSet = {};
+    const b: ParamSet = { foo: ['c'] };
+    addParamSet(a, b);
+    assert.deepEqual(a, { foo: ['c'] });
+  });
+
+  it('adds empty params to set of one params', () => {
+    const a: ParamSet = { foo: ['c'] };
+    const b: ParamSet = {};
+    addParamSet(a, b);
+    assert.deepEqual(a, { foo: ['c'] });
+  });
+
+  it('adds params for disjoint key sets', () => {
+    const a: ParamSet = { foo: ['c'] };
+    const b: ParamSet = { bar: ['b'] };
+    addParamSet(a, b);
+    assert.deepEqual(a, { foo: ['c'], bar: ['b'] });
   });
 });

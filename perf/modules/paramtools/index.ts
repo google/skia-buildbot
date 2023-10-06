@@ -3,7 +3,7 @@
 //
 // All the validation is done on the server, so these functions do less checking
 // on the validity of structured keys and Params.
-import { Params, ParamSet } from '../json';
+import { Params, ParamSet, ReadOnlyParamSet } from '../json';
 
 /** Create a structured key from a Params. */
 export function makeKey(params: Params): string {
@@ -54,4 +54,22 @@ export function paramsToParamSet(p: Params): ParamSet {
     ret[value[0]] = [value[1]];
   });
   return ret;
+}
+
+/** addParamSet adds the ParamSet or ReadOnlyParamSet to this ParamSet. */
+export function addParamSet(
+  p: ParamSet,
+  ps: ParamSet | ReadOnlyParamSet
+): void {
+  for (const [k, arr] of Object.entries(ps)) {
+    if (!p[k]) {
+      p[k] = arr.slice(0);
+    } else {
+      for (const v of arr) {
+        if (!p[k].includes(v)) {
+          p[k].push(v);
+        }
+      }
+    }
+  }
 }
