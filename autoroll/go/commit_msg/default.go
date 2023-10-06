@@ -74,7 +74,7 @@ is aware of the problem.
 {{ if .ParentBugLink -}}To file a bug in {{ .ParentName }}: {{ .ParentBugLink }}{{ end }}
 
 To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+https://issues.skia.org/issues/new?component=1389291&template=1850622
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md`))

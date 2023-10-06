@@ -234,7 +234,7 @@ Please CC contact@google.com,reviewer@google.com on the revert to ensure that a 
 is aware of the problem.
 
 To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+https://issues.skia.org/issues/new?component=1389291&template=1850622
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md

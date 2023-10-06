@@ -25,7 +25,7 @@ Documentation for Autoroller Canaries is here:
 go/autoroller-canary-bots (Googlers only)
 
 To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+https://issues.skia.org/issues/new?component=1389291&template=1850622
 {{ end -}}
 {{- define "footer" -}}
 Commit: false

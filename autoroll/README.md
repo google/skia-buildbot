@@ -8,7 +8,7 @@ eg. Skia, into a parent project, eg. Chrome.
 To request a new roller, visit
 https://bugs.chromium.org/p/skia/issues/entry?template=New+Autoroller. For all
 other autoroll-related bugs and requests, please use
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug.
+https://issues.skia.org/issues/new?component=1389291&template=1850622.
 
 ## For Gardeners of Parent Projects
 
@@ -21,7 +21,7 @@ the rolls going again.
 
 If a roller has gone rogue somehow, eg. uploading too many rolls, chewing up bot
 capacity, etc, please stop the roller and file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+https://issues.skia.org/issues/new?component=1389291&template=1850622
 If you need immediate attention, contact skiabot@google.com. Note that we do not
 use pagers, and our gardener is generally only active during working hours.
 
@@ -29,7 +29,7 @@ use pagers, and our gardener is generally only active during working hours.
 
 In the case of any problems or unexpected behavior, please stop the roller and
 file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+https://issues.skia.org/issues/new?component=1389291&template=1850622
 If you need immediate attention, contact skiabot@google.com. Note that we do not
 use pagers, and our gardener is generally only active during working hours.
 
@@ -51,7 +51,7 @@ the roller, wait for the current roll to be abandoned, and resume the roller.
 Configuration files for each of the autorollers may be found
 [here](https://skia.googlesource.com/skia-autoroll-internal-config) (Googlers
 only). Feel free to make a CL to modify a roller config, or
-[file a bug](https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug)
+[file a bug](https://issues.skia.org/issues/new?component=1389291&template=1850622)
 to request a change.
 
 The text proto which governs configuration can be read [here](https://skia.googlesource.com/buildbot/+/refs/heads/main/autoroll/go/config/config.proto).
