@@ -25,7 +25,6 @@ import {
   Regression,
   FrameResponse,
   ClusterSummary,
-  Current,
   TriageRequest,
   TriageResponse,
 } from '../json';
@@ -91,8 +90,6 @@ export class TriagePageSk extends ElementSk {
   private dialog: HTMLDialogElement | null = null;
 
   private allFilterOptions: ValueOptions[] = [];
-
-  private currentClusteringStatus: Current[] = [];
 
   constructor() {
     super(TriagePageSk.template);
@@ -164,13 +161,6 @@ export class TriagePageSk extends ElementSk {
           @day-range-change=${ele.rangeChange}
           begin=${ele.state.begin}
           end=${ele.state.end}></day-range-sk>
-      </details>
-      <details @toggle=${ele.toggleStatus}>
-        <summary>Status</summary>
-        <div>
-          <p>The current work on detecting regressions:</p>
-          <div class="status">${TriagePageSk.statusItems(ele)}</div>
-        </div>
       </details>
     </header>
     <spinner-sk
@@ -328,30 +318,6 @@ export class TriagePageSk extends ElementSk {
       `;
     });
 
-  private static statusItems = (ele: TriagePageSk) =>
-    ele.currentClusteringStatus.map(
-      (item) => html`
-        <table>
-          <tr>
-            <th>Alert</th>
-            <td>
-              <a href="/a/?${item.alert!.id_as_string}">
-                ${item.alert!.display_name}
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <th>Commit</th>
-            <td><commit-detail-sk .cid=${item.commit}></commit-detail-sk></td>
-          </tr>
-          <tr>
-            <th>Step</th>
-            <td>${item.message}</td>
-          </tr>
-        </table>
-      `
-    );
-
   private static allFilters = (ele: TriagePageSk) =>
     ele.allFilterOptions.map(
       (o) => html`
@@ -400,25 +366,6 @@ export class TriagePageSk extends ElementSk {
     this.state.alert_filter = (e.target! as HTMLInputElement).value;
     this.updateRange();
     this.stateHasChanged();
-  }
-
-  private toggleStatus(e: InputEvent) {
-    if ((e.target! as HTMLDetailsElement).open) {
-      this.statusIntervalID = window.setInterval(() => this.pollStatus(), 5000);
-      this.pollStatus();
-    } else {
-      window.clearInterval(this.statusIntervalID);
-    }
-  }
-
-  private pollStatus() {
-    fetch('/_/reg/current')
-      .then(jsonOrThrow)
-      .then((json: Current[]) => {
-        this.currentClusteringStatus = json;
-        this._render();
-      })
-      .catch(errorMessage);
   }
 
   private triage_start(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {

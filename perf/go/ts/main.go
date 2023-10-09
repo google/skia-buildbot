@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/types"
@@ -61,7 +60,6 @@ func main() {
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
 		config.Favorites{},
-		continuous.Current{},
 		dryrun.RegressionAtCommit{},
 		frame.FrameRequest{},
 		frame.FrameResponse{},

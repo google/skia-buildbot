@@ -1260,17 +1260,6 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, _ *http.Request) {
-	status := []continuous.Current{}
-	for _, c := range f.continuous {
-		status = append(status, c.CurrentStatus())
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(status); err != nil {
-		sklog.Errorf("Failed to encode status: %s", err)
-	}
-}
-
 // CommitDetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type CommitDetailsRequest struct {
@@ -1660,7 +1649,6 @@ func (f *Frontend) Serve() {
 
 	router.Post("/_/reg/", f.regressionRangeHandler)
 	router.Get("/_/reg/count", f.regressionCountHandler)
-	router.Get("/_/reg/current", f.regressionCurrentHandler)
 	router.Post("/_/triage/", f.triageHandler)
 	router.HandleFunc("/_/alerts/", f.alertsHandler)
 	router.Post("/_/details/", f.detailsHandler)

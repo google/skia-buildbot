@@ -187,9 +187,7 @@ func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.Regr
 		pollingDelay:   time.Microsecond,
 		instanceConfig: i,
 		flags:          f,
-		current: &Current{
-			Alert: &alerts.Alert{},
-		},
+		current:        &alerts.Alert{},
 	}
 
 	allMocks := allMocks{

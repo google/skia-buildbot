@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
-	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/regression"
@@ -42,14 +41,6 @@ const (
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 )
 
-// Current state of looking for regressions, i.e. the current commit and alert
-// being worked on.
-type Current struct {
-	Commit  provider.Commit `json:"commit"`
-	Alert   *alerts.Alert   `json:"alert"`
-	Message string          `json:"message"`
-}
-
 // ConfigProvider is a function that's called to return a slice of
 // alerts.Config.
 type ConfigProvider func(ctx context.Context) ([]*alerts.Alert, error)
@@ -69,7 +60,7 @@ type Continuous struct {
 	flags          *config.FrontendFlags
 
 	mutex   sync.Mutex // Protects current.
-	current *Current
+	current *alerts.Alert
 }
 
 // New creates a new *Continuous.
@@ -93,20 +84,13 @@ func New(
 		provider:       provider,
 		notifier:       notifier,
 		shortcutStore:  shortcutStore,
-		current:        &Current{},
+		current:        &alerts.Alert{},
 		paramsProvider: paramsProvider,
 		dfBuilder:      dfBuilder,
 		pollingDelay:   pollingClusteringDelay,
 		instanceConfig: instanceConfig,
 		flags:          flags,
 	}
-}
-
-// CurrentStatus returns the current status of regression detection.
-func (c *Continuous) CurrentStatus() Current {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	return *c.current
 }
 
 func (c *Continuous) reportRegressions(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, cfg *alerts.Alert) {
@@ -152,7 +136,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 				// follow-up email.
 
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.Alert.IDAsString, *req)
+					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 
 					isNew, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
@@ -175,7 +159,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.Alert.IDAsString, *req)
+					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 					isNew, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
@@ -204,13 +188,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 func (c *Continuous) setCurrentConfig(cfg *alerts.Alert) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.current.Alert = cfg
-}
-
-func (c *Continuous) progressCallback(message string) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	c.current.Message = message
+	c.current = cfg
 }
 
 // configsAndParamset is the type of channel that feeds Continuous.Run().

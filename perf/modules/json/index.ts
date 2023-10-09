@@ -91,12 +91,6 @@ export interface Commit {
 	body: string;
 }
 
-export interface Current {
-	commit: Commit;
-	alert: Alert | null;
-	message: string;
-}
-
 export interface DataFrame {
 	traceset: TraceSet;
 	header: (ColumnHeader | null)[] | null;
