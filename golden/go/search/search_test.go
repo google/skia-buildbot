@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -4505,7 +4506,6 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 }
 
 func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
-
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
@@ -4522,6 +4522,160 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assertSearchBlameCommitResponse(t, res)
+}
+
+// When a user searches by blame (for example by opening the "By Blame" page and clicking a blame),
+// triages an untriaged digest and refreshes the page, we want the triage action to be reflected
+// immediately. As reported in b/40045432, triage actions under this flow used to take several
+// minutes to take effect on the Skia Gold instance. This is because said instance uses a
+// materialized view which is updated every 5 minutes. This was fixed by joining the materialized
+// view against the Expectations table to filter out any digests that have been triaged since the
+// last materialized view refresh. This test ensures triage actions are immediate, both with and
+// without materialized views.
+func TestSearchByBlameThenTriageAndSearchAgain_Success(t *testing.T) {
+	test := func(name string, withMaterializedView bool) {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			db := useKitchenSinkData(ctx, t)
+
+			s := New(db, 10)
+
+			if withMaterializedView {
+				// Ensure the materialized view does not get updated for the duration of this test.
+				updateInterval := 24 * time.Hour
+				require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, updateInterval))
+			}
+
+			q := &query.Search{
+				BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
+				Sort:         query.SortDescending,
+				TraceValues: paramtools.ParamSet{
+					types.CorpusField: []string{dks.RoundCorpus},
+				},
+				RGBAMinFilter: 0,
+				RGBAMaxFilter: 255,
+			}
+
+			responseBeforeTriage, err := s.Search(ctx, q)
+			require.NoError(t, err)
+			assertSearchBlameCommitResponse(t, responseBeforeTriage)
+
+			// Triage a digest in the response.
+			triageDigestOnPrimaryBranch(
+				t,
+				ctx,
+				db,
+				paramtools.Params{types.CorpusField: dks.RoundCorpus, types.PrimaryKeyField: dks.CircleTest},
+				dks.DigestC03Unt,
+				schema.LabelUntriaged, /* =labelBefore */
+				schema.LabelPositive,  /* =labelAfter */
+				dks.UserOne,
+				"2021-01-01T00:00:00Z",
+			)
+
+			// Identical to the response before the triage action, except it does not contain the triaged
+			// digest anymore.
+			expectedResponseAfterTriage := &frontend.SearchResponse{
+				Results: []*frontend.SearchResult{{
+					Digest: dks.DigestC04Unt,
+					Test:   dks.CircleTest,
+					Status: expectations.Untriaged,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice},
+						dks.OSKey:             []string{dks.Windows10dot3OS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+					TraceGroup: frontend.TraceGroup{
+						Traces: []frontend.Trace{{
+							ID:            "0310e06f2b4c328cccbac480b5433390",
+							DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, -1},
+							Params: paramtools.Params{
+								dks.ColorModeKey:      dks.GreyColorMode,
+								types.CorpusField:     dks.RoundCorpus,
+								dks.DeviceKey:         dks.QuadroDevice,
+								dks.OSKey:             dks.Windows10dot3OS,
+								types.PrimaryKeyField: dks.CircleTest,
+								"ext":                 "png",
+							},
+						}},
+						Digests: []frontend.DigestStatus{{
+							Digest: dks.DigestC04Unt, Status: expectations.Untriaged,
+						}},
+						TotalDigests: 1,
+					},
+					RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+						frontend.PositiveRef: {
+							CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+							MaxRGBADiffs: [4]int{3, 3, 3, 0},
+							DimDiffer:    false,
+							Digest:       dks.DigestC02Pos,
+							Status:       expectations.Positive,
+							ParamSet: paramtools.ParamSet{
+								dks.ColorModeKey:      []string{dks.GreyColorMode},
+								types.CorpusField:     []string{dks.RoundCorpus},
+								dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+								dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+								types.PrimaryKeyField: []string{dks.CircleTest},
+								"ext":                 []string{"png"},
+							},
+						},
+						frontend.NegativeRef: nil,
+					},
+					ClosestRef: frontend.PositiveRef,
+				}},
+				Offset:  0,
+				Size:    1,
+				Commits: kitchenSinkCommits,
+				BulkTriageDeltaInfos: []frontend.BulkTriageDeltaInfo{
+					{
+						Grouping: paramtools.Params{
+							types.CorpusField:     dks.RoundCorpus,
+							types.PrimaryKeyField: dks.CircleTest,
+						},
+						Digest:                     dks.DigestC04Unt,
+						LabelBefore:                expectations.Untriaged,
+						ClosestDiffLabel:           frontend.ClosestDiffLabelPositive,
+						InCurrentSearchResultsPage: true,
+					},
+				},
+			}
+
+			responseAfterTriage, err := s.Search(ctx, q)
+			require.NoError(t, err)
+			assert.Equal(t, expectedResponseAfterTriage, responseAfterTriage)
+		})
+	}
+
+	test("without materialized view", false)
+	test("with materialized view", true)
+}
+
+func triageDigestOnPrimaryBranch(t *testing.T, ctx context.Context, db *pgxpool.Pool, grouping paramtools.Params, digest types.Digest, labelBefore, labelAfter schema.ExpectationLabel, user, timestamp string) {
+	const insertExpectationRecordStatement = `
+		INSERT INTO ExpectationRecords (user_name, triage_time, num_changes, branch_name)
+				 VALUES ($1, $2, $3, $4)
+			RETURNING expectation_record_id`
+	row := db.QueryRow(ctx, insertExpectationRecordStatement, user, timestamp, 1, nil)
+	var expectationRecordID uuid.UUID
+	require.NoError(t, row.Scan(&expectationRecordID))
+	const insertExpectationDeltaStatement = `
+		INSERT INTO ExpectationDeltas (expectation_record_id, grouping_id, digest, label_before, label_after)
+				 VALUES ($1, $2, $3, $4, $5)
+			`
+	digestBytes, err := sql.DigestToBytes(digest)
+	require.NoError(t, err)
+	_, groupingID := sql.SerializeMap(grouping)
+	_, err = db.Exec(ctx, insertExpectationDeltaStatement, expectationRecordID.String(), groupingID, digestBytes, labelBefore, labelAfter)
+	require.NoError(t, err)
+	const insertExpectationStatement = `
+		UPSERT INTO Expectations (grouping_id, digest, label, expectation_record_id)
+				 VALUES ($1, $2, $3, $4)
+		`
+	_, err = db.Exec(ctx, insertExpectationStatement, groupingID, digestBytes, labelAfter, expectationRecordID.String())
+	require.NoError(t, err)
 }
 
 func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {

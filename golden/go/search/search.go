@@ -2835,7 +2835,19 @@ JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.g
 `
 	arguments := []interface{}{getFirstCommitID(ctx), corpus}
 	if mv := s.getMaterializedView(byBlameView, corpus); mv != "" {
-		statement = `SELECT * FROM ` + mv
+		// While using the by blame view, it's important that we filter out digests that have since
+		// been triaged, or the user might notice a delay of several minutes between the moment they
+		// perform a triage action and the moment their action seemingly takes effect.
+		statement = `WITH
+		ByBlameMaterializedView AS (
+			SELECT * FROM ` + mv + `
+		)
+		SELECT ByBlameMaterializedView.trace_id,
+		       ByBlameMaterializedView.grouping_id,
+					 ByBlameMaterializedView.digest
+		FROM ByBlameMaterializedView
+		JOIN Expectations USING (grouping_id, digest)
+		WHERE Expectations.label = '` + string(schema.LabelUntriaged) + `'`
 		arguments = nil
 	}
 
