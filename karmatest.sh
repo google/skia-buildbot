@@ -30,7 +30,7 @@ DIR=$(echo $1 | sed 's:/*$::')
 # Extract the Bazel target name
 TARGET=$(basename $DIR)_test
 
-ls $DIR/* | entr -r bazelisk run --config=remote //$DIR:$TARGET
+git ls-files | entr -r bazelisk run --config=remote //$DIR:$TARGET
 
 # For some reason entr leaves the terminal in a corrupted state after being killed with Ctrl+C. The
 # following commands restore the terminal to a workable state.
