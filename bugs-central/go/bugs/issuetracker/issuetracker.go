@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -154,7 +155,7 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient typ
 	sklog.Infof("%s issuetracker issues %+v", qc.Client, countsData)
 
 	queryDesc := qc.Query
-	countsData.QueryLink = fmt.Sprintf("http://b/issues?q=%s", qc.Query)
+	countsData.QueryLink = fmt.Sprintf("http://b/issues?q=%s", url.QueryEscape(qc.Query))
 	// Construct query for untriaged issues.
 	if len(qc.UntriagedPriorities) > 0 || len(qc.UntriagedAliases) > 0 {
 		untriagedTokens := []string{}
