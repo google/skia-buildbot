@@ -16,8 +16,9 @@ import (
 	"time"
 
 	"go.opencensus.io/trace"
+	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/firestore"
@@ -36,8 +37,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
-	"golang.org/x/oauth2"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -1233,25 +1232,43 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCa
 	defer span.End()
 	start := now.Now(ctx)
 
-	mergedCandidates := make([]*TaskCandidate, 0, len(candidates))
-	var errs *multierror.Error
-	for _, c := range candidates {
-		digest, err := s.rbeCas.Merge(ctx, c.CasDigests)
-		if err != nil {
-			errStr := err.Error()
-			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-			errs = multierror.Append(errs, skerr.Wrapf(err, "failed to merge CAS inputs for %s @ %s", c.Name, c.RepoState.String()))
-			continue
-		}
-		c.CasInput = digest
-		mergedCandidates = append(mergedCandidates, c)
+	mergedCandidates := make([]*TaskCandidate, len(candidates))
+	eg, eCtx := errgroup.WithContext(ctx)
+
+	for i, c := range candidates {
+		i, c := i, c // https://golang.org/doc/faq#closures_and_goroutines
+		eg.Go(func() error {
+			if eCtx.Err() != nil {
+				return nil
+			}
+			digest, err := s.rbeCas.Merge(eCtx, c.CasDigests)
+			if err != nil {
+				errStr := err.Error()
+				c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+				return skerr.Wrapf(err, "failed to merge CAS inputs for %s @ %s", c.Name, c.RepoState.String())
+			}
+			c.CasInput = digest
+			mergedCandidates[i] = c
+			return nil
+		})
 	}
 	end := now.Now(ctx)
 	if dur := end.Sub(start); dur > time.Minute {
 		sklog.Warningf("mergeCASInputs took longer than usual: %s", dur)
 	}
 
-	return mergedCandidates, errs.ErrorOrNil()
+	if err := eg.Wait(); err != nil {
+		partialSuccesses := make([]*TaskCandidate, 0, len(candidates))
+		// The non-nil task candidates were successes, so find those and put them in a new slice.
+		for _, c := range mergedCandidates {
+			if c != nil {
+				partialSuccesses = append(partialSuccesses, c)
+			}
+		}
+		return partialSuccesses, skerr.Wrap(err)
+	}
+
+	return mergedCandidates, nil
 }
 
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
@@ -1338,7 +1355,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 	// Merge CAS inputs for the tasks.
 	merged, mergeErr := s.mergeCASInputs(ctx, candidates)
 	if mergeErr != nil && len(merged) == 0 {
-		return mergeErr
+		return skerr.Wrapf(mergeErr, "mergeCAS with no partial successes")
 	}
 
 	// Setup the error channel.
