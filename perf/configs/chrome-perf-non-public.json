@@ -6,6 +6,7 @@
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "feedback_url": "http://go/berf-skia-feedback",
+    "chat_url": "http://go/berf-skia-chat",
     "filter_parent_traces": true,
     "notify_config": {
         "notifications": "chromeperf"

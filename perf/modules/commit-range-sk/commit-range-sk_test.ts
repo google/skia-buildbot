@@ -23,6 +23,7 @@ describe('commit-range-sk', () => {
       notifications: 'none',
       fetch_chrome_perf_anomalies: false,
       feedback_url: '',
+      chat_url: '',
     };
 
     element = newInstance((el: CommitRangeSk) => {

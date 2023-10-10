@@ -636,6 +636,9 @@ type InstanceConfig struct {
 	// Feedback URL to use for the "Provide Feedback" link
 	FeedbackURL string `json:"feedback_url,omitempty"`
 
+	// Chat space URL to use for the "Ask the team" link
+	ChatURL string `json:"chat_url,omitempty"`
+
 	// Favorites configuration for the instance
 	Favorites Favorites `json:"favorites,omitempty"`
 

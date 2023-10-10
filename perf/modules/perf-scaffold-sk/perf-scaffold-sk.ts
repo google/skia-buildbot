@@ -46,6 +46,8 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _feedback: HTMLElement | null = null;
 
+  private _chat: HTMLElement | null = null;
+
   constructor() {
     super(PerfScaffoldSk.template);
   }
@@ -74,6 +76,8 @@ export class PerfScaffoldSk extends ElementSk {
       <div id=help>
       </div>
       <div id=feedback>
+      </div>
+      <div id=chat>
       </div>
     </aside>
     <main>
@@ -105,18 +109,18 @@ export class PerfScaffoldSk extends ElementSk {
     this._main = this.querySelector('main');
     this._help = this.querySelector('#help');
     this._feedback = this.querySelector('#feedback');
+    this._chat = this.querySelector('#chat');
 
     if (this._feedback != null) {
-      this._feedback.hidden = true;
-      if (
-        window.perf &&
-        window.perf.feedback_url &&
-        window.perf.feedback_url !== ''
-      ) {
-        this._feedback.innerHTML = `<a target="_blank" href="${window.perf.feedback_url}"
-          tab-index=0 id="feedback_url"><h4>Provide Feedback</h4></a>`;
-        this._feedback.hidden = false;
-      }
+      this.addUrlToElement(
+        this._feedback,
+        'Provide Feedback',
+        window.perf.feedback_url
+      );
+    }
+
+    if (this._chat != null) {
+      this.addUrlToElement(this._chat, 'Ask the team', window.perf.chat_url);
     }
 
     // Move the old children back.
@@ -129,6 +133,20 @@ export class PerfScaffoldSk extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
+  }
+
+  // addUrlToElement adds the provided url data inside the given html element.
+  private addUrlToElement(
+    element: HTMLElement,
+    urlText: string,
+    urlHref: string
+  ) {
+    element.hidden = true;
+    if (urlHref && urlHref !== '') {
+      element.innerHTML = `<a target="_blank" href="${urlHref}"
+        tab-index=0><h4>${urlText}</h4></a>`;
+      element.hidden = false;
+    }
   }
 
   // Place these newly added nodes in the right place under the perf-scaffold-sk

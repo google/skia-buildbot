@@ -233,6 +233,7 @@ export interface SkPerfConfig {
 	notifications: NotifierTypes;
 	fetch_chrome_perf_anomalies: boolean;
 	feedback_url: string;
+	chat_url: string;
 }
 
 export interface TriageRequest {

@@ -224,6 +224,7 @@ type SkPerfConfig struct {
 	Notifications              notifytypes.Type `json:"notifications"`                   // The type of notifications that can be sent.
 	FetchChromePerfAnomalies   bool             `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
 	FeedbackURL                string           `json:"feedback_url"`                    // The URL for the Provide Feedback link
+	ChatURL                    string           `json:"chat_url"`                        // The URL for the Ask the Team link
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -245,6 +246,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		Notifications:              config.Config.NotifyConfig.Notifications,
 		FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 		FeedbackURL:                config.Config.FeedbackURL,
+		ChatURL:                    config.Config.ChatURL,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

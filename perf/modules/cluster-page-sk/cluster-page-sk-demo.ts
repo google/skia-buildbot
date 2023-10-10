@@ -123,4 +123,5 @@ window.perf = {
   notifications: 'none',
   fetch_chrome_perf_anomalies: false,
   feedback_url: '',
+  chat_url: '',
 };

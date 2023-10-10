@@ -215,6 +215,9 @@
         "feedback_url": {
           "type": "string"
         },
+        "chat_url": {
+          "type": "string"
+        },
         "favorites": {
           "$ref": "#/$defs/Favorites"
         },
