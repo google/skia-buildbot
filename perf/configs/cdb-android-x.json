@@ -1,7 +1,7 @@
 {
   "URL": "https://androidx-perf.skia.org",
   "contact": "http://go/androidx-discuss",
-  "trace_sample_proportion": 0.01,
+  "trace_sample_proportion": 0.2,
   "notify_config": {
     "notifications": "markdown_issuetracker",
     "issue_tracker_api_key_secret_project": "skia-infra-public",
