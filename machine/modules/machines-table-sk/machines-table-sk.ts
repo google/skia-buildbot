@@ -654,7 +654,15 @@ export class MachinesTableSk extends ElementSk {
       if (waitCursorPolicy === 'ShowWaitCursor') {
         this.removeAttribute('waiting');
       }
-      this.filterer.updateArray(json);
+      // Add the pretty device name to each machine description so that the filterer will take it
+      // into account. The added field is not used anywhere else.
+      const jsonWithPrettyDeviceNames = (json as Description[]).map(
+        (machine: Description) => ({
+          ...machine,
+          __prettyDeviceName__: pretty_device_name_as_string(machine),
+        })
+      );
+      this.filterer.updateArray(jsonWithPrettyDeviceNames);
       this._render();
     } catch (error: any) {
       this.onError(error);
