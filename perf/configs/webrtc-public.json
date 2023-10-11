@@ -26,7 +26,7 @@
             "dl_topic": "perf-ingestion-webrtc-public-dl",
             "dl_subscription": "perf-ingestion-webrtc-public-dl-prod",
             "sources": [
-                "gs://webrtc-perf-public/ingest"
+                "gs://webrtc-perf-public/ingest-cp"
             ]
         },
         "branches": [],
@@ -37,6 +37,8 @@
         "url": "https://webrtc.googlesource.com/src",
         "dir": "/tmp/checkout",
         "debounce_commit_url": false,
-        "start_commit": "6725b648c869689fd28038f95124e1de239b2ef1"
+	"file_change_marker": "",
+        "start_commit": "6725b648c869689fd28038f95124e1de239b2ef1",
+	"commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
     }
 }
