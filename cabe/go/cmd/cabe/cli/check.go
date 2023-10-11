@@ -21,8 +21,8 @@ func CheckCommand() *cli.Command {
 	cmd := &checkCmd{}
 	return &cli.Command{
 		Name:        "check",
-		Description: "check runs some diagnostic checks on perf experiment jobs.",
-		Usage:       "cabe check --pinpoint-job <pinpoint-job>",
+		Usage:       "prints diagnostic results, and an inferred experiment spec if none was specified",
+		Description: "cabe check --pinpoint-job <pinpoint-job>",
 		Flags:       cmd.flags(),
 		Action:      cmd.action,
 		After:       cmd.cleanup,

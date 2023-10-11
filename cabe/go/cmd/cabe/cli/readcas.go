@@ -34,7 +34,7 @@ func ReadCASCommand() *cli.Command {
 	casInstanceFlag := &cli.StringFlag{
 		Name:        casInstanceFlagName,
 		Value:       "projects/chrome-swarming/instances/default_instance",
-		Usage:       "RBE-CAS instance",
+		Usage:       "cas instance",
 		Destination: &cmd.casInstance,
 	}
 	flags := cmd.flags()
@@ -42,8 +42,8 @@ func ReadCASCommand() *cli.Command {
 	flags = append(flags, casInstanceFlag)
 	return &cli.Command{
 		Name:        "readcas",
-		Description: "readcas reads results data from RBE-CAS.",
-		Usage:       "cabe readcas -- --root-digest <root-digest> --cas-instance <cas-instance>",
+		Usage:       "readcas reads perf results json data from RBE-CAS, located using the provided root-digest.",
+		Description: "cabe readcas -- --root-digest <root-digest> --cas-instance <cas-instance>",
 		Flags:       flags,
 		Action:      cmd.action,
 		After:       cmd.cleanup,

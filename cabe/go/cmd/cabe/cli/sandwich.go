@@ -78,8 +78,8 @@ func SandwichCommand() *cli.Command {
 	cmd := &sandwichCmd{}
 	return &cli.Command{
 		Name:        "sandwich",
-		Description: "sandwich executes a verification workflow on a bisected regression.",
-		Usage:       "cabe sandwich -- --pinpoint-job <pinpoint-job>",
+		Usage:       "sandwich executes a verification workflow based on an existing pinpoint bisect job.",
+		Description: "cabe sandwich -- --pinpoint-job <pinpoint-job>",
 		Flags:       cmd.flags(),
 		Action:      cmd.action,
 		After:       cmd.cleanup,

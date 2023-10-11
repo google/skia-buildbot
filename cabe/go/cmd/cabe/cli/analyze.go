@@ -24,8 +24,8 @@ func AnalyzeCommand() *cli.Command {
 	cmd := &analyzeCmd{}
 	return &cli.Command{
 		Name:        "analyze",
-		Description: "analyze runs the analyzer process locally.",
-		Usage:       "cabe analyze -- --pinpoint-job <pinpoint-job>",
+		Usage:       "analyze runs the analyzer process locally and pretty-prints a table of results to stdout.",
+		Description: "cabe analyze -- --pinpoint-job <pinpoint-job>",
 		Flags:       cmd.flags(),
 		Action:      cmd.action,
 		After:       cmd.cleanup,

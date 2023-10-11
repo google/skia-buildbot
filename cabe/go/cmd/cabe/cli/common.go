@@ -138,7 +138,7 @@ func (cmd *commonCmd) flags() []cli.Flag {
 	workloadFlag := &cli.StringSliceFlag{
 		Name:  workloadFlagName,
 		Value: nil,
-		Usage: "comma separated list of names of benchmark workload(s) to analyze",
+		Usage: "comma separated list of names of benchmark workloads to analyze",
 		Action: func(ctx *cli.Context, v []string) error {
 			if cmd.benchmark == "" {
 				return fmt.Errorf("must specify -%s with -%s", benchmarkFlagName, workloadFlagName)
