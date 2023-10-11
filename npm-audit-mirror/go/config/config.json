@@ -6,6 +6,10 @@
       "package_json_dir": "",
       "packages_allow_list": [
         {
+          "name": "canvaskit-wasm",
+          "version": "*"
+        },
+        {
           "name": "common-sk",
           "version": "*"
         },
