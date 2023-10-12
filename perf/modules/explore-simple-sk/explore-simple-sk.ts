@@ -2014,6 +2014,7 @@ export class ExploreSimpleSk extends ElementSk {
     // query-sk dialog.
     const numQueries = this._state.queries.length;
     if (numQueries >= 1) {
+      this.query!.paramset = toParamSet(this._state.queries[numQueries - 1]);
       this.query!.current_query = this._state.queries[numQueries - 1];
       this.summary!.paramsets = [
         toParamSet(this._state.queries[numQueries - 1]),
