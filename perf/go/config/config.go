@@ -614,6 +614,15 @@ type Favorites struct {
 	Sections []FavoritesSectionConfig `json:"sections"`
 }
 
+// QueryConfig contains query customization info for the instance.
+type QueryConfig struct {
+	IncludedParams []string `json:"include_params,omitempty"`
+
+	DefaultParamSelections map[string][]string `json:"default_param_selections,omitempty"`
+
+	DefaultUrlValues map[string]string `json:"default_url_values,omitempty"`
+}
+
 // InstanceConfig contains all the info needed by a Perf instance.
 type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
@@ -655,6 +664,7 @@ type InstanceConfig struct {
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
 	NotifyConfig    NotifyConfig    `json:"notify_config"`
 	AnomalyConfig   AnomalyConfig   `json:"anomaly_config,omitempty"`
+	QueryConfig     QueryConfig     `json:"query_config,omitempty"`
 }
 
 // Config is the currently running config.

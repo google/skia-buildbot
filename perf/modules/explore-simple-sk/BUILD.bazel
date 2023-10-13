@@ -57,6 +57,8 @@ karma_test(
     src = "explore-simple-sk_test.ts",
     deps = [
         ":explore-simple-sk",
+        "//infra-sk/modules:object_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",

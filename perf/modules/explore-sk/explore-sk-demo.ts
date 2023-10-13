@@ -6,6 +6,7 @@ import { Status } from '../../../infra-sk/modules/json';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ExploreSk } from './explore-sk';
 import { ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
+import { QueryConfig } from '../json';
 
 const status: Status = {
   email: 'user@google.com',
@@ -59,6 +60,14 @@ fetchMock.post('/_/frame/start', {
   messages: [],
   url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
 });
+
+const defaultConfig: QueryConfig = {
+  default_param_selections: null,
+  default_url_values: null,
+  include_params: null,
+};
+
+fetchMock.get('/_/defaults/', defaultConfig);
 
 const normalTracesResponse = {
   status: 'Finished',

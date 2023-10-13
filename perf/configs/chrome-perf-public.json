@@ -65,5 +65,23 @@
                 ]
             }
         ]
+    },
+    "query_config": {
+        "include_params": [
+            "master",
+            "bot",
+            "benchmark",
+            "test",
+            "subtest_1",
+            "subtest_2",
+            "subtest_3",
+            "stat"
+        ],
+        "default_param_selections": {
+            "stat": ["value"]
+        },
+        "default_url_values": {
+            "summary": "true"
+        }
     }
 }

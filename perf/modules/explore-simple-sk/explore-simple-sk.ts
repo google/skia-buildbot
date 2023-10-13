@@ -55,6 +55,7 @@ import {
   FrameResponseDisplayMode,
   ColumnHeader,
   CIDHandlerResponse,
+  QueryConfig,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -304,6 +305,10 @@ export class ExploreSimpleSk extends ElementSk {
   // The state that does into the URL.
   private _state: State = new State();
 
+  // Set of customization params that have been explicitly specified
+  // by the user.
+  private _userSpecifiedCustomizationParams: Set<string> = new Set();
+
   // Controls the mode of the display. See FrameResponseDisplayMode.
   private displayMode: FrameResponseDisplayMode = 'display_query_only';
 
@@ -339,6 +344,8 @@ export class ExploreSimpleSk extends ElementSk {
   private jobId: string = '';
 
   private user: string = '';
+
+  private defaults: QueryConfig | null = null;
 
   private _initialized: boolean = false;
 
@@ -740,6 +747,7 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     this._initialized = true;
+    this._setDefaults();
     this._render();
 
     this.anomalyTable = this.querySelector('#anomaly');
@@ -1086,6 +1094,18 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
     this._dialogOn = true;
     this.bisectDialog!.showModal();
+  }
+
+  private _setDefaults(): void {
+    if (this.defaults === null) {
+      fetch(`/_/defaults/`, {
+        method: 'GET',
+      })
+        .then(jsonOrThrow)
+        .then((json) => {
+          this.defaults = json;
+        });
+    }
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
@@ -1481,6 +1501,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private summaryChangeHandler(e: MouseEvent) {
     this._state.summary = (e.target! as HTMLInputElement).checked;
+    this._userSpecifiedCustomizationParams.add('summary');
     this._stateHasChanged();
     this._render();
   }
@@ -1707,11 +1728,48 @@ export class ExploreSimpleSk extends ElementSk {
       this._state.pivotRequest = this.pivotControl!.pivotRequest!;
     }
 
+    this.applyQueryDefaultsIfMissing();
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
       this.addTraces(json, true);
     });
+  }
+
+  // applyQueryDefaultsIfMissing updates the fields in the state object to
+  // specify the default values provided for the instance if they haven't
+  // been specified by the user explicitly.
+  private applyQueryDefaultsIfMissing() {
+    const updatedQueries: string[] = [];
+
+    // Check the current query to see if the default params have been specified.
+    // If not, add them with the default value in the instance config.
+    this._state.queries.forEach((query) => {
+      const paramSet = toParamSet(query);
+      for (let defaultParamKey in this.defaults?.default_param_selections) {
+        if (!(defaultParamKey in paramSet)) {
+          paramSet[defaultParamKey] =
+            this.defaults!.default_param_selections![defaultParamKey]!;
+        }
+      }
+      updatedQueries.push(fromParamSet(paramSet));
+    });
+
+    this._state.queries = updatedQueries;
+
+    // Check if the user has specified the params provided in the default url config.
+    // If not, add them to the state object
+    for (let urlKey in this.defaults?.default_url_values) {
+      if (this._userSpecifiedCustomizationParams.has(urlKey) == false) {
+        switch (urlKey) {
+          case 'summary':
+            this._state.summary = Boolean(
+              this.defaults!.default_url_values![urlKey]
+            );
+            break;
+        }
+      }
+    }
   }
 
   /**

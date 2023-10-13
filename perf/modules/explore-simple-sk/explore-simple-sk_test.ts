@@ -1,7 +1,8 @@
 /* eslint-disable dot-notation */
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { ColumnHeader, progress } from '../json';
+import { ColumnHeader, QueryConfig, progress } from '../json';
+import { deepCopy } from '../../../infra-sk/modules/object';
 import {
   calculateRangeChange,
   defaultPointSelected,
@@ -10,6 +11,7 @@ import {
   PointSelected,
   selectionToEvent,
 } from './explore-simple-sk';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -191,5 +193,79 @@ describe('PointSelected', () => {
     // ColumnHeader in 'header' doesn't exist.
     const e = selectionToEvent(p, header);
     assert.equal(e.detail.x, -1);
+  });
+});
+
+describe('Default values', () => {
+  beforeEach(() => {
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/count/', {
+      count: 117,
+      paramset: {},
+    });
+    fetchMock.get(/_\/initpage\/.*/, () => ({
+      dataframe: {
+        traceset: null,
+        header: null,
+        paramset: {},
+        skip: 0,
+      },
+      ticks: [],
+      skps: [],
+      msg: '',
+    }));
+  });
+  it('Checks no default values', async () => {
+    const defaultConfig: QueryConfig = {
+      default_param_selections: null,
+      default_url_values: null,
+      include_params: null,
+    };
+
+    const defaultBody = JSON.stringify(defaultConfig);
+    fetchMock.get('path:/_/defaults/', {
+      status: 200,
+      body: defaultBody,
+    });
+
+    var explore = await setUpElementUnderTest<ExploreSimpleSk>(
+      'explore-simple-sk'
+    )();
+    await fetchMock.flush(true);
+    const originalState = deepCopy(explore!.state);
+    await explore['applyQueryDefaultsIfMissing']();
+
+    const newState = explore.state;
+    assert.deepEqual(newState, originalState);
+  });
+
+  it('Checks for default summary value', async () => {
+    const defaultConfig: QueryConfig = {
+      default_param_selections: null,
+      default_url_values: {
+        summary: 'true',
+      },
+      include_params: null,
+    };
+    const defaultBody = JSON.stringify(defaultConfig);
+    fetchMock.get('path:/_/defaults/', {
+      status: 200,
+      body: defaultBody,
+    });
+
+    var explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+    var actualConfig = explore['defaults'];
+    assert.deepEqual(actualConfig, defaultConfig);
+    const originalState = deepCopy(explore.state);
+    await explore['applyQueryDefaultsIfMissing']();
+    assert.isTrue(fetchMock.done());
+
+    const newState = explore.state;
+    assert.notDeepEqual(newState, originalState);
+    assert.isTrue(newState.summary);
   });
 });

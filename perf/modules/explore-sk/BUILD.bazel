@@ -37,6 +37,7 @@ sk_page(
         "@npm//fetch-mock",
         "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "explore-sk-demo.ts",
 )

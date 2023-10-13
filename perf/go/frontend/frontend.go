@@ -525,7 +525,7 @@ func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) initpageHandler(w http.ResponseWriter, _ *http.Request) {
 	resp := &frame.FrameResponse{
 		DataFrame: &dataframe.DataFrame{
-			ParamSet: f.paramsetRefresher.Get(),
+			ParamSet: f.getParamSet(),
 		},
 		Skps: []int{},
 	}
@@ -730,7 +730,7 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := CountHandlerResponse{}
-	fullPS := f.paramsetRefresher.Get()
+	fullPS := f.getParamSet()
 	if cr.Q == "" {
 		resp.Count = 0
 		resp.Paramset = fullPS
@@ -742,7 +742,7 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		resp.Count = int(count)
-		resp.Paramset = ps.Freeze()
+		resp.Paramset = filterParamSetIfNeeded(ps.Freeze())
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
@@ -1580,6 +1580,15 @@ func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// defaultsHandler returns the default settings
+func (f *Frontend) defaultsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(config.Config.QueryConfig); err != nil {
+		sklog.Errorf("Error writing the Favorites json to response: %s", err)
+	}
+}
+
 // Serve content on the configured endpoints.Serve.
 //
 // This method does not return.
@@ -1667,6 +1676,7 @@ func (f *Frontend) Serve() {
 	router.Post("/_/bisect/create", f.createBisectHandler)
 
 	router.Get("/_/favorites/", f.favoritesHandler)
+	router.Get("/_/defaults/", f.defaultsHandler)
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {
@@ -1683,4 +1693,34 @@ func (f *Frontend) Serve() {
 		Handler: h,
 	}
 	sklog.Fatal(server.ListenAndServe())
+}
+
+// getParamSet returns the param set
+func (f *Frontend) getParamSet() paramtools.ReadOnlyParamSet {
+	paramSet := f.paramsetRefresher.Get()
+
+	return filterParamSetIfNeeded(paramSet)
+}
+
+// filterParamSetIfNeeded filters the paramset if any filters have been specified in
+// the query config.
+func filterParamSetIfNeeded(paramSet paramtools.ReadOnlyParamSet) paramtools.ReadOnlyParamSet {
+	if config.Config.QueryConfig.IncludedParams != nil {
+		filteredParamSet := paramtools.NewParamSet()
+		for _, key := range config.Config.QueryConfig.IncludedParams {
+			if val, ok := paramSet[key]; ok {
+				existing, exists := filteredParamSet[key]
+				if exists {
+					existing = append(existing, val...)
+				} else {
+					existing = val
+				}
+				filteredParamSet[key] = existing
+			}
+		}
+
+		paramSet = paramtools.ReadOnlyParamSet(filteredParamSet)
+	}
+
+	return paramSet
 }

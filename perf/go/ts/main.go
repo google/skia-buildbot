@@ -60,6 +60,7 @@ func main() {
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
 		config.Favorites{},
+		config.QueryConfig{},
 		dryrun.RegressionAtCommit{},
 		frame.FrameRequest{},
 		frame.FrameResponse{},

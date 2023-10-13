@@ -244,6 +244,9 @@
         },
         "anomaly_config": {
           "$ref": "#/$defs/AnomalyConfig"
+        },
+        "query_config": {
+          "$ref": "#/$defs/QueryConfig"
         }
       },
       "additionalProperties": false,
@@ -292,6 +295,37 @@
       "required": [
         "notifications"
       ]
+    },
+    "QueryConfig": {
+      "properties": {
+        "include_params": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default_param_selections": {
+          "patternProperties": {
+            ".*": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "default_url_values": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "SourceConfig": {
       "properties": {
