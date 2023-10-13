@@ -17,7 +17,6 @@ import { repeat } from 'lit-html/directives/repeat';
 import {
   Canvas,
   CanvasKit,
-  CanvasKitInit as CKInit,
   ColorProperty,
   ManagedSkottieAnimation,
   OpacityProperty,
@@ -27,6 +26,7 @@ import {
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
+import type CKInit from 'canvaskit-wasm';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;
@@ -311,6 +311,10 @@ export class SkottiePlayerSk extends ElementSk {
 
   animationName(): string {
     return this._animationName;
+  }
+
+  managedAnimation(): ManagedSkottieAnimation | null {
+    return this.animation;
   }
 
   canvas(): HTMLCanvasElement | null {

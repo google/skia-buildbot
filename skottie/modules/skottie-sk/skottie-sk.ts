@@ -79,9 +79,11 @@ import { SkottieFilesEventDetail } from '../skottie-file-form-sk/skottie-file-fo
 import '../skottie-background-settings-sk';
 import { SkottieBackgroundSettingsEventDetail } from '../skottie-background-settings-sk/skottie-background-settings-sk';
 import '../skottie-color-manager-sk';
+import '../skottie-slot-manager-sk';
 import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
 import { isBinaryAsset } from '../helpers/animation';
 import '../window/window';
+import { SkottieSlotManagerSk } from '../skottie-slot-manager-sk/skottie-slot-manager-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -150,7 +152,8 @@ type ToolType =
   | 'color-manager'
   | 'skottie-font'
   | 'skottie-player'
-  | 'lottie-player';
+  | 'lottie-player'
+  | 'slot-manager';
 
 const caption = (text: string, mode: ViewMode) => {
   if (mode === 'presentation') {
@@ -372,6 +375,20 @@ export class SkottieSk extends ElementSk {
     `;
   }
 
+  private slotManager() {
+    return html`
+      <details class="expando">
+        <summary>
+          <span>Slot manager</span>
+          <expand-less-icon-sk></expand-less-icon-sk>
+          <expand-more-icon-sk></expand-more-icon-sk>
+        </summary>
+        <skottie-slot-manager-sk
+          .player=${this.skottiePlayer}></skottie-slot-manager-sk>
+      </details>
+    `;
+  }
+
   private performanceChartTemplate() {
     return html`
       <dialog class="perf-chart" ?open=${this.showPerformanceChart}>
@@ -402,6 +419,7 @@ export class SkottieSk extends ElementSk {
 
   private rightControls = () => html`
     ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
+    ${this.slotManager()}
   `;
 
   private renderDownload() {
@@ -981,6 +999,7 @@ export class SkottieSk extends ElementSk {
             String(Math.round(this.duration * (this.state.lottie!.fr / 1000)));
         }
       }
+      this.renderSlotManager();
     });
   }
 
@@ -1269,6 +1288,16 @@ export class SkottieSk extends ElementSk {
       if (textEditor) {
         textEditor.animation = this.state.lottie!;
       }
+    }
+  }
+
+  private renderSlotManager(): void {
+    const slotManager = $$<SkottieSlotManagerSk>(
+      'skottie-slot-manager-sk',
+      this
+    );
+    if (slotManager) {
+      slotManager.player = this.skottiePlayer!;
     }
   }
 
@@ -1601,6 +1630,11 @@ export class SkottieSk extends ElementSk {
 
   private onColorManagerUpdated(ev: CustomEvent<SkottieTemplateEventDetail>) {
     this.changingTool = 'color-manager';
+    this.onAnimationUpdated(ev);
+  }
+
+  private onSlotManagerUpdated(ev: CustomEvent<SkottieTemplateEventDetail>) {
+    this.changingTool = 'slot-manager';
     this.onAnimationUpdated(ev);
   }
 

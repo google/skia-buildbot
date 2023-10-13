@@ -1,11 +1,10 @@
 /**
- * delay returns a Promise that will be resolved
- * after the elapsed time (in ms)
+ * helper functions for color conversions
  *
- * @param color The time to wait before resolving the promise (in ms)
  */
 
 function componentToHex(c: number): string {
+  c = Math.round(c);
   var hex = c.toString(16);
   return hex.length == 1 ? '0' + hex : hex;
 }

@@ -16,9 +16,9 @@ import { HintableObject } from '../../../infra-sk/modules/hintable';
 import type {
   Canvas,
   CanvasKit,
-  CanvasKitInit as CKInit,
   Paint,
   Surface,
+  CanvasKitInit as CKInit,
   // @ts-ignore
 } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';

@@ -1,10 +1,10 @@
 import '../../../elements-sk/modules/error-toast-sk';
 import { html } from 'lit-html';
-import { CanvasKitInit as CKInit } from 'canvaskit-wasm';
 import { define } from '../../../elements-sk/modules/define';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
+import type CKInit from 'canvaskit-wasm';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;

@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "sk_element", "ts_library")
+
+sk_element(
+    name = "skottie-slot-manager-sk",
+    sass_deps = ["//elements-sk/modules:colors_sass_lib"],
+    sass_srcs = ["skottie-slot-manager-sk.scss"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-color-input-sk",
+        "//skottie/modules/skottie-player-sk",
+    ],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//lit-html",
+        "//skottie/modules/helpers:color_ts_lib",
+        ":slot-info_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-slot-manager-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "slot-info_ts_lib",
+    srcs = ["slot-info.ts"],
+    visibility = ["//visibility:public"],
+)

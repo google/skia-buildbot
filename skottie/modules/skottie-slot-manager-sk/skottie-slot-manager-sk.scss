@@ -1,0 +1,15 @@
+@import '../../../elements-sk/modules/colors';
+
+// TODO(jmbetancourt): wait on UX for official styling
+skottie-slot-manager-sk {
+  .slots-container {
+    .slot {
+      &--color {
+        color: var(--on-surface);
+        font-size: 17px;
+        padding-top: 4px;
+        flex: 0 0 auto;
+      }
+    }
+  }
+}
