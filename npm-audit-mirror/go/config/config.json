@@ -6,6 +6,10 @@
       "package_json_dir": "",
       "packages_allow_list": [
         {
+          "name": "@babel/traverse",
+          "version": "7.32.2"
+        },
+        {
           "name": "canvaskit-wasm",
           "version": "*"
         },
