@@ -3,6 +3,7 @@ package chrome
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -120,6 +121,11 @@ func (cp *ChromePerfClient) callChromePerf(ctx context.Context, testPathes []str
 	respBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read body from chrome perf response.")
+	}
+	if httpResponse.StatusCode != http.StatusOK {
+		errMsg := fmt.Sprintf("The request failed with status code %d and body: %s", httpResponse.StatusCode, string(respBody))
+		err = errors.New(errMsg)
+		return nil, skerr.Wrapf(err, "Chromeperf Anomalies request failed.")
 	}
 
 	resp := chromePerfResponse{}
