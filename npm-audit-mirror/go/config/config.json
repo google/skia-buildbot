@@ -77,16 +77,6 @@
         "owner": "mdraz@google.com"
       }
     },
-    "luci-bisection": {
-      "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
-      "git_branch": "main",
-      "package_json_dir": "bisection/frontend/ui",
-      "packages_allow_list": [],
-      "trusted_scopes": [],
-      "issue_tracker_config": {
-        "owner": "aredulla@google.com"
-      }
-    },
     "luci-milo": {
       "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
       "git_branch": "main",
