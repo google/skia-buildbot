@@ -7,7 +7,7 @@
       "packages_allow_list": [
         {
           "name": "@babel/traverse",
-          "version": "7.32.2"
+          "version": "7.23.2"
         },
         {
           "name": "canvaskit-wasm",
@@ -44,7 +44,7 @@
       "packages_allow_list": [
         {
           "name": "@babel/traverse",
-          "version": "7.32.2"
+          "version": "7.23.2"
         }
       ],
       "trusted_scopes": [],
@@ -99,7 +99,7 @@
       "packages_allow_list": [
         {
           "name": "@babel/traverse",
-          "version": "7.32.2"
+          "version": "7.23.2"
         }
       ],
       "trusted_scopes": [],
@@ -114,7 +114,7 @@
       "packages_allow_list": [
         {
           "name": "@babel/traverse",
-          "version": "7.32.2"
+          "version": "7.23.2"
         }
       ],
       "trusted_scopes": [],
