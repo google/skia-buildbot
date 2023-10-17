@@ -4,6 +4,7 @@ package ephemeral_storage
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -67,6 +68,10 @@ func UsageViaStructuredLogging(ctx context.Context) error {
 
 	err := filepath.Walk(tempDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
+			// Skip directories we don't have permission to read.
+			if errors.Is(skerr.Unwrap(err), fs.ErrPermission) {
+				return nil
+			}
 			return skerr.Wrap(err)
 		}
 		if info.IsDir() {
