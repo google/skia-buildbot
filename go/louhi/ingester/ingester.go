@@ -140,7 +140,7 @@ func (i *Ingester) UpdateFlowFromNotification(ctx context.Context, n *louhi.Noti
 			}
 		}
 		if clDetails == nil {
-			return skerr.Fmt("failed to retrieve CL details for commit %s", oldFlow.GitCommit)
+			return skerr.Fmt("failed to retrieve CL details for commit %s for flow %q", oldFlow.GitCommit, oldFlow.FlowName)
 		}
 		issue, err := i.gerrit.ExtractIssueFromCommit(clDetails.Body)
 		if err != nil {
