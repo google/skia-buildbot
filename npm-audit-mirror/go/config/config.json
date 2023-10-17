@@ -41,7 +41,12 @@
       "repo_url": "https://chromium.googlesource.com/infra/infra.git",
       "git_branch": "main",
       "package_json_dir": "appengine/monorail",
-      "packages_allow_list": [],
+      "packages_allow_list": [
+        {
+          "name": "@babel/traverse",
+          "version": "7.32.2"
+        }
+      ],
       "trusted_scopes": [],
       "issue_tracker_config": {
         "owner": "dtu@google.com"
@@ -91,7 +96,12 @@
       "repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal",
       "git_branch": "main",
       "package_json_dir": "go/src/infra_internal/appengine/testhaus/frontend/ui",
-      "packages_allow_list": [],
+      "packages_allow_list": [
+        {
+          "name": "@babel/traverse",
+          "version": "7.32.2"
+        }
+      ],
       "trusted_scopes": [],
       "issue_tracker_config": {
         "owner": "jkusuma@google.com"
@@ -101,7 +111,12 @@
       "repo_url": "https://chromium.googlesource.com/chromiumos/chromite",
       "git_branch": "main",
       "package_json_dir": "ide_tooling/cros-ide",
-      "packages_allow_list": [],
+      "packages_allow_list": [
+        {
+          "name": "@babel/traverse",
+          "version": "7.32.2"
+        }
+      ],
       "trusted_scopes": [],
       "issue_tracker_config": {
         "owner": "oka@google.com"
