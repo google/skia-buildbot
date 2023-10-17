@@ -67,7 +67,6 @@ message Config {
         AndroidRepoManagerConfig android_repo_manager = 21;
         CommandRepoManagerConfig command_repo_manager = 22;
         FreeTypeRepoManagerConfig freetype_repo_manager = 23;
-        FuchsiaSDKAndroidRepoManagerConfig fuchsia_sdk_android_repo_manager = 24;
         Google3RepoManagerConfig google3_repo_manager = 25;
     }
     // notifiers configures any extra notifications used by this roller. Optional.
@@ -317,17 +316,6 @@ message CommandRepoManagerConfig {
 message FreeTypeRepoManagerConfig {
     FreeTypeParentConfig parent = 1;
     GitilesChildConfig child = 2;
-}
-
-// FuchsiaSDKAndroidRepoManagerConfig provides configuration for the Fuchsia SDK
-// into Android roller.
-message FuchsiaSDKAndroidRepoManagerConfig {
-    GitCheckoutParentConfig parent = 1;
-    FuchsiaSDKChildConfig child = 2;
-    // gen_sdk_bp_repo is the repo URL for the generation script.
-    string gen_sdk_bp_repo = 3;
-    // gen_sdk_bp_branch is the branch of the generation script.
-    string gen_sdk_bp_branch = 4;
 }
 
 // Google3RepoManagerConfig provides configuration for a roller into Google3.

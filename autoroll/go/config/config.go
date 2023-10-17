@@ -207,9 +207,6 @@ func (c *Config) Validate() error {
 	if c.GetFreetypeRepoManager() != nil {
 		rm = append(rm, c.GetFreetypeRepoManager())
 	}
-	if c.GetFuchsiaSdkAndroidRepoManager() != nil {
-		rm = append(rm, c.GetFuchsiaSdkAndroidRepoManager())
-	}
 	if c.GetGoogle3RepoManager() != nil {
 		rm = append(rm, c.GetGoogle3RepoManager())
 	}
@@ -262,9 +259,6 @@ func (c *Config) GetRepoManagerConfig() RepoManagerConfig {
 	}
 	if c.GetFreetypeRepoManager() != nil {
 		return c.GetFreetypeRepoManager()
-	}
-	if c.GetFuchsiaSdkAndroidRepoManager() != nil {
-		return c.GetFuchsiaSdkAndroidRepoManager()
 	}
 	if c.GetGoogle3RepoManager() != nil {
 		return c.GetGoogle3RepoManager()
@@ -639,46 +633,6 @@ func (c *FreeTypeRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 		strategy.ROLL_STRATEGY_SINGLE,
-	}
-}
-
-// Validate implements util.Validator.
-func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
-	if c.Child == nil {
-		return skerr.Fmt("Child is required.")
-	}
-	if err := c.Child.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.Parent == nil {
-		return skerr.Fmt("Parent is required.")
-	}
-	if err := c.Parent.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.GenSdkBpRepo == "" {
-		return skerr.Fmt("GenSdkBpRepo is required.")
-	}
-	if c.GenSdkBpBranch == "" {
-		return skerr.Fmt("GenSdkBpBranch is required.")
-	}
-	return nil
-}
-
-// DefaultStrategy implements RepoManagerConfig.
-func (c *FuchsiaSDKAndroidRepoManagerConfig) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_BATCH
-}
-
-// NoCheckout implements RepoManagerConfig.
-func (c *FuchsiaSDKAndroidRepoManagerConfig) NoCheckout() bool {
-	return false
-}
-
-// ValidStrategies implements RepoManagerConfig.
-func (c *FuchsiaSDKAndroidRepoManagerConfig) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 

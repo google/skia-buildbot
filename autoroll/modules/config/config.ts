@@ -90,7 +90,6 @@ export interface Config {
   androidRepoManager?: AndroidRepoManagerConfig;
   commandRepoManager?: CommandRepoManagerConfig;
   freetypeRepoManager?: FreeTypeRepoManagerConfig;
-  fuchsiaSdkAndroidRepoManager?: FuchsiaSDKAndroidRepoManagerConfig;
   google3RepoManager?: Google3RepoManagerConfig;
   notifiers?: NotifierConfig[];
   safetyThrottle?: ThrottleConfig;
@@ -127,7 +126,6 @@ interface ConfigJSON {
   android_repo_manager?: AndroidRepoManagerConfigJSON;
   command_repo_manager?: CommandRepoManagerConfigJSON;
   freetype_repo_manager?: FreeTypeRepoManagerConfigJSON;
-  fuchsia_sdk_android_repo_manager?: FuchsiaSDKAndroidRepoManagerConfigJSON;
   google3_repo_manager?: Google3RepoManagerConfigJSON;
   notifiers?: NotifierConfigJSON[];
   safety_throttle?: ThrottleConfigJSON;
@@ -310,20 +308,6 @@ export interface FreeTypeRepoManagerConfig {
 interface FreeTypeRepoManagerConfigJSON {
   parent?: FreeTypeParentConfigJSON;
   child?: GitilesChildConfigJSON;
-}
-
-export interface FuchsiaSDKAndroidRepoManagerConfig {
-  parent?: GitCheckoutParentConfig;
-  child?: FuchsiaSDKChildConfig;
-  genSdkBpRepo: string;
-  genSdkBpBranch: string;
-}
-
-interface FuchsiaSDKAndroidRepoManagerConfigJSON {
-  parent?: GitCheckoutParentConfigJSON;
-  child?: FuchsiaSDKChildConfigJSON;
-  gen_sdk_bp_repo?: string;
-  gen_sdk_bp_branch?: string;
 }
 
 export interface Google3RepoManagerConfig {
