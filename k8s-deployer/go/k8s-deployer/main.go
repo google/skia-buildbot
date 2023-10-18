@@ -32,7 +32,11 @@ const (
 )
 
 var (
-	errorLogRegex = regexp.MustCompile(`Warning:.*`)
+	errorLogRegex      = regexp.MustCompile(`Warning:.*`)
+	errorIgnoreRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`Warning: resource namespaces/gmp-public is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply.`),
+		regexp.MustCompile(`Warning: resource namespaces/gmp-system is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply.`),
+	}
 )
 
 func main() {
@@ -224,13 +228,25 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	}
 	sklog.Info("Output from kubectl")
 	for _, line := range strings.Split(output, "\n") {
-		if errorLogRegex.MatchString(line) {
+		if isError(line) {
 			sklog.Error(line)
 		} else {
 			sklog.Info(line)
 		}
 	}
 	return nil
+}
+
+func isError(logLine string) bool {
+	if !errorLogRegex.MatchString(logLine) {
+		return false
+	}
+	for _, re := range errorIgnoreRegexes {
+		if re.MatchString(logLine) {
+			return false
+		}
+	}
+	return true
 }
 
 // deleteCrashingStatefulSetPods finds all pods which are crash-looping and are
