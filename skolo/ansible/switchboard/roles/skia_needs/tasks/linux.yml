@@ -72,3 +72,17 @@
         src: /usr/lib/i386-linux-gnu/libX11.so.6.3.0
         dest: /usr/lib/i386-linux-gnu/libX11.so
         state: link
+
+- name: Install packages needed by the Skia Bazel build.
+  become: true
+  apt:
+    update_cache: true # Run "apt-get update" before the operation. lovisolo@ found this necessary.
+    pkg:
+      # Bazel needs "zip" to pack undeclared test outputs into an outputs.zip file under
+      # the "bazel-testlogs" directory inside the Skia repository checkout.
+      - zip
+      # Without "git", Bazel fails to fetch some external repositories. This causes errors such as:
+      #
+      #     error running 'git init /home/chrome-bot/bazel_cache/fad...37d/external/libpng' while
+      #     working with @libpng: ... "execvp(git, ...)": No such file or directory
+      - git
