@@ -48,6 +48,8 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _chat: HTMLElement | null = null;
 
+  private _helpUrl: string = 'http://go/perf-user-doc';
+
   constructor() {
     super(PerfScaffoldSk.template);
   }
@@ -71,7 +73,9 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
         <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
-        <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
+        <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
+          <help-icon-sk></help-icon-sk><span>Help</span>
+        </a>
       </div>
       <div id=help>
       </div>
@@ -101,6 +105,11 @@ export class PerfScaffoldSk extends ElementSk {
     // Create a temporary holding spot for elements we're moving.
     const div = document.createElement('div');
     move(this.children, div);
+
+    // Override the help url if specified in the instance config
+    if (window.perf.help_url_override && window.perf.help_url_override !== '') {
+      this._helpUrl = window.perf.help_url_override;
+    }
 
     // Now that we've moved all the old children out of the way we can render
     // the template.

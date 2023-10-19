@@ -91,6 +91,7 @@ describe('applyFuncToTraces', () => {
     fetch_chrome_perf_anomalies: false,
     feedback_url: '',
     chat_url: '',
+    help_url_override: '',
   };
 
   // Create a common element-sk to be used by all the tests.

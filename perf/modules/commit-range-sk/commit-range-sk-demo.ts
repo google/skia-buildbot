@@ -19,6 +19,7 @@ window.perf = {
   fetch_chrome_perf_anomalies: false,
   feedback_url: '',
   chat_url: '',
+  help_url_override: '',
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

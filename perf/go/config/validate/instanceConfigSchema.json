@@ -218,6 +218,9 @@
         "chat_url": {
           "type": "string"
         },
+        "help_url_override": {
+          "type": "string"
+        },
         "favorites": {
           "$ref": "#/$defs/Favorites"
         },

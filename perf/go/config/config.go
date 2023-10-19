@@ -657,6 +657,10 @@ type InstanceConfig struct {
 	// Chat space URL to use for the "Ask the team" link
 	ChatURL string `json:"chat_url,omitempty"`
 
+	// Help URL to override the existing help link address.
+	// To be used for instance specific help documentation.
+	HelpURLOverride string `json:"help_url_override,omitempty"`
+
 	// Favorites configuration for the instance
 	Favorites Favorites `json:"favorites,omitempty"`
 

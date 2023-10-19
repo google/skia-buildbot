@@ -240,6 +240,7 @@ export interface SkPerfConfig {
 	fetch_chrome_perf_anomalies: boolean;
 	feedback_url: string;
 	chat_url: string;
+	help_url_override: string;
 }
 
 export interface TriageRequest {

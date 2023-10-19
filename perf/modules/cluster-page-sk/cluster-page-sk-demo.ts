@@ -124,4 +124,5 @@ window.perf = {
   fetch_chrome_perf_anomalies: false,
   feedback_url: '',
   chat_url: '',
+  help_url_override: '',
 };

@@ -230,6 +230,7 @@ type SkPerfConfig struct {
 	FetchChromePerfAnomalies   bool             `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
 	FeedbackURL                string           `json:"feedback_url"`                    // The URL for the Provide Feedback link
 	ChatURL                    string           `json:"chat_url"`                        // The URL for the Ask the Team link
+	HelpURLOverride            string           `json:"help_url_override"`               // If specified, this URL will override the help link
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -252,6 +253,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 		FeedbackURL:                config.Config.FeedbackURL,
 		ChatURL:                    config.Config.ChatURL,
+		HelpURLOverride:            config.Config.HelpURLOverride,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

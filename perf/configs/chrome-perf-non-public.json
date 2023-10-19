@@ -61,5 +61,6 @@
         "default_url_values": {
             "summary": "true"
         }
-    }
+    },
+    "help_url_override": "http://go/chrome-perf-user-doc"
 }
