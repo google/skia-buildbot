@@ -53,7 +53,8 @@ func (pf *ParamSetRefresher) Start(period time.Duration) error {
 }
 
 func (pf *ParamSetRefresher) oneStep() error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 
 	tileKey, err := pf.traceStore.GetLatestTile(ctx)
 	if err != nil {

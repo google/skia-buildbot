@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "ctxutil",
+    srcs = ["ctxutil.go"],
+    importpath = "go.skia.org/infra/go/ctxutil",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)

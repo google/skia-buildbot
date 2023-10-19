@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/tracestore/sqltracestore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/ctxutil",
         "//go/metrics2",
         "//go/now",
         "//go/paramtools",

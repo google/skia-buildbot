@@ -148,13 +148,13 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	traceSetBuilder := tracesetbuilder.New(len(indices))
 	defer traceSetBuilder.Close()
 
-	var mutex sync.Mutex // mutex protects stepsCompleted.
-	stepsCompleted := 0
+	var mutex sync.Mutex // mutex protects tilesCompleted.
+	tilesCompleted := 0
 	triggerProgress := func() {
 		mutex.Lock()
 		defer mutex.Unlock()
-		stepsCompleted += 1
-		progress.Message("Step", fmt.Sprintf("%d/%d", stepsCompleted, len(mapper)))
+		tilesCompleted++
+		progress.Message("Tiles", fmt.Sprintf("%d/%d", tilesCompleted, len(mapper)))
 	}
 
 	var g errgroup.Group
@@ -234,7 +234,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	// triggerProgress must only be called when the caller has mutex locked.
 	triggerProgress := func() {
 		stepsCompleted += 1
-		progress.Message("Step", fmt.Sprintf("%d/%d", stepsCompleted, len(mapper)))
+		progress.Message("Tiles", fmt.Sprintf("%d/%d", stepsCompleted, len(mapper)))
 	}
 
 	var g errgroup.Group
@@ -312,6 +312,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
 	}
+
 	// beginIndex is the index of the first commit in the tile that endIndex is
 	// in. We are OK if beginIndex == endIndex because fromIndexRange returns
 	// headers from begin to end *inclusive*.
@@ -322,7 +323,6 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 
 	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
-
 		// Query for traces.
 		headers, indices, skip, err := fromIndexRange(ctx, b.git, beginIndex, endIndex)
 		if err != nil {

@@ -431,7 +431,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				sklog.Info("Not a GroupBy Alert.")
 			}
 
-			clusterResponseProcessor := func(req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
+			clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
 				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {

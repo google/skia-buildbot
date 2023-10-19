@@ -26,6 +26,9 @@ const (
 	// GotoRange is the number of commits on either side of a target commit we
 	// will display when going through the goto redirector.
 	GotoRange = 10
+
+	// QueryMaxRunTime is the maximum time a query for traces will run.
+	QueryMaxRunTime = 10 * time.Minute
 )
 
 // AuthConfig provides details how authentication is done, which is by Auth

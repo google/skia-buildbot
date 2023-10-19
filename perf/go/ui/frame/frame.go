@@ -184,6 +184,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 	// Results from all the queries and calcs will be accumulated in this dataframe.
 	df := dataframe.NewEmpty()
 
+	p.request.Progress.Message("Queries", "Starting")
 	// Queries.
 	for _, q := range p.request.Queries {
 		newDF, err := p.doSearch(ctx, q, begin, end)
@@ -193,6 +194,9 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		df = dataframe.Join(df, newDF)
 		p.searchInc()
 	}
+
+	p.request.Progress.Message("Queries", "Finshed")
+	p.request.Progress.Message("Formulas", "Started")
 
 	// Formulas.
 	for _, formula := range p.request.Formulas {
@@ -204,6 +208,9 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		p.searchInc()
 	}
 
+	p.request.Progress.Message("Formulas", "Finished")
+	p.request.Progress.Message("Keys", "Started")
+
 	// Keys
 	if p.request.Keys != "" {
 		newDF, err := p.doKeys(ctx, p.request.Keys, begin, end)
@@ -212,6 +219,8 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		}
 		df = dataframe.Join(df, newDF)
 	}
+
+	p.request.Progress.Message("Keys", "Finished")
 
 	if len(df.Header) == 0 {
 		var err error
@@ -346,6 +355,7 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 	if err != nil {
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
+	p.request.Progress.Message("Query", q.String())
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
 	}

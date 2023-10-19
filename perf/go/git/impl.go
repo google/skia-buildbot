@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -267,6 +268,7 @@ func (g *Impl) StartBackgroundPolling(ctx context.Context, duration time.Duratio
 
 // Update implements Git.
 func (g *Impl) Update(ctx context.Context) error {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.Update")
 	defer span.End()
 
@@ -367,6 +369,7 @@ func (g *Impl) getMostRecentCommit(ctx context.Context) (string, types.CommitNum
 
 // GetCommitNumber implements Git.
 func (g *Impl) GetCommitNumber(ctx context.Context, githash string, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	if g.repoSuppliedCommitNumber {
 		_, err := g.GitHashFromCommitNumber(ctx, commitNumber)
 		if err != nil {
@@ -380,6 +383,7 @@ func (g *Impl) GetCommitNumber(ctx context.Context, githash string, commitNumber
 
 // CommitNumberFromGitHash implements Git.
 func (g *Impl) CommitNumberFromGitHash(ctx context.Context, githash string) (types.CommitNumber, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromGitHash")
 	defer span.End()
 
@@ -406,6 +410,7 @@ func urlFromParts(instanceConfig *config.InstanceConfig, commit provider.Commit)
 
 // CommitFromCommitNumber implements Git.
 func (g *Impl) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (provider.Commit, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitFromCommitNumber")
 	defer span.End()
 
@@ -426,6 +431,7 @@ func (g *Impl) CommitFromCommitNumber(ctx context.Context, commitNumber types.Co
 
 // CommitSliceFromCommitNumberSlice implements Git.
 func (g *Impl) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]provider.Commit, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberSlice")
 	defer span.End()
 
@@ -444,6 +450,7 @@ func (g *Impl) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumbe
 
 // CommitNumberFromTime implements Git.
 func (g *Impl) CommitNumberFromTime(ctx context.Context, t time.Time) (types.CommitNumber, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromTime")
 	defer span.End()
 
@@ -454,6 +461,7 @@ func (g *Impl) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Com
 		_, mostRecentCommitNumber, err := g.getMostRecentCommit(ctx)
 		return mostRecentCommitNumber, err
 	}
+
 	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromTime], t.Unix()).Scan(&ret); err != nil {
 		return ret, skerr.Wrapf(err, "Failed get for time: %q", t)
 	}
@@ -462,6 +470,7 @@ func (g *Impl) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Com
 
 // CommitSliceFromTimeRange implements Git.
 func (g *Impl) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]provider.Commit, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromTimeRange")
 	defer span.End()
 
@@ -485,6 +494,7 @@ func (g *Impl) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Tim
 
 // CommitSliceFromCommitNumberRange implements Git.
 func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]provider.Commit, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberRange")
 	defer span.End()
 
@@ -507,6 +517,7 @@ func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end 
 
 // GitHashFromCommitNumber implements Git.
 func (g *Impl) GitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.GitHashFromCommitNumber")
 	defer span.End()
 
@@ -521,6 +532,7 @@ func (g *Impl) GitHashFromCommitNumber(ctx context.Context, commitNumber types.C
 
 // PreviousGitHashFromCommitNumber implements Git.
 func (g *Impl) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousGitHashFromCommitNumber")
 	defer span.End()
 
@@ -534,6 +546,7 @@ func (g *Impl) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber
 
 // PreviousCommitNumberFromCommitNumber implements Git.
 func (g *Impl) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.PreviousCommitNumberFromCommitNumber")
 	defer span.End()
 
@@ -547,6 +560,7 @@ func (g *Impl) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitN
 
 // CommitNumbersWhenFileChangesInCommitNumberRange implements Git.
 func (g *Impl) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber, filename string) ([]types.CommitNumber, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumbersWhenFileChangesInCommitNumberRange")
 	defer span.End()
 
@@ -586,6 +600,7 @@ func (g *Impl) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Conte
 
 // LogEntry implements Git.
 func (g *Impl) LogEntry(ctx context.Context, commit types.CommitNumber) (string, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	hash, err := g.GitHashFromCommitNumber(ctx, commit)
 	if err != nil {
 		return "", skerr.Wrap(err)

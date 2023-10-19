@@ -94,6 +94,11 @@ const (
 
 	// How often to update the git repo from origin.
 	gitRepoUpdatePeriod = time.Minute
+
+	// defaultDatabaseTimeout is the context timeout used when the frontend is
+	// making a request that involves the database. For more complex requests
+	// use config.QueryMaxRuntime.
+	defaultDatabaseTimeout = time.Minute
 )
 
 // Frontend is the server for the Perf web UI.
@@ -396,9 +401,11 @@ func (f *Frontend) initialize() {
 	// TODO(jcgregorio) Remove once perfgit stores full commit messages.
 	go func() {
 		for range time.Tick(gitRepoUpdatePeriod) {
-			if err := f.perfGit.Update(ctx); err != nil {
+			timeoutContext, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
+			if err := f.perfGit.Update(timeoutContext); err != nil {
 				sklog.Errorf("Failed to update git repo: %s", err)
 			}
+			cancel()
 		}
 	}()
 
@@ -507,7 +514,9 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := f.regressionCount(r.Context(), defaultAlertCategory)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	count, err := f.regressionCount(ctx, defaultAlertCategory)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load untriaged count.", http.StatusInternalServerError)
 		return
@@ -656,8 +665,10 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		// Intentionally using a background context here because the calculation will go on in the background after
 		// the request finishes
 		ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
+		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
+		defer cancel()
 		defer span.End()
-		err := frame.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore)
+		err := frame.ProcessFrameRequest(timeoutCtx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore)
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {
@@ -711,6 +722,8 @@ type CountHandlerResponse struct {
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	var cr CountHandlerRequest
@@ -735,7 +748,7 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Count = 0
 		resp.Paramset = fullPS
 	} else {
-		count, ps, err := f.dfBuilder.PreflightQuery(r.Context(), q, fullPS)
+		count, ps, err := f.dfBuilder.PreflightQuery(ctx, q, fullPS)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
 			return
@@ -762,7 +775,8 @@ type CIDHandlerResponse struct {
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders, and returns a
 // serialized slice of cid.CommitDetails.
 func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 	cids := []types.CommitNumber{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
@@ -812,7 +826,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	auditlog.LogWithUser(r, f.loginProvider.LoggedInAs(r).String(), "cluster", req)
 
-	cb := func(_ *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, _ string) {
+	cb := func(ctx context.Context, _ *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, _ string) {
 		// We don't do GroupBy clustering, so there will only be one clusterResponse.
 		req.Progress.Results(clusterResponse[0])
 	}
@@ -1068,7 +1082,9 @@ func (f *Frontend) regressionCountHandler(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	category := r.FormValue("cat")
 
-	count, err := f.regressionCount(r.Context(), category)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	count, err := f.regressionCount(ctx, category)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to count regressions.", http.StatusInternalServerError)
 	}
@@ -1131,7 +1147,9 @@ type RegressionRangeResponse struct {
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)

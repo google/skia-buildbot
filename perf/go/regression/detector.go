@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"time"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
@@ -49,7 +50,7 @@ const (
 )
 
 // DetectorResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
-type DetectorResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
+type DetectorResponseProcessor func(context.Context, *RegressionDetectionRequest, []*RegressionDetectionResponse, string)
 
 // ParamsetProvider is a function that's called to return the current paramset.
 type ParamsetProvider func() paramtools.ReadOnlyParamSet
@@ -164,6 +165,9 @@ func ProcessRegressions(ctx context.Context,
 
 	metrics2.GetCounter("perf_regression_detection_requests").Inc(1)
 
+	timeoutContext, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+
 	for index, req := range allRequests {
 		req.Progress.Message("Requests", fmt.Sprintf("Processing request %d/%d", index, len(allRequests)))
 		req.Progress.Message("Stage", "Loading data to analyze")
@@ -173,7 +177,8 @@ func ProcessRegressions(ctx context.Context,
 		iterErrorCallback := func(msg string) {
 			req.Progress.Message("Iteration", msg)
 		}
-		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig)
+
+		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig)
 		if err != nil {
 			if iteration == ContinueOnError {
 				// Don't log if we just didn't get enough data.
@@ -193,7 +198,7 @@ func ProcessRegressions(ctx context.Context,
 			iter:                      iter,
 		}
 		detectionProcess.iter = iter
-		if err := detectionProcess.run(ctx); err != nil {
+		if err := detectionProcess.run(timeoutContext); err != nil {
 			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query())
 		}
 	}
@@ -353,7 +358,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.detectorResponseProcessor(p.request, []*RegressionDetectionResponse{cr}, message)
+		p.detectorResponseProcessor(ctx, p.request, []*RegressionDetectionResponse{cr}, message)
 	}
 	// We Finish the process, but record Results. The detectorResponseProcessor
 	// callback should add the results to Progress if that's required.

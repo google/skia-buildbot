@@ -81,7 +81,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a callback that will be passed each found Regression. It will
 	// update the Progress after each new regression is found.
-	detectorResponseProcessor := func(queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, message string) {
+	detectorResponseProcessor := func(ctx context.Context, queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, message string) {
 		// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.
 		for _, cr := range clusterResponse {
 			c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, req.Alert, d.perfGit)

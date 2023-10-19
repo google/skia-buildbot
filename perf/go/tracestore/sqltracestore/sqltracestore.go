@@ -155,6 +155,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
@@ -745,14 +746,16 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 	go func() {
 		for range time.Tick(cacheMetricsRefreshDuration) {
 			ret.orderedParamSetCacheLen.Update(int64(ret.orderedParamSetCache.Len()))
-			ctx := context.Background()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 			tileNumber, err := ret.GetLatestTile(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to load latest tile when calculating metrics: %s")
+				cancel()
 				continue
 			}
 			ret.updateParamSetMetricsForTile(ctx, tileNumber)
 			ret.updateParamSetMetricsForTile(ctx, tileNumber-1)
+			cancel()
 		}
 	}()
 
@@ -783,6 +786,7 @@ func (s *SQLTraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumbe
 func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLatestTile")
 	defer span.End()
+	ctxutil.ConfirmContextHasDeadline(ctx)
 
 	tileNumber := types.BadTileNumber
 	if err := s.db.QueryRow(ctx, statements[getLatestTile]).Scan(&tileNumber); err != nil {
@@ -794,6 +798,7 @@ func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, er
 func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
+	ctxutil.ConfirmContextHasDeadline(ctx)
 
 	defer timer.New(fmt.Sprintf("paramSetForTile-%d", tileNumber)).Stop()
 
@@ -845,6 +850,7 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 
 // GetParamSet implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	defer timer.New("GetParamSet").Stop()
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
@@ -872,6 +878,7 @@ func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNu
 
 // GetSource implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceName string) (string, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	var filename string
 	traceID := traceIDForSQLFromTraceName(traceName)
 
@@ -894,6 +901,7 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 
 // GetLastNSources implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]tracestore.Source, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLastNSources")
 	defer span.End()
 
@@ -923,6 +931,7 @@ func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n i
 
 // GetTraceIDsBySource implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetTraceIDsBySource")
 	defer span.End()
 
@@ -993,6 +1002,7 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 
 // QueryTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTraces")
 	defer span.End()
 
@@ -1219,6 +1229,7 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 
 // QueryTracesIDOnly implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly")
 	defer span.End()
 
@@ -1463,6 +1474,7 @@ func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentB
 
 // ReadTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, traceNames []string) (types.TraceSet, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces")
 	defer span.End()
 
@@ -1478,6 +1490,7 @@ func (s *SQLTraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNum
 
 // ReadTracesForCommitRange implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames []string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTracesForCommitRange")
 	defer span.End()
 
@@ -1500,6 +1513,7 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 // that chunk of trace names to a worker pool that reads all the trace values
 // for the given trace names.
 func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, traceNames <-chan string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.readTracesByChannelForCommitRange")
 	defer span.End()
 
@@ -1666,6 +1680,7 @@ func (s *SQLTraceStore) TileSize() int32 {
 
 // TraceCount implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.TraceCount")
 	defer span.End()
 
@@ -1704,6 +1719,7 @@ func cacheKeyForParamSets(tileNumber types.TileNumber, paramKey, paramValue stri
 
 // WriteTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
+	ctxutil.ConfirmContextHasDeadline(ctx)
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces")
 	defer span.End()
 
