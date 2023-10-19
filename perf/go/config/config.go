@@ -616,10 +616,16 @@ type Favorites struct {
 
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
+	// IncludedParams defines the params that should be displayed in the query dialog.
+	// If empty, it will default to all params
 	IncludedParams []string `json:"include_params,omitempty"`
 
+	// DefaultParamSelections specifies default values for params in a query.
+	// If the user makes a selection for any of these params, the user selected value is used.
 	DefaultParamSelections map[string][]string `json:"default_param_selections,omitempty"`
 
+	// DefaultUrlValues specifies default values for url params.
+	// If the user makes a selection for any of these params, the user selected value is used.
 	DefaultUrlValues map[string]string `json:"default_url_values,omitempty"`
 }
 

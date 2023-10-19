@@ -18,6 +18,9 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
 
 import '../../../elements-sk/modules/checkbox-sk';
+import '../../../elements-sk/modules/collapse-sk';
+import '../../../elements-sk/modules/icons/expand-less-icon-sk';
+import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
@@ -97,6 +100,7 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
+import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -415,6 +419,12 @@ export class ExploreSimpleSk extends ElementSk {
 
   private bisectButton: HTMLButtonElement | null = null;
 
+  private navOpen: boolean = true;
+
+  private collapseButton: HTMLButtonElement | null = null;
+
+  private collapseDetails: CollapseSk | null = null;
+
   constructor() {
     super(ExploreSimpleSk.template);
   }
@@ -688,49 +698,60 @@ export class ExploreSimpleSk extends ElementSk {
     </dialog>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
-      <tabs-sk id=detailTab>
-        <button>Params</button>
-        <button id=commitsTab disabled>Details</button>
-      </tabs-sk>
-      <tabs-panel-sk>
-        <div>
-          <p>
-            <b>Trace ID</b>: <span title='Trace ID' id=trace_id></span>
-          </p>
-          <p>
-            <b>Time</b>: <span title='Commit Time' id=commit_time></span>
-          </p>
-
-          <paramset-sk
-            id=paramset
-            clickable_values
-            @paramset-key-value-click=${ele.paramsetKeyValueClick}>
-            </paramset-sk>
-        </div>
-        <div id=details>
-          <div id=params_and_logentry>
-            <paramset-sk
-              id=simple_paramset
-              clickable_plus
-              clickable_values
-              copy_content
-              @paramset-key-value-click=${ele.paramsetKeyValueClick}
-              @plus-click=${ele.plusClick}
-              >
-            </paramset-sk>
-            <code><pre id=logEntry></pre></code>
-            <anomaly-sk id=anomaly></anomaly-sk>
-          </div>
+      <button class="collapser" id="collapseButton" @click=${(e: Event) =>
+        ele.toggleDetails()}>
+      ${
+        ele.navOpen
+          ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+          : html`<expand-more-icon-sk></expand-more-icon-sk>`
+      }
+      </button>
+      <collapse-sk id=collapseDetails>
+        <tabs-sk id=detailTab>
+          <button>Params</button>
+          <button id=commitsTab disabled>Details</button>
+        </tabs-sk>
+        <tabs-panel-sk>
           <div>
-            <commit-range-sk></commit-range-sk>
-            <commit-detail-panel-sk id=commits selectable .hide=${
-              window.perf.hide_list_of_commits_on_explore
-            }></commit-detail-panel-sk>
-            <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
-            <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
+            <p>
+              <b>Trace ID</b>: <span title='Trace ID' id=trace_id></span>
+            </p>
+            <p>
+              <b>Time</b>: <span title='Commit Time' id=commit_time></span>
+            </p>
+
+            <paramset-sk
+              id=paramset
+              clickable_values
+              @paramset-key-value-click=${ele.paramsetKeyValueClick}>
+              </paramset-sk>
           </div>
-        </div>
-      </tabs-panel-sk>
+          <div id=details>
+            <div id=params_and_logentry>
+              <paramset-sk
+                id=simple_paramset
+                clickable_plus
+                clickable_values
+                copy_content
+                @paramset-key-value-click=${ele.paramsetKeyValueClick}
+                @plus-click=${ele.plusClick}
+                >
+              </paramset-sk>
+              <code><pre id=logEntry></pre></code>
+              <anomaly-sk id=anomaly></anomaly-sk>
+            </div>
+            <div>
+              <commit-range-sk></commit-range-sk>
+              <commit-detail-panel-sk id=commits selectable .hide=${
+                window.perf.hide_list_of_commits_on_explore
+              }></commit-detail-panel-sk>
+              <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links>
+              </ingest-file-links-sk>
+              <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
+            </div>
+          </div>
+        </tabs-panel-sk>
+      </collapse-sk>
     </div>
   </div>
   <toast-sk id="pinpoint-job-toast" duration=10000>
@@ -785,6 +806,8 @@ export class ExploreSimpleSk extends ElementSk {
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
     this.closeToastButton = this.querySelector('#hide-toast');
     this.bisectButton = this.querySelector('#bisect-button');
+    this.collapseButton = this.querySelector('#collapseButton');
+    this.collapseDetails = this.querySelector('#collapseDetails');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1366,6 +1389,11 @@ export class ExploreSimpleSk extends ElementSk {
         }
       })
       .catch(errorMessage);
+
+    // Open the details section if it is currently collapsed
+    if (!this.navOpen) {
+      this.collapseButton?.click();
+    }
   }
 
   private clearSelectedState() {
@@ -2102,6 +2130,12 @@ export class ExploreSimpleSk extends ElementSk {
     } else {
       this.removeAttribute('open-query-by-default');
     }
+  }
+
+  private toggleDetails() {
+    this.navOpen = !this.navOpen;
+    this.collapseDetails!.closed = !this.collapseDetails!.closed;
+    this._render();
   }
 }
 

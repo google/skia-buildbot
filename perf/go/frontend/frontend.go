@@ -1585,7 +1585,7 @@ func (f *Frontend) defaultsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(config.Config.QueryConfig); err != nil {
-		sklog.Errorf("Error writing the Favorites json to response: %s", err)
+		sklog.Errorf("Error writing the default query config json to response: %s", err)
 	}
 }
 
@@ -1695,7 +1695,9 @@ func (f *Frontend) Serve() {
 	sklog.Fatal(server.ListenAndServe())
 }
 
-// getParamSet returns the param set
+// getParamSet returns a fresh paramtools.ParamSet that represents all the
+// traces stored in the two most recent tiles in the trace store. It is filtered
+// if such filtering is turned on in the config.
 func (f *Frontend) getParamSet() paramtools.ReadOnlyParamSet {
 	paramSet := f.paramsetRefresher.Get()
 

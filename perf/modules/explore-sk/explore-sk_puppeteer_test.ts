@@ -83,5 +83,14 @@ describe('explore-sk', () => {
       });
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_help_dialog');
     });
+
+    it('loads the traces and collapses the details section', async () => {
+      await testBed.page.click('#demo-load-traces');
+      await testBed.page.waitForSelector('#traceButtons', {
+        visible: true,
+      });
+      await testBed.page.click('#collapseButton');
+      await takeScreenshot(testBed.page, 'perf', 'explore-sk-collapse-details');
+    });
   });
 });
