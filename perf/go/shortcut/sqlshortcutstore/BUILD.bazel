@@ -10,8 +10,8 @@ go_library(
         "//go/query",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/pool",
         "//perf/go/shortcut",
-        "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/sql"
 )
 
@@ -23,7 +24,7 @@ import (
 // databases, even though they may be in the same CockroachDB instance, so that
 // if a test fails it doesn't leave the database in a bad state for a subsequent
 // test. A random number will be appended to the database name prefix.
-func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) *pgxpool.Pool {
+func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 	cockroachdb_instance.Require(t)
 
 	rand.Seed(time.Now().UnixNano())

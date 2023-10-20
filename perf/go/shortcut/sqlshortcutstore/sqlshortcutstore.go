@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/shortcut"
 )
 
@@ -53,14 +53,14 @@ var statements = map[statement]string{
 // SQLShortcutStore implements the shortcut.Store interface using an SQL
 // database.
 type SQLShortcutStore struct {
-	db *pgxpool.Pool
+	db pool.Pool
 }
 
 // New returns a new *SQLShortcutStore.
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *pgxpool.Pool) (*SQLShortcutStore, error) {
+func New(db pool.Pool) (*SQLShortcutStore, error) {
 	return &SQLShortcutStore{
 		db: db,
 	}, nil

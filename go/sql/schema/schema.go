@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sql/pool"
 )
 
 // TableNames takes in a "table type", that is a table whose fields are slices.
@@ -56,7 +56,7 @@ ORDER BY
 
 // GetDescription returns a Description populated for every table listed in
 // `tables`.
-func GetDescription(db *pgxpool.Pool, tables interface{}) (*Description, error) {
+func GetDescription(db pool.Pool, tables interface{}) (*Description, error) {
 	ctx := context.Background()
 	colNameAndType := map[string]string{}
 	indexNames := []string{}

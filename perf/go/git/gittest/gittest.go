@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/git/providers/git_checkout"
@@ -35,7 +35,7 @@ var (
 // The repo is populated with 8 commits, one minute apart, starting at StartTime.
 //
 // The hashes for each commit are going to be random and so are returned also.
-func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, provider.Provider, *config.InstanceConfig) {
+func NewForTest(t *testing.T) (context.Context, pool.Pool, *testutils.GitBuilder, []string, provider.Provider, *config.InstanceConfig) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	ctx, cancel := context.WithCancel(ctx)
 

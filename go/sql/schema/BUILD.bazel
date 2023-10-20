@@ -8,7 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "@com_github_jackc_pgx_v4//pgxpool",
+        "//go/sql/pool",
     ],
 )
 

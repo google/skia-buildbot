@@ -10,13 +10,13 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/git/providers"
@@ -177,7 +177,7 @@ type Impl struct {
 
 	instanceConfig *config.InstanceConfig
 
-	db *pgxpool.Pool
+	db pool.Pool
 
 	// cache for CommitFromCommitNumber.
 	cache *lru.Cache
@@ -204,7 +204,7 @@ type Impl struct {
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *config.InstanceConfig) (*Impl, error) {
+func New(ctx context.Context, local bool, db pool.Pool, instanceConfig *config.InstanceConfig) (*Impl, error) {
 	cache, err := lru.New(commitCacheSize)
 	if err != nil {
 		return nil, skerr.Wrap(err)

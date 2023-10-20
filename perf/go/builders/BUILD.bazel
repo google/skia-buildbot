@@ -10,6 +10,7 @@ go_library(
         "//go/deepequal/assertdeep",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/pool",
         "//go/sql/schema",
         "//perf/go/alerts",
         "//perf/go/alerts/sqlalertstore",

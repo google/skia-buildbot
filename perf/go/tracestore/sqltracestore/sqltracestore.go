@@ -153,7 +153,6 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/metrics2"
@@ -162,6 +161,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
@@ -657,7 +657,7 @@ const followerReadsStatement = "AS OF SYSTEM TIME '-5s'"
 // SQLTraceStore implements tracestore.TraceStore backed onto an SQL database.
 type SQLTraceStore struct {
 	// db is the SQL database instance.
-	db *pgxpool.Pool
+	db pool.Pool
 
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
@@ -698,7 +698,7 @@ type SQLTraceStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
+func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
 	for key, tmpl := range templates {
 		t, err := template.New("").Parse(tmpl)

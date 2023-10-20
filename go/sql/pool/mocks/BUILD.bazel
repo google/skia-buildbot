@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Pool.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/sql/pool/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_jackc_pgconn//:pgconn",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

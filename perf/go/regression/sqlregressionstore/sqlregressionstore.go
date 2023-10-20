@@ -8,10 +8,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
@@ -59,7 +59,7 @@ var statements = map[statement]string{
 // SQLRegressionStore implements the regression.Store interface.
 type SQLRegressionStore struct {
 	// db is the underlying database.
-	db                         *pgxpool.Pool
+	db                         pool.Pool
 	regressionFoundCounterLow  metrics2.Counter
 	regressionFoundCounterHigh metrics2.Counter
 }
@@ -68,7 +68,7 @@ type SQLRegressionStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *pgxpool.Pool) (*SQLRegressionStore, error) {
+func New(db pool.Pool) (*SQLRegressionStore, error) {
 	return &SQLRegressionStore{
 		db:                         db,
 		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "low"}),

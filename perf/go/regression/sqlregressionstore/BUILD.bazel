@@ -10,12 +10,12 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/pool",
         "//perf/go/alerts",
         "//perf/go/clustering2",
         "//perf/go/regression",
         "//perf/go/types",
         "//perf/go/ui/frame",
-        "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )
 

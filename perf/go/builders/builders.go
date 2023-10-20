@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
@@ -57,9 +58,9 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 // experiment with how this affects performance.
 const maxPoolConnections = 300
 
-// singletonPool is the one and only instance of *pgxpool.Pool that an
+// singletonPool is the one and only instance of pool.Pool that an
 // application should have, used in newCockroachDBFromConfig.
-var singletonPool *pgxpool.Pool
+var singletonPool pool.Pool
 
 // singletonPoolMutex is used to enforce the singleton nature of singletonPool,
 // used in newCockroachDBFromConfig
@@ -69,7 +70,7 @@ var singletonPoolMutex sync.Mutex
 //
 // No migrations are applied automatically, they must be applied by the
 // 'migrate' command line application. See COCKROACHDB.md for more details.
-func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (*pgxpool.Pool, error) {
+func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
 	singletonPoolMutex.Lock()
 	defer singletonPoolMutex.Unlock()
 
