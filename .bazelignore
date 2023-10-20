@@ -1,3 +1,6 @@
 # Some NPM packages are distributed with Bazel BUILD files. If we don't ignore them, commands such
 # as "bazel build all" will try to build the targets defined said BUILD files and fail.
 node_modules/protobufjs
+
+# Updating the certs requires a checkout of k8s-config, which also had Bazel in it.
+skfe/k8s-config
