@@ -279,10 +279,10 @@ func tooMuchMissingData(tr types.Trace) bool {
 }
 
 // shortcutFromKeys stores a new shortcut for each regression based on its Keys.
-func (p *regressionDetectionProcess) shortcutFromKeys(summary *clustering2.ClusterSummaries) error {
+func (p *regressionDetectionProcess) shortcutFromKeys(ctx context.Context, summary *clustering2.ClusterSummaries) error {
 	var err error
 	for _, cs := range summary.Clusters {
-		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(context.Background(), &shortcut.Shortcut{Keys: cs.Keys}); err != nil {
+		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(ctx, &shortcut.Shortcut{Keys: cs.Keys}); err != nil {
 			return err
 		}
 	}
@@ -344,7 +344,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		if err != nil {
 			return p.reportError(err, "Invalid regression detection.")
 		}
-		if err := p.shortcutFromKeys(summary); err != nil {
+		if err := p.shortcutFromKeys(ctx, summary); err != nil {
 			return p.reportError(err, "Failed to write shortcut for keys.")
 		}
 

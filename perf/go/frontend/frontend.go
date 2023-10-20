@@ -1404,9 +1404,12 @@ func (f *Frontend) shiftHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 	show := chi.URLParam(r, "show")
-	resp, err := f.alertStore.List(r.Context(), show == "true")
+
+	resp, err := f.alertStore.List(ctx, show == "true")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 	}

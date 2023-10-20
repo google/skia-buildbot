@@ -29,6 +29,10 @@ import (
 
 const writeRetries = 10
 
+// defaultDatabaseTimeout is the context timeout used when making a request that
+// involves the database. For more complex requests use config.QueryMaxRuntime.
+const defaultDatabaseTimeout = time.Minute
+
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
@@ -115,7 +119,8 @@ func newWorker(
 // processSingleFile parses a single incoming file and write the data to the
 // datastore.
 func (w *workerInfo) processSingleFile(f file.File) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultDatabaseTimeout)
+	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "ingest.parser.processSingleFile")
 	defer span.End()
 
