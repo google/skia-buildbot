@@ -9,6 +9,7 @@ go_library(
         "//go/emulators",
         "//go/emulators/cockroachdb_instance",
         "//go/sql/pool",
+        "//go/sql/pool/wrapper/timeout",
         "//perf/go/sql",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_stretchr_testify//assert",

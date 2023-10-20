@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/sql/pool/wrapper/timeout"
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
@@ -86,10 +87,14 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	sklog.Infof("%#v", *cfg)
 	cfg.MaxConns = maxPoolConnections
 	cfg.ConnConfig.Logger = pgxLogAdaptor{}
-	singletonPool, err = pgxpool.ConnectConfig(ctx, cfg)
+	rawPool, err := pgxpool.ConnectConfig(ctx, cfg)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
+	// Wrap the db pool in a ContentTimeout which checks that every context has
+	// a timeout.
+	singletonPool = timeout.New(rawPool)
 
 	// Confirm the database has the right schema.
 	expectedSchema, err := expectedschema.Load()

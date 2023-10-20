@@ -11,6 +11,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",
+        "//go/sql/pool/wrapper/timeout",
         "//go/sql/schema",
         "//perf/go/alerts",
         "//perf/go/alerts/sqlalertstore",

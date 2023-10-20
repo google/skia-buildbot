@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "timeout",
+    srcs = ["timeout.go"],
+    importpath = "go.skia.org/infra/go/sql/pool/wrapper/timeout",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ctxutil",
+        "//go/sql/pool",
+        "@com_github_jackc_pgconn//:pgconn",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)

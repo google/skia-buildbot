@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/sql/pool/wrapper/timeout"
 	"go.skia.org/infra/perf/go/sql"
 )
 
@@ -34,8 +35,12 @@ func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, databaseName)
 
 	ctx := context.Background()
-	conn, err := pgxpool.Connect(ctx, connectionString)
+	rawConn, err := pgxpool.Connect(ctx, connectionString)
 	require.NoError(t, err)
+
+	// Wrap the db pool in a ContextTimeout which checks that every context has
+	// a timeout.
+	conn := timeout.New(rawConn)
 
 	// Create a database in cockroachdb just for this test.
 	_, err = conn.Exec(ctx, fmt.Sprintf(`
