@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/pubsub/sub"
@@ -208,6 +209,12 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	return sub.New(ctx, c.flags.Local, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.FileIngestionTopicName, maxParallelReceives)
 }
 
+func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
+	defer cancel()
+	return c.provider(timeoutCtx)
+}
+
 // buildConfigAndParamsetChannel returns a channel that will feed the configs
 // and paramset that continuous regression detection should run over. In the
 // future when Continuous.eventDriven is true this will be driven by PubSub
@@ -261,7 +268,7 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 						sklog.Infof("IngestEvent received for : %q", ie.Filename)
 						// Filter all the configs down to just those that match
 						// the incoming traces.
-						configs, err := c.provider(ctx)
+						configs, err := c.callProvider(ctx)
 						if err != nil {
 							sklog.Errorf("Failed to get list of configs: %s", err)
 							// An error not related to the event, nack so we try again later.
@@ -297,7 +304,7 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 				sklog.Info("Channel context error %s", err)
 				return
 			}
-			configs, err := c.provider(ctx)
+			configs, err := c.callProvider(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to get list of configs: %s", err)
 				time.Sleep(time.Minute)
@@ -417,7 +424,11 @@ func (c *Continuous) Run(ctx context.Context) {
 					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
 					continue
 				}
-				matches, err := c.dfBuilder.NumMatches(context.Background(), q)
+
+				var matches int64
+				ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
+					matches, err = c.dfBuilder.NumMatches(ctx, q)
+				})
 				if err != nil {
 					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
 					continue
@@ -453,7 +464,12 @@ func (c *Continuous) Run(ctx context.Context) {
 				// traces they matched.
 				expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
 			}
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig); err != nil {
+
+			var err error
+			ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
+				err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig)
+			})
+			if err != nil {
 				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 			}
 
