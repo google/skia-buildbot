@@ -47,10 +47,10 @@ infra/3pp/tools/cpython3/windows-386             version:2@3.8.10.chromium.19
 infra/3pp/tools/cpython3/windows-amd64           version:2@3.8.10.chromium.19
 
 @subdir task_drivers
-skia/tools/bazel_build_all/${platform}           git_revision:acdd164d51ed3767361bbc61ca98885759f755db
-skia/tools/bazel_test_all/${platform}            git_revision:acdd164d51ed3767361bbc61ca98885759f755db
-skia/tools/command_wrapper/${platform}           git_revision:acdd164d51ed3767361bbc61ca98885759f755db
-skia/tools/presubmit/${platform}                 git_revision:acdd164d51ed3767361bbc61ca98885759f755db
+skia/tools/bazel_build_all/${platform}           git_revision:7923feb1aa820f2ad2a76242c925f7f6a02f255e
+skia/tools/bazel_test_all/${platform}            git_revision:7923feb1aa820f2ad2a76242c925f7f6a02f255e
+skia/tools/command_wrapper/${platform}           git_revision:7923feb1aa820f2ad2a76242c925f7f6a02f255e
+skia/tools/presubmit/${platform}                 git_revision:7923feb1aa820f2ad2a76242c925f7f6a02f255e
 
 @Subdir
 infra/tools/luci/kitchen/${platform}             git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024
