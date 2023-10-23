@@ -518,6 +518,8 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
 	count, err := f.regressionCount(ctx, defaultAlertCategory)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load untriaged count.", http.StatusInternalServerError)
@@ -547,6 +549,8 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var req results.TryBotRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
@@ -555,7 +559,7 @@ func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 	prog := progress.New()
 	f.progressTracker.Add(prog)
 	go func() {
-		ctx, span := trace.StartSpan(r.Context(), "trybotLoadHandler")
+		ctx, span := trace.StartSpan(context.Background(), "trybotLoadHandler")
 		defer span.End()
 
 		ctx, cancel := context.WithTimeout(ctx, longRunningRequestTimeout)
@@ -569,7 +573,6 @@ func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		prog.FinishedWithResults(resp)
 	}()
-	w.Header().Set("Content-Type", "application/json")
 	if err := prog.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode trybot results: %s", err)
 	}
@@ -587,8 +590,10 @@ type RangeRequest struct {
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
 // and returns a serialized JSON slice of cid.CommitDetails.
 func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
 	var rr RangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
@@ -684,6 +689,9 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+
 	sklog.Info("Received alert group request")
 	if f.alertGroupService == nil {
 		sklog.Info("Alert Grouping is not enabled")
@@ -692,7 +700,7 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 	}
 	groupId := r.URL.Query().Get("group_id")
 	sklog.Infof("Group id is %s", groupId)
-	ctx, span := trace.StartSpan(r.Context(), "alertGroupQueryRequest")
+	ctx, span := trace.StartSpan(ctx, "alertGroupQueryRequest")
 	defer span.End()
 	alertGroupDetails, err := f.alertGroupService.GetAlertGroupDetails(ctx, groupId)
 	if err != nil {
@@ -780,6 +788,7 @@ func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
 	cids := []types.CommitNumber{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
@@ -865,12 +874,15 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 //	  "id": 123456,
 //	}
 func (f *Frontend) keysHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := f.shortcutStore.Insert(r.Context(), r.Body)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	id, err := f.shortcutStore.Insert(ctx, r.Body)
 	if err != nil {
 		httputils.ReportError(w, err, "Error inserting shortcut.", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{"id": id}); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
@@ -885,6 +897,9 @@ func (f *Frontend) keysHandler(w http.ResponseWriter, r *http.Request) {
 // Preserves query parameters that are passed into /g/ and passes them onto the
 // target URL.
 func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
 		return
@@ -893,7 +908,6 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not parse query parameters.", http.StatusInternalServerError)
 		return
 	}
-	ctx := r.Context()
 	gotoQuery := r.Form
 	hash := chi.URLParam(r, "hash")
 	dest := chi.URLParam(r, "dest")
@@ -974,8 +988,10 @@ type TriageResponse struct {
 //
 // If successful it returns a 200, or an HTTP status code of 500 otherwise.
 func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
 	tr := &TriageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
@@ -992,9 +1008,9 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	key := tr.Alert.IDAsString
 	if tr.ClusterType == "low" {
-		err = f.regStore.TriageLow(r.Context(), detail.CommitNumber, key, tr.Triage)
+		err = f.regStore.TriageLow(ctx, detail.CommitNumber, key, tr.Triage)
 	} else {
-		err = f.regStore.TriageHigh(r.Context(), detail.CommitNumber, key, tr.Triage)
+		err = f.regStore.TriageHigh(ctx, detail.CommitNumber, key, tr.Triage)
 	}
 
 	if err != nil {
@@ -1081,11 +1097,11 @@ func (f *Frontend) regressionCount(ctx context.Context, category string) (int, e
 // alerts that appear in the REGRESSION_COUNT_DURATION. The category
 // can be supplied by the 'cat' query parameter and defaults to "".
 func (f *Frontend) regressionCountHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	category := r.FormValue("cat")
-
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	category := r.FormValue("cat")
 	count, err := f.regressionCount(ctx, category)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to count regressions.", http.StatusInternalServerError)
@@ -1148,9 +1164,9 @@ type RegressionRangeResponse struct {
 //
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
 
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
@@ -1290,8 +1306,11 @@ type CommitDetailsRequest struct {
 }
 
 func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
-	includeResults := r.FormValue("results") != "false"
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
+	includeResults := r.FormValue("results") != "false"
 	dr := &CommitDetailsRequest{}
 	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
@@ -1310,7 +1329,7 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name, err := f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
+	name, err := f.traceStore.GetSource(ctx, dr.CommitNumber, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
@@ -1358,7 +1377,10 @@ type ShiftResponse struct {
 // shiftHandler computes a new begin and end timestamp for a dataframe given
 // the current begin and end offsets.
 func (f *Frontend) shiftHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
 	var sr ShiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
@@ -1366,7 +1388,6 @@ func (f *Frontend) shiftHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("ShiftRequest: %#v", &sr)
 
-	ctx := r.Context()
 	var begin time.Time
 	var end time.Time
 	var err error
@@ -1407,8 +1428,8 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
-	show := chi.URLParam(r, "show")
 
+	show := chi.URLParam(r, "show")
 	resp, err := f.alertStore.List(ctx, show == "true")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
@@ -1431,6 +1452,8 @@ type AlertUpdateResponse struct {
 }
 
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	cfg := &alerts.Alert{}
@@ -1447,7 +1470,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Invalid Alert", http.StatusInternalServerError)
 	}
 
-	if err := f.alertStore.Save(r.Context(), cfg); err != nil {
+	if err := f.alertStore.Save(ctx, cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
 	err := json.NewEncoder(w).Encode(AlertUpdateResponse{
@@ -1459,6 +1482,8 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	sid := chi.URLParam(r, "id")
@@ -1471,7 +1496,7 @@ func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := f.alertStore.Delete(r.Context(), int(id)); err != nil {
+	if err := f.alertStore.Delete(ctx, int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
 	}
@@ -1509,6 +1534,8 @@ func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	req := &alerts.Alert{}
@@ -1521,7 +1548,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := f.notifier.ExampleSend(r.Context(), req); err != nil {
+	if err := f.notifier.ExampleSend(ctx, req); err != nil {
 		httputils.ReportError(w, err, "Failed to send notification: Have you given the service account for this instance Issue Editor permissions on the component?", http.StatusInternalServerError)
 	}
 }
@@ -1557,6 +1584,8 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 // createBisectHandler takes the POST'd create bisect request
 // then it calls Pinpoint Service API to create bisect job and returns the job id and job url.
 func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	if !f.loginProvider.HasRole(r, roles.Bisecter) {
@@ -1577,7 +1606,7 @@ func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
-	resp, err := f.pinpoint.CreateBisect(r.Context(), cbr)
+	resp, err := f.pinpoint.CreateBisect(ctx, cbr)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to create bisect job.", http.StatusInternalServerError)
 		return
