@@ -134,7 +134,7 @@ func new(args []string) (*server, error) {
 		return nil, skerr.Wrap(err)
 	}
 	db := timeout.New(unwrappedPool)
-	store, err := cdb.New(db, pools)
+	store, err := cdb.New(ctx, db, pools)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

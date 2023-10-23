@@ -128,14 +128,14 @@ type Store struct {
 }
 
 // New returns a new *Store that uses the give Pool.
-func New(db pool.Pool, pools *pools.Pools) (*Store, error) {
+func New(ctx context.Context, db pool.Pool, pools *pools.Pools) (*Store, error) {
 	// Confirm the database has the right schema.
 	expectedSchema, err := expectedschema.Load()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
-	actual, err := schema.GetDescription(db, Tables{})
+	actual, err := schema.GetDescription(ctx, db, Tables{})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

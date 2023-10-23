@@ -82,7 +82,7 @@ func setupForTest(t *testing.T) *pgxpool.Pool {
 
 func TestGetDescription(t *testing.T) {
 	db := setupForTest(t)
-	desc, err := GetDescription(db, Tables{})
+	desc, err := GetDescription(context.Background(), db, Tables{})
 	require.NoError(t, err)
 
 	expected := Description{

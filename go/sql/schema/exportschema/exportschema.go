@@ -62,7 +62,7 @@ func Main(args []string, tables interface{}, schemaAsString string) error {
 		sklog.Fatal(err)
 	}
 
-	sch, err := schema.GetDescription(db, tables)
+	sch, err := schema.GetDescription(ctx, db, tables)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -102,7 +102,7 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 		return nil, skerr.Wrap(err)
 	}
 
-	actual, err := schema.GetDescription(singletonPool, sql.Tables{})
+	actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

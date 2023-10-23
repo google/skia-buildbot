@@ -5,9 +5,15 @@ import (
 	"context"
 	"reflect"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
+)
+
+const (
+	// Timeout used on Contexts when making SQL requests.
+	sqlTimeout = time.Minute
 )
 
 // TableNames takes in a "table type", that is a table whose fields are slices.
@@ -56,8 +62,9 @@ ORDER BY
 
 // GetDescription returns a Description populated for every table listed in
 // `tables`.
-func GetDescription(db pool.Pool, tables interface{}) (*Description, error) {
-	ctx := context.Background()
+func GetDescription(ctx context.Context, db pool.Pool, tables interface{}) (*Description, error) {
+	ctx, cancel := context.WithTimeout(ctx, sqlTimeout)
+	defer cancel()
 	colNameAndType := map[string]string{}
 	indexNames := []string{}
 	for _, tableName := range TableNames(tables) {

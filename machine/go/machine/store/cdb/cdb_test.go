@@ -57,7 +57,7 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 	p, err := pools.New(poolstest.PoolConfigForTesting)
 	require.NoError(t, err)
-	s, err := cdb.New(db, p)
+	s, err := cdb.New(ctx, db, p)
 	require.NoError(t, err)
 	err = s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
@@ -96,7 +96,7 @@ func setupForTestWithEmptyStore(t *testing.T) (context.Context, *cdb.Store, mach
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 	p, err := pools.New(poolstest.PoolConfigForTesting)
 	require.NoError(t, err)
-	s, err := cdb.New(db, p)
+	s, err := cdb.New(ctx, db, p)
 	require.NoError(t, err)
 	full := machinetest.FullyFilledInDescription.Copy()
 	return ctx, s, full
@@ -355,8 +355,8 @@ CREATE TABLE IF NOT EXISTS TaskResult (
   );
 `
 
-func GetSchema(t *testing.T, db pool.Pool) *schema.Description {
-	ret, err := schema.GetDescription(db, cdb.Tables{})
+func getSchema(t *testing.T, db pool.Pool) *schema.Description {
+	ret, err := schema.GetDescription(context.Background(), db, cdb.Tables{})
 	require.NoError(t, err)
 	require.NotEmpty(t, ret.ColumnNameAndType)
 	return ret
@@ -366,7 +366,7 @@ func Test_LiveToNextSchemaMigration(t *testing.T) {
 	ctx := context.Background()
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 
-	expectedSchema := GetSchema(t, db)
+	expectedSchema := getSchema(t, db)
 
 	_, err := db.Exec(ctx, "DROP TABLE IF EXISTS Description")
 	require.NoError(t, err)
@@ -379,7 +379,7 @@ func Test_LiveToNextSchemaMigration(t *testing.T) {
 	_, err = db.Exec(ctx, FromLiveToNext)
 	require.NoError(t, err)
 
-	migratedSchema := GetSchema(t, db)
+	migratedSchema := getSchema(t, db)
 
 	assertdeep.Equal(t, expectedSchema, migratedSchema)
 
@@ -390,7 +390,7 @@ func Test_LiveToNextSchemaMigration(t *testing.T) {
 func TestExportedSchemaIsUpToDate(t *testing.T) {
 	db := cdbtest.NewCockroachDBForTests(t, "desc")
 
-	currentSchema := GetSchema(t, db)
+	currentSchema := getSchema(t, db)
 	expectedSchema, err := expectedschema.Load()
 	require.NoError(t, err)
 
