@@ -18,6 +18,7 @@ go_library(
         "//go/roles",
         "//go/skerr",
         "//go/sklog",
+        "//go/sql/pool/wrapper/timeout",
         "//machine/go/configs",
         "//machine/go/machine",
         "//machine/go/machine/change/sink",

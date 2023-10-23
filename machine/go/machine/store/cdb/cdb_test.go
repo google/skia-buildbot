@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/machinetest"
@@ -49,7 +49,7 @@ const (
 	machineID2 = "skia-linux-102"
 	machineID3 = "skia-linux-103"
 
-	pool = "Skia"
+	dimPool = "Skia"
 )
 
 func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
@@ -62,7 +62,7 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	err = s.Update(ctx, machineID1, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID1}
-		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimPool] = []string{dimPool}
 		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		return ret
 	})
@@ -70,7 +70,7 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	err = s.Update(ctx, machineID2, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID2}
-		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimPool] = []string{dimPool}
 		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		ret.PowerCycle = false
 		return ret
@@ -79,7 +79,7 @@ func setupForTest(t *testing.T) (context.Context, *cdb.Store) {
 	err = s.Update(ctx, machineID3, func(in machine.Description) machine.Description {
 		ret := machinetest.FullyFilledInDescription.Copy()
 		ret.Dimensions[machine.DimID] = []string{machineID3}
-		ret.Dimensions[machine.DimPool] = []string{pool}
+		ret.Dimensions[machine.DimPool] = []string{dimPool}
 		ret.Dimensions[machine.DimTaskType] = []string{string(machine.SkTask)}
 		ret.PowerCycle = true
 		ret.IsQuarantined = true
@@ -303,7 +303,7 @@ func TestGetFreeMachines_TwoMachinesNotRunningTasksOnlyOneWithTheRightTaskType_R
 	// Also clear machineID2, but change the task_type, which should cause it to
 	// no longer match.
 	_ = clearRunningTest(t, ctx, s, machineID2)
-	_ = setTaskTypeAndPool(t, ctx, s, machineID2, pool, machine.Swarming)
+	_ = setTaskTypeAndPool(t, ctx, s, machineID2, dimPool, machine.Swarming)
 
 	descriptions, err := s.GetFreeMachines(ctx, "Skia")
 	require.NoError(t, err)
@@ -355,7 +355,7 @@ CREATE TABLE IF NOT EXISTS TaskResult (
   );
 `
 
-func GetSchema(t *testing.T, db *pgxpool.Pool) *schema.Description {
+func GetSchema(t *testing.T, db pool.Pool) *schema.Description {
 	ret, err := schema.GetDescription(db, cdb.Tables{})
 	require.NoError(t, err)
 	require.NotEmpty(t, ret.ColumnNameAndType)

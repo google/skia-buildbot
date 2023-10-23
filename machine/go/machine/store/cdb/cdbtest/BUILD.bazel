@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/emulators",
         "//go/emulators/cockroachdb_instance",
+        "//go/sql/pool",
         "//machine/go/machine/store/cdb",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_stretchr_testify//require",

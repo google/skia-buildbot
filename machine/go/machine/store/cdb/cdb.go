@@ -13,10 +13,10 @@ import (
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/machine/go/machine"
@@ -123,12 +123,12 @@ type Tables struct {
 
 // Store implements ../store.Store.
 type Store struct {
-	db    *pgxpool.Pool
+	db    pool.Pool
 	pools *pools.Pools
 }
 
 // New returns a new *Store that uses the give Pool.
-func New(db *pgxpool.Pool, pools *pools.Pools) (*Store, error) {
+func New(db pool.Pool, pools *pools.Pools) (*Store, error) {
 	// Confirm the database has the right schema.
 	expectedSchema, err := expectedschema.Load()
 	if err != nil {

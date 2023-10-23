@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sql/pool/wrapper/timeout"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -44,6 +45,9 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
+
+// The default timeout to use on a context when talking to the database.
+const defaultSQLTimeout = time.Minute
 
 var errFailedToGetID = errors.New("failed to get id from URL")
 
@@ -125,10 +129,11 @@ func new(args []string) (*server, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	db, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
+	unwrappedPool, err := pgxpool.Connect(ctx, instanceConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	db := timeout.New(unwrappedPool)
 	store, err := cdb.New(db, pools)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -180,8 +185,10 @@ func (s *server) listenMachineEvents(ctx context.Context) {
 }
 
 func processEventArrival(ctx context.Context, store machineStore.Store, storeUpdateFail metrics2.Counter, processor machineProcessor.Processor, event machine.Event) {
-	err := store.Update(ctx, event.Host.Name, func(previous machine.Description) machine.Description {
-		return processor.Process(ctx, previous, event)
+	timeoutCtx, cancel := context.WithTimeout(ctx, defaultSQLTimeout)
+	defer cancel()
+	err := store.Update(timeoutCtx, event.Host.Name, func(previous machine.Description) machine.Description {
+		return processor.Process(timeoutCtx, previous, event)
 	})
 	if err != nil {
 		storeUpdateFail.Inc(1)
@@ -244,7 +251,9 @@ func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
-	descriptions, err := s.store.List(r.Context())
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+	descriptions, err := s.store.List(ctx)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
@@ -286,7 +295,8 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	s.audit(w, r, "toggle-mode", id)
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
 
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret := toggleMode(ctx, string(s.login.LoggedInAs(r)), in)
@@ -296,7 +306,7 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -314,7 +324,8 @@ func (s *server) machineClearQuarantinedHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 	s.audit(w, r, "clear-quarantine", id)
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
 
 	if err := s.store.Update(ctx, id, clearQuarantined); err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
@@ -345,8 +356,9 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 	}
 	s.audit(w, r, "toggle-powercycle", id)
 
-	ctx := r.Context()
-	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return togglePowerCycle(ctx, id, string(s.login.LoggedInAs(r)), in)
 	})
 	if err != nil {
@@ -378,14 +390,17 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 
 	s.audit(w, r, "set-attached-device", attachedDeviceRequest)
 
-	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return setAttachedDevice(attachedDeviceRequest.AttachedDevice, in)
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -415,7 +430,8 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 
 	s.audit(w, r, "remove-device", id)
 
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return removeDevice(ctx, id, string(s.login.LoggedInAs(r)), in)
 	})
@@ -423,7 +439,7 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -435,11 +451,14 @@ func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Requ
 
 	s.audit(w, r, "delete-machine", id)
 
-	if err := s.store.Delete(r.Context(), id); err != nil {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
+	if err := s.store.Delete(ctx, id); err != nil {
 		httputils.ReportError(w, err, "Failed to delete machine.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -470,7 +489,8 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.audit(w, r, "set-note", note)
 
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return setNote(ctx, string(s.login.LoggedInAs(r)), note, in)
 	})
@@ -478,7 +498,7 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -512,7 +532,8 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 
 	s.audit(w, r, "supply-dimensions", req)
 
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		return setChromeOSInfo(ctx, req, in)
 	})
@@ -520,7 +541,7 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 		httputils.ReportError(w, err, "Failed to process dimensions.", http.StatusInternalServerError)
 		return
 	}
-	s.triggerDescriptionUpdateEvent(r.Context(), id)
+	s.triggerDescriptionUpdateEvent(ctx, id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -530,7 +551,10 @@ func (s *server) apiMachineDescriptionHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	desc, err := s.store.Get(r.Context(), id)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
+	desc, err := s.store.Get(ctx, id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
@@ -539,7 +563,10 @@ func (s *server) apiMachineDescriptionHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *server) apiPowerCycleListHandler(w http.ResponseWriter, r *http.Request) {
-	toPowerCycle, err := s.store.ListPowerCycle(r.Context())
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
+	toPowerCycle, err := s.store.ListPowerCycle(ctx)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
@@ -561,7 +588,10 @@ func (s *server) apiPowerCycleCompleteHandler(w http.ResponseWriter, r *http.Req
 
 	s.audit(w, r, "powercycle-complete", id)
 
-	err = s.store.Update(r.Context(), id, setPowerCycleFalse)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
+	err = s.store.Update(ctx, id, setPowerCycleFalse)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
@@ -584,12 +614,15 @@ func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.
 
 	s.audit(w, r, "powercycle-update", req)
 
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSQLTimeout)
+	defer cancel()
+
 	for _, updateRequest := range req.Machines {
-		if _, err := s.store.Get(r.Context(), updateRequest.MachineID); err != nil {
+		if _, err := s.store.Get(ctx, updateRequest.MachineID); err != nil {
 			sklog.Infof("Got powercycle info for a non-existent machine %q: %s", updateRequest.MachineID, err)
 			continue
 		}
-		err := s.store.Update(r.Context(), updateRequest.MachineID, func(in machine.Description) machine.Description {
+		err := s.store.Update(ctx, updateRequest.MachineID, func(in machine.Description) machine.Description {
 			return setPowerCycleState(updateRequest.PowerCycleState, in)
 		})
 		if err != nil {

@@ -13,6 +13,7 @@ go_library(
         "//go/deepequal/assertdeep",
         "//go/metrics2",
         "//go/skerr",
+        "//go/sql/pool",
         "//go/sql/schema",
         "//go/sql/sqlutil",
         "//machine/go/machine",
@@ -21,7 +22,6 @@ go_library(
         "//machine/go/machine/store/cdb/expectedschema",
         "@com_github_jackc_pgconn//:pgconn",
         "@com_github_jackc_pgx_v4//:pgx",
-        "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )
 
@@ -33,6 +33,7 @@ go_test(
         "//go/deepequal",
         "//go/deepequal/assertdeep",
         "//go/metrics2",
+        "//go/sql/pool",
         "//go/sql/schema",
         "//machine/go/machine",
         "//machine/go/machine/machinetest",
@@ -40,7 +41,6 @@ go_test(
         "//machine/go/machine/pools/poolstest",
         "//machine/go/machine/store/cdb/cdbtest",
         "//machine/go/machine/store/cdb/expectedschema",
-        "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_stretchr_testify//require",
     ],
 )
