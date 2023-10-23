@@ -2,11 +2,7 @@
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
-import type {
-  CanvasKit,
-  CanvasKitInit as CKInit,
-  // @ts-ignore
-} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+import type { CanvasKit } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,
@@ -17,6 +13,7 @@ import {
   ShaderNode,
 } from './index';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
+import type CKInit from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;

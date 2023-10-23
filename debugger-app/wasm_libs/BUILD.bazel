@@ -12,16 +12,12 @@ bool_flag(
 extract_files_from_skia_wasm_container(
     name = "fetch_debugger_wasm",
     testonly = True,
-    outs = [
-        "from_container/canvaskit.d.ts",
-        "from_container/canvaskit.js",
-        "from_container/canvaskit.wasm",
-    ],
-    container_files = [
-        "/tmp/canvaskit/canvaskit.d.ts",
-        "/tmp/canvaskit/canvaskit.js",
-        "/tmp/canvaskit/canvaskit.wasm",
-    ],
+    container = "@pinned_debugger",
+    container_files = {
+        "/usr/local/share/debugger-app/index.d.ts": "from_container/canvaskit.d.ts",
+        "/usr/local/share/debugger-app/canvaskit.js": "from_container/canvaskit.js",
+        "/usr/local/share/debugger-app/canvaskit.wasm": "from_container/canvaskit.wasm",
+    },
     enabled_flag = ":use_debugger_from_container",
 )
 
@@ -68,6 +64,11 @@ js_library(
         "types/canvaskit.d.ts",
     ],
     visibility = ["//debugger-app:__subpackages__"],
+    deps = [
+        # Because we copy the index.d.ts out of canvaskit, we lose the transitive dependency on the
+        # webgpu types that canvaskit itself has.
+        "@npm//@webgpu/types",
+    ],
 )
 
 # This copy rule makes it so we can import from '../../wasm_libs/types/canvaskit' and not

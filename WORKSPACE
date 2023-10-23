@@ -306,12 +306,24 @@ rbe_exec_properties(
 # Docker containers. #
 ######################
 
-# Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
+# This is a pinned version of JS fiddle - we use the canvaskit.js/canvaskit.wasm inside it
+# when running apps (e.g. skottie.skia.org) locally. All our apps (except debugger) use the stock
+# version of CanvasKit, so they can share this. If there is an update to CanvasKit APIs and we want
+# to test them out locally, we should update this to a newer version. See the k8s-config repo
+# for a recent commit to use.
 container_pull(
-    name = "container_pull_skia_wasm",
-    digest = "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+    name = "pinned_jsfiddle",
+    digest = "sha256:2d601a86398166b7d87b1cbe69005ac1b0302d22c72dca5a8d7d4340d79c33b8",
     registry = "gcr.io",
-    repository = "skia-public/skia-wasm-release",
+    repository = "skia-public/jsfiddle-final",
+)
+
+# Debugger's version of CanvasKit is built with different flags
+container_pull(
+    name = "pinned_debugger",
+    digest = "sha256:d63e5ee97f80701a7bf5c0f69da9858a9ca9a349c3f07de39e7d261527c7021d",
+    registry = "gcr.io",
+    repository = "skia-public/debugger-app-final",
 )
 
 # This is an arbitrary version of the public Alpine image. Given our current rules, we must pull

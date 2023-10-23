@@ -18,8 +18,6 @@ import type {
   CanvasKit,
   Paint,
   Surface,
-  CanvasKitInit as CKInit,
-  // @ts-ignore
 } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -51,6 +49,7 @@ import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk'
 import '../edit-child-shader-sk';
 import * as SkSLConstants from '../sksl-constants/sksl-constants';
 import '../window/window';
+import type CKInit from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;

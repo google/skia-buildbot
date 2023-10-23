@@ -11,20 +11,14 @@ bool_flag(
 extract_files_from_skia_wasm_container(
     name = "fetch_canvaskit_wasm",
     testonly = True,
-    outs = [
-        "from_container/canvaskit.d.ts",
-        "from_container/canvaskit.js",
-        "from_container/canvaskit.wasm",
-        "from_container/pathkit.js",
-        "from_container/pathkit.wasm",
-    ],
-    container_files = [
-        "/tmp/canvaskit/canvaskit.d.ts",
-        "/tmp/canvaskit/canvaskit.js",
-        "/tmp/canvaskit/canvaskit.wasm",
-        "/tmp/pathkit/pathkit.js",
-        "/tmp/pathkit/pathkit.wasm",
-    ],
+    container = "@pinned_jsfiddle",
+    container_files = {
+        "/usr/local/share/jsfiddle/dist/index.d.ts": "from_container/canvaskit.d.ts",
+        "/usr/local/share/jsfiddle/dist/canvaskit.js": "from_container/canvaskit.js",
+        "/usr/local/share/jsfiddle/dist/canvaskit.wasm": "from_container/canvaskit.wasm",
+        "/usr/local/share/jsfiddle/dist/pathkit.js": "from_container/pathkit.js",
+        "/usr/local/share/jsfiddle/dist/pathkit.wasm": "from_container/pathkit.wasm",
+    },
     enabled_flag = ":use_libraries_from_container",
     visibility = ["//jsfiddle:__subpackages__"],
 )

@@ -680,7 +680,7 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_flag, **kwargs):
+def extract_files_from_skia_wasm_container(name, container, container_files, enabled_flag, **kwargs):
     """Extracts files from the Skia WASM container image (gcr.io/skia-public/skia-wasm-release).
 
     This macro takes as inputs a list of paths inside the Docker container (container_files
@@ -694,8 +694,9 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
 
     Args:
       name: Name of the target.
-      container_files: List of absolute paths inside the Docker container to extract.
-      outs: Destination paths for each file to extract, relative to the target's directory.
+      container: The name of the docker container (defined in //WORKSPACE) which contains the files.
+      container_files: Dictionary of absolute paths inside the Docker container to extract mapped to
+          the path they should be extracted to.
       enabled_flag: Label. If set, should be the name of a bool_flag. If the bool_flag
           is True, the real skia_wasm_container image will be pulled and the images loaded as per
           usual. If the bool_flag is false, the container will not be loaded, but any outs will be
@@ -703,9 +704,6 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
           same flag to properly ignore those empty files if the flag is false (e.g. via a select).
       **kwargs: Any flags that should be forwarded to the generated rule
     """
-
-    if len(container_files) != len(outs):
-        fail("Arguments container_files and outs must have the same length.")
 
     # Generates a .tar file with the contents of the image's filesystem (and a .json metadata file
     # which we ignore).
@@ -733,7 +731,7 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
     container_flatten(
         name = name + "_skia_wasm_container_filesystem",
         image = select({
-            enabled_flag + "_true": "@container_pull_skia_wasm//image",
+            enabled_flag + "_true": container + "//image",
             enabled_flag + "_false": "@empty_container//image",
         }),
     )
@@ -760,8 +758,11 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
     cmd = ("mkdir -p " + skia_wasm_filesystem_dir +
            " && tar xf $< -C " + skia_wasm_filesystem_dir)
 
+    outs = []
+
     # Copy each requested file from the container filesystem to its desired destination.
-    for src, dst in zip(container_files, outs):
+    for src in container_files:
+        dst = container_files[src]
         copy = " && (cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
 
         # If the enabled_flag is False, we will be loading from an empty image and thus the
@@ -772,6 +773,7 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_
         # /dev/null to squash any errors about files not existing.
         copy += " 2>/dev/null || touch %s/%s) " % (output_dir, dst)
         cmd += copy
+        outs.append(dst)
 
     native.genrule(
         name = name,
