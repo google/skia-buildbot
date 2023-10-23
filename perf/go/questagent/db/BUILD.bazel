@@ -1,0 +1,11 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sql",
+    srcs = [
+        "schema.go",
+        "tables.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/questagent/db",
+    visibility = ["//visibility:public"],
+)
