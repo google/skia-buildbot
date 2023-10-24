@@ -230,6 +230,9 @@
         "trace_sample_proportion": {
           "type": "number"
         },
+        "trace_format": {
+          "type": "string"
+        },
         "auth_config": {
           "$ref": "#/$defs/AuthConfig"
         },

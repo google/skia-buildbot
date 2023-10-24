@@ -83,5 +83,6 @@
         "default_url_values": {
             "summary": "true"
         }
-    }
+    },
+    "trace_format": "chrome"
 }

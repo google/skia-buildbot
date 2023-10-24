@@ -102,6 +102,10 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
+import {
+  TraceFormatter,
+  GetTraceFormatter,
+} from '../trace-details-formatter/traceformatter';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -392,8 +396,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private summary: ParamSetSk | null = null;
 
-  private traceID: HTMLSpanElement | null = null;
-
   private commitTime: HTMLSpanElement | null = null;
 
   private csvDownload: HTMLAnchorElement | null = null;
@@ -426,8 +428,13 @@ export class ExploreSimpleSk extends ElementSk {
 
   private collapseDetails: CollapseSk | null = null;
 
+  private traceDetails: HTMLSpanElement | null = null;
+
+  private traceFormatter: TraceFormatter | null = null;
+
   constructor() {
     super(ExploreSimpleSk.template);
+    this.traceFormatter = GetTraceFormatter();
   }
 
   private static template = (ele: ExploreSimpleSk) => html`
@@ -540,6 +547,7 @@ export class ExploreSimpleSk extends ElementSk {
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
       </div>
+      <span id=traceDetails />
     </div>
 
     <pivot-table-sk
@@ -715,9 +723,6 @@ export class ExploreSimpleSk extends ElementSk {
         <tabs-panel-sk>
           <div>
             <p>
-              <b>Trace ID</b>: <span title='Trace ID' id=trace_id></span>
-            </p>
-            <p>
               <b>Time</b>: <span title='Commit Time' id=commit_time></span>
             </p>
 
@@ -794,7 +799,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.simpleParamset = this.querySelector('#simple_paramset');
     this.spinner = this.querySelector('#spinner');
     this.summary = this.querySelector('#summary');
-    this.traceID = this.querySelector('#trace_id');
     this.commitTime = this.querySelector('#commit_time');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
@@ -809,6 +813,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.collapseDetails = this.querySelector('#collapseDetails');
+    this.traceDetails = this.querySelector('#traceDetails');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1226,10 +1231,13 @@ export class ExploreSimpleSk extends ElementSk {
   /** Reflect the focused trace in the paramset. */
   private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.paramset!.highlight = fromKey(e.detail.name);
-    this.traceID!.textContent = e.detail.name;
     this.commitTime!.textContent = new Date(
       this._dataframe.header![e.detail.x]!.timestamp * 1000
     ).toLocaleString();
+    let formattedTrace = this.traceFormatter!.formatTrace(
+      fromKey(e.detail.name)
+    );
+    this.traceDetails!.textContent = formattedTrace;
   }
 
   /** User has zoomed in on the graph. */
@@ -1491,10 +1499,7 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    if (this.traceID) {
-      this.traceID.textContent = '';
-      this.commitTime!.textContent = '';
-    }
+    this.commitTime!.textContent = '';
     const body = this.requestFrameBodyFullFromState();
     const switchToTab =
       body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
@@ -1815,7 +1820,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.plot!.removeAll();
     this._dataframe.traceset = {};
     this.paramset!.paramsets = [];
-    this.traceID!.textContent = '';
     this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';

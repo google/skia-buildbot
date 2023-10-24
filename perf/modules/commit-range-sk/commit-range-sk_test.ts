@@ -25,6 +25,7 @@ describe('commit-range-sk', () => {
       feedback_url: '',
       chat_url: '',
       help_url_override: '',
+      trace_format: '',
     };
 
     element = newInstance((el: CommitRangeSk) => {

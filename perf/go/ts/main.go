@@ -105,6 +105,7 @@ func main() {
 		{results.AllRequestKind, "TryBotRequestKind"},
 		{frame.AllResponseDisplayModes, "FrameResponseDisplayMode"},
 		{notifytypes.AllNotifierTypes, "NotifierTypes"},
+		{config.AllTraceFormats, "TraceFormat"},
 	})
 
 	generator.AddUnionToNamespace(progress.AllStatus, "progress")

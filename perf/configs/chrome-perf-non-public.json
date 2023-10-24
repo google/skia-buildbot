@@ -62,5 +62,6 @@
             "summary": "true"
         }
     },
-    "help_url_override": "http://go/chrome-perf-user-doc"
+    "help_url_override": "http://go/chrome-perf-user-doc",
+    "trace_format": "chrome"
 }

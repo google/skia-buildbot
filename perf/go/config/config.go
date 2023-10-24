@@ -317,6 +317,19 @@ type GitRepoConfig struct {
 	CommitNumberRegex string `json:"commit_number_regex,omitempty"`
 }
 
+// TraceFormat is the format used to display trace info on the instance.
+type TraceFormat string
+
+const (
+	ChromeTraceFormat  TraceFormat = "chrome"
+	DefaultTraceFormat TraceFormat = ""
+)
+
+var AllTraceFormats []TraceFormat = []TraceFormat{
+	ChromeTraceFormat,
+	DefaultTraceFormat,
+}
+
 // DurationAsString allows serializing a Duration as a string, and also handles
 // deserializing the empty string.
 type DurationAsString time.Duration
@@ -670,6 +683,10 @@ type InstanceConfig struct {
 	// TraceSampleProportion is a float between 0.0 and 1.0 that determines
 	// which percentage of traces get uploaded
 	TraceSampleProportion float32 `json:"trace_sample_proportion,omitempty"`
+
+	// TraceFormat is string that specifies the format to use to display
+	// trace information for the instance.
+	TraceFormat TraceFormat `json:"trace_format,omitempty"`
 
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`

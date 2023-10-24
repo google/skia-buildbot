@@ -217,20 +217,21 @@ func (f *Frontend) loadTemplates() {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the window.perf variable.
 type SkPerfConfig struct {
-	Radius                     int              `json:"radius"`                          // The number of commits when doing clustering.
-	KeyOrder                   []string         `json:"key_order"`                       // The order of the keys to appear first in query-sk elements.
-	NumShift                   int              `json:"num_shift"`                       // The number of commits the shift navigation buttons should jump.
-	Interesting                float32          `json:"interesting"`                     // The threshold for a cluster to be interesting.
-	StepUpOnly                 bool             `json:"step_up_only"`                    // If true then only regressions that are a step up are displayed.
-	CommitRangeURL             string           `json:"commit_range_url"`                // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
-	Demo                       bool             `json:"demo"`                            // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
-	DisplayGroupBy             bool             `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
-	HideListOfCommitsOnExplore bool             `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
-	Notifications              notifytypes.Type `json:"notifications"`                   // The type of notifications that can be sent.
-	FetchChromePerfAnomalies   bool             `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
-	FeedbackURL                string           `json:"feedback_url"`                    // The URL for the Provide Feedback link
-	ChatURL                    string           `json:"chat_url"`                        // The URL for the Ask the Team link
-	HelpURLOverride            string           `json:"help_url_override"`               // If specified, this URL will override the help link
+	Radius                     int                `json:"radius"`                          // The number of commits when doing clustering.
+	KeyOrder                   []string           `json:"key_order"`                       // The order of the keys to appear first in query-sk elements.
+	NumShift                   int                `json:"num_shift"`                       // The number of commits the shift navigation buttons should jump.
+	Interesting                float32            `json:"interesting"`                     // The threshold for a cluster to be interesting.
+	StepUpOnly                 bool               `json:"step_up_only"`                    // If true then only regressions that are a step up are displayed.
+	CommitRangeURL             string             `json:"commit_range_url"`                // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
+	Demo                       bool               `json:"demo"`                            // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
+	DisplayGroupBy             bool               `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
+	HideListOfCommitsOnExplore bool               `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
+	Notifications              notifytypes.Type   `json:"notifications"`                   // The type of notifications that can be sent.
+	FetchChromePerfAnomalies   bool               `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
+	FeedbackURL                string             `json:"feedback_url"`                    // The URL for the Provide Feedback link
+	ChatURL                    string             `json:"chat_url"`                        // The URL for the Ask the Team link
+	HelpURLOverride            string             `json:"help_url_override"`               // If specified, this URL will override the help link
+	TraceFormat                config.TraceFormat `json:"trace_format"`                    // Trace formatter to use
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -254,11 +255,13 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		FeedbackURL:                config.Config.FeedbackURL,
 		ChatURL:                    config.Config.ChatURL,
 		HelpURLOverride:            config.Config.HelpURLOverride,
+		TraceFormat:                config.Config.TraceFormat,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {
 		sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 	}
+
 	return template.JS(string(b)), nil
 }
 

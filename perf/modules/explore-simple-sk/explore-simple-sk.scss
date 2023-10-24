@@ -321,4 +321,10 @@ explore-simple-sk {
       pointer-events: none;
     }
   }
+
+  #traceDetails {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    color: var(--on-surface);
+  }
 }

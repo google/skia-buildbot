@@ -241,6 +241,7 @@ export interface SkPerfConfig {
 	feedback_url: string;
 	chat_url: string;
 	help_url_override: string;
+	trace_format: TraceFormat;
 }
 
 export interface TriageRequest {
@@ -418,6 +419,8 @@ export type RequestType = 0 | 1;
 export type Subset = 'all' | 'regressions' | 'untriaged';
 
 export type NotifierTypes = 'html_email' | 'markdown_issuetracker' | 'none';
+
+export type TraceFormat = 'chrome' | '';
 
 export type TryBotRequestKind = 'trybot' | 'commit';
 

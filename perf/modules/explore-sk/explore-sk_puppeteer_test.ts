@@ -92,5 +92,15 @@ describe('explore-sk', () => {
       await testBed.page.click('#collapseButton');
       await takeScreenshot(testBed.page, 'perf', 'explore-sk-collapse-details');
     });
+
+    it('loads the traces and hovers over a trace to display trace information', async () => {
+      await testBed.page.click('#demo-load-traces');
+      await testBed.page.waitForSelector('#traceButtons', {
+        visible: true,
+      });
+
+      await testBed.page.hover('plot-simple-sk');
+      await takeScreenshot(testBed.page, 'perf', 'explore-sk-trace-details');
+    });
   });
 });
