@@ -163,7 +163,7 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 	var b bytes.Buffer
 	err = fr.Progress.JSON(&b)
 	require.NoError(t, err)
-	assert.Equal(t, `{"status":"Running","messages":[{"key":"Queries","value":"Starting"}],"url":""}`, strings.TrimSpace(b.String()))
+	assert.Equal(t, `{"status":"Running","messages":[{"key":"Loading","value":"Queries"}],"url":""}`, strings.TrimSpace(b.String()))
 }
 
 // frameRequestForTest returns a mock DataFrameBuilder, a frameRequestProcess,

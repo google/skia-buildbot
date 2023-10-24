@@ -94,6 +94,12 @@ export const messagesToErrorString = (messages: progress.Message[]): string => {
   return messages.map((msg) => `${msg?.key}: ${msg?.value}`).join(' ');
 };
 
+/**
+ * Converts a Message into a string, one line per key-value pair.
+ */
+export const messagesToPreString = (messages: progress.Message[]): string =>
+  messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
+
 /** Utility function to extract on Message from an Array of Messages. */
 export const messageByName = (
   messages: progress.Message[],

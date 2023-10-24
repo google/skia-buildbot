@@ -82,6 +82,7 @@ import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import {
   messageByName,
   messagesToErrorString,
+  messagesToPreString,
   startRequest,
 } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
@@ -537,7 +538,7 @@ export class ExploreSimpleSk extends ElementSk {
       </plot-simple-sk>
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
-        <span id=percent></span>
+        <pre id=percent></pre>
       </div>
     </div>
 
@@ -1774,7 +1775,7 @@ export class ExploreSimpleSk extends ElementSk {
     // If not, add them with the default value in the instance config.
     this._state.queries.forEach((query) => {
       const paramSet = toParamSet(query);
-      for (let defaultParamKey in this.defaults?.default_param_selections) {
+      for (const defaultParamKey in this.defaults?.default_param_selections) {
         if (!(defaultParamKey in paramSet)) {
           paramSet[defaultParamKey] =
             this.defaults!.default_param_selections![defaultParamKey]!;
@@ -1787,7 +1788,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Check if the user has specified the params provided in the default url config.
     // If not, add them to the state object
-    for (let urlKey in this.defaults?.default_url_values) {
+    for (const urlKey in this.defaults?.default_url_values) {
       if (this._userSpecifiedCustomizationParams.has(urlKey) == false) {
         switch (urlKey) {
           case 'summary':
@@ -2039,11 +2040,7 @@ export class ExploreSimpleSk extends ElementSk {
         200,
         this.spinner!,
         (prog: progress.SerializedProgress) => {
-          this.percent!.textContent = `${messageByName(
-            prog.messages,
-            'Percent',
-            '0'
-          )}%`;
+          this.percent!.textContent = messagesToPreString(prog.messages);
         }
       );
       if (finishedProg.status !== 'Finished') {

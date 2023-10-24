@@ -184,7 +184,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 	// Results from all the queries and calcs will be accumulated in this dataframe.
 	df := dataframe.NewEmpty()
 
-	p.request.Progress.Message("Queries", "Starting")
+	p.request.Progress.Message("Loading", "Queries")
 	// Queries.
 	for _, q := range p.request.Queries {
 		newDF, err := p.doSearch(ctx, q, begin, end)
@@ -195,8 +195,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		p.searchInc()
 	}
 
-	p.request.Progress.Message("Queries", "Finshed")
-	p.request.Progress.Message("Formulas", "Started")
+	p.request.Progress.Message("Loading", "Formulas")
 
 	// Formulas.
 	for _, formula := range p.request.Formulas {
@@ -208,8 +207,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		p.searchInc()
 	}
 
-	p.request.Progress.Message("Formulas", "Finished")
-	p.request.Progress.Message("Keys", "Started")
+	p.request.Progress.Message("Loading", "Keys")
 
 	// Keys
 	if p.request.Keys != "" {
@@ -220,7 +218,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 		df = dataframe.Join(df, newDF)
 	}
 
-	p.request.Progress.Message("Keys", "Finished")
+	p.request.Progress.Message("Loading", "Finished")
 
 	if len(df.Header) == 0 {
 		var err error
