@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package cabe.v1;
+package cabe.proto;
 option go_package = "go.skia.org/infra/cabe/go/proto";
 
-import "cabe/proto/v1/spec.proto";
+import "cabe/proto/spec.proto";
 
 // AnalysisMetadata defines the metadata of an analysis.
 message AnalysisMetadata {

@@ -159,7 +159,7 @@ type ServerUnary struct {
 	// by cabe to the caller.
 	Response *anypb.Any `protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
 	// full_method is the fully qualified grpc method being
-	// called, e.g. "cabe.v1.Analysis/GetAnalysis"
+	// called, e.g. "cabe.proto.Analysis/GetAnalysis"
 	FullMethod string `protobuf:"bytes,3,opt,name=full_method,json=fullMethod,proto3" json:"full_method,omitempty"`
 	// user is the identity of the user making the incoming server request.
 	User string `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`

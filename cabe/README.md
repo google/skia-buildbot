@@ -30,11 +30,11 @@ For this command to work, you should also have `gcloud` installed, and run
 ```
 grpcurl -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -d '{"pinpoint_job_id":"<PINPOINT JOB ID>"}' \
-    cabe.skia.org:443 cabe.v1.Analysis/GetAnalysis
+    cabe.skia.org:443 cabe.proto.Analysis/GetAnalysis
 ```
 
 If successful, this command will write a textproto encoding of the
-`cabe.v1.GetAnalysisResponse` from the server to stdout.
+`cabe.proto.GetAnalysisResponse` from the server to stdout.
 
 ## Running locally
 
@@ -58,7 +58,7 @@ Once the server process has started, you should be able to use
 on your workstation. For example:
 
 ```
-grpcurl -vv -plaintext 127.0.0.1:50051 cabe.v1.Analysis/GetAnalysis
+grpcurl -vv -plaintext 127.0.0.1:50051 cabe.proto.Analysis/GetAnalysis
 ```
 
 ## Running locally with local auth-proxy
@@ -92,7 +92,7 @@ Then in a third terminal, use grpcurl to send a request through the auth-proxy
 to the cabeserver (make sure you have the `-insecure` flag set):
 
 ```
-grpcurl -vv -insecure 127.0.0.1:8003 cabe.v1.Analysis/GetAnalysis
+grpcurl -vv -insecure 127.0.0.1:8003 cabe.proto.Analysis/GetAnalysis
 ```
 
 Note that this command will produce a warning message (which you can ignore for

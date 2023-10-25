@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cabe.v1;
+package cabe.proto;
 option go_package = "go.skia.org/infra/cabe/go/proto";
 
 import "google/protobuf/timestamp.proto";
