@@ -33,7 +33,7 @@ func NewAnalysisClient(cc grpc.ClientConnInterface) AnalysisClient {
 
 func (c *analysisClient) GetAnalysis(ctx context.Context, in *GetAnalysisRequest, opts ...grpc.CallOption) (*GetAnalysisResponse, error) {
 	out := new(GetAnalysisResponse)
-	err := c.cc.Invoke(ctx, "/cabe.proto.Analysis/GetAnalysis", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cabe.v1.Analysis/GetAnalysis", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func _Analysis_GetAnalysis_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cabe.proto.Analysis/GetAnalysis",
+		FullMethod: "/cabe.v1.Analysis/GetAnalysis",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AnalysisServer).GetAnalysis(ctx, req.(*GetAnalysisRequest))
@@ -91,7 +91,7 @@ func _Analysis_GetAnalysis_Handler(srv interface{}, ctx context.Context, dec fun
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Analysis_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cabe.proto.Analysis",
+	ServiceName: "cabe.v1.Analysis",
 	HandlerType: (*AnalysisServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -100,5 +100,5 @@ var Analysis_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "cabe/proto/service.proto",
+	Metadata: "cabe/proto/v1/service.proto",
 }

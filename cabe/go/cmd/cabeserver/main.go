@@ -94,6 +94,42 @@ func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*
 	return tasksResp, nil
 }
 
+// TODO(seanmccullough): Remove this, once the client code in catapult repo
+// is updated to use the `cabe.v1` proto package name and it's deployed to
+// production.
+var (
+	getAnalysis_Handler = func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+		in := new(cpb.GetAnalysisRequest)
+		if err := dec(in); err != nil {
+			return nil, err
+		}
+		if interceptor == nil {
+			return srv.(cpb.AnalysisServer).GetAnalysis(ctx, in)
+		}
+		info := &grpc.UnaryServerInfo{
+			Server:     srv,
+			FullMethod: "/cabe.proto.Analysis/GetAnalysis",
+		}
+		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.(cpb.AnalysisServer).GetAnalysis(ctx, req.(*cpb.GetAnalysisRequest))
+		}
+		return interceptor(ctx, in, info, handler)
+	}
+
+	v0Descriptor = &grpc.ServiceDesc{
+		ServiceName: "cabe.proto.Analysis",
+		HandlerType: cpb.Analysis_ServiceDesc.HandlerType,
+		Methods: []grpc.MethodDesc{
+			{
+				MethodName: "GetAnalysis",
+				Handler:    getAnalysis_Handler,
+			},
+		},
+		Streams:  cpb.Analysis_ServiceDesc.Streams,
+		Metadata: "cabe/proto/service.proto",
+	}
+)
+
 // Start creates server instances and listens for connections on their ports.
 // It does not return unless there is an error during the startup process, in which case it
 // returns the error, or if a call to [Cleanup()] causes a graceful shutdown, in which
@@ -161,6 +197,12 @@ func (a *App) Start(ctx context.Context) error {
 
 	sklog.Infof("registering cabe grpc server")
 	analysisServer := analysisserver.New(a.casResultReader, a.swarmingTaskReader)
+	cpb.RegisterAnalysisServer(a.grpcServer, analysisServer)
+
+	// TODO(seanmccullough): Remove this, once the client code in catapult repo
+	// is updated to use the `cabe.v1` proto package name and it's deployed to
+	// production.
+	a.grpcServer.RegisterService(v0Descriptor, analysisServer)
 
 	lis, err := net.Listen("tcp", a.grpcPort)
 	if err != nil {
@@ -169,8 +211,6 @@ func (a *App) Start(ctx context.Context) error {
 	// If the port was specified as ":0" and the OS picked a port for us,
 	// set the app's grpc port to the actual port it's listening on.
 	a.grpcPort = lis.Addr().String()
-	cpb.RegisterAnalysisServer(a.grpcServer, analysisServer)
-
 	sklog.Infof("server listening at %v", lis.Addr())
 	if err := a.grpcServer.Serve(lis); err != nil {
 		sklog.Fatalf("failed to serve grpc: %v", err)
@@ -229,11 +269,34 @@ func (a *App) ConfigureAuthorization() error {
 		sklog.Errorf("creating auth policy for service: %v", err)
 		return err
 	}
+
 	if err := analysisPolicy.AuthorizeRoles(roles.Roles{roles.Admin}); err != nil {
 		sklog.Errorf("configuring roles for service: %v", err)
 		return err
 	}
 	if err := analysisPolicy.AuthorizeMethodForRoles("GetAnalysis", roles.Roles{roles.Viewer}); err != nil {
+		sklog.Errorf("configuring roles for method: %v", err)
+		return err
+	}
+
+	// This is necessary, otherwise auth cheecks fail and callers to the old package name get
+	// status = StatusCode.PERMISSION_DENIED
+	// details = "no policy for service: "cabe.proto.Analysis""
+	// TODO(seanmccullough): Remove this, once the client code in catapult repo
+	// is updated to use the `cabe.v1` proto package name and it's deployed to
+	// production.
+	v0AnalysisPolicy, err := a.authPolicy.Service(*v0Descriptor)
+	if err != nil {
+		sklog.Errorf("creating auth policy for service: %v", err)
+		return err
+	}
+
+	if err := v0AnalysisPolicy.AuthorizeRoles(roles.Roles{roles.Admin}); err != nil {
+		sklog.Errorf("configuring roles for service: %v", err)
+		return err
+	}
+
+	if err := v0AnalysisPolicy.AuthorizeMethodForRoles("GetAnalysis", roles.Roles{roles.Viewer}); err != nil {
 		sklog.Errorf("configuring roles for method: %v", err)
 		return err
 	}

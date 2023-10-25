@@ -145,3 +145,67 @@ func TestGRPCAuthorizationPolicy_UserIsNotAuthorized_Fails(t *testing.T) {
 	assert.Equal(t, st.Code(), codes.PermissionDenied)
 	assert.Nil(t, resp)
 }
+
+// Everything below this line tests backwards compatibility for the cabe.proto -> cabe.v1 proto
+// package rename. It simulates clients using the old package name in their requests.
+// TODO(seanmccullough): Remove this, once the client code in catapult repo
+// is updated to use the `cabe.v1` proto package name and it's deployed to
+// production.
+type testOldAnalysisClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func oldAnalysisClient(cc grpc.ClientConnInterface) cpb.AnalysisClient {
+	return &testOldAnalysisClient{cc}
+}
+
+func (c *testOldAnalysisClient) GetAnalysis(ctx context.Context, in *cpb.GetAnalysisRequest, opts ...grpc.CallOption) (*cpb.GetAnalysisResponse, error) {
+	out := new(cpb.GetAnalysisResponse)
+	err := c.cc.Invoke(ctx, "/cabe.proto.Analysis/GetAnalysis", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func testSetupOldClientWithUserInRoles(t *testing.T, ctx context.Context, a *App, roles roles.Roles) (context.Context, cpb.AnalysisClient) {
+	conn, err := grpc.Dial(a.grpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+
+	analysisClient := oldAnalysisClient(conn)
+
+	md := metadata.MD{}
+	md.Set(authproxy.WebAuthHeaderName, "user@google.com")
+	md.Set(authproxy.WebAuthRoleHeaderName, roles.ToHeader())
+	return metadata.NewOutgoingContext(ctx, md), analysisClient
+}
+
+func TestBackwardsCompatWithOldPackageName_UserIsAuthorized_Succeeds(t *testing.T) {
+	ctx, a, cleanup := testSetupAppWithBackends(t)
+	defer cleanup()
+
+	ctx, analysisClient := testSetupOldClientWithUserInRoles(t, ctx, a, roles.Roles{roles.Viewer})
+
+	_, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{
+		PinpointJobId: "123",
+	})
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.NotEqual(t, st.Code(), codes.PermissionDenied)
+}
+
+func TestBackwardsCompatWithOldPackageName_UserIsNotAuthorized_Fails(t *testing.T) {
+	ctx, a, cleanup := testSetupAppWithBackends(t)
+	defer cleanup()
+
+	ctx, analysisClient := testSetupOldClientWithUserInRoles(t, ctx, a, roles.Roles{roles.Editor})
+
+	resp, err := analysisClient.GetAnalysis(ctx, &cpb.GetAnalysisRequest{
+		PinpointJobId: "123",
+	})
+	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, st.Code(), codes.PermissionDenied)
+	assert.Nil(t, resp)
+}

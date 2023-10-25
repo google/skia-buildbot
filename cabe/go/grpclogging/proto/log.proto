@@ -44,7 +44,7 @@ message ServerUnary {
     google.protobuf.Any response = 2;
 
     // full_method is the fully qualified grpc method being
-    // called, e.g. "cabe.proto.Analysis/GetAnalysis"
+    // called, e.g. "cabe.v1.Analysis/GetAnalysis"
     string full_method = 3;
 
     // user is the identity of the user making the incoming server request.
