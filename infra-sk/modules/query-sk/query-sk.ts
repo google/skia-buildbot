@@ -364,16 +364,6 @@ export class QuerySk extends ElementSk {
       this._fastFilter();
     }
     this._render();
-
-    // Now re-select the current key if it still exists post-filtering.
-    if (
-      this._keySelect &&
-      prevSelectKey &&
-      this._keys.indexOf(prevSelectKey) !== -1
-    ) {
-      this._keySelect.selection = this._keys.indexOf(prevSelectKey);
-      this._keyChange();
-    }
   }
 
   /** Selects a key as if the user had pressed the given key. */
@@ -391,8 +381,8 @@ export class QuerySk extends ElementSk {
    * @param value value to remove
    */
   public removeKeyValue(key: string, value: string): void {
-    var paramSet = this.paramset;
-    var valIndex = paramSet[key].indexOf(value);
+    const paramSet = this.paramset;
+    const valIndex = paramSet[key].indexOf(value);
     if (valIndex > -1) {
       // Value is present in the paramset, so let's remove it
       paramSet[key].splice(valIndex, 1);
