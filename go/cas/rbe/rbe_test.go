@@ -23,7 +23,7 @@ func TestMerge_FailingDigest_Mock(t *testing.T) {
 		client: mockClient,
 	}
 	mockClient.On("GetDirectoryTree", testutils.AnyContext, makeDigestPB(t, failingDigest)).Return(dirs, nil)
-	mockClient.On("UploadIfMissing", testutils.AnyContext, mock.Anything).Return([]digest.Digest{makeDigest(t, failingDigest)}, nil)
+	mockClient.On("UploadIfMissing", testutils.AnyContext, mock.Anything).Return([]digest.Digest{makeDigest(t, failingDigest)}, int64(0), nil)
 
 	actual, err := client.Merge(ctx, []string{failingDigest, failingDigest})
 	require.NoError(t, err)

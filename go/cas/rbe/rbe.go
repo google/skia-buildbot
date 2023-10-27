@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/bazelbuild/remote-apis-sdks/go/pkg/chunker"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/command"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/filemetadata"
+	"github.com/bazelbuild/remote-apis-sdks/go/pkg/uploadinfo"
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
+
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.opencensus.io/trace"
@@ -69,10 +70,10 @@ type Client struct {
 // RBEClient is an abstraction of client.Client which enables mocks for testing.
 type RBEClient interface {
 	Close() error
-	ComputeMerkleTree(execRoot string, is *command.InputSpec, chunkSize int, cache filemetadata.Cache) (root digest.Digest, inputs []*chunker.Chunker, stats *client.TreeStats, err error)
-	DownloadDirectory(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache) (map[string]*client.TreeOutput, error)
+	ComputeMerkleTree(execRoot, workingDir, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache) (root digest.Digest, inputs []*uploadinfo.Entry, stats *client.TreeStats, err error)
+	DownloadDirectory(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache) (map[string]*client.TreeOutput, *client.MovedBytesMetadata, error)
 	GetDirectoryTree(ctx context.Context, d *remoteexecution.Digest) (result []*remoteexecution.Directory, err error)
-	UploadIfMissing(ctx context.Context, data ...*chunker.Chunker) ([]digest.Digest, error)
+	UploadIfMissing(ctx context.Context, data ...*uploadinfo.Entry) ([]digest.Digest, int64, error)
 }
 
 // NewClient returns a Client instance.
@@ -112,11 +113,11 @@ func (c *Client) Upload(ctx context.Context, root string, paths, excludes []stri
 		Inputs:          paths,
 		InputExclusions: ex,
 	}
-	rootDigest, chunkers, _, err := c.client.ComputeMerkleTree(root, &is, chunker.DefaultChunkSize, filemetadata.NewNoopCache())
+	rootDigest, entries, _, err := c.client.ComputeMerkleTree(root, "" /* =workingDir */, "" /* =remoteWorkingDir */, &is, filemetadata.NewNoopCache())
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	if _, err := c.client.UploadIfMissing(ctx, chunkers...); err != nil {
+	if _, _, err := c.client.UploadIfMissing(ctx, entries...); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return rootDigest.String(), nil
@@ -130,7 +131,7 @@ func (c *Client) Download(ctx context.Context, root, casDigest string) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if _, err := c.client.DownloadDirectory(ctx, d, root, filemetadata.NewNoopCache()); err != nil {
+	if _, _, err := c.client.DownloadDirectory(ctx, d, root, filemetadata.NewNoopCache()); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -347,16 +348,17 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			chunk, err := chunker.NewFromProto(merged.Directory, chunker.DefaultChunkSize)
+
+			entry, err := uploadinfo.EntryFromProto(merged.Directory)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			if _, err := c.client.UploadIfMissing(ctx, chunk); err != nil {
+			if _, _, err := c.client.UploadIfMissing(ctx, entry); err != nil {
 				return nil, skerr.Wrap(err)
 			}
 			dn := &remoteexecution.DirectoryNode{
 				Name:   dir.Name,
-				Digest: chunk.Digest().ToProto(),
+				Digest: entry.Digest.ToProto(),
 			}
 			dirsMap[dir.Name] = dn
 			children[dir.Name] = merged
@@ -509,14 +511,14 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 	}
 
 	// Upload the new root.
-	chunk, err := chunker.NewFromProto(root.Directory, chunker.DefaultChunkSize)
+	entry, err := uploadinfo.EntryFromProto(root.Directory)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	if _, err := c.client.UploadIfMissing(ctx, chunk); err != nil {
+	if _, _, err := c.client.UploadIfMissing(ctx, entry); err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return chunk.Digest().String(), nil
+	return entry.Digest.String(), nil
 }
 
 // Close implements cas.CAS.

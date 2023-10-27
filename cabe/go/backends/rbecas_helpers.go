@@ -45,7 +45,7 @@ func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest 
 		return nil, fmt.Errorf("failed to parse digest %q: %v", rootDigest, err)
 	}
 	rootDir := &repb.Directory{}
-	if err := c.ReadProto(ctx, d, rootDir); err != nil {
+	if _, err := c.ReadProto(ctx, d, rootDir); err != nil {
 		return nil, fmt.Errorf("failed to read root directory proto: %v", err)
 	}
 
@@ -77,7 +77,7 @@ func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest 
 			if err != nil {
 				return nil, err
 			}
-			blob, err := c.ReadBlob(ctx, d)
+			blob, _, err := c.ReadBlob(ctx, d)
 			if err != nil {
 				return nil, err
 			}

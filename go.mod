@@ -19,8 +19,8 @@ require (
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
 	github.com/bazelbuild/bazel-gazelle v0.23.0
 	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
-	github.com/bazelbuild/remote-apis v0.0.0-20201209220655-9e72daff42c9
-	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
+	github.com/bazelbuild/remote-apis v0.0.0-20210718193713-0ecef08215cf
+	github.com/bazelbuild/remote-apis-sdks v0.0.0-20220429154201-6c8489803a6f
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -91,7 +91,7 @@ require (
 	golang.org/x/tools v0.1.12
 	google.golang.org/api v0.74.0
 	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
-	google.golang.org/grpc v1.45.0
+	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
@@ -146,6 +146,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
+	github.com/klauspost/compress v1.12.3 // indirect
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/luci/gtreap v0.0.0-20161228054646-35df89791e8f // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -159,12 +160,14 @@ require (
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mostynb/zstdpool-syncpool v0.0.7 // indirect
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.3 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pkg/xattr v0.4.4 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect

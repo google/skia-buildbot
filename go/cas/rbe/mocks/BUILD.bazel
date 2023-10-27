@@ -10,11 +10,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/chunker:go_default_library",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client:go_default_library",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/command:go_default_library",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest:go_default_library",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/filemetadata:go_default_library",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/command",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/filemetadata",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/uploadinfo",
         "@com_github_stretchr_testify//mock",
     ],
 )

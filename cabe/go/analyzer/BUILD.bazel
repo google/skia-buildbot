@@ -20,7 +20,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@com_github_aclements_go_moremath//stats",
-        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest:go_default_library",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_pkg_errors//:errors",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
