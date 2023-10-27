@@ -91,7 +91,7 @@ require (
 	golang.org/x/tools v0.1.12
 	google.golang.org/api v0.74.0
 	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
-	google.golang.org/grpc v1.46.0
+	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
