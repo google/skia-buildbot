@@ -81,7 +81,11 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 		// might include the name of the target under test, such as "repo_manager_test", which
 		// includes the word "repo" and would therefore break the below conditionals.
 		if strings.HasSuffix(cmd.Name, "/repo") {
-			return nil
+			require.Fail(t, "repo should always be called via python3") // See b/308174176.
+		}
+		if len(cmd.Args) >= 2 && strings.HasSuffix(cmd.Args[1], "/repo") && cmd.Name != "chmod" {
+			// See b/308174176.
+			require.Equal(t, cmd.Name, "python3", "repo should always be called via python3")
 		}
 		if strings.HasSuffix(cmd.Name, "/git") {
 			var output string

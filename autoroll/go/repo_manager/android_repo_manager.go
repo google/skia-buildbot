@@ -226,7 +226,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Run repo init and sync commands.
-	initCmd := []string{r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()}
+	initCmd := []string{"python3", r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()}
 	if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
 		sklog.Warningf("repo init error: %s", err)
 		// Try deleting .repo in the workdir and re-initing (skbug.com/13867).
@@ -241,7 +241,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 
 	// Sync only the child path and the repohooks directory (needed to upload changes).
 	const repoHooksDir = "tools/repohooks"
-	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, repoHooksDir, "-j32"}
+	syncCmd := []string{"python3", r.repoToolPath, "sync", "--force-sync", r.childPath, repoHooksDir, "-j32"}
 	if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
 		sklog.Warningf("repo sync error: %s", err)
 
@@ -376,7 +376,7 @@ func (r *androidRepoManager) abortMerge(ctx context.Context) error {
 // abandonRepoBranchAndCleanup abandons the repo branch and cleans up the local
 // checkout to make sure there are no leftover untracked files/directories.
 func (r *androidRepoManager) abandonRepoBranchAndCleanup(ctx context.Context) error {
-	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), r.repoToolPath, "abandon", androidRepoBranchName); err != nil {
+	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "python3", r.repoToolPath, "abandon", androidRepoBranchName); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := r.childRepo.Git(ctx, "clean", "-d", "-f"); err != nil {
@@ -524,7 +524,7 @@ third_party {
 	util.LogErr(modErr)
 
 	// Create a new repo branch.
-	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, r.repoToolPath, "start", androidRepoBranchName, "."); repoBranchErr != nil {
+	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, "python3", r.repoToolPath, "start", androidRepoBranchName, "."); repoBranchErr != nil {
 		util.LogErr(r.abortMerge(ctx))
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
@@ -560,12 +560,12 @@ third_party {
 	}
 
 	// Upload the CL to Gerrit.
-	uploadArgs := []string{"upload", "--no-verify"}
+	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify"}
 	if rollEmails != nil && len(rollEmails) > 0 {
 		uploadArgs = append(uploadArgs, fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")))
 	}
 	uploadCommand := &exec.Command{
-		Name: r.repoToolPath,
+		Name: "python3",
 		Args: uploadArgs,
 		Dir:  r.childDir,
 		// The below is to bypass the blocking
