@@ -105,14 +105,6 @@ gazelle_dependencies()
 ##########################
 
 # Needed by @com_github_bazelbuild_remote_apis.
-load("@com_github_bazelbuild_remote_apis//:repository_rules.bzl", "switched_rules_by_language")
-
-switched_rules_by_language(
-    name = "bazel_remote_apis_imports",
-    go = True,
-)
-
-# Needed by @com_github_bazelbuild_remote_apis.
 http_archive(
     name = "com_google_protobuf",
     sha256 = "b8ab9bbdf0c6968cf20060794bc61e231fae82aaf69d6e3577c154181991f576",
